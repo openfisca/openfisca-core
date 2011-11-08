@@ -13,7 +13,7 @@ Des informations sont disponibles sur le site openfisca.fr
 
 Comment contribuer à OpenFisca (beta) ? 
 
-OpenFiscabeta est un projet en cours de développement sous licence
+OpenFisca (beta) est un projet en cours de développement sous licence
 GPLv3 ou supérieure. Le code source est librement accessible et
 modifiable. Certains pans de la législation ne sont pas encore
 intégrés. Étant donné l’ampleur de la tâche, notre ambition est de
@@ -25,5 +25,5 @@ Nous invitons les utilisateurs à nous transmettre leur remarques, les
 imprécisions ou erreurs identifiées, ainsi que les éventuelles
 propositions d’amélioration. Si vous voulez participer plus activement
 à l’évolution du programme, vous pouvez télécharger le code source sur
-GitHub (https://github.com/benjello/openFisca) et/ou nous contacter à
+GitHub (https://github.com/benjello/openfisca) et/ou nous contacter à
 contact@openfisca.fr.
