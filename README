@@ -1,0 +1,29 @@
+Qu’est- ce qu’ OpenFisca (beta) ?
+
+OpenFisca (beta) est un logiciel libre de simulation du système
+socio-fiscal français. Il permet de visualiser simplement un grand
+nombre de prestations sociales et d’impôts payés, par les ménages, et
+de simuler l’impact de réformes sur le budget des ménages. Il s’agit
+d’un outil à vocation pédagogique pour aider les citoyens à mieux
+comprendre le système socio-fiscal.  À terme, OpenFiscabeta intégrera
+l’ensemble du système socio-fiscal français et son évolution et
+permettra de calculer l’impact de réformes sur le budget de l’État.
+Des informations sont disponibles sur le site openfisca.fr
+
+
+Comment contribuer à OpenFisca (beta) ? 
+
+OpenFiscabeta est un projet en cours de développement sous licence
+GPLv3 ou supérieure. Le code source est librement accessible et
+modifiable. Certains pans de la législation ne sont pas encore
+intégrés. Étant donné l’ampleur de la tâche, notre ambition est de
+constituer une communauté de développeurs, d’économistes et de
+spécialistes de la fiscalité ou des prestations sociales pour
+maintenir et améliorer le programme.
+
+Nous invitons les utilisateurs à nous transmettre leur remarques, les
+imprécisions ou erreurs identifiées, ainsi que les éventuelles
+propositions d’amélioration. Si vous voulez participer plus activement
+à l’évolution du programme, vous pouvez télécharger le code source sur
+GitHub (https://github.com/benjello/openFisca) et/ou nous contacter à
+contact@openfisca.fr.
