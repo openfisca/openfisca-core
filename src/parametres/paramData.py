@@ -2,32 +2,26 @@
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
 """
-µSim, Logiciel libre de simulation du système socio-fiscal français
+openFisca, Logiciel libre de simulation du système socio-fiscal français
 Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
+This file is part of openFisca.
 
-This file is part of µSim.
-
-    µSim is free software: you can redistribute it and/or modify
+    openFisca is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    µSim is distributed in the hope that it will be useful,
+    openFisca is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with µSim.  If not, see <http://www.gnu.org/licenses/>.
+    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-def enum(*enumerated):
-    enums = dict(zip(enumerated, range(len(enumerated))))
-    enums["names"] = enumerated
-    return type('enum', (), enums)
     
-from PyQt4.QtXml import QDomDocument
+from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
 from Utils import Bareme
 from datetime import datetime
@@ -38,22 +32,31 @@ import copy
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
         for child in node._children:
-            setattr(self, child.name(), child)
+            setattr(self, child.code, child)
         for a, b in self.__dict__.iteritems():
-            if b.typeInfo() == 'CODE' or b.typeInfo() == 'BAREME':
+            if b.typeInfo == 'CODE' or b.typeInfo == 'BAREME':
                 if defaut:
-                    setattr(self,a, b.default())
+                    setattr(self,a, b.default)
                 else:
-                    setattr(self,a, b.value())
+                    setattr(self,a, b.value)
             else:
                 setattr(self,a, Tree2Object(b, defaut))
 
-class XmlReader(object):
-
-    def __init__(self, myFile, date = None):
+class XmlReader2(object):
+    def __init__(self, paramFile, date = None):
         super(XmlReader, self).__init__()
-        self._file = myFile
-        self._doc = minidom.parse(self._file)
+        self._doc = minidom.parse(paramFile)        
+        self.tree = Node('root')
+        if date is None: self._date = datetime.strptime(self._doc.childNodes[0].getAttribute('datesim'),"%Y-%m-%d").date()
+        else: self._date = date
+        self.handleNodeList(self._doc.childNodes, self.tree)
+        self.tree = self.tree.child(0)
+        self.param = Tree2Object(self.tree)
+
+class XmlReader(object):
+    def __init__(self, paramFile, date = None):
+        super(XmlReader, self).__init__()
+        self._doc = minidom.parse(paramFile)        
         self.tree = Node('root')
         if date is None: self._date = datetime.strptime(self._doc.childNodes[0].getAttribute('datesim'),"%Y-%m-%d").date()
         else: self._date = date
@@ -80,10 +83,10 @@ class XmlReader(object):
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
-                    myformat = element.getAttribute('format')
+                    valueFormat = element.getAttribute('format')
                     val = self.handleValues(element, self._date)
                     if not val is None:
-                        node = CodeNode(code, desc, float(val), parent, myformat)
+                        node = CodeNode(code, desc, float(val), parent, valueFormat)
                 else:
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -100,17 +103,15 @@ class XmlReader(object):
         return None
 
 class Node(object):
-    
-    def __init__(self, name, description = '', parent=None):
-        
+    def __init__(self, code, description = '', parent=None):        
         super(Node, self).__init__()
-        
-        self._name = name
-        self._children = []
-        self._description = description
         self._parent = parent
-        self._format = 'none' # may take 'none', 'percent', 'int', 'string'
-        self._typeInfo = 'NODE'
+        self._children = []
+
+        self.code = code
+        self.description = description
+        self.valueFormat = 'none'
+        self.typeInfo = 'NODE'
         
         if parent is not None:
             parent.addChild(self)
@@ -118,73 +119,12 @@ class Node(object):
     def rmv_empty_code(self):
         to_remove = []
         for child in self._children:
-            if not child.hasvalue():
+            if not child.hasValue():
                 to_remove.append(child.row())
             else:
                 child.rmv_empty_code()
         for indice in reversed(to_remove):
             self.removeChild(indice)
-
-    def asXml(self):
-        
-        doc = QDomDocument()
-        
-        node = doc.createElement(self.typeInfo())
-        node.setAttribute('datesim', CONF.get('simulation', 'datesim'))
-        doc.appendChild(node)
-       
-        for i in self._children:
-            i._recurseXml(doc, node)
-
-        return doc.toString(indent=4)
-
-    def _recurseXml(self, doc, parent):
-        if self.isdirty():
-            node = doc.createElement(self.typeInfo())
-            parent.appendChild(node)
-    
-            node.setAttribute('code', self.name())
-            node.setAttribute('description', self.description())
-    
-            for i in self._children:
-                i._recurseXml(doc, node)
-
-    def load(self, other):
-        for child in other._children:
-            for mychild in self._children:
-                if mychild.name() == child.name():
-                    mychild.load(child)
-
-    def name(self):
-        return self._name
-
-    def typeInfo(self):
-        return self._typeInfo
-    
-    def format(self):
-        return self._format
-
-    def hasvalue(self):
-        hasvalue = False
-        for child in self._children:
-            hasvalue = hasvalue or child.hasvalue()
-        return hasvalue
-    
-    def isdirty(self):
-        '''
-        Check if a value has been changed in a child object
-        '''
-        dirty = False
-        for child in self._children:
-            dirty = dirty or child.isdirty()
-        return dirty
-            
-    def description(self):
-        return self._description
-
-    def addChild(self, child):
-        self._children.append(child)
-        child._parent = self
 
     def insertChild(self, position, child):
         
@@ -205,6 +145,103 @@ class Node(object):
 
         return True
 
+    def asXml(self, fileName):
+        doc = ElementTree()
+        root = Element(tag = self.typeInfo, 
+                       attrib={'datesim': CONF.get('simulation', 'datesim')})
+
+        for i in self._children:
+            i._recurseXml(root)
+
+        doc._setroot(root)
+        return doc.write(fileName, encoding = "utf-8", method = "xml")
+
+    def _recurseXml(self, parent):
+        if self.isDirty():
+            child = SubElement(parent, 
+                               tag = self.typeInfo,
+                               attrib = {'code': self.code,
+                                         'description': self.description})
+            
+            for i in self._children:
+                i._recurseXml(child)
+
+    def load(self, other):
+        for child in other._children:
+            for mychild in self._children:
+                if mychild.code == child.code:
+                    mychild.load(child)
+
+    def getCode(self):
+        return self._code
+
+    def setCode(self, value):
+        self._code = value
+
+    code = property(getCode, setCode)
+    
+    def getType(self):
+        return self._typeInfo
+
+    def setType(self, value):
+        self._typeInfo = value
+
+    typeInfo = property(getType, setType)
+    
+    def getDescription(self):
+        return self._description
+
+    def setDescription(self, value):
+        self._description = value
+        
+    description = property(getDescription, setDescription)
+
+    def getValueFormat(self):
+        return self._format
+
+    def setValueFormat(self, value):
+        if not value in ('none', 'integer', 'percent'):
+            return Exception("Unknowned %s valueFormat: valueFormat can be 'none', 'integer', 'percent'" % value)
+        self._format = value
+    
+    valueFormat = property(getValueFormat, setValueFormat)
+
+    def getValue(self):
+        return self._value
+
+    def setValue(self, value):
+        self._value = value
+
+    value = property(getValue, setValue)
+
+    def getDefault(self):
+        return self._default
+
+    def setDefault(self, value):
+        self._default = value
+        
+    default = property(getDefault, setDefault)
+
+    def hasValue(self):
+        out = False
+        for child in self._children:
+            out = out or child.hasValue()
+        return out
+    
+    def isDirty(self):
+        '''
+        Check if a value has been changed in a child object
+        '''
+        dirty = False
+        for child in self._children:
+            dirty = dirty or child.isDirty()
+        return dirty
+            
+
+    def addChild(self, child):
+        self._children.append(child)
+        child._parent = self
+
     def child(self, row):
         return self._children[row]
     
@@ -218,169 +255,120 @@ class Node(object):
         if self._parent is not None:
             return self._parent._children.index(self)
 
-    def log(self, tabLevel=-1):
-        output     = ""
-        tabLevel += 1
-        
-        for i in range(tabLevel):
-            output += "\t"
-        
-        output += "|------" + self._name + "\n"
-        
-        for child in self._children:
-            output += child.log(tabLevel)
-        
-        tabLevel -= 1
-        output += "\n"
-        
-        return output
-
-    def __repr__(self):
-        return self.log()
-
     def data(self, column):        
-        if   column is 0: return self.description()
+        if column is 0: return self.description
     
     def setData(self, column, value):
-        if   column is 0: pass
+        if column is 0: pass
     
-    def resource(self):
-        return None
-
 class CodeNode(Node):
-    
-    def __init__(self, name, description, value, parent, myformat = 'none'):
-        super(CodeNode, self).__init__(name, description, parent)
-        self._value = value
-        self._default = value
-        self._typeInfo = 'CODE'
-        self._format = myformat
+    def __init__(self, code, description, value, parent, valueFormat = 'none'):
+        super(CodeNode, self).__init__(code, description, parent)
+        self.value = value
+        self.default = value
+        self.typeInfo = 'CODE'
+        self.valueFormat = valueFormat
 
-    def _recurseXml(self, doc, parent):
-        if self.isdirty():
-            node = doc.createElement(self.typeInfo())
-            parent.appendChild(node)
-    
-            node.setAttribute('code', self.name())
-            node.setAttribute('description', self.description())
-    
-            val = doc.createElement('VALUE')
-            node.appendChild(val)
-            val.setAttribute('valeur', '%f' % self.value())
+    def _recurseXml(self, parent):
+        if self.isDirty():
+            child = SubElement(parent, 
+                               tag = self.typeInfo,
+                               attrib = {'code': self.code,
+                                         'description': self.description})
+
             date = CONF.get('simulation', 'datesim')
-            val.setAttribute('deb', date)
-            val.setAttribute('fin', date)
-
-    def log(self, tabLevel=-1):
-        output     = ""
-        tabLevel += 1
-        
-        for i in range(tabLevel):
-            output += "\t"
-        
-        output += "|------" + self._name + ' : ' + str(self._value) + "\n"
-        
-        for child in self._children:
-            output += child.log(tabLevel)
-        
-        tabLevel -= 1
-        output += "\n"
-        
-        return output
+            SubElement(child, 
+                       tag = 'VALUE', 
+                       attrib = {'valeur': '%f' % self.value,
+                                 'deb': date,
+                                 'fin': date})
 
     def load(self, other):
-        self._value = other.value()
+        self.value = other.value
 
-    def value(self):
-        return self._value
-
-    def default(self):
-        return self._default
-
-    def hasvalue(self):
-        if self._value is None:
+    def hasValue(self):
+        if self.value is None:
             return False
         return True
     
-    def isdirty(self):
-        if self._value == self._default:
+    def isDirty(self):
+        if self.value == self.default:
             return False
         return True
         
     def data(self, column):
         r = super(CodeNode, self).data(column)        
-        if   column is 1: r = self.default()
-        if   column is 2: r = self.value()
+        if   column is 1: r = self.default
+        if   column is 2: r = self.value
         return r
 
     def setData(self, column, value):
         super(CodeNode, self).setData(column, value)        
         if   column is 1: pass
-        elif column is 2: self._value = value.toPyObject()
+        elif column is 2: self.value = value.toPyObject()
 
 class BaremeNode(Node):
     
-    def __init__(self, name, description, value, parent):
-        super(BaremeNode, self).__init__(name, description, parent)
-        self._value = value
-        self._default = copy.deepcopy(value)
-        self._typeInfo = 'BAREME'
+    def __init__(self, code, description, value, parent):
+        super(BaremeNode, self).__init__(code, description, parent)
+        self.value = value
+        self.default = copy.deepcopy(value)
+        self.typeInfo = 'BAREME'
 
-    def _recurseXml(self, doc, parent):
-        if self.isdirty():
-            node = doc.createElement(self.typeInfo())
-            parent.appendChild(node)
+    def _recurseXml(self, parent):
+        if self.isDirty():
+            child = SubElement(parent, 
+                               tag = self.typeInfo,
+                               attrib = {'code': self.code,
+                                         'description': self.description})
+
+
     
-            node.setAttribute('code', self.name())
-            node.setAttribute('description', self.description())
-            bareme = self._value
+            bareme = self.value
             S = bareme.seuils
             T = bareme.taux
             date = CONF.get('simulation', 'datesim')
 
-            for i in range(self._value.getNb()):
-                tranche = doc.createElement('TRANCHE')
-                tranche.setAttribute('code', 'tranche%d' % i)
-                node.appendChild(tranche)
-    
-                seuil = doc.createElement('SEUIL')
-                tranche.appendChild(seuil)
-                val = doc.createElement('VALUE')
-                seuil.appendChild(val)
-                val.setAttribute('valeur', '%f' % S[i])
-                val.setAttribute('deb', date)
-                val.setAttribute('fin', date)
-    
-                taux = doc.createElement('TAUX')
-                tranche.appendChild(taux)
-                val = doc.createElement('VALUE')
-                taux.appendChild(val)
-                val.setAttribute('valeur', '%f' % T[i])
-                val.setAttribute('deb', date)
-                val.setAttribute('fin', date)
+            for i in range(self.value.getNb()):
+                tranche = SubElement(child, 
+                                     tag = 'TRANCHE', 
+                                     attrib = {'code': 'tranche%d' % i})
 
-    def value(self):
-        return self._value
-    
-    def default(self):
-        return self._default
+                seuil = SubElement(tranche, 
+                                     tag = 'SEUIL', 
+                                     attrib = {'code': 'tranche%d' % i})
 
+                SubElement(seuil, 
+                           tag = 'VALUE', 
+                           attrib = {'valeur': '%f' % S[i],
+                                     'deb': date,
+                                     'fin': date})
+
+                taux = SubElement(tranche, 
+                                     tag = 'TAUX')
+
+                SubElement(taux, 
+                           tag = 'VALUE', 
+                           attrib = {'valeur': '%f' % T[i],
+                                     'deb': date,
+                                     'fin': date})
+                                 
     def load(self, other):
-        self._value = other.value()
+        self.value = other.value
         
     def data(self, column):
         r = super(BaremeNode, self).data(column)        
-        if   column is 1: r = self.value()
+        if   column is 1: r = self.value
         return r
     
     def setData(self, column, value):
         pass
         
-    def hasvalue(self):
+    def hasValue(self):
         return True
     
-    def isdirty(self):
-        if self._value == self._default:
+    def isDirty(self):
+        if self.value == self.default:
             return False
         return True
     

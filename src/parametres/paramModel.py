@@ -49,10 +49,10 @@ class PrestationModel(QAbstractItemModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             return QVariant(node.data(index.column()))
         if role == Qt.ToolTipRole:
-            return node.name()
+            return node.code
         # warning this role is deprecated, use foregroundrole instead
         if role == Qt.TextColorRole: 
-            if node.isdirty(): return QColor(Qt.red)
+            if node.isDirty(): return QColor(Qt.red)
             else: return QColor(Qt.black)
      
     def setData(self, index, value, role = Qt.EditRole):
@@ -83,7 +83,7 @@ class PrestationModel(QAbstractItemModel):
         elif col == 1:
             return Qt.ItemIsSelectable 
         elif col == 2:
-            if node.typeInfo() == 'NODE':
+            if node.typeInfo == 'NODE':
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable 
             else:
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable

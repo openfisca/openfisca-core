@@ -101,10 +101,10 @@ class ValueColumnDelegate(QStyledItemDelegate):
             node = index.internalPointer()
             val = index.model().data(index).toPyObject()
 
-            if node.typeInfo() == 'CODE':
-                if node.format() == 'percent':
+            if node.typeInfo == 'CODE':
+                if node.valueFormat == 'percent':
                     text = '%.2f %%  ' % (val*100)
-                elif node.format() == 'integer':
+                elif node.valueFormat == 'integer':
                     text = '%d  ' % val
                 else:
                     text = '%.2f  ' % val
@@ -114,7 +114,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
                 style.drawControl(QStyle.CE_ItemViewItem, styleOption, painter)
                 
-            elif node.typeInfo() == 'BAREME' and index.column()==2:
+            elif node.typeInfo == 'BAREME' and index.column()==2:
                 styleOption = QStyleOptionButton()
                 styleOption.rect = option.rect
                 styleOption.text = QString('Editer')
@@ -131,16 +131,16 @@ class ValueColumnDelegate(QStyledItemDelegate):
     
     def createEditor(self, parent, option, index):
         node = index.internalPointer()
-        if node.typeInfo() == 'CODE':
-            if node.format() == 'percent':
+        if node.typeInfo == 'CODE':
+            if node.valueFormat == 'percent':
                 editor = QDoubleSpinBox(parent)
                 editor.setSuffix('%')
-            elif node.format() == 'integer':
+            elif node.valueFormat == 'integer':
                 editor = QSpinBox(parent)
             else:
                 editor = QDoubleSpinBox(parent)
             editor.setMaximum(100000000)
-        elif node.typeInfo() == 'BAREME':
+        elif node.typeInfo == 'BAREME':
             editor = QPushButton(parent)
             editor.setText('Editer')
             value = node._value
@@ -154,18 +154,18 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         node = index.internalPointer()
-        if node.typeInfo() == 'BAREME':
+        if node.typeInfo == 'BAREME':
             return
-        if node.format() == 'percent':
-            editor.setValue(node.value()*100)
+        if node.valueFormat == 'percent':
+            editor.setValue(node.value*100)
         else:
-            editor.setValue(node.value())
+            editor.setValue(node.value)
 
     def setModelData(self, editor, model, index):
         node = index.internalPointer()
-        if node.typeInfo() == 'BAREME':
+        if node.typeInfo == 'BAREME':
             newValue = None
-        elif node.format() == 'percent':
+        elif node.valueFormat == 'percent':
             newValue = editor.value()*0.01
         else:
             newValue = editor.value()
