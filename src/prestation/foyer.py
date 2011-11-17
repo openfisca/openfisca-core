@@ -54,7 +54,7 @@ class IRPP(object):
                  'caseF', 'caseW', 'caseS', 'caseG', 'caseT',
                  'nbF', 'nbH', 'nbG', 'nbI', 'nbR', 'nbJ', 'nbN']
         for case in cases:
-            setattr(self, case, table.get('vous', case, 'foy', 'foyer'))
+            setattr(self, case, table.get(case, 'foy', qui = 'vous', table = 'declar'))
 
         table.close_()
                 
@@ -62,11 +62,11 @@ class IRPP(object):
 
         table.openReadMode()
         # On récupère l'âge au premier janvier du déclarant et de son conjoint
-        self.agev, self.agec = table.get(['vous', 'conj'], 'age', 'foy')
+        self.agev, self.agec = table.get('age', 'foy', qui = ['vous', 'conj'])
 
         
         # On récupère le statut marital
-        self.statmarit = table.get('vous', 'statmarit', 'foy')
+        self.statmarit = table.get('statmarit', 'foy', 'vous')
 
         self.marpac = (self.statmarit == 1) | (self.statmarit == 5)
         self.celdiv = (self.statmarit == 2) | (self.statmarit == 3)
@@ -81,7 +81,7 @@ class IRPP(object):
 
         #2 Revenus des valeurs et capitaux mobiliers
         # gains de levée d'options du foyer
-        table.setColl('glo',self.zglof)
+        table.setColl('glo',self.zglof, table = 'output')
         # TODO : ty ? uy ?
 
         # Revenus d'activité imposés au quotient
@@ -104,21 +104,21 @@ class IRPP(object):
         '''
         table = self.population
         table.openReadMode()
-        GH = table.get('vous', 'f6gh', 'foy', 'foyer')
-        DE = table.get('vous', 'f6de', 'foy', 'foyer')
-        VA = table.get('vous', 'f3va', 'foy', 'foyer')
-        VC = table.get('vous', 'f3vc', 'foy', 'foyer')
-        VE = table.get('vous', 'f3ve', 'foy', 'foyer')
-        VG = table.get('vous', 'f3vg', 'foy', 'foyer')
-        VH = table.get('vous', 'f3vh', 'foy', 'foyer')
-        VL = table.get('vous', 'f3vl', 'foy', 'foyer')
-        VM = table.get('vous', 'f3vm', 'foy', 'foyer')
-        BL = table.get('vous', 'f4bl', 'foy', 'foyer')
-        QM = table.get('vous', 'f5qm', 'foy', 'foyer')
-        RM = table.get('vous', 'f5rm', 'foy', 'foyer')
-        GA = table.get('vous', 'f7ga', 'foy', 'foyer')
-        GB = table.get('vous', 'f7gb', 'foy', 'foyer')
-        GC = table.get('vous', 'f7gc', 'foy', 'foyer')
+        GH = table.get('f6gh', 'foy', 'vous', table = 'declar')
+        DE = table.get('f6de', 'foy', 'vous', table = 'declar')
+        VA = table.get('f3va', 'foy', 'vous', table = 'declar')
+        VC = table.get('f3vc', 'foy', 'vous', table = 'declar')
+        VE = table.get('f3ve', 'foy', 'vous', table = 'declar')
+        VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
+        VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
+        VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
+        VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
+        BL = table.get('f4bl', 'foy', 'vous', table = 'declar')
+        QM = table.get('f5qm', 'foy', 'vous', table = 'declar')
+        RM = table.get('f5rm', 'foy', 'vous', table = 'declar')
+        GA = table.get('f7ga', 'foy', 'vous', table = 'declar')
+        GB = table.get('f7gb', 'foy', 'vous', table = 'declar')
+        GC = table.get('f7gc', 'foy', 'vous', table = 'declar')
         table.close_()
         self._retrieveIndiv(table)
 
@@ -241,31 +241,31 @@ class IRPP(object):
 
         # impot sur le revenu du foyer (hors prélèvement libératoire, revenus au quotient)
         irpp   = -(mciria + self.ppetot - mcirra - mnirvp - mnirqu)
-        table.setColl('irpp', irpp)
+        table.setColl('irpp', irpp, table = 'output')
 
         impforf = mnirvp + mnirqu
         
         # TODO: La taxe d'habitation
         thab = - zeros(self.taille)
-        table.setColl('thab', thab)
+        table.setColl('thab', thab, table = 'output')
         
         zdivf = VC + VE + VG - VH + VL + VM \
               + self.rpns_pvce + self.rpns_pvct - self.rpns_mvct - self.rpns_mvlt
         
-        table.setColl('div', zdivf)
+        table.setColl('div', zdivf, table = 'output')
 
         zdiv_rmi = VC + VE + VG + VL + VM
         
-        table.setColl('div_rmi', zdiv_rmi)
+        table.setColl('div_rmi', zdiv_rmi, table = 'output')
 
         revColl = self.tspre + self.rvcme + self.zetrf*0.9 + self.zfonf + zdivf + self.zglof - self.zalvf - GA - GB - GC - abaspe
-        table.setColl('revColl', revColl)
+        table.setColl('revColl', revColl, table = 'output')
         
         # pour le calcul de l'allocation de soutien familial     
         asf_elig = 1*(self.caseT | self.caseL)
-        table.set('vous','asf_elig', asf_elig, 'foy')
+        table.set('asf_elig', asf_elig, 'foy', 'vous', table = 'output')
         
-        table.set('vous','al_nbinv', self.nbR, 'foy')
+        table.set('al_nbinv', self.nbR, 'foy', 'vous', table = 'output')
         
         table.close_()
 
@@ -276,16 +276,16 @@ class IRPP(object):
         '''
         Gains de levée d'option
         '''
-        f1tv = table.get('vous', 'f1tv', 'foy', 'foyer')
-        f1tw = table.get('vous', 'f1tw', 'foy', 'foyer')
-        f1tx = table.get('vous', 'f1tx', 'foy', 'foyer')
-        f1uv = table.get('vous', 'f1uv', 'foy', 'foyer')
-        f1uw = table.get('vous', 'f1uw', 'foy', 'foyer')
-        f1ux = table.get('vous', 'f1ux', 'foy', 'foyer')
-        f3vf = table.get('vous', 'f3vf', 'foy', 'foyer')
-        f3vi = table.get('vous', 'f3vi', 'foy', 'foyer')
-        f3vj = table.get('vous', 'f3vj', 'foy', 'foyer')
-        f3vk = table.get('vous', 'f3vk', 'foy', 'foyer')
+        f1tv = table.get('f1tv', 'foy', 'vous', table = 'declar')
+        f1tw = table.get('f1tw', 'foy', 'vous', table = 'declar')
+        f1tx = table.get('f1tx', 'foy', 'vous', table = 'declar')
+        f1uv = table.get('f1uv', 'foy', 'vous', table = 'declar')
+        f1uw = table.get('f1uw', 'foy', 'vous', table = 'declar')
+        f1ux = table.get('f1ux', 'foy', 'vous', table = 'declar')
+        f3vf = table.get('f3vf', 'foy', 'vous', table = 'declar')
+        f3vi = table.get('f3vi', 'foy', 'vous', table = 'declar')
+        f3vj = table.get('f3vj', 'foy', 'vous', table = 'declar')
+        f3vk = table.get('f3vk', 'foy', 'vous', table = 'declar')
         return f1tv + f1tw + f1tx + f1uv + f1uw + f1ux + f3vf + f3vi + f3vj + f3vk                   
 
     def Alloc(self,P, table):
@@ -295,7 +295,7 @@ class IRPP(object):
         if P.alloc_imp:
             # On récupère les allocations familiales perçues par les membres du foyer
             table.openReadMode()
-            temp = table.get(self.people, 'af', 'foy', sumqui = True)
+            temp = table.get('af', 'foy', qui = self.people, sumqui = True)
             table.close_()
             return temp
         else:
@@ -308,19 +308,19 @@ class IRPP(object):
         TRAITEMENTS SALAIRES PENSIONS ET RENTES
         '''
         table.openReadMode()         
-        AJ, BJ, CJ, DJ, EJ = table.get(self.people, 'sal', 'foy')
-        AI, BI, CI, DI, EI = table.get(self.people, 'choCheckBox', 'foy')
-        AP, BP, CP, DP, EP = table.get(self.people, 'cho', 'foy')
-        AS, BS, CS, DS, ES = table.get(self.people, 'rst', 'foy')
-        AK, BK, CK, DK, EK = table.get(self.people, 'fra', 'foy')
-        AO, BO, CO, DO, EO = table.get(self.people, 'alr', 'foy')
-        AU, BU, CU, DU, EU = table.get(self.people, 'hsup', 'foy')
-        AW = table.get('vous', 'f1aw', 'foy', 'foyer')
-        BW = table.get('vous', 'f1bw', 'foy', 'foyer')
-        CW = table.get('vous', 'f1cw', 'foy', 'foyer')
-        DW = table.get('vous', 'f1dw', 'foy', 'foyer')
-        VJ = table.get('vous', 'f3vj', 'foy', 'foyer')
-        VK = table.get('vous', 'f3vk', 'foy', 'foyer')
+        AJ, BJ, CJ, DJ, EJ = table.get('sal', 'foy', self.people)
+        AI, BI, CI, DI, EI = table.get('choCheckBox', 'foy', self.people)
+        AP, BP, CP, DP, EP = table.get('cho', 'foy', self.people)
+        AS, BS, CS, DS, ES = table.get('rst', 'foy', self.people)
+        AK, BK, CK, DK, EK = table.get('fra', 'foy', self.people)
+        AO, BO, CO, DO, EO = table.get('alr', 'foy', self.people)
+        AU, BU, CU, DU, EU = table.get('hsup', 'foy', self.people)
+        AW = table.get('f1aw', 'foy', 'vous', table = 'declar')
+        BW = table.get('f1bw', 'foy', 'vous', table = 'declar')
+        CW = table.get('f1cw', 'foy', 'vous', table = 'declar')
+        DW = table.get('f1dw', 'foy', 'vous', table = 'declar')
+        VJ = table.get('f3vj', 'foy', 'vous', table = 'declar')
+        VK = table.get('f3vk', 'foy', 'vous', table = 'declar')
         table.close_()        
 
         def salnet(dumchom, revsal, fraispro, P):
@@ -371,12 +371,12 @@ class IRPP(object):
                      P.abatviag.taux4*DW)
         
         table.openWriteMode()
-        table.set('vous', 'tspr', salpenv, 'foy')
-        table.set('conj', 'tspr', salpenc, 'foy')
-        table.set('pac1', 'tspr', salpen1, 'foy')
-        table.set('pac2', 'tspr', salpen2, 'foy')
-        table.set('pac3', 'tspr', salpen3, 'foy')
-        table.set('vous', 'rto', rto, 'foy')
+        table.set('tspr', salpenv, 'foy', 'vous', table = 'output')
+        table.set('tspr', salpenc, 'foy', 'conj', table = 'output')
+        table.set('tspr', salpen1, 'foy', 'pac1', table = 'output')
+        table.set('tspr', salpen2, 'foy', 'pac2', table = 'output')
+        table.set('tspr', salpen3, 'foy', 'pac3', table = 'output')
+        table.set('rto', rto, 'foy', 'vous', table = 'output')
         table.close_()
 
         self.tspre = tot2
@@ -387,23 +387,23 @@ class IRPP(object):
         REVENUS DES VALEURS ET CAPITAUX MOBILIERS
         '''
         table.openReadMode()
-        CH = table.get('vous', 'f2ch', 'foy', 'foyer')
-        DC = table.get('vous', 'f2dc', 'foy', 'foyer')
-        TS = table.get('vous', 'f2ts', 'foy', 'foyer')
-        CA = table.get('vous', 'f2ca', 'foy', 'foyer')
-        FU = table.get('vous', 'f2fu', 'foy', 'foyer')
-        GO = table.get('vous', 'f2go', 'foy', 'foyer')
-        TR = table.get('vous', 'f2tr', 'foy', 'foyer')
-        AB = table.get('vous', 'f2ab', 'foy', 'foyer')
-        DA = table.get('vous', 'f2da', 'foy', 'foyer')
-        DH = table.get('vous', 'f2dh', 'foy', 'foyer')
-        EE = table.get('vous', 'f2ee', 'foy', 'foyer')
-        VI = table.get('vous', 'f3vi', 'foy', 'foyer')
-        AA = table.get('vous', 'f2aa', 'foy', 'foyer')
-        AL = table.get('vous', 'f2al', 'foy', 'foyer')
-        AM = table.get('vous', 'f2am', 'foy', 'foyer')
-        AN = table.get('vous', 'f2an', 'foy', 'foyer')
-        if self.year <= 2004: GR = table.get('vous', 'f2gr', 'foy', 'foyer')
+        CH = table.get('f2ch', 'foy', 'vous', table = 'declar')
+        DC = table.get('f2dc', 'foy', 'vous', table = 'declar')
+        TS = table.get('f2ts', 'foy', 'vous', table = 'declar')
+        CA = table.get('f2ca', 'foy', 'vous', table = 'declar')
+        FU = table.get('f2fu', 'foy', 'vous', table = 'declar')
+        GO = table.get('f2go', 'foy', 'vous', table = 'declar')
+        TR = table.get('f2tr', 'foy', 'vous', table = 'declar')
+        AB = table.get('f2ab', 'foy', 'vous', table = 'declar')
+        DA = table.get('f2da', 'foy', 'vous', table = 'declar')
+        DH = table.get('f2dh', 'foy', 'vous', table = 'declar')
+        EE = table.get('f2ee', 'foy', 'vous', table = 'declar')
+        VI = table.get('f3vi', 'foy', 'vous', table = 'declar')
+        AA = table.get('f2aa', 'foy', 'vous', table = 'declar')
+        AL = table.get('f2al', 'foy', 'vous', table = 'declar')
+        AM = table.get('f2am', 'foy', 'vous', table = 'declar')
+        AN = table.get('f2an', 'foy', 'vous', table = 'declar')
+        if self.year <= 2004: GR = table.get('f2gr', 'foy', 'vous', table = 'declar')
         else: GR = 0
         table.close_()
 
@@ -456,10 +456,10 @@ class IRPP(object):
 
         self.rvcme = revcap_lib + revcap_bar
         table.openWriteMode()
-        table.setColl('avf', avf)
-        table.setColl('revcap_bar', revcap_bar)
-        table.setColl('revcap_lib', revcap_lib)
-        table.setColl('imp_lib', imp_lib)
+        table.setColl('avf', avf, table = 'output')
+        table.setColl('revcap_bar', revcap_bar, table = 'output')
+        table.setColl('revcap_lib', revcap_lib, table = 'output')
+        table.setColl('imp_lib', imp_lib, table = 'output')
         table.close_()
                 
         ## pour le calcul du revenu fiscal de référence
@@ -472,11 +472,11 @@ class IRPP(object):
         REVENUS FONCIERS
         '''
         table.openReadMode()
-        BA = table.get('vous', 'f4ba', 'foy', 'foyer')
-        BB = table.get('vous', 'f4bb', 'foy', 'foyer')
-        BC = table.get('vous', 'f4bc', 'foy', 'foyer')
-        BD = table.get('vous', 'f4bd', 'foy', 'foyer')
-        BE = table.get('vous', 'f4be', 'foy', 'foyer')
+        BA = table.get('f4ba', 'foy', 'vous', table = 'declar')
+        BB = table.get('f4bb', 'foy', 'vous', table = 'declar')
+        BC = table.get('f4bc', 'foy', 'vous', table = 'declar')
+        BD = table.get('f4bd', 'foy', 'vous', table = 'declar')
+        BE = table.get('f4be', 'foy', 'vous', table = 'declar')
         table.close_()
         
         ## Calcul des totaux        
@@ -494,8 +494,8 @@ class IRPP(object):
         self.rfon_rmi = BA + BE
 
         table.openWriteMode()
-        table.setColl('rfon',self.rfon_rmi)
-        table.setColl('fon',self.zfonf)
+        table.setColl('rfon',self.rfon_rmi, table = 'output')
+        table.setColl('fon',self.zfonf, table = 'output')
         table.close_()
 
         return RFON
@@ -644,9 +644,9 @@ class IRPP(object):
         ragc = self.f5in + self.f5io + self.f5ib + self.f5ic - self.f5if + self.f5ih + self.f5ii - self.f5il + self.f5im
         ragp = self.f5jn + self.f5jo + self.f5jb + self.f5jc - self.f5jf + self.f5jh + self.f5ji - self.f5jl + self.f5jm
         
-        table.set('vous','rag', ragv, 'foy')
-        table.set('conj','rag', ragc, 'foy')
-        table.set('pac1','rag', ragp, 'foy')
+        table.set('rag', ragv, 'foy', 'vous')
+        table.set('rag', ragc, 'foy', 'conj')
+        table.set('rag', ragp, 'foy', 'pac1')
         
         self.zragf = ragv + ragc + ragp
         
@@ -702,9 +702,9 @@ class IRPP(object):
         ricc = zbicc - cbicc
         ricp = zbicp - cbicp
         
-        table.set('vous','ric', ricv, 'foy')
-        table.set('conj','ric', ricc, 'foy')
-        table.set('pac1','ric', ricp, 'foy')
+        table.set('ric', ricv, 'foy', 'vous')
+        table.set('ric', ricc, 'foy', 'conj')
+        table.set('ric', ricp, 'foy', 'pac1')
         
         self.zricf = ricv + ricc + ricp
         
@@ -776,9 +776,9 @@ class IRPP(object):
         racc = zaccc - caccc
         racp = zaccp - caccp
 
-        table.set('vous', 'rac', racv, 'foy')
-        table.set('conj', 'rac', racc, 'foy')
-        table.set('pac1', 'rac', racp, 'foy')
+        table.set('rac', racv, 'foy', 'vous')
+        table.set('rac', racc, 'foy', 'conj')
+        table.set('rac', racp, 'foy', 'pac1')
         
         
         self.zracf = racv + racc + racp
@@ -815,9 +815,9 @@ class IRPP(object):
         rncc = zbncc - cbncc
         rncp = zbncp - cbncp
 
-        table.set('vous','rnc', rncv, 'foy')
-        table.set('conj','rnc', rncc, 'foy')
-        table.set('pac1','rnc', rncp, 'foy')
+        table.set('rnc', rncv, 'foy', 'vous')
+        table.set('rnc', rncc, 'foy', 'conj')
+        table.set('rnc', rncp, 'foy', 'pac1')
                 
         self.zrncf =  rncv +  rncv +  rncp
         
@@ -861,9 +861,9 @@ class IRPP(object):
         self.rpnsc = ragc + ricc + racc + rncc
         self.rpnsp = ragp + ricp + racp + rncp
         
-        table.set('vous', 'rpns', self.rpnsv, 'foy')
-        table.set('conj', 'rpns', self.rpnsc, 'foy')
-        table.set('pac1', 'rpns', self.rpnsp, 'foy')   
+        table.set('rpns', self.rpnsv, 'foy', 'vous')
+        table.set('rpns', self.rpnsc, 'foy', 'conj')
+        table.set('rpns', self.rpnsp, 'foy', 'pac1')   
         
         table.close_()
 
@@ -884,12 +884,12 @@ class IRPP(object):
     def Deficit_anterieur(self):
         table = self.population
         table.openReadMode()
-        FA = table.get('vous', 'f6fa', 'foy', 'foyer')
-        FB = table.get('vous', 'f6fb', 'foy', 'foyer')
-        FC = table.get('vous', 'f6fc', 'foy', 'foyer')
-        FD = table.get('vous', 'f6fd', 'foy', 'foyer')
-        FE = table.get('vous', 'f6fe', 'foy', 'foyer')
-        FL = table.get('vous', 'f6fl', 'foy', 'foyer')
+        FA = table.get('f6fa', 'foy', 'vous', table = 'declar')
+        FB = table.get('f6fb', 'foy', 'vous', table = 'declar')
+        FC = table.get('f6fc', 'foy', 'vous', table = 'declar')
+        FD = table.get('f6fd', 'foy', 'vous', table = 'declar')
+        FE = table.get('f6fe', 'foy', 'vous', table = 'declar')
+        FL = table.get('f6fl', 'foy', 'vous', table = 'declar')
         table.close_()
         return FA + FB + FC + FD + FE + FL
 
@@ -909,7 +909,7 @@ class IRPP(object):
         table.close_()
 
         table.openWriteMode()
-        table.setColl('alv', -self.zalvf)
+        table.setColl('alv', -self.zalvf, table = 'output')
         table.close_()
 
     def Abattements(self, P, rng):
@@ -1099,14 +1099,14 @@ class IRPP(object):
     
     def Plus_values(self, P, table):
         table.openReadMode()
-        VG = table.get('vous', 'f3vg', 'foy', 'foyer')
-        VH = table.get('vous', 'f3vh', 'foy', 'foyer')
-        VL = table.get('vous', 'f3vl', 'foy', 'foyer')
-        VM = table.get('vous', 'f3vm', 'foy', 'foyer')
-        VI = table.get('vous', 'f3vi', 'foy', 'foyer')
-        VF = table.get('vous', 'f3vf', 'foy', 'foyer')
+        VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
+        VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
+        VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
+        VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
+        VI = table.get('f3vi', 'foy', 'vous', table = 'declar')
+        VF = table.get('f3vf', 'foy', 'vous', table = 'declar')
         if self.year >= 2008:
-            VD = table.get('vous', 'f3vd', 'foy', 'foyer')
+            VD = table.get('f3vd', 'foy', 'vous', table = 'declar')
         table.close_()
         if self.year <= 2007:
             # revenus taxés à un taux proportionnel
@@ -1149,28 +1149,28 @@ class IRPP(object):
         '''
         table = self.population
         table.openReadMode()
-        AJ, BJ, CJ, DJ, EJ = table.get(self.people, 'sal', 'foy')
-        AX, BX, CX, DX, QX = table.get(self.people, 'ppeCheckBox', 'foy')
-        AV, BV, CV, DV, QV = table.get(self.people, 'ppeHeure', 'foy')
-        AU, BU, CU, DU, EU = table.get(self.people, 'hsup', 'foy')
-        TV = table.get('vous', 'f1tv', 'foy', 'foyer') 
-        UV = table.get('vous', 'f1uv', 'foy', 'foyer') 
-        TW = table.get('vous', 'f1tw', 'foy', 'foyer') 
-        UW = table.get('vous', 'f1uw', 'foy', 'foyer') 
-        TX = table.get('vous', 'f1tx', 'foy', 'foyer') 
-        UX = table.get('vous', 'f1ux', 'foy', 'foyer') 
-        AQ = table.get('vous', 'f1aq', 'foy', 'foyer') 
-        BQ = table.get('vous', 'f1bq', 'foy', 'foyer') 
-        LZ = table.get('vous', 'f1lz', 'foy', 'foyer') 
-        MZ = table.get('vous', 'f1mz', 'foy', 'foyer') 
-        VJ = table.get('vous', 'f3vj', 'foy', 'foyer')
-        VK = table.get('vous', 'f3vk', 'foy', 'foyer') 
-        NV = table.get('vous', 'f5nv', 'foy', 'foyer') 
-        OV = table.get('vous', 'f5ov', 'foy', 'foyer') 
-        PV = table.get('vous', 'f5pv', 'foy', 'foyer') 
-        NW = table.get('vous', 'f5nw', 'foy', 'foyer') 
-        OW = table.get('vous', 'f5ow', 'foy', 'foyer') 
-        PW = table.get('vous', 'f5pw', 'foy', 'foyer') 
+        AJ, BJ, CJ, DJ, EJ = table.get('sal', 'foy', self.people)
+        AX, BX, CX, DX, QX = table.get('ppeCheckBox', 'foy', self.people)
+        AV, BV, CV, DV, QV = table.get('ppeHeure', 'foy', self.people)
+        AU, BU, CU, DU, EU = table.get('hsup', 'foy', self.people)
+        TV = table.get('f1tv', 'foy', 'vous', table = 'declar') 
+        UV = table.get('f1uv', 'foy', 'vous', table = 'declar') 
+        TW = table.get('f1tw', 'foy', 'vous', table = 'declar') 
+        UW = table.get('f1uw', 'foy', 'vous', table = 'declar') 
+        TX = table.get('f1tx', 'foy', 'vous', table = 'declar') 
+        UX = table.get('f1ux', 'foy', 'vous', table = 'declar') 
+        AQ = table.get('f1aq', 'foy', 'vous', table = 'declar') 
+        BQ = table.get('f1bq', 'foy', 'vous', table = 'declar') 
+        LZ = table.get('f1lz', 'foy', 'vous', table = 'declar') 
+        MZ = table.get('f1mz', 'foy', 'vous', table = 'declar') 
+        VJ = table.get('f3vj', 'foy', 'vous', table = 'declar')
+        VK = table.get('f3vk', 'foy', 'vous', table = 'declar') 
+        NV = table.get('f5nv', 'foy', 'vous', table = 'declar') 
+        OV = table.get('f5ov', 'foy', 'vous', table = 'declar') 
+        PV = table.get('f5pv', 'foy', 'vous', table = 'declar') 
+        NW = table.get('f5nw', 'foy', 'vous', table = 'declar') 
+        OW = table.get('f5ow', 'foy', 'vous', table = 'declar') 
+        PW = table.get('f5pw', 'foy', 'vous', table = 'declar') 
         table.close_()
 
         # coefficient de conversion en cas de changement de situation en cours
@@ -1307,7 +1307,7 @@ class IRPP(object):
         self.zppef  = PPE_tot
         
         table.openWriteMode()
-        table.setColl('ppe',self.zppef)
+        table.setColl('ppe',self.zppef, table= 'output')
         table.close_()
 
         return PPE_tot

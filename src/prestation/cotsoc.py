@@ -46,40 +46,40 @@ class cotsoccal(object):
         table.openReadMode()
 
 # revenus d'activité et revenus de remplacement        
-        self.sal = table.getIndiv('sal')
-        self.hsup = table.getIndiv('hsup')
-        self.cat = table.getIndiv('cat') # cadre, non-cadre, fonctionnaire, 
-        self.cho = table.getIndiv('cho')
-        self.rst = table.getIndiv('rst')
+        self.sal = table.get('sal')
+        self.hsup = table.get('hsup')
+        self.cat = table.get('cat') # cadre, non-cadre, fonctionnaire, 
+        self.cho = table.get('cho')
+        self.rst = table.get('rst')
         
-        self.csgTauxPlein = table.getIndiv('csgTauxPlein')
+        self.csgTauxPlein = table.get('csgTauxPlein')
 
 # revenus du capital
 #  revenus du patrimone  non soumis à prélèvement libératoire (imposé au barème)
         
-        BA = table.getIndiv('f4ba', 'foyer')
-        BB = table.getIndiv('f4bb', 'foyer')
-        BC = table.getIndiv('f4bc', 'foyer')
-#        BD = table.getIndiv('f4bd', 'foyer')
-        BE = table.getIndiv('f4be', 'foyer')
+        BA = table.get('f4ba', table = 'declar')
+        BB = table.get('f4bb', table = 'declar')
+        BC = table.get('f4bc', table = 'declar')
+#        BD = table.get('f4bd', table = 'declar')
+        BE = table.get('f4be', table = 'declar')
         
-        AW = table.getIndiv('f1aw', 'foyer')
-        BW = table.getIndiv('f1bw', 'foyer')
-        CW = table.getIndiv('f1cw', 'foyer')
-        DW = table.getIndiv('f1dw', 'foyer')
+        AW = table.get('f1aw', table = 'declar')
+        BW = table.get('f1bw', table = 'declar')
+        CW = table.get('f1cw', table = 'declar')
+        DW = table.get('f1dw', table = 'declar')
         
         fon = BA - BB - BC + np.round(BE*(1-P_defaut.ir.microfoncier.taux))
         rto =  AW + BW + CW + DW
      
-        CH = table.getIndiv('f2ch', 'foyer')
-        DC = table.getIndiv('f2dc', 'foyer')
-        TS = table.getIndiv('f2ts', 'foyer')
-        CA = table.getIndiv('f2ca', 'foyer')
-        FU = table.getIndiv('f2fu', 'foyer')
-        GO = table.getIndiv('f2go', 'foyer')
-        TR = table.getIndiv('f2tr', 'foyer')
-        AB = table.getIndiv('f2ab', 'foyer')
-        if self.year <= 2004: GR = table.getIndiv('f2gr', 'foyer')
+        CH = table.get('f2ch', table = 'declar')
+        DC = table.get('f2dc', table = 'declar')
+        TS = table.get('f2ts', table = 'declar')
+        CA = table.get('f2ca', table = 'declar')
+        FU = table.get('f2fu', table = 'declar')
+        GO = table.get('f2go', table = 'declar')
+        TR = table.get('f2tr', table = 'declar')
+        AB = table.get('f2ab', table = 'declar')
+        if self.year <= 2004: GR = table.get('f2gr', table = 'declar')
         else: GR = 0
 
 
@@ -92,9 +92,9 @@ class cotsoccal(object):
 
 #  revenus du patrimoine  soumis à prélèvement libératoire
 
-        DA = table.getIndiv('f2da', 'foyer')
-        DH = table.getIndiv('f2dh', 'foyer')
-        EE = table.getIndiv('f2ee', 'foyer')
+        DA = table.get('f2da', table = 'declar')
+        DH = table.get('f2dh', table = 'declar')
+        EE = table.get('f2ee', table = 'declar')
 
         if self.year <=2007: val = DH + EE
         else:                val = DA + DH + EE
@@ -351,9 +351,9 @@ class cotsoccal(object):
         '''
         table = self.population
         table.openReadMode()
-        nbF = table.getIndiv('nbF', 'foyer')
-        nbH = table.getIndiv('nbH', 'foyer')
-        statmarit = table.getIndiv('statmarit')
+        nbF = table.get('nbF', table = 'declar')
+        nbH = table.get('nbH', table = 'declar')
+        statmarit = table.get('statmarit')
         table.close_()
         nbEnf = (nbF + nbH/2)
         ae = nbEnf*P.abatt_enfant

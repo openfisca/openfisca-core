@@ -50,7 +50,7 @@ def famille_wrapper(enfant=True, crds=True):
                 
             setattr(self, name + '_tot' ,  tot_val)
             self.population.openWriteMode()
-            self.population.set('chef', name, tot_val, 'fam')
+            self.population.set(name, tot_val, 'fam', 'chef', table = 'output')
             self.population.close_()
                             
         return wrapper
@@ -68,31 +68,34 @@ class Famille(object):
         super(Famille,self).__init__()
 
         self.population = population
-        self.datesim = self.population.datesim
-        self.taille = self.population.nbFam
-        self.nbenfmax = self.population.nbenfmax
+        table = self.population        
         
-        self.population.openReadMode()
         
-        self.nbpar = 1 + 1*(self.population.get('part','quifam', 'fam')==1)
+        self.datesim = table.datesim
+        self.taille = table.nbFam
+        self.nbenfmax = table.nbenfmax
+
+        table.openReadMode()
+        
+        self.nbpar = 1 + 1*(table.get('quifam', unit = 'fam', qui = 'part')==1)
         self.isol = self.nbpar == 1    # si parent isolé
         self.coup = self.nbpar == 2    # si couple (marié, pacsé ou non)
         # TODO : compléter
-        self.maries = (self.population.get('part','statmarit', 'fam')==1)
+        self.maries = (table.get('statmarit', 'fam', 'part')==1)
 
         suffixe_enfants = ['%d' % i for i in range(1,self.nbenfmax+1)]
         suffixe = ['C', 'P'] + suffixe_enfants
         
         enfants = ['enf%d' % i for i in range(1,self.nbenfmax+1)]
         
-        self.agemC, self.agemP = np.array(self.population.get(["chef", "part"], "agem", 'fam', default = - 9999))
+        self.agemC, self.agemP = np.array(table.get('agem', 'fam', qui = ["chef", "part"], default = - 9999))
         self.ageC = np.floor(self.agemC/12)  # TODO mensualiser 
         self.ageP = np.floor(self.agemP/12)
 
-        self.agem_enfants = np.array(self.population.get(enfants, 'agem', 'fam', default = - 9999))
+        self.agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
         
         people = ['chef', 'part'] + enfants
-        invs   = self.population.get(people, 'inv', 'fam')
+        invs   = table.get('inv', 'fam', people)
         for i in range(self.nbenfmax + 2):
             suf = suffixe[i]
             setattr(self, 'inv'+ suf, invs[i] )
@@ -101,15 +104,15 @@ class Famille(object):
         # TODO: Dans Population une fonction qui check s'il a plus d'une famille dans un ménage
         self.coloc = zeros(self.taille, dtype = bool)
         
-        self.actC, self.actP = self.population.get(['chef', 'part'], 'activite', 'fam')
+        self.actC, self.actP = table.get('activite', 'fam', ['chef', 'part'])
         self.etuC   = self.actC == 2
         self.etuP   = self.actC == 2
         
-        self.so       = self.population.get('chef', 'so', 'fam')        
-        self.al_zone  = self.population.get('chef', 'zone_apl', 'fam')
-        self.loyer    = self.population.get('chef', 'loyer', 'fam')
+        self.so       = table.get('so', 'fam', 'chef')        
+        self.al_zone  = table.get('zone_apl', 'fam', 'chef')
+        self.loyer    = table.get('loyer', 'fam', 'chef')
         
-        self.population.close_()
+        table.close_()
 
     def getRevEnf(self, P):
         '''
@@ -120,7 +123,7 @@ class Famille(object):
         smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
         enfants = ['enf%d' % i for i in range(1,self.nbenfmax+1)]
         self.population.openReadMode()   
-        self.smic55 = (np.array(self.population.get(enfants, 'sal', 'fam', default = 0)) > P.fam.af.seuil_rev_taux*smic_annuel) 
+        self.smic55 = (np.array(self.population.get('sal', 'fam', enfants, default = 0)) > P.fam.af.seuil_rev_taux*smic_annuel) 
         self.population.close_()    
 
     def getRev(self, P):
@@ -128,18 +131,20 @@ class Famille(object):
         Récupère les revenus qui provienne de la déclaration. Cette fonction ne doit être appellée 
         qu'après être passé par "Foyer"
         '''
-        self.population.openReadMode()
+        table = self.population
+        table.openReadMode()
         # revenus categoriels du chef de famille et de son partenaire
         # TODO: ici, beaucoup de variable qui ne servent à rien 
-        varlist = ['sal', 'hsup', 'cho', 'rst', 'alr', 'rto', 'revcap_bar', 'revcap_lib', 'etr', 'tspr', 'rpns', 'rfon', 'revColl', 'asf_elig', 'al_nbinv', 'div_rmi']
+        vardict = {'input': ['sal', 'hsup', 'cho', 'rst', 'alr'], 'output':['rto', 'revcap_bar', 'revcap_lib', 'etr', 'tspr', 'rpns', 'rfon', 'revColl', 'asf_elig', 'al_nbinv', 'div_rmi']}
         #, 'rag', 'ric', 'rnc', 'rac',       ]
 
-        for cod in varlist:
-            temp = self.population.get(['chef','part'],cod, 'fam')
-            if cod in ['tspr', 'rpns', 'sal', 'etr', 'div_rmi', 'hsup']:
-                setattr(self, '%sC' % cod, temp[0])
-                setattr(self, '%sP' % cod, temp[1])
-            setattr(self, cod, temp[0] + temp[1])
+        for tbl, varlist in vardict.iteritems():
+            for cod in varlist:    
+                temp = table.get(cod, 'fam', ['chef','part'], table = tbl)
+                if cod in ['tspr', 'rpns', 'sal', 'etr', 'div_rmi', 'hsup']:
+                    setattr(self, '%sC' % cod, temp[0])
+                    setattr(self, '%sP' % cod, temp[1])
+                setattr(self, cod, temp[0] + temp[1])
                         
         # Revenus d'activité au sens du RSA introduit ici 
         self.RaRsaC = max_(0,self.salC + self.hsupC + self.rpnsC + self.etrC + self.div_rmiC)
@@ -149,7 +154,7 @@ class Famille(object):
 
 
         self.BaseRessourcePF(P)
-        self.population.close_()
+        table.close_()
 
     def BaseRessourcePF(self, P):
         '''
@@ -763,17 +768,18 @@ class Famille(object):
         self.paje_crds  = round(self.paje_brut*crds, 2)
         self.paje_tot   = self.paje_brut - self.paje_crds
 #        self.paje_tot_m = round(self.paje_brut_m*(1-crds), 2)
-        
-        self.population.openWriteMode()
-        self.population.set('chef', 'paje', self.paje_tot, 'fam')
+
+        table = self.population
+        table.openWriteMode()
+        table.set('paje', self.paje_tot, 'fam', 'chef', table = 'output')
         
         self.cf_brut = round(cf_brut_m.sum(axis=0), 2)
         self.cf_crds   = round(self.cf_brut*crds, 2)
         self.cf_tot    = self.cf_brut - self.cf_crds
 #        self.cf_tot_m = round(self.cf_brut_m*(1-crds), 2)
         
-        self.population.set('chef', 'cf', self.cf_tot, 'fam')
-        self.population.close_()
+        table.set('cf', self.cf_tot, 'fam', 'chef', table = 'output')
+        table.close_()
         
     @famille_wrapper(crds=False)
     def AEEH(self, Param):
@@ -895,11 +901,11 @@ class Famille(object):
         self.ape_crds  = round(self.ape_brut*crds, 2)
         self.ape_tot   = self.ape_brut - self.ape_crds
         
-        self.population.openWriteMode()
-        self.population.set('chef', 'apje', self.apje_tot, 'fam')
-        self.population.set('chef', 'cf', self.cf_tot, 'fam')
-        self.population.set('chef', 'ape', self.ape_tot, 'fam')    
-        self.population.close_()
+        table.openWriteMode()
+        table.set('chef', 'apje', self.apje_tot, 'fam')
+        table.set('chef', 'cf', self.cf_tot, 'fam')
+        table.set('chef', 'ape', self.ape_tot, 'fam')    
+        table.close_()
         
         
 ## TODO rajouter la prime à la naissance et à l'adoption avant la paje
@@ -1164,12 +1170,13 @@ class Famille(object):
         self.alset = 12*(self.al_pac==0)*self.etu*self.al_tot # Allocation logement étudiante
         self.apl   = 12*zeros(self.taille) #TODO: Pour les logements conventionné (surtout des HLM)
 
-        self.population.openWriteMode()
-        self.population.set('chef', 'alf', self.alf, 'fam')
-        self.population.set('chef', 'als', self.als, 'fam')
-        self.population.set('chef', 'alset', self.alset, 'fam')
-        self.population.set('chef', 'apl', self.apl, 'fam')
-        self.population.close_()
+        table = self.population
+        table.openWriteMode()
+        table.set('alf', self.alf, 'fam', 'chef', table = 'output')
+        table.set('als', self.als, 'fam', 'chef', table = 'output')
+        table.set('alset', self.alset, 'fam', 'chef', table = 'output')
+        table.set('apl', self.apl, 'fam', 'chef', table = 'output')
+        table.close_()
 
     def BaseRessourceMV(self, P):
         '''
@@ -1236,9 +1243,9 @@ class Famille(object):
         self.mv = self.mv_m.sum(axis=0)
 
         
-        self.population.openWriteMode()
-        self.population.set('chef', 'mv', self.mv, 'fam')
-        self.population.close_()
+        table.openWriteMode()
+        table.set('chef', 'mv', self.mv, 'fam')
+        table.close_()
     
     def RSA(self, P):
         self.RmiNbp(P.minim)
@@ -1376,19 +1383,19 @@ class Famille(object):
         self.rsa = (RSA>=P.rmi.rsa_nv)*RSA
         
         table.openWriteMode()        
-        table.set('chef', 'rsaact', self.rsa - RMI, 'fam')
-        table.set('chef', 'rsa', self.rsa, 'fam')   
+        table.set('rsaact', self.rsa - RMI, 'fam', 'chef', table = 'output')
+        table.set('rsa'   , self.rsa,       'fam', 'chef', table = 'output')   
         table.close_()
         
         table.openReadMode()        
         # On retranche le RSA activité de la PPE
-        ppe = max_(table.get('vous', 'ppe', 'foy') 
-               - table.get('vous', 'rsaact', 'foy')
-               - table.get('conj', 'rsaact', 'foy'),0)
+        ppe = max_(table.get('ppe', 'foy', 'vous', table = 'output') 
+               - table.get('rsaact', 'foy', 'vous', table = 'output')
+               - table.get('rsaact', 'foy', 'conj', table = 'output'),0)
         table.close_()
         
         table.openWriteMode()
-        table.setColl('ppe',ppe)
+        table.setColl('ppe',ppe, table = 'output')
         table.close_()    
     
     def API(self, P):
@@ -1425,9 +1432,10 @@ class Famille(object):
         
         # L'API est exonérée de CRDS
         self.api = api.sum(axis=0)
-        self.population.openWriteMode()
-        self.population.set('chef', 'api', self.api, 'fam')
-        self.population.close_()
+        table = self.population
+        table.openWriteMode()
+        table.set('api', self.api, 'fam', 'chef', table = 'output')
+        table.close_()
 
         # TODO: temps partiel qui modifie la base ressource
         # Cumul
@@ -1479,7 +1487,7 @@ class Famille(object):
         self.aefa = max_(aefa_maj,aefa)   
         
         self.population.openWriteMode()
-        self.population.set('chef', 'aefa', self.aefa, 'fam')   
+        self.population.set('aefa', self.aefa, 'fam', 'chef', table = 'output')   
         self.population.close_()
 
     def ASPA_ASI(self,Param):
@@ -1606,12 +1614,13 @@ class Famille(object):
         self.aspaC = self.aspaC_m.sum(axis=0)
         self.aspaP = self.aspaP_m.sum(axis=0)
         
-        self.population.openWriteMode()
-        self.population.set('chef', 'asi', self.asiC, 'fam')
-        self.population.set('part', 'asi', self.asiP, 'fam')
-        self.population.set('chef', 'mv', self.aspaC, 'fam')
-        self.population.set('part', 'mv', self.aspaP, 'fam')
-        self.population.close_()
+        table = self.population
+        table.openWriteMode()
+        table.set('asi', self.asiC, 'fam', 'chef', table = 'output')
+        table.set('asi', self.asiP, 'fam', 'part', table = 'output')
+        table.set('mv', self.aspaC, 'fam', 'chef', table = 'output')
+        table.set('mv', self.aspaP, 'fam', 'part', table = 'output')
+        table.close_()
             
         self.mv = self.aspaC + self.aspaP    
 
@@ -1687,7 +1696,7 @@ class Famille(object):
         self.aah = aah_m.sum(axis=0)
         
         self.population.openWriteMode()
-        self.population.set('chef', 'aah', self.aah, 'fam')
+        self.population.set('aah', self.aah, 'fam', 'chef', table = 'output')
         self.population.close_()
 
 #        Cumul d'allocation
@@ -1762,7 +1771,7 @@ class Famille(object):
               
         self.caah = caah.sum(axis=0)
         self.population.openWriteMode()
-        self.population.set('chef', 'caah', self.caah, 'fam')
+        self.population.set('caah', self.caah, 'fam', 'chef', table = 'output')
         self.population.close_()
         
     def ASS(self, P):

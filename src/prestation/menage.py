@@ -45,7 +45,19 @@ def handleXml(doc, tree, fun, members):
                 tree.addChild(child)
                 handleXml(element, child, fun, members)
     else:
-        tree.setVals(fun(members, tree.code, 'men', sumqui = True))
+        if tree.code == 'sal': print 'hi'
+        try:
+            val = fun(tree.code, 'men', members, table = 'output', sumqui = True)
+            tree.setVals(val)
+        except:
+            pass
+        try:
+            val = fun(tree.code, 'men', members, table = 'input', sumqui = True)
+            tree.setVals(val)
+        except:
+            pass
+        if tree.code == 'sal': print val
+            
 
 class Menage(object):
     
@@ -76,7 +88,7 @@ class Menage(object):
         '''
         Calcul du nombre d'unité de consommation du ménage avec l'échelle de l'insee
         '''
-        agems = np.array(table.get(self.members, 'agem', 'men', default = -9999))
+        agems = np.array(table.get('agem', 'men', self.members, default = -9999))
         uc = np.ones(self.taille)
         for i in range(1,11):
             agem = agems[i]

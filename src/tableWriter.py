@@ -90,12 +90,11 @@ class CustomTable(object):
             a[self.count] = val
         self.currentline = {}
         self.count += 1
-        
-        
-class PopulationTable(CustomTable):
+                
+class InputTable(CustomTable):
 # Informations sur les individus
     def __init__(self, n):
-        super(PopulationTable, self).__init__(n)
+        super(InputTable, self).__init__(n)
         self.noi         = np.zeros(n, dtype=np.uint)     # unique dans un ménage
         self.birth       = np.array(["9999-01-01"]*n)
         self.quifoy      = np.zeros(n, dtype=np.uint8) 
@@ -110,7 +109,30 @@ class PopulationTable(CustomTable):
         self.inv         = np.zeros(n, dtype=np.uint)       # Invalide
         self.alt         = np.zeros(n, dtype=np.uint)       # Garde alterné
         self.activite    = np.zeros(n, dtype=np.int8)      # actif occupé 0, chômeur 1, étudiant/élève 2, retraité 3, autre inactif 4
-    
+
+        self.sal          = np.zeros(n, dtype=np.float32)     # Salaires (Revenus d'activité)
+        self.cho          = np.zeros(n, dtype=np.float32)           # Autres revenus (allocations chômage)
+        self.rst     = np.zeros(n, dtype=np.float32) # retraites au sens strict
+        self.cat          = np.zeros(n, dtype=np.uint8)
+
+        self.alr     = np.zeros(n, dtype=np.float32) # pensions reçues
+        self.fra         = np.zeros(n, dtype=np.float32)  # Frais professionnel
+        self.choCheckBox = np.zeros(n, dtype=np.bool) #
+        self.hsup        = np.zeros(n, dtype=np.float32)  # Heures supplémentaires exonérées
+        self.mhsup        = np.zeros(n, dtype=np.float32)  # Heures supplémentaires exonérées
+        self.ppeCheckBox = np.zeros(n, dtype=np.bool) # Case 'vous avez travaillé à temps plein toute l'année'
+        self.ppeHeure    = np.zeros(n, dtype=np.int32)  #
+
+        self.csgTauxPlein = np.ones(n, dtype=np.bool)           # Cotisations sociales salariales
+
+    # Information sur le logement
+        self.so          = 3*np.ones(n, dtype=np.int8)
+        self.zone_apl    = 2*np.ones(n, dtype=np.int8)
+        self.loyer       = np.zeros(n, dtype=np.uint)
+
+class OutputTable(CustomTable):
+# Informations sur les individus
+    def __init__(self, n):
     # Salaire
         self.cotsal       = np.zeros(n, dtype=np.float32)     # Cotisations sociales salariales
         self.csgactd      = np.zeros(n, dtype=np.float32)     # CSG déductible sur les revenus d'activité
@@ -120,25 +142,20 @@ class PopulationTable(CustomTable):
         self.alleg_fillon = np.zeros(n, dtype=np.float32)     # Allègement de charge Fillon
         self.salsuperbrut = np.zeros(n, dtype=np.float32)     # Salaires super bruts (coût du travail)
         self.salbrut      = np.zeros(n, dtype=np.float32)     # Salaires bruts
-        self.sal          = np.zeros(n, dtype=np.float32)     # Salaires (Revenus d'activité)
-        self.cat          = np.zeros(n, dtype=np.uint8)
         
     # Chômage
-        self.csgTauxPlein = np.ones(n, dtype=np.bool)           # Cotisations sociales salariales
         self.csgchod      = np.zeros(n, dtype=np.float32)       # CSG déductible sur les revenus de remplacement constitué par les indemnités chômage
         self.csgchoi      = np.zeros(n, dtype=np.float32)       # CSG non déductible sur les revenus de remplacement constitué par les indemnités chômage
         self.crdscho      = np.zeros(n, dtype=np.float32)       # CRDS sur les revenus de remplacement constitué par les indemnités chômage
         self.exo_cho      = np.zeros(n, dtype=np.float32)       # Exonération de CSG et de CRDS sur les revenus de remplacement constitué par les indemnités chômage
         self.chobrut      = np.zeros(n, dtype=np.float32)       # Autres revenus (allocations chômage brut de csg déductible)
-        self.cho          = np.zeros(n, dtype=np.float32)           # Autres revenus (allocations chômage)
         
     # Retraite
         self.csgrstd = np.zeros(n, dtype=np.float32) # CSG déductible sur les revenus de remplacement constitué par les pensions et retraites au sens strict
         self.csgrsti = np.zeros(n, dtype=np.float32) # CSG non déductible sur les revenus de remplacement constitué par les pensions et retraites au sens strict
         self.crdsrst = np.zeros(n, dtype=np.float32) # CRDS sur les revenus de remplacement constitué par les pensions et retraites au sens strict
         self.rstbrut = np.zeros(n, dtype=np.float32) # retraites au sens strict (pensions de retraite, d’invalidité, et les rentes viagères à titre gratuit) 
-        self.rst     = np.zeros(n, dtype=np.float32) # retraites au sens strict
-        self.alr     = np.zeros(n, dtype=np.float32) # pensions reçues
+
         self.rto     = np.zeros(n, dtype=np.float32) # rentes viagères à titre onéreux
         
         self.basecsg = np.zeros(n, dtype=np.float32) # Assiette de la Csg
@@ -158,12 +175,6 @@ class PopulationTable(CustomTable):
         self.csgfin_i      = np.zeros(n, dtype=np.float32)
         
     # Élself.éments individualisé de la déclaration de revenu
-        self.fra         = np.zeros(n, dtype=np.float32)  # Frais professionnel
-        self.choCheckBox = np.zeros(n, dtype=np.bool) #
-        self.hsup        = np.zeros(n, dtype=np.float32)  # Heures supplémentaires exonérées
-        self.mhsup        = np.zeros(n, dtype=np.float32)  # Heures supplémentaires exonérées
-        self.ppeCheckBox = np.zeros(n, dtype=np.bool) # Case 'vous avez travaillé à temps plein toute l'année'
-        self.ppeHeure    = np.zeros(n, dtype=np.int32)  #
         self.avf         = np.zeros(n, dtype=np.float32)  #  
         self.glo         = np.zeros(n, dtype=np.float32)  #  gain de levée d'option
         self.quo         = np.zeros(n, dtype=np.float32)  #
@@ -204,10 +215,6 @@ class PopulationTable(CustomTable):
         self.ape         = np.zeros(n, dtype=np.float32) # Allocation parentale d'éducation
         self.apje        = np.zeros(n, dtype=np.float32) # Allocation pour jeune enfant
     
-    # Information sur le logement
-        self.so          = 3*np.ones(n, dtype=np.int8)
-        self.zone_apl    = 2*np.ones(n, dtype=np.int8)
-        self.loyer       = np.zeros(n, dtype=np.uint)
     
     # allocations logements
         self.als         = np.zeros(n, dtype=np.float32) # Allocation de logement social
@@ -226,10 +233,10 @@ class PopulationTable(CustomTable):
         self.aefa        = np.zeros(n, dtype=np.float32) # Aide exceptionnelle de fin d'année
         
 
-class FoyerTable(CustomTable):
+class DeclarTable(CustomTable):
 # Situations particulières
     def __init__(self, n):
-        super(FoyerTable, self).__init__(n)
+        super(DeclarTable, self).__init__(n)
         self.caseX = np.zeros(n, dtype = bool)
         self.caseY = np.zeros(n, dtype = bool)
         self.caseZ = np.zeros(n, dtype = bool)
@@ -586,8 +593,10 @@ class Population(object):
         self.scenario = scenario
         n = len(self.scenario.indiv)
 
-        self.table = PopulationTable(n*self.NMEN)
-        self.foyer = FoyerTable(n*self.NMEN)
+        self.input = InputTable(n*self.NMEN)
+        self.output = OutputTable(n*self.NMEN)
+        self.declar = DeclarTable(n*self.NMEN)
+
         self.createIndividus(self.scenario)
         
         self.createSorters(['men', 'fam', 'foy'])
@@ -601,29 +610,29 @@ class Population(object):
         crée des vecteurs d'indices pour récupérer les individus en fonction de leur 
         foyer, famille, ou menage.
         '''
-        self.nbInd = self.table.nrows
+        self.nbInd = self.input.nrows
         self.index = {}
         for unit in unitlist:
-            list = np.unique(self.table.col('id' + unit))
+            list = np.unique(self.input.col('id' + unit))
             setattr(self, 'nb' + unit.capitalize(), len(list))
 
-            if unit == 'foy': ENUM = QUIFOY
+            if   unit == 'foy': ENUM = QUIFOY
             elif unit == 'men': ENUM = QUIMEN
             elif unit == 'fam': ENUM = QUIFAM
 
             self.index.update({unit: {}})
             dct = self.index[unit]
             for person in ENUM:
-                idxIndi = self.table.getWhereList('qui' + unit, person[1], sort = True).squeeze()
-                indice = self.table.readCoordinates(idxIndi, field = 'id' + unit)
+                idxIndi = self.input.getWhereList('qui' + unit, person[1], sort = True).squeeze()
+                indice = self.input.readCoordinates(idxIndi, field = 'id' + unit)
                 idxUnit = np.searchsorted(list, indice)
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person[0]:temp})
 
         self.scenar2foy = {}
-        decl = self.table.col('quifoy') == 0
+        decl = self.input.col('quifoy') == 0
         for i in xrange(len(self.scenario.indiv)):
-            temp = self.table.col('noi') == i
+            temp = self.input.col('noi') == i
             idxIndiv = np.sort(np.argwhere(temp & decl))
             self.scenar2foy.update({i: idxIndiv})
                 
@@ -643,23 +652,27 @@ class Population(object):
         self.writeMode = False
         self.readMode = False
 
-    def getIndiv(self, varstring, base = 'individu'):
-        if not self.readMode:
-            raise Exception('This instance shoud be on readMode, see openReadMode')
-        if base == 'individu': table = self.table
-        elif base == 'foyer': table = self.foyer
-        return table.col(varstring)
+    def setIndiv(self, varstring, value, base = 'input'):
+        self.input.modifyColumn(column=value , colname = varstring)
+        self.input.flush()
 
-    def setIndiv(self, varstring, value):
-        self.table.modifyColumn(column=value , colname = varstring)
-        self.table.flush()
-
-    def get(self, qui, varstring, unit, base = 'individu', sumqui = False, default = 0):
+    def getTable(self, table):
+        if   table == 'input' : tbl = self.input
+        elif table == 'output': tbl = self.output
+        elif table == 'declar': tbl = self.declar
+        else: raise Exception('%s is not a known table' % table)        
+        return tbl
+        
+    def get(self, varstring, unit = 'ind', qui = None, table = 'input', sumqui = False, default = 0):
         if not self.readMode: raise Exception('This instance shoud be on readMode, see openReadMode')
+        tbl = self.getTable(table)
+        if unit == 'ind':
+            return tbl.col(varstring)
+        if qui is None:
+            raise Exception('qui arg required if unit is not ind')
         out = []
         nb = getattr(self, 'nb'+ unit.capitalize())
-        if base == 'individu': var = self.table.col(varstring)
-        elif base == 'foyer': var = self.foyer.col(varstring)
+        var = tbl.col(varstring)
         checkType = isinstance(qui,str)
         if checkType: qui = [qui]
         for person in qui:
@@ -671,21 +684,21 @@ class Population(object):
         elif sumqui:  return np.sum(np.array(out), axis = 0)
         else: return out
 
-    def set(self, qui, varstring, value, unit):
+    def set(self, varstring, value, unit, qui, table = 'input'):
         if not self.writeMode: raise Exception('This instance shoud be on writeMode, see openWriteMode')
-        table = self.table
+        tbl = self.getTable(table)
         idx = self.index[unit][qui]
-        var = table.col(varstring)
+        var = tbl.col(varstring)
         var[idx['idxIndi']] = np.array(value, dtype = var.dtype)[idx['idxUnit']]
-        table.modifyColumn(column=var , colname = varstring)
-        table.flush()
+        tbl.modifyColumn(column=var , colname = varstring)
+        tbl.flush()
                 
-    def setColl(self, varstring, value):
+    def setColl(self, varstring, value, table = 'input'):
         '''
         pour affecter les revenus non individualisable aux individu.
         ici on donne tout à vous
         '''
-        self.set('vous',varstring, value, 'foy')
+        self.set(varstring, value, 'foy', 'vous', table)
                 
     def createIndividus(self, scenario):
         # pour l'instant, un seul menage répliqué n fois
@@ -704,7 +717,7 @@ class Population(object):
 
     def addPerson(self, noi, xaxis,  birth, loyer, zone_apl, so, quifoy, quifam, quimen, noidec, noichef, noipref, inv, alt, activite, statmarit=0, sal =0, cho =0, rst = 0, choCheckBox = 0, hsup = 0, ppeCheckBox = 0, ppeHeure = 0, **kwargs):
         for i in xrange(self.NMEN):
-            indiv = self.table.row()
+            indiv = self.input.row()
             indiv['noi']   = noi
             indiv['birth'] = birth.isoformat()
             indiv['loyer'] = loyer
@@ -733,23 +746,23 @@ class Population(object):
             indiv['inv'] = inv
             indiv['alt'] = alt
 
-            self.table.append()
-        self.table.flush()
+            self.input.append()
+        self.input.flush()
 
     def createFoyer(self, scenario):
         # on crée des lignes vides
-        row = self.foyer.row()
+        row = self.declar.row()
         for i in xrange(self.nbInd):
-            self.foyer.append()
-        self.foyer.flush()
+            self.declar.append()
+        self.declar.flush()
 
         for noidec, vals in scenario.declar.iteritems():
             for var, val in vals.iteritems():
                 if val != 0:
                     idx = self.scenar2foy[noidec]
-                    oldvar = np.array(self.foyer.col(var), dtype = int)
+                    oldvar = np.array(self.declar.col(var), dtype = int)
                     temp   = np.ones(len(idx), dtype = int)*val
                     oldvar[idx] = temp
-                    self.foyer.modifyColumn(column=oldvar , colname = var)
-        self.foyer.flush()
+                    self.declar.modifyColumn(column=oldvar , colname = var)
+        self.declar.flush()
         

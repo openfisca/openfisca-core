@@ -59,76 +59,76 @@ def creimp(self, P, table):
     '''
     Avoir fiscaux et crédits d'impôt
     '''
-    AB = table.get('vous', 'f2ab', 'foy', 'foyer')
-    TA = table.get('vous', 'f8ta', 'foy', 'foyer')
-    TB = table.get('vous', 'f8tb', 'foy', 'foyer')
+    AB = table.get('f2ab', 'foy', 'vous', 'declar')
+    TA = table.get('f8ta', 'foy', 'vous', 'declar')
+    TB = table.get('f8tb', 'foy', 'vous', 'declar')
 
-    TF = table.get('vous', 'f8tf', 'foy', 'foyer')
-    TG = table.get('vous', 'f8tg', 'foy', 'foyer')
-    TH = table.get('vous', 'f8th', 'foy', 'foyer')
+    TF = table.get('f8tf', 'foy', 'vous', 'declar')
+    TG = table.get('f8tg', 'foy', 'vous', 'declar')
+    TH = table.get('f8th', 'foy', 'vous', 'declar')
     
     if self.year == 2002:
 
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TD = table.get('vous', 'f8td', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TD = table.get('f8td', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
         
         return (AB + TA + TB + TC + TD + TE - TF + TG + TH)
 
     elif self.year == 2003:
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TD = table.get('vous', 'f8td', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TD = table.get('f8td', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP)
 
     elif self.year == 2004:
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TD = table.get('vous', 'f8td', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TD = table.get('f8td', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP + UZ + TZ)
         
     elif self.year == 2005:
         
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TD = table.get('vous', 'f8td', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
-        WE = table.get('vous', 'f8we', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TD = table.get('f8td', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WC = table.get('f8wc', 'foy', 'vous', 'declar')
+        WE = table.get('f8we', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP + UZ + TZ + WA + WB 
                    + WC + WE)
 
     elif self.year == 2006:
         
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
-        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
-        WE = table.get('vous', 'f8we', 'foy', 'foyer')
-        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
-        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
-        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
-        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WC = table.get('f8wc', 'foy', 'vous', 'declar')
+        WD = table.get('f8wd', 'foy', 'vous', 'declar')
+        WE = table.get('f8we', 'foy', 'vous', 'declar')
+        WR = table.get('f8wr', 'foy', 'vous', 'declar')
+        WS = table.get('f8ws', 'foy', 'vous', 'declar')
+        WT = table.get('f8wt', 'foy', 'vous', 'declar')
+        WU = table.get('f8wu', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WE + WR + WS + WT + WU)
@@ -136,83 +136,83 @@ def creimp(self, P, table):
 
     elif self.year == 2007:
 
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
-        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
-        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
-        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
-        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
-        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
-        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
-        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WC = table.get('f8wc', 'foy', 'vous', 'declar')
+        WD = table.get('f8wd', 'foy', 'vous', 'declar')
+        WR = table.get('f8wr', 'foy', 'vous', 'declar')
+        WS = table.get('f8ws', 'foy', 'vous', 'declar')
+        WT = table.get('f8wt', 'foy', 'vous', 'declar')
+        WU = table.get('f8wu', 'foy', 'vous', 'declar')
+        WV = table.get('f8wv', 'foy', 'vous', 'declar')
+        WX = table.get('f8wx', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WR + WS + WT + WU + WV + WX)
         
     elif self.year == 2008:
-        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
-        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
-        WE = table.get('vous', 'f8we', 'foy', 'foyer')
-        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
-        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
-        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
-        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
-        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
-        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
+        TC = table.get('f8tc', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WC = table.get('f8wc', 'foy', 'vous', 'declar')
+        WD = table.get('f8wd', 'foy', 'vous', 'declar')
+        WE = table.get('f8we', 'foy', 'vous', 'declar')
+        WR = table.get('f8wr', 'foy', 'vous', 'declar')
+        WS = table.get('f8ws', 'foy', 'vous', 'declar')
+        WT = table.get('f8wt', 'foy', 'vous', 'declar')
+        WU = table.get('f8wu', 'foy', 'vous', 'declar')
+        WV = table.get('f8wv', 'foy', 'vous', 'declar')
+        WX = table.get('f8wx', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WE + WR + WS + WT + WU + WV + WX)
 
     elif self.year == 2009:
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
-        WE = table.get('vous', 'f8we', 'foy', 'foyer')
-        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
-        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
-        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
-        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
-        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
-        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
-        WY = table.get('vous', 'f8wy', 'foy', 'foyer')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WD = table.get('f8wd', 'foy', 'vous', 'declar')
+        WE = table.get('f8we', 'foy', 'vous', 'declar')
+        WR = table.get('f8wr', 'foy', 'vous', 'declar')
+        WS = table.get('f8ws', 'foy', 'vous', 'declar')
+        WT = table.get('f8wt', 'foy', 'vous', 'declar')
+        WU = table.get('f8wu', 'foy', 'vous', 'declar')
+        WV = table.get('f8wv', 'foy', 'vous', 'declar')
+        WX = table.get('f8wx', 'foy', 'vous', 'declar')
+        WY = table.get('f8wy', 'foy', 'vous', 'declar')
         return (AB + TA + TB - TF + TG + TH + TO - TP 
                    + UZ + TZ + WA + WB + WD + WE + WR 
                    + WS + WT + WU + WV + WX + WY)
 
     elif self.year == 2010:
-        TC = table.get('vous', 'f8te', 'foy', 'foyer')
-        TE = table.get('vous', 'f8te', 'foy', 'foyer')
-        TO = table.get('vous', 'f8to', 'foy', 'foyer')
-        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
-        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
-        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
-        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
-        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
-        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
-        WE = table.get('vous', 'f8we', 'foy', 'foyer')
-        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
-        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
-        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
-        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
+        TC = table.get('f8te', 'foy', 'vous', 'declar')
+        TE = table.get('f8te', 'foy', 'vous', 'declar')
+        TO = table.get('f8to', 'foy', 'vous', 'declar')
+        TP = table.get('f8tp', 'foy', 'vous', 'declar')
+        UZ = table.get('f8uz', 'foy', 'vous', 'declar')
+        TZ = table.get('f8tz', 'foy', 'vous', 'declar')
+        WA = table.get('f8wa', 'foy', 'vous', 'declar')
+        WB = table.get('f8wb', 'foy', 'vous', 'declar')
+        WD = table.get('f8wd', 'foy', 'vous', 'declar')
+        WE = table.get('f8we', 'foy', 'vous', 'declar')
+        WR = table.get('f8wr', 'foy', 'vous', 'declar')
+        WT = table.get('f8wt', 'foy', 'vous', 'declar')
+        WU = table.get('f8wu', 'foy', 'vous', 'declar')
+        WV = table.get('f8wv', 'foy', 'vous', 'declar')
         return (AB + TA + TB + TC + TE - TF
                    + TG + TO - TP + TH + UZ
                    + TZ + WA + WB + WD + WE
@@ -223,8 +223,8 @@ def divide(self, P, table):
     Crédit d'impôt dividendes
     '''
     
-    DC = table.get('vous', 'f2dc', 'foy', 'foyer')
-    GR = table.get('vous', 'f2gr', 'foy', 'foyer')
+    DC = table.get('f2dc', 'foy', 'vous', 'declar')
+    GR = table.get('f2gr', 'foy', 'vous', 'declar')
     max1 = P.divide.max*(self.marpac+1)
     return min_(P.divide.taux*(DC + GR), max1)
 
@@ -238,19 +238,19 @@ def direpa(self, P, table):
     '''
     Crédit d’impôt directive « épargne » (case 2BG)
     '''
-    return table.get('vous', 'f2bg', 'foy', 'foyer')
+    return table.get('f2bg', 'foy', 'vous', 'declar')
 
 def accult(self, P, table):
     '''
     Acquisition de biens culturels (case 7UO)
     '''
-    return P.accult.taux*table.get('vous', 'f7uo', 'foy', 'foyer')
+    return P.accult.taux*table.get('f7uo', 'foy', 'vous', 'declar')
 
 def mecena(self, P, table):
     '''
     Mécénat d'entreprise (case 7US)
     '''
-    return table.get('vous', 'f7us', 'foy', 'foyer')
+    return table.get('f7us', 'foy', 'vous', 'declar')
 
 def prlire(self, P, table):
     '''
@@ -263,14 +263,14 @@ def quaenv(self, P, table):
     Crédits d’impôt pour dépenses en faveur de la qualité environnementale 
     (cases 7WF, 7WH, 7WK, 7WQ, 7SB, 7SD, 7SE et 7SH)
     '''
-    WF = table.get('vous', 'f7wf', 'foy', 'foyer')
-    WH = table.get('vous', 'f7wh', 'foy', 'foyer')
-    WK = table.get('vous', 'f7wk', 'foy', 'foyer')
-    WQ = table.get('vous', 'f7wq', 'foy', 'foyer')
-    SB = table.get('vous', 'f7sb', 'foy', 'foyer')
-    SD = table.get('vous', 'f7sd', 'foy', 'foyer')
-    SE = table.get('vous', 'f7se', 'foy', 'foyer')
-    SH = table.get('vous', 'f7sh', 'foy', 'foyer')
+    WF = table.get('f7wf', 'foy', 'vous', 'declar')
+    WH = table.get('f7wh', 'foy', 'vous', 'declar')
+    WK = table.get('f7wk', 'foy', 'vous', 'declar')
+    WQ = table.get('f7wq', 'foy', 'vous', 'declar')
+    SB = table.get('f7sb', 'foy', 'vous', 'declar')
+    SD = table.get('f7sd', 'foy', 'vous', 'declar')
+    SE = table.get('f7se', 'foy', 'vous', 'declar')
+    SH = table.get('f7sh', 'foy', 'vous', 'declar')
      
     n = self.nbF + self.nbJ + self.nbR + self.nbH/2
     if self.year == 2005:
@@ -283,7 +283,7 @@ def quaenv(self, P, table):
         max0 = P.quaenv.max*(1+self.marpac) + P.quaenv.pac1*n
     
     if self.year == 2005:
-        WG = table.get('vous', 'f7wg', 'foy', 'foyer')    
+        WG = table.get('f7wg', 'foy', 'vous', 'declar')    
         max1 = max_(0, max0 - WF)
         max2 = max_(0, max1 - WG)
         return (P.quaenv.taux_wf*min_(WF, max0) +
@@ -291,7 +291,7 @@ def quaenv(self, P, table):
                 P.quaenv.taux_wh*min_(WH, max2) )
 
     elif self.year in (2006, 2007, 2008):
-        WG = table.get('vous', 'f7wg', 'foy', 'foyer')    
+        WG = table.get('f7wg', 'foy', 'vous', 'declar')    
         max1 = max_(0, max0 - WF)
         max2 = max_(0, max1 - WG)
         max3 = max_(0, max2 - WH)
@@ -301,8 +301,8 @@ def quaenv(self, P, table):
                 P.quaenv.taux_wq*min_(WQ, max3) )
 
     elif self.year == 2009:
-        WG = table.get('vous', 'f7wg', 'foy', 'foyer')
-        SC = table.get('vous', 'f7sc', 'foy', 'foyer')
+        WG = table.get('f7wg', 'foy', 'vous', 'declar')
+        SC = table.get('f7sc', 'foy', 'vous', 'declar')
         max1 = max_(0, max0 - WF)
         max2 = max_(0, max1 - SE)
         max3 = max_(0, max2 - WK)
@@ -341,10 +341,10 @@ def aidper(self, P, table):
     Crédits d’impôt pour dépenses en faveur de l’aide aux personnes 
     (cases 7WI, 7WJ, 7WL et 7SF).
     '''
-    WI = table.get('vous', 'f7wf', 'foy', 'foyer')
-    WJ = table.get('vous', 'f7wj', 'foy', 'foyer')
-    WL = table.get('vous', 'f7wl', 'foy', 'foyer')
-    SF = table.get('vous', 'f7sf', 'foy', 'foyer')
+    WI = table.get('f7wf', 'foy', 'vous', 'declar')
+    WJ = table.get('f7wj', 'foy', 'vous', 'declar')
+    WL = table.get('f7wl', 'foy', 'vous', 'declar')
+    SF = table.get('f7sf', 'foy', 'vous', 'declar')
     
     n = self.nbF + self.nbJ + self.nbR + self.nbH/2
     if self.year <= 2005:
@@ -374,27 +374,27 @@ def aidper(self, P, table):
 def acqgpl(self, P, table):
     # crédit d'impôt pour dépense d'acquisition ou de transformation d'un véhicule GPL ou mixte
     if 2002 <= self.year <= 2007:
-        UP = table.get('vous', 'f7up', 'foy', 'foyer')
-        UQ = table.get('vous', 'f7uq', 'foy', 'foyer')
+        UP = table.get('f7up', 'foy', 'vous', 'declar')
+        UQ = table.get('f7uq', 'foy', 'vous', 'declar')
         return UP*P.acqgpl.mont_up + UQ*P.acqgpl.mont_uq
 
 def drbail(self, P, table):
     '''
     Crédit d’impôt représentatif de la taxe additionnelle au droit de bail (case 4TQ)
     '''
-    return P.drbail.taux*table.get('vous', 'f4tq', 'foy', 'foyer')
+    return P.drbail.taux*table.get('f4tq', 'foy', 'vous', 'declar')
 
 def garext(self, P, table):
     '''
     Frais de garde des enfants à l’extérieur du domicile (cases 7GA à 7GC et 7GE à 7GG)
     '''
     max1 = P.garext.max
-    GA = table.get('vous', 'f4ga', 'foy', 'foyer')
-    GB = table.get('vous', 'f4gb', 'foy', 'foyer')
-    GC = table.get('vous', 'f4gc', 'foy', 'foyer')
-    GE = table.get('vous', 'f4ge', 'foy', 'foyer')
-    GF = table.get('vous', 'f4gf', 'foy', 'foyer')
-    GG = table.get('vous', 'f4gg', 'foy', 'foyer')
+    GA = table.get('f4ga', 'foy', 'vous', 'declar')
+    GB = table.get('f4gb', 'foy', 'vous', 'declar')
+    GC = table.get('f4gc', 'foy', 'vous', 'declar')
+    GE = table.get('f4ge', 'foy', 'vous', 'declar')
+    GF = table.get('f4gf', 'foy', 'vous', 'declar')
+    GG = table.get('f4gg', 'foy', 'vous', 'declar')
     
     return P.garext.taux*(min_(GA, max1) + 
                           min_(GB, max1) +
@@ -406,9 +406,9 @@ def preetu(self, P, table):
     '''
     Crédit d’impôt pour souscription de prêts étudiants (cases 7UK, 7VO et 7TD)
     '''
-    UK = table.get('vous', 'f7uk', 'foy', 'foyer')
-    VO = table.get('vous', 'f7vo', 'foy', 'foyer')
-    TD = table.get('vous', 'f7td', 'foy', 'foyer')
+    UK = table.get('f7uk', 'foy', 'vous', 'declar')
+    VO = table.get('f7vo', 'foy', 'vous', 'declar')
+    TD = table.get('f7td', 'foy', 'vous', 'declar')
     
     if self.year == 2005: 
         max1 = P.preetu.max
@@ -425,10 +425,10 @@ def saldom(self, P, table):
     '''
     # TODO, TODO, TODO check avant 2010
     
-    DG = table.get('vous', 'f7dg', 'foy', 'foyer')
+    DG = table.get('f7dg', 'foy', 'vous', 'declar')
     isinvalid = DG
-    DL = table.get('vous', 'f7dl', 'foy', 'foyer')
-    DB = table.get('vous', 'f7db', 'foy', 'foyer')  # dépense pour crédit d'impôt
+    DL = table.get('f7dl', 'foy', 'vous', 'declar')
+    DB = table.get('f7db', 'foy', 'vous', 'declar')  # dépense pour crédit d'impôt
     
     if self.year in (2007,2008):
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
@@ -438,7 +438,7 @@ def saldom(self, P, table):
         maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
         
     elif self.year in (2009, 2010):
-        DQ = table.get('vous', 'f7dq', 'foy', 'foyer')  # 1èere année
+        DQ = table.get('f7dq', 'foy', 'vous', 'declar')  # 1èere année
         annee1 = DQ
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1*not_(annee1) + P.saldom.max1_1ereAnnee*annee1
@@ -450,10 +450,10 @@ def saldom(self, P, table):
         
     '''
    
-    DL = table.get('vous', 'f7dl', 'foy', 'foyer')
-    DQ = table.get('vous', 'f7dq', 'foy', 'foyer')
-    DB = table.get('vous', 'f7db', 'foy', 'foyer')
-    DG = table.get('vous', 'f7dg', 'foy', 'foyer')
+    DL = table.get('f7dl', 'foy', 'vous', 'declar')
+    DQ = table.get('f7dq', 'foy', 'vous', 'declar')
+    DB = table.get('f7db', 'foy', 'vous', 'declar')
+    DG = table.get('f7dg', 'foy', 'vous', 'declar')
 
     
     isinvalid = DG
@@ -469,8 +469,8 @@ def saldom(self, P, table):
     
     '''
     elif self.year in (2007,2008):
-        DL = table.get('vous', 'f7dl', 'foy', 'foyer')
-        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
+        DL = table.get('f7dl', 'foy', 'vous', 'declar')
+        DB = table.get('f7db', 'foy', 'vous', 'declar')  # Crédit d'impôt
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1
         maxDuMaxNonInv = P.saldom.max2
@@ -479,9 +479,9 @@ def saldom(self, P, table):
         max1 = maxEffectif - min_(DB, maxEffectif)
             
     elif self.year in (2009, 2010):
-        DL = table.get('vous', 'f7dl', 'foy', 'foyer')  # 
-        DQ = table.get('vous', 'f7dq', 'foy', 'foyer')  # 1èere année
-        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
+        DL = table.get('f7dl', 'foy', 'vous', 'declar')  # 
+        DQ = table.get('f7dq', 'foy', 'vous', 'declar')  # 1èere année
+        DB = table.get('f7db', 'foy', 'vous', 'declar')  # Crédit d'impôt
         
         annee1 = DQ
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
@@ -501,10 +501,10 @@ def inthab(self, P, table):
     '''
     Crédit d’impôt intérêts des emprunts pour l’habitation principale (cases 7VW, 7VX, 7VY et 7VZ)
     '''
-    VW = table.get('vous', 'f7vw', 'foy', 'foyer')
-    VX = table.get('vous', 'f7vx', 'foy', 'foyer')
-    VY = table.get('vous', 'f7vy', 'foy', 'foyer')
-    VZ = table.get('vous', 'f7vz', 'foy', 'foyer')
+    VW = table.get('f7vw', 'foy', 'vous', 'declar')
+    VX = table.get('f7vx', 'foy', 'vous', 'declar')
+    VY = table.get('f7vy', 'foy', 'vous', 'declar')
+    VZ = table.get('f7vz', 'foy', 'vous', 'declar')
     
     invalide = self.caseP |self.caseF | (self.nbG!=0) | (self.nbR!=0)
     nb = self.nbF + self.nbH/2 + self.nbR + self.nbJ + self.nbN
@@ -535,7 +535,7 @@ def assloy(self, P, table):
     '''
     Crédit d’impôt primes d’assurance pour loyers impayés (case 4BF)
     '''
-    return P.assloy.taux*table.get('vous', 'f4bf', 'foy', 'foyer')
+    return P.assloy.taux*table.get('f4bf', 'foy', 'vous', 'declar')
 
 def autent(self, P, table):
     '''
@@ -545,11 +545,11 @@ def autent(self, P, table):
 
 def aidmob(self, P, table):
     # crédit d'impôt aide à la mobilité
-    AR = table.get('vous', 'f1ar', 'foy', 'foyer')
-    BR = table.get('vous', 'f1br', 'foy', 'foyer')
-    CR = table.get('vous', 'f1cr', 'foy', 'foyer')
-    DR = table.get('vous', 'f1dr', 'foy', 'foyer')
-    ER = table.get('vous', 'f1er', 'foy', 'foyer')
+    AR = table.get('f1ar', 'foy', 'vous', 'declar')
+    BR = table.get('f1br', 'foy', 'vous', 'declar')
+    CR = table.get('f1cr', 'foy', 'vous', 'declar')
+    DR = table.get('f1dr', 'foy', 'vous', 'declar')
+    ER = table.get('f1er', 'foy', 'vous', 'declar')
     return (AR + BR + CR + DR + ER)*P.aidmob.montant
 
 def jeunes(self, P, table):
