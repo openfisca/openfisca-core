@@ -23,8 +23,8 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-from numpy import logical_not as lnot
-from numpy import round, sum, zeros, ones, maximum, minimum, ceil, where
+from numpy import (round, sum, zeros, ones, maximum as max_, minimum as min_, 
+                   ceil, where, logical_not as not_)
 from datetime import datetime, date
 
 
@@ -50,7 +50,7 @@ def famille_wrapper(enfant=True, crds=True):
                 
             setattr(self, name + '_tot' ,  tot_val)
             self.population.openWriteMode()
-            self.population.setFamille('chef', name, tot_val)    
+            self.population.set('chef', name, tot_val, 'fam')
             self.population.close_()
                             
         return wrapper
@@ -74,25 +74,25 @@ class Famille(object):
         
         self.population.openReadMode()
         
-        self.nbpar = 1 + 1*(self.population.getFamille('part','quifam')==1)
+        self.nbpar = 1 + 1*(self.population.get('part','quifam', 'fam')==1)
         self.isol = self.nbpar == 1    # si parent isolé
         self.coup = self.nbpar == 2    # si couple (marié, pacsé ou non)
         # TODO : compléter
-        self.maries = (self.population.getFamille('part','statmarit')==1)
+        self.maries = (self.population.get('part','statmarit', 'fam')==1)
 
         suffixe_enfants = ['%d' % i for i in range(1,self.nbenfmax+1)]
         suffixe = ['C', 'P'] + suffixe_enfants
         
         enfants = ['enf%d' % i for i in range(1,self.nbenfmax+1)]
         
-        self.agemC, self.agemP = np.array(self.population.getFamille(["chef", "part"], "agem", default = - 9999))
+        self.agemC, self.agemP = np.array(self.population.get(["chef", "part"], "agem", 'fam', default = - 9999))
         self.ageC = np.floor(self.agemC/12)  # TODO mensualiser 
         self.ageP = np.floor(self.agemP/12)
 
-        self.agem_enfants = np.array(self.population.getFamille(enfants, 'agem', default = - 9999))
+        self.agem_enfants = np.array(self.population.get(enfants, 'agem', 'fam', default = - 9999))
         
         people = ['chef', 'part'] + enfants
-        invs   = self.population.getFamille(people, 'inv')
+        invs   = self.population.get(people, 'inv', 'fam')
         for i in range(self.nbenfmax + 2):
             suf = suffixe[i]
             setattr(self, 'inv'+ suf, invs[i] )
@@ -101,13 +101,13 @@ class Famille(object):
         # TODO: Dans Population une fonction qui check s'il a plus d'une famille dans un ménage
         self.coloc = zeros(self.taille, dtype = bool)
         
-        self.actC, self.actP = self.population.getFamille(['chef', 'part'], 'activite')
+        self.actC, self.actP = self.population.get(['chef', 'part'], 'activite', 'fam')
         self.etuC   = self.actC == 2
         self.etuP   = self.actC == 2
         
-        self.so       = self.population.getFamille('chef','so')        
-        self.al_zone  = self.population.getFamille('chef','zone_apl')
-        self.loyer    = self.population.getFamille('chef','loyer')
+        self.so       = self.population.get('chef', 'so', 'fam')        
+        self.al_zone  = self.population.get('chef', 'zone_apl', 'fam')
+        self.loyer    = self.population.get('chef', 'loyer', 'fam')
         
         self.population.close_()
 
@@ -120,7 +120,7 @@ class Famille(object):
         smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
         enfants = ['enf%d' % i for i in range(1,self.nbenfmax+1)]
         self.population.openReadMode()   
-        self.smic55 = (np.array(self.population.getFamille(enfants, 'sal', default = 0)) > P.fam.af.seuil_rev_taux*smic_annuel) 
+        self.smic55 = (np.array(self.population.get(enfants, 'sal', 'fam', default = 0)) > P.fam.af.seuil_rev_taux*smic_annuel) 
         self.population.close_()    
 
     def getRev(self, P):
@@ -135,15 +135,15 @@ class Famille(object):
         #, 'rag', 'ric', 'rnc', 'rac',       ]
 
         for cod in varlist:
-            temp = self.population.getFamille(['chef','part'],cod)
+            temp = self.population.get(['chef','part'],cod, 'fam')
             if cod in ['tspr', 'rpns', 'sal', 'etr', 'div_rmi', 'hsup']:
                 setattr(self, '%sC' % cod, temp[0])
                 setattr(self, '%sP' % cod, temp[1])
             setattr(self, cod, temp[0] + temp[1])
                         
         # Revenus d'activité au sens du RSA introduit ici 
-        self.RaRsaC = maximum(0,self.salC + self.hsupC + self.rpnsC + self.etrC + self.div_rmiC)
-        self.RaRsaP = maximum(0,self.salP + self.hsupP + self.rpnsP + self.etrP + self.div_rmiP)
+        self.RaRsaC = max_(0,self.salC + self.hsupC + self.rpnsC + self.etrC + self.div_rmiC)
+        self.RaRsaP = max_(0,self.salP + self.hsupP + self.rpnsP + self.etrP + self.div_rmiP)
         # pour permettre d'effacer les champs individuels après le calcul des différentes bases ressources
         del self.salC, self.etrC, self.div_rmiC, self.salP, self.etrP, self.div_rmiP
 
@@ -243,7 +243,7 @@ class Famille(object):
         for i in range(1,self.nbenfmax+1): 
             age = getattr(self, 'age%d' % i)
             smic55 = getattr(self, 'smic55_%d' % i)
-            res += ((ag1 <=age) & (age <=ag2)) & lnot(smic55) 
+            res += ((ag1 <=age) & (age <=ag2)) & not_(smic55) 
         return res
 
     def getAgems(self):
@@ -280,7 +280,7 @@ class Famille(object):
             # axe 0: mois
             # axe 1: enfants
             # axe 2: taille
-            res = ( ((ag1 <=ages) & (ages <=ag2)) & lnot(self.smic55)   ).sum(axis=1) 
+            res = ( ((ag1 <=ages) & (ages <=ag2)) & not_(self.smic55)   ).sum(axis=1) 
             # print 'compute' + name 
             setattr(self, name, res)
             return res
@@ -308,7 +308,7 @@ class Famille(object):
             # axe 0: mois
             # axe 1: enfants 
             # axe 2: taille
-            elig = lnot(self.smic55) & (ages[0,:,:] < self.datesim.year - date_nais_lim.year)
+            elig = not_(self.smic55) & (ages[0,:,:] < self.datesim.year - date_nais_lim.year)
             res = ( ((ag1 <=ages) & (ages <=ag2)) & elig).sum(axis=1) 
             # print 'compute' + name 
             setattr(self, name, res)
@@ -331,8 +331,8 @@ class Famille(object):
                 age = ages[:,i-1,:]
                 ispacaf = (P.af.age1 <=age) & (age <= P.af.age2)
                 isaine  = ispacaf & (age > ageaine)
-                ageaine = isaine*age + lnot(isaine)*ageaine
-                res     = isaine*i   + lnot(isaine)*res
+                ageaine = isaine*age + not_(isaine)*ageaine
+                res     = isaine*i   + not_(isaine)*res
             self.aine = res 
             return res
 
@@ -350,7 +350,7 @@ class Famille(object):
             agem = agems[:,i-1,:]
             ispacaf      = (-nmois <= agem) & (agem <= 12*P.af.age2)
             isbenjamin   = ispacaf & (agem < agem_benjamin)
-            agem_benjamin = isbenjamin*agem + lnot(isbenjamin)*agem_benjamin
+            agem_benjamin = isbenjamin*agem + not_(isbenjamin)*agem_benjamin
         return agem_benjamin
 
         
@@ -366,7 +366,7 @@ class Famille(object):
         ages  = self.getAges()
         for i in range(1,self.nbenfmax+1):
             age  = ages[:,i-1,:]
-            cond  = lnot((aine == i)&(nbenf <= 2))
+            cond  = not_((aine == i)&(nbenf <= 2))
             res   += ((ag1 <=age) & (age <=ag2))*cond*1
         return res
         
@@ -422,7 +422,7 @@ class Famille(object):
         af_maj1      = round(bmaf*MajAge.taux1,2)
         af_maj2      = round(bmaf*MajAge.taux2,2)
         
-        af_base = (af_nbenf>=1)*af_1enf + (af_nbenf>=2)*af_2enf  + maximum(af_nbenf-2,0)*af_enf_supp
+        af_base = (af_nbenf>=1)*af_1enf + (af_nbenf>=2)*af_2enf  + max_(af_nbenf-2,0)*af_enf_supp
         af_majo = af_nbenf_maj1*af_maj1 + af_nbenf_maj2*af_maj2
         af_ai20 = ((af_nbenf>=2)*af_nbenf_20)*af_forfait
         
@@ -454,13 +454,13 @@ class Famille(object):
         cf_base_n_2 = P.cf.tx*bmaf2
         cf_base     = P.cf.tx*bmaf
         
-        cf_plaf_tx = 1 + P.cf.plaf_tx1*minimum(cf_nbenf,2) + P.cf.plaf_tx2*maximum(cf_nbenf-2,0)
+        cf_plaf_tx = 1 + P.cf.plaf_tx1*min_(cf_nbenf,2) + P.cf.plaf_tx2*max_(cf_nbenf-2,0)
         cf_majo    = self.isol | self.biact
         cf_plaf    = P.cf.plaf*cf_plaf_tx + P.cf.plaf_maj*cf_majo
         cf_plaf2 = cf_plaf + 12*cf_base_n_2
         
         cf_brut = (cf_nbenf>=3)*((self.BRpftot <= cf_plaf)*cf_base + 
-                                 (self.BRpftot > cf_plaf)*maximum(cf_plaf2- self.BRpftot,0)/12.0 )
+                                 (self.BRpftot > cf_plaf)*max_(cf_plaf2- self.BRpftot,0)/12.0 )
         self.cf_brut_m = cf_brut
 
     @famille_wrapper()    
@@ -486,9 +486,9 @@ class Famille(object):
         # TODO : gérer la mensualisation de l'ASF: pb de la pension alimentaire
         asf_nbenfa = asf_nbenf[11,:]
 
-        self.asf_brut = round(self.isol*self.asf_elig*maximum(0,asf_nbenfa*12*P.af.bmaf*P.asf.taux1 - self.rst),2)
+        self.asf_brut = round(self.isol*self.asf_elig*max_(0,asf_nbenfa*12*P.af.bmaf*P.asf.taux1 - self.rst),2)
         
-        self.asf_m = round(self.isol*self.asf_elig*maximum(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - self.rst/12.0),2)
+        self.asf_m = round(self.isol*self.asf_elig*max_(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - self.rst/12.0),2)
 
 
     @famille_wrapper()    
@@ -519,7 +519,7 @@ class Famille(object):
                               P.ars.tx1114*enf_college + \
                               P.ars.tx1518*enf_lycee );
         # Forme de l'ARS  en fonction des enfants a*n - (rev-plaf)/n                                             
-        ars = maximum(0,(ars_plaf_res + arsbase*arsnbenf - maximum(self.BRpftot,ars_plaf_res))/maximum(1,arsnbenf))
+        ars = max_(0,(ars_plaf_res + arsbase*arsnbenf - max_(self.BRpftot,ars_plaf_res))/max_(1,arsnbenf))
         self.ars_brut = ars*(ars>=P.ars.seuil_nv)
 
     
@@ -556,13 +556,13 @@ class Famille(object):
         
         nbenf = self.NbEnf(0,P.paje.base.age-1)
         
-        plaf_tx = (nbenf>0) + P.paje.base.plaf_tx1*minimum(nbenf,2) + P.paje.base.plaf_tx2*maximum(nbenf-2,0)
+        plaf_tx = (nbenf>0) + P.paje.base.plaf_tx1*min_(nbenf,2) + P.paje.base.plaf_tx2*max_(nbenf-2,0)
         majo    = self.isol | self.biact
         plaf    = P.paje.base.plaf*plaf_tx + (plaf_tx>0)*P.paje.base.plaf_maj*majo
         plaf2   = plaf + 12*base2     # TODO vérifier l'aspect différentielle de la PAJE et le plaf2 de la paje
                  
         paje_brut = (nbenf>0)*((self.BRpftot <  plaf)*base + 
-                               (self.BRpftot >= plaf)*maximum(plaf2-self.BRpftot,0)/12) 
+                               (self.BRpftot >= plaf)*max_(plaf2-self.BRpftot,0)/12) 
         
         # non cumulabe avec la CF, voir CumulPajeCF
         self.paje_brut_m = paje_brut
@@ -591,7 +591,7 @@ class Famille(object):
         
         paje_plaf = P.paje.base.plaf
                 
-        plaf_tx = 1 + P.paje.base.plaf_tx1*minimum(nbenf,2) + P.paje.base.plaf_tx2*maximum(nbenf-2.,0)
+        plaf_tx = 1 + P.paje.base.plaf_tx1*min_(nbenf,2) + P.paje.base.plaf_tx2*max_(nbenf-2.,0)
         majo    = self.isol | self.biact
         nais_plaf    = paje_plaf*plaf_tx + majo
         elig = (self.BRpftot <= nais_plaf)*(nbnais!=0)
@@ -645,7 +645,7 @@ class Famille(object):
         partiel2  = zeros((12,self.taille))  
 
         clca_brut = (condition*P.af.bmaf)*(
-                    (lnot(paje))*(inactif*P.paje.clca.sansab_tx_inactif   +
+                    (not_(paje))*(inactif*P.paje.clca.sansab_tx_inactif   +
                                 partiel1*P.paje.clca.sansab_tx_partiel1 +
                                 partiel2*P.paje.clca.sansab_tx_partiel2)  +
                     (paje)*(inactif*P.paje.clca.avecab_tx_inactif   +
@@ -670,13 +670,13 @@ class Famille(object):
 #
 #    avoir un enfant de moins de 6 ans né, adopté ou recueilli en vue d'adoption à partir du 1er janvier 2004
 #    employer une assistante maternelle agréée ou une garde à domicile.
-#    avoir une activité professionnelle minimum
-#        si vous êtes salarié cette activité doit vous procurer un revenu minimum de :
+#    avoir une activité professionnelle min_
+#        si vous êtes salarié cette activité doit vous procurer un revenu min_ de :
 #            si vous vivez seul : une fois la BMAF
 #            si vous vivez en couple  soit 2 fois la BMAF
 #        si vous êtes non salarié, vous devez être à jour de vos cotisations sociales d'assurance vieillesse
 #
-#Vous n'avez pas besoin de justifier d'une activité minimum si vous êtes :
+#Vous n'avez pas besoin de justifier d'une activité min_ si vous êtes :
 #
 #    bénéficiaire de l'allocation aux adultes handicapés (Aah)
 #    au chômage et bénéficiaire de l'allocation d'insertion ou de l'allocation de solidarité spécifique
@@ -684,7 +684,7 @@ class Famille(object):
 #    étudiant (si vous vivez en couple, vous devez être tous les deux étudiants).
 #
 #Autres conditions à remplir : Assistante maternelle agréée     Garde à domicile
-#Son salaire brut ne doit pas dépasser par jour de garde et par enfant 5 fois le montant du Smic horaire brut, soit au maximum 45,00 €.     Vous ne devez pas bénéficier de l'exonération des cotisations sociales dues pour la personne employée.
+#Son salaire brut ne doit pas dépasser par jour de garde et par enfant 5 fois le montant du Smic horaire brut, soit au max_ 45,00 €.     Vous ne devez pas bénéficier de l'exonération des cotisations sociales dues pour la personne employée.
 #
 # 
         # TODO condition de revenu minimal
@@ -695,8 +695,8 @@ class Famille(object):
         
         P = Param.fam
         nbenf = self.NbEnf(P.af.age1,P.af.age2)
-        seuil1 = P.paje.clmg.seuil11*(nbenf==1) + P.paje.clmg.seuil12*(nbenf>=2) + maximum(nbenf-2,0)*P.paje.clmg.seuil1sup
-        seuil2 = P.paje.clmg.seuil21*(nbenf==1) + P.paje.clmg.seuil22*(nbenf>=2) + maximum(nbenf-2,0)*P.paje.clmg.seuil2sup
+        seuil1 = P.paje.clmg.seuil11*(nbenf==1) + P.paje.clmg.seuil12*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil1sup
+        seuil2 = P.paje.clmg.seuil21*(nbenf==1) + P.paje.clmg.seuil22*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil2sup
 
 #        Si vous bénéficiez du Clca taux partiel (= vous travaillez entre 50 et 80% de la durée du travail fixée dans l'entreprise), 
 #        vous cumulez intégralement le Clca et le Cmg. 
@@ -723,7 +723,7 @@ class Famille(object):
 
 #        Si vous bénéficiez du Clca taux plein (= vous ne travaillez plus ou interrompez votre activité professionnelle), 
 #        vous ne pouvez pas bénéficier du Cmg.         
-        clmg_brut = elig*lnot(self.clca_taux_plein)*clmg_brut
+        clmg_brut = elig*not_(self.clca_taux_plein)*clmg_brut
         
         # TODO vérfiez les règles de cumul        
         
@@ -742,7 +742,7 @@ class Famille(object):
         
         paje = (self.paje_brut_m > 0)  
         colca_brut = opt_colca*condition*(nbenf>=3)*P.af.bmaf*(
-            (paje)*P.paje.colca.avecab + lnot(paje)*P.paje.colca.sansab )
+            (paje)*P.paje.colca.avecab + not_(paje)*P.paje.colca.sansab )
 
         self.colca_brut = colca_brut.sum(axis=0)
 
@@ -765,14 +765,14 @@ class Famille(object):
 #        self.paje_tot_m = round(self.paje_brut_m*(1-crds), 2)
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'paje', self.paje_tot)
+        self.population.set('chef', 'paje', self.paje_tot, 'fam')
         
         self.cf_brut = round(cf_brut_m.sum(axis=0), 2)
         self.cf_crds   = round(self.cf_brut*crds, 2)
         self.cf_tot    = self.cf_brut - self.cf_crds
 #        self.cf_tot_m = round(self.cf_brut_m*(1-crds), 2)
         
-        self.population.setFamille('chef', 'cf', self.cf_tot)
+        self.population.set('chef', 'cf', self.cf_tot, 'fam')
         self.population.close_()
         
     @famille_wrapper(crds=False)
@@ -866,22 +866,22 @@ class Famille(object):
         base = round(P.apje.taux*bmaf,2)
         base2 = round(P.apje.taux*bmaf_n_2,2)
 
-        plaf_tx = (nbenf>0) + P.apje.plaf_tx1*minimum(nbenf,2) + P.apje.plaf_tx2*maximum(nbenf-2,0)
+        plaf_tx = (nbenf>0) + P.apje.plaf_tx1*min_(nbenf,2) + P.apje.plaf_tx2*max_(nbenf-2,0)
         majo    = self.isol | self.biact
         plaf    = P.apje.plaf*plaf_tx + P.apje.plaf_maj*majo
         plaf2   = plaf + 12*base2    
 
         brut =  (nbenf>=1)*( ( self.BRpftot <= plaf)*base 
-                + (self.BRpftot > plaf)*maximum(plaf2-self.BRpftot,0)/12.0 )
+                + (self.BRpftot > plaf)*max_(plaf2-self.BRpftot,0)/12.0 )
         self.apje_brut_m = brut
 
     
     def CumulAPE_APJE_CF(self, Param):
         P = Param.fam
         crds = P.af.crds
-        apje_brut_m = (self.apje_brut_m > maximum(self.cf_brut_m,self.ape_brut_m))*self.apje_brut_m
-        cf_brut_m   = (self.cf_brut_m  >= maximum(self.apje_brut_m,self.ape_brut_m) )*self.cf_brut_m
-        ape_brut_m  = (self.ape_brut_m  > maximum(self.apje_brut_m,self.cf_brut_m) )*self.ape_brut_m
+        apje_brut_m = (self.apje_brut_m > max_(self.cf_brut_m,self.ape_brut_m))*self.apje_brut_m
+        cf_brut_m   = (self.cf_brut_m  >= max_(self.apje_brut_m,self.ape_brut_m) )*self.cf_brut_m
+        ape_brut_m  = (self.ape_brut_m  > max_(self.apje_brut_m,self.cf_brut_m) )*self.ape_brut_m
                 
         self.apje_brut  = round(apje_brut_m.sum(axis=0), 2)
         self.apje_crds  = round(self.apje_brut*crds, 2)
@@ -896,9 +896,9 @@ class Famille(object):
         self.ape_tot   = self.ape_brut - self.ape_crds
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'apje', self.apje_tot)
-        self.population.setFamille('chef', 'cf', self.cf_tot)
-        self.population.setFamille('chef', 'ape', self.ape_tot)        
+        self.population.set('chef', 'apje', self.apje_tot, 'fam')
+        self.population.set('chef', 'cf', self.cf_tot, 'fam')
+        self.population.set('chef', 'ape', self.ape_tot, 'fam')    
         self.population.close_()
         
         
@@ -920,15 +920,15 @@ class Famille(object):
         nbenf2 = self.NbEnf(0, P.aged.age2-1)
 
         elig1 = (nbenf>0) 
-        elig2 = lnot(elig1)*(nbenf2>0)*ape_taux_partiel_dummy
+        elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel_dummy
         
         depenses_trim = zeros(self.taille)   # TODO gérer les dépenses trimestrielles
         depenses = 4*depenses_trim         
                  
-        aged3 = elig1*( maximum(P.aged.remb_plaf1-P.aged.remb_taux1*depenses,0)*(self.BRpftot > P.aged.revenus_plaf) 
-           +  (self.BRpftot <= P.aged.revenus_plaf)*maximum(P.aged.remb_taux2*depenses - P.aged.remb_plaf1,0))
+        aged3 = elig1*( max_(P.aged.remb_plaf1-P.aged.remb_taux1*depenses,0)*(self.BRpftot > P.aged.revenus_plaf) 
+           +  (self.BRpftot <= P.aged.revenus_plaf)*max_(P.aged.remb_taux2*depenses - P.aged.remb_plaf1,0))
         
-        aged6  = elig2*maximum(P.aged.remb_taux2*depenses - P.aged.remb_plaf2,0)
+        aged6  = elig2*max_(P.aged.remb_taux2*depenses - P.aged.remb_plaf2,0)
 
         self.aged = aged3 + aged6 
 
@@ -943,11 +943,11 @@ class Famille(object):
         # Vérifier que c'est la même chose pour le clmg
         P = Param.fam
         ape = zeros(self.taille)
-        elig = lnot(ape)*zeros(self.taille) # assistante maternelle agréee
+        elig = not_(ape)*zeros(self.taille) # assistante maternelle agréee
 # Vous devez:
 #    faire garder votre enfant de moins de 6 ans par une assistante maternelle agréée dont vous êtes l'employeur
 #    déclarer son embauche à l'Urssaf
-#    lui verser un salaire ne dépassant pas par jour de garde et par enfant 5 fois le montant horaire du Smic, soit au maximum 42,20 €
+#    lui verser un salaire ne dépassant pas par jour de garde et par enfant 5 fois le montant horaire du Smic, soit au max_ 42,20 €
 #
 #Si vous cessez de travailler et bénéficiez de l'allocation parentale d'éducation, vous ne recevrez plus l'Afeama.
 #Vos enfants doivent être nés avant le 1er janvier 2004.
@@ -956,8 +956,8 @@ class Famille(object):
         # 
         nbenf = elig*self.NbEnf(P.af.age1,P.age2)*(self.NbEnf(P.af.age1,P.afeama.age-1)>0)
         
-        seuil1 = P.afeama.mult_seuil1*P.ars.plaf*(nbenf==1) + maximum(nbenf-1,0)*P.afeama.mult_seuil1*P.ars.plaf*(1+P.ars.plaf_enf_supp)
-        seuil2 = P.afeama.mult_seuil2*P.ars.plaf*(nbenf==1) + maximum(nbenf-1,0)*P.afeama.mult_seuil2*P.ars.plaf*(1+P.ars.plaf_enf_supp)
+        seuil1 = P.afeama.mult_seuil1*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil1*P.ars.plaf*(1+P.ars.plaf_enf_supp)
+        seuil2 = P.afeama.mult_seuil2*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil2*P.ars.plaf*(1+P.ars.plaf_enf_supp)
         
         afeama_brut = self.NbEnf(P.af.age1,P.afeama.age-1)*P.af.bmaf*( 
                 (self.BRpftot < seuil1)*P.afeama.taux_mini +
@@ -1024,10 +1024,10 @@ class Famille(object):
         etuCP= (self.etuC>=1)&(self.etuP>=1)
         self.etu = (self.etuC>=1)|(self.etuP>=1)
         
-        revCatVous = maximum(self.revChef,etuC*(Pr.dar_4-(self.etuC==2)*Pr.dar_5))
-        revCatConj = maximum(self.revPart,etuP*(Pr.dar_4-(self.etuP==2)*Pr.dar_5))
-        revCatVsCj = lnot(etuCP)*(revCatVous + revCatConj) + \
-                        etuCP*maximum(self.revChef + self.revPart, Pr.dar_4 -((self.etuC==2)|(self.etuP==2))*Pr.dar_5 + Pr.dar_7)
+        revCatVous = max_(self.revChef,etuC*(Pr.dar_4-(self.etuC==2)*Pr.dar_5))
+        revCatConj = max_(self.revPart,etuP*(Pr.dar_4-(self.etuP==2)*Pr.dar_5))
+        revCatVsCj = not_(etuCP)*(revCatVous + revCatConj) + \
+                        etuCP*max_(self.revChef + self.revPart, Pr.dar_4 -((self.etuC==2)|(self.etuP==2))*Pr.dar_5 + Pr.dar_7)
         
         # somme des revenus catégoriels après abatement
         revCat = revCatVsCj + self.revColl
@@ -1051,7 +1051,7 @@ class Famille(object):
         # double résidence pour raisons professionnelles
         
         # Base ressource des aides au logement (arrondies aux 100 euros supérieurs)
-        self.BRapl = ceil(maximum(revNet - abatDoubleAct,0)/100)*100
+        self.BRapl = ceil(max_(revNet - abatDoubleAct,0)/100)*100
 
     def AlFormule(self,P):
         '''
@@ -1097,11 +1097,11 @@ class Famille(object):
         
         L2 = Lz1*(self.al_zone==1) + Lz2*(self.al_zone==2) + Lz3*(self.al_zone==3)
         # loyer retenu
-        L = minimum(L1,L2)
+        L = min_(L1,L2)
         
         # forfait de charges
         P_fc = P.al.forfait_charges
-        C = lnot(self.coloc)*(P_fc.fc1 + self.al_pac*P_fc.fc2) + \
+        C = not_(self.coloc)*(P_fc.fc1 + self.al_pac*P_fc.fc2) + \
               ( self.coloc)*((self.isol*0.5 + self.coup)*P_fc.fc1 + self.al_pac*P_fc.fc2)
         
         # dépense éligible
@@ -1122,10 +1122,10 @@ class Famille(object):
         
         Ro = round(12*(R1-R2)*(1-P.al.autres.abat_sal));
         
-        Rp = maximum(0, R - Ro );
+        Rp = max_(0, R - Ro );
         
         # Participation personnelle
-        Po = maximum(P.al.pp.taux*E, P.al.pp.min);
+        Po = max_(P.al.pp.taux*E, P.al.pp.min);
         
         # Taux de famille    
         TF = P.al.TF.taux1*(self.isol)*(self.al_pac==0) + \
@@ -1145,12 +1145,12 @@ class Famille(object):
         RL = L / L_Ref
 
         # TODO ; paramètres en dur ??
-        TL = maximum(maximum(0,P.al.TL.taux2*(RL-0.45)),P.al.TL.taux3*(RL-0.75)+P.al.TL.taux2*(0.75-0.45))
+        TL = max_(max_(0,P.al.TL.taux2*(RL-0.45)),P.al.TL.taux3*(RL-0.75)+P.al.TL.taux2*(0.75-0.45))
         
         Tp= TF + TL
         
         PP = Po + Tp*Rp
-        al_loc = maximum(0,E - PP)*(loca==1)
+        al_loc = max_(0,E - PP)*(loca==1)
         self.al_loc = al_loc*(al_loc>=P.al.autres.nv_seuil)
 
         ## APL pour les accédants à la propriété
@@ -1160,15 +1160,15 @@ class Famille(object):
         self.al_tot = (self.al_loc + self.al_acc)*(1-P.fam.af.crds)
 
         self.alf   = 12*(self.al_pac>=1)*self.al_tot # Allocation logement familiale
-        self.als   = 12*(self.al_pac==0)*lnot(self.etu)*self.al_tot # Allocation logement sociale
+        self.als   = 12*(self.al_pac==0)*not_(self.etu)*self.al_tot # Allocation logement sociale
         self.alset = 12*(self.al_pac==0)*self.etu*self.al_tot # Allocation logement étudiante
         self.apl   = 12*zeros(self.taille) #TODO: Pour les logements conventionné (surtout des HLM)
 
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'alf', self.alf)
-        self.population.setFamille('chef', 'als', self.als)
-        self.population.setFamille('chef', 'alset', self.alset)
-        self.population.setFamille('chef', 'apl', self.apl)
+        self.population.set('chef', 'alf', self.alf, 'fam')
+        self.population.set('chef', 'als', self.als, 'fam')
+        self.population.set('chef', 'alset', self.alset, 'fam')
+        self.population.set('chef', 'apl', self.apl, 'fam')
         self.population.close_()
 
     def BaseRessourceMV(self, P):
@@ -1188,10 +1188,10 @@ class Famille(object):
         # des pensions attachées aux distinctions honorifiques,
         # de l'aide apportée ou susceptible d'être apportée par les personnes tenues à l'obligation alimentaire.
 
-        self.BRmv = (maximum(0,self.sal + self.cho) + maximum(0,self.rst + self.alr + self.rto) + 
-                     maximum(0,self.rpns) + maximum(0,self.revcap_bar) + 
-                     maximum(0,self.revcap_lib) + maximum(0,self.rfon) +
-                     maximum(0,self.etr) + maximum(0,self.div_rmi) )
+        self.BRmv = (max_(0,self.sal + self.cho) + max_(0,self.rst + self.alr + self.rto) + 
+                     max_(0,self.rpns) + max_(0,self.revcap_bar) + 
+                     max_(0,self.revcap_lib) + max_(0,self.rfon) +
+                     max_(0,self.etr) + max_(0,self.div_rmi) )
         return self.BRmv
 
     def MV(self, Param):
@@ -1219,15 +1219,15 @@ class Famille(object):
         eligP = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
         
         elig2 = eligC & eligP
-        elig1 = lnot(elig2) & (eligC |eligP)
+        elig1 = not_(elig2) & (eligC |eligP)
         
         BRmv = self.BaseRessourceMV(P)
         
-        depassement = elig1*(self.nbpar==1)*maximum(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
-            +  elig1*(self.nbpar==2)*maximum(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
-            +  elig2*maximum(0, BRmv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
+        depassement = elig1*(self.nbpar==1)*max_(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
+            +  elig1*(self.nbpar==2)*max_(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
+            +  elig2*max_(0, BRmv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
         
-        self.mv_m = maximum(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
+        self.mv_m = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
 
         # TODO ASI 
         self.asiC = zeros(self.taille)
@@ -1237,7 +1237,7 @@ class Famille(object):
 
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'mv', self.mv)
+        self.population.set('chef', 'mv', self.mv, 'fam')
         self.population.close_()
     
     def RSA(self, P):
@@ -1284,7 +1284,7 @@ class Famille(object):
 
 
         self.BrRmi = (self.RaRsaC + self.RaRsaP + self.cho + self.rst + self.alr + self.rto + 
-                      maximum(0,self.revcap_bar + self.revcap_lib + self.rfon) + 
+                      max_(0,self.revcap_bar + self.revcap_lib + self.rfon) + 
                       pfBRrmi +
                       self.mv + self.asiC + self.asiP + self.aah + self.caah)
           
@@ -1347,6 +1347,7 @@ class Famille(object):
 
     
     def Rsa(self, P):
+        table = self.population
         # RSA socle TODO mécanisme similaire à l'API: Pour les
         # personnes ayant la charge d’au moins un enfant né ou à
         # naître et se retrouvant en situation d’isolement, le montant
@@ -1360,7 +1361,7 @@ class Famille(object):
         tx_rmi = 1 + ( self.rmiNbp >= 2 )*P.rmi.txp2 \
                    + ( self.rmiNbp >= 3 )*P.rmi.txp3 \
                    + ( self.rmiNbp >= 4 )*((self.nbpar==1)*P.rmi.txps + (self.nbpar!=1)*P.rmi.txp3) \
-                   + maximum(self.rmiNbp -4,0)*P.rmi.txps 
+                   + max_(self.rmiNbp -4,0)*P.rmi.txps 
         rsaSocle = 12*P.rmi.rmi*tx_rmi*eligib
         # calcul du forfait logement si le ménage touche des allocations logements
         # (FA.AL)
@@ -1370,25 +1371,25 @@ class Famille(object):
                  (self.rmiNbp>=3)*FL.taux3 )
         self.forf_log = 12*loca*(tx_fl*P.rmi.rmi)
         # cacul du RSA
-        RMI = maximum(0,rsaSocle  - self.forf_log - self.BrRmi)
-        RSA = maximum(0,rsaSocle + P.rmi.pente*(self.RaRsaC+self.RaRsaP) - self.forf_log - self.BrRmi)
+        RMI = max_(0,rsaSocle  - self.forf_log - self.BrRmi)
+        RSA = max_(0,rsaSocle + P.rmi.pente*(self.RaRsaC+self.RaRsaP) - self.forf_log - self.BrRmi)
         self.rsa = (RSA>=P.rmi.rsa_nv)*RSA
         
-        self.population.openWriteMode()        
-        self.population.setFamille('chef', 'rsaact', self.rsa - RMI)
-        self.population.setFamille('chef', 'rsa', self.rsa)   
-        self.population.close_()
+        table.openWriteMode()        
+        table.set('chef', 'rsaact', self.rsa - RMI, 'fam')
+        table.set('chef', 'rsa', self.rsa, 'fam')   
+        table.close_()
         
-        self.population.openReadMode()        
+        table.openReadMode()        
         # On retranche le RSA activité de la PPE
-        ppe = maximum(self.population.getFoyer('vous', 'ppe') 
-               - self.population.getFoyer('vous', 'rsaact')
-               - self.population.getFoyer('conj', 'rsaact'),0)
-        self.population.close_()
+        ppe = max_(table.get('vous', 'ppe', 'foy') 
+               - table.get('vous', 'rsaact', 'foy')
+               - table.get('conj', 'rsaact', 'foy'),0)
+        table.close_()
         
-        self.population.openWriteMode()
-        self.population.setColl('ppe',ppe)
-        self.population.close_()    
+        table.openWriteMode()
+        table.setColl('ppe',ppe)
+        table.close_()    
     
     def API(self, P):
         '''
@@ -1418,14 +1419,14 @@ class Famille(object):
         # moins de 20 ans avant inclusion dans rsa et moins de  25 après
         api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*self.NbEnf(P.fam.af.age1,P.minim.api.age_pac-1) )
         rsa = (P.minim.api.age_pac >= 25) # dummy passage au rsa majoré
-        BRapi = self.BrRmi + self.af_majo*lnot(rsa)
+        BRapi = self.BrRmi + self.af_majo*not_(rsa)
         # TODO: mensualiser RMI, BRrmi et forfait logement
-        api  = maximum(0, api1 - self.forf_log/12 - BRapi/12 - self.rsa/12) 
+        api  = max_(0, api1 - self.forf_log/12 - BRapi/12 - self.rsa/12) 
         
         # L'API est exonérée de CRDS
         self.api = api.sum(axis=0)
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'api', self.api)
+        self.population.set('chef', 'api', self.api, 'fam')
         self.population.close_()
 
         # TODO: temps partiel qui modifie la base ressource
@@ -1470,15 +1471,15 @@ class Famille(object):
         P = Param.minim
         aefa = condition*P.aefa.mon_seul*(1 + (self.nbpar==2)*P.aefa.tx_2p
                   + nbPAC*P.aefa.tx_supp*(self.nbpar<=2)
-                  + nbPAC*P.aefa.tx_3pac*maximum(nbPAC-2,0))
+                  + nbPAC*P.aefa.tx_3pac*max_(nbPAC-2,0))
         
         if self.datesim.year==2008: aefa += condition*P.aefa.forf2008
                    
         aefa_maj  = P.aefa.mon_seul*maj
-        self.aefa = maximum(aefa_maj,aefa)   
+        self.aefa = max_(aefa_maj,aefa)   
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'aefa', self.aefa)   
+        self.population.set('chef', 'aefa', self.aefa, 'fam')   
         self.population.close_()
 
     def ASPA_ASI(self,Param):
@@ -1528,8 +1529,8 @@ class Famille(object):
         elig_aspa_C = ((ageC>=P.aspa.age_min) | ((ageC>=P.aspa.age_ina) &  (self.invC==1))) & (self.actC==3) 
         elig_aspa_P = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
         
-        elig_asi_C  = ( ((self.invC == 1) & (self.actC==3)) & lnot(elig_aspa_C) ) 
-        elig_asi_P  = ( ((self.invP == 1) & (self.actP==3)) & lnot(elig_aspa_P) )  
+        elig_asi_C  = ( ((self.invC == 1) & (self.actC==3)) & not_(elig_aspa_C) ) 
+        elig_asi_P  = ( ((self.invP == 1) & (self.actP==3)) & not_(elig_aspa_P) )  
 
         marpacs = self.coup
         maries  = self.maries
@@ -1549,14 +1550,14 @@ class Famille(object):
         # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA 
         elig1 = ( (nb_alloc==1) & ( elig_asi_C | elig_asi_P) )      # un seul éligible
         elig2 = (elig_asi_C & elig_asi_P)*maries                    # couple d'éligible marié
-        elig3 = (elig_asi_C & elig_asi_P)*(marpacs & lnot(maries))  # couple d'éligible non marié
+        elig3 = (elig_asi_C & elig_asi_P)*(marpacs & not_(maries))  # couple d'éligible non marié
         elig  = elig1 | elig2
 
         montant_max = elig1*P.asi.montant_seul + elig2*P.asi.montant_couple + elig3*2*P.asi.montant_seul 
         ressources  = elig*(self.BaseRessourceMV(P) + montant_max)
-        plafond_ressources = elig1*(P.asi.plaf_seul*lnot(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
+        plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
         depassement     = ressources - plafond_ressources 
-        montant_servi   = maximum(montant_max - depassement, 0)/12 
+        montant_servi   = max_(montant_max - depassement, 0)/12 
         self.asiC_m = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
         self.asiP_m = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
 
@@ -1567,9 +1568,9 @@ class Famille(object):
 
         montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
         ressources  = elig*(self.BaseRessourceMV(P) + montant_max) 
-        plafond_ressources = elig1*(P.aspa.plaf_seul*lnot(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
+        plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
         depassement     = ressources - plafond_ressources 
-        montant_servi   = maximum(montant_max - depassement, 0)/12
+        montant_servi   = max_(montant_max - depassement, 0)/12
         self.aspaC_m = elig_aspa_C*montant_servi*(elig1 + elig2/2)
         self.aspaP_m = elig_aspa_P*montant_servi*(elig1 + elig2/2)
                 
@@ -1580,21 +1581,21 @@ class Famille(object):
         ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
         plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
         depassement        = ressources - plafond_ressources 
-        montant_servi_ASI   = where(index, maximum(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
-        montant_servi_ASPA  = where(index, maximum(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+        montant_servi_ASI   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
+        montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
         self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
         self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
         self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
         self.aspaP_m[index & elig_aspa_P ] = montant_servi_ASPA[index]
         
         # Les deux persones ne sont pas mariées mais concubins ou pacsés
-        index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & lnot(maries))
+        index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & not_(maries))
         montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
         ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
         plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
         depassement        = ressources - plafond_ressources 
-        montant_servi_ASI   = where(index, maximum(P.asi.montant_seul - 0.5*depassement, 0),0)/12
-        montant_servi_ASPA  = where(index, maximum(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+        montant_servi_ASI   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
+        montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
         self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
         self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
         self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
@@ -1606,10 +1607,10 @@ class Famille(object):
         self.aspaP = self.aspaP_m.sum(axis=0)
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'asi', self.asiC)
-        self.population.setFamille('part', 'asi', self.asiP)
-        self.population.setFamille('chef', 'mv', self.aspaC)
-        self.population.setFamille('part', 'mv', self.aspaP)
+        self.population.set('chef', 'asi', self.asiC, 'fam')
+        self.population.set('part', 'asi', self.asiP, 'fam')
+        self.population.set('chef', 'mv', self.aspaC, 'fam')
+        self.population.set('part', 'mv', self.aspaP, 'fam')
         self.population.close_()
             
         self.mv = self.aspaC + self.aspaP    
@@ -1637,7 +1638,7 @@ class Famille(object):
 #        TODO: éligibilité AAH
 #        Pour les montants http://www.handipole.org/spip.php?article666
         
-#        Âge maximum
+#        Âge max_
 #        Le versement de l'AAH prend fin à partir de l'âge minimum légal de départ à la retraite en cas d'incapacité 
 #        de 50 % à 79 %. À cet âge, le bénéficiaire bascule dans le régime de retraite pour inaptitude.
 #        En cas d'incapacité d'au moins 80 %, une AAH différentielle (c'est-à-dire une allocation mensuelle réduite) 
@@ -1680,13 +1681,13 @@ class Famille(object):
             del self.mv_m
 
         eligib = ( eligC | eligP )*(self.BRaah <= plaf)
-        aah_m = eligib*maximum(P.minim.aah.montant - self.BRaah, 0 ) 
+        aah_m = eligib*max_(P.minim.aah.montant - self.BRaah, 0 ) 
         
         # l'aah est exonérée de crds 
         self.aah = aah_m.sum(axis=0)
         
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'aah', self.aah)
+        self.population.set('chef', 'aah', self.aah, 'fam')
         self.population.close_()
 
 #        Cumul d'allocation
@@ -1733,7 +1734,7 @@ class Famille(object):
         P = Param.minim 
         elig_cpl = zeros((12,self.taille))    # TODO: éligibilité
         
-        if self.datesim.year >= 2006: compl = elig_cpl*maximum(P.caah.grph-self.aah,0)  
+        if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-self.aah,0)  
         else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah
 #        else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah_m 
             # En fait perdure jusqu'en 2008 
@@ -1757,11 +1758,11 @@ class Famille(object):
             elig_mva = zeros((12,self.taille))*(self.aah>0)   # TODO: éligibilité
             mva = P.caah.mva*elig_mva
         else: mva = zeros((12,self.taille))      
-        caah = maximum(compl,mva)
+        caah = max_(compl,mva)
               
         self.caah = caah.sum(axis=0)
         self.population.openWriteMode()
-        self.population.setFamille('chef', 'caah', self.caah)
+        self.population.set('chef', 'caah', self.caah, 'fam')
         self.population.close_()
         
     def ASS(self, P):
@@ -1789,11 +1790,11 @@ class Famille(object):
 
         majo = zeros(self.taille)
         plaf = P.chomage.ass.plaf_seul*self.seul + P.chomage.ass.plaf_coup*self.coup
-        montant_mensuel = 30*(P.chomage.ass.montant_plein*lnot(majo) 
+        montant_mensuel = 30*(P.chomage.ass.montant_plein*not_(majo) 
                               + majo*P.chomage.ass.montant_maj)
         revenus = self.BRpftot + 12*montant_mensuel  # TODO check base ressources
         ass = 12*(montant_mensuel*(revenus<=plaf) 
-                  + (revenus>plaf)*maximum(plaf+montant_mensuel-revenus,0))
+                  + (revenus>plaf)*max_(plaf+montant_mensuel-revenus,0))
         
         
     

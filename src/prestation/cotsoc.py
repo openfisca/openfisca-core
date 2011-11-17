@@ -24,9 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 from tableWriter import CAT
 import numpy as np
-from numpy import maximum as maxi
-from numpy import minimum as mini
-from numpy import logical_not as lnot
+from numpy import maximum as max_, minimum as min_, logical_not as not_
 from Utils import Bareme, BarmMar, Dicts2Object
 from parametres.paramData import Tree2Object
 
@@ -167,7 +165,7 @@ class cotsoccal(object):
         table.setIndiv('csgchoi', isnotexo*csgchoi)
         table.setIndiv('crdscho', isnotexo*crdscho)
 
-        chobrut = isnotexo*self.chobrut + lnot(isnotexo)*self.cho
+        chobrut = isnotexo*self.chobrut + not_(isnotexo)*self.cho
         table.setIndiv('chobrut', chobrut)
         table.setIndiv('cho', chobrut + isnotexo*csgchod)
         
@@ -344,7 +342,7 @@ class cotsoccal(object):
         # d’indemnisation compensatrice de congés payés.
         if P.seuil <= 1:
             return 0 
-        return P.tx_max*mini(1,maxi(P.seuil*self.smic_h_b/(salaire_horaire_brut+1e-10)-1,0)/(P.seuil-1))
+        return P.tx_max*min_(1,max_(P.seuil*self.smic_h_b/(salaire_horaire_brut+1e-10)-1,0)/(P.seuil-1))
 
     def impot_LPS(self, P):
         '''
@@ -366,7 +364,7 @@ class cotsoccal(object):
         ac = couple*P.abatt_conj
         rc = couple*P.reduc_conj
 
-        return - np.maximum(0, BarmMar(np.maximum(self.basecsg - ae - ac, 0) , P.bareme)-re-rc) + ce
+        return - max_(0, BarmMar(max_(self.basecsg - ae - ac, 0) , P.bareme)-re-rc) + ce
         
 def calcul_brut(P, sal, hsup, cat, cho, rst, csgTauxPlein):
     '''
@@ -411,11 +409,11 @@ def calcul_brut(P, sal, hsup, cat, cho, rst, csgTauxPlein):
         salbrut += brut
     outdict.update({'salbrut': salbrut + hsup})
 
-    chobrut =( lnot(csgTauxPlein)*BarmMar(cho, bar.chom_reduit) + 
+    chobrut =( not_(csgTauxPlein)*BarmMar(cho, bar.chom_reduit) + 
         csgTauxPlein*BarmMar(cho, bar.chom_plein) ) 
     outdict.update({'chobrut': chobrut})
     
-    rstbrut = (lnot(csgTauxPlein)*BarmMar(rst, bar.retraite_reduit) 
+    rstbrut = (not_(csgTauxPlein)*BarmMar(rst, bar.retraite_reduit) 
                + csgTauxPlein*BarmMar(rst, bar.retraite_plein))
     outdict.update({'rstbrut': rstbrut})
     

@@ -22,8 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import minimum, maximum, zeros
-from numpy import logical_not as lnot
+from numpy import minimum as min_, maximum as max_, logical_not as not_, zeros
 
 def niches(year):
     niches = []
@@ -60,76 +59,76 @@ def creimp(self, P, table):
     '''
     Avoir fiscaux et crédits d'impôt
     '''
-    AB = table.getFoyer('vous', 'f2ab', 'foyer')
-    TA = table.getFoyer('vous', 'f8ta', 'foyer')
-    TB = table.getFoyer('vous', 'f8tb', 'foyer')
+    AB = table.get('vous', 'f2ab', 'foy', 'foyer')
+    TA = table.get('vous', 'f8ta', 'foy', 'foyer')
+    TB = table.get('vous', 'f8tb', 'foy', 'foyer')
 
-    TF = table.getFoyer('vous', 'f8tf', 'foyer')
-    TG = table.getFoyer('vous', 'f8tg', 'foyer')
-    TH = table.getFoyer('vous', 'f8th', 'foyer')
+    TF = table.get('vous', 'f8tf', 'foy', 'foyer')
+    TG = table.get('vous', 'f8tg', 'foy', 'foyer')
+    TH = table.get('vous', 'f8th', 'foy', 'foyer')
     
     if self.year == 2002:
 
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TD = table.getFoyer('vous', 'f8td', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TD = table.get('vous', 'f8td', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
         
         return (AB + TA + TB + TC + TD + TE - TF + TG + TH)
 
     elif self.year == 2003:
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TD = table.getFoyer('vous', 'f8td', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TD = table.get('vous', 'f8td', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP)
 
     elif self.year == 2004:
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TD = table.getFoyer('vous', 'f8td', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TD = table.get('vous', 'f8td', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP + UZ + TZ)
         
     elif self.year == 2005:
         
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TD = table.getFoyer('vous', 'f8td', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WC = table.getFoyer('vous', 'f8wc', 'foyer')
-        WE = table.getFoyer('vous', 'f8we', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TD = table.get('vous', 'f8td', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
+        WE = table.get('vous', 'f8we', 'foy', 'foyer')
         return (AB + TA + TB + TC + TD + TE - TF + TG 
                    + TH + TO - TP + UZ + TZ + WA + WB 
                    + WC + WE)
 
     elif self.year == 2006:
         
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WC = table.getFoyer('vous', 'f8wc', 'foyer')
-        WD = table.getFoyer('vous', 'f8wd', 'foyer')
-        WE = table.getFoyer('vous', 'f8we', 'foyer')
-        WR = table.getFoyer('vous', 'f8wr', 'foyer')
-        WS = table.getFoyer('vous', 'f8ws', 'foyer')
-        WT = table.getFoyer('vous', 'f8wt', 'foyer')
-        WU = table.getFoyer('vous', 'f8wu', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
+        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
+        WE = table.get('vous', 'f8we', 'foy', 'foyer')
+        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
+        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
+        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
+        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WE + WR + WS + WT + WU)
@@ -137,83 +136,83 @@ def creimp(self, P, table):
 
     elif self.year == 2007:
 
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WC = table.getFoyer('vous', 'f8wc', 'foyer')
-        WD = table.getFoyer('vous', 'f8wd', 'foyer')
-        WR = table.getFoyer('vous', 'f8wr', 'foyer')
-        WS = table.getFoyer('vous', 'f8ws', 'foyer')
-        WT = table.getFoyer('vous', 'f8wt', 'foyer')
-        WU = table.getFoyer('vous', 'f8wu', 'foyer')
-        WV = table.getFoyer('vous', 'f8wv', 'foyer')
-        WX = table.getFoyer('vous', 'f8wx', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
+        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
+        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
+        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
+        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
+        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
+        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
+        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WR + WS + WT + WU + WV + WX)
         
     elif self.year == 2008:
-        TC = table.getFoyer('vous', 'f8tc', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WC = table.getFoyer('vous', 'f8wc', 'foyer')
-        WD = table.getFoyer('vous', 'f8wd', 'foyer')
-        WE = table.getFoyer('vous', 'f8we', 'foyer')
-        WR = table.getFoyer('vous', 'f8wr', 'foyer')
-        WS = table.getFoyer('vous', 'f8ws', 'foyer')
-        WT = table.getFoyer('vous', 'f8wt', 'foyer')
-        WU = table.getFoyer('vous', 'f8wu', 'foyer')
-        WV = table.getFoyer('vous', 'f8wv', 'foyer')
-        WX = table.getFoyer('vous', 'f8wx', 'foyer')
+        TC = table.get('vous', 'f8tc', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WC = table.get('vous', 'f8wc', 'foy', 'foyer')
+        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
+        WE = table.get('vous', 'f8we', 'foy', 'foyer')
+        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
+        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
+        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
+        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
+        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
+        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
         return (AB + TA + TB + TC + TE - TF + TG + TH 
                    + TO - TP + UZ + TZ + WA + WB + WC 
                    + WD + WE + WR + WS + WT + WU + WV + WX)
 
     elif self.year == 2009:
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WD = table.getFoyer('vous', 'f8wd', 'foyer')
-        WE = table.getFoyer('vous', 'f8we', 'foyer')
-        WR = table.getFoyer('vous', 'f8wr', 'foyer')
-        WS = table.getFoyer('vous', 'f8ws', 'foyer')
-        WT = table.getFoyer('vous', 'f8wt', 'foyer')
-        WU = table.getFoyer('vous', 'f8wu', 'foyer')
-        WV = table.getFoyer('vous', 'f8wv', 'foyer')
-        WX = table.getFoyer('vous', 'f8wx', 'foyer')
-        WY = table.getFoyer('vous', 'f8wy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
+        WE = table.get('vous', 'f8we', 'foy', 'foyer')
+        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
+        WS = table.get('vous', 'f8ws', 'foy', 'foyer')
+        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
+        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
+        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
+        WX = table.get('vous', 'f8wx', 'foy', 'foyer')
+        WY = table.get('vous', 'f8wy', 'foy', 'foyer')
         return (AB + TA + TB - TF + TG + TH + TO - TP 
                    + UZ + TZ + WA + WB + WD + WE + WR 
                    + WS + WT + WU + WV + WX + WY)
 
     elif self.year == 2010:
-        TC = table.getFoyer('vous', 'f8te', 'foyer')
-        TE = table.getFoyer('vous', 'f8te', 'foyer')
-        TO = table.getFoyer('vous', 'f8to', 'foyer')
-        TP = table.getFoyer('vous', 'f8tp', 'foyer')
-        UZ = table.getFoyer('vous', 'f8uz', 'foyer')
-        TZ = table.getFoyer('vous', 'f8tz', 'foyer')
-        WA = table.getFoyer('vous', 'f8wa', 'foyer')
-        WB = table.getFoyer('vous', 'f8wb', 'foyer')
-        WD = table.getFoyer('vous', 'f8wd', 'foyer')
-        WE = table.getFoyer('vous', 'f8we', 'foyer')
-        WR = table.getFoyer('vous', 'f8wr', 'foyer')
-        WT = table.getFoyer('vous', 'f8wt', 'foyer')
-        WU = table.getFoyer('vous', 'f8wu', 'foyer')
-        WV = table.getFoyer('vous', 'f8wv', 'foyer')
+        TC = table.get('vous', 'f8te', 'foy', 'foyer')
+        TE = table.get('vous', 'f8te', 'foy', 'foyer')
+        TO = table.get('vous', 'f8to', 'foy', 'foyer')
+        TP = table.get('vous', 'f8tp', 'foy', 'foyer')
+        UZ = table.get('vous', 'f8uz', 'foy', 'foyer')
+        TZ = table.get('vous', 'f8tz', 'foy', 'foyer')
+        WA = table.get('vous', 'f8wa', 'foy', 'foyer')
+        WB = table.get('vous', 'f8wb', 'foy', 'foyer')
+        WD = table.get('vous', 'f8wd', 'foy', 'foyer')
+        WE = table.get('vous', 'f8we', 'foy', 'foyer')
+        WR = table.get('vous', 'f8wr', 'foy', 'foyer')
+        WT = table.get('vous', 'f8wt', 'foy', 'foyer')
+        WU = table.get('vous', 'f8wu', 'foy', 'foyer')
+        WV = table.get('vous', 'f8wv', 'foy', 'foyer')
         return (AB + TA + TB + TC + TE - TF
                    + TG + TO - TP + TH + UZ
                    + TZ + WA + WB + WD + WE
@@ -224,10 +223,10 @@ def divide(self, P, table):
     Crédit d'impôt dividendes
     '''
     
-    DC = table.getFoyer('vous', 'f2dc', 'foyer')
-    GR = table.getFoyer('vous', 'f2gr', 'foyer')
+    DC = table.get('vous', 'f2dc', 'foy', 'foyer')
+    GR = table.get('vous', 'f2gr', 'foy', 'foyer')
     max1 = P.divide.max*(self.marpac+1)
-    return minimum(P.divide.taux*(DC + GR), max1)
+    return min_(P.divide.taux*(DC + GR), max1)
 
 def percvm(self, P, table):
     '''
@@ -239,19 +238,19 @@ def direpa(self, P, table):
     '''
     Crédit d’impôt directive « épargne » (case 2BG)
     '''
-    return table.getFoyer('vous', 'f2bg', 'foyer')
+    return table.get('vous', 'f2bg', 'foy', 'foyer')
 
 def accult(self, P, table):
     '''
     Acquisition de biens culturels (case 7UO)
     '''
-    return P.accult.taux*table.getFoyer('vous', 'f7uo', 'foyer')
+    return P.accult.taux*table.get('vous', 'f7uo', 'foy', 'foyer')
 
 def mecena(self, P, table):
     '''
     Mécénat d'entreprise (case 7US)
     '''
-    return table.getFoyer('vous', 'f7us', 'foyer')
+    return table.get('vous', 'f7us', 'foy', 'foyer')
 
 def prlire(self, P, table):
     '''
@@ -264,161 +263,161 @@ def quaenv(self, P, table):
     Crédits d’impôt pour dépenses en faveur de la qualité environnementale 
     (cases 7WF, 7WH, 7WK, 7WQ, 7SB, 7SD, 7SE et 7SH)
     '''
-    WF = table.getFoyer('vous', 'f7wf', 'foyer')
-    WH = table.getFoyer('vous', 'f7wh', 'foyer')
-    WK = table.getFoyer('vous', 'f7wk', 'foyer')
-    WQ = table.getFoyer('vous', 'f7wq', 'foyer')
-    SB = table.getFoyer('vous', 'f7sb', 'foyer')
-    SD = table.getFoyer('vous', 'f7sd', 'foyer')
-    SE = table.getFoyer('vous', 'f7se', 'foyer')
-    SH = table.getFoyer('vous', 'f7sh', 'foyer')
+    WF = table.get('vous', 'f7wf', 'foy', 'foyer')
+    WH = table.get('vous', 'f7wh', 'foy', 'foyer')
+    WK = table.get('vous', 'f7wk', 'foy', 'foyer')
+    WQ = table.get('vous', 'f7wq', 'foy', 'foyer')
+    SB = table.get('vous', 'f7sb', 'foy', 'foyer')
+    SD = table.get('vous', 'f7sd', 'foy', 'foyer')
+    SE = table.get('vous', 'f7se', 'foy', 'foyer')
+    SH = table.get('vous', 'f7sh', 'foy', 'foyer')
      
     n = self.nbF + self.nbJ + self.nbR + self.nbH/2
     if self.year == 2005:
         max0 = (P.quaenv.max*(1+self.marpac) + 
                 P.quaenv.pac1*(n>=1) +
                 P.quaenv.pac2*(n>=2) +
-                P.quaenv.pac2*(maximum(n-2,0)) )
+                P.quaenv.pac2*(max_(n-2,0)) )
                 
     elif self.year >= 2006:
         max0 = P.quaenv.max*(1+self.marpac) + P.quaenv.pac1*n
     
     if self.year == 2005:
-        WG = table.getFoyer('vous', 'f7wg', 'foyer')    
-        max1 = maximum(0, max0 - WF)
-        max2 = maximum(0, max1 - WG)
-        return (P.quaenv.taux_wf*minimum(WF, max0) +
-                P.quaenv.taux_wg*minimum(WG, max1) +
-                P.quaenv.taux_wh*minimum(WH, max2) )
+        WG = table.get('vous', 'f7wg', 'foy', 'foyer')    
+        max1 = max_(0, max0 - WF)
+        max2 = max_(0, max1 - WG)
+        return (P.quaenv.taux_wf*min_(WF, max0) +
+                P.quaenv.taux_wg*min_(WG, max1) +
+                P.quaenv.taux_wh*min_(WH, max2) )
 
     elif self.year in (2006, 2007, 2008):
-        WG = table.getFoyer('vous', 'f7wg', 'foyer')    
-        max1 = maximum(0, max0 - WF)
-        max2 = maximum(0, max1 - WG)
-        max3 = maximum(0, max2 - WH)
-        return (P.quaenv.taux_wf*minimum(WF, max0) +
-                P.quaenv.taux_wg*minimum(WG, max1) +
-                P.quaenv.taux_wh*minimum(WH, max2) +
-                P.quaenv.taux_wq*minimum(WQ, max3) )
+        WG = table.get('vous', 'f7wg', 'foy', 'foyer')    
+        max1 = max_(0, max0 - WF)
+        max2 = max_(0, max1 - WG)
+        max3 = max_(0, max2 - WH)
+        return (P.quaenv.taux_wf*min_(WF, max0) +
+                P.quaenv.taux_wg*min_(WG, max1) +
+                P.quaenv.taux_wh*min_(WH, max2) +
+                P.quaenv.taux_wq*min_(WQ, max3) )
 
     elif self.year == 2009:
-        WG = table.getFoyer('vous', 'f7wg', 'foyer')
-        SC = table.getFoyer('vous', 'f7sc', 'foyer')
-        max1 = maximum(0, max0 - WF)
-        max2 = maximum(0, max1 - SE)
-        max3 = maximum(0, max2 - WK)
-        max4 = maximum(0, max3 - SD)
-        max5 = maximum(0, max4 - WG)
-        max6 = maximum(0, max5 - SC)
-        max7 = maximum(0, max6 - WH)
-        return (P.quaenv.taux_wf*minimum(WF, max0) +
-                P.quaenv.taux_se*minimum(SE, max1) +
-                P.quaenv.taux_wk*minimum(WK, max2) +
-                P.quaenv.taux_sd*minimum(SD, max3) +
-                P.quaenv.taux_wg*minimum(WG, max4) +
-                P.quaenv.taux_sc*minimum(SC, max5) +
-                P.quaenv.taux_wh*minimum(WH, max6) +
-                P.quaenv.taux_sb*minimum(SB, max7) )
+        WG = table.get('vous', 'f7wg', 'foy', 'foyer')
+        SC = table.get('vous', 'f7sc', 'foy', 'foyer')
+        max1 = max_(0, max0 - WF)
+        max2 = max_(0, max1 - SE)
+        max3 = max_(0, max2 - WK)
+        max4 = max_(0, max3 - SD)
+        max5 = max_(0, max4 - WG)
+        max6 = max_(0, max5 - SC)
+        max7 = max_(0, max6 - WH)
+        return (P.quaenv.taux_wf*min_(WF, max0) +
+                P.quaenv.taux_se*min_(SE, max1) +
+                P.quaenv.taux_wk*min_(WK, max2) +
+                P.quaenv.taux_sd*min_(SD, max3) +
+                P.quaenv.taux_wg*min_(WG, max4) +
+                P.quaenv.taux_sc*min_(SC, max5) +
+                P.quaenv.taux_wh*min_(WH, max6) +
+                P.quaenv.taux_sb*min_(SB, max7) )
 
     elif self.year == 2010:
-        max1 = maximum(0, max0 - WF)
-        max2 = maximum(0, max1 - SE)
-        max3 = maximum(0, max2 - WK)
-        max4 = maximum(0, max3 - SD)
-        max5 = maximum(0, max4 - WH)
-        max6 = maximum(0, max5 - SB)
-        max7 = maximum(0, max6 - WQ)
-        return (P.quaenv.taux_wf*minimum(WF, max0) +
-                P.quaenv.taux_se*minimum(SE, max1) +
-                P.quaenv.taux_wk*minimum(WK, max2) +
-                P.quaenv.taux_sd*minimum(SD, max3) +
-                P.quaenv.taux_wh*minimum(WH, max4)+
-                P.quaenv.taux_sb*minimum(SB, max5) +
-                P.quaenv.taux_wq*minimum(WQ, max6) +
-                P.quaenv.taux_sh*minimum(SH, max7) )
+        max1 = max_(0, max0 - WF)
+        max2 = max_(0, max1 - SE)
+        max3 = max_(0, max2 - WK)
+        max4 = max_(0, max3 - SD)
+        max5 = max_(0, max4 - WH)
+        max6 = max_(0, max5 - SB)
+        max7 = max_(0, max6 - WQ)
+        return (P.quaenv.taux_wf*min_(WF, max0) +
+                P.quaenv.taux_se*min_(SE, max1) +
+                P.quaenv.taux_wk*min_(WK, max2) +
+                P.quaenv.taux_sd*min_(SD, max3) +
+                P.quaenv.taux_wh*min_(WH, max4)+
+                P.quaenv.taux_sb*min_(SB, max5) +
+                P.quaenv.taux_wq*min_(WQ, max6) +
+                P.quaenv.taux_sh*min_(SH, max7) )
 
 def aidper(self, P, table):
     '''
     Crédits d’impôt pour dépenses en faveur de l’aide aux personnes 
     (cases 7WI, 7WJ, 7WL et 7SF).
     '''
-    WI = table.getFoyer('vous', 'f7wf', 'foyer')
-    WJ = table.getFoyer('vous', 'f7wj', 'foyer')
-    WL = table.getFoyer('vous', 'f7wl', 'foyer')
-    SF = table.getFoyer('vous', 'f7sf', 'foyer')
+    WI = table.get('vous', 'f7wf', 'foy', 'foyer')
+    WJ = table.get('vous', 'f7wj', 'foy', 'foyer')
+    WL = table.get('vous', 'f7wl', 'foy', 'foyer')
+    SF = table.get('vous', 'f7sf', 'foy', 'foyer')
     
     n = self.nbF + self.nbJ + self.nbR + self.nbH/2
     if self.year <= 2005:
         max0 = (P.aidper.max*(1+self.marpac) + 
                 P.aidper.pac1*(n>=1) +
                 P.aidper.pac2*(n>=2) +
-                P.aidper.pac2*(maximum(n-2,0)) )
+                P.aidper.pac2*(max_(n-2,0)) )
                
     elif self.year >= 2006:
         max0 = P.aidper.max*(1+self.marpac) + P.aidper.pac1*n
 
     if self.year in (2002,2003):
-        return P.aidper.taux_wi*minimum(WI, max0) # TODO enfant en résidence altérnée
+        return P.aidper.taux_wi*min_(WI, max0) # TODO enfant en résidence altérnée
     elif self.year <= 2009:
-        max1 = maximum(0, max0 - WJ)
-        return (P.aidper.taux_wj*minimum(WJ, max0) +
-                P.aidper.taux_wi*minimum(WI, max1) )
+        max1 = max_(0, max0 - WJ)
+        return (P.aidper.taux_wj*min_(WJ, max0) +
+                P.aidper.taux_wi*min_(WI, max1) )
     elif self.year == 2010:
-        max1 = maximum(0, max0 - WL)
-        max2 = maximum(0, max1 - SF)
-        max3 = maximum(0, max2 - WJ)
-        return (P.aidper.taux_wl*minimum(WL, max0) +
-                P.aidper.taux_sf*minimum(SF, max1) +
-                P.aidper.taux_wj*minimum(WJ, max2) +
-                P.aidper.taux_wi*minimum(WI, max3) )
+        max1 = max_(0, max0 - WL)
+        max2 = max_(0, max1 - SF)
+        max3 = max_(0, max2 - WJ)
+        return (P.aidper.taux_wl*min_(WL, max0) +
+                P.aidper.taux_sf*min_(SF, max1) +
+                P.aidper.taux_wj*min_(WJ, max2) +
+                P.aidper.taux_wi*min_(WI, max3) )
 
 def acqgpl(self, P, table):
     # crédit d'impôt pour dépense d'acquisition ou de transformation d'un véhicule GPL ou mixte
     if 2002 <= self.year <= 2007:
-        UP = table.getFoyer('vous', 'f7up', 'foyer')
-        UQ = table.getFoyer('vous', 'f7uq', 'foyer')
+        UP = table.get('vous', 'f7up', 'foy', 'foyer')
+        UQ = table.get('vous', 'f7uq', 'foy', 'foyer')
         return UP*P.acqgpl.mont_up + UQ*P.acqgpl.mont_uq
 
 def drbail(self, P, table):
     '''
     Crédit d’impôt représentatif de la taxe additionnelle au droit de bail (case 4TQ)
     '''
-    return P.drbail.taux*table.getFoyer('vous', 'f4tq', 'foyer')
+    return P.drbail.taux*table.get('vous', 'f4tq', 'foy', 'foyer')
 
 def garext(self, P, table):
     '''
     Frais de garde des enfants à l’extérieur du domicile (cases 7GA à 7GC et 7GE à 7GG)
     '''
     max1 = P.garext.max
-    GA = table.getFoyer('vous', 'f4ga', 'foyer')
-    GB = table.getFoyer('vous', 'f4gb', 'foyer')
-    GC = table.getFoyer('vous', 'f4gc', 'foyer')
-    GE = table.getFoyer('vous', 'f4ge', 'foyer')
-    GF = table.getFoyer('vous', 'f4gf', 'foyer')
-    GG = table.getFoyer('vous', 'f4gg', 'foyer')
+    GA = table.get('vous', 'f4ga', 'foy', 'foyer')
+    GB = table.get('vous', 'f4gb', 'foy', 'foyer')
+    GC = table.get('vous', 'f4gc', 'foy', 'foyer')
+    GE = table.get('vous', 'f4ge', 'foy', 'foyer')
+    GF = table.get('vous', 'f4gf', 'foy', 'foyer')
+    GG = table.get('vous', 'f4gg', 'foy', 'foyer')
     
-    return P.garext.taux*(minimum(GA, max1) + 
-                          minimum(GB, max1) +
-                          minimum(GC, max1) +
-                          minimum(GE, max1/2) +
-                          minimum(GF, max1/2) +
-                          minimum(GG, max1/2))
+    return P.garext.taux*(min_(GA, max1) + 
+                          min_(GB, max1) +
+                          min_(GC, max1) +
+                          min_(GE, max1/2) +
+                          min_(GF, max1/2) +
+                          min_(GG, max1/2))
 def preetu(self, P, table):
     '''
     Crédit d’impôt pour souscription de prêts étudiants (cases 7UK, 7VO et 7TD)
     '''
-    UK = table.getFoyer('vous', 'f7uk', 'foyer')
-    VO = table.getFoyer('vous', 'f7vo', 'foyer')
-    TD = table.getFoyer('vous', 'f7td', 'foyer')
+    UK = table.get('vous', 'f7uk', 'foy', 'foyer')
+    VO = table.get('vous', 'f7vo', 'foy', 'foyer')
+    TD = table.get('vous', 'f7td', 'foy', 'foyer')
     
     if self.year == 2005: 
         max1 = P.preetu.max
     elif self.year >= 2006:
         max1 = P.preetu.max*(1+VO)
     if self.year in (2005,2006,2007):
-        return P.preetu.taux*minimum(UK, max1)
+        return P.preetu.taux*min_(UK, max1)
     elif self.year >=2008:
-        return P.preetu.taux*minimum(UK, P.preetu.max) + P.preetu.taux*minimum(TD, max1)
+        return P.preetu.taux*min_(UK, P.preetu.max) + P.preetu.taux*min_(TD, max1)
 
 def saldom(self, P, table):
     '''
@@ -426,86 +425,86 @@ def saldom(self, P, table):
     '''
     # TODO, TODO, TODO check avant 2010
     
-    DG = table.getFoyer('vous', 'f7dg', 'foyer')
+    DG = table.get('vous', 'f7dg', 'foy', 'foyer')
     isinvalid = DG
-    DL = table.getFoyer('vous', 'f7dl', 'foyer')
-    DB = table.getFoyer('vous', 'f7db', 'foyer')  # dépense pour crédit d'impôt
+    DL = table.get('vous', 'f7dl', 'foy', 'foyer')
+    DB = table.get('vous', 'f7db', 'foy', 'foyer')  # dépense pour crédit d'impôt
     
     if self.year in (2007,2008):
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1
         maxDuMaxNonInv = P.saldom.max2
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
         
     elif self.year in (2009, 2010):
-        DQ = table.getFoyer('vous', 'f7dq', 'foyer')  # 1èere année
+        DQ = table.get('vous', 'f7dq', 'foy', 'foyer')  # 1èere année
         annee1 = DQ
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
-        maxBase = P.saldom.max1*lnot(annee1) + P.saldom.max1_1ereAnnee*annee1
-        maxDuMaxNonInv = P.saldom.max2*lnot(annee1) + P.saldom.max2_1ereAnnee*annee1
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
+        maxBase = P.saldom.max1*not_(annee1) + P.saldom.max1_1ereAnnee*annee1
+        maxDuMaxNonInv = P.saldom.max2*not_(annee1) + P.saldom.max2_1ereAnnee*annee1
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
         
         
         
     '''
    
-    DL = table.getFoyer('vous', 'f7dl', 'foyer')
-    DQ = table.getFoyer('vous', 'f7dq', 'foyer')
-    DB = table.getFoyer('vous', 'f7db', 'foyer')
-    DG = table.getFoyer('vous', 'f7dg', 'foyer')
+    DL = table.get('vous', 'f7dl', 'foy', 'foyer')
+    DQ = table.get('vous', 'f7dq', 'foy', 'foyer')
+    DB = table.get('vous', 'f7db', 'foy', 'foyer')
+    DG = table.get('vous', 'f7dg', 'foy', 'foyer')
 
     
     isinvalid = DG
             
     annee1 = DQ
     nbpacmin = self.nbF + self.nbH / 2 + self.nbJ + self.nbN + DL
-    maxBase = P.saldom.max1 * lnot(annee1) + P.saldom.max1_1ereAnnee * annee1
-    maxDuMaxNonInv = P.saldom.max2 * lnot(annee1) + P.saldom.max2_1ereAnnee * annee1
-    maxDuMax = maxDuMaxNonInv * lnot(isinvalid) + P.saldom.max3 * isinvalid
-    maxEffectif = minimum(maxBase + P.saldom.pac * nbpacmin, maxDuMax)
-    maxEffectif = maximum(maxEffectif,P.saldom.max3*isinvalid)
+    maxBase = P.saldom.max1 * not_(annee1) + P.saldom.max1_1ereAnnee * annee1
+    maxDuMaxNonInv = P.saldom.max2 * not_(annee1) + P.saldom.max2_1ereAnnee * annee1
+    maxDuMax = maxDuMaxNonInv * not_(isinvalid) + P.saldom.max3 * isinvalid
+    maxEffectif = min_(maxBase + P.saldom.pac * nbpacmin, maxDuMax)
+    maxEffectif = max_(maxEffectif,P.saldom.max3*isinvalid)
     '''
     
     '''
     elif self.year in (2007,2008):
-        DL = table.getFoyer('vous', 'f7dl', 'foyer')
-        DB = table.getFoyer('vous', 'f7db', 'foyer')  # Crédit d'impôt
+        DL = table.get('vous', 'f7dl', 'foy', 'foyer')
+        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1
         maxDuMaxNonInv = P.saldom.max2
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
-        max1 = maxEffectif - minimum(DB, maxEffectif)
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
+        max1 = maxEffectif - min_(DB, maxEffectif)
             
     elif self.year in (2009, 2010):
-        DL = table.getFoyer('vous', 'f7dl', 'foyer')  # 
-        DQ = table.getFoyer('vous', 'f7dq', 'foyer')  # 1èere année
-        DB = table.getFoyer('vous', 'f7db', 'foyer')  # Crédit d'impôt
+        DL = table.get('vous', 'f7dl', 'foy', 'foyer')  # 
+        DQ = table.get('vous', 'f7dq', 'foy', 'foyer')  # 1èere année
+        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
         
         annee1 = DQ
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
-        maxBase = P.saldom.max1*lnot(annee1) + P.saldom.max1_1ereAnnee*annee1
-        maxDuMaxNonInv = P.saldom.max2*lnot(annee1) + P.saldom.max2_1ereAnnee*annee1
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
-        max1 = maxEffectif - minimum(DB, maxEffectif)
+        maxBase = P.saldom.max1*not_(annee1) + P.saldom.max1_1ereAnnee*annee1
+        maxDuMaxNonInv = P.saldom.max2*not_(annee1) + P.saldom.max2_1ereAnnee*annee1
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
+        max1 = maxEffectif - min_(DB, maxEffectif)
 
     
     '''
     
-    return P.saldom.taux*minimum(DB, maxEffectif)
+    return P.saldom.taux*min_(DB, maxEffectif)
 
 
 def inthab(self, P, table):
     '''
     Crédit d’impôt intérêts des emprunts pour l’habitation principale (cases 7VW, 7VX, 7VY et 7VZ)
     '''
-    VW = table.getFoyer('vous', 'f7vw', 'foyer')
-    VX = table.getFoyer('vous', 'f7vx', 'foyer')
-    VY = table.getFoyer('vous', 'f7vy', 'foyer')
-    VZ = table.getFoyer('vous', 'f7vz', 'foyer')
+    VW = table.get('vous', 'f7vw', 'foy', 'foyer')
+    VX = table.get('vous', 'f7vx', 'foy', 'foyer')
+    VY = table.get('vous', 'f7vy', 'foy', 'foyer')
+    VZ = table.get('vous', 'f7vz', 'foy', 'foyer')
     
     invalide = self.caseP |self.caseF | (self.nbG!=0) | (self.nbR!=0)
     nb = self.nbF + self.nbH/2 + self.nbR + self.nbJ + self.nbN
@@ -514,29 +513,29 @@ def inthab(self, P, table):
     if self.year == 2007:
         return zeros(self.taille)
     if self.year == 2008:  
-        max1 = minimum(max0 - VY, 0)
-        return (P.inthab.taux1*minimum(VY, max0) + 
-                P.inthab.taux3*minimum(VZ, max1) )
+        max1 = min_(max0 - VY, 0)
+        return (P.inthab.taux1*min_(VY, max0) + 
+                P.inthab.taux3*min_(VZ, max1) )
     if self.year == 2009:
-        max1 = minimum(max0 - VX, 0)
-        max2 = minimum(max1 - VY, 0)
-        return (P.inthab.taux1*minimum(VX, max0) + 
-                P.inthab.taux1*minimum(VY, max1) + 
-                P.inthab.taux3*minimum(VZ, max2) )
+        max1 = min_(max0 - VX, 0)
+        max2 = min_(max1 - VY, 0)
+        return (P.inthab.taux1*min_(VX, max0) + 
+                P.inthab.taux1*min_(VY, max1) + 
+                P.inthab.taux3*min_(VZ, max2) )
     if self.year == 2010:
-        max1 = minimum(max0 - VX, 0)
-        max2 = minimum(max1 - VY, 0)
-        max3 = minimum(max2 - VW, 0)
-        return (P.inthab.taux1*minimum(VX, max0) + 
-                P.inthab.taux1*minimum(VY, max1) + 
-                P.inthab.taux2*minimum(VW, max2) + 
-                P.inthab.taux3*minimum(VZ, max3) )
+        max1 = min_(max0 - VX, 0)
+        max2 = min_(max1 - VY, 0)
+        max3 = min_(max2 - VW, 0)
+        return (P.inthab.taux1*min_(VX, max0) + 
+                P.inthab.taux1*min_(VY, max1) + 
+                P.inthab.taux2*min_(VW, max2) + 
+                P.inthab.taux3*min_(VZ, max3) )
 
 def assloy(self, P, table):
     '''
     Crédit d’impôt primes d’assurance pour loyers impayés (case 4BF)
     '''
-    return P.assloy.taux*table.getFoyer('vous', 'f4bf', 'foyer')
+    return P.assloy.taux*table.get('vous', 'f4bf', 'foy', 'foyer')
 
 def autent(self, P, table):
     '''
@@ -546,11 +545,11 @@ def autent(self, P, table):
 
 def aidmob(self, P, table):
     # crédit d'impôt aide à la mobilité
-    AR = table.getFoyer('vous', 'f1ar', 'foyer')
-    BR = table.getFoyer('vous', 'f1br', 'foyer')
-    CR = table.getFoyer('vous', 'f1cr', 'foyer')
-    DR = table.getFoyer('vous', 'f1dr', 'foyer')
-    ER = table.getFoyer('vous', 'f1er', 'foyer')
+    AR = table.get('vous', 'f1ar', 'foy', 'foyer')
+    BR = table.get('vous', 'f1br', 'foy', 'foyer')
+    CR = table.get('vous', 'f1cr', 'foy', 'foyer')
+    DR = table.get('vous', 'f1dr', 'foy', 'foyer')
+    ER = table.get('vous', 'f1er', 'foy', 'foyer')
     return (AR + BR + CR + DR + ER)*P.aidmob.montant
 
 def jeunes(self, P, table):

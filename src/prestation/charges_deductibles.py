@@ -22,8 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import minimum, maximum, zeros
-
+from numpy import minimum as min_, maximum as max_, zeros
 
 def niches(year):
     '''
@@ -56,37 +55,37 @@ def penali(self, P, table):
     '''
     Pensions alimentaires
     '''
-    GI = table.getFoyer('vous', 'f6gi', 'foyer')
-    GJ = table.getFoyer('vous', 'f6gj', 'foyer')
-    GP = table.getFoyer('vous', 'f6gp', 'foyer')
+    GI = table.get('vous', 'f6gi', 'foy', 'foyer')
+    GJ = table.get('vous', 'f6gj', 'foy', 'foyer')
+    GP = table.get('vous', 'f6gp', 'foy', 'foyer')
     max1 = P.penalim.max 
     if self.year <= 2005:
         # TODO: si vous subvenez seul(e) à l'entretien d'un enfant marié ou 
         # pacsé ou chargé de famille, quel que soit le nmbre d'enfants du jeune 
         # foyer, la déduction est limitée à 2*max
-        return (minimum(GI ,max1) + 
-                minimum(GJ, max1) + 
+        return (min_(GI ,max1) + 
+                min_(GJ, max1) + 
                 GP)
     else:
         taux = P.penalim.taux
-        EL = table.getFoyer('vous', 'f6el', 'foyer')
-        EM = table.getFoyer('vous', 'f6em', 'foyer')
-        GU = table.getFoyer('vous', 'f6gu', 'foyer')
+        EL = table.get('vous', 'f6el', 'foy', 'foyer')
+        EM = table.get('vous', 'f6em', 'foy', 'foyer')
+        GU = table.get('vous', 'f6gu', 'foy', 'foyer')
         # check si c'est bien la déduction marjorée qu'il faut plafonner
-        return (minimum(GI*(1 + taux), max1) + 
-                minimum(GJ*(1 + taux), max1) + 
-                minimum(EL, max1) + 
-                minimum(EM, max1) + 
+        return (min_(GI*(1 + taux), max1) + 
+                min_(GJ*(1 + taux), max1) + 
+                min_(EL, max1) + 
+                min_(EM, max1) + 
                 GP*(1 + taux) + GU)
 
 def acc75a(self, P, table):
     '''
     Frais d’accueil sous votre toit d’une personne de plus de 75 ans
     '''
-    EU = table.getFoyer('vous', 'f6eu', 'foyer')
-    EV = table.getFoyer('vous', 'f6ev', 'foyer')
-    amax = P.acc75a.max*maximum(1, EV)
-    return minimum(EU, amax)
+    EU = table.get('vous', 'f6eu', 'foy', 'foyer')
+    EV = table.get('vous', 'f6ev', 'foy', 'foyer')
+    amax = P.acc75a.max*max_(1, EV)
+    return min_(EU, amax)
 
 def percap(self, P, table):
     '''
@@ -95,23 +94,23 @@ def percap(self, P, table):
     complémentaire)
     '''
     if self.year <= 2002:
-        CB = table.getFoyer('vous', 'f6cb', 'foyer')
+        CB = table.get('vous', 'f6cb', 'foy', 'foyer')
         max_cb = P.percap.max_cb*(1 + self.marpac)
-        return minimum(CB, max_cb) 
+        return min_(CB, max_cb) 
     elif self.year <= 2006:
         max_cb = P.percap.max_cb*(1 + self.marpac)
         max_da = P.percap.max_da*(1 + self.marpac)
 
-        CB = table.getFoyer('vous', 'f6cb', 'foyer')
-        DA = table.getFoyer('vous', 'f6da', 'foyer')
+        CB = table.get('vous', 'f6cb', 'foy', 'foyer')
+        DA = table.get('vous', 'f6da', 'foy', 'foyer')
 
-        return minimum(minimum(CB, max_cb) + minimum(DA,max_da), max_da)   
+        return min_(min_(CB, max_cb) + min_(DA,max_da), max_da)   
 
 def deddiv(self, P, table):
     '''
     Déductions diverses (case DD)
     '''
-    return table.getFoyer('vous', 'f6dd', 'foyer')
+    return table.get('vous', 'f6dd', 'foy', 'foyer')
 
 def doment(self, P, table):
     '''
@@ -119,7 +118,7 @@ def doment(self, P, table):
     déclaration n° 2042 complémentaire)
     '''
     if self.year <= 2005:
-        return table.getFoyer('vous', 'f6eh', 'foyer')
+        return table.get('vous', 'f6eh', 'foy', 'foyer')
 
 def eparet(self, P, table):
     '''
@@ -130,21 +129,21 @@ def eparet(self, P, table):
     if self.year <= 2003:
         return None
     elif self.year <= 2010:
-        PS = table.getFoyer('vous', 'f6ps', 'foyer')
-        RS = table.getFoyer('vous', 'f6rs', 'foyer')
-        SS = table.getFoyer('vous', 'f6ss', 'foyer')
-        PT = table.getFoyer('vous', 'f6ps', 'foyer')
-        RT = table.getFoyer('vous', 'f6rs', 'foyer')
-        ST = table.getFoyer('vous', 'f6ss', 'foyer')
-        PU = table.getFoyer('vous', 'f6ps', 'foyer')
-        RU = table.getFoyer('vous', 'f6rs', 'foyer')
-        SU = table.getFoyer('vous', 'f6ss', 'foyer')
+        PS = table.get('vous', 'f6ps', 'foy', 'foyer')
+        RS = table.get('vous', 'f6rs', 'foy', 'foyer')
+        SS = table.get('vous', 'f6ss', 'foy', 'foyer')
+        PT = table.get('vous', 'f6ps', 'foy', 'foyer')
+        RT = table.get('vous', 'f6rs', 'foy', 'foyer')
+        ST = table.get('vous', 'f6ss', 'foy', 'foyer')
+        PU = table.get('vous', 'f6ps', 'foy', 'foyer')
+        RU = table.get('vous', 'f6rs', 'foy', 'foyer')
+        SU = table.get('vous', 'f6ss', 'foy', 'foyer')
         return ((PS==0)*(RS + SS) + 
-                (PS!=0)*minimum(RS + SS, PS) +
+                (PS!=0)*min_(RS + SS, PS) +
                 (PT==0)*(RT + ST) + 
-                (PT!=0)*minimum(RT + ST, PT) +
+                (PT!=0)*min_(RT + ST, PT) +
                 (PU==0)*(RU + SU) + 
-                (PU!=0)*minimum(RU + SU, PU))
+                (PU!=0)*min_(RU + SU, PU))
 
 def sofipe(self, P, table):
     '''
@@ -152,9 +151,9 @@ def sofipe(self, P, table):
     complémentaire)
     '''
     if self.year <= 2006:
-        CC = table.getFoyer('vous', 'f6cc', 'foyer')
-        max1 = minimum(P.sofipe.taux*self.rbg_int, P.sofipe.max*(1+self.marpac))
-        return minimum(CC, max1)
+        CC = table.get('vous', 'f6cc', 'foy', 'foyer')
+        max1 = min_(P.sofipe.taux*self.rbg_int, P.sofipe.max*(1+self.marpac))
+        return min_(CC, max1)
 
 def cinema(self, P, table):
     '''
@@ -162,9 +161,9 @@ def cinema(self, P, table):
     déclaration n° 2042 complémentaire)
     '''
     if self.year <= 2005:
-        AA = table.getFoyer('vous', 'f6aa', 'foyer')
-        max1 = minimum(P.cinema.taux*self.rbg_int, P.cinema.max)
-        return minimum(AA, max1)
+        AA = table.get('vous', 'f6aa', 'foy', 'foyer')
+        max1 = min_(P.cinema.taux*self.rbg_int, P.cinema.max)
+        return min_(AA, max1)
 
 def ecodev(self, P, table):
     '''
@@ -174,17 +173,17 @@ def ecodev(self, P, table):
     if self.year <= 2006:
         return None
     elif self.year <= 2008:
-        EH = table.getFoyer('vous', 'f6eh', 'foyer')
-        max1 = minimum(P.ecodev.taux*self.rbg_int, P.ecodev.max)
-        return minimum(EH, max1)
+        EH = table.get('vous', 'f6eh', 'foy', 'foyer')
+        max1 = min_(P.ecodev.taux*self.rbg_int, P.ecodev.max)
+        return min_(EH, max1)
 
 def grorep(self, P, table):
     '''
     Dépenses de grosses réparations des nus-propriétaires (case 6CB et 6HJ)
     '''
-    CB = table.getFoyer('vous', 'f6cb', 'foyer')
-    HJ = table.getFoyer('vous', 'f6hj', 'foyer')
-    return minimum(CB+HJ,P.grorep.max)
+    CB = table.get('vous', 'f6cb', 'foy', 'foyer')
+    HJ = table.get('vous', 'f6hj', 'foy', 'foyer')
+    return min_(CB+HJ,P.grorep.max)
 
 def charges_calc(self, P, table, niches1, niches2, ind_rfr):
     '''
@@ -192,19 +191,19 @@ def charges_calc(self, P, table, niches1, niches2, ind_rfr):
     niches2 : niches après le rbg_int
     niches3 : indices des niches à ajouter au revenu fiscal de référence
     '''
-    rest = maximum(0,self.rbg- self.CSGdeduc )
+    rest = max_(0,self.rbg- self.CSGdeduc )
     tot = zeros(self.taille)
     mont = []
 
     for niche in niches1:
-        mont.append(minimum(niche(self, P, table), rest))
+        mont.append(min_(niche(self, P, table), rest))
         rest -= mont[-1]
         tot  += mont[-1]
 
     self.rbg_int = rest*1 # TODO ATTENTION, astérisque pas prise en compte
 
     for niche in niches2:
-        mont.append(minimum(niche(self, P, table), rest))
+        mont.append(min_(niche(self, P, table), rest))
         rest -= mont[-1]
         tot  += mont[-1]
 

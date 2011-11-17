@@ -22,8 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import minimum, maximum, zeros
-from numpy import logical_not as lnot
+from numpy import minimum as min_, maximum as max_, zeros, logical_not as not_
 
 def niches(year):
     '''
@@ -76,8 +75,8 @@ def donapd(self, P, table):
     Dons effectués à  des organises d'aide aux personnes en difficulté
     2002-
     '''
-    UD = table.getFoyer('vous', 'f7ud', 'foyer')
-    return P.donapd.taux*minimum(UD, P.donapd.max)
+    UD = table.get('vous', 'f7ud', 'foy', 'foyer')
+    return P.donapd.taux*min_(UD, P.donapd.max)
 
 def dfppce(self, P, table):   
     '''
@@ -85,14 +84,14 @@ def dfppce(self, P, table):
     politiques et des compagnes électorales
     2002-
     '''
-    base = table.getFoyer('vous', 'f7uf', 'foyer')
-    if self.year >= 2004: base += table.getFoyer('vous', 'f7xs', 'foyer')
-    if self.year >= 2005: base += table.getFoyer('vous', 'f7xt', 'foyer')
-    if self.year >= 2006: base += table.getFoyer('vous', 'f7xu', 'foyer')
-    if self.year >= 2007: base += table.getFoyer('vous', 'f7xw', 'foyer')
-    if self.year >= 2008: base += table.getFoyer('vous', 'f7xy', 'foyer')
+    base = table.get('vous', 'f7uf', 'foy', 'foyer')
+    if self.year >= 2004: base += table.get('vous', 'f7xs', 'foy', 'foyer')
+    if self.year >= 2005: base += table.get('vous', 'f7xt', 'foy', 'foyer')
+    if self.year >= 2006: base += table.get('vous', 'f7xu', 'foy', 'foyer')
+    if self.year >= 2007: base += table.get('vous', 'f7xw', 'foy', 'foyer')
+    if self.year >= 2008: base += table.get('vous', 'f7xy', 'foy', 'foyer')
     max1 = P.dfppce.max*self.rbg_int
-    return P.dfppce.taux*minimum(base, max1)
+    return P.dfppce.taux*min_(base, max1)
     # TODO: note de bas de page
 
 def cotsyn(self, P, table):
@@ -102,54 +101,54 @@ def cotsyn(self, P, table):
     '''
     tx = P.cotsyn.seuil
     
-    salv, salc, salp = table.getFoyer(['vous', 'conj',  'pac1'], 'sal')
-    chov, choc, chop = table.getFoyer(['vous', 'conj',  'pac1'], 'cho')
-    rstv, rstc, rstp = table.getFoyer(['vous', 'conj',  'pac1'], 'rst')
+    salv, salc, salp = table.get(['vous', 'conj',  'pac1'], 'sal', 'foy')
+    chov, choc, chop = table.get(['vous', 'conj',  'pac1'], 'cho', 'foy')
+    rstv, rstc, rstp = table.get(['vous', 'conj',  'pac1'], 'rst', 'foy')
     maxv = (salv+chov+rstv)*tx
     maxc = (salc+choc+rstc)*tx
     maxp = (salp+chop+rstp)*tx
     
-    AC = table.getFoyer('vous', 'f7ac', 'foyer')
-    AE = table.getFoyer('vous', 'f7ae', 'foyer') 
-    AG = table.getFoyer('vous', 'f7ag', 'foyer')
-    return P.cotsyn.taux*(minimum(AC,maxv)  + minimum(AE,maxc) + minimum(AG,maxp))
+    AC = table.get('vous', 'f7ac', 'foy', 'foyer')
+    AE = table.get('vous', 'f7ae', 'foy', 'foyer') 
+    AG = table.get('vous', 'f7ag', 'foy', 'foyer')
+    return P.cotsyn.taux*(min_(AC,maxv)  + min_(AE,maxc) + min_(AG,maxp))
 
 def resimm(self, P, table):
     '''
     Travaux de restauration immobilière (cases 7RA et 7RB)
     2009-
     '''
-    RA = table.getFoyer('vous', 'f7ra', 'foyer')
-    RB = table.getFoyer('vous', 'f7rb', 'foyer')
+    RA = table.get('vous', 'f7ra', 'foy', 'foyer')
+    RB = table.get('vous', 'f7rb', 'foy', 'foyer')
     max1 = P.resimm.max
-    max2 = maximum(max1 - RB, 0)
-    return P.resimm.taux_rb*minimum(RB, max1)+ P.resimm.taux_ra*minimum(RA, max2)
+    max2 = max_(max1 - RB, 0)
+    return P.resimm.taux_rb*min_(RB, max1)+ P.resimm.taux_ra*min_(RA, max2)
 
 def patnat(self, P, table):
     '''
     Dépenses de protections du patrimoine naturel (case 7KA)
     2010-
     '''
-    KA = table.getFoyer('vous', 'f7ka', 'foyer')
+    KA = table.get('vous', 'f7ka', 'foy', 'foyer')
     max1 = P.patnat.max
-    return P.patnat.taux*minimum(KA, max1)
+    return P.patnat.taux*min_(KA, max1)
 
 def sofipe(self, P, table):
     '''
     Souscription au capital d’une SOFIPECHE (case 7GS)
     2009-
     '''
-    GS = table.getFoyer('vous', 'f7gs', 'foyer')
-    max1 = minimum(P.sofipe.max*(self.marpac+1), P.sofipe.base*self.rbg_int) # page3 ligne 18
-    return P.sofipe.taux*minimum(GS, max1)
+    GS = table.get('vous', 'f7gs', 'foy', 'foyer')
+    max1 = min_(P.sofipe.max*(self.marpac+1), P.sofipe.base*self.rbg_int) # page3 ligne 18
+    return P.sofipe.taux*min_(GS, max1)
 
 def ecodev(self, P, table):
     '''
     Sommes versées sur un compte épargne codéveloppement (case 7UH)
     2009
     '''
-    UH = table.getFoyer('vous', 'f7uh', 'foyer')
-    return minimum(UH, minimum(P.ecodev.base*self.rbg_int, P.ecodev.max)) # page3 ligne 18
+    UH = table.get('vous', 'f7uh', 'foy', 'foyer')
+    return min_(UH, min_(P.ecodev.base*self.rbg_int, P.ecodev.max)) # page3 ligne 18
 
 def saldom(self, P, table):
     '''
@@ -168,74 +167,74 @@ def saldom(self, P, table):
     catégorie ou si vous percevez un complément d’allocation d’éducation
     spéciale pour l’un de vos enfants à charge.
     '''
-    DF = table.getFoyer('vous', 'f7df', 'foyer')
-    DG = table.getFoyer('vous', 'f7dg', 'foyer')
+    DF = table.get('vous', 'f7df', 'foy', 'foyer')
+    DG = table.get('vous', 'f7dg', 'foy', 'foyer')
     isinvalid = DG
     
     if self.year in (2002, 2003, 2004):
-        max1 = P.saldom.max1*lnot(isinvalid) + P.saldom.max3*isinvalid
+        max1 = P.saldom.max1*not_(isinvalid) + P.saldom.max3*isinvalid
     elif self.year in (2005,2006):
-        DL = table.getFoyer('vous', 'f7dl', 'foyer')
+        DL = table.get('vous', 'f7dl', 'foy', 'foyer')
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1
         maxDuMaxNonInv = P.saldom.max2
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        max1 = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        max1 = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
                  
     elif self.year in (2007,2008):
-        DL = table.getFoyer('vous', 'f7dl', 'foyer')
-        DB = table.getFoyer('vous', 'f7db', 'foyer')  # Crédit d'impôt
+        DL = table.get('vous', 'f7dl', 'foy', 'foyer')
+        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
         maxBase = P.saldom.max1
         maxDuMaxNonInv = P.saldom.max2
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
-        max1 = maxEffectif - minimum(DB, maxEffectif)
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
+        max1 = maxEffectif - min_(DB, maxEffectif)
             
     elif self.year in (2009, 2010):
-        DL = table.getFoyer('vous', 'f7dl', 'foyer')  # 
-        DQ = table.getFoyer('vous', 'f7dq', 'foyer')  # 1èere année
-        DB = table.getFoyer('vous', 'f7db', 'foyer')  # Crédit d'impôt
+        DL = table.get('vous', 'f7dl', 'foy', 'foyer')  # 
+        DQ = table.get('vous', 'f7dq', 'foy', 'foyer')  # 1èere année
+        DB = table.get('vous', 'f7db', 'foy', 'foyer')  # Crédit d'impôt
         
         annee1 = DQ
         nbpacmin = self.nbF + self.nbH/2 + self.nbJ + self.nbN + DL
-        maxBase = P.saldom.max1*lnot(annee1) + P.saldom.max1_1ereAnnee*annee1
-        maxDuMaxNonInv = P.saldom.max2*lnot(annee1) + P.saldom.max2_1ereAnnee*annee1
-        maxNonInv = minimum(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
-        maxEffectif = maxNonInv*lnot(isinvalid) + P.saldom.max3*isinvalid
-        max1 = maxEffectif - minimum(DB, maxEffectif)
+        maxBase = P.saldom.max1*not_(annee1) + P.saldom.max1_1ereAnnee*annee1
+        maxDuMaxNonInv = P.saldom.max2*not_(annee1) + P.saldom.max2_1ereAnnee*annee1
+        maxNonInv = min_(maxBase + P.saldom.pac*nbpacmin, maxDuMaxNonInv)
+        maxEffectif = maxNonInv*not_(isinvalid) + P.saldom.max3*isinvalid
+        max1 = maxEffectif - min_(DB, maxEffectif)
                 
-    return P.saldom.taux*minimum(DF, max1)
+    return P.saldom.taux*min_(DF, max1)
 
 def intagr(self, P, table):
     '''
     Intérêts pour paiement différé accordé aux agriculteurs
     2005-
     '''
-    UM = table.getFoyer('vous', 'f7um', 'foyer')
+    UM = table.get('vous', 'f7um', 'foy', 'foyer')
     max1 = P.intagr.max*(1+self.marpac)
-    return P.intagr.taux*minimum(UM, max1)
+    return P.intagr.taux*min_(UM, max1)
 
 def prcomp(self, P, table):
     '''
     Prestations compensatoires
     2002-2010
     '''
-    WM = table.getFoyer('vous', 'f7wm', 'foyer')
-    WN = table.getFoyer('vous', 'f7wn', 'foyer')
-    WO = table.getFoyer('vous', 'f7wo', 'foyer')
-    WP = table.getFoyer('vous', 'f7wp', 'foyer')
+    WM = table.get('vous', 'f7wm', 'foy', 'foyer')
+    WN = table.get('vous', 'f7wn', 'foy', 'foyer')
+    WO = table.get('vous', 'f7wo', 'foy', 'foyer')
+    WP = table.get('vous', 'f7wp', 'foy', 'foyer')
     
     div = (WO==0)*1 + WO # Pour éviter les divisions par zéro
     
-    return ((WM == 0)*((WN==WO)*P.prcomp.taux*minimum(WN,P.prcomp.seuil) +
+    return ((WM == 0)*((WN==WO)*P.prcomp.taux*min_(WN,P.prcomp.seuil) +
                               (WN<WO)*(WO<=P.prcomp.seuil)*P.prcomp.taux*WN +
-                              maximum(0,(WN<WO)*(WO> P.prcomp.seuil)*P.prcomp.taux*P.prcomp.seuil*WN/div) +
+                              max_(0,(WN<WO)*(WO> P.prcomp.seuil)*P.prcomp.taux*P.prcomp.seuil*WN/div) +
                               P.prcomp.taux*WP ) +
             (WM != 0)*((WN==WM)*(WO<=P.prcomp.seuil)*P.prcomp.taux*WM + 
-                              maximum(0,(WN==WM)*(WO>=P.prcomp.seuil)*P.prcomp.taux*WM/div) + 
+                              max_(0,(WN==WM)*(WO>=P.prcomp.seuil)*P.prcomp.taux*WM/div) + 
                               (WN>WM)*(WO<=P.prcomp.seuil)*P.prcomp.taux*WN  + 
-                              maximum(0,(WN>WM)*(WO>=P.prcomp.seuil)*P.prcomp.taux*WN/div)) +
+                              max_(0,(WN>WM)*(WO>=P.prcomp.seuil)*P.prcomp.taux*WN/div)) +
              P.prcomp.taux*WP)
 
 def spfcpi(self, P, table):
@@ -245,67 +244,67 @@ def spfcpi(self, P, table):
     2002-
     '''
     max1 = P.spfcpi.max*(self.marpac+1)
-    GQ = table.getFoyer('vous', 'f7gq', 'foyer')
+    GQ = table.get('vous', 'f7gq', 'foy', 'foyer')
 
     if self.year <= 2002:
-        return P.spfcpi.taux1*minimum(GQ, max1)
+        return P.spfcpi.taux1*min_(GQ, max1)
     elif self.year <= 2006:
-        FQ = table.getFoyer('vous', 'f7fq', 'foyer')
-        return (P.spfcpi.taux1*minimum(GQ, max1) + 
-                P.spfcpi.taux1*minimum(FQ, max1) )
+        FQ = table.get('vous', 'f7fq', 'foy', 'foyer')
+        return (P.spfcpi.taux1*min_(GQ, max1) + 
+                P.spfcpi.taux1*min_(FQ, max1) )
     elif self.year <= 2010:
-        FQ = table.getFoyer('vous', 'f7fq', 'foyer')
-        FM = table.getFoyer('vous', 'f7fm', 'foyer')
-        return (P.spfcpi.taux1*minimum(GQ, max1) + 
-                P.spfcpi.taux1*minimum(FQ, max1) +
-                P.spfcpi.taux2*minimum(FM, max1) )
+        FQ = table.get('vous', 'f7fq', 'foy', 'foyer')
+        FM = table.get('vous', 'f7fm', 'foy', 'foyer')
+        return (P.spfcpi.taux1*min_(GQ, max1) + 
+                P.spfcpi.taux1*min_(FQ, max1) +
+                P.spfcpi.taux2*min_(FM, max1) )
 
 def mohist(self, P, table):
     '''
     Travaux de conservation et de restauration d’objets classés monuments historiques (case NZ)
     2008-
     '''
-    NZ = table.getFoyer('vous', 'f7nz', 'foyer')
-    return P.mohist.taux*minimum(NZ, P.mohist.max)
+    NZ = table.get('vous', 'f7nz', 'foy', 'foyer')
+    return P.mohist.taux*min_(NZ, P.mohist.max)
 
 def sofica(self, P, table):
     '''
     Souscriptions au capital de SOFICA
     2006-
     '''
-    GN = table.getFoyer('vous', 'f7gn', 'foyer')
-    FN = table.getFoyer('vous', 'f7fn', 'foyer')
-    max0 = minimum(P.sofica.taux1*maximum(self.rng,0), P.sofica.max)
-    max1 = minimum(0, max0 - GN)
-    return P.sofica.taux2*minimum(GN, max0) + \
-           P.sofica.taux3*minimum(FN, max1)
+    GN = table.get('vous', 'f7gn', 'foy', 'foyer')
+    FN = table.get('vous', 'f7fn', 'foy', 'foyer')
+    max0 = min_(P.sofica.taux1*max_(self.rng,0), P.sofica.max)
+    max1 = min_(0, max0 - GN)
+    return P.sofica.taux2*min_(GN, max0) + \
+           P.sofica.taux3*min_(FN, max1)
 
 def cappme(self, P, table):
     '''
     Souscriptions au capital des PME
     2002-
     '''
-    base = table.getFoyer('vous', 'f7cf', 'foyer')
-    if self.year >= 2003: base += table.getFoyer('vous', 'f7cl', 'foyer')
-    if self.year >= 2004: base += table.getFoyer('vous', 'f7cm', 'foyer')
-    if self.year >= 2005: base += table.getFoyer('vous', 'f7cn', 'foyer')
+    base = table.get('vous', 'f7cf', 'foy', 'foyer')
+    if self.year >= 2003: base += table.get('vous', 'f7cl', 'foy', 'foyer')
+    if self.year >= 2004: base += table.get('vous', 'f7cm', 'foy', 'foyer')
+    if self.year >= 2005: base += table.get('vous', 'f7cn', 'foy', 'foyer')
     seuil = P.cappme.seuil*(self.marpac + 1)
 
     if self.year <= 2008:
-        return P.cappme.taux*minimum(base,seuil)
+        return P.cappme.taux*min_(base,seuil)
     elif self.year <= 2010:
-        CU = table.getFoyer('vous', 'f7cu', 'foyer')
+        CU = table.get('vous', 'f7cu', 'foy', 'foyer')
         seuil_tpe = P.cappme.seuil_tpe*(self.marpac + 1)
-        return P.cappme.taux*(minimum(base,seuil)+minimum(CU, seuil_tpe))
+        return P.cappme.taux*(min_(base,seuil)+min_(CU, seuil_tpe))
 
 def intemp(self, P, table):
     '''
     Intérêts d'emprunts
     2002-2003
     '''
-    WG = table.getFoyer('vous', 'f7wg', 'foyer')
+    WG = table.get('vous', 'f7wg', 'foy', 'foyer')
     max1 = P.intemp.max + P.intemp.pac*self.nbPAC
-    return P.intemp.taux*minimum(WG, max1)
+    return P.intemp.taux*min_(WG, max1)
 
 def intcon(self, P, table):
     '''
@@ -313,30 +312,30 @@ def intcon(self, P, table):
     2004-2005
     '''
     max1 = P.intcon.max
-    UH = table.getFoyer('vous', 'f7uh', 'foyer')
-    return P.intcon.taux*minimum(UH, max1)
+    UH = table.get('vous', 'f7uh', 'foy', 'foyer')
+    return P.intcon.taux*min_(UH, max1)
 
 def repsoc(self, P, table):
     '''
     Intérèts d'emprunts pour reprises de société
     '''
-    FH = table.getFoyer('vous', 'f7fh', 'foyer')
+    FH = table.get('vous', 'f7fh', 'foy', 'foyer')
     seuil = P.repsoc.seuil*(self.marpac+1)
-    return P.repsoc.taux*minimum(FH, seuil)
+    return P.repsoc.taux*min_(FH, seuil)
     
 def invfor(self, P, table):
     '''
     Investissements forestiers
     '''
-    UN = table.getFoyer('vous', 'f7un', 'foyer')
+    UN = table.get('vous', 'f7un', 'foy', 'foyer')
     if self.year <= 2002:
         seuil = P.invfor.seuil*(self.marpac + 1)
-        return P.invfor.taux*minimum(UN, seuil)
+        return P.invfor.taux*min_(UN, seuil)
     elif self.year <= 2008:
         return P.invfor.taux*UN
     else:
         seuil = 0 # vérifier la notice à partir de 2009
-        return P.invfor.taux*minimum(UN, seuil) 
+        return P.invfor.taux*min_(UN, seuil) 
 
 def garext(self, P, table):
     '''
@@ -345,58 +344,58 @@ def garext(self, P, table):
     2002-2005
     '''
     max1 = P.garext.max 
-    GA = table.getFoyer('vous', 'f7ga', 'foyer')
-    GB = table.getFoyer('vous', 'f7gb', 'foyer')
-    GC = table.getFoyer('vous', 'f7gc', 'foyer')
+    GA = table.get('vous', 'f7ga', 'foy', 'foyer')
+    GB = table.get('vous', 'f7gb', 'foy', 'foyer')
+    GC = table.get('vous', 'f7gc', 'foy', 'foyer')
     if self.year <= 2002:
-        return P.garext.taux*(minimum(GA, max1) + 
-                              minimum(GB, max1) + 
-                              minimum(GC, max1) )
+        return P.garext.taux*(min_(GA, max1) + 
+                              min_(GB, max1) + 
+                              min_(GC, max1) )
     elif self.year <= 2005:
-        GE = table.getFoyer('vous', 'f7ge', 'foyer')
-        GF = table.getFoyer('vous', 'f7gf', 'foyer')
-        GG = table.getFoyer('vous', 'f7gg', 'foyer')
-        return P.garext.taux*(minimum(GA, max1) + 
-                              minimum(GB, max1) + 
-                              minimum(GC, max1) + 
-                              minimum(GE, max1/2) + 
-                              minimum(GF, max1/2) + 
-                              minimum(GG, max1/2) )
+        GE = table.get('vous', 'f7ge', 'foy', 'foyer')
+        GF = table.get('vous', 'f7gf', 'foy', 'foyer')
+        GG = table.get('vous', 'f7gg', 'foy', 'foyer')
+        return P.garext.taux*(min_(GA, max1) + 
+                              min_(GB, max1) + 
+                              min_(GC, max1) + 
+                              min_(GE, max1/2) + 
+                              min_(GF, max1/2) + 
+                              min_(GG, max1/2) )
 
 def deffor(self, P, table):
     '''
     Défense des forêts contre l'incendie
     '''
-    UC = table.getFoyer('vous', 'f7uc', 'foyer')
-    return P.deffor.taux*minimum(UC, P.deffor.max )
+    UC = table.get('vous', 'f7uc', 'foy', 'foyer')
+    return P.deffor.taux*min_(UC, P.deffor.max )
     
 def daepad(self, P, table):
     '''
     Dépenses d'accueil dans un établissement pour personnes âgées dépendantes
     '''
-    CD = table.getFoyer('vous', 'f7cd', 'foyer')
-    CE = table.getFoyer('vous', 'f7ce', 'foyer')
-    return P.daepad.taux*(minimum(CD, P.daepad.max) + minimum(CE, P.daepad.max))
+    CD = table.get('vous', 'f7cd', 'foy', 'foyer')
+    CE = table.get('vous', 'f7ce', 'foy', 'foyer')
+    return P.daepad.taux*(min_(CD, P.daepad.max) + min_(CE, P.daepad.max))
 
 def rsceha(self, P, table):
     '''
     Rentes de survie et contrats d'épargne handicap
     '''
-    GZ = table.getFoyer('vous', 'f7gz', 'foyer')
+    GZ = table.get('vous', 'f7gz', 'foy', 'foyer')
     max1 = P.rsceha.seuil1 + (self.nbPAC - self.nbR + self.nbH/2)*P.rsceha.seuil2
     # TODO: verifier la formule précédente
-    return P.rsceha.taux*minimum(GZ, max1)
+    return P.rsceha.taux*min_(GZ, max1)
 
 def assvie(self, P, table):
     '''
     Assurance-vie (cases GW, GX et GY de la 2042)
     2002-2004
     '''
-    GW = table.getFoyer('vous', 'f7gw', 'foyer')
-    GX = table.getFoyer('vous', 'f7gx', 'foyer')
-    GY = table.getFoyer('vous', 'f7gy', 'foyer')
+    GW = table.get('vous', 'f7gw', 'foy', 'foyer')
+    GX = table.get('vous', 'f7gx', 'foy', 'foyer')
+    GY = table.get('vous', 'f7gy', 'foy', 'foyer')
     max1 = P.assvie.max + self.nbPAC*P.assvie.pac
-    return P.assvie.taux*minimum(GW + GX + GY, max1)
+    return P.assvie.taux*min_(GW + GX + GY, max1)
 
 def invrev(self, P, table):
     '''
@@ -412,21 +411,21 @@ def invlst(self, P, table):
     seuil1 = P.invlst.seuil1*(1+self.marpac)
     seuil2 = P.invlst.seuil2*(1+self.marpac)
     seuil3 = P.invlst.seuil3*(1+self.marpac)
-    XC = table.getFoyer('vous', 'f7xc', 'foyer')
-    if self.year == 2004: xc = P.invlst.taux_xc*minimum(XC,seuil1/4)
-    else: xc = P.invlst.taux_xc*minimum(XC,seuil1/6)
-    xd = P.invlst.taux_xd*table.getFoyer('vous', 'f7xd', 'foyer')
-    xe = P.invlst.taux_xe*minimum(table.getFoyer('vous', 'f7xe', 'foyer'),seuil1/6)
-    xf = P.invlst.taux_xf*table.getFoyer('vous', 'f7xf', 'foyer')
-    xg = P.invlst.taux_xg*minimum(table.getFoyer('vous', 'f7xg', 'foyer'),seuil2)
-    xh = P.invlst.taux_xh*minimum(table.getFoyer('vous', 'f7xh', 'foyer'), seuil3)
-    xi = P.invlst.taux_xi*minimum(table.getFoyer('vous', 'f7xi', 'foyer'), seuil1/4)
-    xj = P.invlst.taux_xj*table.getFoyer('vous', 'f7xj', 'foyer')
-    xk = P.invlst.taux_xk*table.getFoyer('vous', 'f7xk', 'foyer')
-    xl = P.invlst.taux_xl*minimum(table.getFoyer('vous', 'f7xl', 'foyer'), seuil1/6)
-    xm = P.invlst.taux_xm*table.getFoyer('vous', 'f7xm', 'foyer')
-    xn = P.invlst.taux_xn*minimum(table.getFoyer('vous', 'f7xn', 'foyer'),seuil1/6)
-    xo = P.invlst.taux_xo*table.getFoyer('vous', 'f7xo', 'foyer')
+    XC = table.get('vous', 'f7xc', 'foy', 'foyer')
+    if self.year == 2004: xc = P.invlst.taux_xc*min_(XC,seuil1/4)
+    else: xc = P.invlst.taux_xc*min_(XC,seuil1/6)
+    xd = P.invlst.taux_xd*table.get('vous', 'f7xd', 'foy', 'foyer')
+    xe = P.invlst.taux_xe*min_(table.get('vous', 'f7xe', 'foy', 'foyer'),seuil1/6)
+    xf = P.invlst.taux_xf*table.get('vous', 'f7xf', 'foy', 'foyer')
+    xg = P.invlst.taux_xg*min_(table.get('vous', 'f7xg', 'foy', 'foyer'),seuil2)
+    xh = P.invlst.taux_xh*min_(table.get('vous', 'f7xh', 'foy', 'foyer'), seuil3)
+    xi = P.invlst.taux_xi*min_(table.get('vous', 'f7xi', 'foy', 'foyer'), seuil1/4)
+    xj = P.invlst.taux_xj*table.get('vous', 'f7xj', 'foy', 'foyer')
+    xk = P.invlst.taux_xk*table.get('vous', 'f7xk', 'foy', 'foyer')
+    xl = P.invlst.taux_xl*min_(table.get('vous', 'f7xl', 'foy', 'foyer'), seuil1/6)
+    xm = P.invlst.taux_xm*table.get('vous', 'f7xm', 'foy', 'foyer')
+    xn = P.invlst.taux_xn*min_(table.get('vous', 'f7xn', 'foy', 'foyer'),seuil1/6)
+    xo = P.invlst.taux_xo*table.get('vous', 'f7xo', 'foy', 'foyer')
     return xc + xd + xe + xf + xg + xh + xi + xj + xk + xl + xm + xn + xo
     
 def domlog(self, P, table):
@@ -436,39 +435,39 @@ def domlog(self, P, table):
     TODO: Plafonnement sur la notice
     '''
     if self.year <= 2002:
-        UA = table.getFoyer('vous', 'f7ua', 'foyer')
-        UB = table.getFoyer('vous', 'f7ub', 'foyer')
-        UC = table.getFoyer('vous', 'f7uc', 'foyer')
-        UJ = table.getFoyer('vous', 'f7uj', 'foyer')    
+        UA = table.get('vous', 'f7ua', 'foy', 'foyer')
+        UB = table.get('vous', 'f7ub', 'foy', 'foyer')
+        UC = table.get('vous', 'f7uc', 'foy', 'foyer')
+        UJ = table.get('vous', 'f7uj', 'foy', 'foyer')    
         return P.domlog.taux1*UJ + P.domlog.taux2*(UA + UB + UC) 
     if self.year <= 2004:
-        UA = table.getFoyer('vous', 'f7ua', 'foyer')
-        UB = table.getFoyer('vous', 'f7ub', 'foyer')
-        UC = table.getFoyer('vous', 'f7uc', 'foyer')
-        UI = table.getFoyer('vous', 'f7ui', 'foyer')
-        UJ = table.getFoyer('vous', 'f7uj', 'foyer')
+        UA = table.get('vous', 'f7ua', 'foy', 'foyer')
+        UB = table.get('vous', 'f7ub', 'foy', 'foyer')
+        UC = table.get('vous', 'f7uc', 'foy', 'foyer')
+        UI = table.get('vous', 'f7ui', 'foy', 'foyer')
+        UJ = table.get('vous', 'f7uj', 'foy', 'foyer')
         return P.domlog.taux1*UJ + P.domlog.taux2*(UA + UB + UC) + UI
     elif self.year <= 2007:
-        UA = table.getFoyer('vous', 'f7ua', 'foyer')
-        UB = table.getFoyer('vous', 'f7ub', 'foyer')
-        UI = table.getFoyer('vous', 'f7ui', 'foyer')
-        UJ = table.getFoyer('vous', 'f7uj', 'foyer')
+        UA = table.get('vous', 'f7ua', 'foy', 'foyer')
+        UB = table.get('vous', 'f7ub', 'foy', 'foyer')
+        UI = table.get('vous', 'f7ui', 'foy', 'foyer')
+        UJ = table.get('vous', 'f7uj', 'foy', 'foyer')
         return P.domlog.taux1*UJ + P.domlog.taux2*(UA + UB ) + UI
     elif self.year <= 2008:
-        UI = table.getFoyer('vous', 'f7ui', 'foyer')    
+        UI = table.get('vous', 'f7ui', 'foy', 'foyer')    
         return UI
     elif self.year <= 2009:
-        QB = table.getFoyer('vous', 'f7qb', 'foyer')
-        QC = table.getFoyer('vous', 'f7qc', 'foyer')
-        QD = table.getFoyer('vous', 'f7qd', 'foyer')
+        QB = table.get('vous', 'f7qb', 'foy', 'foyer')
+        QC = table.get('vous', 'f7qc', 'foy', 'foyer')
+        QD = table.get('vous', 'f7qd', 'foy', 'foyer')
         return QB + QC + QD
     elif self.year <= 2010:
-        QB = table.getFoyer('vous', 'f7qb', 'foyer')
-        QC = table.getFoyer('vous', 'f7qc', 'foyer')
-        QL = table.getFoyer('vous', 'f7ql', 'foyer')
-        QT = table.getFoyer('vous', 'f7qt', 'foyer')
-        QM = table.getFoyer('vous', 'f7qm', 'foyer')
-        QD = table.getFoyer('vous', 'f7qd', 'foyer')
+        QB = table.get('vous', 'f7qb', 'foy', 'foyer')
+        QC = table.get('vous', 'f7qc', 'foy', 'foyer')
+        QL = table.get('vous', 'f7ql', 'foy', 'foyer')
+        QT = table.get('vous', 'f7qt', 'foy', 'foyer')
+        QM = table.get('vous', 'f7qm', 'foy', 'foyer')
+        QD = table.get('vous', 'f7qd', 'foy', 'foyer')
         return QB + QC + QL + QT + QM + QD
  
 def adhcga(self, P, table):
@@ -476,9 +475,9 @@ def adhcga(self, P, table):
     Frais de comptabilité et d'adhésion à un CGA ou AA
     2002-
     '''
-    FF = table.getFoyer('vous', 'f7ff', 'foyer')
-    FG = table.getFoyer('vous', 'f7fg', 'foyer')
-    return minimum(FF, P.adhcga.max*FG)
+    FF = table.get('vous', 'f7ff', 'foy', 'foyer')
+    FG = table.get('vous', 'f7fg', 'foy', 'foyer')
+    return min_(FF, P.adhcga.max*FG)
 
 def creaen(self, P, table):
     '''
@@ -486,27 +485,27 @@ def creaen(self, P, table):
     TODO...
     '''
     if self.year <= 2008:
-        FY = table.getFoyer('vous', 'f7fy', 'foyer')
-        GY = table.getFoyer('vous', 'f7gy', 'foyer')
+        FY = table.get('vous', 'f7fy', 'foy', 'foyer')
+        GY = table.get('vous', 'f7gy', 'foy', 'foyer')
         return (P.creaen.base*FY + P.creaen.hand*GY )
     elif self.year == 2009:
-        JY = table.getFoyer('vous', 'f7jy', 'foyer')
-        FY = table.getFoyer('vous', 'f7fy', 'foyer')
-        HY = table.getFoyer('vous', 'f7hy', 'foyer')
-        KY = table.getFoyer('vous', 'f7ky', 'foyer')
-        GY = table.getFoyer('vous', 'f7gy', 'foyer')
-        IY = table.getFoyer('vous', 'f7iy', 'foyer')
+        JY = table.get('vous', 'f7jy', 'foy', 'foyer')
+        FY = table.get('vous', 'f7fy', 'foy', 'foyer')
+        HY = table.get('vous', 'f7hy', 'foy', 'foyer')
+        KY = table.get('vous', 'f7ky', 'foy', 'foyer')
+        GY = table.get('vous', 'f7gy', 'foy', 'foyer')
+        IY = table.get('vous', 'f7iy', 'foy', 'foyer')
         return (P.creaen.base*((JY + FY) + HY/2) +
                 P.creaen.hand*((KY + GY) + IY/2) )
     elif self.year == 2010:
-        JY = table.getFoyer('vous', 'f7jy', 'foyer')
-        FY = table.getFoyer('vous', 'f7fy', 'foyer')
-        HY = table.getFoyer('vous', 'f7hy', 'foyer')
-        LY = table.getFoyer('vous', 'f7ly', 'foyer')
-        KY = table.getFoyer('vous', 'f7ky', 'foyer')
-        GY = table.getFoyer('vous', 'f7gy', 'foyer')
-        IY = table.getFoyer('vous', 'f7iy', 'foyer')
-        MY = table.getFoyer('vous', 'f7my', 'foyer')
+        JY = table.get('vous', 'f7jy', 'foy', 'foyer')
+        FY = table.get('vous', 'f7fy', 'foy', 'foyer')
+        HY = table.get('vous', 'f7hy', 'foy', 'foyer')
+        LY = table.get('vous', 'f7ly', 'foy', 'foyer')
+        KY = table.get('vous', 'f7ky', 'foy', 'foyer')
+        GY = table.get('vous', 'f7gy', 'foy', 'foyer')
+        IY = table.get('vous', 'f7iy', 'foy', 'foyer')
+        MY = table.get('vous', 'f7my', 'foy', 'foyer')
         return (P.creaen.base*((JY + FY) + (HY + LY)/2) +
                 P.creaen.hand*((KY + GY) + (IY + MY)/2) )
       
@@ -514,12 +513,12 @@ def ecpess(self, P, table):
     '''
     Enfants à charge poursuivant leurs études secondaires ou supérieures
     '''
-    EA = table.getFoyer('vous', 'f7ea', 'foyer')
-    EB = table.getFoyer('vous', 'f7eb', 'foyer')
-    EC = table.getFoyer('vous', 'f7ec', 'foyer')
-    ED = table.getFoyer('vous', 'f7ed', 'foyer')
-    EF = table.getFoyer('vous', 'f7ef', 'foyer')
-    EG = table.getFoyer('vous', 'f7eg', 'foyer')
+    EA = table.get('vous', 'f7ea', 'foy', 'foyer')
+    EB = table.get('vous', 'f7eb', 'foy', 'foyer')
+    EC = table.get('vous', 'f7ec', 'foy', 'foyer')
+    ED = table.get('vous', 'f7ed', 'foy', 'foyer')
+    EF = table.get('vous', 'f7ef', 'foy', 'foyer')
+    EG = table.get('vous', 'f7eg', 'foy', 'foyer')
     return (P.ecpess.col*(EA + EB/2) +
             P.ecpess.lyc*(EC + ED/2) +
             P.ecpess.sup*(EF + EG/2) )
@@ -540,12 +539,12 @@ def doment(self, P, table):
     '''
     Investissements dans les DOM-TOM dans le cadre d'une entrepise.
     '''
-    UR = table.getFoyer('vous', 'f7ur', 'foyer')
-    OZ = table.getFoyer('vous', 'f7oz', 'foyer')
-    PZ = table.getFoyer('vous', 'f7pz', 'foyer')
-    QZ = table.getFoyer('vous', 'f7qz', 'foyer')
-    RZ = table.getFoyer('vous', 'f7rz', 'foyer')
-    SZ = table.getFoyer('vous', 'f7sz', 'foyer')
+    UR = table.get('vous', 'f7ur', 'foy', 'foyer')
+    OZ = table.get('vous', 'f7oz', 'foy', 'foyer')
+    PZ = table.get('vous', 'f7pz', 'foy', 'foyer')
+    QZ = table.get('vous', 'f7qz', 'foy', 'foyer')
+    RZ = table.get('vous', 'f7rz', 'foy', 'foyer')
+    SZ = table.get('vous', 'f7sz', 'foy', 'foyer')
     return  UR+ OZ + PZ +  QZ + RZ + SZ
 
 def domsoc(self, P, table):

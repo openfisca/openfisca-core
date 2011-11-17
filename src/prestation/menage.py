@@ -45,7 +45,7 @@ def handleXml(doc, tree, fun, members):
                 tree.addChild(child)
                 handleXml(element, child, fun, members)
     else:
-        tree.setVals(fun(members, tree.code, sumqui = True))
+        tree.setVals(fun(members, tree.code, 'men', sumqui = True))
 
 class Menage(object):
     
@@ -63,7 +63,7 @@ class Menage(object):
         self._doc = minidom.parse('data/totaux.xml')
         tree = OutNode('root', 'root')
         table.openReadMode()
-        handleXml(self._doc, tree, table.getMenage, self.members)
+        handleXml(self._doc, tree, table.get, self.members)
 
         nb_uci = self.UC(table)
         
@@ -76,7 +76,7 @@ class Menage(object):
         '''
         Calcul du nombre d'unité de consommation du ménage avec l'échelle de l'insee
         '''
-        agems = np.array(table.getMenage(self.members, 'agem', default = -9999))
+        agems = np.array(table.get(self.members, 'agem', 'men', default = -9999))
         uc = np.ones(self.taille)
         for i in range(1,11):
             agem = agems[i]

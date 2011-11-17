@@ -22,13 +22,8 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import maximum as maxi
-from numpy import minimum as mini
-from numpy import logical_xor as lxor
-from numpy import logical_not as lnot
-import re
-import numpy as np
-from numpy import round, zeros, ones
+from numpy import ( maximum as max_, minimum as min_, logical_xor as xor_, 
+                    logical_not as not_, round, zeros, ones)
 from Utils import BarmMar
 import charges_deductibles
 import reductions_impots
@@ -52,27 +47,14 @@ class IRPP(object):
         self.scenar2foy = self.population.scenar2foy
         self.people = ['vous','conj','pac1','pac2','pac3']
         self._createFoyer(table)
-        
-#    def __getattribute__(self, name):
-#        '''
-#        The getattribute special method generate a zeros vector if the requested name
-#        is a cell of the declaration and does not exist. 
-#        '''
-#        try:
-#            return super(IRPP, self).__getattribute__(name)
-#        except:
-#            if re.match(r'^f\d[a-z]{2}$', name):
-#                return zeros(self.taille)
-#            else:
-#                return super(IRPP, self).__getattribute__(name)
-        
+                
     def _createFoyer(self, table):
         table.openReadMode()
         cases = ['caseK', 'caseE', 'caseH', 'caseN', 'caseL', 'caseP', 
                  'caseF', 'caseW', 'caseS', 'caseG', 'caseT',
                  'nbF', 'nbH', 'nbG', 'nbI', 'nbR', 'nbJ', 'nbN']
         for case in cases:
-            setattr(self, case, table.getFoyer('vous', case, 'foyer'))
+            setattr(self, case, table.get('vous', case, 'foy', 'foyer'))
 
         table.close_()
                 
@@ -80,11 +62,11 @@ class IRPP(object):
 
         table.openReadMode()
         # On récupère l'âge au premier janvier du déclarant et de son conjoint
-        self.agev, self.agec = table.getFoyer(['vous', 'conj'], 'age')
+        self.agev, self.agec = table.get(['vous', 'conj'], 'age', 'foy')
 
         
         # On récupère le statut marital
-        self.statmarit = table.getFoyer('vous', 'statmarit')
+        self.statmarit = table.get('vous', 'statmarit', 'foy')
 
         self.marpac = (self.statmarit == 1) | (self.statmarit == 5)
         self.celdiv = (self.statmarit == 2) | (self.statmarit == 3)
@@ -122,21 +104,21 @@ class IRPP(object):
         '''
         table = self.population
         table.openReadMode()
-        GH = table.getFoyer('vous', 'f6gh', 'foyer')
-        DE = table.getFoyer('vous', 'f6de', 'foyer')
-        VA = table.getFoyer('vous', 'f3va', 'foyer')
-        VC = table.getFoyer('vous', 'f3vc', 'foyer')
-        VE = table.getFoyer('vous', 'f3ve', 'foyer')
-        VG = table.getFoyer('vous', 'f3vg', 'foyer')
-        VH = table.getFoyer('vous', 'f3vh', 'foyer')
-        VL = table.getFoyer('vous', 'f3vl', 'foyer')
-        VM = table.getFoyer('vous', 'f3vm', 'foyer')
-        BL = table.getFoyer('vous', 'f4bl', 'foyer')
-        QM = table.getFoyer('vous', 'f5qm', 'foyer')
-        RM = table.getFoyer('vous', 'f5rm', 'foyer')
-        GA = table.getFoyer('vous', 'f7ga', 'foyer')
-        GB = table.getFoyer('vous', 'f7gb', 'foyer')
-        GC = table.getFoyer('vous', 'f7gc', 'foyer')
+        GH = table.get('vous', 'f6gh', 'foy', 'foyer')
+        DE = table.get('vous', 'f6de', 'foy', 'foyer')
+        VA = table.get('vous', 'f3va', 'foy', 'foyer')
+        VC = table.get('vous', 'f3vc', 'foy', 'foyer')
+        VE = table.get('vous', 'f3ve', 'foy', 'foyer')
+        VG = table.get('vous', 'f3vg', 'foy', 'foyer')
+        VH = table.get('vous', 'f3vh', 'foy', 'foyer')
+        VL = table.get('vous', 'f3vl', 'foy', 'foyer')
+        VM = table.get('vous', 'f3vm', 'foy', 'foyer')
+        BL = table.get('vous', 'f4bl', 'foy', 'foyer')
+        QM = table.get('vous', 'f5qm', 'foy', 'foyer')
+        RM = table.get('vous', 'f5rm', 'foy', 'foyer')
+        GA = table.get('vous', 'f7ga', 'foy', 'foyer')
+        GB = table.get('vous', 'f7gb', 'foy', 'foyer')
+        GC = table.get('vous', 'f7gc', 'foy', 'foyer')
         table.close_()
         self._retrieveIndiv(table)
 
@@ -155,15 +137,15 @@ class IRPP(object):
 
         # sans les revenus au quotient ;
         ## Total 17 - Revenu brut global
-        self.rbg = maxi(0, alloc + TSPR + RVCM + RFON + RPNS + GH - deficitAnte)
+        self.rbg = max_(0, alloc + TSPR + RVCM + RFON + RPNS + GH - deficitAnte)
 
         ## CSG déductible
-        self.CSGdeduc = mini(DE, maxi(self.rbg, 0))
+        self.CSGdeduc = min_(DE, max_(self.rbg, 0))
         ## Charges déductibles
         self.Charges_deductibles(P.charges_deductibles)
 
         ## Total 20 - Revenu net global
-        self.rng = maxi(0, self.rbg - self.CSGdeduc - self.CD)
+        self.rng = max_(0, self.rbg - self.CSGdeduc - self.CD)
         
         ## Abattements spéciaux        
         abaspe = self.Abattements(P.abattements_speciaux, self.rng)
@@ -188,16 +170,16 @@ class IRPP(object):
 
         ## Décote
         decote = self.Decote(IP, P.decote)
-        IPnet  = natimp*maxi(0, IP - decote)
+        IPnet  = natimp*max_(0, IP - decote)
         
 #        t = (1 - P.tspr.abatpro.taux)
 #        ## Revenus de l'étranger pour le revenu fiscal de référence
-#        rfr_ertf = self.f8by + self.f8cy + t*self.f1dy  + maxi(self.f8ti, t*(self.f1lz + self.f1mz))
+#        rfr_ertf = self.f8by + self.f8cy + t*self.f1dy  + max_(self.f8ti, t*(self.f1lz + self.f1mz))
         
         ## Revenu fiscal de référence
         # les allocations familiales ne sont pas prises en compte pour le revenu fiscal de référence si elles sont imposables
-        self.rfr = (maxi(0, rni - alloc) + self.rfr_cd + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
-#        self.rfr = (self.f8fv==0)*(maxi(0, rni - alloc) + self.rfr_cd + rfr_ertf + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
+        self.rfr = (max_(0, rni - alloc) + self.rfr_cd + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
+#        self.rfr = (self.f8fv==0)*(max_(0, rni - alloc) + self.rfr_cd + rfr_ertf + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
         tehr = self.Tehr(self.rfr, self.nbadult, P.tehr)
         ## Réduction d'impôt
         reductions = self.Reductions(IPnet, P.reductions_impots, table)
@@ -217,12 +199,12 @@ class IRPP(object):
         zimployf = mnclcn
 
         # Taxe exceptionelle sur l'indemnité compensatrice des agents d'assurance
-        #     H90_a1 = 0*maxi(0,mini(self.f5qm,23000));
-        H90_a2 = .04*maxi(0,mini(QM-23000,107000));
-        H90_a3 = .026*maxi(0,QM-107000);
-        #     H90_b1 = 0*maxi(0,mini(self.f5rm,23000));
-        H90_b2 = .04*maxi(0,mini(RM-23000,107000));
-        H90_b3 = .026*maxi(0,RM-107000);
+        #     H90_a1 = 0*max_(0,min_(self.f5qm,23000));
+        H90_a2 = .04*max_(0,min_(QM-23000,107000));
+        H90_a3 = .026*max_(0,QM-107000);
+        #     H90_b1 = 0*max_(0,min_(self.f5rm,23000));
+        H90_b2 = .04*max_(0,min_(RM-23000,107000));
+        H90_b3 = .026*max_(0,RM-107000);
         
         H90 = H90_a2 + H90_a3 + H90_b2 + H90_b3;
 
@@ -240,16 +222,16 @@ class IRPP(object):
         IMP = iai - credits_impot + tehr
                             
         ## Crédit d'impôt revenu de l'étranger
-#        abaetr = round(mini(maxi(P.tspr.abatpro.taux*self.f8tk, P.tspr.abatpro.min),P.tspr.abatpro.max))
+#        abaetr = round(min_(max_(P.tspr.abatpro.taux*self.f8tk, P.tspr.abatpro.min),P.tspr.abatpro.max))
 #        saletr = self.f8tk - abaetr
 #        div = rni + (rni == 0)
-#        credimp_etranger = maxi(0,saletr/div)*iaidrdi
+#        credimp_etranger = max_(0,saletr/div)*iaidrdi
                 
         # Les variables d'impôts directs 
         # impôt sur le revenu
         mcirra = -((IMP<=-8)*IMP)
-        mciria = maxi(0,(IMP>=0)*IMP - zimployf)
-#        mciria = maxi(0,(IMP>=0)*IMP - credimp_etranger - zimployf - ( self.f8to + self.f8tb + self.f8tc ))
+        mciria = max_(0,(IMP>=0)*IMP - zimployf)
+#        mciria = max_(0,(IMP>=0)*IMP - credimp_etranger - zimployf - ( self.f8to + self.f8tb + self.f8tc ))
         
         # Dans l'ERFS, les prelevement libératoire sur les montants non déclarés
         # sont intégrés. Pas possible de le recalculer.
@@ -281,9 +263,9 @@ class IRPP(object):
         
         # pour le calcul de l'allocation de soutien familial     
         asf_elig = 1*(self.caseT | self.caseL)
-        table.setFoyer('vous','asf_elig', asf_elig)
+        table.set('vous','asf_elig', asf_elig, 'foy')
         
-        table.setFoyer('vous','al_nbinv', self.nbR)
+        table.set('vous','al_nbinv', self.nbR, 'foy')
         
         table.close_()
 
@@ -294,16 +276,16 @@ class IRPP(object):
         '''
         Gains de levée d'option
         '''
-        f1tv = table.getFoyer('vous', 'f1tv', 'foyer')
-        f1tw = table.getFoyer('vous', 'f1tw', 'foyer')
-        f1tx = table.getFoyer('vous', 'f1tx', 'foyer')
-        f1uv = table.getFoyer('vous', 'f1uv', 'foyer')
-        f1uw = table.getFoyer('vous', 'f1uw', 'foyer')
-        f1ux = table.getFoyer('vous', 'f1ux', 'foyer')
-        f3vf = table.getFoyer('vous', 'f3vf', 'foyer')
-        f3vi = table.getFoyer('vous', 'f3vi', 'foyer')
-        f3vj = table.getFoyer('vous', 'f3vj', 'foyer')
-        f3vk = table.getFoyer('vous', 'f3vk', 'foyer')
+        f1tv = table.get('vous', 'f1tv', 'foy', 'foyer')
+        f1tw = table.get('vous', 'f1tw', 'foy', 'foyer')
+        f1tx = table.get('vous', 'f1tx', 'foy', 'foyer')
+        f1uv = table.get('vous', 'f1uv', 'foy', 'foyer')
+        f1uw = table.get('vous', 'f1uw', 'foy', 'foyer')
+        f1ux = table.get('vous', 'f1ux', 'foy', 'foyer')
+        f3vf = table.get('vous', 'f3vf', 'foy', 'foyer')
+        f3vi = table.get('vous', 'f3vi', 'foy', 'foyer')
+        f3vj = table.get('vous', 'f3vj', 'foy', 'foyer')
+        f3vk = table.get('vous', 'f3vk', 'foy', 'foyer')
         return f1tv + f1tw + f1tx + f1uv + f1uw + f1ux + f3vf + f3vi + f3vj + f3vk                   
 
     def Alloc(self,P, table):
@@ -313,7 +295,7 @@ class IRPP(object):
         if P.alloc_imp:
             # On récupère les allocations familiales perçues par les membres du foyer
             table.openReadMode()
-            temp = table.getFoyer(self.people, 'af', sumqui = True)
+            temp = table.get(self.people, 'af', 'foy', sumqui = True)
             table.close_()
             return temp
         else:
@@ -326,29 +308,29 @@ class IRPP(object):
         TRAITEMENTS SALAIRES PENSIONS ET RENTES
         '''
         table.openReadMode()         
-        AJ, BJ, CJ, DJ, EJ = table.getFoyer(self.people, 'sal')
-        AI, BI, CI, DI, EI = table.getFoyer(self.people, 'choCheckBox')
-        AP, BP, CP, DP, EP = table.getFoyer(self.people, 'cho')
-        AS, BS, CS, DS, ES = table.getFoyer(self.people, 'rst')
-        AK, BK, CK, DK, EK = table.getFoyer(self.people, 'fra')
-        AO, BO, CO, DO, EO = table.getFoyer(self.people, 'alr')
-        AU, BU, CU, DU, EU = table.getFoyer(self.people, 'hsup')
-        AW = table.getFoyer('vous', 'f1aw', 'foyer')
-        BW = table.getFoyer('vous', 'f1bw', 'foyer')
-        CW = table.getFoyer('vous', 'f1cw', 'foyer')
-        DW = table.getFoyer('vous', 'f1dw', 'foyer')
-        VJ = table.getFoyer('vous', 'f3vj', 'foyer')
-        VK = table.getFoyer('vous', 'f3vk', 'foyer')
+        AJ, BJ, CJ, DJ, EJ = table.get(self.people, 'sal', 'foy')
+        AI, BI, CI, DI, EI = table.get(self.people, 'choCheckBox', 'foy')
+        AP, BP, CP, DP, EP = table.get(self.people, 'cho', 'foy')
+        AS, BS, CS, DS, ES = table.get(self.people, 'rst', 'foy')
+        AK, BK, CK, DK, EK = table.get(self.people, 'fra', 'foy')
+        AO, BO, CO, DO, EO = table.get(self.people, 'alr', 'foy')
+        AU, BU, CU, DU, EU = table.get(self.people, 'hsup', 'foy')
+        AW = table.get('vous', 'f1aw', 'foy', 'foyer')
+        BW = table.get('vous', 'f1bw', 'foy', 'foyer')
+        CW = table.get('vous', 'f1cw', 'foy', 'foyer')
+        DW = table.get('vous', 'f1dw', 'foy', 'foyer')
+        VJ = table.get('vous', 'f3vj', 'foy', 'foyer')
+        VK = table.get('vous', 'f3vk', 'foy', 'foyer')
         table.close_()        
 
         def salnet(dumchom, revsal, fraispro, P):
-            amin = P.min*lnot(dumchom) + P.min2*dumchom
-            abatfor = round(mini(maxi(P.taux*revsal, amin),P.max))
+            amin = P.min*not_(dumchom) + P.min2*dumchom
+            abatfor = round(min_(max_(P.taux*revsal, amin),P.max))
             return (fraispro > abatfor)*(revsal - fraispro) \
-                 + (fraispro <= abatfor)*maxi(0,revsal - abatfor)
+                 + (fraispro <= abatfor)*max_(0,revsal - abatfor)
 
         def pennet(pen, P):
-            return maxi(0, pen - round(maxi(P.taux*pen , P.min)))
+            return max_(0, pen - round(max_(P.taux*pen , P.min)))
                         
         salv = salnet(AI, AJ + AP + VJ, AK, P.abatpro)
         salc = salnet(BI, BJ + BP + VK, BK, P.abatpro)
@@ -389,12 +371,12 @@ class IRPP(object):
                      P.abatviag.taux4*DW)
         
         table.openWriteMode()
-        table.setFoyer('vous', 'tspr', salpenv)
-        table.setFoyer('conj', 'tspr', salpenc)
-        table.setFoyer('pac1', 'tspr', salpen1)
-        table.setFoyer('pac2', 'tspr', salpen2)
-        table.setFoyer('pac3', 'tspr', salpen3)
-        table.setFoyer('vous', 'rto', rto)
+        table.set('vous', 'tspr', salpenv, 'foy')
+        table.set('conj', 'tspr', salpenc, 'foy')
+        table.set('pac1', 'tspr', salpen1, 'foy')
+        table.set('pac2', 'tspr', salpen2, 'foy')
+        table.set('pac3', 'tspr', salpen3, 'foy')
+        table.set('vous', 'rto', rto, 'foy')
         table.close_()
 
         self.tspre = tot2
@@ -405,29 +387,29 @@ class IRPP(object):
         REVENUS DES VALEURS ET CAPITAUX MOBILIERS
         '''
         table.openReadMode()
-        CH = table.getFoyer('vous', 'f2ch', 'foyer')
-        DC = table.getFoyer('vous', 'f2dc', 'foyer')
-        TS = table.getFoyer('vous', 'f2ts', 'foyer')
-        CA = table.getFoyer('vous', 'f2ca', 'foyer')
-        FU = table.getFoyer('vous', 'f2fu', 'foyer')
-        GO = table.getFoyer('vous', 'f2go', 'foyer')
-        TR = table.getFoyer('vous', 'f2tr', 'foyer')
-        AB = table.getFoyer('vous', 'f2ab', 'foyer')
-        DA = table.getFoyer('vous', 'f2da', 'foyer')
-        DH = table.getFoyer('vous', 'f2dh', 'foyer')
-        EE = table.getFoyer('vous', 'f2ee', 'foyer')
-        VI = table.getFoyer('vous', 'f3vi', 'foyer')
-        AA = table.getFoyer('vous', 'f2aa', 'foyer')
-        AL = table.getFoyer('vous', 'f2al', 'foyer')
-        AM = table.getFoyer('vous', 'f2am', 'foyer')
-        AN = table.getFoyer('vous', 'f2an', 'foyer')
-        if self.year <= 2004: GR = table.getFoyer('vous', 'f2gr', 'foyer')
+        CH = table.get('vous', 'f2ch', 'foy', 'foyer')
+        DC = table.get('vous', 'f2dc', 'foy', 'foyer')
+        TS = table.get('vous', 'f2ts', 'foy', 'foyer')
+        CA = table.get('vous', 'f2ca', 'foy', 'foyer')
+        FU = table.get('vous', 'f2fu', 'foy', 'foyer')
+        GO = table.get('vous', 'f2go', 'foy', 'foyer')
+        TR = table.get('vous', 'f2tr', 'foy', 'foyer')
+        AB = table.get('vous', 'f2ab', 'foy', 'foyer')
+        DA = table.get('vous', 'f2da', 'foy', 'foyer')
+        DH = table.get('vous', 'f2dh', 'foy', 'foyer')
+        EE = table.get('vous', 'f2ee', 'foy', 'foyer')
+        VI = table.get('vous', 'f3vi', 'foy', 'foyer')
+        AA = table.get('vous', 'f2aa', 'foy', 'foyer')
+        AL = table.get('vous', 'f2al', 'foy', 'foyer')
+        AM = table.get('vous', 'f2am', 'foy', 'foyer')
+        AN = table.get('vous', 'f2an', 'foy', 'foyer')
+        if self.year <= 2004: GR = table.get('vous', 'f2gr', 'foy', 'foyer')
         else: GR = 0
         table.close_()
 
         ## Calcul du revenu catégoriel
         #1.2 Revenus des valeurs et capitaux mobiliers
-        b12 = mini(CH,P.abat_assvie*(1+self.marpac))
+        b12 = min_(CH,P.abat_assvie*(1+self.marpac))
         TOT1 = CH-b12
         # Part des frais s'imputant sur les revenus déclarés case DC
         den = ((DC + TS)!=0)*(DC + TS) + ((DC + TS)==0)
@@ -435,16 +417,16 @@ class IRPP(object):
         
         # Revenus de capitaux mobiliers nets de frais, ouvrant droit à abattement
         # partie négative (à déduire des autres revenus nets de frais d'abattements
-        g12a = - mini(DC*P.abatmob_taux - F1,0)
+        g12a = - min_(DC*P.abatmob_taux - F1,0)
         # partie positive
-        g12b = maxi(DC*P.abatmob_taux - F1,0)
+        g12b = max_(DC*P.abatmob_taux - F1,0)
         
         rev = g12b + GR + FU*P.abatmob_taux
 
         # Abattements, limité au revenu
         h12 = P.abatmob*(1+self.marpac)
-        TOT2 = maxi(0,rev - h12)
-        i121= -mini(0,rev - h12)
+        TOT2 = max_(0,rev - h12)
+        i121= -min_(0,rev - h12)
         
         # Pars des frais s'imputant sur les revenus déclarés ligne TS
         F2 = CA - F1
@@ -452,7 +434,7 @@ class IRPP(object):
 
         DEF = AA + AL + AM + AN
 
-        RVCM = maxi(TOT1 + TOT2 + TOT3 - DEF, 0)
+        RVCM = max_(TOT1 + TOT2 + TOT3 - DEF, 0)
         
         # a. Les revenus des valeurs et capitaux mobiliers
         # a.(i) Les revenus non soumis au prélèvement libératoire (zvamf) " TODO : f2fu non compris car exonéré de contributions sociales?
@@ -481,7 +463,7 @@ class IRPP(object):
         table.close_()
                 
         ## pour le calcul du revenu fiscal de référence
-        self.rfr_rvcm = maxi((1-P.abatmob_taux)*(DC + FU) - i121, 0) + revcap_lib
+        self.rfr_rvcm = max_((1-P.abatmob_taux)*(DC + FU) - i121, 0) + revcap_lib
         self.rfr_glof = VI
         return RVCM
 
@@ -490,11 +472,11 @@ class IRPP(object):
         REVENUS FONCIERS
         '''
         table.openReadMode()
-        BA = table.getFoyer('vous', 'f4ba', 'foyer')
-        BB = table.getFoyer('vous', 'f4bb', 'foyer')
-        BC = table.getFoyer('vous', 'f4bc', 'foyer')
-        BD = table.getFoyer('vous', 'f4bd', 'foyer')
-        BE = table.getFoyer('vous', 'f4be', 'foyer')
+        BA = table.get('vous', 'f4ba', 'foy', 'foyer')
+        BB = table.get('vous', 'f4bb', 'foy', 'foyer')
+        BC = table.get('vous', 'f4bc', 'foy', 'foyer')
+        BD = table.get('vous', 'f4bd', 'foy', 'foyer')
+        BE = table.get('vous', 'f4be', 'foy', 'foyer')
         table.close_()
         
         ## Calcul des totaux        
@@ -507,7 +489,7 @@ class IRPP(object):
         d13 = BC
         e13 = c13- d13*(c13>=0)
         f13 = BD*(e13>=0)
-        g13 = maxi(0, e13- f13)
+        g13 = max_(0, e13- f13)
         RFON  = (c13>=0)*(g13 + e13*(e13<0)) - (c13<0)*d13
         self.rfon_rmi = BA + BE
 
@@ -520,25 +502,25 @@ class IRPP(object):
 
     def Rpns(self,P, table):
         n = self.taille
-        self.rpns_pvce = np.zeros(n)
+        self.rpns_pvce = zeros(n)
         # revenus exonérés
-        self.rpns_exo =  np.zeros(n)
-        self.zragf = np.zeros(n)
-        self.zricf = np.zeros(n)
-        self.zracf = np.zeros(n)
-        self.zrncf = np.zeros(n)
+        self.rpns_exo =  zeros(n)
+        self.zragf = zeros(n)
+        self.zricf = zeros(n)
+        self.zracf = zeros(n)
+        self.zrncf = zeros(n)
 
-        self.rpns_pvct = np.zeros(n)
-        self.rpns_mvct = np.zeros(n)
-        self.rpns_mvlt = np.zeros(n)
+        self.rpns_pvct = zeros(n)
+        self.rpns_mvct = zeros(n)
+        self.rpns_mvlt = zeros(n)
         
         # imp_plusval_ces = plusval_ces*plusvalces_taux;
-        RPNS = np.zeros(n)
+        RPNS = zeros(n)
         
         # Calcul des revenus individuels
-        self.rpnsv = np.zeros(n)
-        self.rpnsc = np.zeros(n)
-        self.rpnsp = np.zeros(n)
+        self.rpnsv = zeros(n)
+        self.rpnsc = zeros(n)
+        self.rpnsp = zeros(n)
         
         return RPNS
         
@@ -549,13 +531,13 @@ class IRPP(object):
         '''
 
         def abatv(rev, P):
-            return maxi(0,rev - mini(rev, maxi(P.microentreprise.vente_taux*mini(P.microentreprise.vente_max, rev), P.microentreprise.vente_min)))
+            return max_(0,rev - min_(rev, max_(P.microentreprise.vente_taux*min_(P.microentreprise.vente_max, rev), P.microentreprise.vente_min)))
         
         def abats(rev, P):
-            return maxi(0,rev - mini(rev, maxi(P.microentreprise.servi_taux*mini(P.microentreprise.servi_max, rev), P.microentreprise.servi_min)))
+            return max_(0,rev - min_(rev, max_(P.microentreprise.servi_taux*min_(P.microentreprise.servi_max, rev), P.microentreprise.servi_min)))
         
         def abatnc(rev, P):
-            return maxi(0,rev - mini(rev, maxi(P.nc_abat_taux*mini(P.nc_abat_max, rev), P.nc_abat_min)))
+            return max_(0,rev - min_(rev, max_(P.nc_abat_taux*min_(P.nc_abat_max, rev), P.nc_abat_min)))
 
 
         def Pvce(self):
@@ -617,7 +599,7 @@ class IRPP(object):
                     nbicf + maccf + aaccf + naccf + mbncf + 
                     abncf + nbncf )
             # TODO: Prendre en compte les déficits?
-#            return fragf_exon + aragf_exon + nragf_exon + mbicf_exon + maxi(abicf_exon-abicf_defe,0) + maxi(nbicf_exon-nbicf_defe,0) + maccf_exon + aaccf_exon + naccf_exon + mbncf_exon + abncf_exon + nbncf_exon 
+#            return fragf_exon + aragf_exon + nragf_exon + mbicf_exon + max_(abicf_exon-abicf_defe,0) + max_(nbicf_exon-nbicf_defe,0) + maccf_exon + aaccf_exon + naccf_exon + mbncf_exon + abncf_exon + nbncf_exon 
 
 
         # plus values de cession
@@ -651,20 +633,20 @@ class IRPP(object):
         # sur des revenus agricoles)
         ragf_timp = fragf_timp + aragf_timp + nragf_timp 
         cond = (self.AUTRE <= P.def_agri_seuil)
-        def_agri = cond*(aragf_defi + nragf_defi) + lnot(cond)*mini(ragf_timp, aragf_defi + nragf_defi)
+        def_agri = cond*(aragf_defi + nragf_defi) + not_(cond)*min_(ragf_timp, aragf_defi + nragf_defi)
         # TODO : check 2006 cf art 156 du CGI pour 2006
         # sur base 2003:
         # cf menage 3020938 pour le déficit agricole qui peut déduire et ménage
         # 3001872 qui ne peut pas déduire.
-        def_agri_ant    = mini(maxi(0,ragf_timp - def_agri), self.f5sq)
+        def_agri_ant    = min_(max_(0,ragf_timp - def_agri), self.f5sq)
         
         ragv = self.f5hn + self.f5ho + self.f5hb + self.f5hc - self.f5hf + self.f5hh + self.f5hi - self.f5hl + self.f5hm
         ragc = self.f5in + self.f5io + self.f5ib + self.f5ic - self.f5if + self.f5ih + self.f5ii - self.f5il + self.f5im
         ragp = self.f5jn + self.f5jo + self.f5jb + self.f5jc - self.f5jf + self.f5jh + self.f5ji - self.f5jl + self.f5jm
         
-        table.setFoyer('vous','rag', ragv)
-        table.setFoyer('conj','rag', ragc)
-        table.setFoyer('pac1','rag', ragp)
+        table.set('vous','rag', ragv, 'foy')
+        table.set('conj','rag', ragc, 'foy')
+        table.set('pac1','rag', ragp, 'foy')
         
         self.zragf = ragv + ragc + ragp
         
@@ -684,7 +666,7 @@ class IRPP(object):
         abicf_defn = self.f5kf + self.f5lf + self.f5mf
         abicf_defs = self.f5kg + self.f5lg + self.f5mg
         abicf_timp = abicf_impn + abicf_imps - (abicf_defn + abicf_defs)
-        abicf_defe = -mini(abicf_timp,0) 
+        abicf_defe = -min_(abicf_timp,0) 
         # base 2003: cf ménage 3021218 pour l'imputation illimitée de ces déficits.
         
         #Régime du bénéfice réel ne bénéficiant pas de l'abattement CGA
@@ -693,7 +675,7 @@ class IRPP(object):
         nbicf_defn = self.f5kl + self.f5ll + self.f5ml
         nbicf_defs = self.f5km + self.f5lm + self.f5mm
         nbicf_timp = (nbicf_impn + nbicf_imps) - (nbicf_defn + nbicf_defs)
-        nbicf_defe = -mini(nbicf_timp,0) ;
+        nbicf_defe = -min_(nbicf_timp,0) ;
         # base 2003 cf ménage 3015286 pour l'imputation illimitée de ces déficits.
         
         #Abatemment artisant pécheur
@@ -706,23 +688,23 @@ class IRPP(object):
         condv = (self.f5ko>0) & (self.f5kp==0)
         condc = (self.f5lo>0) & (self.f5lp==0)
         condp = (self.f5mo>0) & (self.f5mp==0)
-        tauxv = P.microentreprise.vente_taux*condv + P.microentreprise.servi_taux*lnot(condv)
-        tauxc = P.microentreprise.vente_taux*condc + P.microentreprise.servi_taux*lnot(condc)
-        tauxp = P.microentreprise.vente_taux*condp + P.microentreprise.servi_taux*lnot(condp)
+        tauxv = P.microentreprise.vente_taux*condv + P.microentreprise.servi_taux*not_(condv)
+        tauxc = P.microentreprise.vente_taux*condc + P.microentreprise.servi_taux*not_(condc)
+        tauxp = P.microentreprise.vente_taux*condp + P.microentreprise.servi_taux*not_(condp)
         
         P.cbicf_min = 305
         
-        cbicv = mini(self.f5ko+self.f5kp+self.f5kn, maxi(P.cbicf_min,round(self.f5ko*P.microentreprise.vente_taux + self.f5kp*P.microentreprise.servi_taux + self.f5kn*tauxv)))
-        cbicc = mini(self.f5lo+self.f5lp+self.f5ln, maxi(P.cbicf_min,round(self.f5lo*P.microentreprise.vente_taux + self.f5lp*P.microentreprise.servi_taux + self.f5ln*tauxc)));
-        cbicp = mini(self.f5mo+self.f5mp+self.f5mn, maxi(P.cbicf_min,round(self.f5mo*P.microentreprise.vente_taux + self.f5mp*P.microentreprise.servi_taux + self.f5mn*tauxp)));
+        cbicv = min_(self.f5ko+self.f5kp+self.f5kn, max_(P.cbicf_min,round(self.f5ko*P.microentreprise.vente_taux + self.f5kp*P.microentreprise.servi_taux + self.f5kn*tauxv)))
+        cbicc = min_(self.f5lo+self.f5lp+self.f5ln, max_(P.cbicf_min,round(self.f5lo*P.microentreprise.vente_taux + self.f5lp*P.microentreprise.servi_taux + self.f5ln*tauxc)));
+        cbicp = min_(self.f5mo+self.f5mp+self.f5mn, max_(P.cbicf_min,round(self.f5mo*P.microentreprise.vente_taux + self.f5mp*P.microentreprise.servi_taux + self.f5mn*tauxp)));
         
         ricv = zbicv - cbicv
         ricc = zbicc - cbicc
         ricp = zbicp - cbicp
         
-        table.setFoyer('vous','ric', ricv)
-        table.setFoyer('conj','ric', ricc)
-        table.setFoyer('pac1','ric', ricp)
+        table.set('vous','ric', ricv, 'foy')
+        table.set('conj','ric', ricc, 'foy')
+        table.set('pac1','ric', ricp, 'foy')
         
         self.zricf = ricv + ricc + ricp
         
@@ -741,14 +723,14 @@ class IRPP(object):
         aaccf_imps = self.f5nd + self.f5od + self.f5pd
         aaccf_defn = self.f5nf + self.f5of + self.f5pf
         aaccf_defs = self.f5ng + self.f5og + self.f5pg
-        aaccf_timp = maxi(0,aaccf_impn + aaccf_imps - (aaccf_defn + aaccf_defs))
+        aaccf_timp = max_(0,aaccf_impn + aaccf_imps - (aaccf_defn + aaccf_defs))
         
         #Régime du bénéfice réel ne bénéficiant pas de l'abattement CGA
         naccf_impn = self.f5ni + self.f5oi + self.f5pi
         naccf_imps = self.f5nj + self.f5oj + self.f5pj
         naccf_defn = self.f5nl + self.f5ol + self.f5pl
         naccf_defs = self.f5nm + self.f5om + self.f5pm
-        naccf_timp = maxi(0,naccf_impn + naccf_imps - (naccf_defn + naccf_defs))
+        naccf_timp = max_(0,naccf_impn + naccf_imps - (naccf_defn + naccf_defs))
         # TODO : base 2003 comprendre pourquoi le ménage 3018590 n'est pas imposé sur 5nj.
         
         ## E revenus non commerciaux non professionnels 
@@ -764,7 +746,7 @@ class IRPP(object):
         cncnp_bene = self.f5sn + self.f5ns + self.f5os
         cncnp_defi = self.f5sp + self.f5nu + self.f5ou + self.f5sr
         #total 11
-        cncnp_timp = maxi(0,cncnp_bene - cncnp_defi); 
+        cncnp_timp = max_(0,cncnp_bene - cncnp_defi); 
         # TODO : abatement jeunes créateurs 
         
         zaccv = self.f5nn + self.f5no + self.f5np + self.f5nb + self.f5nc + self.f5nd - self.f5nf - self.f5ng + self.f5nh + self.f5ni + self.f5nj - self.f5nl - self.f5nm + self.f5ku + self.f5sn - self.f5sp + self.f5sv ;
@@ -776,17 +758,17 @@ class IRPP(object):
         condv = (self.f5no >0) & (self.f5np ==0) ;
         condc = (self.f5oo >0) & (self.f5op ==0) ;
         condp = (self.f5po >0) & (self.f5pp ==0) ;
-        tauxv = P.microentreprise.vente_taux*condv + P.microentreprise.servi_taux*lnot(condv) ;
-        tauxc = P.microentreprise.vente_taux*condc + P.microentreprise.servi_taux*lnot(condc) ;
-        tauxp = P.microentreprise.vente_taux*condp + P.microentreprise.servi_taux*lnot(condp) ;
+        tauxv = P.microentreprise.vente_taux*condv + P.microentreprise.servi_taux*not_(condv) ;
+        tauxc = P.microentreprise.vente_taux*condc + P.microentreprise.servi_taux*not_(condc) ;
+        tauxp = P.microentreprise.vente_taux*condp + P.microentreprise.servi_taux*not_(condp) ;
         
-        caccv = mini(self.f5no + self.f5np + self.f5nn + self.f5ku, maxi(P.nc_abat_min, 
+        caccv = min_(self.f5no + self.f5np + self.f5nn + self.f5ku, max_(P.nc_abat_min, 
                 round(self.f5no*P.microentreprise.vente_taux + self.f5np*P.microentreprise.servi_taux 
                 + self.f5nn*tauxv + self.f5ku*P.nc_abat_taux )));
-        caccc = mini(self.f5oo + self.f5op + self.f5on + self.f5lu, maxi(P.nc_abat_min, 
+        caccc = min_(self.f5oo + self.f5op + self.f5on + self.f5lu, max_(P.nc_abat_min, 
                 round(self.f5oo*P.microentreprise.vente_taux + self.f5op*P.microentreprise.servi_taux 
                 + self.f5on*tauxc + self.f5lu*P.nc_abat_taux )));
-        caccp = mini(self.f5po + self.f5pp + self.f5pn + self.f5mu, maxi(P.nc_abat_min, 
+        caccp = min_(self.f5po + self.f5pp + self.f5pn + self.f5mu, max_(P.nc_abat_min, 
                 round(self.f5po*P.microentreprise.vente_taux + self.f5pp*P.microentreprise.servi_taux 
                 + self.f5pn*tauxp + self.f5mu*P.nc_abat_taux )));
         
@@ -794,9 +776,9 @@ class IRPP(object):
         racc = zaccc - caccc
         racp = zaccp - caccp
 
-        table.setFoyer('vous', 'rac', racv)
-        table.setFoyer('conj', 'rac', racc)
-        table.setFoyer('pac1', 'rac', racp)
+        table.set('vous', 'rac', racv, 'foy')
+        table.set('conj', 'rac', racc, 'foy')
+        table.set('pac1', 'rac', racp, 'foy')
         
         
         self.zracf = racv + racc + racp
@@ -825,17 +807,17 @@ class IRPP(object):
         zbncc = self.f5ip + self.f5iq + self.f5rb + self.f5rh + self.f5rc + self.f5ri - self.f5re - self.f5rk + self.f5rl + self.f5rm;
         zbncp = self.f5jp + self.f5jq + self.f5sb + self.f5sh + self.f5sc + self.f5si - self.f5se - self.f5sk + self.f5sl ;
         
-        cbncv = mini(self.f5hp + self.f5hq, maxi(P.nc_abat_min, round((self.f5hp + self.f5hq)*P.nc_abat_taux)))
-        cbncc = mini(self.f5ip + self.f5iq, maxi(P.nc_abat_min, round((self.f5ip + self.f5iq)*P.nc_abat_taux)))
-        cbncp = mini(self.f5jp + self.f5jq, maxi(P.nc_abat_min, round((self.f5jp + self.f5jq)*P.nc_abat_taux)))
+        cbncv = min_(self.f5hp + self.f5hq, max_(P.nc_abat_min, round((self.f5hp + self.f5hq)*P.nc_abat_taux)))
+        cbncc = min_(self.f5ip + self.f5iq, max_(P.nc_abat_min, round((self.f5ip + self.f5iq)*P.nc_abat_taux)))
+        cbncp = min_(self.f5jp + self.f5jq, max_(P.nc_abat_min, round((self.f5jp + self.f5jq)*P.nc_abat_taux)))
         
         rncv = zbncv - cbncv
         rncc = zbncc - cbncc
         rncp = zbncp - cbncp
 
-        table.setFoyer('vous','rnc', rncv)
-        table.setFoyer('conj','rnc', rncc)
-        table.setFoyer('pac1','rnc', rncp)
+        table.set('vous','rnc', rncv, 'foy')
+        table.set('conj','rnc', rncc, 'foy')
+        table.set('pac1','rnc', rncp, 'foy')
                 
         self.zrncf =  rncv +  rncv +  rncp
         
@@ -843,7 +825,7 @@ class IRPP(object):
         atimp = aragf_timp + abicf_timp +  aaccf_timp + abncf_timp;
         ntimp = nragf_timp + nbicf_timp +  naccf_timp + nbncf_timp;
         
-        majo_cga = maxi(0,P.cga_taux2*(ntimp+fragf_impo)); # pour ne pas avoir à
+        majo_cga = max_(0,P.cga_taux2*(ntimp+fragf_impo)); # pour ne pas avoir à
                                                 # majorer les déficits
         #total 6
         rev_NS = fragf_impo + fragf_pvct + atimp + ntimp + majo_cga - def_agri - def_agri_ant 
@@ -860,10 +842,10 @@ class IRPP(object):
         #activité exercée à titre non professionnel
         #revenus industriels et commerciaux non professionnels 
         # total 9
-        pvct_icnpro = mini(maccf_pvct - maccf_mvct, maccf_timp) 
+        pvct_icnpro = min_(maccf_pvct - maccf_mvct, maccf_timp) 
         #revenus non commerciaux non professionnels 
         # total 10
-        pvct_ncnpro = mini(mncnp_pvct - mncnp_mvct, mncnp_timp)
+        pvct_ncnpro = min_(mncnp_pvct - mncnp_mvct, mncnp_timp)
         
         #total 11 cncnp_timp déja calculé        
         
@@ -879,9 +861,9 @@ class IRPP(object):
         self.rpnsc = ragc + ricc + racc + rncc
         self.rpnsp = ragp + ricp + racp + rncp
         
-        table.setFoyer('vous', 'rpns', self.rpnsv)
-        table.setFoyer('conj', 'rpns', self.rpnsc)
-        table.setFoyer('pac1', 'rpns', self.rpnsp)        
+        table.set('vous', 'rpns', self.rpnsv, 'foy')
+        table.set('conj', 'rpns', self.rpnsc, 'foy')
+        table.set('pac1', 'rpns', self.rpnsp, 'foy')   
         
         table.close_()
 
@@ -902,12 +884,12 @@ class IRPP(object):
     def Deficit_anterieur(self):
         table = self.population
         table.openReadMode()
-        FA = table.getFoyer('vous', 'f6fa', 'foyer')
-        FB = table.getFoyer('vous', 'f6fb', 'foyer')
-        FC = table.getFoyer('vous', 'f6fc', 'foyer')
-        FD = table.getFoyer('vous', 'f6fd', 'foyer')
-        FE = table.getFoyer('vous', 'f6fe', 'foyer')
-        FL = table.getFoyer('vous', 'f6fl', 'foyer')
+        FA = table.get('vous', 'f6fa', 'foy', 'foyer')
+        FB = table.get('vous', 'f6fb', 'foy', 'foyer')
+        FC = table.get('vous', 'f6fc', 'foy', 'foyer')
+        FD = table.get('vous', 'f6fd', 'foy', 'foyer')
+        FE = table.get('vous', 'f6fe', 'foy', 'foyer')
+        FL = table.get('vous', 'f6fl', 'foy', 'foyer')
         table.close_()
         return FA + FB + FC + FD + FE + FL
 
@@ -953,7 +935,7 @@ class IRPP(object):
         '''
         as_inv = ((rng <= P.inv_max1) + ((rng > P.inv_max1)&( rng <= P.inv_max2))*0.5)*(((self.agev>=65)| self.caseP)*1 + 1*(((self.agec>=65)| self.caseF)&(self.agec>0)))*P.inv_montant ;        
         as_enf = self.nbN*P.enf_montant; #TODO Comment prendre en compte les enfants majeurs en garde alternée?
-        return mini(rng, as_inv + as_enf)
+        return min_(rng, as_inv + as_enf)
 
     def Non_imposabilite(self, rni, nbptr, P):
         '''
@@ -981,17 +963,17 @@ class IRPP(object):
         P.edcd : enfant issu du mariage avec conjoint décédé;
         '''
         noPAC  = self.nbPAC == 0 # Aucune personne à charge en garde exclusive
-        hasPAC = lnot(noPAC)
+        hasPAC = not_(noPAC)
         noAlt  = self.nbH == 0 # Aucun enfant à charge en garde alternée
-        hasAlt = lnot(noAlt)
+        hasAlt = not_(noAlt)
         
         ## nombre de parts liées aux enfants à charge
         # que des enfants en résidence alternée
-        enf1 = (noPAC & hasAlt)*(P.enf1*mini(self.nbH,2)*0.5 + P.enf2*maxi(self.nbH-2,0)*0.5)
+        enf1 = (noPAC & hasAlt)*(P.enf1*min_(self.nbH,2)*0.5 + P.enf2*max_(self.nbH-2,0)*0.5)
         # pas que des enfants en résidence alternée
-        enf2 = (hasPAC & hasAlt)*((self.nbPAC==1)*(P.enf1*mini(self.nbH,1)*0.5 + P.enf2*maxi(self.nbH-1,0)*0.5) + (self.nbPAC>1)*(P.enf2*self.nbH*0.5))
+        enf2 = (hasPAC & hasAlt)*((self.nbPAC==1)*(P.enf1*min_(self.nbH,1)*0.5 + P.enf2*max_(self.nbH-1,0)*0.5) + (self.nbPAC>1)*(P.enf2*self.nbH*0.5))
         # pas d'enfant en résidence alternée    
-        enf3 = P.enf1*mini(self.nbPAC,2) + P.enf2*maxi((self.nbPAC-2),0)
+        enf3 = P.enf1*min_(self.nbPAC,2) + P.enf2*max_((self.nbPAC-2),0)
         
         enf = enf1 + enf2 + enf3 
         ## note 2 : nombre de parts liées aux invalides (enfant + adulte)
@@ -1002,20 +984,20 @@ class IRPP(object):
         n31a = P.not31a*( noPAC & noAlt & self.caseP )
         # - ancien combatant ;
         n31b = P.not31b*( noPAC & noAlt & ( self.caseW | self.caseG ) ) 
-        n31 = maxi(n31a,n31b)
+        n31 = max_(n31a,n31b)
         # - personne seule ayant élevé des enfants
-        n32 = P.not32*( noPAC & noAlt &(( self.caseE | self.caseK) & lnot(self.caseN)))
-        n3 = maxi(n31,n32)
+        n32 = P.not32*( noPAC & noAlt &(( self.caseE | self.caseK) & not_(self.caseN)))
+        n3 = max_(n31,n32)
         ## note 4 Invalidité de la personne ou du conjoint pour les mariés ou
         ## jeunes veuf(ve)s
-        n4 = maxi(P.not41*(1*self.caseP + 1*self.caseF), P.not42*(self.caseW | self.caseS))
+        n4 = max_(P.not41*(1*self.caseP + 1*self.caseF), P.not42*(self.caseW | self.caseS))
         
         ## note 5
         #  - enfant du conjoint décédé
         n51 =  P.cdcd*(self.caseL & ((self.nbF + self.nbJ)>0))
         #  - enfant autre et parent isolé
         n52 =  P.isol*self.caseT*( ((noPAC & hasAlt)*((self.nbH==1)*0.5 + (self.nbH>=2))) + 1*hasPAC)
-        n5 = maxi(n51,n52)
+        n5 = max_(n51,n52)
         
         ## note 6 invalide avec personne à charge
         n6 = P.not6*(self.caseP & (hasPAC | hasAlt))
@@ -1032,7 +1014,7 @@ class IRPP(object):
         ## celib div
         c = 1 + enf + n2 + n3 + n6 + n7
         
-        return (self.marpac | self.jveuf)*m + (self.veuf & lnot(self.jveuf))*v + self.celdiv*c
+        return (self.marpac | self.jveuf)*m + (self.veuf & not_(self.jveuf))*v + self.celdiv*c
         
     def PlafQf(self,P):
         '''
@@ -1045,21 +1027,21 @@ class IRPP(object):
         aa0 = (self.nbptr-self.nbadult)*2           #nombre de demi part excédant self.nbadult
         # on dirait que les impôts font une erreur sur aa1 (je suis obligé de
         # diviser par 2)
-        aa1 = mini((self.nbptr-1)*2,2)/2  # deux première demi part excédants une part
-        aa2 = maxi((self.nbptr-2)*2,0)    # nombre de demi part restantes
+        aa1 = min_((self.nbptr-1)*2,2)/2  # deux première demi part excédants une part
+        aa2 = max_((self.nbptr-2)*2,0)    # nombre de demi part restantes
         # self.celdiv parents isolés
         condition61 = (self.celdiv==1) & self.caseT
         B1 = P.plafond_qf.celib_enf*aa1 + P.plafond_qf.marpac*aa2
         # tous les autres
         B2 = P.plafond_qf.marpac*aa0                 #si autre
         # self.celdiv, veufs (non self.jveuf) vivants seuls et autres conditions TODO année codéee en dur
-        condition63 = ((self.celdiv==1) | ((self.veuf==1) & lnot(self.jveuf))) & lnot(self.caseN) & (self.nbPAC==0) & (self.caseK | self.caseE) & (self.caseH<1981)
+        condition63 = ((self.celdiv==1) | ((self.veuf==1) & not_(self.jveuf))) & not_(self.caseN) & (self.nbPAC==0) & (self.caseK | self.caseE) & (self.caseH<1981)
         B3 = P.plafond_qf.celib
     
         B = B1*condition61 + \
-            B2*(lnot(condition61 | condition63)) + \
-            B3*(condition63 & lnot(condition61))
-        C = maxi(0,A-B);
+            B2*(not_(condition61 | condition63)) + \
+            B3*(condition63 & not_(condition61))
+        C = max_(0,A-B);
         # Impôt après plafonnement
         IP0 = I*(I>=C) + C*(I<C);
     
@@ -1070,20 +1052,20 @@ class IRPP(object):
         # réduction complémentaire
         condition62b = (I<C);
         # self.celdiv self.veuf
-        condition62caa0 = (self.celdiv | (self.veuf & lnot(self.jveuf)))
+        condition62caa0 = (self.celdiv | (self.veuf & not_(self.jveuf)))
         condition62caa1 = (self.nbPAC==0)&(self.caseP | self.caseG | self.caseF | self.caseW)
         condition62caa2 = self.caseP & ((self.nbF-self.nbG>0)|(self.nbH - self.nbI>0))
-        condition62caa3 = lnot(self.caseN) & (self.caseE | self.caseK )  & (self.caseH>=1981)
+        condition62caa3 = not_(self.caseN) & (self.caseE | self.caseK )  & (self.caseH>=1981)
         condition62caa  = condition62caa0 & (condition62caa1 | condition62caa2 | condition62caa3)
         # marié pacs
-        condition62cab = (self.marpac | self.jveuf) & self.caseS & lnot(self.caseP | self.caseF)
+        condition62cab = (self.marpac | self.jveuf) & self.caseS & not_(self.caseP | self.caseF)
         condition62ca =    (condition62caa | condition62cab);
     
         # plus de 590 euros si on a des plus de
         condition62cb = ((self.nbG+self.nbR+self.nbI)>0) | self.caseP | self.caseF
         D = P.plafond_qf.reduc_postplafond*(condition62ca + ~condition62ca*condition62cb*( 1*self.caseP + 1*self.caseF + self.nbG + self.nbR + self.nbI/2 ))
     
-        E = maxi(0,A-I-B)
+        E = max_(0,A-I-B)
         Fo = D*(D<=E) + E*(E<D)
         IP1=IP0-Fo;
     
@@ -1113,34 +1095,34 @@ class IRPP(object):
             reducs += niche(self, P, table)
              
         table.close_()
-        return mini(reducs, IPnet)
+        return min_(reducs, IPnet)
     
     def Plus_values(self, P, table):
         table.openReadMode()
-        VG = table.getFoyer('vous', 'f3vg', 'foyer')
-        VH = table.getFoyer('vous', 'f3vh', 'foyer')
-        VL = table.getFoyer('vous', 'f3vl', 'foyer')
-        VM = table.getFoyer('vous', 'f3vm', 'foyer')
-        VI = table.getFoyer('vous', 'f3vi', 'foyer')
-        VF = table.getFoyer('vous', 'f3vf', 'foyer')
+        VG = table.get('vous', 'f3vg', 'foy', 'foyer')
+        VH = table.get('vous', 'f3vh', 'foy', 'foyer')
+        VL = table.get('vous', 'f3vl', 'foy', 'foyer')
+        VM = table.get('vous', 'f3vm', 'foy', 'foyer')
+        VI = table.get('vous', 'f3vi', 'foy', 'foyer')
+        VF = table.get('vous', 'f3vf', 'foy', 'foyer')
         if self.year >= 2008:
-            VD = table.getFoyer('vous', 'f3vd', 'foyer')
+            VD = table.get('vous', 'f3vd', 'foy', 'foyer')
         table.close_()
         if self.year <= 2007:
             # revenus taxés à un taux proportionnel
-            self.rdp = maxi(0,VG - VH) + VL + self.rpns_pvce + VM + VI + VF
+            self.rdp = max_(0,VG - VH) + VL + self.rpns_pvce + VM + VI + VF
 
             return round(P.pvce*self.rpns_pvce + 
-                         P.taux1*maxi(0,VG - VH) + 
+                         P.taux1*max_(0,VG - VH) + 
                          P.caprisque*VL + 
                          P.pea*VM +
                          P.taux3*VI +
                          P.taux4*VF )
         elif self.year >= 2008:
             # revenus taxés à un taux proportionnel
-            self.rdp = maxi(0,VG - VH) + VD + VL + self.rpns_pvce + VM + VI + VF
+            self.rdp = max_(0,VG - VH) + VD + VL + self.rpns_pvce + VM + VI + VF
             return round(P.pvce*self.rpns_pvce + 
-                         P.taux1*(maxi(0,VG - VH) + VD) +
+                         P.taux1*(max_(0,VG - VH) + VD) +
                          P.caprisque*VL + 
                          P.pea*VM +
                          P.taux3*VI +
@@ -1167,28 +1149,28 @@ class IRPP(object):
         '''
         table = self.population
         table.openReadMode()
-        AJ, BJ, CJ, DJ, EJ = table.getFoyer(self.people, 'sal')
-        AX, BX, CX, DX, QX = table.getFoyer(self.people, 'ppeCheckBox')
-        AV, BV, CV, DV, QV = table.getFoyer(self.people, 'ppeHeure')
-        AU, BU, CU, DU, EU = table.getFoyer(self.people, 'hsup')
-        TV = table.getFoyer('vous', 'f1tv', 'foyer') 
-        UV = table.getFoyer('vous', 'f1uv', 'foyer') 
-        TW = table.getFoyer('vous', 'f1tw', 'foyer') 
-        UW = table.getFoyer('vous', 'f1uw', 'foyer') 
-        TX = table.getFoyer('vous', 'f1tx', 'foyer') 
-        UX = table.getFoyer('vous', 'f1ux', 'foyer') 
-        AQ = table.getFoyer('vous', 'f1aq', 'foyer') 
-        BQ = table.getFoyer('vous', 'f1bq', 'foyer') 
-        LZ = table.getFoyer('vous', 'f1lz', 'foyer') 
-        MZ = table.getFoyer('vous', 'f1mz', 'foyer') 
-        VJ = table.getFoyer('vous', 'f3vj', 'foyer')
-        VK = table.getFoyer('vous', 'f3vk', 'foyer') 
-        NV = table.getFoyer('vous', 'f5nv', 'foyer') 
-        OV = table.getFoyer('vous', 'f5ov', 'foyer') 
-        PV = table.getFoyer('vous', 'f5pv', 'foyer') 
-        NW = table.getFoyer('vous', 'f5nw', 'foyer') 
-        OW = table.getFoyer('vous', 'f5ow', 'foyer') 
-        PW = table.getFoyer('vous', 'f5pw', 'foyer') 
+        AJ, BJ, CJ, DJ, EJ = table.get(self.people, 'sal', 'foy')
+        AX, BX, CX, DX, QX = table.get(self.people, 'ppeCheckBox', 'foy')
+        AV, BV, CV, DV, QV = table.get(self.people, 'ppeHeure', 'foy')
+        AU, BU, CU, DU, EU = table.get(self.people, 'hsup', 'foy')
+        TV = table.get('vous', 'f1tv', 'foy', 'foyer') 
+        UV = table.get('vous', 'f1uv', 'foy', 'foyer') 
+        TW = table.get('vous', 'f1tw', 'foy', 'foyer') 
+        UW = table.get('vous', 'f1uw', 'foy', 'foyer') 
+        TX = table.get('vous', 'f1tx', 'foy', 'foyer') 
+        UX = table.get('vous', 'f1ux', 'foy', 'foyer') 
+        AQ = table.get('vous', 'f1aq', 'foy', 'foyer') 
+        BQ = table.get('vous', 'f1bq', 'foy', 'foyer') 
+        LZ = table.get('vous', 'f1lz', 'foy', 'foyer') 
+        MZ = table.get('vous', 'f1mz', 'foy', 'foyer') 
+        VJ = table.get('vous', 'f3vj', 'foy', 'foyer')
+        VK = table.get('vous', 'f3vk', 'foy', 'foyer') 
+        NV = table.get('vous', 'f5nv', 'foy', 'foyer') 
+        OV = table.get('vous', 'f5ov', 'foy', 'foyer') 
+        PV = table.get('vous', 'f5pv', 'foy', 'foyer') 
+        NW = table.get('vous', 'f5nw', 'foy', 'foyer') 
+        OW = table.get('vous', 'f5ow', 'foy', 'foyer') 
+        PW = table.get('vous', 'f5pw', 'foy', 'foyer') 
         table.close_()
 
         # coefficient de conversion en cas de changement de situation en cours
@@ -1198,8 +1180,8 @@ class IRPP(object):
         
         # Conditions d'éligibilité
         eligib = (self.rfr*coef_conv) <= (\
-            ((self.veuf==1)|(self.celdiv==1))*(P.eligi1 + 2*maxi(self.nbptr-1,0)*P.eligi3) \
-            + self.marpac*(P.eligi2 + 2*maxi(self.nbptr-2,0)*P.eligi3))
+            ((self.veuf==1)|(self.celdiv==1))*(P.eligi1 + 2*max_(self.nbptr-1,0)*P.eligi3) \
+            + self.marpac*(P.eligi2 + 2*max_(self.nbptr-2,0)*P.eligi3))
 
         # Revenu d'Activité Salariée (RAS)
         RASv = AJ + AU + TV + TW + TX + AQ + LZ + VJ
@@ -1209,9 +1191,9 @@ class IRPP(object):
         RAS3 = EJ + EU
         
         # Revenu d'Activité Non Salariée (RANS)
-        RANSv = mini(0,self.rpnsv)/P.abatns + maxi(0,self.rpnsv)*P.abatns;
-        RANSc = mini(0,self.rpnsc)/P.abatns + maxi(0,self.rpnsc)*P.abatns;
-        RANS1 = mini(0,self.rpnsp)/P.abatns + maxi(0,self.rpnsp)*P.abatns;
+        RANSv = min_(0,self.rpnsv)/P.abatns + max_(0,self.rpnsv)*P.abatns;
+        RANSc = min_(0,self.rpnsc)/P.abatns + max_(0,self.rpnsc)*P.abatns;
+        RANS1 = min_(0,self.rpnsp)/P.abatns + max_(0,self.rpnsp)*P.abatns;
         
         # Base
         basevi = RASv + RANSv;
@@ -1256,13 +1238,13 @@ class IRPP(object):
         eli2 = (base2i >= P.seuil1)&(coeff_TP2!=0);
         eli3 = (base3i >= P.seuil1)&(coeff_TP3!=0);
         
-        nbPAC_ppe = maxi(0,self.nbPAC - eli1 - eli2 -eli3  );
+        nbPAC_ppe = max_(0,self.nbPAC - eli1 - eli2 -eli3  );
         
         #condition sur Revenu fiscal de référence
         
-        ligne2 = self.marpac & lxor(basevi >= P.seuil1,baseci >= P.seuil1);
-        ligne3 = (self.celdiv | self.veuf) & self.caseT & lnot(self.veuf & self.caseT & self.caseL)
-        ligne1 = lnot(ligne2) & lnot(ligne3)
+        ligne2 = self.marpac & xor_(basevi >= P.seuil1,baseci >= P.seuil1);
+        ligne3 = (self.celdiv | self.veuf) & self.caseT & not_(self.veuf & self.caseT & self.caseL)
+        ligne1 = not_(ligne2) & not_(ligne3)
         
         base_monact = ligne2*(eliv*basev + elic*basec);
         base_monacti = ligne2*(eliv*basevi + elic*baseci);
@@ -1299,11 +1281,11 @@ class IRPP(object):
         ppe_monact_conj = (elic & ligne2 & (baseci>=P.seuil1) & (basec <= P.seuil4))*P.monact ;
         
         maj_pac = eligib*(eliv|elic)*(\
-            (ligne1 & self.marpac & ((ppev+ppec)!=0) & (mini(basev,basec)<= P.seuil3))*P.pac*(nbPAC_ppe + self.nbH*0.5) + \
+            (ligne1 & self.marpac & ((ppev+ppec)!=0) & (min_(basev,basec)<= P.seuil3))*P.pac*(nbPAC_ppe + self.nbH*0.5) + \
             (ligne1 & (self.celdiv | self.veuf) & eliv & (basev<=P.seuil3))*P.pac*(nbPAC_ppe + self.nbH*0.5) + \
             (ligne2 & (base_monacti >= P.seuil1) & (base_monact <= P.seuil3))*P.pac*(nbPAC_ppe + self.nbH*0.5) + \
             (ligne2 & (base_monact > P.seuil3) & (base_monact <= P.seuil5))*P.pac*((nbPAC_ppe!=0) + 0.5*((nbPAC_ppe==0) & (self.nbH!=0))) + \
-            (ligne3 & (basevi >=P.seuil1) & (basev <= P.seuil3))*((mini(nbPAC_ppe,1)*2*P.pac + maxi(nbPAC_ppe-1,0)*P.pac) + (nbPAC_ppe==0)*(mini(self.nbH,2)*P.pac + maxi(self.nbH-2,0)*P.pac*0.5)) + \
+            (ligne3 & (basevi >=P.seuil1) & (basev <= P.seuil3))*((min_(nbPAC_ppe,1)*2*P.pac + max_(nbPAC_ppe-1,0)*P.pac) + (nbPAC_ppe==0)*(min_(self.nbH,2)*P.pac + max_(self.nbH-2,0)*P.pac*0.5)) + \
             (ligne3 & (basev  > P.seuil3) & (basev <= P.seuil5))*P.pac*((nbPAC_ppe!=0)*2 +((nbPAC_ppe==0) & (self.nbH!=0)))) 
         
         PPE_vous = eligib*(ppev*((coeff_TPv<=0.5)*coeff_TPv*1.45 + (coeff_TPv>0.5)*(0.55*coeff_TPv + 0.45))+ppe_monact_vous)
@@ -1314,7 +1296,7 @@ class IRPP(object):
         
         PPE_tot = PPE_vous + PPE_conj + PPE_pac1 + PPE_pac2 + PPE_pac3 +  maj_pac
         
-        PPE_tot = (PPE_tot!=0)*maxi(P.versmin,PPE_vous + PPE_conj + PPE_pac1 + PPE_pac2 + PPE_pac3 + maj_pac)
+        PPE_tot = (PPE_tot!=0)*max_(P.versmin,PPE_vous + PPE_conj + PPE_pac1 + PPE_pac2 + PPE_pac3 + maj_pac)
                 
         self.mnrbvo = PPE_vous
         self.mnrbcj = PPE_conj

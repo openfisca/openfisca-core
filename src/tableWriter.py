@@ -25,7 +25,6 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from datetime import datetime
-# from prestation.cotsoc import calcul_brut
 
 class CustomEnum(object):
     def __init__(self, varlist):
@@ -591,26 +590,35 @@ class Population(object):
         self.foyer = FoyerTable(n*self.NMEN)
         self.createIndividus(self.scenario)
         
-        self.createSorters()
+        self.createSorters(['men', 'fam', 'foy'])
         
         self.createFoyer(self.scenario)
         
         self.nbenfmax = 9
 
-    def createSorters(self):
+    def createSorters(self, unitlist):
         '''
         crée des vecteurs d'indices pour récupérer les individus en fonction de leur 
         foyer, famille, ou menage.
         '''
         self.nbInd = self.table.nrows
+        self.index = {}
+        for unit in unitlist:
+            list = np.unique(self.table.col('id' + unit))
+            setattr(self, 'nb' + unit.capitalize(), len(list))
 
-        listfoy = np.unique(self.table.col('idfoy'))
-        listfam = np.unique(self.table.col('idfam'))
-        listmen = np.unique(self.table.col('idmen'))
+            if unit == 'foy': ENUM = QUIFOY
+            elif unit == 'men': ENUM = QUIMEN
+            elif unit == 'fam': ENUM = QUIFAM
 
-        self.nbFoy = len(listfoy)
-        self.nbFam = len(listfam)
-        self.nbMen = len(listmen)
+            self.index.update({unit: {}})
+            dct = self.index[unit]
+            for person in ENUM:
+                idxIndi = self.table.getWhereList('qui' + unit, person[1], sort = True).squeeze()
+                indice = self.table.readCoordinates(idxIndi, field = 'id' + unit)
+                idxUnit = np.searchsorted(list, indice)
+                temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
+                dct.update({person[0]:temp})
 
         self.scenar2foy = {}
         decl = self.table.col('quifoy') == 0
@@ -620,30 +628,6 @@ class Population(object):
 #            idxIndiv = self.table.getWhereList('(quifoy == 0) & (noi == %u)' % i, sort = True)
             self.scenar2foy.update({i: idxIndiv})
                 
-        self.IndiceFoy = {}
-        for person in QUIFOY:
-            idxIndiv = self.table.getWhereList('quifoy', person[1], sort = True)
-            indiceFoy = self.table.readCoordinates(idxIndiv, field = 'idfoy')
-            idxFoyer = np.searchsorted(listfoy, indiceFoy)
-            temp = {'idxIndiv':idxIndiv, 'idxFoyer':idxFoyer}
-            self.IndiceFoy.update({person[0]:temp})
-
-        self.IndiceFam = {}
-        for person in QUIFAM:
-            idxIndiv = self.table.getWhereList('quifam', person[1], sort = True)
-            indiceFam = self.table.readCoordinates(idxIndiv, field = 'idfam')
-            idxFamille = np.searchsorted(listfam, indiceFam)
-            temp = {'idxIndiv':idxIndiv, 'idxFamille':idxFamille}
-            self.IndiceFam.update({person[0]:temp})
-
-        self.IndiceMen = {}
-        for person in QUIMEN:
-            idxIndiv = self.table.getWhereList('quimen', person[1], sort = True)
-            indiceMen = self.table.readCoordinates(idxIndiv, field = 'idmen')
-            idxMenage = np.searchsorted(listmen, indiceMen)
-            temp = {'idxIndiv':idxIndiv, 'idxMenage':idxMenage}
-            self.IndiceMen.update({person[0]:temp})
-
     def openWriteMode(self, fields = None):
         if self.writeMode or self.readMode:
             raise Exception(u'La table est déjà ouverte')
@@ -671,88 +655,38 @@ class Population(object):
         self.table.modifyColumn(column=value , colname = varstring)
         self.table.flush()
 
-    def getFoyer(self, qui, varstring, base = 'individu', sumqui = False):
+    def get(self, qui, varstring, unit, base = 'individu', sumqui = False, default = 0):
         if not self.readMode:
             raise Exception('This instance shoud be on readMode, see openReadMode')
         out = []
+        nb = getattr(self, 'nb'+ unit.capitalize())
         if base == 'individu': var = self.table.col(varstring)
         elif base == 'foyer': var = self.foyer.col(varstring)
         checkType = isinstance(qui,str)
         if checkType: qui = [qui]
         for person in qui:
-            temp = np.zeros(self.nbFoy, dtype = var.dtype)
-            idx = self.IndiceFoy[person]
-            temp[idx['idxFoyer']] = var[idx['idxIndiv']]
+            temp = np.ones(nb, dtype = var.dtype)*default
+            idx = self.index[unit][person]
+            temp[idx['idxUnit']] = var[idx['idxIndi']]
             out.append(temp)
         if checkType : return out[0]
         elif sumqui:  return np.sum(np.array(out), axis = 0)
         else: return out
 
-    def setFoyer(self, qui, varstring, value):
+    def set(self, qui, varstring, value, unit):
         table = self.table
-        idx = self.IndiceFoy[qui]
-        var = np.array(table.col(varstring), dtype = int)
-        var[idx['idxIndiv']] = np.array(value, dtype = int)[idx['idxFoyer']]
+        idx = self.index[unit][qui]
+        var = table.col(varstring)
+        var[idx['idxIndi']] = np.array(value, dtype = var.dtype)[idx['idxUnit']]
         table.modifyColumn(column=var , colname = varstring)
         table.flush()
                 
-    def setColl(self,varstring, value):
+    def setColl(self, varstring, value):
         '''
         pour affecter les revenus non individualisable aux individu.
         ici on donne tout à vous
         '''
-        self.setFoyer('vous',varstring, value)
-
-    def getFamille(self, qui, varstring, default = 0, sumqui = False):
-        if not self.readMode:
-            raise Exception('This instance shoud be on readMode, see openReadMode')
-        out = []
-        var = self.table.col(varstring)
-        checkType = isinstance(qui,str)
-        if checkType: qui = [qui]
-        for person in qui:
-            if isinstance(var[0], str): temp = np.array(['9999-01-01' for x in range(self.nbFam)])
-            else: temp = np.ones(self.nbFam)*default
-            idx = self.IndiceFam[person]
-            temp[idx['idxFamille']] = var[idx['idxIndiv']]
-            out.append(temp)
-        if checkType : return out[0]
-        elif sumqui:  return np.sum(np.array(out), axis = 0)
-        else: return out
-
-    def setFamille(self, qui, varstring, value):
-        table = self.table
-        idx = self.IndiceFam[qui]
-        var = np.array(table.col(varstring), dtype = int)
-        var[idx['idxIndiv']] = np.array(value, dtype = int)[idx['idxFamille']]
-        table.modifyColumn(column=var , colname = varstring)
-        table.flush()
-
-    def getMenage(self, qui, varstring, default = 0, sumqui = False):
-        if not self.readMode:
-            raise Exception('This instance shoud be on readMode, see openReadMode')
-        out = []
-        var = self.table.col(varstring)
-        checkType = isinstance(qui,str)
-        if checkType: qui = [qui]
-        for person in qui:
-            if isinstance(var[0], str): temp = np.array(['9999-01-01' for x in range(self.nbMen)])
-            else: temp = np.ones(self.nbMen)*default
-            idx = self.IndiceMen[person]
-            temp[idx['idxMenage']] = var[idx['idxIndiv']]
-            out.append(temp)
-        if checkType : return out[0]
-        elif sumqui: 
-            return np.sum(np.array(out), axis = 0)
-        else: return out
-
-    def setMenage(self, qui, varstring, value):
-        table = self.table
-        idx = self.IndiceMen[qui]
-        var = np.array(table.col(varstring), dtype = int)
-        var[idx['idxIndiv']] = np.array(value, dtype = int)[idx['idxMenage']]
-        table.modifyColumn(column=var , colname = varstring)
-        table.flush()
+        self.set('vous',varstring, value, 'foy')
                 
     def createIndividus(self, scenario):
         # pour l'instant, un seul menage répliqué n fois
