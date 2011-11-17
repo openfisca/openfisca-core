@@ -625,7 +625,6 @@ class Population(object):
         for i in xrange(len(self.scenario.indiv)):
             temp = self.table.col('noi') == i
             idxIndiv = np.sort(np.argwhere(temp & decl))
-#            idxIndiv = self.table.getWhereList('(quifoy == 0) & (noi == %u)' % i, sort = True)
             self.scenar2foy.update({i: idxIndiv})
                 
     def openWriteMode(self, fields = None):
@@ -656,8 +655,7 @@ class Population(object):
         self.table.flush()
 
     def get(self, qui, varstring, unit, base = 'individu', sumqui = False, default = 0):
-        if not self.readMode:
-            raise Exception('This instance shoud be on readMode, see openReadMode')
+        if not self.readMode: raise Exception('This instance shoud be on readMode, see openReadMode')
         out = []
         nb = getattr(self, 'nb'+ unit.capitalize())
         if base == 'individu': var = self.table.col(varstring)
@@ -674,6 +672,7 @@ class Population(object):
         else: return out
 
     def set(self, qui, varstring, value, unit):
+        if not self.writeMode: raise Exception('This instance shoud be on writeMode, see openWriteMode')
         table = self.table
         idx = self.index[unit][qui]
         var = table.col(varstring)
