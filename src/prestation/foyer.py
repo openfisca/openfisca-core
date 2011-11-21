@@ -295,7 +295,7 @@ class IRPP(object):
         if P.alloc_imp:
             # On récupère les allocations familiales perçues par les membres du foyer
             table.openReadMode()
-            temp = table.get('af', 'foy', qui = self.people, sumqui = True)
+            temp = table.get('af', 'foy', qui = self.people, sumqui = True, table = 'output')
             table.close_()
             return temp
         else:
