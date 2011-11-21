@@ -106,7 +106,7 @@ class Famille(object):
         
         self.actC, self.actP = table.get('activite', 'fam', ['chef', 'part'])
         self.etuC   = self.actC == 2
-        self.etuP   = self.actC == 2
+        self.etuP   = self.actP == 2
         
         self.so       = table.get('so', 'fam', 'chef')        
         self.al_zone  = table.get('zone_apl', 'fam', 'chef')
@@ -901,6 +901,7 @@ class Famille(object):
         self.ape_crds  = round(self.ape_brut*crds, 2)
         self.ape_tot   = self.ape_brut - self.ape_crds
         
+        table = self.population
         table.openWriteMode()
         table.set('chef', 'apje', self.apje_tot, 'fam')
         table.set('chef', 'cf', self.cf_tot, 'fam')
@@ -1242,7 +1243,7 @@ class Famille(object):
 
         self.mv = self.mv_m.sum(axis=0)
 
-        
+        table = self.population
         table.openWriteMode()
         table.set('chef', 'mv', self.mv, 'fam')
         table.close_()
