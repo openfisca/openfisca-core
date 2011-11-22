@@ -94,7 +94,7 @@ class Famille(object):
 
         agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
 
-        self.agems = np.array([m + agem_enfants for m in range(12)])
+        self.agems = np.array([m + agem_enfants - self.datesim.month for m in range(12)])
         self.ages  = np.floor(self.agems/12)
 
         people = ['chef', 'part'] + enfants
