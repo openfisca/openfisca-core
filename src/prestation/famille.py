@@ -25,7 +25,7 @@ from __future__ import division
 import numpy as np
 from numpy import (round, sum, zeros, ones, maximum as max_, minimum as min_, 
                    ceil, where, logical_not as not_)
-from datetime import datetime, date
+from datetime import date
 
 
 def famille_wrapper(enfant=True, crds=True):
@@ -92,14 +92,16 @@ class Famille(object):
         self.ageC = np.floor(self.agemC/12)  # TODO mensualiser 
         self.ageP = np.floor(self.agemP/12)
 
-        self.agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
-        
+        agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
+
+        self.agems = np.array([m + agem_enfants for m in range(12)])
+        self.ages  = np.floor(self.agems/12)
+
         people = ['chef', 'part'] + enfants
         invs   = table.get('inv', 'fam', people)
         for i in range(self.nbenfmax + 2):
             suf = suffixe[i]
             setattr(self, 'inv'+ suf, invs[i] )
-            
 
         # TODO: Dans Population une fonction qui check s'il a plus d'une famille dans un ménage
         self.coloc = zeros(self.taille, dtype = bool)
@@ -231,43 +233,13 @@ class Famille(object):
         self.biact = (self.revChef >= seuil_rev) & (self.revPart >= seuil_rev)
 
         self.BRpftot  = self.revChef + self.revPart + self.revColl
-
-    def NbEnf2(self,ag1,ag2):
-        '''
-        Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-        sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-        est compris entre ag1 et ag2, à chaque mois de l'année.
-        '''
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-        
-        res = zeros((12,self.taille))
-        for i in range(1,self.nbenfmax+1): 
-            age = getattr(self, 'age%d' % i)
-            smic55 = getattr(self, 'smic55_%d' % i)
-            res += ((ag1 <=age) & (age <=ag2)) & not_(smic55) 
-        return res
-
-    def getAgems(self):
-        if hasattr(self, "agems"): return getattr(self, "agems")
-        else:
-            self.agems = np.array([m + self.agem_enfants for m in range(12)])
-            return self.agems     
     
-    def getAges(self):
-        if hasattr(self, "ages"): return getattr(self, "ages")
-        else:
-            self.ages  = np.floor(self.getAgems()/12) 
-            return self.ages     
-
     def NbEnf(self,ag1,ag2):
         '''
         Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
         sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-        est compris entre ag1 et ag2, à chaque mois de l'année.
+        est compris entre ag1 et ag2, à chaque mois de l'année et dont le salaire 
+        est inférieur à 55% du SMIC
         '''
 #        Les allocations sont dues à compter du mois civil qui suit la naissance 
 #        ag1==0 ou suivant les anniversaires ag1>0.  
@@ -278,47 +250,15 @@ class Famille(object):
         name = 'nbenf_%d_%d' % (ag1, ag2)
 
         if hasattr(self, name): 
-            # print 'reload ' + name
             return getattr(self, name)
         else:
-            ages   = self.getAges()
+            ages   = self.ages
             # axe 0: mois
             # axe 1: enfants
             # axe 2: taille
             res = ( ((ag1 <=ages) & (ages <=ag2)) & not_(self.smic55)   ).sum(axis=1) 
-            # print 'compute' + name 
             setattr(self, name, res)
             return res
-
-
-    def NbEnf_old(self, ag1, ag2, date_nais_lim=datetime(1970,1,1)):
-        '''
-        Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-        sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-        est compris entre ag1 et ag2, à chaque mois de l'année.
-        '''
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-        
-        name = 'nbenf_%d_%d' % (ag1, ag2)
-
-        if hasattr(self, name): 
-            # print 'reload ' + name
-            return getattr(self, name)
-        else:
-            ages   = self.getAges()
-            # axe 0: mois
-            # axe 1: enfants 
-            # axe 2: taille
-            elig = not_(self.smic55) & (ages[0,:,:] < self.datesim.year - date_nais_lim.year)
-            res = ( ((ag1 <=ages) & (ages <=ag2)) & elig).sum(axis=1) 
-            # print 'compute' + name 
-            setattr(self, name, res)
-            return res
-        
     
     def aine(self, P):
         '''
@@ -331,26 +271,26 @@ class Famille(object):
         else:
             res = zeros((12,self.taille) )
             ageaine = zeros((12,self.taille))
-            ages  = self.getAges()
+            ages  = self.ages
             for i in range(1,self.nbenfmax +1):
                 age = ages[:,i-1,:]
                 ispacaf = (P.af.age1 <=age) & (age <= P.af.age2)
                 isaine  = ispacaf & (age > ageaine)
                 ageaine = isaine*age + not_(isaine)*ageaine
                 res     = isaine*i   + not_(isaine)*res
-            self.aine = res 
+            self.aine = res
             return res
 
     def age_en_mois_benjamin(self, P, nmois=0):
         '''
         renvoi un vecteur (une entree pour chaque famille) avec l'age du benjamin. 
-        Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations familiales 
-        en moins de nmois  
+        Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations 
+        familiales en moins de nmois  
         '''
         if hasattr(P.af,"age3"): agem_benjamin = zeros((12,self.taille))+P.af.age3*12
         else: agem_benjamin = zeros((12,self.taille))+P.af.age2*12
            
-        agems = self.getAgems()
+        agems = self.agems
         for i in range(1,self.nbenfmax+1):
             agem = agems[:,i-1,:]
             ispacaf      = (-nmois <= agem) & (agem <= 12*P.af.age2)
@@ -368,38 +308,13 @@ class Famille(object):
         aine = self.aine(P)
         nbenf = self.NbEnf(P.af.age1,P.af.age2)
         res = zeros((12,self.taille)) 
-        ages  = self.getAges()
+        ages  = self.ages
         for i in range(1,self.nbenfmax+1):
             age  = ages[:,i-1,:]
             cond  = not_((aine == i)&(nbenf <= 2))
             res   += ((ag1 <=age) & (age <=ag2))*cond*1
         return res
         
-#    def NbEnf2(self,ag1,ag2,datev):
-#        '''
-#        Renvoie un vecteur [self.taille] avec le nombre d'enfant dont l'âge au sens 
-#        des allocations familiales  est compris entre ag1 et ag2 inclus, 
-#        à la date de versement considérée datev.
-#        
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-#        
-#        '''
-#        # Pour la première comparaison, l'inégalité sur les mois est stricte car on verse
-#        # le mois qui suit la naissance
-#        # Exemple ppour un enfant née en avril 2006. Les allocations de 2006
-#        # ne sont pas dues en avril :  2006 - 2006 - 1 + (4<4) = -1 <  0 = ag1
-#        # sont dues en mai          :  2006 - 2006 - 1 + (4<5) = 1  >= 0 = ag1
-#        # Pour la seconde comparaison, l'inégalité sur les mois est stricte car on considère
-#        # que l'âge au sens des allocations familiales
-#        # Exemple ppour un enfant née en avril 1986. Les allocations de 2006
-#        # sont dues en mars+1=avril         :  2006 - 1986 - 1 + (4<4) = 19 <=  19 = ag2
-#        # ne sont pas dues en mai :  2006 - 1986 - 1 + (4<5) = 20 >   19 = ag2
-#          
-
     @famille_wrapper()
     def AF(self,Param):
         '''
@@ -795,7 +710,7 @@ class Famille(object):
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
         P = Param.fam
         enfhand = np.array( [ getattr(self, 'inv%d' %(i+1)) for i in range(self.nbenfmax) ] )
-        ages =  self.getAges()
+        ages =  self.ages
 
         enfhand = (enfhand*(ages < P.aeeh.age)).sum(axis=0)/12
         
