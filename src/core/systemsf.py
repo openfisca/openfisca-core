@@ -5,7 +5,7 @@ Created on 16 nov. 2011
 @author: Clem
 '''
 from __future__ import division
-from core.datatable import DataTable, Column
+from src.core.datatable import DataTable, Column
 import numpy as np
 
 '''
@@ -165,7 +165,7 @@ class SystemSf(object):
         self.__comment = comment
         self._primitives = set()
         self._param = param
-        self._inputs = None
+        self._inputs = set()
         self._index = None
         self.__nrows = None
         comp_title, comp_comment = self._compute_title_and_comment()
@@ -252,8 +252,8 @@ class SystemSf(object):
     def calculate(self, var = None):
         if var is None:
             return "Will calculate all"
-        if self._inputs is None:
-            return Exception('inputs are not set, use set_inputs before calling calculate')
+        if not self._primitives in self._inputs:
+            raise Exception('some inputs are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives, self._inputs))
         prestation = getattr(self, var)
         prestation.calculate(self._inputs, self._index)
         
