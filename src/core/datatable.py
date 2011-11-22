@@ -43,11 +43,16 @@ class Enum(object):
     def itervars(self):
         for key, val in self._vars.iteritems():
             yield (val, key)
+            
+    def itervalues(self):
+        for val in self._vars:
+            yield val
 
 QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
 QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 QUIMEN = Enum(['pref', 'cref', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 CAT    = Enum(['noncadre', 'cadre', 'fonc'])
+
 
 class Column(object):
     """
@@ -81,7 +86,7 @@ class Column(object):
     def _init_value(self, nrows):
         raise NotImplementedError('Column is abstract: _init_value should be implemented')
 
-    def get_value(self, index = None, opt = None):
+    def get_value(self, index = None, opt = None, dflt = 0):
         '''
         method to read the value in an array
         index is a dict with the coordinates of each person in the array
@@ -96,14 +101,14 @@ class Column(object):
             return var
         nb = index['nb']
         if opt is None:
-            temp = np.zeros(nb)
+            temp = np.ones(nb)*dflt
             idx = index[0]
             temp[idx['idxUnit']] = var[idx['idxIndi']]
             return temp
         else:
             out = {}
             for person in opt:
-                temp = np.zeros(nb)
+                temp = np.ones(nb)*dflt
                 idx = index[person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
@@ -200,7 +205,9 @@ class DataTable(object):
         for unit in units:
             try:
                 idx = getattr(self, 'id'+unit).get_value()
-                qui = getattr(self, 'qui'+unit).get_value()
+                quicol = getattr(self, 'qui'+unit)
+                qui = quicol.get_value()
+                enum = quicol.enum
             except:
                 raise Exception('DataTable needs columns %s and %s to build index with unit %s' %
                           ('id' + unit, 'qui' + unit, unit))
@@ -212,10 +219,8 @@ class DataTable(object):
             
             # should remove next line
             setattr(self, 'nb'+unit, dct['nb'])
-
-            quilist = np.unique(qui)
             
-            for person in quilist:
+            for person in enum.itervalues():
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
@@ -334,7 +339,15 @@ class IntCol(Column):
     def _init_value(self, nrows):
         self._nrows = nrows
         self._value = np.ones(nrows, dtype = np.int)*self._default
-        
+
+class EnumCol(IntCol):
+    '''
+    A column of integer
+    '''
+    def __init__(self, enum, label = None, default = 0, help=''):
+        super(EnumCol, self).__init__(label, default, help)
+        self.enum = enum
+            
 class BoolCol(Column):
     '''
     A column of boolean
@@ -357,3 +370,12 @@ class FloatCol(Column):
         self._nrows = nrows
         self._value = np.ones(nrows, dtype = np.float32)*self._default
 
+class AgesCol(IntCol):
+    '''
+    A column of Int to store ages of people
+    '''
+    def __init__(self, label = None, default = 0, help=''):
+        super(AgesCol, self).__init__(label, default, help)
+        
+    def get_value(self, index = None, opt = None, dflt = 0):
+        return super(AgesCol, self).get_value(index, opt, dflt = -9999)

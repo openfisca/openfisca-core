@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from core.datatable import DataTable, IntCol, BoolCol, FloatCol, QUIFOY, QUIMEN, QUIFAM
+from core.datatable import DataTable, AgesCol, IntCol, BoolCol, FloatCol, EnumCol, QUIFOY, QUIMEN, QUIFAM
 from core.systemsf import SystemSf, Prestation
-import numpy as np
-from numpy import maximum as max_, minimum as min_
 from parametres.paramData import XmlReader, Tree2Object
 import datetime
 from Utils import Scenario
@@ -12,46 +10,9 @@ date = datetime.date(2010,01,01)
 reader = XmlReader('data/param.xml', date)
 P = Tree2Object(reader.tree)
 
-f = 'castypes/2010 - Couple - 1smic - 0smic.ofct'
+f = 'castypes/2010 - Couple 3 enfants.ofct'
 scenario = Scenario()
 scenario.openFile(f)
-
-CHEF = QUIFAM['chef']
-PART = QUIFAM['part']
-
-def RaRsa(sal):
-    return sal
-
-def BrRmi(rarsa, cho, rst, alr, rto, brrmi_pfam, _option = {'rarsa': [CHEF, PART]}):
-    '''
-    Base ressource du Rmi/Rsa
-    '''
-    return rarsa[CHEF] + rarsa[PART] + cho + rst + alr + rto + brrmi_pfam
-
-def Rsa(age, rarsa, so, nbpar, nbenf, brrmi, _P, _option = {'age':[CHEF, PART], 
-                                                            'rarsa': [CHEF, PART]}):
-    P = _P.minim.rmi
-    nbpRmi = nbpar + nbenf
-    loca = (3 <= so)&(5 >= so)
-    eligib = (age[0] >=25) |(age[PART] >=25)
-    tx_rmi = 1 + ( nbpRmi >= 2 )*P.txp2 \
-               + ( nbpRmi >= 3 )*P.txp3 \
-               + ( nbpRmi >= 4 )*((nbpar==1)*P.txps + (nbpar!=1)*P.txp3) \
-               + max_(nbpRmi -4,0)*P.txps 
-    rsaSocle = 12*P.rmi*tx_rmi*eligib
-    # calcul du forfait logement si le ménage touche des allocations logements
-    # (FA.AL)
-    FL = P.forfait_logement
-    tx_fl = ((nbpRmi==1)*FL.taux1 +
-             (nbpRmi==2)*FL.taux2 +
-             (nbpRmi>=3)*FL.taux3 )
-    forf_log = 12*loca*(tx_fl*P.rmi)
-    # cacul du RSA
-
-    RMI = max_(0, rsaSocle  - forf_log - brrmi)
-    RSA = max_(0, rsaSocle + P.pente*(rarsa[CHEF] + rarsa[PART]) - forf_log - brrmi)
-    rsa = (RSA>=P.rsa_nv)*RSA
-    return rsa
 
 class InputTable(DataTable):
     '''
@@ -65,9 +26,9 @@ class InputTable(DataTable):
     idfoy   = IntCol() # idmen + noi du déclarant
     idfam   = IntCol() # idmen + noi du chef de famille
 
-    quimen  = IntCol(QUIMEN)
-    quifoy  = IntCol(QUIFOY)
-    quifam  = IntCol(QUIFAM)
+    quimen  = EnumCol(QUIMEN)
+    quifoy  = EnumCol(QUIFOY)
+    quifam  = EnumCol(QUIFAM)
 
     so = IntCol(default = 3)#
     hsup = IntCol()
@@ -85,26 +46,34 @@ class InputTable(DataTable):
     alr = FloatCol()#
     brrmi_pfam = IntCol()#
     loyer = IntCol()
-    age = IntCol()#
+    age = AgesCol()#
     activite = IntCol()
     statmarit = IntCol()
     ppeHeure = IntCol()
     
     nbpar = IntCol(default = 2)
-    nbenf = IntCol(default = 1) #
 
-inputs = InputTable(101)
+inputs = InputTable(6)
 inputs.populate_from_scenario(scenario, date)
 inputs.gen_index(['men', 'foy', 'fam'])
 
-class France2010(SystemSf):
-    rarsa  = Prestation(RaRsa, label = u"Revenu d'activité du rsa")
-    brrmi  = Prestation(BrRmi, 'fam', label = u'Base ressource du rmi')
-    rsa    = Prestation(Rsa, 'fam', label = u"Calcul du Rsa")
-    
-sys = France2010(P)
-sys.set_inputs(inputs)
-sys.calculate('rsa')
+from prestation.famille import AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF
 
-print sys.rsa.get_value()
+class Pfam(SystemSf):
+    af_nbenf = Prestation(AF_NbEnf, 'fam', u"Nombre d'enfant au sens des AF")
+    af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
+    af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
+    af_forf = Prestation(AF_Forf, 'fam', 'Allocations familiales - Forfait 20 ans')
+    af      = Prestation(AF, 'fam', label = u"Allocations familiales")
 
+#    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
+#    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
+#    cf      = Prestation(CF, 'fam', label = u"Complément familiale")
+
+pfam = Pfam(P)
+pfam.set_inputs(inputs)
+pfam.calculate('af')
+print inputs.age.get_value()
+print pfam.af.get_value()
+print pfam.af_nbenf.get_value()
+print pfam.af_base.get_value()

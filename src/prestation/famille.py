@@ -25,44 +25,12 @@ from __future__ import division
 import numpy as np
 from numpy import (round, sum, zeros, ones, maximum as max_, minimum as min_, 
                    ceil, where, logical_not as not_)
-from datetime import datetime, date
+from datetime import date
 from core.datatable import QUIFAM
 
 CHEF = QUIFAM['chef']
 PART = QUIFAM['part']
-
-def famille_wrapper(enfant=True, crds=True):
-    '''
-    Décorateur pour tester:
-      - si des enfants existent avant d exécuter la méthode
-      - calculer les montant nets de crds si nécessaire
-    '''
-    def decorator(func): 
-        def wrapper(self, P):
-            name = getPrestationName(func)   # gère les mismatch entre noms de méthode et de variable stockant les montants
-            brut_name = name + '_brut'
-            if enfant: func(self, P)
-                    
-            brut_val  = getattr(self, brut_name)
-            if crds:
-                crds_val  = round(P.fam.af.crds*brut_val,2)
-                tot_val   = brut_val - crds_val 
-                setattr(self, name + '_crds', crds_val)
-            else:
-                tot_val   = brut_val 
-                
-            setattr(self, name + '_tot' ,  tot_val)
-            self.population.openWriteMode()
-            self.population.set(name, tot_val, 'fam', 'chef', table = 'output')
-            self.population.close_()
-                            
-        return wrapper
-    return decorator
-    
-def getPrestationName(func):
-    name = func.__name__.lower() 
-    if func.__name__[:4]=="paje": name = func.__name__[4:].lower()
-    return name    
+ENFS = [QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'], QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9'], ]
 
 class Famille(object):
 
@@ -95,7 +63,9 @@ class Famille(object):
         self.ageC = np.floor(self.agemC/12)  # TODO mensualiser 
         self.ageP = np.floor(self.agemP/12)
 
-        self.agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
+        agem_enfants = np.array(table.get('agem', 'fam', qui = enfants, default = - 9999))
+        self.agems = np.array([m + agem_enfants for m in range(12)])
+        self.ages  = np.floor(self.agems/12) 
         
         people = ['chef', 'part'] + enfants
         invs   = table.get('inv', 'fam', people)
@@ -151,6 +121,52 @@ class Famille(object):
 
         table.close_()
 
+def Nb_Enf(ages, ag1, ag2):
+    '''
+    Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
+    sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
+    est compris entre ag1 et ag2, à chaque mois de l'année.
+    '''
+#        Les allocations sont dues à compter du mois civil qui suit la naissance 
+#        ag1==0 ou suivant les anniversaires ag1>0.  
+#        Un enfant est reconnu à charge pour le versement des prestations 
+#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
+#        le versement à lieu en début de mois suivant
+    res = None
+    for age in ages.itervalues():
+        if res is None: res = np.zeros(len(age))
+        res += (ag1 <=age) & (age <=ag2)
+    # TODO: smic55
+    return res
+
+def Age_Aine(ages, ag1, ag2):
+    '''
+    renvoi un vecteur avec le numéro de l'ainé (au sens des allocations 
+    familiales) de chaque famille
+    '''
+    ageaine = -99
+    for age in ages:
+        ispacaf = (ag1 <=age) & (age <= ag2)
+        isaine  = ispacaf & (age > ageaine)
+        ageaine = isaine*age + not_(isaine)*ageaine
+    return ageaine
+
+def age_en_mois_benjamin(self, P, nmois=0):
+    '''
+    renvoi un vecteur (une entree pour chaque famille) avec l'age du benjamin. 
+    Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations familiales 
+    en moins de nmois  
+    '''
+    agems = self.agems
+    for i in range(1,self.nbenfmax+1):
+        agem = agems[:,i-1,:]
+        ispacaf      = (-nmois <= agem) & (agem <= 12*P.af.age2)
+        isbenjamin   = ispacaf & (agem < agem_benjamin)
+        agem_benjamin = isbenjamin*agem + not_(isbenjamin)*agem_benjamin
+    return agem_benjamin
+
+
+
 def Couple():
     '''
     couple = 1 si couple marié sinon 0
@@ -183,156 +199,20 @@ def Br_PF(rev_pf, rev_coll, _option = {'rev_pf': [CHEF, PART]}):
 #    seuil_rev = 12*P.fam.af.bmaf_n_2
 #    self.biact = (self.revChef >= seuil_rev) & (self.revPart >= seuil_rev)
 
-def NbEnf2(self,ag1,ag2):
-    '''
-    Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-    sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-    est compris entre ag1 et ag2, à chaque mois de l'année.
-    '''
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-    
-    res = zeros((12,self.taille))
-    for i in range(1,self.nbenfmax+1): 
-        age = getattr(self, 'age%d' % i)
-        smic55 = getattr(self, 'smic55_%d' % i)
-        res += ((ag1 <=age) & (age <=ag2)) & not_(smic55) 
-    return res
-
-def getAgems(self):
-    if hasattr(self, "agems"): return getattr(self, "agems")
-    else:
-        self.agems = np.array([m + self.agem_enfants for m in range(12)])
-        return self.agems     
-
-def getAges(self):
-    if hasattr(self, "ages"): return getattr(self, "ages")
-    else:
-        self.ages  = np.floor(self.getAgems()/12) 
-        return self.ages     
-
-def NbEnf(self,ag1,ag2):
-    '''
-    Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-    sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-    est compris entre ag1 et ag2, à chaque mois de l'année.
-    '''
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-    
-    name = 'nbenf_%d_%d' % (ag1, ag2)
-
-    if hasattr(self, name): 
-        # print 'reload ' + name
-        return getattr(self, name)
-    else:
-        ages   = self.getAges()
-        # axe 0: mois
-        # axe 1: enfants
-        # axe 2: taille
-        res = ( ((ag1 <=ages) & (ages <=ag2)) & not_(self.smic55)   ).sum(axis=1) 
-        # print 'compute' + name 
-        setattr(self, name, res)
-        return res
-
-
-def NbEnf_old(self, ag1, ag2, date_nais_lim=datetime(1970,1,1)):
-    '''
-    Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-    sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-    est compris entre ag1 et ag2, à chaque mois de l'année.
-    '''
-#        Les allocations sont dues à compter du mois civil qui suit la naissance 
-#        ag1==0 ou suivant les anniversaires ag1>0.  
-#        Un enfant est reconnu à charge pour le versement des prestations 
-#        jusqu'au mois précédant son age limite supérieur (ag2 + 1) mais 
-#        le versement à lieu en début de mois suivant
-    
-    name = 'nbenf_%d_%d' % (ag1, ag2)
-
-    if hasattr(self, name): 
-        # print 'reload ' + name
-        return getattr(self, name)
-    else:
-        ages   = self.getAges()
-        # axe 0: mois
-        # axe 1: enfants 
-        # axe 2: taille
-        elig = not_(self.smic55) & (ages[0,:,:] < self.datesim.year - date_nais_lim.year)
-        res = ( ((ag1 <=ages) & (ages <=ag2)) & elig).sum(axis=1) 
-        # print 'compute' + name 
-        setattr(self, name, res)
-        return res
-    
-
-def aine(self, P):
-    '''
-    renvoi un vecteur avec le numéro de l'ainé (au sens des allocations 
-    familiales) de chaque famille
-    '''
-    
-    if hasattr(self, "aine"): 
-        return getattr(self, "aine")
-    else:
-        res = zeros((12,self.taille) )
-        ageaine = zeros((12,self.taille))
-        ages  = self.getAges()
-        for i in range(1,self.nbenfmax +1):
-            age = ages[:,i-1,:]
-            ispacaf = (P.af.age1 <=age) & (age <= P.af.age2)
-            isaine  = ispacaf & (age > ageaine)
-            ageaine = isaine*age + not_(isaine)*ageaine
-            res     = isaine*i   + not_(isaine)*res
-        self.aine = res 
-        return res
-
-def age_en_mois_benjamin(self, P, nmois=0):
-    '''
-    renvoi un vecteur (une entree pour chaque famille) avec l'age du benjamin. 
-    Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations familiales 
-    en moins de nmois  
-    '''
-    if hasattr(P.af,"age3"): agem_benjamin = zeros((12,self.taille))+P.af.age3*12
-    else: agem_benjamin = zeros((12,self.taille))+P.af.age2*12
-       
-    agems = self.getAgems()
-    for i in range(1,self.nbenfmax+1):
-        agem = agems[:,i-1,:]
-        ispacaf      = (-nmois <= agem) & (agem <= 12*P.af.age2)
-        isbenjamin   = ispacaf & (agem < agem_benjamin)
-        agem_benjamin = isbenjamin*agem + not_(isbenjamin)*agem_benjamin
-    return agem_benjamin
 
     
-def NbEnfA(self, ag1, ag2, P):
-    '''
-    Renvoie une matrice [12,self.taille] avec le nombre d'enfant (au sens des allocations familiales)
-    dont les ages sont superieurs ou egaux a x et inferieur ou égaux à y à 
-    l'exception de l'ainé des familles de deux enfants ou moins
-    '''
-    aine = self.aine(P)
-    nbenf = self.NbEnf(P.af.age1,P.af.age2)
-    res = zeros((12,self.taille)) 
-    ages  = self.getAges()
-    for i in range(1,self.nbenfmax+1):
-        age  = ages[:,i-1,:]
-        cond  = not_((aine == i)&(nbenf <= 2))
-        res   += ((ag1 <=age) & (age <=ag2))*cond*1
-    return res
+def AF_NbEnf(age, _P, _option = {'age': ENFS}):
+    P = _P.fam.af
+    af_nbenf = Nb_Enf(age, P.age1, P.age2)
+    return af_nbenf
     
+
 def AF_Base(af_nbenf, _P):
     '''
     Allocations familiales - allocation de base
     '''
     P = _P.fam
     bmaf = P.af.bmaf    
-#    af_nbenf      = self.NbEnf(P.af.age1,P.af.age2)
 
     # prestations familliales (brutes de crds)
     af_1enf      = round(bmaf*P.af.taux.enf1,2)
@@ -341,30 +221,39 @@ def AF_Base(af_nbenf, _P):
 
     af_base = (af_nbenf>=1)*af_1enf + (af_nbenf>=2)*af_2enf  + max_(af_nbenf-2,0)*af_enf_supp
 
-    return af_base.sum(axis=0)
+    return af_base
     
-def AF_Majo(nbenf_maj1, nbenf_maj2, _P):
+def AF_Majo(age, _P, _option = {'age': ENFS}):
     # Date d'entrée en vigueur de la nouvelle majoration
     # enfants nés après le "1997-04-30"       
-    bmaf = _P.fam.af.bmaf    
-    P    = _P.fam.af.maj_age
+    bmaf  = _P.fam.af.bmaf    
+    P_af  = _P.fam.af
+    P = _P.fam.af.maj_age
     af_maj1       = round(bmaf*P.taux1,2)
     af_maj2       = round(bmaf*P.taux2,2)
 
+    age_aine = Age_Aine(age, P_af.age1, P_af.age2)
+    def age_sf_aine(age, ag1, ag2, age_aine):
+        dum = (ag1 <= age_aine) & (age_aine <= ag2)
+        return Nb_Enf(age, ag1, ag2) - dum*1
+    nbenf_maj1 = age_sf_aine(age, P.age1, P.age2-1, age_aine)
+    nbenf_maj2 = age_sf_aine(age, P.age2, P_af.age2, age_aine)
+
     af_majo = nbenf_maj1*af_maj1 + nbenf_maj2*af_maj2
 
-    return af_majo.sum(axis=0)
+    return af_majo
 
-def AF_Forf(af_nbenf, nbenf_forf, _P):
+def AF_Forf(age, af_nbenf, _P, _option = {'age': ENFS}):
     P = _P.fam
     bmaf = _P.fam.af.bmaf    
 #    if hasattr(P.af,"age3"): af_nbenf_20 = self.NbEnf(P.af.age3,P.af.age3)
 #    else: af_nbenf_20 = 0
-
+    nbenf_forf = Nb_Enf(age, P.af.age3,P.af.age3)
+    
     af_forfait   = round(bmaf*P.af.taux.forfait,2)
     af_ai20 = ((af_nbenf>=2)*nbenf_forf)*af_forfait
     
-    return af_ai20.sum(axis=0)
+    return af_ai20
 
 def AF(af_base, af_majo, af_forf):
     return af_base + af_majo + af_forf
@@ -437,14 +326,14 @@ def ARS(br_pf, ars_nbenf, _P):
     P = _P.fam
     bmaf = P.af.bmaf
     # On prend l'âge en septembre
-    enf_05    = NbEnf(P.ars.agep-1,P.ars.agep-1)[8,:]  # 6 ans avant le 31 janvier
+    enf_05    = Nb_Enf(P.ars.agep-1,P.ars.agep-1)[8,:]  # 6 ans avant le 31 janvier
     # Un enfant scolarisé qui n'a pas encore atteint l'âge de 6 ans 
     # avant le 1er février 2012 peut donner droit à l'ARS à condition qu'il 
     # soit inscrit à l'école primaire. Il faudra alors présenter un 
     # certificat de scolarité. 
-    enf_primaire = enf_05 + NbEnf(P.ars.agep,P.ars.agec-1)[8,:]
-    enf_college = NbEnf(P.ars.agec,P.ars.agel-1)[8,:]
-    enf_lycee = NbEnf(P.ars.agel,P.ars.ages)[8,:]
+    enf_primaire = enf_05 + Nb_Enf(P.ars.agep,P.ars.agec-1)[8,:]
+    enf_college = Nb_Enf(P.ars.agec,P.ars.agel-1)[8,:]
+    enf_lycee = Nb_Enf(P.ars.agel,P.ars.ages)[8,:]
     
     arsnbenf =   enf_primaire + enf_college + enf_lycee
     
@@ -488,7 +377,7 @@ def pajeBase(br_pf, isol, biact, _P):
     # L'allocation de base est versée jusqu'au dernier jour du mois civil précédant 
     # celui au cours duquel l'enfant atteint l'âge de 3 ans.
     
-    nbenf = NbEnf(0,P.paje.base.age-1)
+    nbenf = Nb_Enf(0,P.paje.base.age-1)
     
     plaf_tx = (nbenf>0) + P.paje.base.plaf_tx1*min_(nbenf,2) + P.paje.base.plaf_tx2*max_(nbenf-2,0)
     majo    = isol | biact
@@ -516,10 +405,10 @@ def Paje_Nais(br_pf, isol, biact, _P):
     # TODO à mensualiser    
     benjamin = age_en_mois_benjamin(P,2)
     prime =  (benjamin==-2)
-    nbnais    = sum(NbEnf(-1,-1)*prime,axis=0)
+    nbnais    = sum(Nb_Enf(-1,-1)*prime,axis=0)
 
     # Et on compte le nombre d'enfants AF présents  pour le seul mois de la prime
-    nbaf = sum(NbEnf(P.af.age1,P.af.age2)*prime,axis=0)
+    nbaf = sum(Nb_Enf(P.af.age1,P.af.age2)*prime,axis=0)
     nbenf = nbaf + nbnais   # On ajoute l'enfant à  naître;
     
     paje_plaf = P.paje.base.plaf
@@ -533,13 +422,13 @@ def Paje_Nais(br_pf, isol, biact, _P):
     return nais_brut  
     
 
-def Paje_Clca( _P):
+def Paje_Clca(inactif, partiel1, partiel2, _P, paje_brut_m):
     '''
     Prestation d'accueil du jeune enfant - Complément de libre choix d'activité
     '''
     
     # http://www.caf.fr/wps/portal/particuliers/catalogue/metropole/paje
-    paje     = (self.paje_brut_m >= 0)
+    paje     = paje_brut_m >= 0
     P = _P.fam
 
     # durée de versement :   
@@ -554,27 +443,23 @@ def Paje_Clca( _P):
             
     benjamin = age_en_mois_benjamin(P)
    
-    condition1 =(NbEnf(P.af.age1,P.af.age2)==1)*(benjamin>=0)*(benjamin<6)
+    condition1 =(Nb_Enf(P.af.age1,P.af.age2)==1)*(benjamin>=0)*(benjamin<6)
     age = np.floor(benjamin/12)
     condition2 = ( age <= (P.paje.base.age-1))            
-    condition = (NbEnf(0,P.af.age2)>=2)*condition2 + condition1 
+    condition = (Nb_Enf(0,P.af.age2)>=2)*condition2 + condition1 
     
     # TODO: rajouter ces infos aux parents et mensualiser
-    inactif  = zeros((12,self.taille))
     # Temps partiel 1
     # Salarié: 
     # Temps de travail ne dépassant pas 50 % de la durée du travail fixée dans l'entreprise
     # VRP ou non salarié travaillant à temps partiel:
     # Temps de travail ne dépassant pas 76 heures par mois et un revenu professionnel mensuel inférieur ou égal à (smic_8.27*169*85 %)
-    partiel1 = zeros((12,self.taille))
     
     # Temps partiel 2
     # Salarié:
     # Salarié: Temps de travail compris entre 50 et 80 % de la durée du travail fixée dans l'entreprise.
     # Temps de travail compris entre 77 et 122 heures par mois et un revenu professionnel mensuel ne dépassant pas
     #  (smic_8.27*169*136 %)
-
-    partiel2  = zeros((12,self.taille))  
 
     clca_brut = (condition*P.af.bmaf)*(
                 (not_(paje))*(inactif*P.paje.clca.sansab_tx_inactif   +
@@ -583,14 +468,14 @@ def Paje_Clca( _P):
                 (paje)*(inactif*P.paje.clca.avecab_tx_inactif   +
                             partiel1*P.paje.clca.avecab_tx_partiel1 +
                             partiel2*P.paje.clca.avecab_tx_partiel2))
-    self.clca_brut = sum(clca_brut,axis=0)
+    clca_brut = sum(clca_brut,axis=0)
     
-    self.clca_taux_plein =   (clca_brut>0)*inactif
-    self.clca_taux_partiel = (clca_brut>0)*partiel1
+    clca_taux_plein =   (clca_brut>0)*inactif
+    clca_taux_partiel = (clca_brut>0)*partiel1
             
     # TODO gérer les cumuls avec autres revenus et colca voir site caf
 
-def pajeClmg(br_pf, _P):
+def pajeClmg(br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P):
     '''
     Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde
     '''
@@ -619,13 +504,9 @@ def pajeClmg(br_pf, _P):
 #
 # 
     # TODO condition de revenu minimal
-    elig = zeros((12,self.taille)) 
-    empl_dir =zeros((12,self.taille))
-    ass_mat = zeros((12,self.taille))
-    gar_dom = zeros((12,self.taille))
     
     P = _P.fam
-    nbenf = NbEnf(P.af.age1,P.af.age2)
+    nbenf = Nb_Enf(P.af.age1,P.af.age2)
     seuil1 = P.paje.clmg.seuil11*(nbenf==1) + P.paje.clmg.seuil12*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil1sup
     seuil2 = P.paje.clmg.seuil21*(nbenf==1) + P.paje.clmg.seuil22*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil2sup
 
@@ -633,11 +514,11 @@ def pajeClmg(br_pf, _P):
 #        vous cumulez intégralement le Clca et le Cmg. 
 #        Si vous bénéficiez du Clca taux partiel (= vous travaillez à 50% ou moins de la durée 
 #        du travail fixée dans l'entreprise), le montant des plafonds Cmg est divisé par 2.
-    seuil1 = seuil1*(1-.5*self.clca_taux_partiel)
-    seuil2 = seuil2*(1-.5*self.clca_taux_partiel)
+    seuil1 = seuil1*(1-.5*clca_taux_partiel)
+    seuil2 = seuil2*(1-.5*clca_taux_partiel)
     
-    clmg_brut = P.af.bmaf*((NbEnf(0,P.paje.clmg.age1-1)>0) + 
-                           0.5*(NbEnf(P.paje.clmg.age1,P.paje.clmg.age2-1)>0) 
+    clmg_brut = P.af.bmaf*((Nb_Enf(0,P.paje.clmg.age1-1)>0) + 
+                           0.5*(Nb_Enf(P.paje.clmg.age1,P.paje.clmg.age2-1)>0) 
                            )*(
         empl_dir*(
             (br_pf < seuil1)*P.paje.clmg.empl_dir1 +
@@ -656,23 +537,23 @@ def pajeClmg(br_pf, _P):
 
 #        Si vous bénéficiez du Clca taux plein (= vous ne travaillez plus ou interrompez votre activité professionnelle), 
 #        vous ne pouvez pas bénéficier du Cmg.         
-    clmg_brut = elig*not_(self.clca_taux_plein)*clmg_brut
+    clmg_brut = elig*not_(clca_taux_plein)*clmg_brut
     
     # TODO vérfiez les règles de cumul        
     
-    self.clmg_brut = clmg_brut.sum(axis=0)
+    clmg_brut = clmg_brut.sum(axis=0)
+    return clmg_brut
     
-def pajeColca( _P):    
+def pajeColca(opt_colca, paje_brut_m, _P):    
     '''
     Prestation d'accueil du jeune enfant - Complément optionnel de libre choix du mode de garde
     '''
 
-    opt_colca = zeros((12,self.taille))
     P = _P.fam
     condition = (age_en_mois_benjamin(P,0) < 12*P.paje.colca.age )*(age_en_mois_benjamin(P,0) >=0)   
-    nbenf = NbEnf(P.af.age1,P.af.age2)
+    nbenf = Nb_Enf(P.af.age1,P.af.age2)
     
-    paje = (self.paje_brut_m > 0)  
+    paje = (paje_brut_m > 0)  
     colca_brut = opt_colca*condition*(nbenf>=3)*P.af.bmaf*(
         (paje)*P.paje.colca.avecab + not_(paje)*P.paje.colca.sansab )
 
@@ -708,8 +589,7 @@ def CumulPajeCf(self, _P):
     table.set('cf', self.cf_tot, 'fam', 'chef', table = 'output')
     table.close_()
     
-@famille_wrapper(crds=False)
-def AEEH(self, Param):
+def AEEH(self, _P):
     '''
     Allocation d'éducation de l'enfant handicapé (Allocation d'éducation spécialisée avant le 1er janvier 2006)
     '''
@@ -720,9 +600,9 @@ def AEEH(self, Param):
 #        l'embauche d'une tierce personne rémunérée.
 #
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
-    P = Param.fam
+    P = _P.fam
     enfhand = np.array( [ getattr(self, 'inv%d' %(i+1)) for i in range(self.nbenfmax) ] )
-    ages =  self.getAges()
+    ages =  self.ages
 
     enfhand = (enfhand*(ages < P.aeeh.age)).sum(axis=0)/12
     
@@ -766,7 +646,7 @@ def APE(self, Param):
     # L'allocation parentale d'éducation n'est pas soumise 
     # à condition de ressources, sauf l’APE à taux partiel pour les professions non salariées
     P = Param.fam
-    elig = (self.NbEnf(0,P.ape.age-1)>=1) & (self.NbEnf(0,P.af.age2)>=2)
+    elig = (self.Nb_Enf(0,P.ape.age-1)>=1) & (self.Nb_Enf(0,P.af.age2)>=2)
     
     # TODO: rajouter ces infos aux parents
     inactif  = zeros((12,self.taille))
@@ -793,7 +673,7 @@ def APJE(self,Param):
     '''
     # TODO: APJE courte voir doc ERF 2006
     P = Param.fam
-    nbenf = self.NbEnf(0,P.apje.age-1)
+    nbenf = self.Nb_Enf(0,P.apje.age-1)
     bmaf = P.af.bmaf
     bmaf_n_2= P.af.bmaf_n_2 
     base = round(P.apje.taux*bmaf,2)
@@ -837,7 +717,6 @@ def CumulAPE_APJE_CF(self, Param):
     
 ## TODO rajouter la prime à la naissance et à l'adoption avant la paje
 
-@famille_wrapper()        
 def AGED(self,Param):
     '''
     Allocation garde d'enfant à domicile
@@ -849,8 +728,8 @@ def AGED(self,Param):
     P = Param.fam
     ape_taux_partiel_dummy  = zeros(self.taille)
     
-    nbenf = self.NbEnf(0, P.aged.age1-1)
-    nbenf2 = self.NbEnf(0, P.aged.age2-1)
+    nbenf = self.Nb_Enf(0, P.aged.age1-1)
+    nbenf2 = self.Nb_Enf(0, P.aged.age2-1)
 
     elig1 = (nbenf>0) 
     elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel_dummy
@@ -865,7 +744,6 @@ def AGED(self,Param):
 
     self.aged = aged3 + aged6 
 
-@famille_wrapper()        
 def AFEAMA(self,Param):
     '''
     Aide à la famille pour l'emploi d'une assistante maternelle agréée
@@ -887,12 +765,12 @@ def AFEAMA(self,Param):
 
     # TODO calcul des cotisations urssaf
     # 
-    nbenf = elig*self.NbEnf(P.af.age1,P.age2)*(self.NbEnf(P.af.age1,P.afeama.age-1)>0)
+    nbenf = elig*self.Nb_Enf(P.af.age1,P.age2)*(self.Nb_Enf(P.af.age1,P.afeama.age-1)>0)
     
     seuil1 = P.afeama.mult_seuil1*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil1*P.ars.plaf*(1+P.ars.plaf_enf_supp)
     seuil2 = P.afeama.mult_seuil2*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil2*P.ars.plaf*(1+P.ars.plaf_enf_supp)
     
-    afeama_brut = self.NbEnf(P.af.age1,P.afeama.age-1)*P.af.bmaf*( 
+    afeama_brut = self.Nb_Enf(P.af.age1,P.afeama.age-1)*P.af.bmaf*( 
             (br_pf < seuil1)*P.afeama.taux_mini +
             ( (br_pf >= seuil1) & (br_pf < seuil2) )*P.afeama.taux_median +
             (br_pf >= seuil2)*P.afeama.taux_maxi)
@@ -928,7 +806,7 @@ def AlNbp(self,P):
     # charge (cas actuel) et zéro sinon.
     age1 = P.fam.af.age1
     age2 = P.fam.cf.age2
-    al_nbenf = self.NbEnf(age1, age2)
+    al_nbenf = self.Nb_Enf(age1, age2)
     al_nbenf = al_nbenf[0,:]
     self.al_pac = P.al.autres.D_enfch*(al_nbenf + self.al_nbinv) # manque invalides
     # TODO: il faudrait probablement définir les AL pour un ménage et non 
@@ -1189,7 +1067,7 @@ def RmiNbp(self,P):
     '''
     Nombre de personne à charge au sens du Rmi ou du Rsa
     '''
-    self.rmiNbp = self.nbpar + self.NbEnf(0,24)[0,:]
+    self.rmiNbp = self.nbpar + self.Nb_Enf(0,24)[0,:]
 
 def RmiBaseRessource(self, P):
     # compléter la base ressource RMI
@@ -1348,10 +1226,10 @@ def API(self, P):
     ## Calcul de l'année et mois de naissance du benjamin 
     
     condition = (np.floor(benjamin/12) <= P.minim.api.age-1)
-    eligib = self.isol*( (enceinte!=0) | (self.NbEnf(0,P.minim.api.age-1)>0) )*condition;
+    eligib = self.isol*( (enceinte!=0) | (self.Nb_Enf(0,P.minim.api.age-1)>0) )*condition;
 
     # moins de 20 ans avant inclusion dans rsa et moins de  25 après
-    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*self.NbEnf(P.fam.af.age1,P.minim.api.age_pac-1) )
+    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*self.Nb_Enf(P.fam.af.age1,P.minim.api.age_pac-1) )
     rsa = (P.minim.api.age_pac >= 25) # dummy passage au rsa majoré
     BRapi = self.BrRmi + self.af_majo*not_(rsa)
     # TODO: mensualiser RMI, BRrmi et forfait logement
@@ -1400,8 +1278,8 @@ def AEFA(self, Param):
     
     condition = ass*aer*api*rmi
     
-    if hasattr(P.fam.af,"age3"): nbPAC = self.NbEnf(P.fam.af.age1,P.fam.af.age3)[11,:]
-    else: nbPAC = self.NbEnf(P.fam.af.age1,P.fam.af.age2)[11,:]
+    if hasattr(P.fam.af,"age3"): nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age3)[11,:]
+    else: nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age2)[11,:]
     # TODO check nombre de PAC pour une famille
     P = Param.minim
     aefa = condition*P.aefa.mon_seul*(1 + (self.nbpar==2)*P.aefa.tx_2p
@@ -1607,7 +1485,7 @@ def AAH(self, P):
               ( (self.ageP >= P.fam.aeeh.age) | (self.ageP >= 16) & (self.revPart > P.fam.af.seuil_rev_taux*smic_annuel)) & 
                 (self.ageP <= P.minim.aah.age_legal_retraite ))
 
-    plaf = 12*P.minim.aah.montant*(1 + self.coup + P.minim.aah.tx_plaf_supp*self.NbEnf(P.fam.af.age1, P.fam.af.age2))
+    plaf = 12*P.minim.aah.montant*(1 + self.coup + P.minim.aah.tx_plaf_supp*self.Nb_Enf(P.fam.af.age1, P.fam.af.age2))
 
     if hasattr(self, "asiC_m") & hasattr(self, "aspaC_m"): 
         self.BRaah = br_pf/12 + self.asiC_m + self.aspaC_m + self.asiP_m + self.aspaP_m
@@ -1736,7 +1614,7 @@ from core.systemsf import SystemSf, Prestation
 from parametres.paramData import XmlReader, Tree2Object
 
 class Pfam(SystemSf):
-    
+    af_nbenf = Prestation(AF_NbEnf, 'fam', u"Nombre d'enfant au sens des AF")
     af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
     af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
     af_forf = Prestation(AF_Base, 'fam', 'Allocations familiales - Forfait 20 ans')
