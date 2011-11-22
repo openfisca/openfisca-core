@@ -32,7 +32,7 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 DEFAULTS = [
             ('simulation', 
