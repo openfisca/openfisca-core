@@ -71,6 +71,9 @@ class Column(object):
 
     def set_name(self, name):
         self._name = name
+        
+    def get_name(self):
+        return self._name
 
     def set_nrows(self, nrows):
         self._nrows = nrows
@@ -152,9 +155,12 @@ class DataTable(object):
         comp_title, comp_comment = self._compute_title_and_comment()
         if title is None:   self.__title = comp_title
         if comment is None: self.__comment = comp_comment
+        
+        self.col_names = set()
 
     def _init_columns(self, nrows):
         for column in self._columns:
+            self.col_names.add(column.get_name())
             column._init_value(nrows)
     
     def _compute_title_and_comment(self):

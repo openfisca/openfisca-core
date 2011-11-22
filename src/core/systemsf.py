@@ -182,7 +182,8 @@ class SystemSf(object):
         self.__comment = comment
         self._primitives = set()
         self._param = param
-        self._inputs = set()
+        self._inputs = None
+        self._inputs_names = set()
         self._index = None
         self.__nrows = None
         comp_title, comp_comment = self._compute_title_and_comment()
@@ -264,13 +265,14 @@ class SystemSf(object):
         self._init_columns(self._nrows)
 
         self._inputs = inputs
+        self._inputs_names = inputs.col_names
         self._index = inputs.index
         
     def calculate(self, var = None):
         if var is None:
             return "Will calculate all"
-        if not self._primitives in self._inputs:
-            raise Exception('some inputs are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives, self._inputs))
+        if not self._primitives <= self._inputs_names:
+            raise Exception('some inputs are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives, self._inputs_names))
         prestation = getattr(self, var)
         prestation.calculate(self._inputs, self._index)
         

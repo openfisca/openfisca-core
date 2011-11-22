@@ -69,7 +69,7 @@ class InputTable(DataTable):
     quifoy  = IntCol(QUIFOY)
     quifam  = IntCol(QUIFAM)
 
-    so = IntCol(default = 3)
+    so = IntCol(default = 3)#
     hsup = IntCol()
     inv = BoolCol()
     alt = BoolCol()
@@ -78,20 +78,20 @@ class InputTable(DataTable):
     agem = IntCol()
     zone_apl = IntCol()
 
-    sal = FloatCol()
-    cho = FloatCol()
-    rst = FloatCol()
-    rto = FloatCol()
-    alr = FloatCol()
-    brrmi_pfam = IntCol()
+    sal = FloatCol()#
+    cho = FloatCol()#
+    rst = FloatCol()#
+    rto = FloatCol()#
+    alr = FloatCol()#
+    brrmi_pfam = IntCol()#
     loyer = IntCol()
-    age = IntCol()
+    age = IntCol()#
     activite = IntCol()
     statmarit = IntCol()
     ppeHeure = IntCol()
     
     nbpar = IntCol(default = 2)
-    nbenf = IntCol(default = 1)
+    nbenf = IntCol(default = 1) #
 
 inputs = InputTable(101)
 inputs.populate_from_scenario(scenario, date)

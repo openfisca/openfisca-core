@@ -1736,15 +1736,15 @@ from core.systemsf import SystemSf, Prestation
 from parametres.paramData import XmlReader, Tree2Object
 
 class Pfam(SystemSf):
-    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
-    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
     
     af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
     af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
     af_forf = Prestation(AF_Base, 'fam', 'Allocations familiales - Forfait 20 ans')
     af      = Prestation(AF, 'fam', label = u"Allocations familiales")
 
-    cf      = Prestation(CF, 'fam', label = u"Complément familiale")
+#    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
+#    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
+#    cf      = Prestation(CF, 'fam', label = u"Complément familiale")
 
 if __name__ == '__main__':
     import datetime
