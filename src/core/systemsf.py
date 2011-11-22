@@ -5,7 +5,7 @@ Created on 16 nov. 2011
 @author: Clem
 '''
 from __future__ import division
-from src.core.datatable import DataTable, Column
+from core.datatable import DataTable, Column
 import numpy as np
 
 '''
