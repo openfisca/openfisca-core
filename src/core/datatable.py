@@ -23,6 +23,8 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
+from utils import Enum
+QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 
 class Column(object):
     """
@@ -183,7 +185,17 @@ class DataTable(object):
         
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
-                              'nb': self._nrows}}
+                              'nb': self._nrows},
+                      'noi': {}}
+        dct = self.index['noi']
+        nois = self.noi.get_value()
+        listnoi = np.unique(nois)
+        for noi in listnoi:
+            idxIndi = np.sort(np.squeeze((np.argwhere(nois == noi))))
+            idxUnit = np.searchsorted(listnoi, nois[idxIndi])
+            temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
+            dct.update({noi: temp}) 
+            
         for unit in units:
             try:
                 idx = getattr(self, 'id'+unit).get_value()
@@ -198,10 +210,7 @@ class DataTable(object):
             dct = self.index[unit]
             idxlist = np.unique(idx)
             dct['nb'] = len(idxlist)
-            
-            # should remove next line
-            setattr(self, 'nb'+unit, dct['nb'])
-            
+                        
             for person in enum.itervalues():
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
@@ -228,13 +237,13 @@ class DataTable(object):
 
         self.gen_index(['foy', 'fam', 'men'])
                 
-        index = self.index['men']
+        index = self.index['noi']
         for noi, dct in scenario.indiv.iteritems():
             for var, val in dct.iteritems():
                 if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
                 col = getattr(self, var)
                 if not index[noi] is None:
-                    col.set_value(np.ones(self._nmen)*val, index, self.quimen.enum[dct['quimen']])
+                    col.set_value(np.ones(self._nmen)*val, index, noi)
 
     def addPerson(self, noi, quifoy, quifam, quimen, noidec, noichef, noipref):
         for i in xrange(self._nmen):
