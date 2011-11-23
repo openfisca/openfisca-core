@@ -22,196 +22,156 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import minimum as min_, maximum as max_, zeros
+from numpy import minimum as min_, maximum as max_
 
+year = 2010
 def niches(year):
     '''
     Renvoie la liste des charges déductibles à intégrer en fonction de l'année
+    niches1 : niches avant le rbg_int
+    niches2 : niches après le rbg_int
+    niches3 : indices des niches à ajouter au revenu fiscal de référence
+
     '''
     if year in (2002, 2003):
-        niches1 = [penali, acc75a, percap, deddiv, doment]
-        niches2 = [sofipe, cinema ]
+        niches1 = [Penali, Acc75a, Percap, Deddiv, Doment]
+        niches2 = [Sofipe, Cinema ]
         ind_rfr = [2, 5, 6] #TODO: check
     elif year in (2004,2005):
-        niches1 = [penali, acc75a, percap, deddiv, doment, eparet]
-        niches2 = [sofipe, cinema ]
+        niches1 = [Penali, Acc75a, Percap, Deddiv, Doment, Eparet]
+        niches2 = [Sofipe, Cinema ]
         ind_rfr = [2, 5, 6, 7]
     elif year == 2006:
-        niches1 = [penali, acc75a, percap, deddiv, eparet]
-        niches2 = [sofipe ]
+        niches1 = [Penali, Acc75a, Percap, Deddiv, Eparet]
+        niches2 = [Sofipe ]
         ind_rfr = [2, 4, 5]
     elif year in (2007, 2008):
-        niches1 = [penali, acc75a, deddiv, eparet]
-        niches2 = [ecodev]
+        niches1 = [Penali, Acc75a, Deddiv, Eparet]
+        niches2 = [Ecodev]
         ind_rfr = [ 3, 4]
     elif year in (2009, 2010):
-        niches1 = [penali, acc75a, deddiv, eparet, grorep]
+        niches1 = [Penali, Acc75a, Deddiv, Eparet, Grorep]
         niches2 = []
         ind_rfr = [3]
     
     return niches1, niches2, ind_rfr
 
-def penali(self, P, table):
+def Charges_Deductibles(cd1):
+    return cd1
+
+def Cd1(penali, acc75a, deddiv, eparet, groprep):
+    return penali + acc75a + deddiv + eparet + groprep
+
+def Penali(f6gi, f6gj, f6gp, f6el, f6em, f6gu, _P):
     '''
     Pensions alimentaires
     '''
-    GI = table.get('f6gi', 'foy', 'vous', 'declar')
-    GJ = table.get('f6gj', 'foy', 'vous', 'declar')
-    GP = table.get('f6gp', 'foy', 'vous', 'declar')
-    max1 = P.penalim.max 
-    if self.year <= 2005:
+    P = _P.ir.charges_deductibles.penalim
+    max1 = P.max 
+    if year <= 2005:
         # TODO: si vous subvenez seul(e) à l'entretien d'un enfant marié ou 
         # pacsé ou chargé de famille, quel que soit le nmbre d'enfants du jeune 
         # foyer, la déduction est limitée à 2*max
-        return (min_(GI ,max1) + 
-                min_(GJ, max1) + 
-                GP)
+        return (min_(f6gi ,max1) + 
+                min_(f6gj, max1) + 
+                f6gp)
     else:
-        taux = P.penalim.taux
-        EL = table.get('f6el', 'foy', 'vous', 'declar')
-        EM = table.get('f6em', 'foy', 'vous', 'declar')
-        GU = table.get('f6gu', 'foy', 'vous', 'declar')
-        # check si c'est bien la déduction marjorée qu'il faut plafonner
-        return (min_(GI*(1 + taux), max1) + 
-                min_(GJ*(1 + taux), max1) + 
-                min_(EL, max1) + 
-                min_(EM, max1) + 
-                GP*(1 + taux) + GU)
+        taux = P.taux
+        return (min_(f6gi*(1 + taux), max1) + 
+                min_(f6gj*(1 + taux), max1) + 
+                min_(f6el, max1) + 
+                min_(f6em, max1) + 
+                f6gp*(1 + taux) + f6gu)
 
-def acc75a(self, P, table):
+def Acc75a(f6eu, f6ev, _P):
     '''
     Frais d’accueil sous votre toit d’une personne de plus de 75 ans
     '''
-    EU = table.get('f6eu', 'foy', 'vous', 'declar')
-    EV = table.get('f6ev', 'foy', 'vous', 'declar')
-    amax = P.acc75a.max*max_(1, EV)
-    return min_(EU, amax)
+    P = _P.ir.charges_deductibles.acc75a
+    amax = P.acc75a.max*max_(1, f6ev)
+    return min_(f6eu, amax)
 
-def percap(self, P, table):
+def Percap(f6cb, f6da, marpac, _P):
     '''
     Pertes en capital consécutives à la souscription au capital de sociétés 
     nouvelles ou de sociétés en difficulté (cases CB et DA de la déclaration 
     complémentaire)
     '''
-    if self.year <= 2002:
-        CB = table.get('f6cb', 'foy', 'vous', 'declar')
-        max_cb = P.percap.max_cb*(1 + self.marpac)
-        return min_(CB, max_cb) 
-    elif self.year <= 2006:
-        max_cb = P.percap.max_cb*(1 + self.marpac)
-        max_da = P.percap.max_da*(1 + self.marpac)
+    P = _P.ir.charges_deductibles.percap
+    if year <= 2002:
+        max_cb = P.percap.max_cb*(1 + marpac)
+        return min_(f6cb, max_cb) 
+    elif year <= 2006:
+        max_cb = P.percap.max_cb*(1 + marpac)
+        max_da = P.percap.max_da*(1 + marpac)
 
-        CB = table.get('f6cb', 'foy', 'vous', 'declar')
-        DA = table.get('f6da', 'foy', 'vous', 'declar')
+        return min_(min_(f6cb, max_cb) + min_(f6da, max_da), max_da)   
 
-        return min_(min_(CB, max_cb) + min_(DA,max_da), max_da)   
-
-def deddiv(self, P, table):
+def Deddiv(f6dd):
     '''
     Déductions diverses (case DD)
     '''
-    return table.get('f6dd', 'foy', 'vous', 'declar')
+    return f6dd
 
-def doment(self, P, table):
+def Doment(f6eh):
     '''
     Investissements DOM-TOM dans le cadre d’une entreprise (case EH de la 
     déclaration n° 2042 complémentaire)
     '''
-    if self.year <= 2005:
-        return table.get('f6eh', 'foy', 'vous', 'declar')
+    if year <= 2005:
+        return f6eh
 
-def eparet(self, P, table):
+def Eparet(f6ps, f6rs, f6ss, f6pt, f6rt, f6st, f6pu, f6ru, f6su):
     '''
     Épargne retraite - PERP, PRÉFON, COREM et CGOS
     '''
     # TODO: En théorie, les plafonds de déductions (ps, pt, pu) sont calculés sur 
     # le formulaire 2041 GX
-    if self.year <= 2003:
+    if year <= 2003:
         return None
-    elif self.year <= 2010:
-        PS = table.get('f6ps', 'foy', 'vous', 'declar')
-        RS = table.get('f6rs', 'foy', 'vous', 'declar')
-        SS = table.get('f6ss', 'foy', 'vous', 'declar')
-        PT = table.get('f6ps', 'foy', 'vous', 'declar')
-        RT = table.get('f6rs', 'foy', 'vous', 'declar')
-        ST = table.get('f6ss', 'foy', 'vous', 'declar')
-        PU = table.get('f6ps', 'foy', 'vous', 'declar')
-        RU = table.get('f6rs', 'foy', 'vous', 'declar')
-        SU = table.get('f6ss', 'foy', 'vous', 'declar')
-        return ((PS==0)*(RS + SS) + 
-                (PS!=0)*min_(RS + SS, PS) +
-                (PT==0)*(RT + ST) + 
-                (PT!=0)*min_(RT + ST, PT) +
-                (PU==0)*(RU + SU) + 
-                (PU!=0)*min_(RU + SU, PU))
+    elif year <= 2010:
+        return ((f6ps==0)*(f6rs + f6ss) + 
+                (f6ps!=0)*min_(f6rs + f6ss, f6ps) +
+                (f6pt==0)*(f6rt + f6st) + 
+                (f6pt!=0)*min_(f6rt + f6st, f6pt) +
+                (f6pu==0)*(f6ru + f6su) + 
+                (f6pu!=0)*min_(f6ru + f6su, f6pu))
 
-def sofipe(self, P, table):
+def Sofipe(f6cc, rbg_int, marpac, _P):
     '''
     Souscriptions au capital des SOFIPÊCHE (case CC de la déclaration 
     complémentaire)
     '''
-    if self.year <= 2006:
-        CC = table.get('f6cc', 'foy', 'vous', 'declar')
-        max1 = min_(P.sofipe.taux*self.rbg_int, P.sofipe.max*(1+self.marpac))
-        return min_(CC, max1)
+    P = _P.ir.charges_deductibles
+    if year <= 2006:
+        max1 = min_(P.sofipe.taux*rbg_int, P.sofipe.max*(1+marpac))
+        return min_(f6cc, max1)
 
-def cinema(self, P, table):
+def Cinema(f6aa, rbg_int, _P):
     '''
     Souscriptions en faveur du cinéma ou de l’audiovisuel (case AA de la 
     déclaration n° 2042 complémentaire)
     '''
-    if self.year <= 2005:
-        AA = table.get('f6aa', 'foy', 'vous', 'declar')
-        max1 = min_(P.cinema.taux*self.rbg_int, P.cinema.max)
-        return min_(AA, max1)
+    P = _P.ir.charges_deductibles
+    if year <= 2005:
+        max1 = min_(P.cinema.taux*rbg_int, P.cinema.max)
+        return min_(f6aa, max1)
 
-def ecodev(self, P, table):
+def Ecodev(f6eh, rbg_int, _P):
     '''
     Versements sur un compte épargne codéveloppement (case EH de la déclaration 
     complémentaire)
     '''
-    if self.year <= 2006:
+    P = _P.ir.charges_deductibles
+    if year <= 2006:
         return None
-    elif self.year <= 2008:
-        EH = table.get('f6eh', 'foy', 'vous', 'declar')
-        max1 = min_(P.ecodev.taux*self.rbg_int, P.ecodev.max)
-        return min_(EH, max1)
+    elif year <= 2008:
+        max1 = min_(P.ecodev.taux*rbg_int, P.ecodev.max)
+        return min_(f6eh, max1)
 
-def grorep(self, P, table):
+def Grorep(f6cb, f6hj, _P):
     '''
     Dépenses de grosses réparations des nus-propriétaires (case 6CB et 6HJ)
     '''
-    CB = table.get('f6cb', 'foy', 'vous', 'declar')
-    HJ = table.get('f6hj', 'foy', 'vous', 'declar')
-    return min_(CB+HJ,P.grorep.max)
-
-def charges_calc(self, P, table, niches1, niches2, ind_rfr):
-    '''
-    niches1 : niches avant le rbg_int
-    niches2 : niches après le rbg_int
-    niches3 : indices des niches à ajouter au revenu fiscal de référence
-    '''
-    rest = max_(0,self.rbg- self.CSGdeduc )
-    tot = zeros(self.taille)
-    mont = []
-
-    for niche in niches1:
-        mont.append(min_(niche(self, P, table), rest))
-        rest -= mont[-1]
-        tot  += mont[-1]
-
-    self.rbg_int = rest*1 # TODO ATTENTION, astérisque pas prise en compte
-
-    for niche in niches2:
-        mont.append(min_(niche(self, P, table), rest))
-        rest -= mont[-1]
-        tot  += mont[-1]
-
-    
-    ## charges déduites à ajouter au revenu fiscal de référence
-    self.rfr_cd = zeros(self.taille)
-    for i in ind_rfr:
-        self.rfr_cd += mont[i]
-
-    ## total18
-    self.CD  = tot 
+    P = _P.ir.charges_deductibles
+    return min_(f6cb + f6hj, P.grorep.max)
