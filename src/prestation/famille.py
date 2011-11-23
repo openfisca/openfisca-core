@@ -24,7 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from numpy import (round, sum, zeros, ones, maximum as max_, minimum as min_, 
-                   ceil, where, logical_not as not_)
+                   ceil, where, logical_not as not_, logical_or as or_)
 from datetime import date
 from core.datatable import QUIFAM
 
@@ -121,6 +121,24 @@ class Famille(object):
 
         table.close_()
 
+def Rst_Fam(rst, _option = {'rst': [CHEF, PART]}):
+    '''
+    Retraites au sens strict de la famille
+    ''' 
+    return rst[CHEF] + rst[PART]
+
+def Tspr_Fam(tspr, _option = {'tspr': [CHEF, PART]}):
+    '''
+    Traitements, salaires, pensions et rentes de la famille
+    ''' 
+    return tspr[CHEF] + tspr[PART]
+    
+def Rpns_Fam(rpns, _option = {'rpns': [CHEF, PART]}):
+    '''
+    Revenus des personnes non salariées de la famille
+    '''
+    return rpns[CHEF] + rpns[PART]
+
 def Nb_Enf(ages, ag1, ag2):
     '''
     Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
@@ -141,7 +159,7 @@ def Nb_Enf(ages, ag1, ag2):
 
 def Age_Aine(ages, ag1, ag2):
     '''
-    renvoi un vecteur avec le numéro de l'ainé (au sens des allocations 
+    renvoi un vecteur avec l'âge de l'ainé (au sens des allocations 
     familiales) de chaque famille
     '''
     ageaine = -99
@@ -166,7 +184,6 @@ def age_en_mois_benjamin(self, P, nmois=0):
     return agem_benjamin
 
 
-
 def Couple():
     '''
     couple = 1 si couple marié sinon 0
@@ -183,12 +200,20 @@ def Ra_Rsa(sal, hsup, rpns, etr, div_rmi):
     '''
     return sal + hsup + rpns + etr + div_rmi
 
-def Rev_PF(tspr, hsup, rpns):
+def Rev_PF(tspr_fam, hsup, rpns_fam, _option = {'hsup': [CHEF, PART]}):
     '''
     Base ressource individuelle des prestations familiales
     '''
-    rev_pf  = tspr + hsup + rpns
+    rev_pf  = tspr_fam + hsup[PART] + hsup[CHEF] + rpns_fam   
     return rev_pf
+
+def Biact(rev_pf, _P, _option = {'rev_pf': [CHEF, PART]}):
+    '''
+    Indicatrice de biactivité des adultes de la famille
+    '''
+    seuil_rev = 12*_P.fam.af.bmaf_n_2
+    biact = (rev_pf[CHEF] >= seuil_rev) & (rev_pf[PART] >= seuil_rev)
+    return biact
     
 def Br_PF(rev_pf, rev_coll, _option = {'rev_pf': [CHEF, PART]}):
     '''
@@ -196,17 +221,12 @@ def Br_PF(rev_pf, rev_coll, _option = {'rev_pf': [CHEF, PART]}):
     '''
     br_pf = rev_pf[CHEF] + rev_pf[PART] + rev_coll
     return br_pf
-#    seuil_rev = 12*P.fam.af.bmaf_n_2
-#    self.biact = (self.revChef >= seuil_rev) & (self.revPart >= seuil_rev)
-
-
     
 def AF_NbEnf(age, _P, _option = {'age': ENFS}):
     P = _P.fam.af
     af_nbenf = Nb_Enf(age, P.age1, P.age2)
     return af_nbenf
     
-
 def AF_Base(af_nbenf, _P):
     '''
     Allocations familiales - allocation de base
@@ -258,7 +278,7 @@ def AF_Forf(age, af_nbenf, _P, _option = {'age': ENFS}):
 def AF(af_base, af_majo, af_forf):
     return af_base + af_majo + af_forf
 
-def CF(br_pf, cf_nbenf, isol, biact, _P):
+def CF(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     '''
     Complément familial
     Vous avez au moins 3 enfants à charge tous âgés de plus de 3 ans. 
@@ -274,22 +294,21 @@ def CF(br_pf, cf_nbenf, isol, biact, _P):
     P = _P.fam
     bmaf = P.af.bmaf;
     bmaf2= P.af.bmaf_n_2;
-#    cf_nbenf = self.NbEnf(P.cf.age1,P.cf.age2)
+    cf_nbenf = Nb_Enf(age, P.cf.age1, P.cf.age2)
             
     cf_base_n_2 = P.cf.tx*bmaf2
     cf_base     = P.cf.tx*bmaf
     
     cf_plaf_tx = 1 + P.cf.plaf_tx1*min_(cf_nbenf,2) + P.cf.plaf_tx2*max_(cf_nbenf-2,0)
-    cf_majo    = isol | biact
+    cf_majo    = or_(isol, biact)
     cf_plaf    = P.cf.plaf*cf_plaf_tx + P.cf.plaf_maj*cf_majo
     cf_plaf2 = cf_plaf + 12*cf_base_n_2
     
     cf_brut = (cf_nbenf>=3)*((br_pf <= cf_plaf)*cf_base + 
                              (br_pf > cf_plaf)*max_(cf_plaf2- br_pf,0)/12.0 )
-    
     return cf_brut
 
-def ASF(rst, asf_nbenf, isol, asf_elig, _P):
+def ASF(age, rst_fam, isol, asf_elig, _P, _option = {'age': ENFS}):
     '''
     Allocation de soutien familial
     '''
@@ -305,35 +324,35 @@ def ASF(rst, asf_nbenf, isol, asf_elig, _P):
 
     P = _P.fam
     
-#    asf_nbenf = self.NbEnf(P.af.age1, P.af.age2)
+    asf_nbenf = Nb_Enf(age, P.af.age1, P.af.age2)
     # TODO : gérer la mensualisation de l'ASF: pb de la pension alimentaire
-    asf_nbenfa = asf_nbenf[11,:]
+    asf_nbenfa = asf_nbenf
 
-    asf_brut = round(isol*asf_elig*max_(0,asf_nbenfa*12*P.af.bmaf*P.asf.taux1 - rst),2)    
-    asf_m    = round(isol*asf_elig*max_(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - rst/12.0),2)
-    
+    asf_brut = round(isol*asf_elig*max_(0,asf_nbenfa*12*P.af.bmaf*P.asf.taux1 - rst_fam),2)    
+    asf_m    = round(isol*asf_elig*max_(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - rst_fam/12.0),2)
+
     return asf_brut
 
-def ARS(br_pf, ars_nbenf, _P):
+def ARS(age, br_pf, _P, _option = {'age': ENFS}):
     '''
     Allocation de rentrée scolaire
     '''
+    # TODO convention sur la mensualisation
     # On tient compte du fait qu'en cas de léger dépassement du plafond, une allocation dégressive 
     # (appelée allocation différentielle), calculée en fonction des revenus, peut être versée. 
     
-    # nb, à partir de 2008, les taux sont différenciés suivant l'âge.
-
+    # TODO à partir de 2008, les taux sont différenciés suivant l'âge.
     P = _P.fam
     bmaf = P.af.bmaf
     # On prend l'âge en septembre
-    enf_05    = Nb_Enf(P.ars.agep-1,P.ars.agep-1)[8,:]  # 6 ans avant le 31 janvier
+    enf_05    = Nb_Enf(age, P.ars.agep-1,P.ars.agep-1)[8,:]  # 6 ans avant le 31 janvier
     # Un enfant scolarisé qui n'a pas encore atteint l'âge de 6 ans 
     # avant le 1er février 2012 peut donner droit à l'ARS à condition qu'il 
     # soit inscrit à l'école primaire. Il faudra alors présenter un 
     # certificat de scolarité. 
-    enf_primaire = enf_05 + Nb_Enf(P.ars.agep,P.ars.agec-1)[8,:]
-    enf_college = Nb_Enf(P.ars.agec,P.ars.agel-1)[8,:]
-    enf_lycee = Nb_Enf(P.ars.agel,P.ars.ages)[8,:]
+    enf_primaire = enf_05 + Nb_Enf(age, P.ars.agep,P.ars.agec-1)[8,:]
+    enf_college = Nb_Enf(age, P.ars.agec,P.ars.agel-1)[8,:]
+    enf_lycee = Nb_Enf(age, P.ars.agel,P.ars.ages)[8,:]
     
     arsnbenf =   enf_primaire + enf_college + enf_lycee
     
@@ -561,7 +580,7 @@ def pajeColca(opt_colca, paje_brut_m, _P):
 
     #TODO: cumul avec clca self.colca_tot_m 
 
-def CumulPajeCf(self, _P):
+def CumulPajeCf(paje_brut_m, cf_brut_m, _P):
     '''
     L'allocation de base de la paje n'est pas cummulable avec le complément familial
     '''
@@ -569,12 +588,12 @@ def CumulPajeCf(self, _P):
     crds = P.af.crds
     
     # On regarde ce qui est le plus intéressant pour la famille, chaque mois
-    paje_brut_m = (self.paje_brut_m >= self.cf_brut_m)*self.paje_brut_m
-    cf_brut_m   = (self.paje_brut_m <  self.cf_brut_m)*self.cf_brut_m
+    paje_brut_m = (paje_brut_m >= cf_brut_m)*paje_brut_m
+    cf_brut_m   = (paje_brut_m <  cf_brut_m)*cf_brut_m
     
-    self.paje_brut  = round(paje_brut_m.sum(axis=0), 2)
-    self.paje_crds  = round(self.paje_brut*crds, 2)
-    self.paje_tot   = self.paje_brut - self.paje_crds
+    paje_brut  = round(paje_brut_m.sum(axis=0), 2)
+    paje_crds  = round(paje_brut*crds, 2)
+    paje_tot   = paje_brut - paje_crds
 #        self.paje_tot_m = round(self.paje_brut_m*(1-crds), 2)
 
     table = self.population
@@ -588,6 +607,8 @@ def CumulPajeCf(self, _P):
     
     table.set('cf', self.cf_tot, 'fam', 'chef', table = 'output')
     table.close_()
+
+    # TODO return
     
 def AEEH(self, _P):
     '''
