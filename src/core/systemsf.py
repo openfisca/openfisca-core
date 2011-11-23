@@ -272,7 +272,7 @@ class SystemSf(object):
         if var is None:
             return "Will calculate all"
         if not self._primitives <= self._inputs_names:
-            raise Exception('some inputs are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives, self._inputs_names))
+            raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs_names, self._primitives, self._inputs_names))
         prestation = getattr(self, var)
         prestation.calculate(self._inputs, self._index)
         
