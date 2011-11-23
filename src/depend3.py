@@ -64,28 +64,58 @@ class InputTable(DataTable):
     ppeHeure = IntCol()
     
     nbpar = IntCol(default = 2)
-
+    asf_elig = BoolCol(default=True)
+    
+#   TODO REMOVEME testing only
+    tspr  = FloatCol()
+    rpns  = FloatCol()
+    
+    isol  = BoolCol(default=True)
+    rev_coll = FloatCol()
+    
 inputs = InputTable(6)
 inputs.populate_from_scenario(scenario, date)
 inputs.gen_index(['men', 'foy', 'fam'])
 
-from prestation.famille import AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF
+from prestation.famille import (AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF, 
+                                Biact, Tspr_Fam, Rpns_Fam, 
+                                Rev_PF, Br_PF, CF, ASF, ARS)
 
 class Pfam(SystemSf):
+    
+    biact    = Prestation(Biact, 'fam', label = u"Indicatrice de biactivité")
+    rpns_fam = Prestation(Tspr_Fam, 'fam', label = u"Traitements, salaires, pensions et rentes de la famille")
+    tspr_fam = Prestation(Rpns_Fam, 'fam', label = u"Revenus des personnes non salariés de la famille")
+    rst_fam  = Prestation(Rpns_Fam, 'fam', label = u"Retraites au sens strict de la famille")
+    
     af_nbenf = Prestation(AF_NbEnf, 'fam', u"Nombre d'enfant au sens des AF")
-    af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
-    af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
-    af_forf = Prestation(AF_Forf, 'fam', 'Allocations familiales - Forfait 20 ans')
+    af_base = Prestation(AF_Base, 'fam', label ='Allocations familiales - Base')
+    af_majo = Prestation(AF_Majo, 'fam', label ='Allocations familiales - Majoration pour age')
+    af_forf = Prestation(AF_Forf, 'fam', label ='Allocations familiales - Forfait 20 ans')
     af      = Prestation(AF, 'fam', label = u"Allocations familiales")
+    
+    
+    rev_pf  = Prestation(Rev_PF, 'fam', label ='Base ressource individuele des prestations familiales')
+    br_pf   = Prestation(Br_PF, 'fam', label ='Base ressource des prestations familiales')
+    cf      = Prestation(CF, 'fam', label = u"Complément familial")
+    asf     = Prestation(ASF, 'fam', label = u"Allocation de soutien familial")
+# TODO mensualisation âge    ars     = Prestation(ARS, 'fam', label = u"Allocation de rentrée scolaire")
 
-#    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
-#    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
-#    cf      = Prestation(CF, 'fam', label = u"Complément familiale")
 
 pfam = Pfam(P)
 pfam.set_inputs(inputs)
 pfam.calculate('af')
+pfam.calculate('cf')
+pfam.calculate('asf')
+#pfam.calculate('ars')
+#pfam.calculate('paje_base')
+
 print inputs.age.get_value()
 print pfam.af.get_value()
 print pfam.af_nbenf.get_value()
 print pfam.af_base.get_value()
+
+print pfam.cf.get_value()
+print pfam.asf.get_value()
+#print pfam.ars.get_value()
+#print pfam.paje_base.get_value()
