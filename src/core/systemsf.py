@@ -23,11 +23,6 @@ This file is part of openFisca.
 
 from __future__ import division
 from core.datatable import DataTable, Column
-import numpy as np
-
-'''
-the value of a prestation should be bound to a DataTable instance
-'''
 
 class Prestation(Column):
     '''
@@ -35,8 +30,8 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     '''
     count = 0
-    def __init__(self, func, unit= 'ind', label = None, default = None, help = ''):
-        super(Prestation, self).__init__(label, default, help)
+    def __init__(self, func, unit= 'ind', label = None):
+        super(Prestation, self).__init__(label, default = 0)
 
         self._order = Prestation.count
         Prestation.count += 1
@@ -69,16 +64,6 @@ class Prestation(Column):
         else:
             raise Exception('trying to set param to a Prestation that does not need param')
     
-    def set_value(self, value, index):
-        nb = self._nrows
-        idx = index[0]
-        if self._value is None:
-            var = np.zeros(nb)
-        else:
-            var = self._value
-        var[idx['idxIndi']] = value[idx['idxUnit']]
-        self._value = var
-
     def addChild(self, prestation):
         self._children.add(prestation)
         prestation._parents.add(self)
@@ -147,10 +132,6 @@ class SystemSf(DataTable):
         self._index = None
         self.build()
 
-    def _init_columns(self, nrows):
-        for column in self._columns:
-            column.set_nrows(nrows)
-                
     def get_primitives(self):
         """
         Return socio-fical system primitives, ie variable needed as inputs
