@@ -102,177 +102,170 @@ class IRPP(object):
 
         table.close_()
 
-    def IR(self,P):
-        '''
-        Calcul de l'impôt sur le revenu
-        '''
-        table = self.population
-        table.openReadMode()
-        GH = table.get('f6gh', 'foy', 'vous', table = 'declar')
-        DE = table.get('f6de', 'foy', 'vous', table = 'declar')
-        VA = table.get('f3va', 'foy', 'vous', table = 'declar')
-        VC = table.get('f3vc', 'foy', 'vous', table = 'declar')
-        VE = table.get('f3ve', 'foy', 'vous', table = 'declar')
-        VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
-        VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
-        VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
-        VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
-        BL = table.get('f4bl', 'foy', 'vous', table = 'declar')
-        QM = table.get('f5qm', 'foy', 'vous', table = 'declar')
-        RM = table.get('f5rm', 'foy', 'vous', table = 'declar')
-        GA = table.get('f7ga', 'foy', 'vous', table = 'declar')
-        GB = table.get('f7gb', 'foy', 'vous', table = 'declar')
-        GC = table.get('f7gc', 'foy', 'vous', table = 'declar')
-        table.close_()
-        self._retrieveIndiv(table)
-        
-        alloc = self.Alloc(P.autre, table)
-        
-        ## Revenus categoriels
-        TSPR, RVCM, RFON, RPNS = self.RevCat(P)
-        
-        ## Nombre de part
-        self.nbptr = self.Nbpt(P.quotient_familial)
+def Rbg(alloc, revcat, nbptr, deficitante, deficitante, f6gh, _P):
+    '''
+    Revenu brut global (Total 17)
+    '''
+    # sans les revenus au quotient
+    return max_(0, alloc + revcat + f6gh - deficitante)
 
-        ## Déficits antérieurs
-        deficitAnte = self.Deficit_anterieur()
+#    VA = table.get('f3va', 'foy', 'vous', table = 'declar')
+#    VC = table.get('f3vc', 'foy', 'vous', table = 'declar')
+#    VE = table.get('f3ve', 'foy', 'vous', table = 'declar')
+#    VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
+#    VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
+#    VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
+#    VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
+#    BL = table.get('f4bl', 'foy', 'vous', table = 'declar')
+#    QM = table.get('f5qm', 'foy', 'vous', table = 'declar')
+#    RM = table.get('f5rm', 'foy', 'vous', table = 'declar')
+#    GA = table.get('f7ga', 'foy', 'vous', table = 'declar')
+#    GB = table.get('f7gb', 'foy', 'vous', table = 'declar')
+#    GC = table.get('f7gc', 'foy', 'vous', table = 'declar')
 
-        # sans les revenus au quotient ;
-        ## Total 17 - Revenu brut global
-        self.rbg = max_(0, alloc + TSPR + RVCM + RFON + RPNS + GH - deficitAnte)
+def CsgDeduc(rbg, f6de):
+    '''
+    CSG déductible
+    '''
+    return min_(f6de, max_(rbg, 0))
 
-        ## CSG déductible
-        self.CSGdeduc = min_(DE, max_(self.rbg, 0))
-        ## Charges déductibles
-        self.Charges_deductibles(P.charges_deductibles)
+def Rng(rbg, csgdeduc, charges_deductibles):
+    '''
+    Revenu net global
+    '''
+    ## Total 20 - Revenu net global
+    return max_(0, rbg - csgdeduc - charges_deductibles)
 
-        ## Total 20 - Revenu net global
-        self.rng = max_(0, self.rbg - self.CSGdeduc - self.CD)
-        
-        ## Abattements spéciaux        
-        abaspe = self.Abattements(P.abattements_speciaux, self.rng)
+def Rni(rng, abaspe):
+    return rng - abaspe
+
+def Ir_Brut(nbptr, rni, _P):
+    '''
+    Impot sur le revenu avant non imposabilité et plafonnement du quotien
+    '''
+    P = _P.ir.bareme
+    return nbptr*BarmMar(rni/nbptr, P.bareme) # TODO : partir d'ici, petite différence avec Matlab
+
+def IR(self):
+    '''
+    suite du calcul de l'ir
+    '''
+    ## Nature d'imposition
+    natimp = self.Non_imposabilite(rni, self.nbptr, P.non_imposable)
+
+    ## calul de l'impôt sur le revenu
+
+    # Impôt après plafonnement du QF et réductions post-plafond
+    IP = self.PlafQf(P)
+
+    ## Droit simple sur les revenus au quotient
+    mnirqu = zeros(self.taille); # TODO :
+    # self.mnirqu = (self.IP1-self.IP0)*4; # TODO
+    # self.IP = self.IP0 + self.mnirqu
+
+    ## Décote
+    decote = self.Decote(IP, P.decote)
+    IPnet  = natimp*max_(0, IP - decote)
     
-        ## Revenu net imposable
-        rni = self.rng - abaspe
-        self.revimp = rni
-
-        ## Nature d'imposition
-        natimp = self.Non_imposabilite(rni, self.nbptr, P.non_imposable)
-
-        ## calul de l'impôt sur le revenu
-        self.IR_brut = self.nbptr*BarmMar(rni/self.nbptr, P.bareme) # TODO : partir d'ici, petite différence avec Matlab
-
-        # Impôt après plafonnement du QF et réductions post-plafond
-        IP = self.PlafQf(P)
-
-        ## Droit simple sur les revenus au quotient
-        mnirqu = zeros(self.taille); # TODO :
-        # self.mnirqu = (self.IP1-self.IP0)*4; # TODO
-        # self.IP = self.IP0 + self.mnirqu
-
-        ## Décote
-        decote = self.Decote(IP, P.decote)
-        IPnet  = natimp*max_(0, IP - decote)
-        
 #        t = (1 - P.tspr.abatpro.taux)
 #        ## Revenus de l'étranger pour le revenu fiscal de référence
 #        rfr_ertf = self.f8by + self.f8cy + t*self.f1dy  + max_(self.f8ti, t*(self.f1lz + self.f1mz))
-        
-        ## Revenu fiscal de référence
-        # les allocations familiales ne sont pas prises en compte pour le revenu fiscal de référence si elles sont imposables
-        self.rfr = (max_(0, rni - alloc) + self.rfr_cd + self.rfr_rvcm + revcap_lib + f3vi + self.rpns_exo + self.rpns_pvce + VA + VG)
-#        self.rfr = (self.f8fv==0)*(max_(0, rni - alloc) + self.rfr_cd + rfr_ertf + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
-        tehr = self.Tehr(self.rfr, self.nbadult, P.tehr)
-        ## Réduction d'impôt
-        reductions = self.Reductions(IPnet, P.reductions_impots, table)
-     
-        # impot après imputation des réductions d'impôt
-        iaidrdi  = IPnet - reductions
-
-        ## 9. Impôt à payer 
-        # Impôt sur les plus values à taux forfaitaires (16%, 22.5%, 30%, 40%)
-        mnirvp = self.Plus_values(P.plus_values, table)
     
-        # TODO : contribution sur les revenus locatifs
-        P.loyf_taux = 0.025
-        P.loyf_seuil = 0
-        G90 = round(P.loyf_taux *(BL >= P.loyf_seuil)*BL)
-        mnclcn = G90 
-        zimployf = mnclcn
+    ## Revenu fiscal de référence
+    # les allocations familiales ne sont pas prises en compte pour le revenu fiscal de référence si elles sont imposables
+    self.rfr = (max_(0, rni - alloc) + self.rfr_cd + self.rfr_rvcm + revcap_lib + f3vi + self.rpns_exo + self.rpns_pvce + VA + VG)
+#        self.rfr = (self.f8fv==0)*(max_(0, rni - alloc) + self.rfr_cd + rfr_ertf + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
+    tehr = self.Tehr(self.rfr, self.nbadult, P.tehr)
+    ## Réduction d'impôt
+    reductions = self.Reductions(IPnet, P.reductions_impots, table)
+ 
+    # impot après imputation des réductions d'impôt
+    iaidrdi  = IPnet - reductions
 
-        # Taxe exceptionelle sur l'indemnité compensatrice des agents d'assurance
-        #     H90_a1 = 0*max_(0,min_(self.f5qm,23000));
-        H90_a2 = .04*max_(0,min_(QM-23000,107000));
-        H90_a3 = .026*max_(0,QM-107000);
-        #     H90_b1 = 0*max_(0,min_(self.f5rm,23000));
-        H90_b2 = .04*max_(0,min_(RM-23000,107000));
-        H90_b3 = .026*max_(0,RM-107000);
-        
-        H90 = H90_a2 + H90_a3 + H90_b2 + H90_b3;
+    ## 9. Impôt à payer 
+    # Impôt sur les plus values à taux forfaitaires (16%, 22.5%, 30%, 40%)
+    mnirvp = self.Plus_values(P.plus_values, table)
 
-        #  impôt avant imputation     
-        iai = iaidrdi + mnirvp + G90 + H90
-        
-        # Reprise du crédit d'impôt en faveur des jeunes, des accomptes et des versements mensues de prime pour l'emploi
-        reprise = zeros(self.taille) # TODO : self.reprise=J80;
+    # TODO : contribution sur les revenus locatifs
+    P.loyf_taux = 0.025
+    P.loyf_seuil = 0
+    G90 = round(P.loyf_taux *(BL >= P.loyf_seuil)*BL)
+    mnclcn = G90 
+    zimployf = mnclcn
 
-        Pcredit = P.credits_impots
-        if hasattr(P.reductions_impots,'saldom'): Pcredit.saldom =  P.reductions_impots.saldom
-        credits_impot = self.Credits(Pcredit, table)
-        
-        # Montant avant seuil de recouvrement
-        IMP = iai - credits_impot + tehr
-                            
-        ## Crédit d'impôt revenu de l'étranger
+    # Taxe exceptionelle sur l'indemnité compensatrice des agents d'assurance
+    #     H90_a1 = 0*max_(0,min_(self.f5qm,23000));
+    H90_a2 = .04*max_(0,min_(QM-23000,107000));
+    H90_a3 = .026*max_(0,QM-107000);
+    #     H90_b1 = 0*max_(0,min_(self.f5rm,23000));
+    H90_b2 = .04*max_(0,min_(RM-23000,107000));
+    H90_b3 = .026*max_(0,RM-107000);
+    
+    H90 = H90_a2 + H90_a3 + H90_b2 + H90_b3;
+
+    #  impôt avant imputation     
+    iai = iaidrdi + mnirvp + G90 + H90
+    
+    # Reprise du crédit d'impôt en faveur des jeunes, des accomptes et des versements mensues de prime pour l'emploi
+    reprise = zeros(self.taille) # TODO : self.reprise=J80;
+
+    Pcredit = P.credits_impots
+    if hasattr(P.reductions_impots,'saldom'): Pcredit.saldom =  P.reductions_impots.saldom
+    credits_impot = self.Credits(Pcredit, table)
+    
+    # Montant avant seuil de recouvrement
+    IMP = iai - credits_impot + tehr
+                        
+    ## Crédit d'impôt revenu de l'étranger
 #        abaetr = round(min_(max_(P.tspr.abatpro.taux*self.f8tk, P.tspr.abatpro.min),P.tspr.abatpro.max))
 #        saletr = self.f8tk - abaetr
 #        div = rni + (rni == 0)
 #        credimp_etranger = max_(0,saletr/div)*iaidrdi
-                
-        # Les variables d'impôts directs 
-        # impôt sur le revenu
-        mcirra = -((IMP<=-8)*IMP)
-        mciria = max_(0,(IMP>=0)*IMP - zimployf)
+            
+    # Les variables d'impôts directs 
+    # impôt sur le revenu
+    mcirra = -((IMP<=-8)*IMP)
+    mciria = max_(0,(IMP>=0)*IMP - zimployf)
 #        mciria = max_(0,(IMP>=0)*IMP - credimp_etranger - zimployf - ( self.f8to + self.f8tb + self.f8tc ))
-        
-        # Dans l'ERFS, les prelevement libératoire sur les montants non déclarés
-        # sont intégrés. Pas possible de le recalculer.
-        
-        table.openWriteMode()
+    
+    # Dans l'ERFS, les prelevement libératoire sur les montants non déclarés
+    # sont intégrés. Pas possible de le recalculer.
+    
+    table.openWriteMode()
 
 
-        # impot sur le revenu du foyer (hors prélèvement libératoire, revenus au quotient)
-        irpp   = -(mciria + self.ppetot - mcirra - mnirvp - mnirqu)
-        table.setColl('irpp', irpp, table = 'output')
+    # impot sur le revenu du foyer (hors prélèvement libératoire, revenus au quotient)
+    irpp   = -(mciria + self.ppetot - mcirra - mnirvp - mnirqu)
+    table.setColl('irpp', irpp, table = 'output')
 
-        impforf = mnirvp + mnirqu
-        
-        # TODO: La taxe d'habitation
-        thab = - zeros(self.taille)
-        table.setColl('thab', thab, table = 'output')
-        
-        zdivf = VC + VE + VG - VH + VL + VM \
-              + self.rpns_pvce + self.rpns_pvct - self.rpns_mvct - self.rpns_mvlt
-        
-        table.setColl('div', zdivf, table = 'output')
+    impforf = mnirvp + mnirqu
+    
+    # TODO: La taxe d'habitation
+    thab = - zeros(self.taille)
+    table.setColl('thab', thab, table = 'output')
+    
+    zdivf = VC + VE + VG - VH + VL + VM \
+          + self.rpns_pvce + self.rpns_pvct - self.rpns_mvct - self.rpns_mvlt
+    
+    table.setColl('div', zdivf, table = 'output')
 
-        zdiv_rmi = VC + VE + VG + VL + VM
-        
-        table.setColl('div_rmi', zdiv_rmi, table = 'output')
+    zdiv_rmi = VC + VE + VG + VL + VM
+    
+    table.setColl('div_rmi', zdiv_rmi, table = 'output')
 
-        revColl = rtonet + revcap_lib + revcap_bar + self.zetrf*0.9 + self.zfonf + zdivf + self.zglof - self.zalvf - GA - GB - GC - abaspe
-        table.setColl('revColl', revColl, table = 'output')
-        
-        # pour le calcul de l'allocation de soutien familial     
-        asf_elig = 1*(self.caseT | self.caseL)
-        table.set('asf_elig', asf_elig, 'foy', 'vous', table = 'output')
-        
-        table.set('al_nbinv', self.nbR, 'foy', 'vous', table = 'output')
-        
-        table.close_()
+    revColl = rtonet + revcap_lib + revcap_bar + self.zetrf*0.9 + self.zfonf + zdivf + self.zglof - self.zalvf - GA - GB - GC - abaspe
+    table.setColl('revColl', revColl, table = 'output')
+    
+    # pour le calcul de l'allocation de soutien familial     
+    asf_elig = 1*(self.caseT | self.caseL)
+    table.set('asf_elig', asf_elig, 'foy', 'vous', table = 'output')
+    
+    table.set('al_nbinv', self.nbR, 'foy', 'vous', table = 'output')
+    
+    table.close_()
 
-    def Tehr(self, rfr, nbadult, P):
-        return BarmMar(rfr/nbadult, P)*nbadult
+def Tehr(self, rfr, nbadult, P):
+    return BarmMar(rfr/nbadult, P)*nbadult
 
 def Glo(f1tv, f1tw, f1tx, f1uv, f1uw, f1ux, f3vf, f3vi, f3vj, f3vk):
     '''
