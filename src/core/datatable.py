@@ -23,36 +23,8 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-
-class Enum(object):
-    def __init__(self, varlist):
-        self._vars = {}
-        self._count = 0
-        for var in varlist:
-            self._vars.update({self._count:var})
-            self._count += 1
-        for key, var in self._vars.iteritems():
-            setattr(self, var, key)
-            
-    def __getitem__(self, var):
-        return getattr(self, var)
-
-    def __iter__(self):
-        return self.itervars()
-    
-    def itervars(self):
-        for key, val in self._vars.iteritems():
-            yield (val, key)
-            
-    def itervalues(self):
-        for val in self._vars:
-            yield val
-
-QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
+from utils import Enum
 QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
-QUIMEN = Enum(['pref', 'cref', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
-CAT    = Enum(['noncadre', 'cadre', 'fonc'])
-
 
 class Column(object):
     """
@@ -60,11 +32,9 @@ class Column(object):
     
     `label` : (str, unicode)
     `default` : any type, optional
-    `help` : (str, unicode)
-        Text displayed on data item's tooltip
     """
     count = 0
-    def __init__(self, label = None, default=None, help=''):
+    def __init__(self, label = None, default=None):
         self._order = Column.count
         Column.count += 1
         self._name = None
@@ -72,7 +42,6 @@ class Column(object):
         self._value = None
         self._label = label
         self._default = default
-        self._help = help
         self._dtype = None
 
     def set_name(self, name):
@@ -116,8 +85,15 @@ class Column(object):
                 out[person] = temp
             return out
 
-    def set_value(self):
-        return NotImplementedError('A Column is abstract: set_value should be implemented')
+    def set_value(self, value, index, opt = None):
+        if opt is None:
+            idx = index[0]
+        else:
+            idx = index[opt]
+        var = self._value
+        val = np.array(value, dtype = self._dtype)
+        var[idx['idxIndi']] = val[idx['idxUnit']]
+        self._value = var
 
     def __str__(self):
         return '%s' % self._name
@@ -209,7 +185,17 @@ class DataTable(object):
         
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
-                              'nb': self._nrows}}
+                              'nb': self._nrows},
+                      'noi': {}}
+        dct = self.index['noi']
+        nois = self.noi.get_value()
+        listnoi = np.unique(nois)
+        for noi in listnoi:
+            idxIndi = np.sort(np.squeeze((np.argwhere(nois == noi))))
+            idxUnit = np.searchsorted(listnoi, nois[idxIndi])
+            temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
+            dct.update({noi: temp}) 
+            
         for unit in units:
             try:
                 idx = getattr(self, 'id'+unit).get_value()
@@ -224,10 +210,7 @@ class DataTable(object):
             dct = self.index[unit]
             idxlist = np.unique(idx)
             dct['nb'] = len(idxlist)
-            
-            # should remove next line
-            setattr(self, 'nb'+unit, dct['nb'])
-            
+                        
             for person in enum.itervalues():
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
@@ -242,52 +225,36 @@ class DataTable(object):
         self.year = 2010
         self.datesim = date
         # pour l'instant, un seul menage répliqué n fois
-        for noi, person in scenario.indiv.iteritems():
-            if noi==0: loyer = scenario.menage[noi]['loyer']
-            else: loyer = 0
-            so = scenario.menage[person['noipref']]['so']
-            zone_apl = scenario.menage[person['noipref']]['zone_apl']
-
-            self.addPerson(noi = noi,
-                           loyer = loyer,
-                           so = so,
-                           zone_apl = zone_apl,
-                           xaxis = self.XAXIS,
-                           **person)
+        for noi, dct in scenario.indiv.iteritems():
+            noipref = dct['noipref']
+            noidec = dct['noidec']
+            noichef = dct['noichef']
+            quifoy = self.quifoy.enum[dct['quifoy']]
+            quifam = self.quifam.enum[dct['quifam']]
+            quimen = self.quimen.enum[dct['quimen']]
+            self.addPerson(noi, quifoy, quifam, quimen, noidec, noichef, noipref)
         self._isPopulated = True
 
-    def addPerson(self, noi, xaxis,  birth, loyer, zone_apl, so, quifoy, quifam, quimen, noidec, noichef, noipref, inv, alt, activite, statmarit=0, sal =0, cho =0, rst = 0, choCheckBox = 0, hsup = 0, ppeCheckBox = 0, ppeHeure = 0, **kwargs):
+        self.gen_index(['foy', 'fam', 'men'])
+                
+        index = self.index['noi']
+        for noi, dct in scenario.indiv.iteritems():
+            for var, val in dct.iteritems():
+                if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
+                col = getattr(self, var)
+                if not index[noi] is None:
+                    col.set_value(np.ones(self._nmen)*val, index, noi)
+
+    def addPerson(self, noi, quifoy, quifam, quimen, noidec, noichef, noipref):
         for i in xrange(self._nmen):
             indiv = self.row()
             indiv['noi']   = noi
-            indiv['quifoy'] = QUIFOY[quifoy]
-            indiv['quifam'] = QUIFAM[quifam]
-            indiv['quimen'] = QUIMEN[quimen]
+            indiv['quifoy'] = quifoy
+            indiv['quifam'] = quifam
+            indiv['quimen'] = quimen
             indiv['idmen'] = 60000 + i + 1 
             indiv['idfoy'] = indiv['idmen']*100 + noidec
             indiv['idfam'] = indiv['idmen']*100 + noichef
-
-#            indiv['birth'] = birth.isoformat()
-            indiv['loyer'] = loyer
-            indiv['zone_apl'] = zone_apl
-            indiv['so'] = so
-            indiv['statmarit'] = statmarit
-            indiv['activite'] = activite
-            indiv['age'] = self.year- birth.year
-            indiv['agem'] = 12*(self.datesim.year- birth.year) + self.datesim.month - birth.month
-            indiv['choCheckBox'] = choCheckBox
-            indiv['hsup'] = hsup
-            indiv['ppeCheckBox'] = ppeCheckBox
-            indiv['ppeHeure'] = ppeHeure
-            indiv['sal'] = sal
-            indiv['cho'] = cho
-            indiv['rst'] = rst
-            if (noi == 0) and (self._nmen > 1):
-                var = i/(self._nmen-1)*self.MAXREV
-                indiv[xaxis] = var
-            indiv['inv'] = inv
-            indiv['alt'] = alt
-
             self.append()
 
     def append(self):
@@ -342,24 +309,24 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, label = None, default = 0, help=''):
-        super(IntCol, self).__init__(label, default, help)
+    def __init__(self, label = None, default = 0):
+        super(IntCol, self).__init__(label, default)
         self._dtype = np.int32
         
 class EnumCol(IntCol):
     '''
     A column of integer
     '''
-    def __init__(self, enum, label = None, default = 0, help=''):
-        super(EnumCol, self).__init__(label, default, help)
+    def __init__(self, enum, label = None, default = 0):
+        super(EnumCol, self).__init__(label, default)
         self.enum = enum
             
 class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False, help=''):
-        super(BoolCol, self).__init__(label, default, help)
+    def __init__(self, label = None, default = False):
+        super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
         
     def _init_value(self, nrows):
@@ -370,16 +337,28 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    def __init__(self, label = None, default = 0, help=''):
-        super(FloatCol, self).__init__(label, default, help)
+    def __init__(self, label = None, default = 0):
+        super(FloatCol, self).__init__(label, default)
         self._dtype = np.float32
         
 class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    def __init__(self, label = None, default = 0, help=''):
-        super(AgesCol, self).__init__(label, default, help)
+    def __init__(self, label = None, default = 0):
+        super(AgesCol, self).__init__(label, default)
         
     def get_value(self, index = None, opt = None, dflt = 0):
         return super(AgesCol, self).get_value(index, opt, dflt = -9999)
+
+class DateCol(Column):
+    '''
+    A column of Int to store ages of people
+    '''
+    def __init__(self, label = None, default = 0):
+        super(DateCol, self).__init__(label, default)
+        self._dtype = np.datetime64
+
+    def _init_value(self, nrows):
+        self._nrows = nrows
+        self._value = np.ones(nrows, dtype = self._dtype)

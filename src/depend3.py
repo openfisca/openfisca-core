@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from core.datatable import DataTable, AgesCol, IntCol, BoolCol, FloatCol, EnumCol, QUIFOY, QUIMEN, QUIFAM
+from core.datatable import DataTable, AgesCol, IntCol, BoolCol, FloatCol, EnumCol, DateCol
 from core.systemsf import SystemSf, Prestation
+from core.utils import Enum
 from parametres.paramData import XmlReader, Tree2Object
 import datetime
 from Utils import Scenario
+
+QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
+QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
+QUIMEN = Enum(['pref', 'cref', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
+CAT    = Enum(['noncadre', 'cadre', 'fonc'])
+
 
 date = datetime.date(2010,01,01)
 reader = XmlReader('data/param.xml', date)
@@ -21,6 +28,7 @@ class InputTable(DataTable):
     à générer avec un générateur de cas type
     '''
     noi = IntCol()
+    birth = DateCol()
 
     idmen   = IntCol() # 600001, 600002,
     idfoy   = IntCol() # idmen + noi du déclarant
@@ -44,6 +52,9 @@ class InputTable(DataTable):
     rst = FloatCol()#
     rto = FloatCol()#
     alr = FloatCol()#
+    fra = FloatCol()
+    statmarit = FloatCol()
+    
     brrmi_pfam = IntCol()#
     loyer = IntCol()
     age = AgesCol()#
