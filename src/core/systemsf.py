@@ -83,9 +83,9 @@ class Prestation(Column):
         self._children.add(prestation)
         prestation._parents.add(self)
 
-    def calculate(self, primitives, index):
+    def calculate(self, inputs, index):
         '''
-        Calculation solver.
+        Solver: finds dependencies and calculate accordingly all variables needed
         '''
         if self._isCalculated:
             return
@@ -95,17 +95,17 @@ class Prestation(Column):
         required = set(self.inputs)
         funcArgs = {}
         for var in required:
-            if var in [col._name for col in primitives._columns]:
+            if var in inputs.col_names:
                 if var in self._option: 
-                    funcArgs[var] = getattr(primitives, var).get_value(idx, self._option[var])
+                    funcArgs[var] = getattr(inputs, var).get_value(idx, self._option[var])
                 else:
-                    funcArgs[var] = getattr(primitives, var).get_value(idx)
+                    funcArgs[var] = getattr(inputs, var).get_value(idx)
         
         for var in self._parents:
             varname = var._name
             if varname in funcArgs:
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
-            var.calculate(primitives, index)
+            var.calculate(inputs, index)
             if varname in self._option: 
                 funcArgs[varname] = var.get_value(idx, self._option[varname])
             else:
@@ -121,7 +121,6 @@ class Prestation(Column):
         
         self.set_value(self._func(**funcArgs), idx)
         self._isCalculated = True
-
 
     def dep_resolve(self, resolved=set(), unresolved=set()):
         '''
@@ -140,20 +139,12 @@ class Prestation(Column):
         unresolved.remove(self)
 
 class SystemSf(DataTable):
-    """
-    Construct a SystemSf object is a set of Prestation objects
-        * title [string]
-        * comment [string]: text shown on the top of the first data item
-    """
     def __init__(self, param, title=None, comment=None):
         DataTable.__init__(self, 0, title, comment)
         self._primitives = set()
         self._param = param
         self._inputs = None
-        self._inputs_names = set()
         self._index = None
-        self.__nrows = None
-        self.__changed = False
         self.build()
 
     def _init_columns(self, nrows):
@@ -166,7 +157,7 @@ class SystemSf(DataTable):
         """
         return self._primitives
 
-    def buildPrestationsCloseDeps(self):
+    def build(self):
         # Build the closest dependencies  
         for column in self._columns:
             if column._needParam: column.set_param(self._param)
@@ -179,9 +170,6 @@ class SystemSf(DataTable):
                         break
                 if not found:
                     self._primitives.add(requiredVarName)
-                    
-    def build(self):
-        self.buildPrestationsCloseDeps()
         
     def set_inputs(self, inputs):
         '''
@@ -191,20 +179,20 @@ class SystemSf(DataTable):
             raise TypeError('inputs must be a DataTable')
         # check if all primitives are provided by the inputs
         for prim in self._primitives:
-            if not prim in [col._name for col in inputs._columns]:
+            if not prim in inputs.col_names:
                 raise Exception('%s is a required input and was not found in inputs' % prim)
-        self._nrows = inputs._nrows
-        self._init_columns(self._nrows)
-
+        # store inputs and indexes and nrows
         self._inputs = inputs
-        self._inputs_names = inputs.col_names
         self._index = inputs.index
+        self._nrows = inputs._nrows
+
+        self._init_columns(self._nrows)
         
     def calculate(self, var = None):
         if var is None:
             return "Will calculate all"
-        if not self._primitives <= self._inputs_names:
-            raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs_names, self._primitives, self._inputs_names))
+        if not self._primitives <= self._inputs.col_names:
+            raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs.col_names, self._primitives, self._inputs.col_names))
         column = getattr(self, var)
         column.calculate(self._inputs, self._index)
         

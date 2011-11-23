@@ -73,6 +73,7 @@ class Column(object):
         self._label = label
         self._default = default
         self._help = help
+        self._dtype = None
 
     def set_name(self, name):
         self._name = name
@@ -84,7 +85,8 @@ class Column(object):
         self._nrows = nrows
 
     def _init_value(self, nrows):
-        raise NotImplementedError('Column is abstract: _init_value should be implemented')
+        self._nrows = nrows
+        self._value = np.ones(nrows, dtype = self._dtype)*self._default
 
     def get_value(self, index = None, opt = None, dflt = 0):
         '''
@@ -108,7 +110,7 @@ class Column(object):
         else:
             out = {}
             for person in opt:
-                temp = np.ones(nb)*dflt
+                temp = np.ones(nb, dtype = var.dtype)*dflt
                 idx = index[person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
@@ -119,8 +121,6 @@ class Column(object):
 
     def __str__(self):
         return '%s' % self._name
-
-
 
 class DataTableMeta(type):
     """
@@ -202,7 +202,6 @@ class DataTable(object):
         Return data set comment
         """
         return self.__comment
-
 
     def gen_index(self, units):
         if not self._isPopulated:
@@ -345,11 +344,8 @@ class IntCol(Column):
     '''
     def __init__(self, label = None, default = 0, help=''):
         super(IntCol, self).__init__(label, default, help)
+        self._dtype = np.int32
         
-    def _init_value(self, nrows):
-        self._nrows = nrows
-        self._value = np.ones(nrows, dtype = np.int)*self._default
-
 class EnumCol(IntCol):
     '''
     A column of integer
@@ -364,6 +360,7 @@ class BoolCol(Column):
     '''
     def __init__(self, label = None, default = False, help=''):
         super(BoolCol, self).__init__(label, default, help)
+        self._dtype = np.bool
         
     def _init_value(self, nrows):
         self._nrows = nrows
@@ -375,11 +372,8 @@ class FloatCol(Column):
     '''
     def __init__(self, label = None, default = 0, help=''):
         super(FloatCol, self).__init__(label, default, help)
+        self._dtype = np.float32
         
-    def _init_value(self, nrows):
-        self._nrows = nrows
-        self._value = np.ones(nrows, dtype = np.float32)*self._default
-
 class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
