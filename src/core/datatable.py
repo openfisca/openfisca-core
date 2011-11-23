@@ -117,6 +117,11 @@ class Column(object):
     def set_value(self):
         return NotImplementedError('A Column is abstract: set_value should be implemented')
 
+    def __str__(self):
+        return '%s' % self._name
+
+
+
 class DataTableMeta(type):
     """
     DataTable metaclass
