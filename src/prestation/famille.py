@@ -324,7 +324,7 @@ def ASF(age, rst_fam, isol, asf_elig, _P, _option = {'age': ENFS}):
     asf_nbenfa = asf_nbenf
 
     asf_brut = round(isol*asf_elig*max_(0,asf_nbenfa*12*P.af.bmaf*P.asf.taux1 - rst_fam),2)    
-    asf_m    = round(isol*asf_elig*max_(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - rst_fam/12.0),2)
+#    asf_m    = round(isol*asf_elig*max_(0,asf_nbenf*P.af.bmaf*P.asf.taux1 - rst_fam/12.0),2)
 
     return asf_brut
 
@@ -398,11 +398,11 @@ def Paje_Base(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     plaf    = P.paje.base.plaf*plaf_tx + (plaf_tx>0)*P.paje.base.plaf_maj*majo
     plaf2   = plaf + 12*base2     # TODO vérifier l'aspect différentielle de la PAJE et le plaf2 de la paje
              
-    paje_brut = (nbenf>0)*((br_pf <  plaf)*base + 
+    paje_base = (nbenf>0)*((br_pf <  plaf)*base + 
                            (br_pf >= plaf)*max_(plaf2-br_pf,0)/12) 
     
-    # non cumulabe avec la CF, voir CumulPajeCF
-    return paje_brut
+    # non cumulabe avec la CF, voir Paje_CumulCf
+    return paje_base
 
 def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENFS, 'agem': ENFS}):
     '''
@@ -416,11 +416,8 @@ def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENF
     # donc les enfants concernés sont les enfants qui ont -2 mois  
     nbnais = 0
     for age_m in agem.itervalues():
-        nbnais += (agem==-2)
-      
-#    benjamin  = age_en_mois_benjamin(P,2)
-#    prime     =  (benjamin==-2)
-    
+        nbnais += (age_m==-2)
+          
     # Et on compte le nombre d'enfants AF présents  pour le seul mois de la prime
     nbaf  = af_nbenf
     nbenf = nbaf + nbnais   # On ajoute l'enfant à  naître;
@@ -431,18 +428,17 @@ def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENF
     majo   = or_(isol,biact)
     nais_plaf    = paje_plaf*plaf_tx + majo
     elig = (br_pf <= nais_plaf)*(nbnais!=0)
-    nais_brut = nais_prime*elig*(1+nbnais)
+    nais_brut = nais_prime*elig*(nbnais)
     
     return nais_brut  
     
-
-def Paje_Clca(inactif, partiel1, partiel2, _P, paje_brut_m):
+def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {'age': ENFS, 'agem': ENFS}):
     '''
     Prestation d'accueil du jeune enfant - Complément de libre choix d'activité
     '''
     
     # http://www.caf.fr/wps/portal/particuliers/catalogue/metropole/paje
-    paje     = paje_brut_m >= 0
+    paje     = paje_base >= 0
     P = _P.fam
 
     # durée de versement :   
@@ -454,13 +450,16 @@ def Paje_Clca(inactif, partiel1, partiel2, _P, paje_brut_m):
     # Calcul de l'année et mois de naisage_in_months( du cadet 
     # TODO: ajuster en fonction de la cessation des IJ etc
     # TODO les 6 mois sont codés en dur 
-            
-    benjamin = age_en_mois_benjamin(P)
-   
-    condition1 =(Nb_Enf(P.af.age1,P.af.age2)==1)*(benjamin>=0)*(benjamin<6)
-    age = np.floor(benjamin/12)
-    condition2 = ( age <= (P.paje.base.age-1))            
-    condition = (Nb_Enf(0,P.af.age2)>=2)*condition2 + condition1 
+    
+    age_m_benjamin = 9999        
+    for age_m in agem.itervalues():
+        if (age_m > 0) & (age_m <= age_m_benjamin):
+            age_m_benjamin = age_m          
+    
+    condition1 =(Nb_Enf(P.af.age1,P.af.age2)==1)*(age_m_benjamin>=0)*(age_m_benjamin<6)
+    age_benjamin = np.floor(age_m_benjamin/12)
+    condition2 = ( age_benjamin <= (P.paje.base.age-1))            
+    condition = (Nb_Enf(age,0,P.af.age2)>=2)*condition2 + condition1 
     
     # TODO: rajouter ces infos aux parents et mensualiser
     # Temps partiel 1
@@ -475,21 +474,25 @@ def Paje_Clca(inactif, partiel1, partiel2, _P, paje_brut_m):
     # Temps de travail compris entre 77 et 122 heures par mois et un revenu professionnel mensuel ne dépassant pas
     #  (smic_8.27*169*136 %)
 
-    clca_brut = (condition*P.af.bmaf)*(
+    clca = (condition*P.af.bmaf)*(
                 (not_(paje))*(inactif*P.paje.clca.sansab_tx_inactif   +
                             partiel1*P.paje.clca.sansab_tx_partiel1 +
                             partiel2*P.paje.clca.sansab_tx_partiel2)  +
                 (paje)*(inactif*P.paje.clca.avecab_tx_inactif   +
                             partiel1*P.paje.clca.avecab_tx_partiel1 +
                             partiel2*P.paje.clca.avecab_tx_partiel2))
-    clca_brut = sum(clca_brut,axis=0)
+
+    return clca
     
-    clca_taux_plein =   (clca_brut>0)*inactif
-    clca_taux_partiel = (clca_brut>0)*partiel1
+def Paje_Clca_taux_plein(clca, inactif):
+    return (clca>0)*inactif
+
+def Paje_Clca_taux_partiel(clca, partiel1):
+    return (clca>0)*partiel1
             
     # TODO gérer les cumuls avec autres revenus et colca voir site caf
 
-def pajeClmg(af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P):
+def pajeClmg(age, af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P, _option = {'age': ENFS}):
     '''
     Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde
     '''
@@ -551,60 +554,51 @@ def pajeClmg(af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partie
 
 #        Si vous bénéficiez du Clca taux plein (= vous ne travaillez plus ou interrompez votre activité professionnelle), 
 #        vous ne pouvez pas bénéficier du Cmg.         
-    clmg_brut = elig*not_(clca_taux_plein)*clmg_brut
+    clmg = elig*not_(clca_taux_plein)*clmg_brut
     
     # TODO vérfiez les règles de cumul        
     
-    return clmg_brut
+    return clmg
     
-def pajeColca(opt_colca, paje_brut_m, _P):    
+def pajeColca(af_nbenf, agem, opt_colca, paje_brut, _P):    
     '''
     Prestation d'accueil du jeune enfant - Complément optionnel de libre choix du mode de garde
     '''
 
     P = _P.fam
-    condition = (age_en_mois_benjamin(P,0) < 12*P.paje.colca.age )*(age_en_mois_benjamin(P,0) >=0)   
-    nbenf = Nb_Enf(P.af.age1,P.af.age2)
     
-    paje = (paje_brut_m > 0)  
-    colca_brut = opt_colca*condition*(nbenf>=3)*P.af.bmaf*(
+    age_m_benjamin = 12*99
+    for age_m in agem.itervalues():
+        if (age_m > 0) & (age_m <= age_m_benjamin):
+            age_m_benjamin = age_m          
+    
+    condition = (age_m_benjamin < 12*P.paje.colca.age )*(age_m_benjamin >=0)   
+    nbenf = af_nbenf
+    
+    paje = (paje_brut > 0)  
+    colca = opt_colca*condition*(nbenf>=3)*P.af.bmaf*(
         (paje)*P.paje.colca.avecab + not_(paje)*P.paje.colca.sansab )
 
-    return colca_brut.sum(axis=0)
+    return colca
 
     #TODO: cumul avec clca self.colca_tot_m 
 
-def CumulPajeCf(paje_brut_m, cf_brut_m, _P):
+def Paje_CumulCf(paje_base_temp, cf_temp):
     '''
     L'allocation de base de la paje n'est pas cummulable avec le complément familial
     '''
-    P = _P.fam
-    crds = P.af.crds
-    
     # On regarde ce qui est le plus intéressant pour la famille, chaque mois
-    paje_brut_m = (paje_brut_m >= cf_brut_m)*paje_brut_m
-    cf_brut_m   = (paje_brut_m <  cf_brut_m)*cf_brut_m
+    paje_base = (paje_base_temp >= cf_temp)*paje_base_temp
+    return round(paje_base, 2)
     
-    paje_brut  = round(paje_brut_m.sum(axis=0), 2)
-    paje_crds  = round(paje_brut*crds, 2)
-    paje_tot   = paje_brut - paje_crds
-#        self.paje_tot_m = round(self.paje_brut_m*(1-crds), 2)
-
-    table = self.population
-    table.openWriteMode()
-    table.set('paje', self.paje_tot, 'fam', 'chef', table = 'output')
+def Cf_CumulPaje(paje_base_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    cf_brut   = (paje_base_temp <  cf_temp)*cf_temp
+    return round(cf_brut, 2)
     
-    self.cf_brut = round(cf_brut_m.sum(axis=0), 2)
-    self.cf_crds   = round(self.cf_brut*crds, 2)
-    self.cf_tot    = self.cf_brut - self.cf_crds
-#        self.cf_tot_m = round(self.cf_brut_m*(1-crds), 2)
-    
-    table.set('cf', self.cf_tot, 'fam', 'chef', table = 'output')
-    table.close_()
-
-    # TODO return
-    
-def AEEH(self, _P):
+def AEEH(inv, isol, categ_inv, _P, ):
     '''
     Allocation d'éducation de l'enfant handicapé (Allocation d'éducation spécialisée avant le 1er janvier 2006)
     '''
@@ -616,16 +610,18 @@ def AEEH(self, _P):
 #
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
     P = _P.fam
+    
+    
     enfhand = np.array( [ getattr(self, 'inv%d' %(i+1)) for i in range(self.nbenfmax) ] )
     ages =  self.ages
 
     enfhand = (enfhand*(ages < P.aeeh.age)).sum(axis=0)/12
     
     isole =  isol
-    categ = ones((self.nbenfmax,self.taille)) 
+    categ = categ_inv 
     
     if self.datesim <= date(2002, 1,1): 
-        aeeh = 0*enfhand
+        aeeh = 0*enfhand    # TODO
     else:
         aeeh  = enfhand*(P.af.bmaf*(P.aeeh.base + 
                               P.aeeh.cpl1*(categ==1) + 

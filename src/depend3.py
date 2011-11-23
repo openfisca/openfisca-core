@@ -68,7 +68,7 @@ inputs.gen_index(['men', 'foy', 'fam'])
 from prestation.famille import (AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF, 
                                 Biact, Tspr_Fam, Rpns_Fam, 
                                 Rev_PF, Br_PF, CF, ASF, ARS,
-                                Paje_Base, Paje_Nais)
+                                Paje_Base, Paje_Nais, Paje_CumulCf, Cf_CumulPaje)
 
 class Pfam(SystemSf):
     
@@ -86,28 +86,33 @@ class Pfam(SystemSf):
     
     rev_pf   = Prestation(Rev_PF, 'fam', label ='Base ressource individuele des prestations familiales')
     br_pf    = Prestation(Br_PF, 'fam', label ='Base ressource des prestations familiales')
-    cf       = Prestation(CF, 'fam', label = u"Complément familial")
+    cf_temp  = Prestation(CF, 'fam', label = u"Complément familial avant d'éventuels cumuls")
     asf      = Prestation(ASF, 'fam', label = u"Allocation de soutien familial")
 # TODO mensualisation âge    ars     = Prestation(ARS, 'fam', label = u"Allocation de rentrée scolaire")
-    paje_base= Prestation(Paje_Base, 'fam', label = u"Allocation de base de la PAJE")
-    paje_nais= Prestation(Paje_Nais, 'fam', label = u"Allocation de naissance de la PAJE")
+    paje_base_temp = Prestation(Paje_Base, 'fam', label = u"Allocation de base de la PAJE sans tenir compte d'éventuels cumuls")
+    paje_base      = Prestation(Paje_CumulCf, 'fam', label = u"Allocation de base de la PAJE")
+    cf             = Prestation(Cf_CumulPaje, 'fam', label = u"Complément familial avant d'éventuels cumuls")
+    paje_nais      = Prestation(Paje_Nais, 'fam', label = u"Allocation de naissance de la PAJE")
 
 pfam = Pfam(P)
 pfam.set_inputs(inputs)
 pfam.calculate('af')
-pfam.calculate('cf')
+pfam.calculate('cf_temp')
 pfam.calculate('asf')
 #pfam.calculate('ars')
+pfam.calculate('paje_base_temp')
+pfam.calculate('cf')
 pfam.calculate('paje_base')
-#pfam.calculate('paje_nais')
+pfam.calculate('paje_nais')
 
 print inputs.age.get_value()
 print pfam.af.get_value()
 print pfam.af_nbenf.get_value()
 print pfam.af_base.get_value()
 
+print pfam.cf_temp.get_value()
 print pfam.cf.get_value()
 print pfam.asf.get_value()
 #print pfam.ars.get_value()
 print pfam.paje_base.get_value()
-#print pfam.paje_nais.get_value()
+print pfam.paje_nais.get_value()
