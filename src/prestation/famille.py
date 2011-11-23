@@ -141,9 +141,7 @@ def Rpns_Fam(rpns, _option = {'rpns': [CHEF, PART]}):
 
 def Nb_Enf(ages, ag1, ag2):
     '''
-    Renvoie le nombre d'enfant à charge au sens des allocations familiales, 
-    sous la forme d'une matrice [12,self.taille] avec le nombre d enfant dont l'âge
-    est compris entre ag1 et ag2, à chaque mois de l'année.
+    Renvoie le nombre d'enfant dont l'âge est compris entre ag1 et ag2
     '''
 #        Les allocations sont dues à compter du mois civil qui suit la naissance 
 #        ag1==0 ou suivant les anniversaires ag1>0.  
@@ -169,16 +167,13 @@ def Age_Aine(ages, ag1, ag2):
         ageaine = isaine*age + not_(isaine)*ageaine
     return ageaine
 
-def age_en_mois_benjamin(self, P, nmois=0):
+def age_en_mois_benjamin(agems):
     '''
     renvoi un vecteur (une entree pour chaque famille) avec l'age du benjamin. 
     Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations familiales 
     en moins de nmois  
     '''
-    agems = self.agems
-    for i in range(1,self.nbenfmax+1):
-        agem = agems[:,i-1,:]
-        ispacaf      = (-nmois <= agem) & (agem <= 12*P.af.age2)
+    for agem in agems.itervalues():
         isbenjamin   = ispacaf & (agem < agem_benjamin)
         agem_benjamin = isbenjamin*agem + not_(isbenjamin)*agem_benjamin
     return agem_benjamin
@@ -376,7 +371,7 @@ def PAJE(self, Param):
     self.pajeClmg(Param)
     self.pajeColca(Param)
 
-def pajeBase(br_pf, isol, biact, _P):
+def Paje_Base(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     ''' 
     Prestation d'acceuil du jeune enfant - allocation de base
     '''
@@ -396,10 +391,10 @@ def pajeBase(br_pf, isol, biact, _P):
     # L'allocation de base est versée jusqu'au dernier jour du mois civil précédant 
     # celui au cours duquel l'enfant atteint l'âge de 3 ans.
     
-    nbenf = Nb_Enf(0,P.paje.base.age-1)
+    nbenf = Nb_Enf(age, 0,P.paje.base.age-1)
     
     plaf_tx = (nbenf>0) + P.paje.base.plaf_tx1*min_(nbenf,2) + P.paje.base.plaf_tx2*max_(nbenf-2,0)
-    majo    = isol | biact
+    majo    = or_(isol,biact)
     plaf    = P.paje.base.plaf*plaf_tx + (plaf_tx>0)*P.paje.base.plaf_maj*majo
     plaf2   = plaf + 12*base2     # TODO vérifier l'aspect différentielle de la PAJE et le plaf2 de la paje
              
@@ -409,7 +404,7 @@ def pajeBase(br_pf, isol, biact, _P):
     # non cumulabe avec la CF, voir CumulPajeCF
     return paje_brut
 
-def Paje_Nais(br_pf, isol, biact, _P):
+def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENFS, 'agem': ENFS}):
     '''
     Prestation d'accueil du jeune enfant - Allocation de naissance
     '''
@@ -418,22 +413,22 @@ def Paje_Nais(br_pf, isol, biact, _P):
     nais_prime = round(100*P.paje.nais.prime_tx*bmaf)/100
     
     # Versée au 7e mois de grossesse dans l'année
-    # donc les enfants concernés sont les enfants entre -2 mois au 1er janvier
-    # et -2 mois au 1er décembre
-    # On calcule le mois de versement de la prime
-    # TODO à mensualiser    
-    benjamin = age_en_mois_benjamin(P,2)
-    prime =  (benjamin==-2)
-    nbnais    = sum(Nb_Enf(-1,-1)*prime,axis=0)
-
+    # donc les enfants concernés sont les enfants qui ont -2 mois  
+    nbnais = 0
+    for age_m in agem.itervalues():
+        nbnais += (agem==-2)
+      
+#    benjamin  = age_en_mois_benjamin(P,2)
+#    prime     =  (benjamin==-2)
+    
     # Et on compte le nombre d'enfants AF présents  pour le seul mois de la prime
-    nbaf = sum(Nb_Enf(P.af.age1,P.af.age2)*prime,axis=0)
+    nbaf  = af_nbenf
     nbenf = nbaf + nbnais   # On ajoute l'enfant à  naître;
     
     paje_plaf = P.paje.base.plaf
             
     plaf_tx = 1 + P.paje.base.plaf_tx1*min_(nbenf,2) + P.paje.base.plaf_tx2*max_(nbenf-2.,0)
-    majo    = isol | biact
+    majo   = or_(isol,biact)
     nais_plaf    = paje_plaf*plaf_tx + majo
     elig = (br_pf <= nais_plaf)*(nbnais!=0)
     nais_brut = nais_prime*elig*(1+nbnais)
@@ -494,7 +489,7 @@ def Paje_Clca(inactif, partiel1, partiel2, _P, paje_brut_m):
             
     # TODO gérer les cumuls avec autres revenus et colca voir site caf
 
-def pajeClmg(br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P):
+def pajeClmg(af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P):
     '''
     Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde
     '''
@@ -525,7 +520,7 @@ def pajeClmg(br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_ta
     # TODO condition de revenu minimal
     
     P = _P.fam
-    nbenf = Nb_Enf(P.af.age1,P.af.age2)
+    nbenf = af_nbenf
     seuil1 = P.paje.clmg.seuil11*(nbenf==1) + P.paje.clmg.seuil12*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil1sup
     seuil2 = P.paje.clmg.seuil21*(nbenf==1) + P.paje.clmg.seuil22*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil2sup
 
@@ -536,8 +531,8 @@ def pajeClmg(br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_ta
     seuil1 = seuil1*(1-.5*clca_taux_partiel)
     seuil2 = seuil2*(1-.5*clca_taux_partiel)
     
-    clmg_brut = P.af.bmaf*((Nb_Enf(0,P.paje.clmg.age1-1)>0) + 
-                           0.5*(Nb_Enf(P.paje.clmg.age1,P.paje.clmg.age2-1)>0) 
+    clmg_brut = P.af.bmaf*((Nb_Enf(age, 0,P.paje.clmg.age1-1)>0) + 
+                           0.5*(Nb_Enf(age, P.paje.clmg.age1,P.paje.clmg.age2-1)>0) 
                            )*(
         empl_dir*(
             (br_pf < seuil1)*P.paje.clmg.empl_dir1 +
@@ -560,7 +555,6 @@ def pajeClmg(br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_ta
     
     # TODO vérfiez les règles de cumul        
     
-    clmg_brut = clmg_brut.sum(axis=0)
     return clmg_brut
     
 def pajeColca(opt_colca, paje_brut_m, _P):    
