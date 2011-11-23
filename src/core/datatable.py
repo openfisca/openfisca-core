@@ -23,8 +23,6 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-from core.utils import Enum
-QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 
 class Column(object):
     """
