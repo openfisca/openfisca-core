@@ -101,7 +101,7 @@ class Column(object):
             return var
         nb = index['nb']
         if opt is None:
-            temp = np.ones(nb)*dflt
+            temp = np.ones(nb, dtype = var.dtype)*dflt
             idx = index[0]
             temp[idx['idxUnit']] = var[idx['idxIndi']]
             return temp
@@ -162,6 +162,7 @@ class DataTable(object):
         if comment is None: self.__comment = comp_comment
         
         self.col_names = set()
+        self._isPopulated = False
 
     def _init_columns(self, nrows):
         for column in self._columns:
@@ -199,6 +200,9 @@ class DataTable(object):
 
 
     def gen_index(self, units):
+        if not self._isPopulated:
+            raise Exception('Table should be populated from a scenario or external data')
+        
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
                               'nb': self._nrows}}
@@ -246,6 +250,7 @@ class DataTable(object):
                            zone_apl = zone_apl,
                            xaxis = self.XAXIS,
                            **person)
+        self._isPopulated = True
 
     def addPerson(self, noi, xaxis,  birth, loyer, zone_apl, so, quifoy, quifam, quimen, noidec, noichef, noipref, inv, alt, activite, statmarit=0, sal =0, cho =0, rst = 0, choCheckBox = 0, hsup = 0, ppeCheckBox = 0, ppeHeure = 0, **kwargs):
         for i in xrange(self._nmen):
