@@ -28,100 +28,51 @@ from Utils import BarmMar
 import charges_deductibles
 import reductions_impots
 import credits_impots
-from core.datatable import QUIFOY
+from core.datatable import QUIFOY, QUIFAM, QUIMEN
 VOUS = QUIFOY['vous']
 CONJ = QUIFOY['conj']
 ALL = []
 for qui in QUIFOY:
-    ALL.append(qui)
+    ALL.append(qui[1])
+        
+#self.nbadult = 2*self.marpac + 1*(self.celdiv | self.veuf)
+#
+#self.zglof = self.Glo(table)
+#self.zetrf = zeros(self.taille)
+#self.jveuf = zeros(self.taille, dtype = bool)
+#self.jourXYZ = 360*ones(self.taille)
 
-class IRPP(object):
+        
+def MarPac(statmarit):
     '''
-    objet contenant la table foyer et les methodes associées
+    Marié ou Pacsé
     '''
-    def __init__(self, table):
-        super(IRPP,self).__init__()
-        '''
-        Constructor
-        '''
-        self.population = table
-        self.declVar = table.scenario.declar
-        self.taille = self.population.nbFoy
-        self.year   = self.population.year
-        self.scenar2foy = self.population.scenar2foy
-        self.people = ['vous','conj','pac1','pac2','pac3']
-        self._createFoyer(table)
-                
-    def _createFoyer(self, table):
-        table.openReadMode()
-        cases = ['caseK', 'caseE', 'caseH', 'caseN', 'caseL', 'caseP', 
-                 'caseF', 'caseW', 'caseS', 'caseG', 'caseT',
-                 'nbF', 'nbH', 'nbG', 'nbI', 'nbR', 'nbJ', 'nbN']
-        for case in cases:
-            setattr(self, case, table.get(case, 'foy', qui = 'vous', table = 'declar'))
+    return (statmarit == 1) | (statmarit == 5)
 
-        table.close_()
-                
-    def _retrieveIndiv(self, table):
+def CelDiv(statmarit):
+    '''
+    Célibataire ou divorcé
+    '''
+    return (statmarit == 2) | (statmarit == 3)
 
-        table.openReadMode()
-        # On récupère l'âge au premier janvier du déclarant et de son conjoint
-        self.agev, self.agec = table.get('age', 'foy', qui = ['vous', 'conj'])
+def Veuf(statmarit):
+    '''
+    Veuf
+    '''
+    return statmarit == 4
 
-        
-        # On récupère le statut marital
-        self.statmarit = table.get('statmarit', 'foy', 'vous')
+def JVeuf(statmarit):
+    '''
+    Jeune Veuf
+    '''
+    return statmarit == 6
 
-        self.marpac = (self.statmarit == 1) | (self.statmarit == 5)
-        self.celdiv = (self.statmarit == 2) | (self.statmarit == 3)
-        self.veuf   =  self.statmarit == 4
-        
-        self.nbadult = 2*self.marpac + 1*(self.celdiv | self.veuf)
-
-        self.zglof = self.Glo(table)
-        table.close_()
-        
-        table.openWriteMode()
-
-        #2 Revenus des valeurs et capitaux mobiliers
-        # gains de levée d'options du foyer
-        table.setColl('glo',self.zglof, table = 'output')
-        # TODO : ty ? uy ?
-
-        # Revenus d'activité imposés au quotient
-#        zquof = self.f0xx
-#        table.setColl('quo', zquof)
-
-        # Revenus de l'étranger
-        self.zetrf = zeros(self.taille)
-#        self.zetrf = self.f8ti + self.f1dy + self.f1ey
-#        table.setColl('etr', self.zetrf)
-
-        self.jveuf = zeros(self.taille, dtype = bool)
-        self.jourXYZ = 360*ones(self.taille)
-
-        table.close_()
-
-def Rbg(alloc, revcat, nbptr, deficitante, deficitante, f6gh, _P):
+def Rbg(alloc, revcat, deficitante, f6gh, _P):
     '''
     Revenu brut global (Total 17)
     '''
     # sans les revenus au quotient
     return max_(0, alloc + revcat + f6gh - deficitante)
-
-#    VA = table.get('f3va', 'foy', 'vous', table = 'declar')
-#    VC = table.get('f3vc', 'foy', 'vous', table = 'declar')
-#    VE = table.get('f3ve', 'foy', 'vous', table = 'declar')
-#    VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
-#    VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
-#    VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
-#    VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
-#    BL = table.get('f4bl', 'foy', 'vous', table = 'declar')
-#    QM = table.get('f5qm', 'foy', 'vous', table = 'declar')
-#    RM = table.get('f5rm', 'foy', 'vous', table = 'declar')
-#    GA = table.get('f7ga', 'foy', 'vous', table = 'declar')
-#    GB = table.get('f7gb', 'foy', 'vous', table = 'declar')
-#    GC = table.get('f7gc', 'foy', 'vous', table = 'declar')
 
 def CsgDeduc(rbg, f6de):
     '''
@@ -146,15 +97,26 @@ def Ir_Brut(nbptr, rni, _P):
     P = _P.ir.bareme
     return nbptr*BarmMar(rni/nbptr, P.bareme) # TODO : partir d'ici, petite différence avec Matlab
 
-def IR(self):
+
+def IR(self, table, rni, alloc, revcap_lib, f3vi, rtonet, revcap_bar, abaspe, natimp):
     '''
     suite du calcul de l'ir
     '''
-    ## Nature d'imposition
-    natimp = self.Non_imposabilite(rni, self.nbptr, P.non_imposable)
+    VA = table.get('f3va', 'foy', 'vous', table = 'declar')
+    VC = table.get('f3vc', 'foy', 'vous', table = 'declar')
+    VE = table.get('f3ve', 'foy', 'vous', table = 'declar')
+    VG = table.get('f3vg', 'foy', 'vous', table = 'declar')
+    VH = table.get('f3vh', 'foy', 'vous', table = 'declar')
+    VL = table.get('f3vl', 'foy', 'vous', table = 'declar')
+    VM = table.get('f3vm', 'foy', 'vous', table = 'declar')
+    BL = table.get('f4bl', 'foy', 'vous', table = 'declar')
+    QM = table.get('f5qm', 'foy', 'vous', table = 'declar')
+    RM = table.get('f5rm', 'foy', 'vous', table = 'declar')
+    GA = table.get('f7ga', 'foy', 'vous', table = 'declar')
+    GB = table.get('f7gb', 'foy', 'vous', table = 'declar')
+    GC = table.get('f7gc', 'foy', 'vous', table = 'declar')
 
-    ## calul de l'impôt sur le revenu
-
+    
     # Impôt après plafonnement du QF et réductions post-plafond
     IP = self.PlafQf(P)
 
@@ -177,14 +139,14 @@ def IR(self):
 #        self.rfr = (self.f8fv==0)*(max_(0, rni - alloc) + self.rfr_cd + rfr_ertf + self.rfr_rvcm + self.rfr_glof + self.rpns_exo + self.rpns_pvce + VA + VG)
     tehr = self.Tehr(self.rfr, self.nbadult, P.tehr)
     ## Réduction d'impôt
-    reductions = self.Reductions(IPnet, P.reductions_impots, table)
+    reductions = self.Reductions(IPnet, P.reductions_impots)
  
     # impot après imputation des réductions d'impôt
     iaidrdi  = IPnet - reductions
 
     ## 9. Impôt à payer 
     # Impôt sur les plus values à taux forfaitaires (16%, 22.5%, 30%, 40%)
-    mnirvp = self.Plus_values(P.plus_values, table)
+    mnirvp = self.Plus_values(P.plus_values)
 
     # TODO : contribution sur les revenus locatifs
     P.loyf_taux = 0.025
@@ -350,7 +312,10 @@ def Tspr_Cat(tspr, rtonet, _option = {'tspr': ALL}):
     
     return out
 
-def Rvcm(marpac, f2ch, f2dc, f2ts, f2ca, f2fu, f2go, f2tr,_P):
+def DeficitRcm(f2aa, f2al, f2am, f2an):
+    return f2aa + f2al + f2am + f2an
+
+def Rvcm(marpac, deficitrcm, f2ch, f2dc, f2ts, f2ca, f2fu, f2go, f2tr, _P):
     '''
     REVENUS DES VALEURS ET CAPITAUX MOBILIERS
     '''
@@ -383,7 +348,7 @@ def Rvcm(marpac, f2ch, f2dc, f2ts, f2ca, f2fu, f2go, f2tr,_P):
     F2 = f2ca - F1
     TOT3 = (f2ts - F2) + f2go*P.majGO + f2tr - g12a
 
-    DEF = AA + AL + AM + AN
+    DEF = deficitrcm
 
     ## TODO: pour le calcul du revenu fiscal de référence
     rfr_rvcm = max_((1-P.abatmob_taux)*(f2dc + f2fu) - i121, 0)
@@ -456,30 +421,9 @@ def Rfon(f4ba, f4bb, f4bc, f4bd, f4be, _P):
     RFON  = (c13>=0)*(g13 + e13*(e13<0)) - (c13<0)*d13
     return RFON
 
-def Rpns(self,P, table):
-    n = self.taille
-    self.rpns_pvce = zeros(n)
-    # revenus exonérés
-    self.rpns_exo =  zeros(n)
-    self.zragf = zeros(n)
-    self.zricf = zeros(n)
-    self.zracf = zeros(n)
-    self.zrncf = zeros(n)
+def Rpns(sal):
+    return 0*sal
 
-    self.rpns_pvct = zeros(n)
-    self.rpns_mvct = zeros(n)
-    self.rpns_mvlt = zeros(n)
-    
-    # imp_plusval_ces = plusval_ces*plusvalces_taux;
-    RPNS = zeros(n)
-    
-    # Calcul des revenus individuels
-    self.rpnsv = zeros(n)
-    self.rpnsc = zeros(n)
-    self.rpnsp = zeros(n)
-    
-    return RPNS
-    
 def Rpns_full(self, P, table):
     '''
     REVENUS DES PROFESSIONS NON SALARIEES
@@ -832,7 +776,7 @@ def RevCat(tspr_cat, rvcm, rfon, rpns):
 #    self.AUTRE = TSPR + RVCM + RFON
     return tspr_cat + rvcm + rfon + rpns
 
-def Deficit_anterieur(f6fa, f6fb, f6fc, f6fd, f6fe, f6fl):
+def DeficitAnte(f6fa, f6fb, f6fc, f6fd, f6fe, f6fl):
     '''
     Déficits antérieurs
     '''
@@ -896,7 +840,7 @@ def Non_imposabilite(rni, nbptr, _P):
     seuil = P.seuil + (nbptr - 1)*P.supp
     return rni >= seuil
 
-def Nbptr(nbF, nbG, nbH, nbI, nbR, nbJ, caseP, caseW, caseG, caseE, caseK, caseN, caseF, caseS, caseL, caseT, _P):
+def Nbptr(marpac, celdiv, veuf, jveuf, nbF, nbG, nbH, nbI, nbR, nbJ, caseP, caseW, caseG, caseE, caseK, caseN, caseF, caseS, caseL, caseT, _P):
     '''
     nombre de parts du foyer
     note 1 enfants et résidence alternée (formulaire 2041 GV page 10)
@@ -934,6 +878,7 @@ def Nbptr(nbF, nbG, nbH, nbI, nbR, nbJ, caseP, caseW, caseG, caseE, caseK, caseN
     
     ## note 3 : Pas de personne à charge
     # - invalide ;
+
     n31a = P.not31a*( noPAC & noAlt & caseP )
     # - ancien combatant ;
     n31b = P.not31b*( noPAC & noAlt & ( caseW | caseG ) ) 
@@ -969,10 +914,11 @@ def Nbptr(nbF, nbG, nbH, nbI, nbR, nbJ, caseP, caseW, caseG, caseE, caseK, caseN
     
     return (marpac | jveuf)*m + (veuf & not_(jveuf))*v + celdiv*c
     
-def PlafQf1(ir_brut, revimp, nbadult, nbptr, P):
+def PlafQf1(ir_brut, revimp, nbadult, nbptr, veuf, jveuf, celdiv, caseT, caseN, caseK, caseE, caseH, nbPAC, _P):
     '''
     Plafonnement du quotient familial - 1ère partie
     '''
+    P = _P.ir
     I = ir_brut
     A = BarmMar(revimp/nbadult,P.bareme)
     A = nbadult*A    
@@ -999,44 +945,44 @@ def PlafQf1(ir_brut, revimp, nbadult, nbptr, P):
     IP0 = I*(I>=C) + C*(I<C);
     return IP0
 
-def PlafQf2(ir_brut, revimp, nbadult, nbptr, P):
-    '''
-    Plafonnement du quotient familial - 1ère partie
-    '''
-    # 6.2 réduction d'impôt pratiquée sur l'impot après plafonnement et le cas particulier des DOM
-    # pas de réduction complémentaire
-    condition62a = (I>=C);
-    # réduction complémentaire
-    condition62b = (I<C);
-    # celdiv veuf
-    condition62caa0 = (celdiv | (veuf & not_(jveuf)))
-    condition62caa1 = (nbPAC==0)&(caseP | caseG | caseF | caseW)
-    condition62caa2 = caseP & ((nbF-nbG>0)|(nbH - nbI>0))
-    condition62caa3 = not_(caseN) & (caseE | caseK )  & (caseH>=1981)
-    condition62caa  = condition62caa0 & (condition62caa1 | condition62caa2 | condition62caa3)
-    # marié pacs
-    condition62cab = (marpac | jveuf) & caseS & not_(caseP | caseF)
-    condition62ca =    (condition62caa | condition62cab);
-
-    # plus de 590 euros si on a des plus de
-    condition62cb = ((nbG+nbR+nbI)>0) | caseP | caseF
-    D = P.plafond_qf.reduc_postplafond*(condition62ca + ~condition62ca*condition62cb*( 1*caseP + 1*caseF + nbG + nbR + nbI/2 ))
-
-    E = max_(0,A-I-B)
-    Fo = D*(D<=E) + E*(E<D)
-    IP1=IP0-Fo
-
-    # TODO :6.3 Cas particulier: Contribuables domiciliés dans les DOM.    
-    # conditionGuadMarReu =
-    # conditionGuyane=
-    # conitionDOM = conditionGuadMarReu | conditionGuyane;
-    # postplafGuadMarReu = 5100;
-    # postplafGuyane = 6700;
-    # IP2 = IP1 - conditionGuadMarReu*min( postplafGuadMarReu,.3*IP1)  - conditionGuyane*min(postplafGuyane,.4*IP1);
-
-
-    # Récapitulatif
-    return condition62a*IP0 + condition62b*IP1 # IP2 si DOM
+#def PlafQf2(ir_brut, revimp, nbadult, nbptr, P):
+#    '''
+#    Plafonnement du quotient familial - 1ère partie
+#    '''
+#    # 6.2 réduction d'impôt pratiquée sur l'impot après plafonnement et le cas particulier des DOM
+#    # pas de réduction complémentaire
+#    condition62a = (I>=C);
+#    # réduction complémentaire
+#    condition62b = (I<C);
+#    # celdiv veuf
+#    condition62caa0 = (celdiv | (veuf & not_(jveuf)))
+#    condition62caa1 = (nbPAC==0)&(caseP | caseG | caseF | caseW)
+#    condition62caa2 = caseP & ((nbF-nbG>0)|(nbH - nbI>0))
+#    condition62caa3 = not_(caseN) & (caseE | caseK )  & (caseH>=1981)
+#    condition62caa  = condition62caa0 & (condition62caa1 | condition62caa2 | condition62caa3)
+#    # marié pacs
+#    condition62cab = (marpac | jveuf) & caseS & not_(caseP | caseF)
+#    condition62ca =    (condition62caa | condition62cab);
+#
+#    # plus de 590 euros si on a des plus de
+#    condition62cb = ((nbG+nbR+nbI)>0) | caseP | caseF
+#    D = P.plafond_qf.reduc_postplafond*(condition62ca + ~condition62ca*condition62cb*( 1*caseP + 1*caseF + nbG + nbR + nbI/2 ))
+#
+#    E = max_(0,A-I-B)
+#    Fo = D*(D<=E) + E*(E<D)
+#    IP1=IP0-Fo
+#
+#    # TODO :6.3 Cas particulier: Contribuables domiciliés dans les DOM.    
+#    # conditionGuadMarReu =
+#    # conditionGuyane=
+#    # conitionDOM = conditionGuadMarReu | conditionGuyane;
+#    # postplafGuadMarReu = 5100;
+#    # postplafGuyane = 6700;
+#    # IP2 = IP1 - conditionGuadMarReu*min( postplafGuadMarReu,.3*IP1)  - conditionGuyane*min(postplafGuyane,.4*IP1);
+#
+#
+#    # Récapitulatif
+#    return condition62a*IP0 + condition62b*IP1 # IP2 si DOM
 
 def Decote(self, IP, P):
     return (IP < P.seuil)*(P.seuil - IP)*0.5
@@ -1268,6 +1214,153 @@ def Ppe(self,P):
     table.close_()
 
     return PPE_tot
+
+
+
+
+from core.systemsf import SystemSf, Prestation
+from core.datatable import DataTable, IntCol, EnumCol, BoolCol, FloatCol, AgesCol
+from parametres.paramData import XmlReader, Tree2Object
+from Utils import Scenario
+
+
+class InputTable(DataTable):
+    '''
+    Socio-economic data
+    Donnée d'entrée de la simulation à fournir à partir d'une enquète ou 
+    à générer avec un générateur de cas type
+    '''
+    noi = IntCol()
+
+    idmen   = IntCol() # 600001, 600002,
+    idfoy   = IntCol() # idmen + noi du déclarant
+    idfam   = IntCol() # idmen + noi du chef de famille
+
+    quimen  = EnumCol(QUIMEN)
+    quifoy  = EnumCol(QUIFOY)
+    quifam  = EnumCol(QUIFAM)
+    
+    sal = IntCol()
+    cho = IntCol()
+    rst = IntCol()
+    fra = IntCol()
+    alr = IntCol()
+    
+    hsup = IntCol()
+    inv = BoolCol()
+    alt = BoolCol()
+    choCheckBox = BoolCol()
+    ppeCheckBox = BoolCol()
+    ppeHeure = IntCol()
+    age = AgesCol()
+    agem = AgesCol()
+    zone_apl = IntCol()
+    loyer = IntCol()
+    so = IntCol(default = 3)
+    activite = IntCol()
+    statmarit = IntCol(default = 2)
+    
+    nbR = IntCol()
+    nbJ = IntCol()
+    nbI = IntCol()
+    nbH = IntCol()
+    nbG = IntCol()
+    nbF = IntCol()
+    
+    caseK = BoolCol()
+    caseL = BoolCol()
+    caseN = BoolCol()
+    caseE = BoolCol()
+    caseG = BoolCol()
+    caseF = BoolCol()
+    caseP = BoolCol()
+    caseS = BoolCol()
+    caseT = BoolCol()
+    caseW = BoolCol()
+    
+    # Rentes viagères
+    f1aw = IntCol()
+    f1bw = IntCol()
+    f1cw = IntCol()
+    f1dw = IntCol()
+    # RVCM
+    f2ch = IntCol()
+    f2dc = IntCol()
+    f2ts = IntCol()
+    f2ca = IntCol()
+    f2fu = IntCol()
+    f2go = IntCol()
+    f2tr = IntCol()
+    
+    f2aa = IntCol()
+    f2al = IntCol()
+    f2am = IntCol()
+    f2an = IntCol()
+    # Deficit Antérieur
+    f6fa = IntCol()
+    f6fb = IntCol()
+    f6fc = IntCol()
+    f6fd = IntCol()
+    f6fe = IntCol()
+    f6fl = IntCol()
+    
+    f6gh = IntCol()
+    # Revenu foncier
+    f4ba = IntCol()
+    f4bb = IntCol()
+    f4bc = IntCol()
+    f4bd = IntCol()
+    f4be = IntCol()
+    # from elsewhere
+    af = FloatCol()
+    
+class IRPPnew(SystemSf):
+    marpac = Prestation(MarPac, 'foy')
+    celdiv = Prestation(CelDiv, 'foy')
+    veuf = Prestation(Veuf, 'foy')
+    jveuf = Prestation(JVeuf, 'foy')
+
+    rbg = Prestation(Rbg, 'foy', label = u"Revenu brut global")
+    rng = Prestation(Rng, 'foy', label = u"Revenu net global")
+    rni = Prestation(Rni, 'foy', label = u"Revenu net imposable")
+    abaspe = Prestation(AbaSpe, 'foy', label = u"Abattements spéciaux")
+    alloc = Prestation(Alloc, 'foy', label = u"Allocation familiale pour l'ir")
+    deficitante = Prestation(DeficitAnte, 'foy', label = u"Déficit global antérieur")
+    revcat = Prestation(RevCat, 'foy', label = u"Revenus catégoriels")
+    nbptr = Prestation(Nbptr, 'foy', label = u"Nombre de parts")
+    tspr_cat = Prestation(Tspr_Cat, 'foy', label = u"Revenu catégoriel - Salaires, pensions et rentes")
+    tspr = Prestation(Tspr)
+    salnet = Prestation(SalNet)
+    revsal = Prestation(RevSal)
+    pennet = Prestation(PenNet)
+    revpen = Prestation(RevPen)
+    rvcm = Prestation(Rvcm, 'foy', label = u'Revenu catégoriel - Capitaux')
+    rpns = Prestation(Rpns, 'foy', label = u'Revenu catégoriel - Rpns')
+    rfon = Prestation(Rfon, 'foy', label = u'Revenu catégoriel - Foncier')
+    rtonet = Prestation(RtoNet, 'foy', label = u'Rentes viagère après abattements')
+    deficitrcm = Prestation(DeficitRcm, 'foy', u'Deficit capitaux mobiliers')
+    
+if __name__ == '__main__':
+    import datetime
+    date = datetime.date(2010,01,01)
+    reader = XmlReader('../data/param.xml', date)
+    P = Tree2Object(reader.tree)
+
+    f = '../castypes/2010 - Couple 3 enfants.ofct'
+    scenario = Scenario()
+    scenario.openFile(f)
+    
+    
+    inputs = InputTable(6)
+    inputs.populate_from_scenario(scenario, date)
+    inputs.gen_index(['men', 'foy', 'fam'])
+
+    ir = IRPPnew(P)
+    ir.set_inputs(inputs)
+    print ir._primitives
+    print ir._inputs
+    ir.calculate('rni')
+
     
 
     
