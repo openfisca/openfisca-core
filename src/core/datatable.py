@@ -71,15 +71,16 @@ class Column(object):
         if index is None:
             return var
         nb = index['nb']
+        if self._dtype == np.bool: dflt= (dflt != 0)
         if opt is None:
-            temp = np.ones(nb, dtype = var.dtype)*dflt
+            temp = np.ones(nb, dtype = self._dtype)*dflt
             idx = index[0]
             temp[idx['idxUnit']] = var[idx['idxIndi']]
             return temp
         else:
             out = {}
             for person in opt:
-                temp = np.ones(nb, dtype = var.dtype)*dflt
+                temp = np.ones(nb, dtype = self._dtype)*dflt
                 idx = index[person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
@@ -300,9 +301,9 @@ class DataTable(object):
             if length:
                 label = label.ljust(length)
                 
-            txt += indent+label+": "+"value_str"
+            txt += indent+label+": "
             if debug:
-                txt += " ("+column.__class__.__name__+")"
+                txt += column.__class__.__name__
         return txt
         
 class IntCol(Column):
