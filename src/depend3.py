@@ -71,19 +71,33 @@ class InputTable(DataTable):
     
     isol  = BoolCol(default=True)
     rev_coll = FloatCol()
+    inactif  = BoolCol()
+    partiel1 = BoolCol()
+    partiel2 = BoolCol() 
+    
+    empl_dir = BoolCol() 
+    ass_mat  = BoolCol() 
+    gar_dom  = BoolCol()
+    
     
 inputs = InputTable(6)
 inputs.populate_from_scenario(scenario, date)
 inputs.gen_index(['men', 'foy', 'fam'])
 
-from prestation.famille import (AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF, 
-                                Biact, Tspr_Fam, Rpns_Fam, 
+from prestation.famille import (Biact, Tspr_Fam, Rpns_Fam, Etu, Concub,
+                                AF_NbEnf, AF_Base, AF_Majo, AF_Forf, AF,
                                 Rev_PF, Br_PF, CF, ASF, ARS,
-                                Paje_Base, Paje_Nais, Paje_CumulCf, Cf_CumulPaje)
+                                Paje_Base, Paje_Nais, Paje_CumulCf, Cf_CumulPaje,
+                                Paje_Clca, Paje_Clca_Taux_Plein, Paje_Clca_Taux_Partiel,
+                                Paje_Clmg)
 
 class Pfam(SystemSf):
     
+    etu      = Prestation(Etu, label = u"Indicatrice individuelle étudiant")
     biact    = Prestation(Biact, 'fam', label = u"Indicatrice de biactivité")
+    concub   = Prestation(Concub, 'fam', label = u"Indicatrice de vie en couple") 
+    
+    
     rpns_fam = Prestation(Tspr_Fam, 'fam', label = u"Traitements, salaires, pensions et rentes de la famille")
     tspr_fam = Prestation(Rpns_Fam, 'fam', label = u"Revenus des personnes non salariés de la famille")
     rst_fam  = Prestation(Rpns_Fam, 'fam', label = u"Retraites au sens strict de la famille")
@@ -104,6 +118,12 @@ class Pfam(SystemSf):
     paje_base      = Prestation(Paje_CumulCf, 'fam', label = u"Allocation de base de la PAJE")
     cf             = Prestation(Cf_CumulPaje, 'fam', label = u"Complément familial avant d'éventuels cumuls")
     paje_nais      = Prestation(Paje_Nais, 'fam', label = u"Allocation de naissance de la PAJE")
+    paje_clca      = Prestation(Paje_Clca, 'fam', label = u"PAJE - Complément de libre choix d'activité")
+    paje_clca_taux_plein      = Prestation(Paje_Clca_Taux_Plein, 'fam', label = u"Indicatrice Clca taux plein")
+    paje_clca_taux_partiel      = Prestation(Paje_Clca_Taux_Partiel, 'fam', label = u"Indicatrice Clca taux partiel ")
+    #paje_clmg        = Prestation(Paje_Clmg, 'fam', label = u"PAJE - Complément de libre choix du mode de garde")
+    
+
 
 pfam = Pfam(P)
 pfam.set_inputs(inputs)
@@ -115,15 +135,22 @@ pfam.calculate('paje_base_temp')
 pfam.calculate('cf')
 pfam.calculate('paje_base')
 pfam.calculate('paje_nais')
+pfam.calculate('paje_clca')
+pfam.calculate('paje_clca_taux_plein')
+pfam.calculate('paje_clca_taux_partiel')
+#pfam.calculate('paje_clmg')
 
 print inputs.age.get_value()
 print pfam.af.get_value()
 print pfam.af_nbenf.get_value()
 print pfam.af_base.get_value()
-
 print pfam.cf_temp.get_value()
 print pfam.cf.get_value()
 print pfam.asf.get_value()
 #print pfam.ars.get_value()
 print pfam.paje_base.get_value()
 print pfam.paje_nais.get_value()
+print pfam.paje_clca.get_value()
+print pfam.paje_clca_taux_plein.get_value()
+print pfam.paje_clca_taux_partiel.get_value()
+#print pfam.paje_clmg.get_value()

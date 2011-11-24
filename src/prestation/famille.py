@@ -121,6 +121,37 @@ class Famille(object):
 
         table.close_()
 
+
+def NbPar():
+    '''
+    Nombre d'adulte dans la famille
+    '''
+
+def Couple(statmarit, _option):
+    '''
+    couple = 1 si couple marié sinon 0
+    '''
+     
+
+def Concub(nbpar):
+    '''
+    concub = 1 si couple 
+    '''
+    return nbpar==2
+
+
+def Etu(activite):
+    '''
+    Indicatrice individuelle etudiant
+    ''' 
+    return activite == 2
+
+def Sal_Fam(sal, _option = {'rst': [CHEF, PART]}):
+    '''
+    Salaires de la famille
+    ''' 
+    return sal[CHEF] + sal[PART]
+
 def Rst_Fam(rst, _option = {'rst': [CHEF, PART]}):
     '''
     Retraites au sens strict de la famille
@@ -173,21 +204,12 @@ def age_en_mois_benjamin(agems):
     Sont comptés les enfants qui peuvent devenir des enfants au sens  des allocations familiales 
     en moins de nmois  
     '''
+    agem_benjamin = 12*9999
     for agem in agems.itervalues():
-        isbenjamin   = ispacaf & (agem < agem_benjamin)
+        isbenjamin    = (agem < agem_benjamin)
         agem_benjamin = isbenjamin*agem + not_(isbenjamin)*agem_benjamin
     return agem_benjamin
 
-
-def Couple():
-    '''
-    couple = 1 si couple marié sinon 0
-    '''
-
-def Concub():
-    '''
-    concub = 1 si couple 
-    '''
 
 def Ra_Rsa(sal, hsup, rpns, etr, div_rmi):
     '''
@@ -451,12 +473,9 @@ def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {
     # TODO: ajuster en fonction de la cessation des IJ etc
     # TODO les 6 mois sont codés en dur 
     
-    age_m_benjamin = 9999        
-    for age_m in agem.itervalues():
-        if (age_m > 0) & (age_m <= age_m_benjamin):
-            age_m_benjamin = age_m          
-    
-    condition1 =(Nb_Enf(P.af.age1,P.af.age2)==1)*(age_m_benjamin>=0)*(age_m_benjamin<6)
+    age_m_benjamin = age_en_mois_benjamin(agem)
+
+    condition1 =(Nb_Enf(age, P.af.age1,P.af.age2)==1)*(age_m_benjamin>=0)*(age_m_benjamin<6)
     age_benjamin = np.floor(age_m_benjamin/12)
     condition2 = ( age_benjamin <= (P.paje.base.age-1))            
     condition = (Nb_Enf(age,0,P.af.age2)>=2)*condition2 + condition1 
@@ -474,7 +493,7 @@ def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {
     # Temps de travail compris entre 77 et 122 heures par mois et un revenu professionnel mensuel ne dépassant pas
     #  (smic_8.27*169*136 %)
 
-    clca = (condition*P.af.bmaf)*(
+    paje_clca = (condition*P.af.bmaf)*(
                 (not_(paje))*(inactif*P.paje.clca.sansab_tx_inactif   +
                             partiel1*P.paje.clca.sansab_tx_partiel1 +
                             partiel2*P.paje.clca.sansab_tx_partiel2)  +
@@ -482,17 +501,17 @@ def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {
                             partiel1*P.paje.clca.avecab_tx_partiel1 +
                             partiel2*P.paje.clca.avecab_tx_partiel2))
 
-    return clca
+    return paje_clca
     
-def Paje_Clca_taux_plein(clca, inactif):
-    return (clca>0)*inactif
+def Paje_Clca_Taux_Plein(paje_clca, inactif):
+    return (paje_clca>0)*inactif
 
-def Paje_Clca_taux_partiel(clca, partiel1):
-    return (clca>0)*partiel1
+def Paje_Clca_Taux_Partiel(paje_clca, partiel1):
+    return (paje_clca>0)*partiel1
             
     # TODO gérer les cumuls avec autres revenus et colca voir site caf
 
-def pajeClmg(age, af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_partiel, clca_taux_plein, _P, _option = {'age': ENFS}):
+def Paje_Clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, gar_dom, paje_clca_taux_partiel, paje_clca_taux_plein, _P, _option = {'age': ENFS, 'etu': [CHEF, PART], 'sal': [CHEF, PART]}):
     '''
     Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde
     '''
@@ -520,9 +539,20 @@ def pajeClmg(age, af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_p
 #Son salaire brut ne doit pas dépasser par jour de garde et par enfant 5 fois le montant du Smic horaire brut, soit au max_ 45,00 €.     Vous ne devez pas bénéficier de l'exonération des cotisations sociales dues pour la personne employée.
 #
 # 
-    # TODO condition de revenu minimal
-    
+       
     P = _P.fam
+   
+    # TODO condition de revenu minimal
+
+    cond_age_enf = (Nb_Enf(age, P.paje.clmg.age1,P.paje.clmg.age2-1)>0)
+    cond_sal     = (sal[CHEF] + sal[PART] > 12*P.af.bmaf_n_2*(1+concub))
+# TODO    cond_rpns    = 
+    cond_act     = cond_sal   # | cond_rpns
+    cond_nonact  =  or_((aah >0), etu[VOUS] & etu[PART])   
+#  TODO RSA insertion, alloc insertion, ass   
+    elig = cond_age_enf & (  or_(cond_act,cond_nonact) ) 
+             
+    
     nbenf = af_nbenf
     seuil1 = P.paje.clmg.seuil11*(nbenf==1) + P.paje.clmg.seuil12*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil1sup
     seuil2 = P.paje.clmg.seuil21*(nbenf==1) + P.paje.clmg.seuil22*(nbenf>=2) + max_(nbenf-2,0)*P.paje.clmg.seuil2sup
@@ -531,10 +561,10 @@ def pajeClmg(age, af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_p
 #        vous cumulez intégralement le Clca et le Cmg. 
 #        Si vous bénéficiez du Clca taux partiel (= vous travaillez à 50% ou moins de la durée 
 #        du travail fixée dans l'entreprise), le montant des plafonds Cmg est divisé par 2.
-    seuil1 = seuil1*(1-.5*clca_taux_partiel)
-    seuil2 = seuil2*(1-.5*clca_taux_partiel)
+    seuil1 = seuil1*(1-.5*paje_clca_taux_partiel)
+    seuil2 = seuil2*(1-.5*paje_clca_taux_partiel)
     
-    clmg_brut = P.af.bmaf*((Nb_Enf(age, 0,P.paje.clmg.age1-1)>0) + 
+    clmg = P.af.bmaf*((Nb_Enf(age, 0,P.paje.clmg.age1-1)>0) + 
                            0.5*(Nb_Enf(age, P.paje.clmg.age1,P.paje.clmg.age2-1)>0) 
                            )*(
         empl_dir*(
@@ -554,23 +584,20 @@ def pajeClmg(age, af_nbenf, br_pf, elig, empl_dir, ass_mat, gar_dom, clca_taux_p
 
 #        Si vous bénéficiez du Clca taux plein (= vous ne travaillez plus ou interrompez votre activité professionnelle), 
 #        vous ne pouvez pas bénéficier du Cmg.         
-    clmg = elig*not_(clca_taux_plein)*clmg_brut
+    paje_clmg = elig*not_(paje_clca_taux_plein)*clmg
     
     # TODO vérfiez les règles de cumul        
     
-    return clmg
+    return paje_clmg
     
-def pajeColca(af_nbenf, agem, opt_colca, paje_brut, _P):    
+def Paje_Colca(af_nbenf, agem, opt_colca, paje_brut, _P):    
     '''
     Prestation d'accueil du jeune enfant - Complément optionnel de libre choix du mode de garde
     '''
 
     P = _P.fam
     
-    age_m_benjamin = 12*99
-    for age_m in agem.itervalues():
-        if (age_m > 0) & (age_m <= age_m_benjamin):
-            age_m_benjamin = age_m          
+    age_m_benjamin = age_en_mois_benjamin(agem)
     
     condition = (age_m_benjamin < 12*P.paje.colca.age )*(age_m_benjamin >=0)   
     nbenf = af_nbenf
@@ -1441,7 +1468,16 @@ def ASPA_ASI(self,Param):
     self.mv = self.aspaC + self.aspaP    
 
 
-def AAH(self, P):
+# TODO fix this
+def Br_Aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
+     
+        br_aah = br_pf/12 + asi[CHEF] + aspa[CHEF] + asi[PART] + aspa[PART]
+        
+#    elif hasattr(self, "mv_m"):  br_aah = br_pf/12 + mv
+        return br_aah
+
+
+def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}):
     '''
     Allocation adulte handicapé (montant mensuel)
     '''
@@ -1488,32 +1524,21 @@ def AAH(self, P):
     nbh_travaillees = 151.67*12
     smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
 
-    eligC = ( (self.invC==1) &
-              ( (self.ageC >= P.fam.aeeh.age) | (self.ageC >= 16) & (self.revChef > P.fam.af.seuil_rev_taux*smic_annuel)) & 
-                (self.ageC <= P.minim.aah.age_legal_retraite ))    
+    eligC = ( (inv[CHEF]==1) &
+              ( (age[CHEF] >= P.fam.aeeh.age) | (age[CHEF] >= 16) & (rev[CHEF] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+                (age[CHEF] <= P.minim.aah.age_legal_retraite ))    
 
-    eligP = ( (self.invP==1) &
-              ( (self.ageP >= P.fam.aeeh.age) | (self.ageP >= 16) & (self.revPart > P.fam.af.seuil_rev_taux*smic_annuel)) & 
-                (self.ageP <= P.minim.aah.age_legal_retraite ))
+    eligP = ( (inv[PART]==1) &
+              ( (age[PART] >= P.fam.aeeh.age) | (age[PART] >= 16) & (rev[PART] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+                (age[PART] <= P.minim.aah.age_legal_retraite ))
 
-    plaf = 12*P.minim.aah.montant*(1 + self.coup + P.minim.aah.tx_plaf_supp*self.Nb_Enf(P.fam.af.age1, P.fam.af.age2))
+    plaf = 12*P.minim.aah.montant*(1 + concub + P.minim.aah.tx_plaf_supp*af_nbenf)
 
-    if hasattr(self, "asiC_m") & hasattr(self, "aspaC_m"): 
-        self.BRaah = br_pf/12 + self.asiC_m + self.aspaC_m + self.asiP_m + self.aspaP_m
-        del self.asiP_m, self.asiC_m, self.aspaP_m, self.aspaC_m
-    elif hasattr(self, "mv_m"):     
-        self.BRaah = br_pf/12 + self.mv_m
-        del self.mv_m
 
-    eligib = ( eligC | eligP )*(self.BRaah <= plaf)
-    aah_m = eligib*max_(P.minim.aah.montant - self.BRaah, 0 ) 
+    eligib = ( eligC | eligP )*(br_aah <= plaf)
+    aah = eligib*max_(P.minim.aah.montant - br_aah, 0 ) 
     
     # l'aah est exonérée de crds 
-    self.aah = aah_m.sum(axis=0)
-    
-    self.population.openWriteMode()
-    self.population.set('aah', self.aah, 'fam', 'chef', table = 'output')
-    self.population.close_()
 
 #        Cumul d'allocation
 # L'AAH peut être cumulée :
@@ -1527,6 +1552,8 @@ def AAH(self, P):
 # L'AAH n'est pas cumulable avec la perception d'un avantage de vieillesse, 
 # d'invalidité, ou d'accident du travail si cet avantage est d'un montant au 
 # moins égal à ladite allocation.
+    return aah
+
 
 def CAAH(self, Param):
     '''
