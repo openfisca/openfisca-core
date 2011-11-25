@@ -373,7 +373,7 @@ def ARS(age, br_pf, _P, _option = {'age': ENFS}):
     
     arsnbenf =   enf_primaire + enf_college + enf_lycee
     
-    ars_plaf_res = P.ars.plaf*(1+ ars_nbenf*P.ars.plaf_enf_supp)
+    ars_plaf_res = P.ars.plaf*(1+ arsnbenf*P.ars.plaf_enf_supp)
     arsbase  = bmaf*(P.ars.tx0610*enf_primaire + 
                      P.ars.tx1114*enf_college + 
                      P.ars.tx1518*enf_lycee )
@@ -625,7 +625,7 @@ def Cf_CumulPaje(paje_base_temp, cf_temp):
     cf_brut   = (paje_base_temp <  cf_temp)*cf_temp
     return round(cf_brut, 2)
     
-def AEEH(inv, isol, categ_inv, _P, ):
+def Aeeh(age, inv, isol, categ_inv, _P, _option = {'categ_inv': ENFS, 'inv': ENFS, 'age': ENFS}):
     '''
     Allocation d'éducation de l'enfant handicapé (Allocation d'éducation spécialisée avant le 1er janvier 2006)
     '''
@@ -637,20 +637,18 @@ def AEEH(inv, isol, categ_inv, _P, ):
 #
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
     P = _P.fam
-    
-    
-    enfhand = np.array( [ getattr(self, 'inv%d' %(i+1)) for i in range(self.nbenfmax) ] )
-    ages =  self.ages
-
-    enfhand = (enfhand*(ages < P.aeeh.age)).sum(axis=0)/12
-    
     isole =  isol
-    categ = categ_inv 
     
-    if self.datesim <= date(2002, 1,1): 
-        aeeh = 0*enfhand    # TODO
-    else:
-        aeeh  = enfhand*(P.af.bmaf*(P.aeeh.base + 
+    aeeh = 0
+    for enfant in age.iterkeys():
+        enfhand = inv[enfant]*(age[enfant] < P.aeeh.age)/12
+        categ   = categ_inv[enfant] 
+        
+#        if self.datesim <= date(2002, 1,1):  # TODO 
+        if True == False:
+            aeeh += 0*enfhand    # TODO
+        else:
+            aeeh  += enfhand*(P.af.bmaf*(P.aeeh.base + 
                               P.aeeh.cpl1*(categ==1) + 
                               (categ==2)*(P.aeeh.cpl2 + P.aeeh.maj2*isole) + 
                               (categ==3)*(P.aeeh.cpl3 + P.aeeh.maj3*isole) + 
@@ -669,9 +667,9 @@ def AEEH(inv, isol, categ_inv, _P, ):
 # du complément d'AEEH et la PCH.   
             
     # Ces allocations ne sont pas soumis à la CRDS
-    self.aeeh_brut  = 12*aeeh.sum(axis=0)  
+    return aeeh  
 
-def APE(self, Param):
+def Ape(age, inactif, partiel1, partiel2, _P, _option = {'age': ENFS}):
     ''' 
     L’allocation parentale d’éducation s’adresse aux parents qui souhaitent arrêter ou 
     réduire leur activité pour s’occuper de leurs jeunes enfants, à condition que ceux-ci 
@@ -683,17 +681,17 @@ def APE(self, Param):
     # TODO cumul (hyper important), adoption, triplés, 
     # L'allocation parentale d'éducation n'est pas soumise 
     # à condition de ressources, sauf l’APE à taux partiel pour les professions non salariées
-    P = Param.fam
-    elig = (self.Nb_Enf(0,P.ape.age-1)>=1) & (self.Nb_Enf(0,P.af.age2)>=2)
+    P = _P.fam
+    elig = (Nb_Enf(age, 0,P.ape.age-1)>=1) & (Nb_Enf(age, 0,P.af.age2)>=2)
     
     # TODO: rajouter ces infos aux parents
-    inactif  = zeros((12,self.taille))
+    # Inactif
     # Temps partiel 1
     # Salarié: 
     # Temps de travail ne dépassant pas 50 % de la durée du travail fixée dans l'entreprise
     # VRP ou non salarié travaillant à temps partiel:
     # Temps de travail ne dépassant pas 76 heures par mois et un revenu professionnel mensuel inférieur ou égal à (smic_8.27*169*85 %)
-    partiel1 = zeros((12,self.taille))
+    #partiel1 = zeros((12,self.taille))
     
     # Temps partiel 2
     # Salarié:
@@ -701,30 +699,34 @@ def APE(self, Param):
     # Temps de travail compris entre 77 et 122 heures par mois et un revenu professionnel mensuel ne dépassant pas
     #  (smic_8.27*169*136 %)
 
-    partiel2  = zeros((12,self.taille))
-    self.ape_brut_m = elig*(inactif*P.ape.tx_inactif + partiel1*P.ape.tx_50 + partiel2*P.ape.tx_80)
+    ape = elig*(inactif*P.ape.tx_inactif + partiel1*P.ape.tx_50 + partiel2*P.ape.tx_80)
+
+    # Cummul APE APJE CF    
+    return ape
     
 
-def APJE(self,Param):
+def Apje(br_pf, age, isol, biact, _P, _option = {'age': ENFS}):
     '''
     Allocation pour jeune enfant
     '''
     # TODO: APJE courte voir doc ERF 2006
-    P = Param.fam
-    nbenf = self.Nb_Enf(0,P.apje.age-1)
+    P = _P.fam
+    nbenf = Nb_Enf(age, 0,P.apje.age-1)
     bmaf = P.af.bmaf
     bmaf_n_2= P.af.bmaf_n_2 
     base = round(P.apje.taux*bmaf,2)
     base2 = round(P.apje.taux*bmaf_n_2,2)
 
     plaf_tx = (nbenf>0) + P.apje.plaf_tx1*min_(nbenf,2) + P.apje.plaf_tx2*max_(nbenf-2,0)
-    majo    = isol | self.biact
+    majo    = or_(isol, biact)
     plaf    = P.apje.plaf*plaf_tx + P.apje.plaf_maj*majo
     plaf2   = plaf + 12*base2    
 
-    brut =  (nbenf>=1)*( ( br_pf <= plaf)*base 
+    apje =  (nbenf>=1)*( ( br_pf <= plaf)*base 
             + (br_pf > plaf)*max_(plaf2-br_pf,0)/12.0 )
-    self.apje_brut_m = brut
+    
+    # Non cummul APE APJE CF  
+    return apje
 
 
 def CumulAPE_APJE_CF(self, Param):

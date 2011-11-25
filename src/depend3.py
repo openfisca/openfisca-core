@@ -65,12 +65,6 @@ class InputTable(DataTable):
     nbpar = IntCol(default = 2)
     asf_elig = BoolCol(default=True)
     
-#   TODO REMOVEME testing only
-    tspr  = FloatCol()
-    rpns  = FloatCol()
-    
-    isol  = BoolCol(default=True)
-    rev_coll = FloatCol()
     inactif  = BoolCol()
     partiel1 = BoolCol()
     partiel2 = BoolCol() 
@@ -78,6 +72,16 @@ class InputTable(DataTable):
     empl_dir = BoolCol() 
     ass_mat  = BoolCol() 
     gar_dom  = BoolCol()
+    
+    categ_inv = IntCol()
+    
+    
+#   TODO REMOVEME testing only
+    tspr  = FloatCol()
+    rpns  = FloatCol()
+    
+    isol  = BoolCol(default=True)
+    rev_coll = FloatCol()
     
     
 inputs = InputTable(6)
@@ -89,7 +93,10 @@ from prestation.famille import (Biact, Tspr_Fam, Rpns_Fam, Etu, Concub,
                                 Rev_PF, Br_PF, CF, ASF, ARS,
                                 Paje_Base, Paje_Nais, Paje_CumulCf, Cf_CumulPaje,
                                 Paje_Clca, Paje_Clca_Taux_Plein, Paje_Clca_Taux_Partiel,
-                                Paje_Clmg)
+                                Paje_Clmg,
+                                Aeeh,
+                                Ape, Apje
+                                )
 
 class Pfam(SystemSf):
     
@@ -122,7 +129,7 @@ class Pfam(SystemSf):
     paje_clca_taux_plein      = Prestation(Paje_Clca_Taux_Plein, 'fam', label = u"Indicatrice Clca taux plein")
     paje_clca_taux_partiel      = Prestation(Paje_Clca_Taux_Partiel, 'fam', label = u"Indicatrice Clca taux partiel ")
     #paje_clmg        = Prestation(Paje_Clmg, 'fam', label = u"PAJE - Complément de libre choix du mode de garde")
-    
+    aeeh           = Prestation(Aeeh, 'fam', label = u"Allocation d'éducation de l'enfant handicapé")
 
 
 pfam = Pfam(P)
@@ -139,6 +146,7 @@ pfam.calculate('paje_clca')
 pfam.calculate('paje_clca_taux_plein')
 pfam.calculate('paje_clca_taux_partiel')
 #pfam.calculate('paje_clmg')
+pfam.calculate('aeeh')
 
 print inputs.age.get_value()
 print pfam.af.get_value()
@@ -154,3 +162,4 @@ print pfam.paje_clca.get_value()
 print pfam.paje_clca_taux_plein.get_value()
 print pfam.paje_clca_taux_partiel.get_value()
 #print pfam.paje_clmg.get_value()
+print pfam.aeeh.get_value()
