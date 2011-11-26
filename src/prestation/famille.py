@@ -269,7 +269,7 @@ def _af_majo(age, _P, _option = {'age': ENFS}):
     af_maj1       = round(bmaf*P.taux1,2)
     af_maj2       = round(bmaf*P.taux2,2)
 
-    age_aine = Age_Aine(age, P_af.age1, P_af.age2)
+    age_aine = _age_aine(age, P_af.age1, P_af.age2)
     def age_sf_aine(age, ag1, ag2, age_aine):
         dum = (ag1 <= age_aine) & (age_aine <= ag2)
         return Nb_Enf(age, ag1, ag2) - dum*1
@@ -856,7 +856,7 @@ def _al_pac(age, al_nbinv, _P, _option = {'age': ENFS}):
     return al_pac
     
     
-def _br_al(etu, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART]}):
+def _br_al(etu, rev_pf, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART], 'rev_pf': [CHEF, PART]}):
     '''
     Base ressource des allocations logement
     '''
@@ -879,10 +879,10 @@ def _br_al(etu, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART]}):
     etuCP= (etu[CHEF]>=1)&(etu[PART]>=1)
     # self.etu = (self.etu[CHEF]>=1)|(self.etuP>=1)
     
-    revCatVous = max_(revChef,etuC*(Pr.dar_4-(etu[CHEF]==2)*Pr.dar_5))
-    revCatConj = max_(revPart,etuP*(Pr.dar_4-(etu[PART]==2)*Pr.dar_5))
+    revCatVous = max_(rev_pf[CHEF],etuC*(Pr.dar_4-(etu[CHEF]==2)*Pr.dar_5))
+    revCatConj = max_(rev_pf[PART],etuP*(Pr.dar_4-(etu[PART]==2)*Pr.dar_5))
     revCatVsCj = not_(etuCP)*(revCatVous + revCatConj) + \
-                    etuCP*max_(revChef + revPart, Pr.dar_4 -((etu[CHEF]==2)|(etu[PART]==2))*Pr.dar_5 + Pr.dar_7)
+                    etuCP*max_(rev_pf[CHEF] + rev_pf[PART], Pr.dar_4 -((etu[CHEF]==2)|(etu[PART]==2))*Pr.dar_5 + Pr.dar_7)
     
     # somme des revenus catégoriels après abatement
     revCat = revCatVsCj + rev_coll
@@ -1071,7 +1071,8 @@ def _br_mv(sal_fam, cho_fam, rst_fam, alr_fam, rto_fam, rpns_fam,
                  max_(0,etr_fam) + max_(0,div_rmi_fam) )
     return br_mv
 
-def MV(br_mv, _P):
+def _mv(age, inv, activite, nbpar, br_mv, _P, 
+        _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'actvite': [CHEF, PART]}):
     '''
     Minimum vieillesse - Allocation de solidarité aux personnes agées (ASPA)
     '''
@@ -1088,33 +1089,24 @@ def MV(br_mv, _P):
     #       P.aspa.maj_3enf = 0.10;
     P = _P.minim
 
-    
-    ageC = np.floor(np.array([m + self.agemC for m in range(12)])/12)
-    ageP = np.floor(np.array([m + self.agemP for m in range(12)])/12)
-
-    eligC = ((ageC>=P.aspa.age_min) | ((ageC>=P.aspa.age_ina) &  (self.invC==1))) & (self.actC==3) 
-    eligP = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
+    eligC = ((age[CHEF]>=P.aspa.age_min) | ((age[CHEF]>=P.aspa.age_ina) &  (inv[CHEF]==1))) & (activite[CHEF]==3) 
+    eligP = ((age[PART]>=P.aspa.age_min) | ((age[PART]>=P.aspa.age_ina) &  (inv[PART]==1))) & (activite[PART]==3)
     
     elig2 = eligC & eligP
     elig1 = not_(elig2) & (eligC |eligP)
-    
-    
-    depassement = elig1*(self.nbpar==1)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
-        +  elig1*(self.nbpar==2)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
+        
+    depassement = elig1*(nbpar==1)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
+        +  elig1*(nbpar==2)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
         +  elig2*max_(0, br_mv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
     
-    self.mv_m = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
+    mv = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
 
     # TODO ASI 
-    self.asiC = zeros(self.taille)
-    self.asiP = zeros(self.taille)
+#    self.asiC = zeros(self.taille)
+#    self.asiP = zeros(self.taille)
 
-    self.mv = self.mv_m.sum(axis=0)
+    return mv
 
-    
-    table.openWriteMode()
-    table.set('chef', 'mv', self.mv, 'fam')
-    table.close_()
 
 def RSA(self, P):
     self.RmiNbp(P.minim)
@@ -1127,13 +1119,19 @@ def RMI(self, P):
     self.RmiBaseRessource(P.minim)
     self.Rsa(P.minim)
 
-def RmiNbp(self,P):
+def _rmi_nbp(age, nbpar , _P, _option = {'age': [CHEF, PART]}):
     '''
     Nombre de personne à charge au sens du Rmi ou du Rsa
     '''
-    self.rmiNbp = self.nbpar + self.Nb_Enf(0,24)[0,:]
+    return nbpar + Nb_Enf(age, 0, 24)  # TODO limite d'âge dans paramètres
 
-def RmiBaseRessource(self, P):
+def _br_rmi(af_base, cf, asf, paje, clca, colca, ape, apje,mv, asi, aah, caah, 
+            ra_rsa, ra_rsa, cho_fam, rst_fam, alr_fam, rto_fam, revcap_bar_fam,
+            revcap_lib_fam, rfon_fam, _P, _option = {'asi': [CHEF, PART], 'ra_rsa': [CHEF, PART]}):
+    '''
+    Base ressources du Rmi ou du Rsa
+    '''
+    # TODO séparer les prestat par années ?
     # compléter la base ressource RMI
     
     # base ressource du rmi, on prend en compte tous les revenus, sans
@@ -1152,19 +1150,15 @@ def RmiBaseRessource(self, P):
     # RaRsa revenus d'activité au sens du RSA
 
     if self.datesim < date(2004, 1,1):
-        pfBRrmi =  P.rmi.pfInBRrmi*(self.af_base + self.cf_tot + self.asf_brut + 
-                                    self.apje_tot + self.ape_tot)    
+        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + apje + ape)    
     else: 
-        pfBRrmi =  P.rmi.pfInBRrmi*(self.af_base + self.cf_tot + self.asf_brut + 
-                                    self.paje_tot + self.clca_brut + self.colca_brut)
+        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + paje + clca + colca)
 
 
-    self.BrRmi = (self.RaRsaC + self.RaRsaP + self.cho + self.rst + self.alr + self.rto + 
-                  max_(0,self.revcap_bar + self.revcap_lib + self.rfon) + 
-                  pfBRrmi +
-                  self.mv + self.asiC + self.asiP + self.aah + self.caah)
-      
-
+    br_rmi = (ra_rsa[CHEF] + ra_rsa[PART] + cho_fam + rst_fam + alr_fam + rto_fam + 
+                  max_(0,revcap_bar_fam + revcap_lib_fam + rfon_fam) + 
+                  pf_br_rmi +
+                  mv + asi[CHEF] + asi[PART] + aah + caah)
     # Ne sont pas pris en compte:
     #  
     # 1 De la prime à la naissance ou à l’adoption mentionnée à l’article L. 531-2 du code de la sécurité
@@ -1220,10 +1214,27 @@ def RmiBaseRessource(self, P):
     #23 Des mesures de réparation mentionnées à l’article 2 du décret no 2004-751 du 27 juillet 2004 instituant
     #   une aide financière en reconnaissance des souffrances endurées par les orphelins dont les parents ont été
     #   victimes d’actes de barbarie durant la Deuxième Guerre mondiale
+    return br_rmi
 
+def _forf_log(so, rmi_nbp, _P):
+    '''
+    Forfait logement intervenant dans le calcul du Rmi ou du Rsa
+    '''
+    # calcul du forfait logement si le ménage touche des allocations logements
+    # (FA.AL)
+    P = _P
+    loca = (3 <= so)&(5 >= so)
+    FL = P.rmi.forfait_logement
+    tx_fl = ((rmi_nbp==1)*FL.taux1 +
+             (rmi_nbp==2)*FL.taux2 +
+             (rmi_nbp>=3)*FL.taux3 )    
+    return 12*loca*(tx_fl*P.rmi.rmi)
 
-def Rsa(self, P):
-    table = self.population
+def _rsa_socle(forf_log, age , nbpar, rmi_nbp, ra_rsa, br_rmi, _P):
+    '''
+    Rsa socle / Rmi
+    '''
+    P = _P
     # RSA socle TODO mécanisme similaire à l'API: Pour les
     # personnes ayant la charge d’au moins un enfant né ou à
     # naître et se retrouvant en situation d’isolement, le montant
@@ -1232,31 +1243,31 @@ def Rsa(self, P):
     # générateur de l’isolement. Le cas échéant, la durée de
     # majoration est prolongée jusqu’à ce que le plus jeune enfant
     # atteigne trois ans.        
-    loca = (3 <= self.so)&(5 >= self.so)
-    eligib = (self.ageC>=25) |(self.ageP>=25)
-    tx_rmi = 1 + ( self.rmiNbp >= 2 )*P.rmi.txp2 \
-               + ( self.rmiNbp >= 3 )*P.rmi.txp3 \
-               + ( self.rmiNbp >= 4 )*((self.nbpar==1)*P.rmi.txps + (self.nbpar!=1)*P.rmi.txp3) \
-               + max_(self.rmiNbp -4,0)*P.rmi.txps 
-    rsaSocle = 12*P.rmi.rmi*tx_rmi*eligib
-    # calcul du forfait logement si le ménage touche des allocations logements
-    # (FA.AL)
-    FL = P.rmi.forfait_logement
-    tx_fl = ((self.rmiNbp==1)*FL.taux1 +
-             (self.rmiNbp==2)*FL.taux2 +
-             (self.rmiNbp>=3)*FL.taux3 )
-    self.forf_log = 12*loca*(tx_fl*P.rmi.rmi)
-    # cacul du RSA
-    RMI = max_(0,rsaSocle  - self.forf_log - self.BrRmi)
-    RSA = max_(0,rsaSocle + P.rmi.pente*(self.RaRsaC+self.RaRsaP) - self.forf_log - self.BrRmi)
-    self.rsa = (RSA>=P.rmi.rsa_nv)*RSA
+    eligib = (age[CHEF]>=25) |(age[PART]>=25)
+    tx_rmi = ( 1 + ( rmi_nbp >= 2 )*P.rmi.txp2 
+                 + ( rmi_nbp >= 3 )*P.rmi.txp3  
+                 + ( rmi_nbp >= 4 )*((nbpar==1)*P.rmi.txps + (nbpar!=1)*P.rmi.txp3) 
+                 + max_(rmi_nbp -4,0)*P.rmi.txps )
+    return 12*P.rmi.rmi*tx_rmi*eligib
     
-    table.openWriteMode()        
-    table.set('rsaact', self.rsa - RMI, 'fam', 'chef', table = 'output')
-    table.set('rsa'   , self.rsa,       'fam', 'chef', table = 'output')   
-    table.close_()
+def _rmi(rsa_socle, forf_log, br_rmi):     
+    # cacul du RMI/RSA 
+    rmi = max_(0, rsa_socle  - forf_log - br_rmi)
+    return rmi
+
+def _rsa(rsa_socle, ra_rsa, forf_log, br_rmi, _P): 
+    P = _P.rmi 
+    RSA = max_(0,rsa_socle + P.pente*(ra_rsa[CHEF] + ra_rsa[PART]) - forf_log - br_rmi)
+    rsa = (RSA>=P.rsa_nv)*RSA
+    return rsa
     
-    table.openReadMode()        
+def _ra_act(rsa, rmi):    
+    return rsa - rmi
+    
+    
+def _ppe_cumul_rsa_act(ppe, rsa_act):    
+    
+#    TODO où mettre cela ? 
     # On retranche le RSA activité de la PPE
     ppe = max_(table.get('ppe', 'foy', 'vous', table = 'output') 
            - table.get('rsaact', 'foy', 'vous', table = 'output')
@@ -1267,16 +1278,14 @@ def Rsa(self, P):
     table.setColl('ppe',ppe, table = 'output')
     table.close_()    
 
-def API(self, P):
+def API(age, isol, forf_log, br_rmi, af_majo, rsa, _P):
     '''
     Allocation de parent isolé
     '''
-    if self.nbenfmax == 0:
-        self.api = zeros(self.taille)
-        return
-
+    P = _P
     bmaf = P.fam.af.bmaf;
-    benjamin = self.age_en_mois_benjamin(P.fam, 9)
+    # TODO
+    benjamin = age_en_mois_benjamin(P.fam, 9)
     enceinte = (benjamin<0)*(benjamin>-6)
     # TODO quel mois mettre ?
     # TODO pas complètement exact
@@ -1290,22 +1299,18 @@ def API(self, P):
     ## Calcul de l'année et mois de naissance du benjamin 
     
     condition = (np.floor(benjamin/12) <= P.minim.api.age-1)
-    eligib = self.isol*( (enceinte!=0) | (self.Nb_Enf(0,P.minim.api.age-1)>0) )*condition;
+    eligib = isol*( (enceinte!=0) | (Nb_Enf(age, 0,P.minim.api.age-1)>0) )*condition;
 
     # moins de 20 ans avant inclusion dans rsa et moins de  25 après
-    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*self.Nb_Enf(P.fam.af.age1,P.minim.api.age_pac-1) )
+    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*Nb_Enf(age, P.fam.af.age1,P.minim.api.age_pac-1) )
     rsa = (P.minim.api.age_pac >= 25) # dummy passage au rsa majoré
-    BRapi = self.BrRmi + self.af_majo*not_(rsa)
+    br_api = br_rmi + af_majo*not_(rsa)
     # TODO: mensualiser RMI, BRrmi et forfait logement
-    api  = max_(0, api1 - self.forf_log/12 - BRapi/12 - self.rsa/12) 
+    api  = max_(0, api1 - forf_log/12 - br_api/12 - rsa/12) 
     
     # L'API est exonérée de CRDS
-    self.api = api.sum(axis=0)
-    table = self.population
-    table.openWriteMode()
-    table.set('api', self.api, 'fam', 'chef', table = 'output')
-    table.close_()
-
+    return api
+    
     # TODO: temps partiel qui modifie la base ressource
     # Cumul
     # Cumul avec un revenu
@@ -1320,44 +1325,41 @@ def API(self, P):
     # Lorsque la durée d'activité est inférieure à 78 heures par mois, le montant de l'API perçu par l'allocataire est diminué de la moitié du salaire.
     # Si l'allocataire exerce une activité dans le cadre d'un CIRMA ou d'un CAV, ses revenus d'activité ne sont pas pris en compte pour le calcul de son API.
 
-def AEFA(self, Param):
+def AEFA(nbpar, ass ,aer, api, rsa, _P):
     '''
     Aide exceptionelle de fin d'année (prime de Noël)
     '''
         # Insituée en 1998        
         # Complément de rmi dans les ERF
     
-    P = Param
-    ass = zeros(self.taille)
-    aer = zeros(self.taille)
-    api = zeros(self.taille)
-    rmi = self.rsa>0
+    P = _P
+    dummy_ass = ass > 0
+    dummy_aer = aer > 0
+    dummy_api = api > 0
+    dummy_rmi = rsa > 0
 
     # Le montant de l’aide mentionnée à l’article 1er versée aux bénéficiaires de l’allocation de solidarité
     # spécifique à taux majoré servie aux allocataires âgés de cinquante-cinq ans ou plus justifiant de vingt années
     # d’activité salariée, aux allocataires âgés de cinquante-sept ans et demi ou plus justifiant de dix années d’activité
     # salariée ainsi qu’aux allocataires justifiant d’au moins 160 trimestres validés dans les régimes d’assurance
     # vieillesse ou de périodes reconnues équivalentes est égal à        
-    maj = zeros(self.taille)  # TODO
+    maj = 0  # TODO
     
-    condition = ass*aer*api*rmi
+    condition = (dummy_ass+dummy_aer+dummy_api+dummy_rmi > 0)
     
-    if hasattr(P.fam.af,"age3"): nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age3)[11,:]
-    else: nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age2)[11,:]
+    if hasattr(P.fam.af,"age3"): nbPAC = Nb_Enf(age, P.fam.af.age1,P.fam.af.age3)[11,:]
+    else: nbPAC = af_nbenf
     # TODO check nombre de PAC pour une famille
-    P = Param.minim
-    aefa = condition*P.aefa.mon_seul*(1 + (self.nbpar==2)*P.aefa.tx_2p
-              + nbPAC*P.aefa.tx_supp*(self.nbpar<=2)
+    P = _P.minim
+    aefa = condition*P.aefa.mon_seul*(1 + (nbpar==2)*P.aefa.tx_2p
+              + nbPAC*P.aefa.tx_supp*(nbpar<=2)
               + nbPAC*P.aefa.tx_3pac*max_(nbPAC-2,0))
     
     if self.datesim.year==2008: aefa += condition*P.aefa.forf2008
                
     aefa_maj  = P.aefa.mon_seul*maj
-    self.aefa = max_(aefa_maj,aefa)   
-    
-    self.population.openWriteMode()
-    self.population.set('aefa', self.aefa, 'fam', 'chef', table = 'output')   
-    self.population.close_()
+    aefa = max_(aefa_maj,aefa)   
+    return aefa 
 
 def ASPA_ASI(self,Param):
     """
@@ -1581,7 +1583,7 @@ def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 
     return aah
 
 
-def CAAH(self, Param):
+def _caah(aah, _P):
     '''
     Complément d'allocation adulte handicapé
     '''
@@ -1609,11 +1611,11 @@ def CAAH(self, Param):
 #       travailler Il est égal à la différence entre la garantie de
 #       ressources pour les personnes handicapées (GRPH) et l’AAH
 
-    P = Param.minim 
-    elig_cpl = zeros((12,self.taille))    # TODO: éligibilité
+    P = _P.minim 
+    elig_cpl = 0    # TODO: éligibilité
     
-    if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-self.aah,0)  
-    else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah
+    if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-aah,0)  
+    else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*aah
 #        else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah_m 
         # En fait perdure jusqu'en 2008 
  
@@ -1633,17 +1635,14 @@ def CAAH(self, Param):
 #La personne qui remplit les conditions d'octroi de ces deux avantages doit choisir de bénéficier de l'un ou de l'autre.
 
     if self.datesim.year >= 2006:        
-        elig_mva = zeros((12,self.taille))*(self.aah>0)   # TODO: éligibilité
+        elig_mva = 0*(aah>0)   # TODO: éligibilité
         mva = P.caah.mva*elig_mva
-    else: mva = zeros((12,self.taille))      
+    else: mva = 0      
     caah = max_(compl,mva)
           
-    self.caah = caah.sum(axis=0)
-    self.population.openWriteMode()
-    self.population.set('caah', self.caah, 'fam', 'chef', table = 'output')
-    self.population.close_()
+    return caah
     
-def ASS(self, P):
+def _ass(br_pf, _P):
     '''
     Allocation de solidarité spécifique
     '''        
@@ -1666,23 +1665,25 @@ def ASS(self, P):
 #       ou âgés de 57 ans et demi ou plus et justifiant de 10 ans d'activité salariée,
 #       ou justifiant d'au moins 160 trimestres de cotisation retraite.
 
-    majo = zeros(self.taille)
-    plaf = P.chomage.ass.plaf_seul*self.seul + P.chomage.ass.plaf_coup*self.coup
+    majo = 0
+    plaf = P.chomage.ass.plaf_seul*seul + P.chomage.ass.plaf_coup*coup
     montant_mensuel = 30*(P.chomage.ass.montant_plein*not_(majo) 
                           + majo*P.chomage.ass.montant_maj)
     revenus = br_pf + 12*montant_mensuel  # TODO check base ressources
     ass = 12*(montant_mensuel*(revenus<=plaf) 
               + (revenus>plaf)*max_(plaf+montant_mensuel-revenus,0))
     
+    return ass
+    
 from core.systemsf import SystemSf, Prestation
 from parametres.paramData import XmlReader, Tree2Object
 
 class Pfam(SystemSf):
-    af_nbenf = Prestation(AF_NbEnf, 'fam', u"Nombre d'enfant au sens des AF")
-    af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
-    af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
-    af_forf = Prestation(AF_Base, 'fam', 'Allocations familiales - Forfait 20 ans')
-    af      = Prestation(AF, 'fam', label = u"Allocations familiales")
+    af_nbenf = Prestation(_af_nbenf, 'fam', u"Nombre d'enfant au sens des AF")
+    af_base = Prestation(_af_base, 'fam', 'Allocations familiales - Base')
+    af_majo = Prestation(_af_majo, 'fam', 'Allocations familiales - Majoration pour age')
+    af_forf = Prestation(_af_base, 'fam', 'Allocations familiales - Forfait 20 ans')
+    af      = Prestation(_af, 'fam', label = u"Allocations familiales")
 
 #    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
 #    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
