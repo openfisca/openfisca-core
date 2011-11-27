@@ -48,9 +48,9 @@ class Famille(object):
 
         table.openReadMode()
         
-        self.nbpar = 1 + 1*(table.get('quifam', unit = 'fam', qui = 'part')==1)
-        self.isol = self.nbpar == 1    # si parent isolé
-        self.coup = self.nbpar == 2    # si couple (marié, pacsé ou non)
+        self.nb_par = 1 + 1*(table.get('quifam', unit = 'fam', qui = 'part')==1)
+        self.isol = self.nb_par == 1    # si parent isolé
+        self.coup = self.nb_par == 2    # si couple (marié, pacsé ou non)
         # TODO : compléter
         self.maries = (table.get('statmarit', 'fam', 'part')==1)
 
@@ -74,16 +74,8 @@ class Famille(object):
             setattr(self, 'inv'+ suf, invs[i] )
             
 
-        # TODO: Dans Population une fonction qui check s'il a plus d'une famille dans un ménage
-        self.coloc = zeros(self.taille, dtype = bool)
         
-        self.actC, self.actP = table.get('activite', 'fam', ['chef', 'part'])
-        self.etuC   = self.actC == 2
-        self.etuP   = self.actC == 2
         
-        self.so       = table.get('so', 'fam', 'chef')        
-        self.al_zone  = table.get('zone_apl', 'fam', 'chef')
-        self.loyer    = table.get('loyer', 'fam', 'chef')
         
         table.close_()
 
@@ -124,27 +116,26 @@ class Famille(object):
 
 def _nb_par():
     '''
-    Nombre d'adulte dans la famille
+    Nombre d'adultes (parents) dans la famille
     '''
-
+    
 def _couple(statmarit, _option):
     '''
     couple = 1 si couple marié sinon 0
     '''
-     
+    return statmarit==1
 
-def _concub(nbpar):
+def _concub(nb_par):
     '''
-    concub = 1 si couple 
+    concub = 1 si vie en couple TODO pas très heureux  
     '''
-    return nbpar==2
-
+    return nb_par==2
 
 def _etu(activite):
     '''
     Indicatrice individuelle etudiant
     ''' 
-    return activite == 2
+    return activite==2
 
 def _sal_fam(sal, _option = {'rst': [CHEF, PART]}):
     '''
@@ -382,7 +373,7 @@ def _ars(age, br_pf, _P, _option = {'age': ENFS}):
 
     return ars*(ars>=P.ars.seuil_nv)
 
-def _paje(self, Param):
+def _paje(self, Param): # TODO
     '''
     Prestation d'accueil du jeune enfant
     '''
@@ -548,7 +539,7 @@ def _paje_clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, g
     cond_sal     = (sal[CHEF] + sal[PART] > 12*P.af.bmaf_n_2*(1+concub))
 # TODO    cond_rpns    = 
     cond_act     = cond_sal   # | cond_rpns
-    cond_nonact  =  or_((aah >0), etu[VOUS] & etu[PART])   
+    cond_nonact  =  or_(aah >0, etu[CHEF] & etu[PART])   
 #  TODO RSA insertion, alloc insertion, ass   
     elig = cond_age_enf & (  or_(cond_act,cond_nonact) ) 
              
@@ -729,35 +720,31 @@ def _apje(br_pf, age, isol, biact, _P, _option = {'age': ENFS}):
     return apje
 
 
-def _CumulAPE_APJE_CF(self, Param):
-    P = Param.fam
-    crds = P.af.crds
-    apje_brut_m = (self.apje_brut_m > max_(self.cf_brut_m,self.ape_brut_m))*self.apje_brut_m
-    cf_brut_m   = (self.cf_brut_m  >= max_(self.apje_brut_m,self.ape_brut_m) )*self.cf_brut_m
-    ape_brut_m  = (self.ape_brut_m  > max_(self.apje_brut_m,self.cf_brut_m) )*self.ape_brut_m
-            
-    self.apje_brut  = round(apje_brut_m.sum(axis=0), 2)
-    self.apje_crds  = round(self.apje_brut*crds, 2)
-    self.apje_tot   = self.apje_brut - self.apje_crds
+def _cf_cumul_apje_ape(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    cf  = (apje_temp <=  cf_temp)*(ape_temp <= cf_temp)*cf_temp
+    return round(cf, 2)
 
-    self.cf_brut   = round(cf_brut_m.sum(axis=0), 2)
-    self.cf_crds   = round(self.cf_brut*crds, 2)
-    self.cf_tot    = self.cf_brut - self.cf_crds
+def _ape_cumul_apje_cf(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    ape  = (apje_temp <  ape_temp)*(cf_temp < ape_temp)*ape_temp
+    return round(ape, 2)
 
-    self.ape_brut  = round(ape_brut_m.sum(axis=0), 2)
-    self.ape_crds  = round(self.ape_brut*crds, 2)
-    self.ape_tot   = self.ape_brut - self.ape_crds
-    
-    table.openWriteMode()
-    table.set('chef', 'apje', self.apje_tot, 'fam')
-    table.set('chef', 'cf', self.cf_tot, 'fam')
-    table.set('chef', 'ape', self.ape_tot, 'fam')    
-    table.close_()
-    
-    
-## TODO rajouter la prime à la naissance et à l'adoption br_mvla paje
+def _apje_cumul_ape_cf(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    apje  = (cf_temp <  apje_temp)*(ape_temp < apje_temp)*apje_temp
+    return round(apje, 2)
 
-def _aged(age, br_pf, dep_trim, _P, _option = {'age': ENFS}):
+        
+## TODO rajouter la prime à la naissance et à l'adoption br_mvla paje check ancienne version
+
+def _aged(age, br_pf, ape_taux_partiel, dep_trim, _P, _option = {'age': ENFS}):
     '''
     Allocation garde d'enfant à domicile
     '''
@@ -766,13 +753,12 @@ def _aged(age, br_pf, dep_trim, _P, _option = {'age': ENFS}):
     # A complêter
 
     P = _P.fam
-    ape_taux_partiel_dummy  = zeros(self.taille)
     
     nbenf = Nb_Enf(age, 0, P.aged.age1-1)
     nbenf2 = Nb_Enf(age, 0, P.aged.age2-1)
 
     elig1 = (nbenf>0) 
-    elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel_dummy
+    elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel
     
 
     depenses = 4*dep_trim # TODO gérer les dépenses trimestrielles        
@@ -785,7 +771,7 @@ def _aged(age, br_pf, dep_trim, _P, _option = {'age': ENFS}):
     return aged3 + aged6 
 
 
-def _afeama(age, ape, br_pf, _P, _option = {'age': ENFS}):
+def _afeama(age, ape, af_nbenf, br_pf, _P, _option = {'age': ENFS}):
     '''
     Aide à la famille pour l'emploi d'une assistante maternelle agréée
     '''
@@ -911,7 +897,7 @@ def _br_al(etu, rev_pf, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART], 're
 
     return br_al
 
-def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
+def _al(concub, br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     '''
     Formule des aides aux logements en secteur locatif
     Attention, cette fonction calcul l'aide mensuelle
@@ -949,9 +935,9 @@ def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     z2 = P.al.loyers_plafond.zone2
     z3 = P.al.loyers_plafond.zone3
     
-    Lz1 = ((isol)*(al_pac==0)*z1.L1 + (coup)*(al_pac==0)*z1.L2 + (al_pac>0)*z1.L3 + (al_pac>1)*(al_pac-1)*z1.L4)*lp_taux
-    Lz2 = ((isol)*(al_pac==0)*z2.L1 + (coup)*(al_pac==0)*z2.L2 + (al_pac>0)*z2.L3 + (al_pac>1)*(al_pac-1)*z2.L4)*lp_taux
-    Lz3 = ((isol)*(al_pac==0)*z3.L1 + (coup)*(al_pac==0)*z3.L2 + (al_pac>0)*z3.L3 + (al_pac>1)*(al_pac-1)*z3.L4)*lp_taux
+    Lz1 = ((isol)*(al_pac==0)*z1.L1 + (concub)*(al_pac==0)*z1.L2 + (al_pac>0)*z1.L3 + (al_pac>1)*(al_pac-1)*z1.L4)*lp_taux
+    Lz2 = ((isol)*(al_pac==0)*z2.L1 + (concub)*(al_pac==0)*z2.L2 + (al_pac>0)*z2.L3 + (al_pac>1)*(al_pac-1)*z2.L4)*lp_taux
+    Lz3 = ((isol)*(al_pac==0)*z3.L1 + (concub)*(al_pac==0)*z3.L2 + (al_pac>0)*z3.L3 + (al_pac>1)*(al_pac-1)*z3.L4)*lp_taux
     
     L2 = Lz1*(al_zone==1) + Lz2*(al_zone==2) + Lz3*(al_zone==3)
     # loyer retenu
@@ -960,7 +946,7 @@ def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     # forfait de charges
     P_fc = P.al.forfait_charges
     C = not_(coloc)*(P_fc.fc1 + al_pac*P_fc.fc2) + \
-          ( coloc)*((isol*0.5 + coup)*P_fc.fc1 + al_pac*P_fc.fc2)
+          ( coloc)*((isol*0.5 + concub)*P_fc.fc1 + al_pac*P_fc.fc2)
     
     # dépense éligible
     E = L + C;
@@ -970,7 +956,7 @@ def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     
     # Plafond RO    
     R1 = P.al.R1.taux1*rmi*(isol)*(al_pac==0) + \
-         P.al.R1.taux2*rmi*(coup)*(al_pac==0) + \
+         P.al.R1.taux2*rmi*(concub)*(al_pac==0) + \
          P.al.R1.taux3*rmi*(al_pac==1) + \
          P.al.R1.taux4*rmi*(al_pac>=2) + \
          P.al.R1.taux5*rmi*(al_pac>2)*(al_pac-2)
@@ -987,7 +973,7 @@ def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     
     # Taux de famille    
     TF = P.al.TF.taux1*(isol)*(al_pac==0) + \
-         P.al.TF.taux2*(coup)*(al_pac==0) + \
+         P.al.TF.taux2*(concub)*(al_pac==0) + \
          P.al.TF.taux3*(al_pac==1) + \
          P.al.TF.taux4*(al_pac==2) + \
          P.al.TF.taux5*(al_pac==3) + \
@@ -996,7 +982,7 @@ def _al(br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     
     # Loyer de référence
     L_Ref = z2.L1*(isol)*(al_pac==0) + \
-            z2.L2*(coup)*(al_pac==0) + \
+            z2.L2*(concub)*(al_pac==0) + \
             z2.L3*(al_pac>=1) + \
             z2.L4*(al_pac>1)*(al_pac-1)
 
@@ -1071,7 +1057,7 @@ def _br_mv(sal_fam, cho_fam, rst_fam, alr_fam, rto_fam, rpns_fam,
                  max_(0,etr_fam) + max_(0,div_rmi_fam) )
     return br_mv
 
-def _mv(age, inv, activite, nbpar, br_mv, _P, 
+def _mv(age, inv, activite, nb_par, br_mv, _P, 
         _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'actvite': [CHEF, PART]}):
     '''
     Minimum vieillesse - Allocation de solidarité aux personnes agées (ASPA)
@@ -1095,8 +1081,8 @@ def _mv(age, inv, activite, nbpar, br_mv, _P,
     elig2 = eligC & eligP
     elig1 = not_(elig2) & (eligC |eligP)
         
-    depassement = elig1*(nbpar==1)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
-        +  elig1*(nbpar==2)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
+    depassement = elig1*(nb_par==1)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
+        +  elig1*(nb_par==2)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
         +  elig2*max_(0, br_mv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
     
     mv = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
@@ -1119,11 +1105,11 @@ def RMI(self, P):
     self.RmiBaseRessource(P.minim)
     self.Rsa(P.minim)
 
-def _rmi_nbp(age, nbpar , _P, _option = {'age': [CHEF, PART]}):
+def _rmi_nbp(age, nb_par , _P, _option = {'age': [CHEF, PART]}):
     '''
     Nombre de personne à charge au sens du Rmi ou du Rsa
     '''
-    return nbpar + Nb_Enf(age, 0, 24)  # TODO limite d'âge dans paramètres
+    return nb_par + Nb_Enf(age, 0, 24)  # TODO limite d'âge dans paramètres
 
 def _br_rmi(af_base, cf, asf, paje, clca, colca, ape, apje,mv, asi, aah, caah, 
             ra_rsa, ra_rsa, cho_fam, rst_fam, alr_fam, rto_fam, revcap_bar_fam,
@@ -1149,10 +1135,11 @@ def _br_rmi(af_base, cf, asf, paje, clca, colca, ape, apje,mv, asi, aah, caah,
 
     # RaRsa revenus d'activité au sens du RSA
 
-    if self.datesim < date(2004, 1,1):
-        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + apje + ape)    
-    else: 
-        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + paje + clca + colca)
+#   TODO gestion des dates
+#    if self.datesim < date(2004, 1,1):
+#        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + apje + ape)    
+#    else: 
+    pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + paje + clca + colca)
 
 
     br_rmi = (ra_rsa[CHEF] + ra_rsa[PART] + cho_fam + rst_fam + alr_fam + rto_fam + 
@@ -1230,7 +1217,7 @@ def _forf_log(so, rmi_nbp, _P):
              (rmi_nbp>=3)*FL.taux3 )    
     return 12*loca*(tx_fl*P.rmi.rmi)
 
-def _rsa_socle(forf_log, age , nbpar, rmi_nbp, ra_rsa, br_rmi, _P):
+def _rsa_socle(forf_log, age , nb_par, rmi_nbp, ra_rsa, br_rmi, _P):
     '''
     Rsa socle / Rmi
     '''
@@ -1246,7 +1233,7 @@ def _rsa_socle(forf_log, age , nbpar, rmi_nbp, ra_rsa, br_rmi, _P):
     eligib = (age[CHEF]>=25) |(age[PART]>=25)
     tx_rmi = ( 1 + ( rmi_nbp >= 2 )*P.rmi.txp2 
                  + ( rmi_nbp >= 3 )*P.rmi.txp3  
-                 + ( rmi_nbp >= 4 )*((nbpar==1)*P.rmi.txps + (nbpar!=1)*P.rmi.txp3) 
+                 + ( rmi_nbp >= 4 )*((nb_par==1)*P.rmi.txps + (nb_par!=1)*P.rmi.txp3) 
                  + max_(rmi_nbp -4,0)*P.rmi.txps )
     return 12*P.rmi.rmi*tx_rmi*eligib
     
@@ -1265,27 +1252,21 @@ def _ra_act(rsa, rmi):
     return rsa - rmi
     
     
-def _ppe_cumul_rsa_act(ppe, rsa_act):    
+def _ppe_cumul_rsa_act(ppe_temp, rsa_act, _option = {'rsa_act': [VOUS, CONJ]} ):
+#   TODO où mettre cela ? 
+#   On retranche le RSA activité de la PPE
+    ppe = max_(ppe_temp - rsa_act[VOUS] - rsa_act[CONJ])
+    return ppe 
     
-#    TODO où mettre cela ? 
-    # On retranche le RSA activité de la PPE
-    ppe = max_(table.get('ppe', 'foy', 'vous', table = 'output') 
-           - table.get('rsaact', 'foy', 'vous', table = 'output')
-           - table.get('rsaact', 'foy', 'conj', table = 'output'),0)
-    table.close_()
     
-    table.openWriteMode()
-    table.setColl('ppe',ppe, table = 'output')
-    table.close_()    
-
-def API(age, isol, forf_log, br_rmi, af_majo, rsa, _P):
+def _api(age, isol, forf_log, br_rmi, af_majo, rsa, _P, _option = {'age': ENFS}):
     '''
     Allocation de parent isolé
     '''
     P = _P
     bmaf = P.fam.af.bmaf;
     # TODO
-    benjamin = age_en_mois_benjamin(P.fam, 9)
+    benjamin = age_en_mois_benjamin(P.fam, 9)  # TODO
     enceinte = (benjamin<0)*(benjamin>-6)
     # TODO quel mois mettre ?
     # TODO pas complètement exact
@@ -1325,7 +1306,7 @@ def API(age, isol, forf_log, br_rmi, af_majo, rsa, _P):
     # Lorsque la durée d'activité est inférieure à 78 heures par mois, le montant de l'API perçu par l'allocataire est diminué de la moitié du salaire.
     # Si l'allocataire exerce une activité dans le cadre d'un CIRMA ou d'un CAV, ses revenus d'activité ne sont pas pris en compte pour le calcul de son API.
 
-def AEFA(nbpar, ass ,aer, api, rsa, _P):
+def _aefa(age, af_nbenf, nb_par, ass ,aer, api, rsa, _P, _option = {'age': ENFS}):
     '''
     Aide exceptionelle de fin d'année (prime de Noël)
     '''
@@ -1351,8 +1332,8 @@ def AEFA(nbpar, ass ,aer, api, rsa, _P):
     else: nbPAC = af_nbenf
     # TODO check nombre de PAC pour une famille
     P = _P.minim
-    aefa = condition*P.aefa.mon_seul*(1 + (nbpar==2)*P.aefa.tx_2p
-              + nbPAC*P.aefa.tx_supp*(nbpar<=2)
+    aefa = condition*P.aefa.mon_seul*(1 + (nb_par==2)*P.aefa.tx_2p
+              + nbPAC*P.aefa.tx_supp*(nb_par<=2)
               + nbPAC*P.aefa.tx_3pac*max_(nbPAC-2,0))
     
     if self.datesim.year==2008: aefa += condition*P.aefa.forf2008
@@ -1361,7 +1342,7 @@ def AEFA(nbpar, ass ,aer, api, rsa, _P):
     aefa = max_(aefa_maj,aefa)   
     return aefa 
 
-def ASPA_ASI(self,Param):
+def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'activite': [CHEF, PART]}):
     """
     Allocation de solidarité aux personnes agées (ASPA)
     et Allocation supplémentaire d'invalidité (ASI)
@@ -1400,45 +1381,42 @@ def ASPA_ASI(self,Param):
 #        P.aspa.plaf_couple = P.asi.plaf_couple mais P.aspa.plaf_seul = P.asi.plaf_seul 
     
     # TODO à mensualiser 
-    P = Param.minim        
+    P = _P.minim        
 
-    ageC = np.floor(np.array([m + self.agemC for m in range(12)])/12)
-    ageP = np.floor(np.array([m + self.agemP for m in range(12)])/12)
-
-    elig_aspa_C = ((ageC>=P.aspa.age_min) | ((ageC>=P.aspa.age_ina) &  (self.invC==1))) & (self.actC==3) 
-    elig_aspa_P = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
+    elig_aspa_C = ((age[CHEF]>=P.aspa.age_min) | ((age[CHEF]>=P.aspa.age_ina) &  (inv[CHEF]==1))) & (activite[CHEF]==3) 
+    elig_aspa_P = ((age[PART]>=P.aspa.age_min) | ((age[PART]>=P.aspa.age_ina) &  (inv[PART]==1))) & (activite[PART]==3)
     
-    elig_asi_C  = ( ((self.invC == 1) & (self.actC==3)) & not_(elig_aspa_C) ) 
-    elig_asi_P  = ( ((self.invP == 1) & (self.actP==3)) & not_(elig_aspa_P) )  
+    elig_asi_C  = ( ((inv[CHEF]==1) & (activite[CHEF]==3)) & not_(elig_aspa_C) ) 
+    elig_asi_P  = ( ((inv[PART]==1) & (activite[PART]==3)) & not_(elig_aspa_P) )  
 
     marpacs = self.coup
     maries  = self.maries
     
     # initialisation
-    self.asiC_m  = zeros((12,self.taille))
-    self.asiP_m  = zeros((12,self.taille))
-    self.aspaC_m = zeros((12,self.taille))
-    self.aspaP_m = zeros((12,self.taille))
+    asi[CHEF]  = 0
+    asi[PART]  = 0
+    aspa[CHEF] = 0
+    aspa[PART] = 0
     
     
     nb_alloc = (1*elig_aspa_C + 
                 1*elig_aspa_P + 
-                1*elig_asi_C + 
-                1*elig_asi_P )   
+                1*elig_asi_C  + 
+                1*elig_asi_P   )   
 
     # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA 
     elig1 = ( (nb_alloc==1) & ( elig_asi_C | elig_asi_P) )      # un seul éligible
     elig2 = (elig_asi_C & elig_asi_P)*maries                    # couple d'éligible marié
     elig3 = (elig_asi_C & elig_asi_P)*(marpacs & not_(maries))  # couple d'éligible non marié
-    elig  = elig1 | elig2
+    elig  =  elig1 | elig2
 
     montant_max = elig1*P.asi.montant_seul + elig2*P.asi.montant_couple + elig3*2*P.asi.montant_seul 
-    ressources  = elig*(self.BaseRessourceMV(P) + montant_max)
+    ressources  = elig*(br_mv + montant_max)
     plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi   = max_(montant_max - depassement, 0)/12 
-    self.asiC_m = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
-    self.asiP_m = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
+    asi[CHEF] = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
+    asi[PART] = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
 
     # 1 B Un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
     elig1 = ( (nb_alloc==1) & ( elig_aspa_C | elig_aspa_P) )
@@ -1446,58 +1424,51 @@ def ASPA_ASI(self,Param):
     elig  = elig1 | elig2
 
     montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
-    ressources  = elig*(self.BaseRessourceMV(P) + montant_max) 
+    ressources  = elig*(br_mv + montant_max) 
     plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi   = max_(montant_max - depassement, 0)/12
-    self.aspaC_m = elig_aspa_C*montant_servi*(elig1 + elig2/2)
-    self.aspaP_m = elig_aspa_P*montant_servi*(elig1 + elig2/2)
+    aspa[CHEF] = elig_aspa_C*montant_servi*(elig1 + elig2/2)
+    aspa[PART] = elig_aspa_P*montant_servi*(elig1 + elig2/2)
             
     # 2 B Une personne peçoit l'ASI et l'autre l'ASPA
     # Les persones sont mariées 
     index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(maries)
     montant_max = where( index, .5*P.asi.montant_couple + .5*P.aspa.montant_couple, 0)
-    ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
+    ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
     montant_servi_ASI   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
     montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
-    self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
-    self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
-    self.aspaP_m[index & elig_aspa_P ] = montant_servi_ASPA[index]
+    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
+    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
     
     # Les deux persones ne sont pas mariées mais concubins ou pacsés
     index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & not_(maries))
     montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
-    ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
+    ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
     montant_servi_ASI   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
     montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
-    self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
-    self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
-    self.aspaP_m[index & elig_aspa_P ] = montant_servi_ASPA[index]
+    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
+    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
 
-    self.asiC  = self.asiC_m.sum(axis=0)
-    self.asiP  = self.asiP_m.sum(axis=0)
-    self.aspaC = self.aspaC_m.sum(axis=0)
-    self.aspaP = self.aspaP_m.sum(axis=0)
-    
-    table = self.population
-    table.openWriteMode()
-    table.set('asi', self.asiC, 'fam', 'chef', table = 'output')
-    table.set('asi', self.asiP, 'fam', 'part', table = 'output')
-    table.set('mv', self.aspaC, 'fam', 'chef', table = 'output')
-    table.set('mv', self.aspaP, 'fam', 'part', table = 'output')
-    table.close_()
+
+    table.set('asi', asiC, 'fam', 'chef', table = 'output')
+    table.set('asi', asiP, 'fam', 'part', table = 'output')
+    table.set('mv', aspaC, 'fam', 'chef', table = 'output')
+    table.set('mv', aspaP, 'fam', 'part', table = 'output')
         
-    self.mv = self.aspaC + self.aspaP    
+    mv = aspaC + aspaP    
 
 
 # TODO fix this
-def Br_Aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
+def _br_aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
      
         br_aah = br_pf/12 + asi[CHEF] + aspa[CHEF] + asi[PART] + aspa[PART]
         
@@ -1505,7 +1476,7 @@ def Br_Aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHE
         return br_aah
 
 
-def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}):
+def _aah(rev_pf, br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART], 'rev_pf': [CHEF, PART]}):
     '''
     Allocation adulte handicapé (montant mensuel)
     '''
@@ -1553,11 +1524,11 @@ def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 
     smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
 
     eligC = ( (inv[CHEF]==1) &
-              ( (age[CHEF] >= P.fam.aeeh.age) | (age[CHEF] >= 16) & (rev[CHEF] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+              ( (age[CHEF] >= P.fam.aeeh.age) | (age[CHEF] >= 16) & (rev_pf[CHEF] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
                 (age[CHEF] <= P.minim.aah.age_legal_retraite ))    
 
     eligP = ( (inv[PART]==1) &
-              ( (age[PART] >= P.fam.aeeh.age) | (age[PART] >= 16) & (rev[PART] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+              ( (age[PART] >= P.fam.aeeh.age) | (age[PART] >= 16) & (rev_pf[PART] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
                 (age[PART] <= P.minim.aah.age_legal_retraite ))
 
     plaf = 12*P.minim.aah.montant*(1 + concub + P.minim.aah.tx_plaf_supp*af_nbenf)
@@ -1642,7 +1613,7 @@ def _caah(aah, _P):
           
     return caah
     
-def _ass(br_pf, _P):
+def _ass(br_pf, concub, _P):
     '''
     Allocation de solidarité spécifique
     '''        
@@ -1666,7 +1637,7 @@ def _ass(br_pf, _P):
 #       ou justifiant d'au moins 160 trimestres de cotisation retraite.
 
     majo = 0
-    plaf = P.chomage.ass.plaf_seul*seul + P.chomage.ass.plaf_coup*coup
+    plaf = P.chomage.ass.plaf_seul*not_(concub) + P.chomage.ass.plaf_coup*concub
     montant_mensuel = 30*(P.chomage.ass.montant_plein*not_(majo) 
                           + majo*P.chomage.ass.montant_maj)
     revenus = br_pf + 12*montant_mensuel  # TODO check base ressources
