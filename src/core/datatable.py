@@ -87,11 +87,14 @@ class Column(object):
             return out
 
     def set_value(self, value, index, opt = None):
+        if value.dtype == np.bool:
+            self._dtype = np.bool
+        
         if opt is None:
             idx = index[0]
         else:
             idx = index[opt]
-        var = self._value
+        var = np.array(self._value, dtype = self._dtype)
         val = np.array(value, dtype = self._dtype)
         var[idx['idxIndi']] = val[idx['idxUnit']]
         self._value = var
@@ -221,8 +224,8 @@ class DataTable(object):
     def populate_from_scenario(self, scenario, date):
         self._nrows = self._nmen*len(scenario.indiv)
         self._init_columns(self._nrows)
-        self.XAXIS = 'sal'
-        self.MAXREV = 20000
+        XAXIS = 'sal'
+        MAXREV = 20000
         self.year = 2010
         self.datesim = date
         # pour l'instant, un seul menage répliqué n fois
@@ -244,7 +247,12 @@ class DataTable(object):
                 if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
                 col = getattr(self, var)
                 if not index[noi] is None:
-                    col.set_value(np.ones(self._nmen)*val, index, noi)
+                    if var == XAXIS and noi == 0:
+                        # TODO: how to set xaxis vals properly
+                        vls = np.linspace(0, MAXREV, self._nmen)
+                        col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
+                    else: 
+                        col.set_value(np.ones(self._nmen)*val, index, noi)
 
     def addPerson(self, noi, quifoy, quifam, quimen, noidec, noichef, noipref):
         for i in xrange(self._nmen):
