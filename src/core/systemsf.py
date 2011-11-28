@@ -70,7 +70,7 @@ class Prestation(Column):
 
     def calculate(self, inputs, index):
         '''
-        Solver: finds dependencies and calculate accordingly all variables needed
+        Solver: finds dependencies and calculate accordingly all needed variables 
         '''
         if self._isCalculated:
             return
