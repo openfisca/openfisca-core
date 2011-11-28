@@ -48,9 +48,9 @@ class Famille(object):
 
         table.openReadMode()
         
-        self.nbpar = 1 + 1*(table.get('quifam', unit = 'fam', qui = 'part')==1)
-        self.isol = self.nbpar == 1    # si parent isolé
-        self.coup = self.nbpar == 2    # si couple (marié, pacsé ou non)
+        self.nb_par = 1 + 1*(table.get('quifam', unit = 'fam', qui = 'part')==1)
+        self.isol = self.nb_par == 1    # si parent isolé
+        self.coup = self.nb_par == 2    # si couple (marié, pacsé ou non)
         # TODO : compléter
         self.maries = (table.get('statmarit', 'fam', 'part')==1)
 
@@ -74,16 +74,8 @@ class Famille(object):
             setattr(self, 'inv'+ suf, invs[i] )
             
 
-        # TODO: Dans Population une fonction qui check s'il a plus d'une famille dans un ménage
-        self.coloc = zeros(self.taille, dtype = bool)
         
-        self.actC, self.actP = table.get('activite', 'fam', ['chef', 'part'])
-        self.etuC   = self.actC == 2
-        self.etuP   = self.actC == 2
         
-        self.so       = table.get('so', 'fam', 'chef')        
-        self.al_zone  = table.get('zone_apl', 'fam', 'chef')
-        self.loyer    = table.get('loyer', 'fam', 'chef')
         
         table.close_()
 
@@ -122,49 +114,48 @@ class Famille(object):
         table.close_()
 
 
-def NbPar():
+def _nb_par():
     '''
-    Nombre d'adulte dans la famille
+    Nombre d'adultes (parents) dans la famille
     '''
-
-def Couple(statmarit, _option):
+    
+def _couple(statmarit, _option):
     '''
     couple = 1 si couple marié sinon 0
     '''
-     
+    return statmarit==1
 
-def Concub(nbpar):
+def _concub(nb_par):
     '''
-    concub = 1 si couple 
+    concub = 1 si vie en couple TODO pas très heureux  
     '''
-    return nbpar==2
+    return nb_par==2
 
-
-def Etu(activite):
+def _etu(activite):
     '''
     Indicatrice individuelle etudiant
     ''' 
-    return activite == 2
+    return activite==2
 
-def Sal_Fam(sal, _option = {'rst': [CHEF, PART]}):
+def _sal_fam(sal, _option = {'rst': [CHEF, PART]}):
     '''
     Salaires de la famille
     ''' 
     return sal[CHEF] + sal[PART]
 
-def Rst_Fam(rst, _option = {'rst': [CHEF, PART]}):
+def _rst_fam(rst, _option = {'rst': [CHEF, PART]}):
     '''
     Retraites au sens strict de la famille
     ''' 
     return rst[CHEF] + rst[PART]
 
-def Tspr_Fam(tspr, _option = {'tspr': [CHEF, PART]}):
+def _tspr_fam(tspr, _option = {'tspr': [CHEF, PART]}):
     '''
     Traitements, salaires, pensions et rentes de la famille
     ''' 
     return tspr[CHEF] + tspr[PART]
     
-def Rpns_Fam(rpns, _option = {'rpns': [CHEF, PART]}):
+def _rpns_fam(rpns, _option = {'rpns': [CHEF, PART]}):
     '''
     Revenus des personnes non salariées de la famille
     '''
@@ -186,7 +177,7 @@ def Nb_Enf(ages, ag1, ag2):
     # TODO: smic55
     return res
 
-def Age_Aine(ages, ag1, ag2):
+def _age_aine(ages, ag1, ag2):
     '''
     renvoi un vecteur avec l'âge de l'ainé (au sens des allocations 
     familiales) de chaque famille
@@ -211,20 +202,20 @@ def age_en_mois_benjamin(agems):
     return agem_benjamin
 
 
-def Ra_Rsa(sal, hsup, rpns, etr, div_rmi):
+def _ra_rsa(sal, hsup, rpns, etr, div_rmi):
     '''
     Revenus d'activité au sens du Rsa
     '''
     return sal + hsup + rpns + etr + div_rmi
 
-def Rev_PF(tspr_fam, hsup, rpns_fam, _option = {'hsup': [CHEF, PART]}):
+def _rev_pf(tspr_fam, hsup, rpns_fam, _option = {'hsup': [CHEF, PART]}):
     '''
     Base ressource individuelle des prestations familiales
     '''
     rev_pf  = tspr_fam + hsup[PART] + hsup[CHEF] + rpns_fam   
     return rev_pf
 
-def Biact(rev_pf, _P, _option = {'rev_pf': [CHEF, PART]}):
+def _biact(rev_pf, _P, _option = {'rev_pf': [CHEF, PART]}):
     '''
     Indicatrice de biactivité des adultes de la famille
     '''
@@ -232,19 +223,19 @@ def Biact(rev_pf, _P, _option = {'rev_pf': [CHEF, PART]}):
     biact = (rev_pf[CHEF] >= seuil_rev) & (rev_pf[PART] >= seuil_rev)
     return biact
     
-def Br_PF(rev_pf, rev_coll, _option = {'rev_pf': [CHEF, PART]}):
+def _br_pf(rev_pf, rev_coll, _option = {'rev_pf': [CHEF, PART]}):
     '''
     Base ressource des prestations familiales de la famille
     '''
     br_pf = rev_pf[CHEF] + rev_pf[PART] + rev_coll
     return br_pf
     
-def AF_NbEnf(age, _P, _option = {'age': ENFS}):
+def _af_nbenf(age, _P, _option = {'age': ENFS}):
     P = _P.fam.af
     af_nbenf = Nb_Enf(age, P.age1, P.age2)
     return af_nbenf
     
-def AF_Base(af_nbenf, _P):
+def _af_base(af_nbenf, _P):
     '''
     Allocations familiales - allocation de base
     '''
@@ -260,7 +251,7 @@ def AF_Base(af_nbenf, _P):
 
     return af_base
     
-def AF_Majo(age, _P, _option = {'age': ENFS}):
+def _af_majo(age, _P, _option = {'age': ENFS}):
     # Date d'entrée en vigueur de la nouvelle majoration
     # enfants nés après le "1997-04-30"       
     bmaf  = _P.fam.af.bmaf    
@@ -269,7 +260,7 @@ def AF_Majo(age, _P, _option = {'age': ENFS}):
     af_maj1       = round(bmaf*P.taux1,2)
     af_maj2       = round(bmaf*P.taux2,2)
 
-    age_aine = Age_Aine(age, P_af.age1, P_af.age2)
+    age_aine = _age_aine(age, P_af.age1, P_af.age2)
     def age_sf_aine(age, ag1, ag2, age_aine):
         dum = (ag1 <= age_aine) & (age_aine <= ag2)
         return Nb_Enf(age, ag1, ag2) - dum*1
@@ -280,7 +271,7 @@ def AF_Majo(age, _P, _option = {'age': ENFS}):
 
     return af_majo
 
-def AF_Forf(age, af_nbenf, _P, _option = {'age': ENFS}):
+def _af_forf(age, af_nbenf, _P, _option = {'age': ENFS}):
     P = _P.fam
     bmaf = _P.fam.af.bmaf    
 #    if hasattr(P.af,"age3"): af_nbenf_20 = self.NbEnf(P.af.age3,P.af.age3)
@@ -292,10 +283,10 @@ def AF_Forf(age, af_nbenf, _P, _option = {'age': ENFS}):
     
     return af_ai20
 
-def AF(af_base, af_majo, af_forf):
+def _af(af_base, af_majo, af_forf):
     return af_base + af_majo + af_forf
 
-def CF(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
+def _cf(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     '''
     Complément familial
     Vous avez au moins 3 enfants à charge tous âgés de plus de 3 ans. 
@@ -325,7 +316,7 @@ def CF(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
                              (br_pf > cf_plaf)*max_(cf_plaf2- br_pf,0)/12.0 )
     return cf_brut
 
-def ASF(age, rst_fam, isol, asf_elig, _P, _option = {'age': ENFS}):
+def _asf(age, rst_fam, isol, asf_elig, _P, _option = {'age': ENFS}):
     '''
     Allocation de soutien familial
     '''
@@ -350,7 +341,7 @@ def ASF(age, rst_fam, isol, asf_elig, _P, _option = {'age': ENFS}):
 
     return asf_brut
 
-def ARS(age, br_pf, _P, _option = {'age': ENFS}):
+def _ars(age, br_pf, _P, _option = {'age': ENFS}):
     '''
     Allocation de rentrée scolaire
     '''
@@ -373,7 +364,7 @@ def ARS(age, br_pf, _P, _option = {'age': ENFS}):
     
     arsnbenf =   enf_primaire + enf_college + enf_lycee
     
-    ars_plaf_res = P.ars.plaf*(1+ ars_nbenf*P.ars.plaf_enf_supp)
+    ars_plaf_res = P.ars.plaf*(1+ arsnbenf*P.ars.plaf_enf_supp)
     arsbase  = bmaf*(P.ars.tx0610*enf_primaire + 
                      P.ars.tx1114*enf_college + 
                      P.ars.tx1518*enf_lycee )
@@ -382,7 +373,7 @@ def ARS(age, br_pf, _P, _option = {'age': ENFS}):
 
     return ars*(ars>=P.ars.seuil_nv)
 
-def PAJE(self, Param):
+def _paje(self, Param): # TODO
     '''
     Prestation d'accueil du jeune enfant
     '''
@@ -393,7 +384,7 @@ def PAJE(self, Param):
     self.pajeClmg(Param)
     self.pajeColca(Param)
 
-def Paje_Base(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
+def _paje_base(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     ''' 
     Prestation d'acceuil du jeune enfant - allocation de base
     '''
@@ -426,7 +417,7 @@ def Paje_Base(age, br_pf, isol, biact, _P, _option = {'age': ENFS}):
     # non cumulabe avec la CF, voir Paje_CumulCf
     return paje_base
 
-def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENFS, 'agem': ENFS}):
+def _paje_nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENFS, 'agem': ENFS}):
     '''
     Prestation d'accueil du jeune enfant - Allocation de naissance
     '''
@@ -454,7 +445,7 @@ def Paje_Nais(agem, age, af_nbenf, br_pf, isol, biact, _P, _option = {'age': ENF
     
     return nais_brut  
     
-def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {'age': ENFS, 'agem': ENFS}):
+def _paje_clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {'age': ENFS, 'agem': ENFS}):
     '''
     Prestation d'accueil du jeune enfant - Complément de libre choix d'activité
     '''
@@ -503,15 +494,15 @@ def Paje_Clca(age, agem, paje_base, inactif, partiel1, partiel2, _P, _option = {
 
     return paje_clca
     
-def Paje_Clca_Taux_Plein(paje_clca, inactif):
+def _paje_clca_taux_plein(paje_clca, inactif):
     return (paje_clca>0)*inactif
 
-def Paje_Clca_Taux_Partiel(paje_clca, partiel1):
+def _paje_clca_taux_partiel(paje_clca, partiel1):
     return (paje_clca>0)*partiel1
             
     # TODO gérer les cumuls avec autres revenus et colca voir site caf
 
-def Paje_Clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, gar_dom, paje_clca_taux_partiel, paje_clca_taux_plein, _P, _option = {'age': ENFS, 'etu': [CHEF, PART], 'sal': [CHEF, PART]}):
+def _paje_clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, gar_dom, paje_clca_taux_partiel, paje_clca_taux_plein, _P, _option = {'age': ENFS, 'etu': [CHEF, PART], 'sal': [CHEF, PART]}):
     '''
     Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde
     '''
@@ -548,7 +539,7 @@ def Paje_Clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, ga
     cond_sal     = (sal[CHEF] + sal[PART] > 12*P.af.bmaf_n_2*(1+concub))
 # TODO    cond_rpns    = 
     cond_act     = cond_sal   # | cond_rpns
-    cond_nonact  =  or_((aah >0), etu[VOUS] & etu[PART])   
+    cond_nonact  =  or_(aah >0, etu[CHEF] & etu[PART])   
 #  TODO RSA insertion, alloc insertion, ass   
     elig = cond_age_enf & (  or_(cond_act,cond_nonact) ) 
              
@@ -590,7 +581,7 @@ def Paje_Clmg(aah, age, etu, sal, concub, af_nbenf, br_pf, empl_dir, ass_mat, ga
     
     return paje_clmg
     
-def Paje_Colca(af_nbenf, agem, opt_colca, paje_brut, _P):    
+def _paje_colca(af_nbenf, agem, opt_colca, paje_brut, _P):    
     '''
     Prestation d'accueil du jeune enfant - Complément optionnel de libre choix du mode de garde
     '''
@@ -610,7 +601,7 @@ def Paje_Colca(af_nbenf, agem, opt_colca, paje_brut, _P):
 
     #TODO: cumul avec clca self.colca_tot_m 
 
-def Paje_CumulCf(paje_base_temp, cf_temp):
+def _paje_cumul_cf(paje_base_temp, cf_temp):
     '''
     L'allocation de base de la paje n'est pas cummulable avec le complément familial
     '''
@@ -618,14 +609,14 @@ def Paje_CumulCf(paje_base_temp, cf_temp):
     paje_base = (paje_base_temp >= cf_temp)*paje_base_temp
     return round(paje_base, 2)
     
-def Cf_CumulPaje(paje_base_temp, cf_temp):
+def _cf_cumul_paje(paje_base_temp, cf_temp):
     '''
     L'allocation de base de la paje n'est pas cummulable avec le complément familial
     '''
     cf_brut   = (paje_base_temp <  cf_temp)*cf_temp
     return round(cf_brut, 2)
     
-def AEEH(inv, isol, categ_inv, _P, ):
+def _aeeh(age, inv, isol, categ_inv, _P, _option = {'categ_inv': ENFS, 'inv': ENFS, 'age': ENFS}):
     '''
     Allocation d'éducation de l'enfant handicapé (Allocation d'éducation spécialisée avant le 1er janvier 2006)
     '''
@@ -637,20 +628,18 @@ def AEEH(inv, isol, categ_inv, _P, ):
 #
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
     P = _P.fam
-    
-    
-    enfhand = np.array( [ getattr(self, 'inv%d' %(i+1)) for i in range(self.nbenfmax) ] )
-    ages =  self.ages
-
-    enfhand = (enfhand*(ages < P.aeeh.age)).sum(axis=0)/12
-    
     isole =  isol
-    categ = categ_inv 
     
-    if self.datesim <= date(2002, 1,1): 
-        aeeh = 0*enfhand    # TODO
-    else:
-        aeeh  = enfhand*(P.af.bmaf*(P.aeeh.base + 
+    aeeh = 0
+    for enfant in age.iterkeys():
+        enfhand = inv[enfant]*(age[enfant] < P.aeeh.age)/12
+        categ   = categ_inv[enfant] 
+        
+#        if self.datesim <= date(2002, 1,1):  # TODO 
+        if True == False:
+            aeeh += 0*enfhand    # TODO
+        else:
+            aeeh  += enfhand*(P.af.bmaf*(P.aeeh.base + 
                               P.aeeh.cpl1*(categ==1) + 
                               (categ==2)*(P.aeeh.cpl2 + P.aeeh.maj2*isole) + 
                               (categ==3)*(P.aeeh.cpl3 + P.aeeh.maj3*isole) + 
@@ -669,9 +658,9 @@ def AEEH(inv, isol, categ_inv, _P, ):
 # du complément d'AEEH et la PCH.   
             
     # Ces allocations ne sont pas soumis à la CRDS
-    self.aeeh_brut  = 12*aeeh.sum(axis=0)  
+    return aeeh  
 
-def APE(self, Param):
+def _ape(age, inactif, partiel1, partiel2, _P, _option = {'age': ENFS}):
     ''' 
     L’allocation parentale d’éducation s’adresse aux parents qui souhaitent arrêter ou 
     réduire leur activité pour s’occuper de leurs jeunes enfants, à condition que ceux-ci 
@@ -683,17 +672,17 @@ def APE(self, Param):
     # TODO cumul (hyper important), adoption, triplés, 
     # L'allocation parentale d'éducation n'est pas soumise 
     # à condition de ressources, sauf l’APE à taux partiel pour les professions non salariées
-    P = Param.fam
-    elig = (self.Nb_Enf(0,P.ape.age-1)>=1) & (self.Nb_Enf(0,P.af.age2)>=2)
+    P = _P.fam
+    elig = (Nb_Enf(age, 0,P.ape.age-1)>=1) & (Nb_Enf(age, 0,P.af.age2)>=2)
     
     # TODO: rajouter ces infos aux parents
-    inactif  = zeros((12,self.taille))
+    # Inactif
     # Temps partiel 1
     # Salarié: 
     # Temps de travail ne dépassant pas 50 % de la durée du travail fixée dans l'entreprise
     # VRP ou non salarié travaillant à temps partiel:
     # Temps de travail ne dépassant pas 76 heures par mois et un revenu professionnel mensuel inférieur ou égal à (smic_8.27*169*85 %)
-    partiel1 = zeros((12,self.taille))
+    #partiel1 = zeros((12,self.taille))
     
     # Temps partiel 2
     # Salarié:
@@ -701,61 +690,61 @@ def APE(self, Param):
     # Temps de travail compris entre 77 et 122 heures par mois et un revenu professionnel mensuel ne dépassant pas
     #  (smic_8.27*169*136 %)
 
-    partiel2  = zeros((12,self.taille))
-    self.ape_brut_m = elig*(inactif*P.ape.tx_inactif + partiel1*P.ape.tx_50 + partiel2*P.ape.tx_80)
+    ape = elig*(inactif*P.ape.tx_inactif + partiel1*P.ape.tx_50 + partiel2*P.ape.tx_80)
+
+    # Cummul APE APJE CF    
+    return ape
     
 
-def APJE(self,Param):
+def _apje(br_pf, age, isol, biact, _P, _option = {'age': ENFS}):
     '''
     Allocation pour jeune enfant
     '''
     # TODO: APJE courte voir doc ERF 2006
-    P = Param.fam
-    nbenf = self.Nb_Enf(0,P.apje.age-1)
+    P = _P.fam
+    nbenf = Nb_Enf(age, 0,P.apje.age-1)
     bmaf = P.af.bmaf
     bmaf_n_2= P.af.bmaf_n_2 
     base = round(P.apje.taux*bmaf,2)
     base2 = round(P.apje.taux*bmaf_n_2,2)
 
     plaf_tx = (nbenf>0) + P.apje.plaf_tx1*min_(nbenf,2) + P.apje.plaf_tx2*max_(nbenf-2,0)
-    majo    = isol | self.biact
+    majo    = or_(isol, biact)
     plaf    = P.apje.plaf*plaf_tx + P.apje.plaf_maj*majo
     plaf2   = plaf + 12*base2    
 
-    brut =  (nbenf>=1)*( ( br_pf <= plaf)*base 
+    apje =  (nbenf>=1)*( ( br_pf <= plaf)*base 
             + (br_pf > plaf)*max_(plaf2-br_pf,0)/12.0 )
-    self.apje_brut_m = brut
-
-
-def CumulAPE_APJE_CF(self, Param):
-    P = Param.fam
-    crds = P.af.crds
-    apje_brut_m = (self.apje_brut_m > max_(self.cf_brut_m,self.ape_brut_m))*self.apje_brut_m
-    cf_brut_m   = (self.cf_brut_m  >= max_(self.apje_brut_m,self.ape_brut_m) )*self.cf_brut_m
-    ape_brut_m  = (self.ape_brut_m  > max_(self.apje_brut_m,self.cf_brut_m) )*self.ape_brut_m
-            
-    self.apje_brut  = round(apje_brut_m.sum(axis=0), 2)
-    self.apje_crds  = round(self.apje_brut*crds, 2)
-    self.apje_tot   = self.apje_brut - self.apje_crds
-
-    self.cf_brut   = round(cf_brut_m.sum(axis=0), 2)
-    self.cf_crds   = round(self.cf_brut*crds, 2)
-    self.cf_tot    = self.cf_brut - self.cf_crds
-
-    self.ape_brut  = round(ape_brut_m.sum(axis=0), 2)
-    self.ape_crds  = round(self.ape_brut*crds, 2)
-    self.ape_tot   = self.ape_brut - self.ape_crds
     
-    table.openWriteMode()
-    table.set('chef', 'apje', self.apje_tot, 'fam')
-    table.set('chef', 'cf', self.cf_tot, 'fam')
-    table.set('chef', 'ape', self.ape_tot, 'fam')    
-    table.close_()
-    
-    
-## TODO rajouter la prime à la naissance et à l'adoption avant la paje
+    # Non cummul APE APJE CF  
+    return apje
 
-def AGED(self,Param):
+
+def _cf_cumul_apje_ape(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    cf  = (apje_temp <=  cf_temp)*(ape_temp <= cf_temp)*cf_temp
+    return round(cf, 2)
+
+def _ape_cumul_apje_cf(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    ape  = (apje_temp <  ape_temp)*(cf_temp < ape_temp)*ape_temp
+    return round(ape, 2)
+
+def _apje_cumul_ape_cf(apje_temp, ape_temp, cf_temp):
+    '''
+    L'allocation de base de la paje n'est pas cummulable avec le complément familial
+    '''
+    apje  = (cf_temp <  apje_temp)*(ape_temp < apje_temp)*apje_temp
+    return round(apje, 2)
+
+        
+## TODO rajouter la prime à la naissance et à l'adoption br_mvla paje check ancienne version
+
+def _aged(age, br_pf, ape_taux_partiel, dep_trim, _P, _option = {'age': ENFS}):
     '''
     Allocation garde d'enfant à domicile
     '''
@@ -763,26 +752,26 @@ def AGED(self,Param):
     # les deux conjoints actif et revenu min requis
     # A complêter
 
-    P = Param.fam
-    ape_taux_partiel_dummy  = zeros(self.taille)
+    P = _P.fam
     
-    nbenf = self.Nb_Enf(0, P.aged.age1-1)
-    nbenf2 = self.Nb_Enf(0, P.aged.age2-1)
+    nbenf = Nb_Enf(age, 0, P.aged.age1-1)
+    nbenf2 = Nb_Enf(age, 0, P.aged.age2-1)
 
     elig1 = (nbenf>0) 
-    elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel_dummy
+    elig2 = not_(elig1)*(nbenf2>0)*ape_taux_partiel
     
-    depenses_trim = zeros(self.taille)   # TODO gérer les dépenses trimestrielles
-    depenses = 4*depenses_trim         
+
+    depenses = 4*dep_trim # TODO gérer les dépenses trimestrielles        
              
     aged3 = elig1*( max_(P.aged.remb_plaf1-P.aged.remb_taux1*depenses,0)*(br_pf > P.aged.revenus_plaf) 
        +  (br_pf <= P.aged.revenus_plaf)*max_(P.aged.remb_taux2*depenses - P.aged.remb_plaf1,0))
     
     aged6  = elig2*max_(P.aged.remb_taux2*depenses - P.aged.remb_plaf2,0)
 
-    self.aged = aged3 + aged6 
+    return aged3 + aged6 
 
-def AFEAMA(self,Param):
+
+def _afeama(age, ape, af_nbenf, br_pf, _P, _option = {'age': ENFS}):
     '''
     Aide à la famille pour l'emploi d'une assistante maternelle agréée
     '''
@@ -790,9 +779,9 @@ def AFEAMA(self,Param):
     
     # seuils sont de 80 et 110 % de l'ARS
     # Vérifier que c'est la même chose pour le clmg
-    P = Param.fam
-    ape = zeros(self.taille)
-    elig = not_(ape)*zeros(self.taille) # assistante maternelle agréee
+    P = _P.fam
+    
+    elig = not_(ape) # assistante maternelle agréee
 # Vous devez:
 #    faire garder votre enfant de moins de 6 ans par une assistante maternelle agréée dont vous êtes l'employeur
 #    déclarer son embauche à l'Urssaf
@@ -803,24 +792,26 @@ def AFEAMA(self,Param):
 
     # TODO calcul des cotisations urssaf
     # 
-    nbenf = elig*self.Nb_Enf(P.af.age1,P.age2)*(self.Nb_Enf(P.af.age1,P.afeama.age-1)>0)
+    nbenf_afeama = Nb_Enf(age,P.af.age1,P.afeama.age-1)
+    nbenf = elig*af_nbenf*( nbenf_afeama > 0)
     
     seuil1 = P.afeama.mult_seuil1*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil1*P.ars.plaf*(1+P.ars.plaf_enf_supp)
     seuil2 = P.afeama.mult_seuil2*P.ars.plaf*(nbenf==1) + max_(nbenf-1,0)*P.afeama.mult_seuil2*P.ars.plaf*(1+P.ars.plaf_enf_supp)
     
-    afeama_brut = self.Nb_Enf(P.af.age1,P.afeama.age-1)*P.af.bmaf*( 
+    afeama = nbenf_afeama*P.af.bmaf*( 
             (br_pf < seuil1)*P.afeama.taux_mini +
             ( (br_pf >= seuil1) & (br_pf < seuil2) )*P.afeama.taux_median +
             (br_pf >= seuil2)*P.afeama.taux_maxi)
     
-    self.afeama_brut_m = afeama_brut.sum(axis=0)
+    return afeama
 
-def AL(self, P):
-    self.AlNbp(P)
-    self.AlBaseRessource(P)
-    self.AlFormule(P)
+# TODO remove me when done
+#def _al(self, P):
+#    self.AlNbp(P)
+#    self.AlBaseRessource(P)
+#    self.AlFormule(P)
 
-def AlNbp(self,P):
+def _al_pac(age, al_nbinv, _P, _option = {'age': ENFS}):
     '''
     Nombre de personne à charge au sens des allocations logement
     '''
@@ -844,13 +835,14 @@ def AlNbp(self,P):
     # charge (cas actuel) et zéro sinon.
     age1 = P.fam.af.age1
     age2 = P.fam.cf.age2
-    al_nbenf = self.Nb_Enf(age1, age2)
-    al_nbenf = al_nbenf[0,:]
-    self.al_pac = P.al.autres.D_enfch*(al_nbenf + self.al_nbinv) # manque invalides
+    al_nbenf = Nb_Enf(age, age1, age2)
+    al_pac = P.al.autres.D_enfch*(al_nbenf + al_nbinv) # manque invalides
     # TODO: il faudrait probablement définir les AL pour un ménage et non 
     # pour une famille
+    return al_pac
     
-def AlBaseRessource(self,P):
+    
+def _br_al(etu, rev_pf, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART], 'rev_pf': [CHEF, PART]}):
     '''
     Base ressource des allocations logement
     '''
@@ -868,18 +860,18 @@ def AlBaseRessource(self,P):
     Pr = P.al.ressources
     
     
-    etuC = (self.etuC>=1)&(self.etuP==0)
-    etuP = (self.etuC==0)&(self.etuP>=1)
-    etuCP= (self.etuC>=1)&(self.etuP>=1)
-    self.etu = (self.etuC>=1)|(self.etuP>=1)
+    etuC = (etu[CHEF]>=1)&(etu[PART]==0)
+    etuP = (etu[CHEF]==0)&(etu[PART]>=1)
+    etuCP= (etu[CHEF]>=1)&(etu[PART]>=1)
+    # self.etu = (self.etu[CHEF]>=1)|(self.etuP>=1)
     
-    revCatVous = max_(self.revChef,etuC*(Pr.dar_4-(self.etuC==2)*Pr.dar_5))
-    revCatConj = max_(self.revPart,etuP*(Pr.dar_4-(self.etuP==2)*Pr.dar_5))
+    revCatVous = max_(rev_pf[CHEF],etuC*(Pr.dar_4-(etu[CHEF]==2)*Pr.dar_5))
+    revCatConj = max_(rev_pf[PART],etuP*(Pr.dar_4-(etu[PART]==2)*Pr.dar_5))
     revCatVsCj = not_(etuCP)*(revCatVous + revCatConj) + \
-                    etuCP*max_(self.revChef + self.revPart, Pr.dar_4 -((self.etuC==2)|(self.etuP==2))*Pr.dar_5 + Pr.dar_7)
+                    etuCP*max_(rev_pf[CHEF] + rev_pf[PART], Pr.dar_4 -((etu[CHEF]==2)|(etu[PART]==2))*Pr.dar_5 + Pr.dar_7)
     
     # somme des revenus catégoriels après abatement
-    revCat = revCatVsCj + self.revColl
+    revCat = revCatVsCj + rev_coll
     # charges déductibles : pension alimentaires et abatements spéciaux
     revNet = revCat
     
@@ -887,7 +879,7 @@ def AlBaseRessource(self,P):
     # personnes (enfant, ascendants ou grands infirmes).
     
     # abattement forfaitaire double activité
-    abatDoubleAct = self.biact*Pr.dar_1 
+    abatDoubleAct = biact*Pr.dar_1 
     
     # neutralisation des ressources
     # ...
@@ -900,9 +892,12 @@ def AlBaseRessource(self,P):
     # double résidence pour raisons professionnelles
     
     # Base ressource des aides au logement (arrondies aux 100 euros supérieurs)
-    self.BRapl = ceil(max_(revNet - abatDoubleAct,0)/100)*100
+    
+    br_al = ceil(max_(revNet - abatDoubleAct,0)/100)*100
 
-def AlFormule(self,P):
+    return br_al
+
+def _al(concub, br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     '''
     Formule des aides aux logements en secteur locatif
     Attention, cette fonction calcul l'aide mensuelle
@@ -925,49 +920,49 @@ def AlFormule(self,P):
     #   SO==5 : Locataire ou sous-locataire d'un logement loué meublé ou d'une chambre d'hôtel.
     #   sO==6 : Logé gratuitement par des parents, des amis ou l'employeur
         
-    loca = (3 <= self.so)&(5 >= self.so)
-    acce = self.so==1
+    loca = (3 <= so)&(5 >= so)
+    acce = so==1
     rmi = P.al.rmi
     bmaf = P.fam.af.bmaf_n_2
         
     ## aides au logement pour les locataires
     # loyer;
-    L1 = self.loyer
+    L1 = loyer
     # loyer plafond;
-    lp_taux = (self.coloc==0)*1 + self.coloc*P.al.loyers_plafond.colocation
+    lp_taux = (coloc==0)*1 + coloc*P.al.loyers_plafond.colocation
     
     z1 = P.al.loyers_plafond.zone1
     z2 = P.al.loyers_plafond.zone2
     z3 = P.al.loyers_plafond.zone3
     
-    Lz1 = ((self.isol)*(self.al_pac==0)*z1.L1 + (self.coup)*(self.al_pac==0)*z1.L2 + (self.al_pac>0)*z1.L3 + (self.al_pac>1)*(self.al_pac-1)*z1.L4)*lp_taux
-    Lz2 = ((self.isol)*(self.al_pac==0)*z2.L1 + (self.coup)*(self.al_pac==0)*z2.L2 + (self.al_pac>0)*z2.L3 + (self.al_pac>1)*(self.al_pac-1)*z2.L4)*lp_taux
-    Lz3 = ((self.isol)*(self.al_pac==0)*z3.L1 + (self.coup)*(self.al_pac==0)*z3.L2 + (self.al_pac>0)*z3.L3 + (self.al_pac>1)*(self.al_pac-1)*z3.L4)*lp_taux
+    Lz1 = ((isol)*(al_pac==0)*z1.L1 + (concub)*(al_pac==0)*z1.L2 + (al_pac>0)*z1.L3 + (al_pac>1)*(al_pac-1)*z1.L4)*lp_taux
+    Lz2 = ((isol)*(al_pac==0)*z2.L1 + (concub)*(al_pac==0)*z2.L2 + (al_pac>0)*z2.L3 + (al_pac>1)*(al_pac-1)*z2.L4)*lp_taux
+    Lz3 = ((isol)*(al_pac==0)*z3.L1 + (concub)*(al_pac==0)*z3.L2 + (al_pac>0)*z3.L3 + (al_pac>1)*(al_pac-1)*z3.L4)*lp_taux
     
-    L2 = Lz1*(self.al_zone==1) + Lz2*(self.al_zone==2) + Lz3*(self.al_zone==3)
+    L2 = Lz1*(al_zone==1) + Lz2*(al_zone==2) + Lz3*(al_zone==3)
     # loyer retenu
     L = min_(L1,L2)
     
     # forfait de charges
     P_fc = P.al.forfait_charges
-    C = not_(self.coloc)*(P_fc.fc1 + self.al_pac*P_fc.fc2) + \
-          ( self.coloc)*((self.isol*0.5 + self.coup)*P_fc.fc1 + self.al_pac*P_fc.fc2)
+    C = not_(coloc)*(P_fc.fc1 + al_pac*P_fc.fc2) + \
+          ( coloc)*((isol*0.5 + concub)*P_fc.fc1 + al_pac*P_fc.fc2)
     
     # dépense éligible
     E = L + C;
     
     # ressources prises en compte 
-    R = self.BRapl
+    R = br_al
     
     # Plafond RO    
-    R1 = P.al.R1.taux1*rmi*(self.isol)*(self.al_pac==0) + \
-         P.al.R1.taux2*rmi*(self.coup)*(self.al_pac==0) + \
-         P.al.R1.taux3*rmi*(self.al_pac==1) + \
-         P.al.R1.taux4*rmi*(self.al_pac>=2) + \
-         P.al.R1.taux5*rmi*(self.al_pac>2)*(self.al_pac-2)
+    R1 = P.al.R1.taux1*rmi*(isol)*(al_pac==0) + \
+         P.al.R1.taux2*rmi*(concub)*(al_pac==0) + \
+         P.al.R1.taux3*rmi*(al_pac==1) + \
+         P.al.R1.taux4*rmi*(al_pac>=2) + \
+         P.al.R1.taux5*rmi*(al_pac>2)*(al_pac-2)
     
-    R2 = P.al.R2.taux4*bmaf*(self.al_pac>=2) + \
-         P.al.R2.taux5*bmaf*(self.al_pac>2)*(self.al_pac-2)
+    R2 = P.al.R2.taux4*bmaf*(al_pac>=2) + \
+         P.al.R2.taux5*bmaf*(al_pac>2)*(al_pac-2)
     
     Ro = round(12*(R1-R2)*(1-P.al.autres.abat_sal));
     
@@ -977,19 +972,19 @@ def AlFormule(self,P):
     Po = max_(P.al.pp.taux*E, P.al.pp.min);
     
     # Taux de famille    
-    TF = P.al.TF.taux1*(self.isol)*(self.al_pac==0) + \
-         P.al.TF.taux2*(self.coup)*(self.al_pac==0) + \
-         P.al.TF.taux3*(self.al_pac==1) + \
-         P.al.TF.taux4*(self.al_pac==2) + \
-         P.al.TF.taux5*(self.al_pac==3) + \
-         P.al.TF.taux6*(self.al_pac>=4) + \
-         P.al.TF.taux7*(self.al_pac>4)*(self.al_pac-4)
+    TF = P.al.TF.taux1*(isol)*(al_pac==0) + \
+         P.al.TF.taux2*(concub)*(al_pac==0) + \
+         P.al.TF.taux3*(al_pac==1) + \
+         P.al.TF.taux4*(al_pac==2) + \
+         P.al.TF.taux5*(al_pac==3) + \
+         P.al.TF.taux6*(al_pac>=4) + \
+         P.al.TF.taux7*(al_pac>4)*(al_pac-4)
     
     # Loyer de référence
-    L_Ref = z2.L1*(self.isol)*(self.al_pac==0) + \
-            z2.L2*(self.coup)*(self.al_pac==0) + \
-            z2.L3*(self.al_pac>=1) + \
-            z2.L4*(self.al_pac>1)*(self.al_pac-1)
+    L_Ref = z2.L1*(isol)*(al_pac==0) + \
+            z2.L2*(concub)*(al_pac==0) + \
+            z2.L3*(al_pac>=1) + \
+            z2.L4*(al_pac>1)*(al_pac-1)
 
     RL = L / L_Ref
 
@@ -1000,30 +995,48 @@ def AlFormule(self,P):
     
     PP = Po + Tp*Rp
     al_loc = max_(0,E - PP)*(loca==1)
-    self.al_loc = al_loc*(al_loc>=P.al.autres.nv_seuil)
+    al_loc = al_loc*(al_loc>=P.al.autres.nv_seuil)
 
     ## APL pour les accédants à la propriété
-    self.al_acc = zeros(self.taille)*(acce==1)
+    al_acc = 0*(acce==1)
 
     ## APL (tous)
-    self.al_tot = (self.al_loc + self.al_acc)*(1-P.fam.af.crds)
+    
+    al = al_loc + al_acc
+    # les allocations logmeent sont sumis à la crds
+    # al = (al_loc + al_acc)*(1-P.fam.af.crds)
 
-    self.alf   = 12*(self.al_pac>=1)*self.al_tot # Allocation logement familiale
-    self.als   = 12*(self.al_pac==0)*not_(self.etu)*self.al_tot # Allocation logement sociale
-    self.alset = 12*(self.al_pac==0)*self.etu*self.al_tot # Allocation logement étudiante
-    self.apl   = 12*zeros(self.taille) #TODO: Pour les logements conventionné (surtout des HLM)
+    return al 
 
-    table = self.population
-    table.openWriteMode()
-    table.set('alf', self.alf, 'fam', 'chef', table = 'output')
-    table.set('als', self.als, 'fam', 'chef', table = 'output')
-    table.set('alset', self.alset, 'fam', 'chef', table = 'output')
-    table.set('apl', self.apl, 'fam', 'chef', table = 'output')
-    table.close_()
-
-def BaseRessourceMV(self, P):
+def _alf(al, al_pac, al_zone, _P):
     '''
-    Base ressource du minimlum vieillesse et assimilé (ASPA)
+    Allocation logement familiale
+    '''    
+    alf   = (al_pac>=1)*al 
+    return alf
+     
+def _als(etu, al, al_pac, al_zone, _P ,_option = {'etu': [CHEF, PART]}):
+    '''
+    Allocation logement sociale
+    '''    
+    als   = (al_pac==0)*not_(or_(etu[CHEF],etu[PART]))*al # Allocation logement sociale
+    return als
+     
+     
+def _alset(etu, al, al_pac, al_zone, _P ,_option = {'etu': [CHEF, PART]}):
+    '''
+    Allocation logement sociale étudiante
+    '''    
+    alset = (al_pac==0)*or_(etu[CHEF],etu[PART])*al
+    return alset
+    
+#T    self.apl   = 12*zeros(self.taille) #TODO: Pour les logements conventionné (surtout des HLM)
+
+ 
+def _br_mv(sal_fam, cho_fam, rst_fam, alr_fam, rto_fam, rpns_fam, 
+           revcap_bar_fam, revcap_lib_fam, rfon_fam, etr_fam, div_rmi_fam):
+    '''
+    Base ressource du minimlum vieillesse et assimilés (ASPA)
     '''    
     #Ressources prises en compte
     #Tous les avantages de vieillesse et d'invalidité dont bénéficie l'intéressé sont pris en compte dans l'appréciation des ressources, de même que les revenus professionnels, les revenus des biens mobiliers et immobiliers et les biens dont il a fait donation dans les 10 années qui précèdent la demande d'Aspa.
@@ -1038,13 +1051,14 @@ def BaseRessourceMV(self, P):
     # des pensions attachées aux distinctions honorifiques,
     # de l'aide apportée ou susceptible d'être apportée par les personnes tenues à l'obligation alimentaire.
 
-    self.BRmv = (max_(0,self.sal + self.cho) + max_(0,self.rst + self.alr + self.rto) + 
-                 max_(0,self.rpns) + max_(0,self.revcap_bar) + 
-                 max_(0,self.revcap_lib) + max_(0,self.rfon) +
-                 max_(0,self.etr) + max_(0,self.div_rmi) )
-    return self.BRmv
+    br_mv = (max_(0,sal_fam + cho_fam) + max_(0,rst_fam + alr_fam + rto_fam) + 
+                 max_(0,rpns_fam) + max_(0,revcap_bar_fam) + 
+                 max_(0,revcap_lib_fam) + max_(0,rfon_fam) +
+                 max_(0,etr_fam) + max_(0,div_rmi_fam) )
+    return br_mv
 
-def MV(self, Param):
+def _mv(age, inv, activite, nb_par, br_mv, _P, 
+        _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'actvite': [CHEF, PART]}):
     '''
     Minimum vieillesse - Allocation de solidarité aux personnes agées (ASPA)
     '''
@@ -1059,36 +1073,26 @@ def MV(self, Param):
     # majoration si le conjoint à lui aussi plus de 65 ans, ou 60 si inapte;
     # TODO: ajouter taux de la majoration pour 3 enfants 10% (D811-12) ?
     #       P.aspa.maj_3enf = 0.10;
-    P = Param.minim
+    P = _P.minim
 
-    
-    ageC = np.floor(np.array([m + self.agemC for m in range(12)])/12)
-    ageP = np.floor(np.array([m + self.agemP for m in range(12)])/12)
-
-    eligC = ((ageC>=P.aspa.age_min) | ((ageC>=P.aspa.age_ina) &  (self.invC==1))) & (self.actC==3) 
-    eligP = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
+    eligC = ((age[CHEF]>=P.aspa.age_min) | ((age[CHEF]>=P.aspa.age_ina) &  (inv[CHEF]==1))) & (activite[CHEF]==3) 
+    eligP = ((age[PART]>=P.aspa.age_min) | ((age[PART]>=P.aspa.age_ina) &  (inv[PART]==1))) & (activite[PART]==3)
     
     elig2 = eligC & eligP
     elig1 = not_(elig2) & (eligC |eligP)
+        
+    depassement = elig1*(nb_par==1)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
+        +  elig1*(nb_par==2)*max_(0, br_mv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
+        +  elig2*max_(0, br_mv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
     
-    BRmv = self.BaseRessourceMV(P)
-    
-    depassement = elig1*(self.nbpar==1)*max_(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_seul )/12 \
-        +  elig1*(self.nbpar==2)*max_(0, BRmv + P.aspa.montant_seul - P.aspa.plaf_couple )/12 \
-        +  elig2*max_(0, BRmv + P.aspa.montant_couple - P.aspa.plaf_couple )/12
-    
-    self.mv_m = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
+    mv = max_(0,elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple -  depassement) 
 
     # TODO ASI 
-    self.asiC = zeros(self.taille)
-    self.asiP = zeros(self.taille)
+#    self.asiC = zeros(self.taille)
+#    self.asiP = zeros(self.taille)
 
-    self.mv = self.mv_m.sum(axis=0)
+    return mv
 
-    
-    table.openWriteMode()
-    table.set('chef', 'mv', self.mv, 'fam')
-    table.close_()
 
 def RSA(self, P):
     self.RmiNbp(P.minim)
@@ -1101,13 +1105,19 @@ def RMI(self, P):
     self.RmiBaseRessource(P.minim)
     self.Rsa(P.minim)
 
-def RmiNbp(self,P):
+def _rmi_nbp(age, nb_par , _P, _option = {'age': [CHEF, PART]}):
     '''
     Nombre de personne à charge au sens du Rmi ou du Rsa
     '''
-    self.rmiNbp = self.nbpar + self.Nb_Enf(0,24)[0,:]
+    return nb_par + Nb_Enf(age, 0, 24)  # TODO limite d'âge dans paramètres
 
-def RmiBaseRessource(self, P):
+def _br_rmi(af_base, cf, asf, paje, clca, colca, ape, apje,mv, asi, aah, caah, 
+            ra_rsa, ra_rsa, cho_fam, rst_fam, alr_fam, rto_fam, revcap_bar_fam,
+            revcap_lib_fam, rfon_fam, _P, _option = {'asi': [CHEF, PART], 'ra_rsa': [CHEF, PART]}):
+    '''
+    Base ressources du Rmi ou du Rsa
+    '''
+    # TODO séparer les prestat par années ?
     # compléter la base ressource RMI
     
     # base ressource du rmi, on prend en compte tous les revenus, sans
@@ -1125,20 +1135,17 @@ def RmiBaseRessource(self, P):
 
     # RaRsa revenus d'activité au sens du RSA
 
-    if self.datesim < date(2004, 1,1):
-        pfBRrmi =  P.rmi.pfInBRrmi*(self.af_base + self.cf_tot + self.asf_brut + 
-                                    self.apje_tot + self.ape_tot)    
-    else: 
-        pfBRrmi =  P.rmi.pfInBRrmi*(self.af_base + self.cf_tot + self.asf_brut + 
-                                    self.paje_tot + self.clca_brut + self.colca_brut)
+#   TODO gestion des dates
+#    if self.datesim < date(2004, 1,1):
+#        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + apje + ape)    
+#    else: 
+    pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + paje + clca + colca)
 
 
-    self.BrRmi = (self.RaRsaC + self.RaRsaP + self.cho + self.rst + self.alr + self.rto + 
-                  max_(0,self.revcap_bar + self.revcap_lib + self.rfon) + 
-                  pfBRrmi +
-                  self.mv + self.asiC + self.asiP + self.aah + self.caah)
-      
-
+    br_rmi = (ra_rsa[CHEF] + ra_rsa[PART] + cho_fam + rst_fam + alr_fam + rto_fam + 
+                  max_(0,revcap_bar_fam + revcap_lib_fam + rfon_fam) + 
+                  pf_br_rmi +
+                  mv + asi[CHEF] + asi[PART] + aah + caah)
     # Ne sont pas pris en compte:
     #  
     # 1 De la prime à la naissance ou à l’adoption mentionnée à l’article L. 531-2 du code de la sécurité
@@ -1194,10 +1201,27 @@ def RmiBaseRessource(self, P):
     #23 Des mesures de réparation mentionnées à l’article 2 du décret no 2004-751 du 27 juillet 2004 instituant
     #   une aide financière en reconnaissance des souffrances endurées par les orphelins dont les parents ont été
     #   victimes d’actes de barbarie durant la Deuxième Guerre mondiale
+    return br_rmi
 
+def _forf_log(so, rmi_nbp, _P):
+    '''
+    Forfait logement intervenant dans le calcul du Rmi ou du Rsa
+    '''
+    # calcul du forfait logement si le ménage touche des allocations logements
+    # (FA.AL)
+    P = _P
+    loca = (3 <= so)&(5 >= so)
+    FL = P.rmi.forfait_logement
+    tx_fl = ((rmi_nbp==1)*FL.taux1 +
+             (rmi_nbp==2)*FL.taux2 +
+             (rmi_nbp>=3)*FL.taux3 )    
+    return 12*loca*(tx_fl*P.rmi.rmi)
 
-def Rsa(self, P):
-    table = self.population
+def _rsa_socle(forf_log, age , nb_par, rmi_nbp, ra_rsa, br_rmi, _P):
+    '''
+    Rsa socle / Rmi
+    '''
+    P = _P
     # RSA socle TODO mécanisme similaire à l'API: Pour les
     # personnes ayant la charge d’au moins un enfant né ou à
     # naître et se retrouvant en situation d’isolement, le montant
@@ -1206,51 +1230,43 @@ def Rsa(self, P):
     # générateur de l’isolement. Le cas échéant, la durée de
     # majoration est prolongée jusqu’à ce que le plus jeune enfant
     # atteigne trois ans.        
-    loca = (3 <= self.so)&(5 >= self.so)
-    eligib = (self.ageC>=25) |(self.ageP>=25)
-    tx_rmi = 1 + ( self.rmiNbp >= 2 )*P.rmi.txp2 \
-               + ( self.rmiNbp >= 3 )*P.rmi.txp3 \
-               + ( self.rmiNbp >= 4 )*((self.nbpar==1)*P.rmi.txps + (self.nbpar!=1)*P.rmi.txp3) \
-               + max_(self.rmiNbp -4,0)*P.rmi.txps 
-    rsaSocle = 12*P.rmi.rmi*tx_rmi*eligib
-    # calcul du forfait logement si le ménage touche des allocations logements
-    # (FA.AL)
-    FL = P.rmi.forfait_logement
-    tx_fl = ((self.rmiNbp==1)*FL.taux1 +
-             (self.rmiNbp==2)*FL.taux2 +
-             (self.rmiNbp>=3)*FL.taux3 )
-    self.forf_log = 12*loca*(tx_fl*P.rmi.rmi)
-    # cacul du RSA
-    RMI = max_(0,rsaSocle  - self.forf_log - self.BrRmi)
-    RSA = max_(0,rsaSocle + P.rmi.pente*(self.RaRsaC+self.RaRsaP) - self.forf_log - self.BrRmi)
-    self.rsa = (RSA>=P.rmi.rsa_nv)*RSA
+    eligib = (age[CHEF]>=25) |(age[PART]>=25)
+    tx_rmi = ( 1 + ( rmi_nbp >= 2 )*P.rmi.txp2 
+                 + ( rmi_nbp >= 3 )*P.rmi.txp3  
+                 + ( rmi_nbp >= 4 )*((nb_par==1)*P.rmi.txps + (nb_par!=1)*P.rmi.txp3) 
+                 + max_(rmi_nbp -4,0)*P.rmi.txps )
+    return 12*P.rmi.rmi*tx_rmi*eligib
     
-    table.openWriteMode()        
-    table.set('rsaact', self.rsa - RMI, 'fam', 'chef', table = 'output')
-    table.set('rsa'   , self.rsa,       'fam', 'chef', table = 'output')   
-    table.close_()
-    
-    table.openReadMode()        
-    # On retranche le RSA activité de la PPE
-    ppe = max_(table.get('ppe', 'foy', 'vous', table = 'output') 
-           - table.get('rsaact', 'foy', 'vous', table = 'output')
-           - table.get('rsaact', 'foy', 'conj', table = 'output'),0)
-    table.close_()
-    
-    table.openWriteMode()
-    table.setColl('ppe',ppe, table = 'output')
-    table.close_()    
+def _rmi(rsa_socle, forf_log, br_rmi):     
+    # cacul du RMI/RSA 
+    rmi = max_(0, rsa_socle  - forf_log - br_rmi)
+    return rmi
 
-def API(self, P):
+def _rsa(rsa_socle, ra_rsa, forf_log, br_rmi, _P): 
+    P = _P.rmi 
+    RSA = max_(0,rsa_socle + P.pente*(ra_rsa[CHEF] + ra_rsa[PART]) - forf_log - br_rmi)
+    rsa = (RSA>=P.rsa_nv)*RSA
+    return rsa
+    
+def _ra_act(rsa, rmi):    
+    return rsa - rmi
+    
+    
+def _ppe_cumul_rsa_act(ppe_temp, rsa_act, _option = {'rsa_act': [VOUS, CONJ]} ):
+#   TODO où mettre cela ? 
+#   On retranche le RSA activité de la PPE
+    ppe = max_(ppe_temp - rsa_act[VOUS] - rsa_act[CONJ])
+    return ppe 
+    
+    
+def _api(age, isol, forf_log, br_rmi, af_majo, rsa, _P, _option = {'age': ENFS}):
     '''
     Allocation de parent isolé
     '''
-    if self.nbenfmax == 0:
-        self.api = zeros(self.taille)
-        return
-
+    P = _P
     bmaf = P.fam.af.bmaf;
-    benjamin = self.age_en_mois_benjamin(P.fam, 9)
+    # TODO
+    benjamin = age_en_mois_benjamin(P.fam, 9)  # TODO
     enceinte = (benjamin<0)*(benjamin>-6)
     # TODO quel mois mettre ?
     # TODO pas complètement exact
@@ -1264,22 +1280,18 @@ def API(self, P):
     ## Calcul de l'année et mois de naissance du benjamin 
     
     condition = (np.floor(benjamin/12) <= P.minim.api.age-1)
-    eligib = self.isol*( (enceinte!=0) | (self.Nb_Enf(0,P.minim.api.age-1)>0) )*condition;
+    eligib = isol*( (enceinte!=0) | (Nb_Enf(age, 0,P.minim.api.age-1)>0) )*condition;
 
     # moins de 20 ans avant inclusion dans rsa et moins de  25 après
-    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*self.Nb_Enf(P.fam.af.age1,P.minim.api.age_pac-1) )
+    api1 = eligib*bmaf*(P.minim.api.base + P.minim.api.enf_sup*Nb_Enf(age, P.fam.af.age1,P.minim.api.age_pac-1) )
     rsa = (P.minim.api.age_pac >= 25) # dummy passage au rsa majoré
-    BRapi = self.BrRmi + self.af_majo*not_(rsa)
+    br_api = br_rmi + af_majo*not_(rsa)
     # TODO: mensualiser RMI, BRrmi et forfait logement
-    api  = max_(0, api1 - self.forf_log/12 - BRapi/12 - self.rsa/12) 
+    api  = max_(0, api1 - forf_log/12 - br_api/12 - rsa/12) 
     
     # L'API est exonérée de CRDS
-    self.api = api.sum(axis=0)
-    table = self.population
-    table.openWriteMode()
-    table.set('api', self.api, 'fam', 'chef', table = 'output')
-    table.close_()
-
+    return api
+    
     # TODO: temps partiel qui modifie la base ressource
     # Cumul
     # Cumul avec un revenu
@@ -1294,46 +1306,43 @@ def API(self, P):
     # Lorsque la durée d'activité est inférieure à 78 heures par mois, le montant de l'API perçu par l'allocataire est diminué de la moitié du salaire.
     # Si l'allocataire exerce une activité dans le cadre d'un CIRMA ou d'un CAV, ses revenus d'activité ne sont pas pris en compte pour le calcul de son API.
 
-def AEFA(self, Param):
+def _aefa(age, af_nbenf, nb_par, ass ,aer, api, rsa, _P, _option = {'age': ENFS}):
     '''
     Aide exceptionelle de fin d'année (prime de Noël)
     '''
         # Insituée en 1998        
         # Complément de rmi dans les ERF
     
-    P = Param
-    ass = zeros(self.taille)
-    aer = zeros(self.taille)
-    api = zeros(self.taille)
-    rmi = self.rsa>0
+    P = _P
+    dummy_ass = ass > 0
+    dummy_aer = aer > 0
+    dummy_api = api > 0
+    dummy_rmi = rsa > 0
 
     # Le montant de l’aide mentionnée à l’article 1er versée aux bénéficiaires de l’allocation de solidarité
     # spécifique à taux majoré servie aux allocataires âgés de cinquante-cinq ans ou plus justifiant de vingt années
     # d’activité salariée, aux allocataires âgés de cinquante-sept ans et demi ou plus justifiant de dix années d’activité
     # salariée ainsi qu’aux allocataires justifiant d’au moins 160 trimestres validés dans les régimes d’assurance
     # vieillesse ou de périodes reconnues équivalentes est égal à        
-    maj = zeros(self.taille)  # TODO
+    maj = 0  # TODO
     
-    condition = ass*aer*api*rmi
+    condition = (dummy_ass+dummy_aer+dummy_api+dummy_rmi > 0)
     
-    if hasattr(P.fam.af,"age3"): nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age3)[11,:]
-    else: nbPAC = self.Nb_Enf(P.fam.af.age1,P.fam.af.age2)[11,:]
+    if hasattr(P.fam.af,"age3"): nbPAC = Nb_Enf(age, P.fam.af.age1,P.fam.af.age3)[11,:]
+    else: nbPAC = af_nbenf
     # TODO check nombre de PAC pour une famille
-    P = Param.minim
-    aefa = condition*P.aefa.mon_seul*(1 + (self.nbpar==2)*P.aefa.tx_2p
-              + nbPAC*P.aefa.tx_supp*(self.nbpar<=2)
+    P = _P.minim
+    aefa = condition*P.aefa.mon_seul*(1 + (nb_par==2)*P.aefa.tx_2p
+              + nbPAC*P.aefa.tx_supp*(nb_par<=2)
               + nbPAC*P.aefa.tx_3pac*max_(nbPAC-2,0))
     
     if self.datesim.year==2008: aefa += condition*P.aefa.forf2008
                
     aefa_maj  = P.aefa.mon_seul*maj
-    self.aefa = max_(aefa_maj,aefa)   
-    
-    self.population.openWriteMode()
-    self.population.set('aefa', self.aefa, 'fam', 'chef', table = 'output')   
-    self.population.close_()
+    aefa = max_(aefa_maj,aefa)   
+    return aefa 
 
-def ASPA_ASI(self,Param):
+def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'activite': [CHEF, PART]}):
     """
     Allocation de solidarité aux personnes agées (ASPA)
     et Allocation supplémentaire d'invalidité (ASI)
@@ -1372,45 +1381,42 @@ def ASPA_ASI(self,Param):
 #        P.aspa.plaf_couple = P.asi.plaf_couple mais P.aspa.plaf_seul = P.asi.plaf_seul 
     
     # TODO à mensualiser 
-    P = Param.minim        
+    P = _P.minim        
 
-    ageC = np.floor(np.array([m + self.agemC for m in range(12)])/12)
-    ageP = np.floor(np.array([m + self.agemP for m in range(12)])/12)
-
-    elig_aspa_C = ((ageC>=P.aspa.age_min) | ((ageC>=P.aspa.age_ina) &  (self.invC==1))) & (self.actC==3) 
-    elig_aspa_P = ((ageP>=P.aspa.age_min) | ((ageP>=P.aspa.age_ina) &  (self.invP==1))) & (self.actP==3)
+    elig_aspa_C = ((age[CHEF]>=P.aspa.age_min) | ((age[CHEF]>=P.aspa.age_ina) &  (inv[CHEF]==1))) & (activite[CHEF]==3) 
+    elig_aspa_P = ((age[PART]>=P.aspa.age_min) | ((age[PART]>=P.aspa.age_ina) &  (inv[PART]==1))) & (activite[PART]==3)
     
-    elig_asi_C  = ( ((self.invC == 1) & (self.actC==3)) & not_(elig_aspa_C) ) 
-    elig_asi_P  = ( ((self.invP == 1) & (self.actP==3)) & not_(elig_aspa_P) )  
+    elig_asi_C  = ( ((inv[CHEF]==1) & (activite[CHEF]==3)) & not_(elig_aspa_C) ) 
+    elig_asi_P  = ( ((inv[PART]==1) & (activite[PART]==3)) & not_(elig_aspa_P) )  
 
     marpacs = self.coup
     maries  = self.maries
     
     # initialisation
-    self.asiC_m  = zeros((12,self.taille))
-    self.asiP_m  = zeros((12,self.taille))
-    self.aspaC_m = zeros((12,self.taille))
-    self.aspaP_m = zeros((12,self.taille))
+    asi[CHEF]  = 0
+    asi[PART]  = 0
+    aspa[CHEF] = 0
+    aspa[PART] = 0
     
     
     nb_alloc = (1*elig_aspa_C + 
                 1*elig_aspa_P + 
-                1*elig_asi_C + 
-                1*elig_asi_P )   
+                1*elig_asi_C  + 
+                1*elig_asi_P   )   
 
     # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA 
     elig1 = ( (nb_alloc==1) & ( elig_asi_C | elig_asi_P) )      # un seul éligible
     elig2 = (elig_asi_C & elig_asi_P)*maries                    # couple d'éligible marié
     elig3 = (elig_asi_C & elig_asi_P)*(marpacs & not_(maries))  # couple d'éligible non marié
-    elig  = elig1 | elig2
+    elig  =  elig1 | elig2
 
     montant_max = elig1*P.asi.montant_seul + elig2*P.asi.montant_couple + elig3*2*P.asi.montant_seul 
-    ressources  = elig*(self.BaseRessourceMV(P) + montant_max)
+    ressources  = elig*(br_mv + montant_max)
     plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi   = max_(montant_max - depassement, 0)/12 
-    self.asiC_m = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
-    self.asiP_m = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
+    asi[CHEF] = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
+    asi[PART] = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
 
     # 1 B Un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
     elig1 = ( (nb_alloc==1) & ( elig_aspa_C | elig_aspa_P) )
@@ -1418,58 +1424,51 @@ def ASPA_ASI(self,Param):
     elig  = elig1 | elig2
 
     montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
-    ressources  = elig*(self.BaseRessourceMV(P) + montant_max) 
+    ressources  = elig*(br_mv + montant_max) 
     plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi   = max_(montant_max - depassement, 0)/12
-    self.aspaC_m = elig_aspa_C*montant_servi*(elig1 + elig2/2)
-    self.aspaP_m = elig_aspa_P*montant_servi*(elig1 + elig2/2)
+    aspa[CHEF] = elig_aspa_C*montant_servi*(elig1 + elig2/2)
+    aspa[PART] = elig_aspa_P*montant_servi*(elig1 + elig2/2)
             
     # 2 B Une personne peçoit l'ASI et l'autre l'ASPA
     # Les persones sont mariées 
     index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(maries)
     montant_max = where( index, .5*P.asi.montant_couple + .5*P.aspa.montant_couple, 0)
-    ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
+    ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
     montant_servi_ASI   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
     montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
-    self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
-    self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
-    self.aspaP_m[index & elig_aspa_P ] = montant_servi_ASPA[index]
+    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
+    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
     
     # Les deux persones ne sont pas mariées mais concubins ou pacsés
     index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & not_(maries))
     montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
-    ressources  = where( index,self.BaseRessourceMV(P) + montant_max,0) 
+    ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
     montant_servi_ASI   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
     montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    self.asiC_m[index & elig_asi_C]  = montant_servi_ASI[index]
-    self.asiP_m[index & elig_asi_P ] = montant_servi_ASI[index]
-    self.aspaC_m[index & elig_aspa_C]  = montant_servi_ASPA[index]
-    self.aspaP_m[index & elig_aspa_P ] = montant_servi_ASPA[index]
+    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
+    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
 
-    self.asiC  = self.asiC_m.sum(axis=0)
-    self.asiP  = self.asiP_m.sum(axis=0)
-    self.aspaC = self.aspaC_m.sum(axis=0)
-    self.aspaP = self.aspaP_m.sum(axis=0)
-    
-    table = self.population
-    table.openWriteMode()
-    table.set('asi', self.asiC, 'fam', 'chef', table = 'output')
-    table.set('asi', self.asiP, 'fam', 'part', table = 'output')
-    table.set('mv', self.aspaC, 'fam', 'chef', table = 'output')
-    table.set('mv', self.aspaP, 'fam', 'part', table = 'output')
-    table.close_()
+
+    table.set('asi', asiC, 'fam', 'chef', table = 'output')
+    table.set('asi', asiP, 'fam', 'part', table = 'output')
+    table.set('mv', aspaC, 'fam', 'chef', table = 'output')
+    table.set('mv', aspaP, 'fam', 'part', table = 'output')
         
-    self.mv = self.aspaC + self.aspaP    
+    mv = aspaC + aspaP    
 
 
 # TODO fix this
-def Br_Aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
+def _br_aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
      
         br_aah = br_pf/12 + asi[CHEF] + aspa[CHEF] + asi[PART] + aspa[PART]
         
@@ -1477,7 +1476,7 @@ def Br_Aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHE
         return br_aah
 
 
-def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}):
+def _aah(rev_pf, br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART], 'rev_pf': [CHEF, PART]}):
     '''
     Allocation adulte handicapé (montant mensuel)
     '''
@@ -1525,11 +1524,11 @@ def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 
     smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
 
     eligC = ( (inv[CHEF]==1) &
-              ( (age[CHEF] >= P.fam.aeeh.age) | (age[CHEF] >= 16) & (rev[CHEF] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+              ( (age[CHEF] >= P.fam.aeeh.age) | (age[CHEF] >= 16) & (rev_pf[CHEF] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
                 (age[CHEF] <= P.minim.aah.age_legal_retraite ))    
 
     eligP = ( (inv[PART]==1) &
-              ( (age[PART] >= P.fam.aeeh.age) | (age[PART] >= 16) & (rev[PART] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
+              ( (age[PART] >= P.fam.aeeh.age) | (age[PART] >= 16) & (rev_pf[PART] > P.fam.af.seuil_rev_taux*smic_annuel)) & 
                 (age[PART] <= P.minim.aah.age_legal_retraite ))
 
     plaf = 12*P.minim.aah.montant*(1 + concub + P.minim.aah.tx_plaf_supp*af_nbenf)
@@ -1555,7 +1554,7 @@ def AAH(br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF, PART], 
     return aah
 
 
-def CAAH(self, Param):
+def _caah(aah, _P):
     '''
     Complément d'allocation adulte handicapé
     '''
@@ -1583,11 +1582,11 @@ def CAAH(self, Param):
 #       travailler Il est égal à la différence entre la garantie de
 #       ressources pour les personnes handicapées (GRPH) et l’AAH
 
-    P = Param.minim 
-    elig_cpl = zeros((12,self.taille))    # TODO: éligibilité
+    P = _P.minim 
+    elig_cpl = 0    # TODO: éligibilité
     
-    if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-self.aah,0)  
-    else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah
+    if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-aah,0)  
+    else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*aah
 #        else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah_m 
         # En fait perdure jusqu'en 2008 
  
@@ -1607,17 +1606,14 @@ def CAAH(self, Param):
 #La personne qui remplit les conditions d'octroi de ces deux avantages doit choisir de bénéficier de l'un ou de l'autre.
 
     if self.datesim.year >= 2006:        
-        elig_mva = zeros((12,self.taille))*(self.aah>0)   # TODO: éligibilité
+        elig_mva = 0*(aah>0)   # TODO: éligibilité
         mva = P.caah.mva*elig_mva
-    else: mva = zeros((12,self.taille))      
+    else: mva = 0      
     caah = max_(compl,mva)
           
-    self.caah = caah.sum(axis=0)
-    self.population.openWriteMode()
-    self.population.set('caah', self.caah, 'fam', 'chef', table = 'output')
-    self.population.close_()
+    return caah
     
-def ASS(self, P):
+def _ass(br_pf, concub, _P):
     '''
     Allocation de solidarité spécifique
     '''        
@@ -1640,23 +1636,25 @@ def ASS(self, P):
 #       ou âgés de 57 ans et demi ou plus et justifiant de 10 ans d'activité salariée,
 #       ou justifiant d'au moins 160 trimestres de cotisation retraite.
 
-    majo = zeros(self.taille)
-    plaf = P.chomage.ass.plaf_seul*self.seul + P.chomage.ass.plaf_coup*self.coup
+    majo = 0
+    plaf = P.chomage.ass.plaf_seul*not_(concub) + P.chomage.ass.plaf_coup*concub
     montant_mensuel = 30*(P.chomage.ass.montant_plein*not_(majo) 
                           + majo*P.chomage.ass.montant_maj)
     revenus = br_pf + 12*montant_mensuel  # TODO check base ressources
     ass = 12*(montant_mensuel*(revenus<=plaf) 
               + (revenus>plaf)*max_(plaf+montant_mensuel-revenus,0))
     
+    return ass
+    
 from core.systemsf import SystemSf, Prestation
 from parametres.paramData import XmlReader, Tree2Object
 
 class Pfam(SystemSf):
-    af_nbenf = Prestation(AF_NbEnf, 'fam', u"Nombre d'enfant au sens des AF")
-    af_base = Prestation(AF_Base, 'fam', 'Allocations familiales - Base')
-    af_majo = Prestation(AF_Majo, 'fam', 'Allocations familiales - Majoration pour age')
-    af_forf = Prestation(AF_Base, 'fam', 'Allocations familiales - Forfait 20 ans')
-    af      = Prestation(AF, 'fam', label = u"Allocations familiales")
+    af_nbenf = Prestation(_af_nbenf, 'fam', u"Nombre d'enfant au sens des AF")
+    af_base = Prestation(_af_base, 'fam', 'Allocations familiales - Base')
+    af_majo = Prestation(_af_majo, 'fam', 'Allocations familiales - Majoration pour age')
+    af_forf = Prestation(_af_base, 'fam', 'Allocations familiales - Forfait 20 ans')
+    af      = Prestation(_af, 'fam', label = u"Allocations familiales")
 
 #    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
 #    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
