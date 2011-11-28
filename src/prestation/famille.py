@@ -1393,10 +1393,10 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     maries  = self.maries
     
     # initialisation
-    asi[CHEF]  = 0
-    asi[PART]  = 0
-    aspa[CHEF] = 0
-    aspa[PART] = 0
+    asi[CHEF]  = zeros(len(elig_asi_C))
+    asi[PART]  = zeros(len(elig_asi_P))
+    aspa[CHEF] = zeros(len(elig_aspa_C))
+    aspa[PART] = zeros(len(elig_aspa_P))
     
     
     nb_alloc = (1*elig_aspa_C + 
@@ -1414,9 +1414,9 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     ressources  = elig*(br_mv + montant_max)
     plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
     depassement     = ressources - plafond_ressources 
-    montant_servi   = max_(montant_max - depassement, 0)/12 
-    asi[CHEF] = elig_asi_C*montant_servi*(elig1*1 + elig2/2 + elig3/2)
-    asi[PART] = elig_asi_P*montant_servi*(elig1*1 + elig2/2 + elig3/2)
+    montant_servi_asi   = max_(montant_max - depassement, 0)/12 
+    asi[CHEF] = elig_asi_C*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
+    asi[PART] = elig_asi_P*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
 
     # 1 B Un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
     elig1 = ( (nb_alloc==1) & ( elig_aspa_C | elig_aspa_P) )
@@ -1427,9 +1427,10 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     ressources  = elig*(br_mv + montant_max) 
     plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
     depassement     = ressources - plafond_ressources 
-    montant_servi   = max_(montant_max - depassement, 0)/12
-    aspa[CHEF] = elig_aspa_C*montant_servi*(elig1 + elig2/2)
-    aspa[PART] = elig_aspa_P*montant_servi*(elig1 + elig2/2)
+    
+    montant_servi_aspa   = max_(montant_max - depassement, 0)/12
+    aspa[CHEF] = elig_aspa_C*montant_servi_aspa*(elig1 + elig2/2)
+    aspa[PART] = elig_aspa_P*montant_servi_aspa*(elig1 + elig2/2)
             
     # 2 B Une personne peçoit l'ASI et l'autre l'ASPA
     # Les persones sont mariées 
@@ -1438,25 +1439,28 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
-    montant_servi_ASI   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
-    montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
-    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
-    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
-    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
+    
+    montant_servi_asi   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
+    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+    asi[CHEF][index & elig_asi_C]  = montant_servi_asi[index]
+    asi[PART][index & elig_asi_P ] = montant_servi_asi[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
     
     # Les deux persones ne sont pas mariées mais concubins ou pacsés
     index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & not_(maries))
     montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
     ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
-    depassement        = ressources - plafond_ressources 
-    montant_servi_ASI   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
-    montant_servi_ASPA  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    asi[CHEF][index & elig_asi_C]  = montant_servi_ASI[index]
-    asi[PART][index & elig_asi_P ] = montant_servi_ASI[index]
-    aspa[CHEF][index & elig_aspa_C]  = montant_servi_ASPA[index]
-    aspa[PART][index & elig_aspa_P ] = montant_servi_ASPA[index]
+    depassement        = ressources - plafond_ressources
+     
+    montant_servi_asi   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
+    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+
+    asi[CHEF][index & elig_asi_C]    = montant_servi_asi[index]
+    asi[PART][index & elig_asi_P ]   = montant_servi_asi[index]
+    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
+    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
 
 
     table.set('asi', asiC, 'fam', 'chef', table = 'output')
@@ -1467,7 +1471,7 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     mv = aspaC + aspaP    
 
 
-# TODO fix this
+
 def _br_aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
      
         br_aah = br_pf/12 + asi[CHEF] + aspa[CHEF] + asi[PART] + aspa[PART]
