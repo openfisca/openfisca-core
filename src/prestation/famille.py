@@ -623,7 +623,7 @@ def _aeeh(age, inv, isol, categ_inv, _P, _option = {'categ_inv': ENFS, 'inv': EN
 #        
 #        Ce montant peut être majoré par un complément accordé par la Cdaph qui prend en compte :
 #        le coût du handicap de l'enfant,
-#        la cessation ou la réduction d'activité professionnelle de l'un ou l'autre des deux parents,
+#        la cessation ou la réduction d'activité professionnelle daspa_elig[CHEF]un ou l'autre des deux parents,
 #        l'embauche d'une tierce personne rémunérée.
 #
 #        Une majoration est versée au parent isolé bénéficiaire d'un complément d'Aeeh lorsqu'il cesse ou réduit son activité professionnelle ou lorsqu'il embauche une tierce personne rémunérée.
@@ -815,7 +815,7 @@ def _al_pac(age, al_nbinv, _P, _option = {'age': ENFS}):
     '''
     Nombre de personne à charge au sens des allocations logement
     '''
-
+    P = _P
     # site de la CAF en 2011: 
     ## Enfant à charge
     # Vous assurez financièrement l'entretien et asez la responsabilité 
@@ -857,8 +857,8 @@ def _br_al(etu, rev_pf, rev_coll, biact, _P ,_option = {'etu': [CHEF, PART], 're
     # self.ALabat abatement prix en compte pour le calcul de la base ressources
     # des allocattions logement
     # plancher de ressources pour les etudiants
+    P = _P
     Pr = P.al.ressources
-    
     
     etuC = (etu[CHEF]>=1)&(etu[PART]==0)
     etuP = (etu[CHEF]==0)&(etu[PART]>=1)
@@ -902,7 +902,7 @@ def _al(concub, br_al, so, loyer, coloc, isol, al_pac, al_zone, _P):
     Formule des aides aux logements en secteur locatif
     Attention, cette fonction calcul l'aide mensuelle
     '''
-    
+    P = _P
     # ne prend pas en compte les chambres ni les logements-foyers.
     # variables nécéssaires dans FA
     # isol : ménage isolé
@@ -1139,6 +1139,7 @@ def _br_rmi(af_base, cf, asf, paje, clca, colca, ape, apje,mv, asi, aah, caah,
 #    if self.datesim < date(2004, 1,1):
 #        pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + apje + ape)    
 #    else: 
+    P = _P
     pf_br_rmi =  P.rmi.pfInBRrmi*(af_base + cf + asf + paje + clca + colca)
 
 
@@ -1342,25 +1343,11 @@ def _aefa(age, af_nbenf, nb_par, ass ,aer, api, rsa, _P, _option = {'age': ENFS}
     aefa = max_(aefa_maj,aefa)   
     return aefa 
 
-def _aspa_elig(age, inv, activite, _P):
-    '''
-    Eligibitié à l'ASPA
-    'ind'
-    '''
-    P = _P.mini.aspa
-    return ((age >= P.age_min) | ((age >=P.age_ina) &  (inv ==1))) & (activite ==3) 
 
-def _asi_elig(aspa_elig, inv, activite):
-    '''
-    Éligibilité à l'ASI
-    '''
-    return ((inv==1) & (activite==3)) & not_(aspa_elig)
-
-def _aspa_asi(br_mv, _P, ):
-    """
-    Allocation de solidarité aux personnes agées (ASPA)
-    et Allocation supplémentaire d'invalidité (ASI)
-    """
+#    """
+#    Allocation de solidarité aux personnes agées (ASPA)
+#    et Allocation supplémentaire d'invalidité (ASI)
+#    """
     # ASPA crée le 1er janvier 2006
     # TODO Allocation supplémentaire avant le 1er janvier 2006
     
@@ -1393,31 +1380,55 @@ def _aspa_asi(br_mv, _P, ):
 #        Plafond de ressources communs depuis le 1er janvier 2006 
 #        Changement au 1er janvier 2009 seulement pour les personnes seules !       
 #        P.aspa.plaf_couple = P.asi.plaf_couple mais P.aspa.plaf_seul = P.asi.plaf_seul 
-    
-    # TODO à mensualiser 
-    P = _P.minim        
 
-    
 
-    marpac = self.coup
-    maries  = self.maries
-    
-    # initialisation
-    asi[CHEF]  = zeros(len(elig_asi_C))
-    asi[PART]  = zeros(len(elig_asi_P))
-    aspa[CHEF] = zeros(len(elig_aspa_C))
-    aspa[PART] = zeros(len(elig_aspa_P))
-    
-    
-    nb_alloc = (1*elig_aspa_C + 
-                1*elig_aspa_P + 
-                1*elig_asi_C  + 
-                1*elig_asi_P   )   
 
-    # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA 
-    elig1 = ( (nb_alloc==1) & ( elig_asi_C | elig_asi_P) )      # un seul éligible
-    elig2 = (elig_asi_C & elig_asi_P)*maries                    # couple d'éligible marié
-    elig3 = (elig_asi_C & elig_asi_P)*(marpac & not_(maries))  # couple d'éligible non marié
+
+def _aspa_elig(age, inv, activite, _P):
+    '''
+    Eligibitié à l'ASPA
+    'ind'
+    '''
+    P = _P.mini.aspa
+    return ((age >= P.age_min) | ((age >=P.age_ina) &  (inv ==1))) & (activite ==3) 
+
+def _asi_elig(aspa_elig, inv, activite):
+    '''
+    Éligibilité à l'ASI
+    '''
+    return ((inv==1) & (activite==3)) & not_(aspa_elig)
+
+def _aspa_asi_nb_alloc(aspa_elig, asi_elig):
+    return (1*aspa_elig[CHEF] + 1*aspa_elig[PART] + 1*asi_elig[CHEF]  + 1*asi_elig[PART])
+
+def _aspa_pure(aspa_elig, marpac, maries, aspa_asi_nb_alloc, br_mv, _P, _option = {'elig_apsa': [CHEF, PART]}):
+    '''
+    Calcule l'ASPA lorsqu'il y a un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
+    '''
+    P = _P 
+    elig1 = ( (aspa_asi_nb_alloc==1) & ( aspa_elig[CHEF] | aspa_elig[PART]) )
+    elig2 = (aspa_elig[CHEF] & aspa_elig[PART])*maries
+    elig  = elig1 | elig2
+
+    montant_max        = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
+    ressources         = elig*(br_mv + montant_max) 
+    plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple
+    depassement        = ressources - plafond_ressources 
+    
+    montant_servi_aspa   = max_(montant_max - depassement, 0)/12
+    
+    # TODO Faute de mieux
+    # aspa[CHEF] = aspa_elig[CHEF]*montant_servi_aspa*(elig1 + elig2/2)
+    # aspa[PART] = aspa_elig[PART]*montant_servi_aspa*(elig1 + elig2/2)
+    
+    return  (aspa_elig[CHEF]+aspa_elig[PART])*montant_servi_aspa*(elig1 + elig2/2)
+
+def _asi_pure(asi_elig, marpac, maries, aspa_asi_nb_alloc, br_mv, _P, _option = {'elig_apsa': [CHEF, PART]}): 
+    P = _P
+    # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA  
+    elig1 = ( (aspa_asi_nb_alloc==1) & ( asi_elig[CHEF] | asi_elig[PART]) )      # un seul éligible
+    elig2 = (asi_elig[CHEF] & asi_elig[PART])*maries                    # couple d'éligible marié
+    elig3 = (asi_elig[CHEF] & asi_elig[PART])*(marpac & not_(maries))  # couple d'éligible non marié
     elig  =  elig1 | elig2
 
     montant_max = elig1*P.asi.montant_seul + elig2*P.asi.montant_couple + elig3*2*P.asi.montant_seul 
@@ -1425,62 +1436,125 @@ def _aspa_asi(br_mv, _P, ):
     plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi_asi   = max_(montant_max - depassement, 0)/12 
-    asi[CHEF] = elig_asi_C*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
-    asi[PART] = elig_asi_P*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
+    # TODO faute de mieux
+    # asi[CHEF] = asi_elig[CHEF]*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
+    # asi[PART] = asi_elig[PART]*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
+    return (asi_elig[CHEF]++ asi_elig[PART])*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
 
-    # 1 B Un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
-    elig1 = ( (nb_alloc==1) & ( elig_aspa_C | elig_aspa_P) )
-    elig2 = (elig_aspa_C & elig_aspa_P)*maries
-    elig  = elig1 | elig2
+def _asi_aspa_elig(aspa_elig, asi_elig):
+    return ( (asi_elig[CHEF] & aspa_elig[PART]) | (asi_elig[PART] & aspa_elig[CHEF]))
 
-    montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
-    ressources  = elig*(br_mv + montant_max) 
-    plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple
-    depassement     = ressources - plafond_ressources 
-    
-    montant_servi_aspa   = max_(montant_max - depassement, 0)/12
-    aspa[CHEF] = elig_aspa_C*montant_servi_aspa*(elig1 + elig2/2)
-    aspa[PART] = elig_aspa_P*montant_servi_aspa*(elig1 + elig2/2)
-            
-    # 2 B Une personne peçoit l'ASI et l'autre l'ASPA
+def _asi_coexist_aspa(asi_aspa_elig, maries, marpac, br_mv, _P):
+    '''
+    Montant de l'ASI quand une personne perçoit l'ASI et l'autre l'ASPA
+    '''
+    P = _P
+    # Une personne peçoit l'ASI et l'autre l'ASPA
     # Les persones sont mariées 
-    index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(maries)
-    montant_max = where( index, .5*P.asi.montant_couple + .5*P.aspa.montant_couple, 0)
+    index       = asi_aspa_elig*maries
+    montant_max = where( index, (.5*P.asi.montant_couple + .5*P.aspa.montant_couple), 0)
     ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources 
-    
-    montant_servi_asi   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
-    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
-    asi[CHEF][index & elig_asi_C]  = montant_servi_asi[index]
-    asi[PART][index & elig_asi_P ] = montant_servi_asi[index]
-    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
-    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
-    
+    montant_servi_asi_m   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
+
     # Les deux persones ne sont pas mariées mais concubins ou pacsés
-    index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpac & not_(maries))
+    index       = asi_aspa_elig*(marpac & not_(maries))
     montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
     ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
     depassement        = ressources - plafond_ressources
-     
-    montant_servi_asi   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
-    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+    montant_servi_asi_c   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
 
-    asi[CHEF][index & elig_asi_C]    = montant_servi_asi[index]
-    asi[PART][index & elig_asi_P ]   = montant_servi_asi[index]
-    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
-    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
+    return montant_servi_asi_m + montant_servi_asi_c 
+    
+    
+def _aspa_coexist_asi(asi_aspa_elig, maries, marpac, br_mv, _P):
+    '''
+    Montant de l'ASPA quand une personne perçoit l'ASPA et l'autre l'ASI
+    '''
+    P = _P
+    # Une personne peçoit l'ASI et l'autre l'ASPA
+    # Les persones sont mariées 
+    index       = asi_aspa_elig*maries
+    montant_max = where( index, (.5*P.asi.montant_couple + .5*P.aspa.montant_couple), 0)
+    ressources  = where( index, br_mv + montant_max,0) 
+    plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
+    depassement        = ressources - plafond_ressources 
+    montant_servi_aspa_m  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
 
+    # Les deux persones ne sont pas mariées mais concubins ou pacsés
+    index       = asi_aspa_elig*(marpac & not_(maries))
+    montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
+    ressources  = where( index, br_mv + montant_max,0) 
+    plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
+    depassement        = ressources - plafond_ressources
+    montant_servi_aspa_c  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+    
+    return montant_servi_aspa_m + montant_servi_aspa_c 
+    
 
-    table.set('asi', asiC, 'fam', 'chef', table = 'output')
-    table.set('asi', asiP, 'fam', 'part', table = 'output')
-    table.set('mv', aspaC, 'fam', 'chef', table = 'output')
-    table.set('mv', aspaP, 'fam', 'part', table = 'output')
-        
-    mv = aspaC + aspaP    
-
-
+#def _aspa_asi(br_mv, _P, ):   
+    # TODO à mensualiser 
+#    P = _P.minim        
+#
+#    
+#
+#    marpac = self.coup
+#    maries  = self.maries
+#    
+#    # 1 B Un ou deux bénéficiaire de l'ASPA et aucun bénéficiaire de l'ASI
+#    elig1 = ( (nb_alloc==1) & ( elig_aspa_C | elig_aspa_P) )
+#    elig2 = (elig_aspa_C & elig_aspa_P)*maries
+#    elig  = elig1 | elig2
+#
+#    montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
+#    ressources  = elig*(br_mv + montant_max) 
+#    plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple
+#    depassement     = ressources - plafond_ressources 
+#    
+#    montant_servi_aspa   = max_(montant_max - depassement, 0)/12
+#    aspa[CHEF] = elig_aspa_C*montant_servi_aspa*(elig1 + elig2/2)
+#    aspa[PART] = elig_aspa_P*montant_servi_aspa*(elig1 + elig2/2)
+#            
+#    # 2 B Une personne peçoit l'ASI et l'autre l'ASPA
+#    # Les persones sont mariées 
+#    index = ( (asi_elig[CHEF] & elig_aspa_P) | (asi_elig[PART] & elig_aspa_C) )*(maries)
+#    montant_max = where( index, .5*P.asi.montant_couple + .5*P.aspa.montant_couple, 0)
+#    ressources  = where( index, br_mv + montant_max,0) 
+#    plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
+#    depassement        = ressources - plafond_ressources 
+#    
+#    montant_servi_asi   = where(index, max_(.5*P.asi.montant_couple  - 0.5*depassement, 0),0)/12
+#    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+#    asi[CHEF][index & asi_elig[CHEF]]  = montant_servi_asi[index]
+#    asi[PART][index & asi_elig[PART] ] = montant_servi_asi[index]
+#    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
+#    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
+#    
+#    # Les deux persones ne sont pas mariées mais concubins ou pacsés
+#    index = ( (asi_elig[CHEF] & elig_aspa_P) | (asi_elig[PART] & elig_aspa_C) )*(marpac & not_(maries))
+#    montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
+#    ressources  = where( index, br_mv + montant_max,0) 
+#    plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
+#    depassement        = ressources - plafond_ressources
+#     
+#    montant_servi_asi   = where(index, max_(P.asi.montant_seul - 0.5*depassement, 0),0)/12
+#    montant_servi_aspa  = where(index, max_(.5*P.aspa.montant_couple - 0.5*depassement, 0),0)/12
+#
+#    asi[CHEF][index & asi_elig[CHEF]]    = montant_servi_asi[index]
+#    asi[PART][index & asi_elig[PART] ]   = montant_servi_asi[index]
+#    aspa[CHEF][index & elig_aspa_C]  = montant_servi_aspa[index]
+#    aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
+#
+#
+#    table.set('asi', asiC, 'fam', 'chef', table = 'output')
+#    table.set('asi', asiP, 'fam', 'part', table = 'output')
+#    table.set('mv', aspaC, 'fam', 'chef', table = 'output')
+#    table.set('mv', aspaP, 'fam', 'part', table = 'output')
+#        
+#    mv = aspaC + aspaP    
+#
 
 def _br_aah(br_pf, asi, aspa, mv, _P, _option = {'inv': [CHEF, PART], 'age': [CHEF, PART]}, ):
      
@@ -1650,7 +1724,7 @@ def _ass(br_pf, concub, _P):
 #       âgés de 55 ans ou plus et justifiant d'au moins 20 ans d'activité salariée,
 #       ou âgés de 57 ans et demi ou plus et justifiant de 10 ans d'activité salariée,
 #       ou justifiant d'au moins 160 trimestres de cotisation retraite.
-
+    P = _P
     majo = 0
     plaf = P.chomage.ass.plaf_seul*not_(concub) + P.chomage.ass.plaf_coup*concub
     montant_mensuel = 30*(P.chomage.ass.montant_plein*not_(majo) 
