@@ -28,6 +28,9 @@ from numpy import maximum as max_, minimum as min_, logical_not as not_
 from Utils import Bareme, BarmMar, Dicts2Object
 from parametres.paramData import Tree2Object
 
+salcats = ['cadre', 'noncadre', 'fonc']
+
+
 class Object(object):
     def __init__(self):
         object.__init__(self)
@@ -40,116 +43,20 @@ class cotsoccal(object):
         self.bareme = self.preproc_param(P)        
         self.initialize(self.preproc_param(P_defaut))        
         self.calculate()
-    
-    def initialize(self, P_defaut):
-        table = self.population
-        table.openReadMode()
-
-# revenus d'activité et revenus de remplacement        
-        self.sal = table.get('sal')
-        self.hsup = table.get('hsup')
-        self.cat = table.get('cat') # cadre, non-cadre, fonctionnaire, 
-        self.cho = table.get('cho')
-        self.rst = table.get('rst')
-        
-        self.csgTauxPlein = table.get('csgTauxPlein')
-
-# revenus du capital
-#  revenus du patrimone  non soumis à prélèvement libératoire (imposé au barème)
-        
-        BA = table.get('f4ba', table = 'declar')
-        BB = table.get('f4bb', table = 'declar')
-        BC = table.get('f4bc', table = 'declar')
-#        BD = table.get('f4bd', table = 'declar')
-        BE = table.get('f4be', table = 'declar')
-        
-        AW = table.get('f1aw', table = 'declar')
-        BW = table.get('f1bw', table = 'declar')
-        CW = table.get('f1cw', table = 'declar')
-        DW = table.get('f1dw', table = 'declar')
-        
-        fon = BA - BB - BC + np.round(BE*(1-P_defaut.ir.microfoncier.taux))
-        rto =  AW + BW + CW + DW
-     
-        CH = table.get('f2ch', table = 'declar')
-        DC = table.get('f2dc', table = 'declar')
-        TS = table.get('f2ts', table = 'declar')
-        CA = table.get('f2ca', table = 'declar')
-        FU = table.get('f2fu', table = 'declar')
-        GO = table.get('f2go', table = 'declar')
-        TR = table.get('f2tr', table = 'declar')
-        AB = table.get('f2ab', table = 'declar')
-        if self.year <= 2004: GR = table.get('f2gr', table = 'declar')
-        else: GR = 0
-
-
-        vam = DC + GR + CH + TS + GO*P_defaut.ir.rvcm.majGO + TR + FU - AB
-
-# TODO FU non imposable au bareme mais aux contrib sociales selon le site impots.gouv.fr en 2001??
-# TODO vérifer ce qu'il en est quand GR est présente ?
-#    Revenus indiqués ci-dessus lignes 2DC, 2CH, 2TS, 2TR déjà soumis aux prélèvements sociaux sans CSG déductible     2CG
-        self.cap_bar = fon + rto  + vam
-
-#  revenus du patrimoine  soumis à prélèvement libératoire
-
-        DA = table.get('f2da', table = 'declar')
-        DH = table.get('f2dh', table = 'declar')
-        EE = table.get('f2ee', table = 'declar')
-
-        if self.year <=2007: val = DH + EE
-        else:                val = DA + DH + EE
-        
-        self.cap_lib = val
-
-#  revenus de placement 
-
-        table.close_()
-
-# revenus d'activité et revenus de remplacement        
-
-        revbruts = calcul_brut(P_defaut, self.sal, self.hsup, self.cat, self.cho, self.rst, self.csgTauxPlein )
-        self.salbrut = revbruts['salbrut']
-        self.chobrut = revbruts['chobrut']
-        self.rstbrut = revbruts['rstbrut']
-        self.basecsg = revbruts['salbrut'] + revbruts['chobrut'] + revbruts['rstbrut'] + self.cap_bar + self.cap_lib
                 
-        table.openWriteMode()
-        
-        table.setIndiv('salbrut', self.salbrut)
-        table.setIndiv('chobrut', self.chobrut)
-        table.setIndiv('rstbrut', self.rstbrut)
-        table.setIndiv('basecsg', self.basecsg)
-        
-        table.close_()
-        
     def calculate(self):
-        table = self.population
-        table.openWriteMode()
         
         # Heures supplémentaires exonérées
         if not self.bareme.ir.autre.hsup_exo:
             self.sal += self.hsup
             self.hsup = 0*self.hsup
                         
-        # Revenus d'activité
-        csgactd, csgacti = self.CsgSal(self.salbrut - self.hsup, self.bareme.csg.act)
-        table.setIndiv('csgactd', csgactd)
-        table.setIndiv('csgacti', csgacti)
 
         crdsact = self.Crds(self.salbrut- self.hsup, self.bareme.crds.act)
-        table.setIndiv('crdsact', crdsact)
 
         cotsal, cotpat, alleg_fillon = self.CotSocSal(self.salbrut, self.hsup, self.cat)
 
-        table.setIndiv('cotsal', cotsal)
-        table.setIndiv('cotpat', cotpat)
-        table.setIndiv('alleg_fillon', alleg_fillon)
-
         sal = self.salbrut + csgactd + cotsal - self.hsup
-        table.setIndiv('sal', sal)
-        table.setIndiv('hsup', self.hsup)
-        table.setIndiv('mhsup', - self.hsup)
-        table.setIndiv('salsuperbrut', self.salbrut - cotpat - alleg_fillon)
 
         # Revenus de remplacement
 
@@ -182,18 +89,17 @@ class cotsoccal(object):
         
         # TODO: CHECK la csg déductible en 2006 est case GH
         # TODO:  la revenus soumis aux csg déductible et imposable sont en CG et BH en 2010 
-        
-         
-        csgcap_bar     = - self.cap_bar*self.bareme.csg.capital.glob
-        crdscap_bar    = - self.cap_bar*self.bareme.crds.capital
-        prelsoccap_bar = - self.cap_bar*self.bareme.prelsoc.total
+                 
+        csgcap_bar     = - rev_cap_bar*self.bareme.csg.capital.glob
+        crdscap_bar    = - rev_cap_bar*self.bareme.crds.capital
+        prelsoccap_bar = - rev_cap_bar*self.bareme.prelsoc.total
 
         verse = (-csgcap_bar - crdscap_bar - prelsoccap_bar) > self.bareme.csg.capital.nonimp
 #        verse=1
         # CSG sur les revenus du patrimoine non imposés au barême (contributions sociales déjà prélevées)
-        csgcap_lib = - self.cap_lib*self.bareme.csg.capital.glob        
-        crdscap_lib  = - self.cap_lib*self.bareme.crds.capital
-        prelsoccap_lib = - self.cap_lib*self.bareme.prelsoc.total
+        csgcap_lib = - rev_cap_lib*self.bareme.csg.capital.glob        
+        crdscap_lib  = - rev_cap_lib*self.bareme.crds.capital
+        prelsoccap_lib = - rev_cap_lib*self.bareme.prelsoc.total
                 
         table.setIndiv('csgcap_bar', csgcap_bar*verse)
         table.setIndiv('prelsoccap_bar', prelsoccap_bar*verse)
@@ -215,7 +121,6 @@ class cotsoccal(object):
             table.close_()
 
     def preproc_param(self, P):
-        self.salcats = ['cadre', 'noncadre', 'fonc']
 
         self.smic_h_b = P.cotsoc.gen.smic_h_b
         self.nbh_travaillees = 151.67*12     
@@ -272,109 +177,119 @@ class cotsoccal(object):
         '''
         crds = - BarmMar(salbrut, P)
         return crds
-                    
-    def CotSocSal(self, salbrut, hsup, cat):
-        '''
-        Cotisations sociales sur les salaires
-        '''
-        cotsal = np.zeros(self.n)
-        cotpat = np.zeros(self.n)
-        outDict = {}
-        for categ in self.salcats:
-            iscat = (cat == getattr(CAT,categ))
-            for caisse, bareme in getattr(self.bareme.sal,categ).__dict__.iteritems():
-                temp = - (iscat*BarmMar(salbrut-hsup, bareme))
-                cotsal += temp
-                outDict.update({categ+caisse+'Sal': temp})
-            for caisse, bareme in getattr(self.bareme.pat,categ).__dict__.iteritems():
-                temp = - (iscat*BarmMar(salbrut, bareme))
-                cotpat += temp
-                outDict.update({categ+caisse+'Pat': temp})
-            if categ == 'noncadre': # TODO: vérifier
-                taux_fillon = self.tauxExoFillon(salbrut/self.nbh_travaillees, self.bareme.exo_fillon)
-                alleg_fillon = taux_fillon*salbrut
-        return cotsal, cotpat, alleg_fillon
-    
-    def CsgSal(self, salbrut, P):
-        '''
-        CSG sur les salaires
-        '''
-        csgactd = - BarmMar(salbrut, P.deduc) 
-        csgacti = - BarmMar(salbrut, P.impos)
-        return csgactd, csgacti
 
-    def CsgCho(self, chobrut):
-        '''
-        CSG sur les allocations chômage
-        '''
-        for categ in ("reduit","plein"):
-            iscat = (self.csgTauxPlein & (categ=="plein"))
-            for caisse, bareme in getattr(self.bareme.csg.chom,categ).__dict__.iteritems():
-                if caisse=="deduc": csgchod = - (iscat*BarmMar(chobrut, bareme))
-                else : csgchoi = - (iscat*BarmMar(chobrut, bareme)) 
-                
-        return csgchod,csgchoi
-    
-    def CsgRst(self, rstbrut):
-        '''
-        CSG sur les pensions de retraite au sens strict
-        '''
-        for categ in ("reduit","plein"):
-            iscat = (self.csgTauxPlein & (categ=="plein"))
-            for caisse, bareme in getattr(self.bareme.csg.retraite,categ).__dict__.iteritems():
-                if caisse=="deduc": csgrstd = - (iscat*BarmMar(rstbrut, bareme))
-                else : csgrsti = - (iscat*BarmMar(rstbrut, bareme))
-        return csgrstd, csgrsti                
-        
-    def tauxExoFillon(self, salaire_horaire_brut, P):
-        '''
-        Exonération Fillon
-        http://www.securite-sociale.fr/comprendre/dossiers/exocotisations/exoenvigueur/fillon.htm
-        '''
-        # TODO Ainsi, à compter du 1er juillet 2007, le taux d’exonération des employeurs de 19 salariés au plus
-        # passera pour une rémunération horaire égale au SMIC de 26 % à 28,1 %.
-        
-        # TODO la divison par zéro engendre un warning
-        # Le montant maximum de l’allègement dépend de l’effectif de l’entreprise. 
-        # Le montant est calculé chaque année civile, pour chaque salarié ; 
-        # il est égal au produit de la totalité de la rémunération annuelle telle que visée à l’article L. 242-1 du code de la Sécurité sociale par un coefficient. 
-        # Ce montant est majoré de 10 % pour les entreprises de travail temporaire au titre des salariés temporaires pour lesquels elle est tenue à l’obligation 
-        # d’indemnisation compensatrice de congés payés.
-        if P.seuil <= 1:
-            return 0 
-        return P.tx_max*min_(1,max_(P.seuil*self.smic_h_b/(salaire_horaire_brut+1e-10)-1,0)/(P.seuil-1))
-
-    def impot_LPS(self, P):
-        '''
-        Impôt individuel sur l'ensemble de l'assiette de la csg, comme proposé par
-        Landais, Piketty, Saez (2011)
-        '''
-        table = self.population
-        table.openReadMode()
-        nbF = table.get('nbF', table = 'declar')
-        nbH = table.get('nbH', table = 'declar')
-        statmarit = table.get('statmarit')
-        table.close_()
-        nbEnf = (nbF + nbH/2)
-        ae = nbEnf*P.abatt_enfant
-        re = nbEnf*P.reduc_enfant
-        ce = nbEnf*P.credit_enfant
-
-        couple = (statmarit == 1) | (statmarit == 5)
-        ac = couple*P.abatt_conj
-        rc = couple*P.reduc_conj
-
-        return - max_(0, BarmMar(max_(self.basecsg - ae - ac, 0) , P.bareme)-re-rc) + ce
-        
-def calcul_brut(P, sal, hsup, cat, cho, rst, csgTauxPlein):
+def _cotsal(salbrut, hsup, cat, bareme):
     '''
-    Recalcul des revenus brut à partir des nets
-    sal = salaires
-    cat = catégorie des salaires (cadre, non cadre, fonctionnaire)
-    cho = allocation chômage
-    rst = pension de retraite
+    Cotisations sociales salariales
     '''
-    outdict = {}
+    n = len(salbrut)
+    cotsal = np.zeros(n)
+    for categ in salcats:
+        iscat = (cat == getattr(CAT,categ))
+        for bar in getattr(bareme.sal,categ).__dict__.itervalues():
+            temp = - (iscat*BarmMar(salbrut-hsup, bar))
+            cotsal += temp
+    return cotsal
+
+def _cotpat(salbrut, hsup, cat, bareme):
+    '''
+    Cotisation sociales patronales
+    '''
+    n = len(salbrut)
+    cotpat = np.zeros(n)
+    for categ in salcats:
+        iscat = (cat == getattr(CAT,categ))
+        for bar in getattr(bareme.pat,categ).__dict__.itervalues():
+            temp = - (iscat*BarmMar(salbrut, bar))
+            cotpat += temp
+    return cotpat
+
+def _alleg_fillon(salbrut):
+    if categ == 'noncadre': # TODO: vérifier
+        taux_fillon = tauxExoFillon(salbrut/self.nbh_travaillees, self.bareme.exo_fillon)
+        alleg_fillon = taux_fillon*salbrut
+    return alleg_fillon
+
+def csgsald(salbrut, hsup, _P):
+    '''
+    CSG deductible sur les salaires
+    '''
+    P = _P.bareme.csg.act
+    return - BarmMar(salbrut - hsup, P.deduc) 
+
+def csgsali(salbrut, hsup, _P):
+    '''
+    CSG imposable sur les salaires
+    '''
+    P = _P.bareme.csg.act
+    return  - BarmMar(salbrut - hsup, P.impos)
+
+def CsgCho(self, chobrut):
+    '''
+    CSG sur les allocations chômage
+    '''
+    for categ in ("reduit","plein"):
+        iscat = (self.csgTauxPlein & (categ=="plein"))
+        for caisse, bareme in getattr(self.bareme.csg.chom,categ).__dict__.iteritems():
+            if caisse=="deduc": csgchod = - (iscat*BarmMar(chobrut, bareme))
+            else : csgchoi = - (iscat*BarmMar(chobrut, bareme)) 
+            
+    return csgchod,csgchoi
+
+def CsgRst(self, rstbrut):
+    '''
+    CSG sur les pensions de retraite au sens strict
+    '''
+    for categ in ("reduit","plein"):
+        iscat = (self.csgTauxPlein & (categ=="plein"))
+        for caisse, bareme in getattr(self.bareme.csg.retraite, categ).__dict__.iteritems():
+            if caisse=="deduc": csgrstd = - (iscat*BarmMar(rstbrut, bareme))
+            else : csgrsti = - (iscat*BarmMar(rstbrut, bareme))
+    return csgrstd, csgrsti                
+    
+def tauxExoFillon(self, salaire_horaire_brut, P):
+    '''
+    Exonération Fillon
+    http://www.securite-sociale.fr/comprendre/dossiers/exocotisations/exoenvigueur/fillon.htm
+    '''
+    # TODO Ainsi, à compter du 1er juillet 2007, le taux d’exonération des employeurs de 19 salariés au plus
+    # passera pour une rémunération horaire égale au SMIC de 26 % à 28,1 %.
+    
+    # TODO la divison par zéro engendre un warning
+    # Le montant maximum de l’allègement dépend de l’effectif de l’entreprise. 
+    # Le montant est calculé chaque année civile, pour chaque salarié ; 
+    # il est égal au produit de la totalité de la rémunération annuelle telle que visée à l’article L. 242-1 du code de la Sécurité sociale par un coefficient. 
+    # Ce montant est majoré de 10 % pour les entreprises de travail temporaire au titre des salariés temporaires pour lesquels elle est tenue à l’obligation 
+    # d’indemnisation compensatrice de congés payés.
+    if P.seuil <= 1:
+        return 0 
+    return P.tx_max*min_(1,max_(P.seuil*self.smic_h_b/(salaire_horaire_brut+1e-10)-1,0)/(P.seuil-1))
+
+def impot_LPS(basecsg, nbF, nbH, statmarit, _P):
+    '''
+    Impôt individuel sur l'ensemble de l'assiette de la csg, comme proposé par
+    Landais, Piketty, Saez (2011)
+    '''
+    P = _P.bareme.lps
+    nbEnf = (nbF + nbH/2)
+    ae = nbEnf*P.abatt_enfant
+    re = nbEnf*P.reduc_enfant
+    ce = nbEnf*P.credit_enfant
+
+    couple = (statmarit == 1) | (statmarit == 5)
+    ac = couple*P.abatt_conj
+    rc = couple*P.reduc_conj
+
+    return - max_(0, BarmMar(max_(basecsg - ae - ac, 0) , P.bareme)-re-rc) + ce
+
+def _base_csg(salbrut, chobrut, rstbrut, rev_cap_bar, rev_cap_lib):
+    return salbrut + chobrut + rstbrut + rev_cap_bar + rev_cap_lib
+
+def _salbrut(sal, hsup, cat, _P):
+    '''
+    Calcule le salaire brut à partir du salaire net
+    '''
+    P = _P
     T = Object()
     T.noncadre = combineBaremes(P.sal.noncadre, name="noncadre_total")
     T.cadre    = combineBaremes(P.sal.cadre, name="cadre_total")
@@ -385,42 +300,59 @@ def calcul_brut(P, sal, hsup, cat, cho, rst, csgTauxPlein):
     T.cadre.addBareme(P.csg.act.deduc)
     T.fonc.addBareme(P.csg.act.deduc)
 
-    # Cotisation sociales sur les revenus de remplacement
-    # retraites
-    T.retraite_plein = P.csg.retraite.plein.deduc  # TODO rajouter la non  déductible dans param
-    T.retraite_reduit = P.csg.retraite.reduit.deduc  #
-    # chômages et préretraites  TODO rajouter la non  déductible dans param
-    T.chom_plein = P.csg.chom.plein.deduc
-    T.chom_reduit = P.csg.chom.reduit.deduc
-    
     n = len(sal)
-    
-    # Construction des barêmes permettant de remonter aux revenus bruts 
     tempdict ={}
     for categ, bar in T.__dict__.iteritems():
         tempdict.update({categ: bar.inverse()})
     bar = Dicts2Object(**tempdict)
     
     salbrut = np.zeros(n)
-    salcats = ['cadre', 'noncadre', 'fonc']
 
     for categ in salcats:
         brut = (cat == getattr(CAT,categ))*BarmMar(sal, getattr(bar, categ))
         salbrut += brut
-    outdict.update({'salbrut': salbrut + hsup})
+    
+    return salbrut + hsup
+    
+def _chobrut(cho, csgTauxPlein, _P):
+    '''
+    Calcule les allocations chômage brute à partir des allocations nettes
+    '''
+    P = _P.csg.chom
+    T = Object()
+    T.chom_plein = P.plein.deduc
+    T.chom_reduit = P.reduit.deduc
+
+    tempdict ={}
+    for categ, bar in T.__dict__.iteritems():
+        tempdict.update({categ: bar.inverse()})
+    bar = Dicts2Object(**tempdict)
 
     chobrut =( not_(csgTauxPlein)*BarmMar(cho, bar.chom_reduit) + 
         csgTauxPlein*BarmMar(cho, bar.chom_plein) ) 
-    outdict.update({'chobrut': chobrut})
-    
+
+    return chobrut
+
+def _rstbrut(rst, csgTauxPlein, _P):
+    '''
+    Calcule les pensions de retraites brutes à partir des pensions nettes
+    '''
+    P = _P.csg.retraite
+    T = Object()
+
+    T.retraite_plein = P.plein.deduc  # TODO rajouter la non  déductible dans param
+    T.retraite_reduit = P.reduit.deduc  #
+
+    tempdict ={}
+    for categ, bar in T.__dict__.iteritems():
+        tempdict.update({categ: bar.inverse()})
+    bar = Dicts2Object(**tempdict)
+
     rstbrut = (not_(csgTauxPlein)*BarmMar(rst, bar.retraite_reduit) 
                + csgTauxPlein*BarmMar(rst, bar.retraite_plein))
-    outdict.update({'rstbrut': rstbrut})
     
-    # Revenus du patrimoine brut
-    
-    return outdict
-
+    return rstbrut
+     
 def combineBaremes(BarColl, name="onsenfout"):
     baremeTot = Bareme(name=name)
     baremeTot.addTranche(0,0)
