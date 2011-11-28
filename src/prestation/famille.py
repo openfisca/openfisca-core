@@ -26,7 +26,7 @@ import numpy as np
 from numpy import (round, sum, zeros, ones, maximum as max_, minimum as min_, 
                    ceil, where, logical_not as not_, logical_or as or_)
 from datetime import date
-from core.datatable import QUIFAM
+from france.data import QUIFAM, year
 
 CHEF = QUIFAM['chef']
 PART = QUIFAM['part']
@@ -1336,13 +1336,27 @@ def _aefa(age, af_nbenf, nb_par, ass ,aer, api, rsa, _P, _option = {'age': ENFS}
               + nbPAC*P.aefa.tx_supp*(nb_par<=2)
               + nbPAC*P.aefa.tx_3pac*max_(nbPAC-2,0))
     
-    if self.datesim.year==2008: aefa += condition*P.aefa.forf2008
+    if year==2008: aefa += condition*P.aefa.forf2008
                
     aefa_maj  = P.aefa.mon_seul*maj
     aefa = max_(aefa_maj,aefa)   
     return aefa 
 
-def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'inv': [CHEF, PART], 'activite': [CHEF, PART]}):
+def _aspa_elig(age, inv, activite, _P):
+    '''
+    Eligibitié à l'ASPA
+    'ind'
+    '''
+    P = _P.mini.aspa
+    return ((age >= P.age_min) | ((age >=P.age_ina) &  (inv ==1))) & (activite ==3) 
+
+def _asi_elig(aspa_elig, inv, activite):
+    '''
+    Éligibilité à l'ASI
+    '''
+    return ((inv==1) & (activite==3)) & not_(aspa_elig)
+
+def _aspa_asi(br_mv, _P, ):
     """
     Allocation de solidarité aux personnes agées (ASPA)
     et Allocation supplémentaire d'invalidité (ASI)
@@ -1383,13 +1397,9 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     # TODO à mensualiser 
     P = _P.minim        
 
-    elig_aspa_C = ((age[CHEF]>=P.aspa.age_min) | ((age[CHEF]>=P.aspa.age_ina) &  (inv[CHEF]==1))) & (activite[CHEF]==3) 
-    elig_aspa_P = ((age[PART]>=P.aspa.age_min) | ((age[PART]>=P.aspa.age_ina) &  (inv[PART]==1))) & (activite[PART]==3)
     
-    elig_asi_C  = ( ((inv[CHEF]==1) & (activite[CHEF]==3)) & not_(elig_aspa_C) ) 
-    elig_asi_P  = ( ((inv[PART]==1) & (activite[PART]==3)) & not_(elig_aspa_P) )  
 
-    marpacs = self.coup
+    marpac = self.coup
     maries  = self.maries
     
     # initialisation
@@ -1407,12 +1417,12 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     # 1 A Un ou deux bénéficiaire(s) de l'ASI et aucun bénéficiaire de l'ASPA 
     elig1 = ( (nb_alloc==1) & ( elig_asi_C | elig_asi_P) )      # un seul éligible
     elig2 = (elig_asi_C & elig_asi_P)*maries                    # couple d'éligible marié
-    elig3 = (elig_asi_C & elig_asi_P)*(marpacs & not_(maries))  # couple d'éligible non marié
+    elig3 = (elig_asi_C & elig_asi_P)*(marpac & not_(maries))  # couple d'éligible non marié
     elig  =  elig1 | elig2
 
     montant_max = elig1*P.asi.montant_seul + elig2*P.asi.montant_couple + elig3*2*P.asi.montant_seul 
     ressources  = elig*(br_mv + montant_max)
-    plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
+    plafond_ressources = elig1*(P.asi.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple + elig3*P.asi.plaf_couple
     depassement     = ressources - plafond_ressources 
     montant_servi_asi   = max_(montant_max - depassement, 0)/12 
     asi[CHEF] = elig_asi_C*montant_servi_asi*(elig1*1 + elig2/2 + elig3/2)
@@ -1425,7 +1435,7 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
 
     montant_max = elig1*P.aspa.montant_seul + elig2*P.aspa.montant_couple
     ressources  = elig*(br_mv + montant_max) 
-    plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpacs) + P.aspa.plaf_couple*marpacs) + elig2*P.aspa.plaf_couple
+    plafond_ressources = elig1*(P.aspa.plaf_seul*not_(marpac) + P.aspa.plaf_couple*marpac) + elig2*P.aspa.plaf_couple
     depassement     = ressources - plafond_ressources 
     
     montant_servi_aspa   = max_(montant_max - depassement, 0)/12
@@ -1448,7 +1458,7 @@ def _aspa_asi(age, inv, activite, br_mv, _P, _option = {'age': [CHEF, PART], 'in
     aspa[PART][index & elig_aspa_P ] = montant_servi_aspa[index]
     
     # Les deux persones ne sont pas mariées mais concubins ou pacsés
-    index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpacs & not_(maries))
+    index = ( (elig_asi_C & elig_aspa_P) | (elig_asi_P & elig_aspa_C) )*(marpac & not_(maries))
     montant_max = where( index, P.asi.montant_seul + .5*P.aspa.montant_couple , 0)
     ressources  = where( index, br_mv + montant_max,0) 
     plafond_ressources = where( index, P.aspa.plaf_couple, 0)  
@@ -1523,6 +1533,7 @@ def _aah(rev_pf, br_aah, inv, age, concub, af_nbenf, _P, _option = {'inv': [CHEF
 #        On prend la BR des PF pour l'AAH         
     
 #        TODO avoir le % d'incapacité ?        
+    P = _P
     
     nbh_travaillees = 151.67*12
     smic_annuel = P.cotsoc.gen.smic_h_b*nbh_travaillees
@@ -1589,7 +1600,7 @@ def _caah(aah, _P):
     P = _P.minim 
     elig_cpl = 0    # TODO: éligibilité
     
-    if self.datesim.year >= 2006: compl = elig_cpl*max_(P.caah.grph-aah,0)  
+    if year >= 2006: compl = elig_cpl*max_(P.caah.grph-aah,0)  
     else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*aah
 #        else : compl = P.caah.cpltx*P.aah.montant*elig_cpl*self.aah_m 
         # En fait perdure jusqu'en 2008 
@@ -1609,7 +1620,7 @@ def _caah(aah, _P):
 #La majoration pour la vie autonome n'est pas cumulable avec la garantie de ressources pour les personnes handicapées.
 #La personne qui remplit les conditions d'octroi de ces deux avantages doit choisir de bénéficier de l'un ou de l'autre.
 
-    if self.datesim.year >= 2006:        
+    if year >= 2006:        
         elig_mva = 0*(aah>0)   # TODO: éligibilité
         mva = P.caah.mva*elig_mva
     else: mva = 0      
@@ -1650,28 +1661,3 @@ def _ass(br_pf, concub, _P):
     
     return ass
     
-from core.systemsf import SystemSf, Prestation
-from parametres.paramData import XmlReader, Tree2Object
-
-class Pfam(SystemSf):
-    af_nbenf = Prestation(_af_nbenf, 'fam', u"Nombre d'enfant au sens des AF")
-    af_base = Prestation(_af_base, 'fam', 'Allocations familiales - Base')
-    af_majo = Prestation(_af_majo, 'fam', 'Allocations familiales - Majoration pour age')
-    af_forf = Prestation(_af_base, 'fam', 'Allocations familiales - Forfait 20 ans')
-    af      = Prestation(_af, 'fam', label = u"Allocations familiales")
-
-#    rev_pf  = Prestation(Rev_PF, 'Base ressource individuele des prestations familiales')
-#    br_pf   = Prestation(Br_PF, 'fam', 'Base ressource des prestations familiales')
-#    cf      = Prestation(CF, 'fam', label = u"Complément familiale")
-
-if __name__ == '__main__':
-    import datetime
-    date = datetime.date(2010,01,01)
-    reader = XmlReader('../data/param.xml', date)
-    P = Tree2Object(reader.tree)
-    print P.fam.af.bmaf
-    pfam = Pfam(P)
-    print pfam._primitives
-    print pfam._inputs
-    pfam.calculate('af')
-    print pfam.af.get_value()
