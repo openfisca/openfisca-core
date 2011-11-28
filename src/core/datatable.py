@@ -91,6 +91,7 @@ class Column(object):
             self._dtype = np.bool
         
         if opt is None:
+        # TODO: check if it's realy right?
             idx = index[0]
         else:
             idx = index[opt]

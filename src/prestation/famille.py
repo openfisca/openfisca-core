@@ -1376,7 +1376,6 @@ def _aspa_asi(br_mv, _P, ):
     #    le secours viager,
     #    la majoration versée pour porter le montant d'une pension de vieillesse au niveau de l'AVTS,
     #    l'allocation viagère aux rapatriés âgés.
-
     
 #        L'ASI peut être attribuée aux personnes atteintes d'une invalidité générale 
 #        réduisant au moins des deux tiers leur capacité de travail ou de gain.
