@@ -525,6 +525,9 @@ class Bareme(object):
             self.setTaux(i,factor*self.taux[i])
 
     def multSeuils(self, factor):
+        '''
+        Returns a new instance of Bareme with scaled 'seuils' and same 'taux'
+        '''
         b = Bareme(self._name)
         for i in range(self.nb):
             b.addTranche(factor*self.seuils[i], self.taux[i])
@@ -603,6 +606,7 @@ class Bareme(object):
     
     def inverse(self):
         '''
+        Returns a new instance of Bareme
         Inverse un barème: étant donné des tranches et des taux exprimés en fonction
         du brut, renvoie un barème avec les tranches et les taux exprimé en net.
           si revnet  = revbrut - BarmMar(revbrut, B)
@@ -623,7 +627,6 @@ class Bareme(object):
             theta = (taux - tauxp)*seuil + theta
             tauxp = taux # taux précédent
         return inverse
-
     
     def __iter__(self):
         self._seuilsIter = iter(self.seuils)

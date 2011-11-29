@@ -40,10 +40,10 @@ I0
 sS'noidec'
 p17
 I0
-sS'cho'
+sS'choi'
 p18
 I0
-sS'sal'
+sS'sali'
 p19
 I30000
 sS'birth'
@@ -55,7 +55,7 @@ p21
 p22
 tp23
 Rp24
-sS'rst'
+sS'rsti'
 p25
 I0
 sS'ppeHeure'
@@ -104,13 +104,13 @@ sg16
 I0
 sg17
 I0
-sS'cho'
+sS'choi'
 p39
 I0
 sS'ppeCheckBox'
 p40
 I1
-sS'sal'
+sS'sali'
 p41
 I26400
 sg20
@@ -119,7 +119,7 @@ g21
 p42
 tp43
 Rp44
-sS'rst'
+sS'rsti'
 p45
 I0
 sS'ppeHeure'
@@ -165,7 +165,7 @@ I0
 sS'hsup'
 p55
 I0
-sS'sal'
+sS'sali'
 p56
 I0
 sg20
@@ -174,7 +174,7 @@ g21
 p57
 tp58
 Rp59
-sS'rst'
+sS'rsti'
 p60
 I0
 sS'ppeHeure'
@@ -190,7 +190,7 @@ p63
 I0
 sg31
 I00
-sS'cho'
+sS'choi'
 p64
 I0
 ssI3
@@ -220,10 +220,10 @@ sg16
 I0
 sg17
 I0
-sS'rst'
+sS'rsti'
 p71
 I0
-sS'sal'
+sS'sali'
 p72
 I0
 sg20
@@ -248,7 +248,7 @@ p79
 I0
 sg31
 I00
-sS'cho'
+sS'choi'
 p80
 I0
 ssI4
@@ -278,10 +278,10 @@ sg16
 I0
 sg17
 I0
-sS'rst'
+sS'rsti'
 p87
 I0
-sS'sal'
+sS'sali'
 p88
 I0
 sg20
@@ -306,7 +306,7 @@ p95
 I0
 sg31
 I00
-sS'cho'
+sS'choi'
 p96
 I0
 sssS'famille'
