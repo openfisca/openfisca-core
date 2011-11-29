@@ -57,6 +57,9 @@ class Prestation(Column):
         if self._hasOption:
             self.inputs.remove('_option')
             self._option = func.func_defaults[0]
+            for var in self._option:
+                if var not in self.inputs:
+                    raise Exception('%s in option but not in function args' % var)
 
     def set_param(self, P):
         if self._needParam:
@@ -103,7 +106,7 @@ class Prestation(Column):
         provided = set(funcArgs.keys())        
         if provided != required:
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
-        
+        print self._name
         self.set_value(self._func(**funcArgs), idx)
         self._isCalculated = True
 
