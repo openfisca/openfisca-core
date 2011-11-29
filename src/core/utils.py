@@ -49,7 +49,7 @@ class Enum(object):
         for val in self._vars:
             yield val
 
-def handleXml(doc, tree, model):
+def handle_output_xml(doc, tree, model):
     if doc.childNodes:
         for element in doc.childNodes:
             if element.nodeType is not element.TEXT_NODE:
@@ -67,14 +67,18 @@ def handleXml(doc, tree, model):
                 else: typv = 0
                 child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
                 tree.addChild(child)
-                handleXml(element, child, model)
+                handle_output_xml(element, child, model)
     else:
-        val = getattr(model, tree.code).get_value()
+        if hasattr(model, tree.code):
+            model.calculate(tree.code)
+            val = getattr(model, tree.code).get_value()
+        elif hasattr(model._inputs, tree.code):
+            val = getattr(model._inputs, tree.code).get_value()
+        else:
+            raise Exception('%s was not find in model nor in inputs' % tree.code)
         tree.setVals(val)
             
-
 def gen_output_data(model):
-
 
 #        nbenfmax = table.nbenfmax 
 #        enfants = ['enf%d' % i for i in range(1, nbenfmax+1)]
@@ -83,12 +87,12 @@ def gen_output_data(model):
     _doc = minidom.parse('data/totaux.xml')
     tree = OutNode('root', 'root')
 
-    handleXml(_doc, tree, model)
+    handle_output_xml(_doc, tree, model)
 
 #        nb_uci = self.UC(table)
     
 #        nivvie = OutNode('nivvie', 'Niveau de vie', shortname = 'Niveau de vie', vals = tree['revdisp'].vals/nb_uci, typevar = 2, parent= tree)
 #        tree.addChild(nivvie)
-#        table.close_()
+
     return tree
 
