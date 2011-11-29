@@ -106,7 +106,6 @@ class Prestation(Column):
         provided = set(funcArgs.keys())        
         if provided != required:
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
-        print self._name
         self.set_value(self._func(**funcArgs), idx)
         self._isCalculated = True
 
