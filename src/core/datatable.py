@@ -225,8 +225,8 @@ class DataTable(object):
     def populate_from_scenario(self, scenario, date):
         self._nrows = self._nmen*len(scenario.indiv)
         self._init_columns(self._nrows)
-        XAXIS = 'sal'
-        MAXREV = 20000
+        XAXIS = 'sali'
+        MAXREV = 200000
         self.year = 2010
         self.datesim = date
         # pour l'instant, un seul menage répliqué n fois
