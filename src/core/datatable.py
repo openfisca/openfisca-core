@@ -371,8 +371,8 @@ class DateCol(Column):
     '''
     def __init__(self, label = None, default = 0):
         super(DateCol, self).__init__(label, default)
-       # self._dtype = np.datetime64
+        self._dtype = np.datetime64
 
     def _init_value(self, nrows):
         self._nrows = nrows
-       # self._value = np.ones(nrows, dtype = self._dtype)
+        self._value = np.ones(nrows, dtype = self._dtype)
