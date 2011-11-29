@@ -21,6 +21,9 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import division
+from Utils import OutNode
+from xml.dom import minidom
+
 
 class Enum(object):
     def __init__(self, varlist):
@@ -45,3 +48,47 @@ class Enum(object):
     def itervalues(self):
         for val in self._vars:
             yield val
+
+def handleXml(doc, tree, model):
+    if doc.childNodes:
+        for element in doc.childNodes:
+            if element.nodeType is not element.TEXT_NODE:
+                code = element.getAttribute('code')
+                desc = element.getAttribute('desc')
+                cols = element.getAttribute('color')
+                short = element.getAttribute('shortname')
+                typv = element.getAttribute('typevar')
+                if cols is not '':
+                    a = cols.rsplit(',')
+                    col = (float(a[0]), float(a[1]), float(a[2]))
+                else: col = (0,0,0)
+                if typv is not '':
+                    typv = int(typv)
+                else: typv = 0
+                child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
+                tree.addChild(child)
+                handleXml(element, child, model)
+    else:
+        val = getattr(model, tree.code).get_value()
+        tree.setVals(val)
+            
+
+def gen_output_data(model):
+
+
+#        nbenfmax = table.nbenfmax 
+#        enfants = ['enf%d' % i for i in range(1, nbenfmax+1)]
+#        self.members = ['pref', 'cref'] + enfants
+
+    _doc = minidom.parse('data/totaux.xml')
+    tree = OutNode('root', 'root')
+
+    handleXml(_doc, tree, model)
+
+#        nb_uci = self.UC(table)
+    
+#        nivvie = OutNode('nivvie', 'Niveau de vie', shortname = 'Niveau de vie', vals = tree['revdisp'].vals/nb_uci, typevar = 2, parent= tree)
+#        tree.addChild(nivvie)
+#        table.close_()
+    return tree
+

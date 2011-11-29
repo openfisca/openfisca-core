@@ -57,7 +57,7 @@ class Column(object):
         self._nrows = nrows
         self._value = np.ones(nrows, dtype = self._dtype)*self._default
 
-    def get_value(self, index = None, opt = None, dflt = 0):
+    def get_value(self, index = None, opt = None, dflt = 0, sum_ = False):
         '''
         method to read the value in an array
         index is a dict with the coordinates of each person in the array
@@ -84,7 +84,13 @@ class Column(object):
                 idx = index[person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
-            return out
+            if sum_ is False:
+                return out
+            else:
+                sumout = 0
+                for person, val in out:
+                    sumout += val
+                return sumout
 
     def set_value(self, value, index, opt = None):
         if value.dtype == np.bool:
@@ -222,13 +228,11 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
 
-    def populate_from_scenario(self, scenario, date):
+    def populate_from_scenario(self, scenario):
         self._nrows = self._nmen*len(scenario.indiv)
         self._init_columns(self._nrows)
         XAXIS = 'sali'
         MAXREV = 200000
-        self.year = 2010
-        self.datesim = date
         # pour l'instant, un seul menage répliqué n fois
         for noi, dct in scenario.indiv.iteritems():
             noipref = dct['noipref']
