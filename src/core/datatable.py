@@ -23,11 +23,8 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-from utils import Enum
 from Config import CONF
 from datetime import datetime
-
-QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 
 class Column(object):
     """
@@ -91,7 +88,7 @@ class Column(object):
                 return out
             else:
                 sumout = 0
-                for person, val in out:
+                for val in out.itervalues():
                     sumout += val
                 return sumout
 
