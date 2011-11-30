@@ -24,6 +24,9 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from utils import Enum
+from Config import CONF
+from datetime import datetime
+
 QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 
 class Column(object):
@@ -155,11 +158,17 @@ class DataTable(object):
         
         self.col_names = set()
         self._isPopulated = False
+        self.datesim = datetime.strptime(CONF.get('simulation', 'datesim') ,"%Y-%m-%d").date()
+        self.NMEN = CONF.get('simulation', 'nmen')
+        self.MAXREV = CONF.get('simulation', 'maxrev')
+        self.XAXIS = CONF.get('simulation', 'xaxis')
+
 
     def _init_columns(self, nrows):
         for column in self._columns:
             self.col_names.add(column.get_name())
             column._init_value(nrows)
+            column._isCalculated = False
     
     def _compute_title_and_comment(self):
         """
@@ -231,10 +240,9 @@ class DataTable(object):
     def populate_from_scenario(self, scenario):
         self._nrows = self._nmen*len(scenario.indiv)
         self._init_columns(self._nrows)
-        XAXIS = 'sali'
-        MAXREV = 50000
-        import datetime
-        datesim = datetime.date(2010,1,1)
+        XAXIS = self.XAXIS
+        MAXREV = self.MAXREV
+        datesim = self.datesim
         # pour l'instant, un seul menage répliqué n fois
         for noi, dct in scenario.indiv.iteritems():
             birth = dct['birth']
@@ -261,9 +269,10 @@ class DataTable(object):
 
         # set xaxis
         # TODO: how to set xaxis vals properly
-        col = getattr(self, XAXIS)
-        vls = np.linspace(0, MAXREV, self._nmen)
-        col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
+        if self._nmen>1:
+            col = getattr(self, XAXIS)
+            vls = np.linspace(0, MAXREV, self._nmen)
+            col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
         
     def addPerson(self, noi, age, agem, quifoy, quifam, quimen, noidec, noichef, noipref):
         for i in xrange(self._nmen):
