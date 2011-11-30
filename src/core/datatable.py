@@ -232,16 +232,21 @@ class DataTable(object):
         self._nrows = self._nmen*len(scenario.indiv)
         self._init_columns(self._nrows)
         XAXIS = 'sali'
-        MAXREV = 200000
+        MAXREV = 50000
+        import datetime
+        datesim = datetime.date(2010,1,1)
         # pour l'instant, un seul menage répliqué n fois
         for noi, dct in scenario.indiv.iteritems():
+            birth = dct['birth']
+            age = datesim.year- birth.year
+            agem = 12*(datesim.year- birth.year) + datesim.month - birth.month
             noipref = dct['noipref']
             noidec = dct['noidec']
             noichef = dct['noichef']
             quifoy = self.quifoy.enum[dct['quifoy']]
             quifam = self.quifam.enum[dct['quifam']]
             quimen = self.quimen.enum[dct['quimen']]
-            self.addPerson(noi, quifoy, quifam, quimen, noidec, noichef, noipref)
+            self.addPerson(noi, age, agem, quifoy, quifam, quimen, noidec, noichef, noipref)
         self._isPopulated = True
 
         self.gen_index(['foy', 'fam', 'men'])
@@ -252,17 +257,20 @@ class DataTable(object):
                 if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
                 col = getattr(self, var)
                 if not index[noi] is None:
-                    if var == XAXIS and noi == 0:
-                        # TODO: how to set xaxis vals properly
-                        vls = np.linspace(0, MAXREV, self._nmen)
-                        col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
-                    else: 
-                        col.set_value(np.ones(self._nmen)*val, index, noi)
+                    col.set_value(np.ones(self._nmen)*val, index, noi)
 
-    def addPerson(self, noi, quifoy, quifam, quimen, noidec, noichef, noipref):
+        # set xaxis
+        # TODO: how to set xaxis vals properly
+        col = getattr(self, XAXIS)
+        vls = np.linspace(0, MAXREV, self._nmen)
+        col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
+        
+    def addPerson(self, noi, age, agem, quifoy, quifam, quimen, noidec, noichef, noipref):
         for i in xrange(self._nmen):
             indiv = self.row()
             indiv['noi']   = noi
+            indiv['age']   = age
+            indiv['agem']   = agem
             indiv['quifoy'] = quifoy
             indiv['quifam'] = quifam
             indiv['quimen'] = quimen
