@@ -19,10 +19,10 @@ sS'quifam'
 p9
 S'chef'
 p10
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p11
 I1
-sS'choCheckBox'
+sS'cho_ld'
 p12
 I0
 sS'noipref'
@@ -91,7 +91,7 @@ p36
 sS'hsup'
 p37
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p38
 I0
 sg13
@@ -107,7 +107,7 @@ I0
 sS'choi'
 p39
 I0
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p40
 I1
 sS'sali'
@@ -146,10 +146,10 @@ I0
 sg9
 S'enf1'
 p52
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p53
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p54
 I0
 sg13
@@ -207,7 +207,7 @@ p68
 sS'hsup'
 p69
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p70
 I0
 sg13
@@ -232,7 +232,7 @@ g21
 p73
 tp74
 Rp75
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p76
 I0
 sS'ppeHeure'
@@ -265,7 +265,7 @@ p84
 sS'hsup'
 p85
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p86
 I0
 sg13
@@ -290,7 +290,7 @@ g21
 p89
 tp90
 Rp91
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p92
 I0
 sS'ppeHeure'

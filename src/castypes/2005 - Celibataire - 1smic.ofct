@@ -31,7 +31,7 @@ I0
 sS'activite'
 p14
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p15
 I0
 sS'inv'
@@ -61,7 +61,7 @@ p23
 p24
 tp25
 Rp26
-sVppeCheckBox
+sVppe_tp_sa
 p27
 I1
 sS'ppeHeure'
