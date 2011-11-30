@@ -158,7 +158,7 @@ class DataTable(object):
         self.datesim = datetime.strptime(CONF.get('simulation', 'datesim') ,"%Y-%m-%d").date()
         self.NMEN = CONF.get('simulation', 'nmen')
         self.MAXREV = CONF.get('simulation', 'maxrev')
-        self.XAXIS = CONF.get('simulation', 'xaxis')
+        self.XAXIS = CONF.get('simulation', 'xaxis') + 'i'
 
 
     def _init_columns(self, nrows):
