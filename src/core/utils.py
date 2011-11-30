@@ -68,11 +68,12 @@ def handle_output_xml(doc, tree, model):
                 tree.addChild(child)
                 handle_output_xml(element, child, model)
     else:
+        idx = model._index['men']
         if hasattr(model, tree.code):
             model.calculate(tree.code)
-            val = getattr(model, tree.code).get_value()
+            val = getattr(model, tree.code).get_value(idx)
         elif hasattr(model._inputs, tree.code):
-            val = getattr(model._inputs, tree.code).get_value()
+            val = getattr(model._inputs, tree.code).get_value(idx)
         else:
             raise Exception('%s was not find in model nor in inputs' % tree.code)
         tree.setVals(val)
