@@ -255,20 +255,31 @@ class DataTable(object):
         self._isPopulated = True
 
         self.gen_index(['foy', 'fam', 'men'])
-                
-        index = self.index['noi']
+            
+        index = self.index['men']
+        nb = index['nb']
         for noi, dct in scenario.indiv.iteritems():
             for var, val in dct.iteritems():
                 if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
                 col = getattr(self, var)
                 if not index[noi] is None:
-                    col.set_value(np.ones(self._nmen)*val, index, noi)
+                    col.set_value(np.ones(nb)*val, index, noi)
 
+        index = self.index['foy']
+        nb = index['nb']
+        for noi, dct in scenario.declar.iteritems():
+            for var, val in dct.iteritems():
+                col = getattr(self, var)
+                if not index[noi] is None:
+                    col.set_value(np.ones(nb)*val, index, noi)
+
+        index = self.index['men']
+        nb = index['nb']
         for noi, dct in scenario.menage.iteritems():
             for var, val in dct.iteritems():
                 col = getattr(self, var)
                 if not index[noi] is None:
-                    col.set_value(np.ones(self._nmen)*val, index, noi)
+                    col.set_value(np.ones(nb)*val, index, noi)
             
         # set xaxis
         # TODO: how to set xaxis vals properly
