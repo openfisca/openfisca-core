@@ -264,6 +264,12 @@ class DataTable(object):
                 if not index[noi] is None:
                     col.set_value(np.ones(self._nmen)*val, index, noi)
 
+        for noi, dct in scenario.menage.iteritems():
+            for var, val in dct.iteritems():
+                col = getattr(self, var)
+                if not index[noi] is None:
+                    col.set_value(np.ones(self._nmen)*val, index, noi)
+            
         # set xaxis
         # TODO: how to set xaxis vals properly
         if self._nmen>1:
