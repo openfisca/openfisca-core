@@ -73,17 +73,3 @@ def gen_output_data(model):
 #        tree.addChild(nivvie)
 #        table.close_()
     return tree
-                
-    def UC(self, table):
-        '''
-        Calcul du nombre d'unité de consommation du ménage avec l'échelle de l'insee
-        '''
-        agems = np.array(table.get('agem', 'men', self.members, default = -9999))
-        uc = np.ones(self.taille)
-        for i in range(1,11):
-            agem = agems[i]
-            age = np.floor(agem/12)
-            uc += ((0  <= age)*(age <= 14)*0.3 + 
-                   (15 <= age)*(age <= 150)*0.5)
-        return uc
-        

@@ -83,19 +83,11 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
             
 def gen_output_data(model):
 
-#        nbenfmax = table.nbenfmax 
-#        enfants = ['enf%d' % i for i in range(1, nbenfmax+1)]
-#        self.members = ['pref', 'cref'] + enfants
-
     _doc = minidom.parse('data/totaux.xml')
     tree = OutNode('root', 'root')
 
     handle_output_xml(_doc, tree, model)
 
-#        nb_uci = self.UC(table)
-    
-#        nivvie = OutNode('nivvie', 'Niveau de vie', shortname = 'Niveau de vie', vals = tree['revdisp'].vals/nb_uci, typevar = 2, parent= tree)
-#        tree.addChild(nivvie)
 
     return tree
 
