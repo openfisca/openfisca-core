@@ -127,7 +127,7 @@ class Prestation(Column):
 
 class SystemSf(DataTable):
     def __init__(self, param, title=None, comment=None):
-        DataTable.__init__(self, 0, title, comment)
+        DataTable.__init__(self, title, comment)
         self._primitives = set()
         self._param = param
         self._inputs = None

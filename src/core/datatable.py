@@ -141,9 +141,7 @@ class DataTable(object):
         * comment [string]: text shown on the top of the first data item
     """
     __metaclass__ = DataTableMeta
-    def __init__(self, nmen, title=None, comment=None):
-        self._nmen = nmen
-        self._nrows = nmen
+    def __init__(self, title=None, comment=None):
         self.__title = title
         self.__comment = comment
         self.currentline = {}
@@ -234,8 +232,39 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
 
+    def populate_from_external_data(self, filename):
+        import pickle
+#        from matplotlib.mlab import csv2rec
+#        f = open(filename, 'rb')
+#        recar = csv2rec(f)
+#        f.close()
+#
+#        f = open('data', 'wb')
+#        pickle.dump(recar, f, pickle.HIGHEST_PROTOCOL)
+#        f.close()
+
+        f = open('data', 'rb')
+        recar = pickle.load(f)
+        f.close()
+#        print recar.ppeHeure
+        print recar.ppeheure
+        missing_col = []
+        for col in self._columns:
+            try:
+                self.col_names.add(col.get_name())
+                col._value = recar[col.get_name()]
+                col._isCalculated = False
+            except:
+#                col._value = 
+                missing_col.append(col.get_name())
+        if missing_col:
+            raise Exception('%s missing' %  missing_col)
+                
+                
+        print recar.dtype
+
     def populate_from_scenario(self, scenario):
-        self._nrows = self._nmen*len(scenario.indiv)
+        self._nrows = self.NMEN*len(scenario.indiv)
         self._init_columns(self._nrows)
         XAXIS = self.XAXIS
         MAXREV = self.MAXREV
@@ -283,13 +312,13 @@ class DataTable(object):
             
         # set xaxis
         # TODO: how to set xaxis vals properly
-        if self._nmen>1:
+        if self.NMEN>1:
             col = getattr(self, XAXIS)
-            vls = np.linspace(0, MAXREV, self._nmen)
+            vls = np.linspace(0, MAXREV, self.NMEN)
             col.set_value(vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
         
     def addPerson(self, noi, age, agem, quifoy, quifam, quimen, noidec, noichef, noipref):
-        for i in xrange(self._nmen):
+        for i in xrange(self.NMEN):
             indiv = self.row()
             indiv['noi']   = noi
             indiv['age']   = age
