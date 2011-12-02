@@ -25,6 +25,7 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from datetime import datetime
+import sys, csv
 
 class Column(object):
     """
@@ -67,6 +68,7 @@ class Column(object):
             - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men')
             - if opt is not None, return a dict with key 'person' and values for this person
         '''
+#        try:
         var = self._value
         if index is None:
             return var
@@ -91,6 +93,8 @@ class Column(object):
                 for val in out.itervalues():
                     sumout += val
                 return sumout
+#        except Exception, e:
+#            raise Exception('Can not get %s value: %s' % (self._name, e))
 
     def set_value(self, value, index, opt = None):
         if value.dtype == np.bool:
@@ -225,43 +229,58 @@ class DataTable(object):
             dct = self.index[unit]
             idxlist = np.unique(idx)
             dct['nb'] = len(idxlist)
-                        
-            for person in enum.itervalues():
+
+            for full, person in enum:
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
+#                if (person == 0) and (dct['nb'] != len(idxIndi)):
+#                    raise Exception('Invalid index for %s: There is %i %s and %i %s' %(unit, dct['nb'], unit, len(idxIndi), full))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
 
-    def populate_from_external_data(self, filename):
-        import pickle
-#        from matplotlib.mlab import csv2rec
-#        f = open(filename, 'rb')
-#        recar = csv2rec(f)
-#        f.close()
-#
-#        f = open('data', 'wb')
-#        pickle.dump(recar, f, pickle.HIGHEST_PROTOCOL)
-#        f.close()
+    def populate_from_external_data(self, fname):
 
-        f = open('data', 'rb')
-        recar = pickle.load(f)
-        f.close()
-#        print recar.ppeHeure
-        print recar.ppeheure
+        reader = csv.reader(open(fname, "rb"), 
+                            delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
+        
+        header = reader.next()
+        records = []
+        fields = len(header)
+        
+        for row, record in enumerate(reader):
+            if len(record) != fields:
+                print "Skipping malformed record %i, contains %i fields (%i expected)" % (record, len(record), fields)
+            else:
+                records.append(record)
+                
+        print 'csv read'
+
+        recar = np.array(records, np.float32)
+
+        print 'converted to array'
+        self._nrows = recar.shape[0]
+        print recar.shape
         missing_col = []
         for col in self._columns:
+            self.col_names.add(col.get_name())
             try:
-                self.col_names.add(col.get_name())
-                col._value = recar[col.get_name()]
+                i = header.index(col.get_name())
+                col._value = np.array(recar[:,i], dtype = col._dtype)
                 col._isCalculated = False
             except:
-#                col._value = 
+                col._init_value(self._nrows)
                 missing_col.append(col.get_name())
+
+        del recar
+        
         if missing_col:
-            raise Exception('%s missing' %  missing_col)
+            import warnings
+            warnings.warn('%s missing' %  missing_col)
+        
+        self._isPopulated = True
+
+        self.gen_index(['men', 'fam', 'foy'])
                 
-                
-        print recar.dtype
 
     def populate_from_scenario(self, scenario):
         self._nrows = self.NMEN*len(scenario.indiv)

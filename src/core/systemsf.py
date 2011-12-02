@@ -75,6 +75,7 @@ class Prestation(Column):
         '''
         Solver: finds dependencies and calculate accordingly all needed variables 
         '''
+        print self._name
         if self._isCalculated:
             return
 
