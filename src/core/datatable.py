@@ -241,38 +241,24 @@ class DataTable(object):
     def populate_from_external_data(self, fname):
 
         reader = csv.reader(open(fname, "rb"), 
-                            delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
-        
+                            delimiter=',', quoting=csv.QUOTE_NONNUMERIC)        
         header = reader.next()
-        records = []
-        fields = len(header)
-        
-        for row, record in enumerate(reader):
-            if len(record) != fields:
-                print "Skipping malformed record %i, contains %i fields (%i expected)" % (record, len(record), fields)
-            else:
-                records.append(record)
-                
+        records = zip(*reader)
         print 'csv read'
 
-        recar = np.array(records, np.float32)
-
         print 'converted to array'
-        self._nrows = recar.shape[0]
-        print recar.shape
+        self._nrows = len(records[0])
         missing_col = []
         for col in self._columns:
             self.col_names.add(col.get_name())
             try:
                 i = header.index(col.get_name())
-                col._value = np.array(recar[:,i], dtype = col._dtype)
+                col._value = np.array(records[i], dtype = col._dtype)
                 col._isCalculated = False
             except:
                 col._init_value(self._nrows)
                 missing_col.append(col.get_name())
-
-        del recar
-        
+       
         if missing_col:
             import warnings
             warnings.warn('%s missing' %  missing_col)
@@ -397,7 +383,19 @@ class DataTable(object):
             if debug:
                 txt += column.__class__.__name__
         return txt
-        
+    
+    def as_csv(self, filename):
+        csvfile = open(filename, 'wb')
+        writer = csv.writer(csvfile)
+        print self._columns
+        for col in self._columns:
+            print col
+            outlist = [col.get_name()]
+            outlist.extend(list(col.get_value()))
+            writer.writerow(outlist)
+        csvfile.close()                
+
+    
 class IntCol(Column):
     '''
     A column of integer

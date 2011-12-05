@@ -180,3 +180,19 @@ class SystemSf(DataTable):
         column = getattr(self, var)
         column.calculate(self._inputs, self._index)
         
+    def as_csv(self, filename):
+        import csv
+        csvfile = open(filename, 'wb')
+        writer = csv.writer(csvfile)
+        for col in self._inputs._columns:
+            print col
+            outlist = [col.get_name()]
+            outlist.extend(list(col.get_value()))
+            writer.writerow(outlist)            
+        for col in self._columns:
+            print col
+            outlist = [col.get_name()]
+            outlist.extend(list(col.get_value()))
+            writer.writerow(outlist)
+        csvfile.close()                
+
