@@ -79,6 +79,7 @@ class XmlReader(object):
                         taux  = self.handleValues(tranche.getElementsByTagName("TAUX")[0], self._date)
                         if not seuil is None and not taux is None:
                             tranches.addTranche(seuil, taux*assiette)
+                    tranches.marToMoy()
                     node = BaremeNode(code, desc, tranches, parent)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
@@ -312,7 +313,9 @@ class BaremeNode(Node):
     def __init__(self, code, description, value, parent):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
-        self.default = copy.deepcopy(value)
+        self.default = Bareme()
+        self.default._tranches = [list(x) for x in zip(value.seuils, value.taux)]
+        self.default.marToMoy()
         self.typeInfo = 'BAREME'
 
     def _recurseXml(self, parent):
@@ -368,7 +371,7 @@ class BaremeNode(Node):
         return True
     
     def isDirty(self):
-        if self.value == self.default:
+        if self.value._tranches == self.default._tranches:
             return False
         return True
     

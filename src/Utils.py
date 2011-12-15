@@ -20,7 +20,8 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+from __future__ import division
+from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
 from Config import CONF, VERSION
@@ -311,27 +312,6 @@ class Scenario(object):
         self.famille = S['famille']
         self.menage = S['menage']
 
-def BarmMar(assi, tranches, getT = False):
-    '''
-    la fonction BarmMar sert à calculer un impôt selon un barême non
-    linéaire exprimé en tranches de taux marginaux.
-    'assi' est l'assiette de l'impôt, en colonne;
-    'tran' est un vecteur ligne des seuils des tranches (0 pour la première
-    tranche, la dernière tranche est supposée aller jusqu'à + l'infini.
-    '''
-    
-    k = len(tranches.seuils)
-    n = len(assi)
-    assi = np.tile(assi, (k, 1)).T
-    tran = np.tile(np.hstack((tranches.seuils, np.inf)), (n, 1))
-    a = np.maximum(np.minimum(assi, tran[:, 1:])-tran[:, 0:k], 0)
-    i = np.dot(tranches.taux,a.T)
-    if getT:
-        t = np.squeeze(np.maximum(np.dot((a>0), np.ones((k, 1)))-1, 0))
-        return i, t
-    else:
-        return i
-
 class Dicts2Object(object):
     def __init__(self, **entries): 
         self.__dict__.update(entries)
@@ -349,14 +329,20 @@ class Bareme(object):
         self._tranches = []
         self._nb = 0
         self._tranchesM = []
+        # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
+        # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
+        self._linear_taux_moy = False
 
-    def getNb(self):
+    @property
+    def nb(self):
         return self._nb
-        
-    def getSeuils(self):
+    
+    @property
+    def seuils(self):
         return [x[0] for x in self._tranches]
 
-    def getTaux(self):
+    @property
+    def taux(self):
         return [x[1] for x in self._tranches]
 
     def setSeuil(self, i, value):
@@ -365,15 +351,13 @@ class Bareme(object):
 
     def setTaux(self, i, value):
         self._tranches[i][1] = value
-    
-    seuils = property(getSeuils)
-    taux = property(getTaux)
-    nb   = property(getNb)
 
-    def getSeuilsM(self):
+    @property
+    def seuilsM(self):
         return [x[0] for x in self._tranchesM]
 
-    def getTauxM(self):
+    @property
+    def tauxM(self):
         return [x[1] for x in self._tranchesM]
 
     def setSeuilM(self, i, value):
@@ -383,9 +367,7 @@ class Bareme(object):
     def setTauxM(self, i, value):
         self._tranchesM[i][1] = value
     
-    seuilsM = property(getSeuilsM)
-    tauxM = property(getTauxM)
-
+    
     def multTaux(self, factor):
         for i in range(self.getNb()):
             self.setTaux(i,factor*self.taux[i])
@@ -513,4 +495,47 @@ class Bareme(object):
 
     def __ne__(self, other):
         return self._tranches != other._tranches
-                    
+    
+    def calc(self, assiette, getT = False):
+        '''
+        Calcule un impôt selon le barême non linéaire exprimé en tranches de taux marginaux.
+        'assiette' est l'assiette de l'impôt, en colonne;
+        '''
+        k = self.nb
+        n = len(assiette)
+        if not self._linear_taux_moy:
+            assi = np.tile(assiette, (k, 1)).T
+            seui = np.tile(np.hstack((self.seuils, np.inf)), (n, 1))
+            a = max_(min_(assi, seui[:, 1:]) - seui[:,:-1], 0)
+            i = np.dot(self.taux,a.T)
+            if getT:
+                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                return i, t
+            else:
+                return i
+        else:
+            if len(self.tauxM) == 1:
+                i = assiette*self.tauxM[0]
+            else:
+                assi = np.tile(assiette, (k-1, 1)).T
+                seui = np.tile(np.hstack(self.seuils), (n, 1))
+                k = self.t_x().T
+                a = (assi >= seui[:,:-1])*(assi < seui[:, 1:])
+                A = np.dot(a, self.t_x().T)
+                B = np.dot(a, np.array(self.seuils[1:]))
+                C = np.dot(a, np.array(self.tauxM[:-1]))
+                i = assiette*(A*(assiette-B) + C) + max_(assiette - self.seuils[-1], 0)*self.tauxM[-1] + (assiette >= self.seuils[-1])*self.seuils[-1]*self.tauxM[-2]
+            if getT:
+                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                return i, t
+            else:
+                return i
+
+    def t_x(self):
+        s = self.seuils
+        t = [0]
+        t.extend(self.tauxM[:-1])
+        s = np.array(s)
+        t = np.array(t)
+        return (t[1:]-t[:-1])/(s[1:]-s[:-1])
+        
