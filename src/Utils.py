@@ -428,17 +428,18 @@ class Bareme(object):
     def marToMoy(self):
         self._tranchesM = []
         I, k = 0, 0
-        for seuil, taux in self:
-            if k == 0:
+        if self.nb > 0:
+            for seuil, taux in self:
+                if k == 0:
+                    sprec = seuil
+                    tprec = taux
+                    k += 1
+                    continue            
+                I += tprec*(seuil - sprec)
+                self.addTrancheM(seuil, I/seuil)
                 sprec = seuil
                 tprec = taux
-                k += 1
-                continue            
-            I += tprec*(seuil - sprec)
-            self.addTrancheM(seuil, I/seuil)
-            sprec = seuil
-            tprec = taux
-        self.addTrancheM('Infini', taux)
+            self.addTrancheM('Infini', taux)
 
     def moyToMar(self):
         self._tranches = []
