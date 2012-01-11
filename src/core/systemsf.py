@@ -30,8 +30,8 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     '''
     count = 0
-    def __init__(self, func, unit= 'ind', label = None):
-        super(Prestation, self).__init__(label, default = 0)
+    def __init__(self, func, unit= 'ind', label = None, start = None, end = None):
+        super(Prestation, self).__init__(label, default=0)
 
         self._order = Prestation.count
         Prestation.count += 1
@@ -41,17 +41,22 @@ class Prestation(Column):
         self._option = {}
         self._func = func
         self._unit  = unit
+        self._start = start
+        self._end = end
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
-        self._children  = set() # prestations immidiately affected by curtent prestation 
+        self._children  = set() # prestations immidiately affected by current prestation 
         self._parents = set() # prestations that current prestations depends on  
         self.descendants = set()
         self.ascendants  = set()
-
+           
+        # by default enable all the prestations 
+        self._enabled    = True
+       
         # check if the function func needs parameter tree _P
         self._needParam = '_P' in self.inputs
         if self._needParam:
             self.inputs.remove('_P')
-            
+                
         # check if an option dict is passed to the function
         self._hasOption = '_option' in self.inputs
         if self._hasOption:
@@ -60,13 +65,21 @@ class Prestation(Column):
             for var in self._option:
                 if var not in self.inputs:
                     raise Exception('%s in option but not in function args' % var)
+    
+    def set_enabled(self):
+        if not self._enabled:
+            self._enabled = True
+ 
+    def set_disabled(self):
+        if  self._enabled:
+            self._enabled = False
 
     def set_param(self, P):
         if self._needParam:
             self._P = P
         else:
             raise Exception('trying to set param to a Prestation that does not need param')
-    
+
     def addChild(self, prestation):
         self._children.add(prestation)
         prestation._parents.add(self)
@@ -76,6 +89,9 @@ class Prestation(Column):
         Solver: finds dependencies and calculate accordingly all needed variables 
         '''
         if self._isCalculated:
+            return
+        
+        if not self._enabled:
             return
 
         idx = index[self._unit]
@@ -126,7 +142,7 @@ class Prestation(Column):
         unresolved.remove(self)
 
 class SystemSf(DataTable):
-    def __init__(self, param, title=None, comment=None):
+    def __init__(self, param, title=None, comment=None ):
         DataTable.__init__(self, title, comment)
         self._primitives = set()
         self._param = param
@@ -136,7 +152,7 @@ class SystemSf(DataTable):
 
     def get_primitives(self):
         """
-        Return socio-fical system primitives, ie variable needed as inputs
+        Return socio-fiscal system primitives, ie variable needed as inputs
         """
         return self._primitives
 
@@ -144,6 +160,11 @@ class SystemSf(DataTable):
         # Build the closest dependencies  
         for column in self._columns:
             if column._needParam: column.set_param(self._param)
+            if column._start: 
+                if column._start > self._param.datesim: column.set_disabled()
+            if column._end:
+                if column._end < self._param.datesim: column.set_disabled()
+            
             for requiredVarName in column.inputs:
                 found = False
                 for potentialPresta in self._columns:
@@ -178,7 +199,7 @@ class SystemSf(DataTable):
             raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs.col_names, self._primitives, self._inputs.col_names))
         column = getattr(self, var)
         column.calculate(self._inputs, self._index)
-        
+                
     def as_csv(self, filename):
         import csv
         csvfile = open(filename, 'wb')

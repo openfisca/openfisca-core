@@ -26,6 +26,7 @@ import numpy as np
 from Config import CONF
 from datetime import datetime
 import sys, csv
+from calmar.calmar import calmar
 
 class Column(object):
     """
@@ -56,6 +57,7 @@ class Column(object):
 
     def _init_value(self, nrows):
         self._nrows = nrows
+        if not self._dtype: self._dtype= np.float
         self._value = np.ones(nrows, dtype = self._dtype)*self._default
 
     def get_value(self, index = None, opt = None, dflt = 0, sum_ = False):
@@ -97,11 +99,14 @@ class Column(object):
 #            raise Exception('Can not get %s value: %s' % (self._name, e))
 
     def set_value(self, value, index, opt = None):
+        
+        print self._name
+        # TODO: there should be dtype in Prestation __init__...
         if value.dtype == np.bool:
             self._dtype = np.bool
         
         if opt is None:
-        # TODO: check if it's realy right?
+        # TODO: check if it's really right?
             idx = index[0]
         else:
             idx = index[opt]
@@ -237,6 +242,14 @@ class DataTable(object):
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
+
+    def calibrate(self, marge, param=dict(method='linear')):
+        data=dict(wprm = self.wprm.get_value(), 
+                  ident = self.ident.get_value())
+        for var in marge.keys():
+            data[var] = getattr(self,var).get_value()
+        val_pondfin, lambdasol = calmar(data, marge, param=param, pondini='wprm', ident='ident')
+        self.pondfin.set_value(val_pondfin, self.index['ind'])
 
     def populate_from_external_data(self, fname):
 
@@ -395,7 +408,6 @@ class DataTable(object):
             writer.writerow(outlist)
         csvfile.close()                
 
-    
 class IntCol(Column):
     '''
     A column of integer
