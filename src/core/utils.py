@@ -23,7 +23,6 @@ This file is part of openFisca.
 from __future__ import division
 from xml.dom import minidom
 
-
 class Enum(object):
     def __init__(self, varlist):
         self._vars = {}

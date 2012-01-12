@@ -156,6 +156,13 @@ class SystemSf(DataTable):
         """
         return self._primitives
 
+    def reset(self):
+        """
+        sets all columns as not calculated
+        """
+        for column in self._columns:
+            column._isCalculated = False
+    
     def build(self):
         # Build the closest dependencies  
         for column in self._columns:
@@ -194,6 +201,7 @@ class SystemSf(DataTable):
         
     def calculate(self, var = None):
         if var is None:
+            # TODO:
             return "Will calculate all"
         if not self._primitives <= self._inputs.col_names:
             raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs.col_names, self._primitives, self._inputs.col_names))

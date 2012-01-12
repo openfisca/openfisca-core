@@ -26,8 +26,6 @@ from xml.dom import minidom
 from Utils import Bareme
 from datetime import datetime
 from Config import CONF
-import copy
-
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
@@ -313,8 +311,10 @@ class BaremeNode(Node):
     def __init__(self, code, description, value, parent):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
-        self.default = Bareme()
-        self.default._tranches = [list(x) for x in zip(value.seuils, value.taux)]
+        # create a copy of the default value by hand
+        self.default = Bareme(value._name)
+        for s , t in value._tranches:
+            self.default.addTranche(s, t)
         self.default.marToMoy()
         self.typeInfo = 'BAREME'
 
