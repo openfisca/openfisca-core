@@ -100,7 +100,6 @@ class Column(object):
 
     def set_value(self, value, index, opt = None):
         
-        print self._name
         # TODO: there should be dtype in Prestation __init__...
         if value.dtype == np.bool:
             self._dtype = np.bool
