@@ -18,7 +18,6 @@ def linear(u):
     return 1+u
    
 def linear_prime(u):
-    print u.shape
     return ones(u.shape, dtype = float) 
    
 def raking_ratio(u):
@@ -43,14 +42,15 @@ def build_dummies_matrix(data):
         output[:,i] = (data==unique_val_list[i])
     return output
 
-def calmar(data, marge, param=dict(method='linear'), pondini='wprm', ident='ident'):
-    ''' calmar : calage des poids etant des donnees des marges
+def calmar(data, marge, param={'method':'linear'}, pondini='wprm', ident='ident'):
+    ''' 
+    calmar : calage des poids etant des donnees des marges
      data est une structure contenant
       - pondini (char) est le nom la variable poids initial
       - ident   (char) est le nom de la variable des identifiants
-     marge est une structure contenant
-      - marge est un dictionnaires contenant les valeurs marges si c'est une variable numerique et les populations des categories
-        si ce sont de valeurs categorielles classees dans l'ordre donne par unique 
+     marge is a dict containing for each var:
+      - a scalar var numeric variables
+      - a dict with categories key and population 
      param est un dictionnaire contenant
       - method 
       - lo    borne inferieur sur le rapport des poids <1
@@ -59,109 +59,89 @@ def calmar(data, marge, param=dict(method='linear'), pondini='wprm', ident='iden
                          somme des poids
       - param.prec     TODO
       - param.maxiter  TODO
-'''   
-# choix de la methode
-    F_prime = None
+    '''   
+    # choice of method
+
     if param['method'] == 'linear': 
         F = linear
         F_prime = linear_prime
-    if param['method'] == 'raking ratio': 
+    elif param['method'] == 'raking ratio': 
         F =  raking_ratio
         F_prime =  raking_ratio_prime
-    if param['method'] == 'logit': 
+    elif param['method'] == 'logit': 
         F = lambda x: logit(x, param['lo'], param['up'])
         F_prime = lambda x: logit_prime(x, param['lo'], param['up'])
-# construction de la matrice des observations
-    if hasattr(param,'totalpop'):
+    else:
+        raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
+
+    # construction observations matrix
+    if 'totalpop' in param:
         totalpop = param['totalpop']
     else:
         totalpop = data[pondini].sum()
 
     nk = len(data[ident])
-    are_dummies_present = False
-    j=0
+
+    # number of lagrange parameters (at least total population)
+    nj = 1
     
-    marge_new = deepcopy(marge)
+    marge_new = {}
     
-    for var, values in marge.iteritems():
-        if values.size > 1:
-            are_dummies_present = True
-            dummies_matrix = build_dummies_matrix(data[var]);
-        #     verification que la population finale est bonne 
+    for var, val in marge.iteritems():
+        if isinstance(val, dict):
+            dummies_matrix = build_dummies_matrix(data[var])
+            # verification que la population finale est bonne
             if marge[var].sum()!=totalpop:
-                print 'calmar: categorical variable ', var, ' is inconsistent with population'
+                raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
             
-            for k in range (len(values)):
-                catvarname =  var + '_%d' % k
-                data[catvarname] = dummies_matrix[:,k]
-                marge_new[catvarname] = marge[var][k]
-                j=j+1
-                
-            del marge_new[var]
-            del data[var]
-            
-        
-        elif values.size <= 1:
-            j=j+1
+            k = 0
+            for cat, nb in val.iteritems():
+                cat_varname =  var + cat
+                data[cat_varname] = dummies_matrix[:,k]
+                marge_new[cat_varname] = nb
+                k += 1
+                nj += 1
+                    
+        else:
+            marge_new[var] = val
+            nj += 1
 
-    j=j+1
-
-# On conserve systematiquement la population  
+    # On conserve systematiquement la population  
     if  hasattr(data,'dummy_is_in_pop'):
         raise Exception('dummy_is_in_pop is not a valid variable name') 
         
     data['dummy_is_in_pop'] = ones(nk)
-    marge_new['dummy_is_in_pop'] = totalpop;
+    marge_new['dummy_is_in_pop'] = totalpop
 
-# Nombre de contraintes
-    nj=j;
-# paramètres de Lagrange initialisés à zéro
+    # paramètres de Lagrange initialisés à zéro
     lambda0 = zeros(nj)
-# poids initiaux
+    
+    # initial weights
     d = data[pondini]
-    x = zeros((nj, nk))
+    x = zeros((nk, nj)) # nb obs x nb constraints
     xmarges = zeros(nj)
     
     j=0
-    for var in marge_new.keys():
-        x[j,:] = data[var].T
-        xmarges[j] = marge_new[var] 
-        j=j+1
-# Résolution des équations du premier ordre
-    def constraint(l):
-        return dot(x , (d.T*F( dot(x.T,l))).T ).squeeze() - xmarges    
-    
-    if F_prime == None:
-        constraint_prime = None
-    else:
-        def constraint_prime(l):
-#            print 'constraint: ', (dot(x , (d.T*F( dot(x.T,l))).T ).squeeze()).shape
-#            print 'l: ', l.shape
-#            print 'd: ',(d.T).shape
-#            print 'fprim :', ((F_prime( dot(x.T,l)))).shape
-#            print 'x: ', x.shape
-#            print 'before last', ( (  x*F_prime( dot(x.T,l)) ) ).shape
-#            print 'last   :', (d.T*( x*F_prime( dot(x.T,l)))    ).shape
-#            print 'result :', (dot(x , (d.T*( x*F_prime( dot(x.T,l)))    ).T )).shape
-            return (dot(x , (d.T*( x*F_prime( dot(x.T,l)))    ).T )).squeeze()
+    for var , val in marge_new.iteritems():
+        x[:,j] = data[var]
+        xmarges[j] = val
+        j += 1
+
+    # Résolution des équations du premier ordre
+    constraint = lambda l: dot(d*F(dot(x, l)), x) - xmarges
+    constraint_prime = lambda l: dot(d*( x.T*F_prime( dot(x, l))), x )
     ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
-      
-        
-    lambdasol, infodict, ier, mesg = fsolve(constraint,lambda0,fprime=constraint_prime, maxfev= 256 ,full_output=1 ) # TODO options ?
-    print 'infodict : ', infodict
-    print 'ier: ', ier
-    print 'mesg: ', mesg 
-    essai = 1
-    while (ier==5 or ier==2) and (essai <= 5):
-        lambda0 = 1*lambdasol
-        lambdasol, infodict, ier, mesg = fsolve(constraint,lambda0,fprime=constraint_prime, maxfev= 256 ,full_output=1 )
-        print 'infodict : ', infodict
+    
+    essai, ier = 0, 2
+    while (ier==2 or ier==5) and (essai <= 5):
+        lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, full_output=1)
         print 'ier: ', ier
         print 'mesg: ', mesg
+        lambda0 = 1*lambdasol
         essai += 1
         
-    pondfin = (d.T*F( dot(x.T,lambdasol))).T 
-    #print constraint(lambdasol)
+    pondfin = d*F( dot(x, lambdasol))
+
     print "nombre d'essais: ", essai
     return pondfin, lambdasol 
 
