@@ -8,11 +8,9 @@ Created on 22 dec. 2011
 '''
 from __future__ import division
 
-from numpy import exp, ones, zeros, unique, array, dot, float
-from scipy import info
+import numpy as np
+from numpy import exp, ones, zeros, unique, array, dot
 from scipy.optimize import fsolve
-from copy import deepcopy
-from numpy.random import rand
 
 def linear(u):
     return 1+u
@@ -68,7 +66,7 @@ def calmar(data, marge, param={'method':'linear'}, pondini='wprm', ident='ident'
     elif param['method'] == 'raking ratio': 
         F =  raking_ratio
         F_prime =  raking_ratio_prime
-    elif param['method'] == 'logit': 
+    elif param['method'] == 'logit':
         F = lambda x: logit(x, param['lo'], param['up'])
         F_prime = lambda x: logit_prime(x, param['lo'], param['up'])
     else:
@@ -89,19 +87,18 @@ def calmar(data, marge, param={'method':'linear'}, pondini='wprm', ident='ident'
     
     for var, val in marge.iteritems():
         if isinstance(val, dict):
-            dummies_matrix = build_dummies_matrix(data[var])
-            # verification que la population finale est bonne
-            if marge[var].sum()!=totalpop:
-                raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
-            
-            k = 0
+            dummies_matrix = build_dummies_matrix(data[var])            
+            k, pop = 0, 0
             for cat, nb in val.iteritems():
                 cat_varname =  var + cat
                 data[cat_varname] = dummies_matrix[:,k]
                 marge_new[cat_varname] = nb
+                pop += nb
                 k += 1
                 nj += 1
-                    
+            # verification que la population finale est bonne
+            if pop != totalpop:
+                raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
             marge_new[var] = val
             nj += 1
@@ -146,12 +143,12 @@ def calmar(data, marge, param={'method':'linear'}, pondini='wprm', ident='ident'
     return pondfin, lambdasol 
 
 def test1():
-    data = dict(ident = range(1,2+1),
-                x = array([1,2]),
-                wprm = 1*ones((2)))
+    data = dict(ident = range(4),
+                x = array([5,2,7,6]),
+                wprm = array([.5,.5,1,1]))
 
     marge = dict(x=array(5))
-    param = dict(method='raking ratio',lo=.3,up=3)
+    param = dict(method='linear')
 #    param = dict(method='linear',lo=1/3,up=3)
 
     pondfin, lambdasol  = calmar(data,marge,param)
@@ -172,7 +169,7 @@ def test2():
                 k = array([0,1,1,0,0,1,1,1,0, 1, 1]),
                 z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
                 wprm = array([10,1,1,11,13,7,8,8,9,10,14]))
-    marge = dict(g =array(32), f =array(60), j =array(42), k=array(50), z =array(140))
+    marge = {'g':32, 'f':60, 'j':42, 'k':50, 'z':140}
 
 
     param = dict(method='linear')
@@ -198,7 +195,7 @@ def test3():
                 z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
                 wprm = array([10,1,1,11,13,7,8,8,9,10,14]))
 
-    marge = dict(g =array([60,32]), j =array([50,42]),z =array(140))    
+    marge = {'g':{'0':60,'1': 32}, 'j': {'0':50,'1':42},'z':140}    
     param = dict(method='linear',lo = .0001,up = 1000)
     
     pondfin, lambdasol  = calmar(data,marge,param,ident='i')
@@ -210,16 +207,16 @@ def test3():
 
 def test4():
     # tests large datasets
-    n = 100000
-    index = array(range(1,n+1))
+    n = 10000
+    index = np.arange(n)
     val   = index*100
-    wprm  = rand(n)
+    wprm  = np.random.rand(n)
     
     data = dict(i = index,
                 v = val,
                 wprm = wprm)
 
-    marge = dict(v = sum(1.2*data['wprm']*data['v']))    
+    marge = {'v':sum(1.2*data['wprm']*data['v'])}
     param = dict(method='logit',lo = .001,up = 100)
     
     pondfin, lambdasol  = calmar(data,marge,param,ident='i')
@@ -231,11 +228,13 @@ def test4():
     print pondfin/data['wprm']    
 #    info(fsolve)
 
-    from pylab import hist, setp, figure, show
+    from pylab import hist, setp, show, plot
     weight_ratio = pondfin/data['wprm']
     n, bins, patches = hist(weight_ratio, 100, normed=1, histtype='stepfilled')
     setp(patches, 'facecolor', 'g', 'alpha', 0.75)
     show()
+    plot(wprm, pondfin/wprm, 'x')
+    show()
 
 if __name__ == '__main__':
-    test3()
+    test4()
