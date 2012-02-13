@@ -241,4 +241,3 @@ class SystemSf(DataTable):
             outlist.extend(list(col.get_value()))
             writer.writerow(outlist)
         csvfile.close()                
-
