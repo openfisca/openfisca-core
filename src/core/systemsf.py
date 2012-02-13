@@ -56,6 +56,11 @@ class Prestation(Column):
         self._needParam = '_P' in self.inputs
         if self._needParam:
             self.inputs.remove('_P')
+            
+        # check if the function func needs parameter tree _P
+        self._needDefaultParam = '_defaultP' in self.inputs
+        if self._needDefaultParam:
+            self.inputs.remove('_defaultP')
                 
         # check if an option dict is passed to the function
         self._hasOption = '_option' in self.inputs
@@ -79,6 +84,13 @@ class Prestation(Column):
             self._P = P
         else:
             raise Exception('trying to set param to a Prestation that does not need param')
+
+    def set_default_param(self, P):
+        if self._needDefaultParam:
+            self._defaultP = P
+        else:
+            raise Exception('trying to set default param to a Prestation that does not need param')
+
 
     def addChild(self, prestation):
         self._children.add(prestation)
@@ -118,6 +130,10 @@ class Prestation(Column):
         if self._needParam:
             funcArgs['_P'] = self._P
             required.add('_P')
+            
+        if self._needDefaultParam:
+            funcArgs['_defaultP'] = self._defaultP
+            required.add('_defaultP')
         
         provided = set(funcArgs.keys())        
         if provided != required:
@@ -142,10 +158,11 @@ class Prestation(Column):
         unresolved.remove(self)
 
 class SystemSf(DataTable):
-    def __init__(self, param, title=None, comment=None ):
+    def __init__(self, param, defaultParam = None, title=None, comment=None ):
         DataTable.__init__(self, title, comment)
         self._primitives = set()
         self._param = param
+        self._defaultParam = defaultParam
         self._inputs = None
         self._index = None
         self.build()
@@ -167,6 +184,7 @@ class SystemSf(DataTable):
         # Build the closest dependencies  
         for column in self._columns:
             if column._needParam: column.set_param(self._param)
+            if column._needDefaultParam: column.set_default_param(self._defaultParam)
             if column._start: 
                 if column._start > self._param.datesim: column.set_disabled()
             if column._end:
