@@ -21,7 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QAction, QMenu, QIcon, QTreeView, QApplication
+from PyQt4.QtGui import QAction, QMenu, QIcon, QTreeView, QTableView, QApplication, QPixmap, QIcon
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString
 
 def toggle_actions(actions, enable):
@@ -84,16 +84,12 @@ def add_actions(target, actions, insert_before=None):
                 target.insertAction(insert_before, action)
         previous_action = action
 
-def get_icon( name, default=None ):
+def get_icon(name):
     """Return image inside a QIcon object"""
-    return QIcon()
-#    if default is None:
-#        return QIcon(get_image_path(name))
-#    elif isinstance(default, QIcon):
-#        icon_path = get_image_path(name, default=None)
-#        return default if icon_path is None else QIcon(icon_path)
-#    else:
-#        return QIcon(get_image_path(name, default))
+    image_path = ":/images/" + name
+    icon = QIcon()
+    icon.addPixmap(QPixmap(image_path), QIcon.Normal, QIcon.Off)
+    return icon
 
 class OfTreeView(QTreeView):
     def __init__(self, parent = None):
@@ -111,4 +107,28 @@ class OfTreeView(QTreeView):
             data = self.model().data(current)
             text = data.toString()
             selected_text.append(text + '\t')
+        QApplication.clipboard().setText(selected_text);
+
+class OfTableView(QTableView):
+    def __init__(self, parent = None):
+        super(OfTableView, self).__init__(parent)
+        
+    def copy(self):
+        '''
+        Copy the table selection to the clipboard
+        '''
+        selection = self.selectionModel()
+        indexes = selection.selectedIndexes();
+        previous = indexes.pop(0)
+        data = self.model().data(previous)
+        text = data.toString()
+        selected_text = QString(text)
+        for current in indexes:
+            if current.row() != previous.row():
+                selected_text.append('\n')
+            else:
+                selected_text.append('\t')
+            data = self.model().data(current)
+            text = data.toString()
+            selected_text.append(text)
         QApplication.clipboard().setText(selected_text);
