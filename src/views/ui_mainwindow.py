@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/mainwindow.ui'
 #
-# Created: Tue Feb 21 11:40:23 2012
+# Created: Tue Feb 21 15:07:15 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,6 +41,9 @@ class Ui_MainWindow(object):
         self.menuSimulation = QtGui.QMenu(self.menubar)
         self.menuSimulation.setTitle(QtGui.QApplication.translate("MainWindow", "Simulation", None, QtGui.QApplication.UnicodeUTF8))
         self.menuSimulation.setObjectName(_fromUtf8("menuSimulation"))
+        self.menu_dition = QtGui.QMenu(self.menubar)
+        self.menu_dition.setTitle(QtGui.QApplication.translate("MainWindow", "Édition", None, QtGui.QApplication.UnicodeUTF8))
+        self.menu_dition.setObjectName(_fromUtf8("menu_dition"))
         MainWindow.setMenuBar(self.menubar)
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
@@ -120,6 +123,7 @@ class Ui_MainWindow(object):
         self.menuSimulation.addSeparator()
         self.menuSimulation.addAction(self.actModeReforme)
         self.menubar.addAction(self.file_menu.menuAction())
+        self.menubar.addAction(self.menu_dition.menuAction())
         self.menubar.addAction(self.menuSimulation.menuAction())
         self.toolBar.addAction(self.actExportCsv)
         self.toolBar.addAction(self.actExportPng)

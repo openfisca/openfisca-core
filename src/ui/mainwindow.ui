@@ -58,7 +58,13 @@
     <addaction name="separator"/>
     <addaction name="actModeReforme"/>
    </widget>
+   <widget class="QMenu" name="menu_dition">
+    <property name="title">
+     <string>Édition</string>
+    </property>
+   </widget>
    <addaction name="file_menu"/>
+   <addaction name="menu_dition"/>
    <addaction name="menuSimulation"/>
   </widget>
   <widget class="QToolBar" name="toolBar">

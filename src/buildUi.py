@@ -24,10 +24,9 @@ This file is part of openFisca.
 
 import os
 
-uiList = ['mainwindow', 'graph', 'table', 
-          'declaration', 'composition', 'logement', 'infocomp',
+uiList = ['mainwindow', 'graph', 'declaration', 'composition', 'logement', 'infocomp',
           'page01', 'page02A', 'page03A', 'page03B', 'page03C', 'page04A', 'page04B', 
-          'page04C', 'parametres', 'baremedialog', 'aggregate_ouput']
+          'page04C', 'parametres', 'baremedialog', 'aggregate_output']
 
 commands = []
 for ui in uiList:
