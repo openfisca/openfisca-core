@@ -254,7 +254,6 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
 
         self.connect(self._marModel, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self._moyModel.refresh)
         self.connect(self._moyModel, SIGNAL("dataChanged(QModelIndex, QModelIndex)"), self._marModel.refresh)
-        
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_tranche)
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmv_tranche)
 

@@ -23,7 +23,7 @@ This file is part of openFisca.
     
 from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
-from Utils import Bareme
+from core.utils import Bareme
 from datetime import datetime
 from Config import CONF
 
