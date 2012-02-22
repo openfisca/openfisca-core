@@ -86,14 +86,23 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
             raise Exception('%s was not find in model nor in inputs' % tree.code)
         tree.setVals(val)
             
-def gen_output_data(model):
+def gen_output_data(model, weights = None):
 
     _doc = minidom.parse('data/totaux.xml')
     tree = OutNode('root', 'root')
 
     handle_output_xml(_doc, tree, model)
 
+    if weights:
+        unit = 'men'
+        idx = model._index[unit]
+        inputs = model._inputs
+        people = [0]
+        val = getattr(inputs, 'wprm').get_value(idx, opt = people, sum_ = True)
 
+        weights_node = OutNode('wprm', 'Poids des ménages', 'Poids', val)
+        tree.addChild(weights_node)
+        
     return tree
 
 class OutNode(object):

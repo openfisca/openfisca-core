@@ -21,7 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QAction, QMenu, QIcon, QTreeView, QTableView, QApplication, QPixmap, QIcon
+from PyQt4.QtGui import QAction, QMenu, QTreeView, QTableView, QApplication, QPixmap, QIcon
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString
 
 def toggle_actions(actions, enable):
@@ -101,13 +101,25 @@ class OfTreeView(QTreeView):
         At this point, works only for single line selection
         '''
         selection = self.selectionModel()
-        indexes = selection.selectedIndexes();
-        selected_text = QString()        
+        indexes = selection.selectedIndexes()
+        indexes.sort()
+
+        previous = indexes.pop(0)
+        data = self.model().data(previous)
+        text = data.toString()
+        selected_text = QString(text)
+        
         for current in indexes:
+            if current.row() != previous.row():
+                selected_text.append('\n')
+            else:
+                selected_text.append('\t')
             data = self.model().data(current)
             text = data.toString()
-            selected_text.append(text + '\t')
-        QApplication.clipboard().setText(selected_text);
+            selected_text.append(text)
+            previous = current
+        selected_text.append('\n')
+        QApplication.clipboard().setText(selected_text)
 
 class OfTableView(QTableView):
     def __init__(self, parent = None):
@@ -117,12 +129,15 @@ class OfTableView(QTableView):
         '''
         Copy the table selection to the clipboard
         '''
+        print 'copy'
         selection = self.selectionModel()
-        indexes = selection.selectedIndexes();
+        indexes = selection.selectedIndexes()
+        indexes.sort()
         previous = indexes.pop(0)
         data = self.model().data(previous)
         text = data.toString()
         selected_text = QString(text)
+
         for current in indexes:
             if current.row() != previous.row():
                 selected_text.append('\n')
@@ -131,4 +146,6 @@ class OfTableView(QTableView):
             data = self.model().data(current)
             text = data.toString()
             selected_text.append(text)
-        QApplication.clipboard().setText(selected_text);
+            previous = current
+        selected_text.append('\n')
+        QApplication.clipboard().setText(selected_text)
