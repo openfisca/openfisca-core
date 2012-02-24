@@ -28,6 +28,7 @@ from bisect import bisect_right
 from Config import CONF, VERSION
 import pickle
 from datetime import datetime
+from pandas import DataFrame
 
 class Enum(object):
     def __init__(self, varlist):
@@ -85,25 +86,52 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
         else:
             raise Exception('%s was not find in model nor in inputs' % tree.code)
         tree.setVals(val)
+
             
-def gen_output_data(model, weights = None):
+def gen_output_data(model):
 
     _doc = minidom.parse('data/totaux.xml')
     tree = OutNode('root', 'root')
 
     handle_output_xml(_doc, tree, model)
-
-    if weights:
-        unit = 'men'
-        idx = model.index[unit]
-        inputs = model._inputs
-        people = [0]
-        val = inputs.get_value('wprm', idx, opt = people, sum_ = True)
-
-        weights_node = OutNode('wprm', 'Poids des ménages', 'Poids', val)
-        tree.addChild(weights_node)
-        
     return tree
+
+def gen_aggregate_output(model):
+
+    out_dct = {}
+    inputs = model._inputs
+
+    unit = 'men'
+    idx = model.index[unit]
+    enum = inputs.description.get_col('qui'+unit).enum
+    people = [x[1] for x in enum]
+    pref = [0]
+
+    varlist = ['irpp', 'af', 'cf', 'ars', 'logt', 'revdisp']
+    for varname in varlist:
+        if varname in model.col_names:
+            model.calculate(varname)
+            val = model.get_value(varname, idx, opt = people, sum_ = True)
+        elif varname in inputs.col_names:
+            val = inputs.get_value(varname, idx, opt = people, sum_ = True)
+        else:
+            raise Exception('%s was not find in model nor in inputs' % varname)
+        out_dct[varname] = val
+
+    varlist = ['wprm', 'typ_men', 'uc']
+    for varname in varlist:
+        if varname in model.col_names:
+            model.calculate(varname)
+            val = model.get_value(varname, idx, opt = pref, sum_ = True)
+        elif varname in inputs.col_names:
+            val = inputs.get_value(varname, idx, opt = pref, sum_ = True)
+        else:
+            raise Exception('%s was not find in model nor in inputs' % varname)
+        out_dct[varname] = val
+
+    out_dct['nivvie'] = out_dct['revdisp']/out_dct['uc']        
+    out_table = DataFrame(out_dct)
+    return out_table
 
 class OutNode(object):
     def __init__(self, code, desc, shortname = '', vals = 0, color = (0,0,0), typevar = 0, parent = None):
