@@ -73,15 +73,15 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
                 tree.addChild(child)
                 handle_output_xml(element, child, model)
     else:
-        idx = model._index[unit]
+        idx = model.index[unit]
         inputs = model._inputs
-        enum = getattr(inputs, 'qui'+unit).enum
+        enum = inputs.description.get_col('qui'+unit).enum
         people = [x[1] for x in enum]
-        if hasattr(model, tree.code):
+        if tree.code in model.col_names:
             model.calculate(tree.code)
-            val = getattr(model, tree.code).get_value(idx, opt = people, sum_ = True)
-        elif hasattr(inputs, tree.code):
-            val = getattr(inputs, tree.code).get_value(idx, opt = people, sum_ = True)
+            val = model.get_value(tree.code, idx, opt = people, sum_ = True)
+        elif tree.code in inputs.col_names:
+            val = inputs.get_value(tree.code, idx, opt = people, sum_ = True)
         else:
             raise Exception('%s was not find in model nor in inputs' % tree.code)
         tree.setVals(val)
@@ -95,10 +95,10 @@ def gen_output_data(model, weights = None):
 
     if weights:
         unit = 'men'
-        idx = model._index[unit]
+        idx = model.index[unit]
         inputs = model._inputs
         people = [0]
-        val = getattr(inputs, 'wprm').get_value(idx, opt = people, sum_ = True)
+        val = inputs.get_value('wprm', idx, opt = people, sum_ = True)
 
         weights_node = OutNode('wprm', 'Poids des ménages', 'Poids', val)
         tree.addChild(weights_node)
