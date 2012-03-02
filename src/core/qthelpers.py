@@ -149,3 +149,27 @@ class OfTableView(QTableView):
             previous = current
         selected_text.append('\n')
         QApplication.clipboard().setText(selected_text)
+
+class OfSs:
+    '''a container for stylesheets'''
+        
+    bold_center = '''
+        QLabel {
+            font-weight: bold; 
+            qproperty-alignment: AlignCenter;
+        }'''
+
+    dock_style = '''
+         QDockWidget {
+             margin: 5px;
+             background : #e6ebf4;
+         }
+        
+         QDockWidget::title {
+             margin: 2px;
+             padding-left: 2px;
+             background-color: #e7d2d9;
+             border : 1px solid rgb(166, 54, 110);
+         }        
+         '''
+            

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/declaration.ui'
 #
-# Created: Tue Feb 21 17:17:24 2012
+# Created: Fri Mar 02 15:53:19 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,7 +27,7 @@ class Ui_Declaration(object):
         Declaration.setMaximumSize(QtCore.QSize(1000, 640))
         Declaration.setWindowTitle(QtGui.QApplication.translate("Declaration", "Déclaration", None, QtGui.QApplication.UnicodeUTF8))
         Declaration.setStyleSheet(_fromUtf8("QDialog{\n"
-"background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(217, 235, 245, 255), stop:1 rgba(245, 245, 245, 255))\n"
+"background-color: #e6ebf4;\n"
 "}\n"
 "/*----------------- Objets----------------- */\n"
 "QLineEdit{\n"
