@@ -238,23 +238,22 @@ class DataTable(object):
                 return sumout
 
     def set_value(self, varname, value, index, opt = None):
-        col = self.description.get_col(varname)
-        values = self.table[varname].values
-        
-        # TODO: there should be dtype in Prestation __init__...
-        if value.dtype == np.bool:
-            col._dtype = np.bool
-
-        dtyp = col._dtype
-        
         if opt is None:
-        # TODO: check if it's really right?
             idx = index[0]
         else:
             idx = index[opt]
+
+        # this command should work on later pandas version...
+        # self.table.ix[idx['idxIndi'], [varname]] = value
+
+        # for now, we're doing it manually
+        col = self.description.get_col(varname)
+        values = self.table[varname].values
+        
+        dtyp = col._dtype
+        
         var = np.array(values, dtype = dtyp)
-        val = np.array(value, dtype = dtyp)
-        var[idx['idxIndi']] = val[idx['idxUnit']]
+        var[idx['idxIndi']] = np.array(value, dtype = dtyp)
         self.table[varname] = var
 
     def to_csv(self, fname):
@@ -330,7 +329,7 @@ class SystemSf(DataTable):
         if varname is None:
             # TODO:
             for col in self.description.columns:
-                self.calculate(col._name)
+                self.calculate(col.name)
             return "Will calculate all"
 
         col = self.description.get_col(varname)
