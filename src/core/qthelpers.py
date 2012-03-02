@@ -23,6 +23,7 @@ This file is part of openFisca.
 
 from PyQt4.QtGui import QAction, QMenu, QTreeView, QTableView, QApplication, QPixmap, QIcon
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
+from pandas import DataFrame
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
@@ -158,6 +159,10 @@ class DataFrameModel(QAbstractTableModel):
             if orientation == Qt.Vertical:
                 return section + 1
 
+    def clear(self):
+        self.dataframe = DataFrame()
+        self.columns = []
+        self.reset()
 
 class OfTableView(QTableView):
     def __init__(self, parent = None):
