@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from PyQt4.QtGui import QAction, QMenu, QTreeView, QTableView, QApplication, QPixmap, QIcon
-from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString
+from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
@@ -120,6 +120,44 @@ class OfTreeView(QTreeView):
             previous = current
         selected_text.append('\n')
         QApplication.clipboard().setText(selected_text)
+
+class DataFrameViewWidget(QTableView):
+    '''
+    a conveniance widget to see a dataframe in a QTableView
+    '''
+    def __init__(self, parent = None):
+        super(DataFrameViewWidget, self).__init__(parent)
+
+    def set_DataFrame(self, dataframe):
+        model = DataFrameModel(dataframe, self)
+        self.setModel(model)
+
+class DataFrameModel(QAbstractTableModel):
+    def __init__(self, dataframe, parent):
+        super(DataFrameModel, self).__init__(parent)
+        self.dataframe = dataframe
+        self.colnames = self.dataframe.columns
+        
+    def rowCount(self, parent):
+        return self.dataframe.shape[0]
+    
+    def columnCount(self, parent):
+        return self.dataframe.shape[1]
+    
+    def data(self, index, role = Qt.DisplayRole):
+        row = index.row()
+        col = index.column()
+        colname = self.colnames[col]
+        if role == Qt.DisplayRole:
+            return QVariant(int(round(self.dataframe.get_value(row, colname))))
+    
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return QVariant(self.colnames[section])
+            if orientation == Qt.Vertical:
+                return section + 1
+
 
 class OfTableView(QTableView):
     def __init__(self, parent = None):

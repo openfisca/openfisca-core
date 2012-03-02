@@ -25,7 +25,7 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from datetime import datetime
-from pandas import read_csv, DataFrame, concat
+from pandas import read_csv, DataFrame, concat, MultiIndex
 from calmar.calmar import calmar
 from description import ModelDescription, Description
 
@@ -70,6 +70,10 @@ class DataTable(object):
             self.populate_from_scenario(scenario)
         
     def gen_index(self, units):
+#        idents = ['quimen', 'idmen']
+#
+#        self.table.set_index(idents, drop = False, inplace = True)
+#        print self.table.index
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
@@ -107,6 +111,7 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
 
+    
 #    def calibrate(self, marge, param=dict(method='linear')):
 #        data=dict(wprm = self.wprm.get_value(), 
 #                  ident = self.ident.get_value())
@@ -251,9 +256,9 @@ class DataTable(object):
         values = self.table[varname].values
         
         dtyp = col._dtype
-        
+        temp = np.array(value, dtype = dtyp)
         var = np.array(values, dtype = dtyp)
-        var[idx['idxIndi']] = np.array(value, dtype = dtyp)
+        var[idx['idxIndi']] =  temp[idx['idxUnit']]
         self.table[varname] = var
 
     def to_csv(self, fname):
