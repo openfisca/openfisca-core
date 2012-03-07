@@ -122,14 +122,16 @@ class DataTable(object):
 
     def populate_from_external_data(self, fname):
         f = open(fname)
-        self.table = read_csv(open(fname))
+        self.table = read_csv(f)
         f.close()
         self._nrows = self.table.shape[0]
         missing_col = []
-        for name in self.col_names:
+        for col in self.description.columns:
+            name = col.name
             if not name in self.table:
                 missing_col.append(name)
-                self.table[name] = self.description.get_col(name)._default
+                self.table[name] = col._default
+            self.table[name].astype(col._dtype)
 
         if missing_col:
             import warnings
@@ -312,7 +314,7 @@ class SystemSf(DataTable):
         # check if all primitives are provided by the inputs
         for prim in self._primitives:
             if not prim in inputs.col_names:
-                raise Exception('%s is a required input and was not found in inputs' % prim)
+                raise Exception('%s is a required input for %s and was not found in inputs' % prim)
         # store inputs and indexes and nrows
         self._inputs = inputs
         self.index = inputs.index

@@ -129,9 +129,15 @@ class DataFrameViewWidget(QTableView):
     def __init__(self, parent = None):
         super(DataFrameViewWidget, self).__init__(parent)
 
-    def set_DataFrame(self, dataframe):
+    def set_dataframe(self, dataframe):
         model = DataFrameModel(dataframe, self)
         self.setModel(model)
+
+    def clear(self):
+        model = self.model()
+        if model:
+            model.clear()
+        self.reset()
 
 class DataFrameModel(QAbstractTableModel):
     def __init__(self, dataframe, parent):
@@ -150,7 +156,11 @@ class DataFrameModel(QAbstractTableModel):
         col = index.column()
         colname = self.colnames[col]
         if role == Qt.DisplayRole:
-            return QVariant(int(round(self.dataframe.get_value(row, colname))))
+            val = self.dataframe.get_value(row, colname)
+            if isinstance(val, str):
+                return QString(val)
+            else:
+                return QVariant(int(round(val)))
     
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
@@ -172,7 +182,6 @@ class OfTableView(QTableView):
         '''
         Copy the table selection to the clipboard
         '''
-        print 'copy'
         selection = self.selectionModel()
         indexes = selection.selectedIndexes()
         indexes.sort()
