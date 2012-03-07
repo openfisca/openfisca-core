@@ -22,7 +22,8 @@ This file is part of openFisca.
 """
 
 from PyQt4.QtGui import QAction, QMenu, QTreeView, QTableView, QApplication, QPixmap, QIcon
-from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString
+from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
+from pandas import DataFrame
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
@@ -121,6 +122,58 @@ class OfTreeView(QTreeView):
         selected_text.append('\n')
         QApplication.clipboard().setText(selected_text)
 
+class DataFrameViewWidget(QTableView):
+    '''
+    a conveniance widget to see a dataframe in a QTableView
+    '''
+    def __init__(self, parent = None):
+        super(DataFrameViewWidget, self).__init__(parent)
+
+    def set_dataframe(self, dataframe):
+        model = DataFrameModel(dataframe, self)
+        self.setModel(model)
+
+    def clear(self):
+        model = self.model()
+        if model:
+            model.clear()
+        self.reset()
+
+class DataFrameModel(QAbstractTableModel):
+    def __init__(self, dataframe, parent):
+        super(DataFrameModel, self).__init__(parent)
+        self.dataframe = dataframe
+        self.colnames = self.dataframe.columns
+        
+    def rowCount(self, parent):
+        return self.dataframe.shape[0]
+    
+    def columnCount(self, parent):
+        return self.dataframe.shape[1]
+    
+    def data(self, index, role = Qt.DisplayRole):
+        row = index.row()
+        col = index.column()
+        colname = self.colnames[col]
+        if role == Qt.DisplayRole:
+            val = self.dataframe.get_value(row, colname)
+            if isinstance(val, str):
+                return QString(val)
+            else:
+                return QVariant(int(round(val)))
+    
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return QVariant(self.colnames[section])
+            if orientation == Qt.Vertical:
+                return section + 1
+
+    def clear(self):
+        self.dataframe = DataFrame()
+        self.columns = []
+        self.reset()
+
 class OfTableView(QTableView):
     def __init__(self, parent = None):
         super(OfTableView, self).__init__(parent)
@@ -129,7 +182,6 @@ class OfTableView(QTableView):
         '''
         Copy the table selection to the clipboard
         '''
-        print 'copy'
         selection = self.selectionModel()
         indexes = selection.selectedIndexes()
         indexes.sort()
@@ -149,3 +201,27 @@ class OfTableView(QTableView):
             previous = current
         selected_text.append('\n')
         QApplication.clipboard().setText(selected_text)
+
+class OfSs:
+    '''a container for stylesheets'''
+        
+    bold_center = '''
+        QLabel {
+            font-weight: bold; 
+            qproperty-alignment: AlignCenter;
+        }'''
+
+    dock_style = '''
+         QDockWidget {
+             margin: 5px;
+             background : #e6ebf4;
+         }
+        
+         QDockWidget::title {
+             margin: 2px;
+             padding-left: 2px;
+             background-color: #e7d2d9;
+             border : 1px solid rgb(166, 54, 110);
+         }        
+         '''
+            

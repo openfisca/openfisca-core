@@ -529,7 +529,7 @@ class PathConfigPage(GeneralConfigPage):
         self.setLayout(paths_layout)
 
     def apply_settings(self, options):
-        pass
+        self.main.enable_aggregate(True)
 
 def test():
     import sys

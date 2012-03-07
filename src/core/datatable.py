@@ -25,7 +25,7 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from datetime import datetime
-from pandas import read_csv, DataFrame, concat
+from pandas import read_csv, DataFrame, concat, MultiIndex
 from calmar.calmar import calmar
 from description import ModelDescription, Description
 
@@ -70,6 +70,10 @@ class DataTable(object):
             self.populate_from_scenario(scenario)
         
     def gen_index(self, units):
+#        idents = ['quimen', 'idmen']
+#
+#        self.table.set_index(idents, drop = False, inplace = True)
+#        print self.table.index
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
@@ -107,6 +111,7 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
 
+    
 #    def calibrate(self, marge, param=dict(method='linear')):
 #        data=dict(wprm = self.wprm.get_value(), 
 #                  ident = self.ident.get_value())
@@ -117,14 +122,16 @@ class DataTable(object):
 
     def populate_from_external_data(self, fname):
         f = open(fname)
-        self.table = read_csv(open(fname))
+        self.table = read_csv(f)
         f.close()
         self._nrows = self.table.shape[0]
         missing_col = []
-        for name in self.col_names:
+        for col in self.description.columns:
+            name = col.name
             if not name in self.table:
                 missing_col.append(name)
-                self.table[name] = self.description.get_col(name)._default
+                self.table[name] = col._default
+            self.table[name].astype(col._dtype)
 
         if missing_col:
             import warnings
@@ -238,23 +245,22 @@ class DataTable(object):
                 return sumout
 
     def set_value(self, varname, value, index, opt = None):
-        col = self.description.get_col(varname)
-        values = self.table[varname].values
-        
-        # TODO: there should be dtype in Prestation __init__...
-        if value.dtype == np.bool:
-            col._dtype = np.bool
-
-        dtyp = col._dtype
-        
         if opt is None:
-        # TODO: check if it's really right?
             idx = index[0]
         else:
             idx = index[opt]
+
+        # this command should work on later pandas version...
+        # self.table.ix[idx['idxIndi'], [varname]] = value
+
+        # for now, we're doing it manually
+        col = self.description.get_col(varname)
+        values = self.table[varname].values
+        
+        dtyp = col._dtype
+        temp = np.array(value, dtype = dtyp)
         var = np.array(values, dtype = dtyp)
-        val = np.array(value, dtype = dtyp)
-        var[idx['idxIndi']] = val[idx['idxUnit']]
+        var[idx['idxIndi']] =  temp[idx['idxUnit']]
         self.table[varname] = var
 
     def to_csv(self, fname):
@@ -308,7 +314,7 @@ class SystemSf(DataTable):
         # check if all primitives are provided by the inputs
         for prim in self._primitives:
             if not prim in inputs.col_names:
-                raise Exception('%s is a required input and was not found in inputs' % prim)
+                raise Exception('%s is a required input for %s and was not found in inputs' % prim)
         # store inputs and indexes and nrows
         self._inputs = inputs
         self.index = inputs.index
@@ -330,7 +336,7 @@ class SystemSf(DataTable):
         if varname is None:
             # TODO:
             for col in self.description.columns:
-                self.calculate(col._name)
+                self.calculate(col.name)
             return "Will calculate all"
 
         col = self.description.get_col(varname)

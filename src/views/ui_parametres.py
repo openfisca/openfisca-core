@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/parametres.ui'
 #
-# Created: Tue Feb 21 17:17:28 2012
+# Created: Fri Mar 02 15:53:22 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!

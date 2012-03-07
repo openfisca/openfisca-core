@@ -24,7 +24,7 @@ This file is part of openFisca.
 
 import os
 
-uiList = ['graph', 'declaration', 'composition', 'logement', 'infocomp',
+uiList = ['graph', 'declaration', 'composition', 'logement',
           'page01', 'page02A', 'page03A', 'page03B', 'page03C', 'page04A', 'page04B', 
           'page04C', 'parametres', 'baremedialog']
 
