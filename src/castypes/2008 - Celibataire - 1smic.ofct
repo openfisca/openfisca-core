@@ -22,7 +22,7 @@ p10
 sS'hsup'
 p11
 I0
-sS'choCheckBox'
+sS'cho_ld'
 p12
 I0
 sS'noipref'
@@ -40,10 +40,10 @@ I0
 sS'noidec'
 p17
 I0
-sS'cho'
+sS'choi'
 p18
 I0
-sVsal
+sVsali
 p19
 I12743
 sS'birth'
@@ -55,7 +55,7 @@ p21
 p22
 tp23
 Rp24
-sVppeCheckBox
+sVppe_tp_sa
 p25
 I1
 sS'ppeHeure'
@@ -74,7 +74,7 @@ I0
 sS'inv'
 p31
 I0
-sS'rst'
+sS'rsti'
 p32
 I0
 sssS'famille'

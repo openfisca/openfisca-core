@@ -258,7 +258,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_tranche)
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmv_tranche)
 
-        if self._bareme.getNb == 1:
+        if self._bareme.nb == 1:
             self.rmv_btn.setEnabled(False)
 
     def add_tranche(self):
@@ -267,7 +267,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
     
     def rmv_tranche(self):
         self._marModel.removeRows(0, 1)
-        if self._bareme.getNb() == 1:
+        if self._bareme.nb == 1:
             self.rmv_btn.setEnabled(False)
 
 class MarModel(QAbstractTableModel):
@@ -277,7 +277,7 @@ class MarModel(QAbstractTableModel):
         self._bareme = bareme
         
     def rowCount(self, parent):
-        return self._bareme.getNb()
+        return self._bareme.nb
 
     def columnCount(self, parent):
         return 2
@@ -342,7 +342,7 @@ class MoyModel(QSortFilterProxyModel):
 #        self.setDynamicSortFilter(True)
     
     def rowCount(self, parent):
-        return self._bareme.getNb()
+        return self._bareme.nb
     
     def data(self, index, role = Qt.DisplayRole ):
         row = index.row()

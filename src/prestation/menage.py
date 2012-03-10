@@ -24,8 +24,13 @@ This file is part of openFisca.
 import numpy as np
 from Utils import OutNode
 from xml.dom import minidom
+from france.data import QUIMEN
 
-def handleXml(doc, tree, fun, members):
+ALL = []
+for qui in QUIMEN:
+    ALL.append(qui[1])
+
+def handleXml(doc, tree, model):
     if doc.childNodes:
         for element in doc.childNodes:
             if element.nodeType is not element.TEXT_NODE:
@@ -43,57 +48,28 @@ def handleXml(doc, tree, fun, members):
                 else: typv = 0
                 child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
                 tree.addChild(child)
-                handleXml(element, child, fun, members)
+                handleXml(element, child, model)
     else:
-        if tree.code == 'sal': print 'hi'
-        try:
-            val = fun(tree.code, 'men', members, table = 'output', sumqui = True)
-            tree.setVals(val)
-        except:
-            pass
-        try:
-            val = fun(tree.code, 'men', members, table = 'input', sumqui = True)
-            tree.setVals(val)
-        except:
-            pass
-        if tree.code == 'sal': print val
+        model.calculate(tree.code)
+        val = getattr(model, tree.code).get_value()
+        tree.setVals(val)
             
 
-class Menage(object):
+def gen_output_data(model):
+
+
+#        nbenfmax = table.nbenfmax 
+#        enfants = ['enf%d' % i for i in range(1, nbenfmax+1)]
+#        self.members = ['pref', 'cref'] + enfants
+
+    _doc = minidom.parse('data/totaux.xml')
+    tree = OutNode('root', 'root')
+
+    handleXml(_doc, tree, model)
+
+#        nb_uci = self.UC(table)
     
-    def __init__(self, table):
-
-        if True:
-            self.taille = table.nbMen     
-        else:
-            self.taille = table.nbFam
-
-        nbenfmax = table.nbenfmax 
-        enfants = ['enf%d' % i for i in range(1, nbenfmax+1)]
-        self.members = ['pref', 'cref'] + enfants
-
-        self._doc = minidom.parse('data/totaux.xml')
-        tree = OutNode('root', 'root')
-        table.openReadMode()
-        handleXml(self._doc, tree, table.get, self.members)
-
-        nb_uci = self.UC(table)
-        
-        nivvie = OutNode('nivvie', 'Niveau de vie', shortname = 'Niveau de vie', vals = tree['revdisp'].vals/nb_uci, typevar = 2, parent= tree)
-        tree.addChild(nivvie)
-        table.close_()
-        self.out = tree
-                
-    def UC(self, table):
-        '''
-        Calcul du nombre d'unité de consommation du ménage avec l'échelle de l'insee
-        '''
-        agems = np.array(table.get('agem', 'men', self.members, default = -9999))
-        uc = np.ones(self.taille)
-        for i in range(1,11):
-            agem = agems[i]
-            age = np.floor(agem/12)
-            uc += ((0  <= age)*(age <= 14)*0.3 + 
-                   (15 <= age)*(age <= 150)*0.5)
-        return uc
-        
+#        nivvie = OutNode('nivvie', 'Niveau de vie', shortname = 'Niveau de vie', vals = tree['revdisp'].vals/nb_uci, typevar = 2, parent= tree)
+#        tree.addChild(nivvie)
+#        table.close_()
+    return tree

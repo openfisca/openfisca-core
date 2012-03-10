@@ -20,7 +20,8 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+from __future__ import division
+from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
 from Config import CONF, VERSION
@@ -311,167 +312,12 @@ class Scenario(object):
         self.famille = S['famille']
         self.menage = S['menage']
 
-def BarmMar(assi, tranches, getT = False):
-    '''
-    la fonction BarmMar sert à calculer un impôt selon un barême non
-    linéaire exprimé en tranches de taux marginaux.
-    'assi' est l'assiette de l'impôt, en colonne;
-    'tran' est un vecteur ligne des seuils des tranches (0 pour la première
-    tranche, la dernière tranche est supposée aller jusqu'à + l'infini.
-    '''
-    
-    k = len(tranches.seuils)
-    n = len(assi)
-    assi = np.tile(assi, (k, 1)).T
-    tran = np.tile(np.hstack((tranches.seuils, np.inf)), (n, 1))
-    a = np.maximum(np.minimum(assi, tran[:, 1:])-tran[:, 0:k], 0)
-    i = np.dot(tranches.taux,a.T)
-    if getT:
-        t = np.squeeze(np.maximum(np.dot((a>0), np.ones((k, 1)))-1, 0))
-        return i, t
-    else:
-        return i
-
 class Dicts2Object(object):
     def __init__(self, **entries): 
         self.__dict__.update(entries)
         for a, b in self.__dict__.iteritems():
             if isinstance(b, dict):
                 setattr(self,a, Dicts2Object(**b))
-
-class OutNode(object):
-    def __init__(self, code, desc, shortname = '', vals = 0, color = (0,0,0), typevar = 0, parent = None):
-        self.parent = parent
-        self.children = []
-        self.code = code
-        self.desc = desc
-        self.color = color
-        self.visible = 0
-        self.typevar = typevar
-        self._vals = vals
-        self._taille = 0
-        if shortname: self.shortname = shortname
-        else: self.shortname = code
-        
-    def addChild(self, child):
-        self.children.append(child)
-        if child.color == (0,0,0):
-            child.color = self.color
-        child.setParent(self)
-
-    def setParent(self, parent):
-        self.parent = parent
-
-    def child(self, row):
-        return(self.children[row])
-
-    def childCount(self):
-        return len(self.children)
-
-    def row(self):
-        if self.parent is not None:
-            return self.parent.children.index(self)
-
-    def setLeavesVisible(self):
-        for child in self.children:
-            child.setLeavesVisible()
-        if (self.children and (self.code !='revdisp')) or (self.code == 'nivvie'):
-            self.visible = 0
-        else:
-            self.visible = 1
-    
-    def partiallychecked(self):
-        if self.children:
-            a = True
-            for child in self.children:
-                a = a and (child.partiallychecked() or child.visible)
-            return a
-        return False
-    
-    def hideAll(self):
-        if self.code == 'revdisp':
-            self.visible = 1
-        else:
-            self.visible = 0
-        for child in self.children:
-            child.hideAll()
-    
-    def setHidden(self, changeParent = True):
-        # les siblings doivent être dans le même
-        if self.partiallychecked():
-            self.visible = 0
-            return
-        for sibling in self.parent.children:
-            sibling.visible = 0
-            for child in sibling.children:
-                child.setHidden(False)
-        if changeParent:
-            self.parent.visible = 1
-                    
-    def setVisible(self, changeSelf = True, changeParent = True):
-        if changeSelf:
-            self.visible = 1
-        if self.parent is not None:
-            for sibling in self.parent.children:
-                if not (sibling.partiallychecked() or sibling.visible ==1):
-                    sibling.visible = 1
-            if changeParent:
-                self.parent.setVisible(changeSelf = False)
-
-
-    def getVals(self):
-        return self._vals
-
-    def setVals(self, vals):
-        dif = vals - self._vals
-        self._vals = vals
-        self._taille = len(vals)
-        if self.parent:
-            self.parent.setVals(self.parent.vals + dif)
-    
-    vals = property(getVals, setVals)
-        
-    def __getitem__(self, key):
-        if self.code == key:
-            return self
-        for child in self.children:
-            val = child[key]
-            if not val is None:
-                return val
-    
-    def log(self, tabLevel=-1):
-        output     = ""
-        tabLevel += 1
-        
-        for i in range(tabLevel):
-            output += "\t"
-        
-        output += "|------" + self.code + "\n"
-        
-        for child in self.children:
-            output += child.log(tabLevel)
-        
-        tabLevel -= 1
-        output += "\n"
-        
-        return output
-
-    def __repr__(self):
-        return self.log()
-
-    def difference(self, other):
-        self.vals -=  other.vals
-        for child in self.children:
-            child.difference(other[child.code])
-
-    def __iter__(self):
-        return self.inorder()
-    
-    def inorder(self):
-        for child in self.children:
-            for x in child.inorder():
-                yield x
-        yield self
 
 class Bareme(object):
     '''
@@ -483,14 +329,20 @@ class Bareme(object):
         self._tranches = []
         self._nb = 0
         self._tranchesM = []
+        # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
+        # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
+        self._linear_taux_moy = False
 
-    def getNb(self):
+    @property
+    def nb(self):
         return self._nb
-        
-    def getSeuils(self):
+    
+    @property
+    def seuils(self):
         return [x[0] for x in self._tranches]
 
-    def getTaux(self):
+    @property
+    def taux(self):
         return [x[1] for x in self._tranches]
 
     def setSeuil(self, i, value):
@@ -499,15 +351,13 @@ class Bareme(object):
 
     def setTaux(self, i, value):
         self._tranches[i][1] = value
-    
-    seuils = property(getSeuils)
-    taux = property(getTaux)
-    nb   = property(getNb)
 
-    def getSeuilsM(self):
+    @property
+    def seuilsM(self):
         return [x[0] for x in self._tranchesM]
 
-    def getTauxM(self):
+    @property
+    def tauxM(self):
         return [x[1] for x in self._tranchesM]
 
     def setSeuilM(self, i, value):
@@ -517,14 +367,15 @@ class Bareme(object):
     def setTauxM(self, i, value):
         self._tranchesM[i][1] = value
     
-    seuilsM = property(getSeuilsM)
-    tauxM = property(getTauxM)
-
+    
     def multTaux(self, factor):
         for i in range(self.getNb()):
             self.setTaux(i,factor*self.taux[i])
 
     def multSeuils(self, factor):
+        '''
+        Returns a new instance of Bareme with scaled 'seuils' and same 'taux'
+        '''
         b = Bareme(self._name)
         for i in range(self.nb):
             b.addTranche(factor*self.seuils[i], self.taux[i])
@@ -577,17 +428,18 @@ class Bareme(object):
     def marToMoy(self):
         self._tranchesM = []
         I, k = 0, 0
-        for seuil, taux in self:
-            if k == 0:
+        if self.nb > 0:
+            for seuil, taux in self:
+                if k == 0:
+                    sprec = seuil
+                    tprec = taux
+                    k += 1
+                    continue            
+                I += tprec*(seuil - sprec)
+                self.addTrancheM(seuil, I/seuil)
                 sprec = seuil
                 tprec = taux
-                k += 1
-                continue            
-            I += tprec*(seuil - sprec)
-            self.addTrancheM(seuil, I/seuil)
-            sprec = seuil
-            tprec = taux
-        self.addTrancheM('Infini', taux)
+            self.addTrancheM('Infini', taux)
 
     def moyToMar(self):
         self._tranches = []
@@ -603,6 +455,7 @@ class Bareme(object):
     
     def inverse(self):
         '''
+        Returns a new instance of Bareme
         Inverse un barème: étant donné des tranches et des taux exprimés en fonction
         du brut, renvoie un barème avec les tranches et les taux exprimé en net.
           si revnet  = revbrut - BarmMar(revbrut, B)
@@ -623,7 +476,6 @@ class Bareme(object):
             theta = (taux - tauxp)*seuil + theta
             tauxp = taux # taux précédent
         return inverse
-
     
     def __iter__(self):
         self._seuilsIter = iter(self.seuils)
@@ -644,4 +496,47 @@ class Bareme(object):
 
     def __ne__(self, other):
         return self._tranches != other._tranches
-                    
+    
+    def calc(self, assiette, getT = False):
+        '''
+        Calcule un impôt selon le barême non linéaire exprimé en tranches de taux marginaux.
+        'assiette' est l'assiette de l'impôt, en colonne;
+        '''
+        k = self.nb
+        n = len(assiette)
+        if not self._linear_taux_moy:
+            assi = np.tile(assiette, (k, 1)).T
+            seui = np.tile(np.hstack((self.seuils, np.inf)), (n, 1))
+            a = max_(min_(assi, seui[:, 1:]) - seui[:,:-1], 0)
+            i = np.dot(self.taux,a.T)
+            if getT:
+                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                return i, t
+            else:
+                return i
+        else:
+            if len(self.tauxM) == 1:
+                i = assiette*self.tauxM[0]
+            else:
+                assi = np.tile(assiette, (k-1, 1)).T
+                seui = np.tile(np.hstack(self.seuils), (n, 1))
+                k = self.t_x().T
+                a = (assi >= seui[:,:-1])*(assi < seui[:, 1:])
+                A = np.dot(a, self.t_x().T)
+                B = np.dot(a, np.array(self.seuils[1:]))
+                C = np.dot(a, np.array(self.tauxM[:-1]))
+                i = assiette*(A*(assiette-B) + C) + max_(assiette - self.seuils[-1], 0)*self.tauxM[-1] + (assiette >= self.seuils[-1])*self.seuils[-1]*self.tauxM[-2]
+            if getT:
+                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                return i, t
+            else:
+                return i
+
+    def t_x(self):
+        s = self.seuils
+        t = [0]
+        t.extend(self.tauxM[:-1])
+        s = np.array(s)
+        t = np.array(t)
+        return (t[1:]-t[:-1])/(s[1:]-s[:-1])
+        

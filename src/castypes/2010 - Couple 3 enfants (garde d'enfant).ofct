@@ -8,7 +8,7 @@ p3
 (dp4
 I0
 (dp5
-Vsal
+Vsali
 p6
 I25000
 sS'hsup'
@@ -17,7 +17,7 @@ I0
 sS'inv'
 p8
 I00
-sS'choCheckBox'
+sS'cho_ld'
 p9
 I0
 sS'birth'
@@ -29,7 +29,7 @@ p11
 p12
 tp13
 Rp14
-sS'rst'
+sS'rsti'
 p15
 I0
 sS'alt'
@@ -65,13 +65,13 @@ I0
 sS'statmarit'
 p28
 I1
-sS'cho'
+sS'choi'
 p29
 I0
 sS'noidec'
 p30
 I0
-sVppeCheckBox
+sVppe_tp_sa
 p31
 I1
 sS'ppeHeure'
@@ -79,7 +79,7 @@ p32
 I0
 ssI1
 (dp33
-S'sal'
+S'sali'
 p34
 I20000
 sS'hsup'
@@ -88,7 +88,7 @@ I0
 sS'inv'
 p36
 I00
-sS'choCheckBox'
+sS'cho_ld'
 p37
 I0
 sS'birth'
@@ -98,7 +98,7 @@ g11
 p39
 tp40
 Rp41
-sS'rst'
+sS'rsti'
 p42
 I0
 sS'alt'
@@ -134,13 +134,13 @@ I0
 sS'statmarit'
 p55
 I1
-sS'cho'
+sS'choi'
 p56
 I0
 sS'noidec'
 p57
 I0
-sS'ppeCheckBox'
+sS'ppe_tp_sa'
 p58
 I1
 sS'ppeHeure'
