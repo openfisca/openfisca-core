@@ -28,7 +28,7 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QHBoxLayout, QDialogButtonBox,QMessageBox, 
                                 QLabel, QSpinBox, QPushButton, QGroupBox, 
                                 QComboBox, QDateEdit, QFileDialog,
-                                QSplitter, QIcon)
+                                QSplitter, QIcon, QLineEdit)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
 
@@ -41,6 +41,12 @@ DEFAULTS = [
               'nmen': 101,
               'xaxis':  'sal',
               'maxrev': 50000,
+              }),
+            ('paths',
+             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/erf/2006/final.csv',
+              'cas_type_dir': 'castypes',
+              'reformes_dir': 'reformes',
+              'output_dir' : os.path.expanduser('~'),
               })]
 
 class UserConfigParser(RawConfigParser):
@@ -56,8 +62,8 @@ CONF = UserConfigParser(DEFAULTS)
 def get_icon(iconFile):
     return QIcon()
 
-def get_std_icon():
-    pass    
+def get_std_icon(iconFile):
+    return QIcon()
 
 class ConfigPage(QWidget):
     """Configuration page base class"""
@@ -311,6 +317,22 @@ class OpenFiscaConfigPage(ConfigPage):
         self.set_modified(True)
         self.changed_options.add(option)
     
+    def create_lineedit(self, text, option, 
+                        tip=None, alignment=Qt.Vertical):
+        label = QLabel(text)
+        label.setWordWrap(True)
+        edit = QLineEdit()
+        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(edit)
+        layout.setContentsMargins(0, 0, 0, 0)
+        if tip:
+            edit.setToolTip(tip)
+        self.lineedits[edit] = option
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
     def create_browsedir(self, text, option, tip=None):
         widget = self.create_lineedit(text, option,
                                       alignment=Qt.Horizontal)
@@ -486,6 +508,28 @@ class SimConfigPage(GeneralConfigPage):
         
     def apply_settings(self, options):
         self.main.apply_settings()
+
+class PathConfigPage(GeneralConfigPage):
+    CONF_SECTION = "paths"
+    def get_name(self):
+        return "Chemins"
+    
+    def get_icon(self):
+        return get_icon("cheminprefs.png")
+    
+    def setup_page(self):
+        cas_type_dir = self.create_browsedir(u'Emplacement des cas types', 'cas_type_dir')
+        reformes_dir = self.create_browsedir(u'Emplacement des réformes', 'reformes_dir')
+        external_data_file_edit = self.create_browsefile(u'Emplacement des données externes', 'external_data_file', tip=None, filters='*.csv')
+        paths_layout = QVBoxLayout()
+        paths_layout.addWidget(cas_type_dir)
+        paths_layout.addWidget(reformes_dir)
+        paths_layout.addWidget(external_data_file_edit)
+        paths_layout.addStretch(1)
+        self.setLayout(paths_layout)
+
+    def apply_settings(self, options):
+        self.main.enable_aggregate(True)
 
 def test():
     import sys
