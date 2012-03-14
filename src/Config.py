@@ -43,7 +43,7 @@ DEFAULTS = [
               'maxrev': 50000,
               }),
             ('paths',
-             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/erf/2006/final.csv',
+             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'output_dir' : os.path.expanduser('~'),
