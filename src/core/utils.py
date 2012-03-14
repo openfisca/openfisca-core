@@ -105,7 +105,6 @@ def gen_aggregate_output(model):
     idx = model.index[unit]
     enum = inputs.description.get_col('qui'+unit).enum
     people = [x[1] for x in enum]
-    pref = [0]
 
     model.calculate()
     for varname in model.col_names:
@@ -113,18 +112,16 @@ def gen_aggregate_output(model):
         out_dct[varname] = val
 
     # TODO: should take care the variables that shouldn't be summed automaticaly
-    varlist = ['wprm', 'typ_men', 'uc']
+    varlist = ['wprm', 'typ_men']
     for varname in varlist:
         if varname in model.col_names:
-            model.calculate(varname)
-            val = model.get_value(varname, idx, opt = pref, sum_ = True)
+            val = model.get_value(varname, idx)
         elif varname in inputs.col_names:
-            val = inputs.get_value(varname, idx, opt = pref, sum_ = True)
+            val = inputs.get_value(varname, idx)
         else:
             raise Exception('%s was not find in model nor in inputs' % varname)
         out_dct[varname] = val
 
-    out_dct['nivvie'] = out_dct['revdisp']/out_dct['uc']        
     out_table = DataFrame(out_dct)
     return out_table
 
