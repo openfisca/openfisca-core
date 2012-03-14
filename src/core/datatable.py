@@ -25,8 +25,8 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from datetime import datetime
-from pandas import read_csv, DataFrame, concat, MultiIndex
-from calmar.calmar import calmar
+from pandas import read_csv, DataFrame, concat
+from core.calmar import calmar
 from description import ModelDescription, Description
 
 class DataTable(object):
@@ -110,15 +110,20 @@ class DataTable(object):
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
-
     
-#    def calibrate(self, marge, param=dict(method='linear')):
-#        data=dict(wprm = self.wprm.get_value(), 
-#                  ident = self.ident.get_value())
-#        for var in marge.keys():
-#            data[var] = getattr(self,var).get_value()
-#        val_pondfin, lambdasol = calmar(data, marge, param=param, pondini='wprm', ident='ident')
-#        self.pondfin.set_value(val_pondfin, self.index['ind'])
+    def update_weights(self, marges, param = {}):
+        data = {'wprm': self.get_value('wprm')}
+        for var in marges:
+            data[var] = self.get_value(var)
+        val_pondfin, lambdasol = calmar(data, marges, param = param, pondini='wprm')
+        self.set_value('wprm', val_pondfin, self.index['ind'])
+
+    def inflate(self, totals):
+        for varname in totals:
+            if varname in self.table:
+                x = sum(self.table[varname]*self.table['wprm'])/totals[varname]
+                if x>0:
+                    self.table[varname] = self.table[varname]/x
 
     def populate_from_external_data(self, fname):
         f = open(fname)
@@ -139,7 +144,28 @@ class DataTable(object):
         
         self._isPopulated = True
 
-        self.gen_index(['men', 'fam', 'foy'])                
+
+        self.gen_index(['men', 'fam', 'foy'])
+        self.calage()
+
+    def calage(self):
+        # update weights with calmar (demography)
+        marges = {}
+        param  = {'totalpop': 62000000}
+        self.update_weights(marges, param)
+        
+        # inflate revenues on totals
+        data_dir = CONF.get('paths', 'data_dir')
+        year = CONF.get('simulation','datesim')[:4]
+        import os
+        
+        fname = os.path.join(data_dir, 'calage.csv')
+        f_tot = open(fname)
+        totals = read_csv(f_tot,index_col = 0)
+        totals = totals[year]
+        f_tot.close()
+
+        self.inflate(totals)             
 
     def populate_from_scenario(self, scenario):
         self._nrows = self.NMEN*len(scenario.indiv)

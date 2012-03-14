@@ -43,7 +43,8 @@ DEFAULTS = [
               'maxrev': 50000,
               }),
             ('paths',
-             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
+             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/erf/2006/final.csv',
+              'data_dir': 'data',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'output_dir' : os.path.expanduser('~'),
@@ -521,10 +522,12 @@ class PathConfigPage(GeneralConfigPage):
         cas_type_dir = self.create_browsedir(u'Emplacement des cas types', 'cas_type_dir')
         reformes_dir = self.create_browsedir(u'Emplacement des réformes', 'reformes_dir')
         external_data_file_edit = self.create_browsefile(u'Emplacement des données externes', 'external_data_file', tip=None, filters='*.csv')
+        data_dir = self.create_browsedir(u'Emplacement des données internes', 'data_dir')
         paths_layout = QVBoxLayout()
         paths_layout.addWidget(cas_type_dir)
         paths_layout.addWidget(reformes_dir)
         paths_layout.addWidget(external_data_file_edit)
+        paths_layout.addWidget(data_dir)
         paths_layout.addStretch(1)
         self.setLayout(paths_layout)
 
