@@ -35,8 +35,9 @@ import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
 from widgets.matplotlibwidget import MatplotlibWidget
 
+from core.datatable import DataTable, SystemSf
 from parametres.paramData import XmlReader, Tree2Object
-from france.model import Model
+from france.model import ModelFrance
 from france.data import InputTable, BoolCol, AgesCol, EnumCol
         
 class MainWindow(QWidget):
@@ -44,7 +45,7 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__(parent)
         #print os.listdir('../../cas/')
         # cas MBJ
-        filename = 'C:/Users/Utilisateur/Documents/cas/data/final2.csv' 
+        filename = 'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv' 
         # cas CS
         # filename = 'C:/Users/Utilisateur/Desktop/calmar/final.csv'
         # maison MBJ 
@@ -72,6 +73,7 @@ class MainWindow(QWidget):
         self.connect(param_btn, SIGNAL('clicked()'), self.setParam)
 
         # margins 
+        print self.inputs
         margins = Margins(self.inputs)
         margins.addVar('sali', 500000000000)
         margins.addVar('rsti', 200000000000)
@@ -166,12 +168,11 @@ class MainWindow(QWidget):
         return ok
 
     def loadData(self, filename):
-        inputs = InputTable()
-        inputs.populate_from_external_data(filename, filetype='bin')
-#        inputs.populate_from_external_data(filename, export=True, filetype='csv')
+        
+        inputs =DataTable(InputTable, external_data = filename)
         # set ident 
-        inputs.ident.set_value(inputs.idmen.get_value()*100+inputs.noi.get_value(), inputs.index['ind'])
-        inputs.gen_index(['men', 'fam', 'foy'])
+#        inputs.ident.set_value(inputs.idmen.get_value()*100+inputs.noi.get_value(), inputs.index['ind'])
+#        inputs.gen_index(['men', 'fam', 'foy'])
         self.inputs = inputs
 #        print inputs.col_names
         print 'loading finished'

@@ -137,14 +137,11 @@ class DataTable(object):
                 missing_col.append(name)
                 self.table[name] = col._default
             self.table[name].astype(col._dtype)
-
         if missing_col:
             import warnings
             warnings.warn('%s missing' %  missing_col)
         
         self._isPopulated = True
-
-
         self.gen_index(['men', 'fam', 'foy'])
         self.calage()
 
