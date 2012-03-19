@@ -28,6 +28,7 @@ from datetime import datetime
 from pandas import read_csv, DataFrame, concat
 from core.calmar import calmar
 from description import ModelDescription, Description
+import pickle
 
 class DataTable(object):
     """
@@ -143,7 +144,30 @@ class DataTable(object):
         
         self._isPopulated = True
         self.gen_index(['men', 'fam', 'foy'])
+        self.set_zone_apl()
         self.calage()
+ 
+        
+    def set_zone_apl(self):
+        data_dir = CONF.get('paths', 'data_dir')
+        year = CONF.get('simulation','datesim')[:4]
+        import os
+        fname = os.path.join(data_dir, 'zone_apl_imputation_data')
+        data_file = open(fname, 'rb')
+        zone = pickle.load(data_file)
+        data_file.close()
+        code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
+        zone_apl = self.get_value('zone_apl')
+        
+        print code_vec
+        for code in zone.keys():
+            if isinstance(zone[code], int):
+                zone_apl[code_vec == code] = zone[code]
+            else:
+                prob = np.random.rand(len(zone_apl[code_vec == code]))
+                zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
+        self.set_value('zone_apl',zone_apl,self.index['men'])
+        print self.get_value('zone_apl')    
 
     def calage(self):
         # update weights with calmar (demography)
