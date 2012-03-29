@@ -33,29 +33,32 @@ def logit_prime(u,low,up):
     return ( (a*up*(1-low)*exp(a*u))*(up-1+(1-low)*exp(a*u))-
               (low*(up-1)+up*(1-low)*exp(a*u))*(1-low)*a*exp(a*u) )/(up-1+(1-low)*exp(a*u))**2
 
-def build_dummies_matrix(data):
-    unique_val_list = unique(data)  
-    output = zeros((len(data),len(unique_val_list)))
-    for i in range(len(unique_val_list)):    
-        output[:,i] = (data==unique_val_list[i])
+def build_dummies_dict(data):
+    '''
+    return a dict with unique values as keys and vectors as values
+    '''
+    unique_val_list = unique(data) 
+    output = {}
+    for val in unique_val_list:    
+        output[val] = (data==val)
     return output
 
-def calmar(data, marge, param = {}, pondini='wprm'):
+def calmar(data, marge, param = {}, pondini='wprm_init'):
     ''' 
     calmar : calage des poids etant des donnees des marges
-     data est une structure contenant
-      - pondini (char) est le nom la variable poids initial
+      - data is a dict containing individual data
+      - pondini (char) is the inital weight
      marge is a dict containing for each var:
       - a scalar var numeric variables
       - a dict with categories key and population 
-     param est un dictionnaire contenant
+     param is a dict containing the following keys
       - method : 'linear', 'raking ratio', 'logit'
       - lo     : lower bound on weights ratio  <1
       - up     : upper bound on weights ration >1
-      - totalpop   population totale si absent on l'initialise a la
-                         somme des poids
-      - param.prec     TODO
-      - param.maxiter  TODO
+      - totalpop : total population. If absent initialized to actual total population
+      - use_proportions : default FALSE; if TRUE use proportions if total population from margins doesn't match total population
+      - param xtol  : relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
+      - param maxfev :  maximum number of function evaluation TODO  
     '''   
     # choice of method
     if not 'method' in param:
@@ -79,6 +82,11 @@ def calmar(data, marge, param = {}, pondini='wprm'):
     else:
         totalpop = data[pondini].sum()
 
+    if 'use_proportions' in param:
+        use_proportions = param['use_proportions']    
+    else:
+        use_proportions = False   
+
     nk = len(data[pondini])
 
     # number of lagrange parameters (at least total population)
@@ -88,18 +96,28 @@ def calmar(data, marge, param = {}, pondini='wprm'):
     
     for var, val in marge.iteritems():
         if isinstance(val, dict):
-            dummies_matrix = build_dummies_matrix(data[var])            
+            print var
+            print val
+            dummies_dict = build_dummies_dict(data[var])            
             k, pop = 0, 0
             for cat, nb in val.iteritems():
-                cat_varname =  var + cat
-                data[cat_varname] = dummies_matrix[:,k]
+                cat_varname =  var + '_' + str(cat)
+                data[cat_varname] = dummies_dict[cat]
                 marge_new[cat_varname] = nb
                 pop += nb
                 k += 1
                 nj += 1
             # verification que la population finale est bonne
             if pop != totalpop:
-                raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
+                if use_proportions:
+                    import warnings
+                    warnings.warn('calmar: categorical variable %s is inconsistent with population; using proportions' % var)
+                    for cat, nb in val.iteritems():
+                        cat_varname =  var + '_' + str(cat)
+                        marge_new[cat_varname] = nb*totalpop/pop
+                    print marge_new
+                else:
+                    raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
             marge_new[var] = val
             nj += 1
@@ -131,8 +149,13 @@ def calmar(data, marge, param = {}, pondini='wprm'):
     ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
     
     essai, ier = 0, 2
-    while (ier==2 or ier==5) and (essai <= 5):
-        lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, full_output=1)
+    if 'xtol' in param: 
+        xtol = param['xtol']
+    else:
+        xtol = 1.49012e-08
+        
+    while (ier==2 or ier==5) and (essai <= 10):
+        lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
         print 'ier: ', ier
         print 'mesg: ', mesg
         lambda0 = 1*lambdasol
@@ -141,7 +164,7 @@ def calmar(data, marge, param = {}, pondini='wprm'):
     pondfin = d*F( dot(x, lambdasol))
 
     print "nombre d'essais: ", essai
-    return pondfin, lambdasol 
+    return pondfin, lambdasol, marge_new 
 
 def test1():
     data = dict(ident = range(4),
@@ -196,10 +219,10 @@ def test3():
                 z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
                 wprm = array([10,1,1,11,13,7,8,8,9,10,14]))
 
-    marge = {'g':{'0':60,'1': 32}, 'j': {'0':50,'1':42},'z':140}    
+    marge = {'g':{0:60 ,1: 32}, 'j': {0:50,1:42},'z':140}    
     param = dict(method='linear',lo = .0001,up = 1000)
     
-    pondfin, lambdasol  = calmar(data,marge,param,ident='i')
+    pondfin, lambdasol  = calmar(data,marge,param)
     
     print pondfin
     print lambdasol
@@ -238,4 +261,4 @@ def test4():
     show()
 
 if __name__ == '__main__':
-    test4()
+    test3()

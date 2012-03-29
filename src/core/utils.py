@@ -111,7 +111,7 @@ def gen_aggregate_output(model):
         val = model.get_value(varname, idx, opt = people, sum_ = True)
         out_dct[varname] = val
 
-    # TODO: should take care the variables that shouldn't be summed automaticaly
+    # TODO: should take care the variables that shouldn't be summed automatically
     varlist = ['wprm', 'typ_men']
     for varname in varlist:
         if varname in model.col_names:

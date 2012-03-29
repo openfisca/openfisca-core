@@ -27,6 +27,7 @@ from Config import CONF
 from datetime import datetime
 from pandas import read_csv, DataFrame, concat
 from core.calmar import calmar
+
 from description import ModelDescription, Description
 import pickle
 
@@ -74,11 +75,10 @@ class DataTable(object):
 #        idents = ['quimen', 'idmen']
 #
 #        self.table.set_index(idents, drop = False, inplace = True)
-#        print self.table.index
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
-                              'nb': self._nrows},
+                      'nb': self._nrows},
                       'noi': {}}
         dct = self.index['noi']
         nois = self.table.noi.values
@@ -112,12 +112,31 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
     
-    def update_weights(self, marges, param = {}):
-        data = {'wprm': self.get_value('wprm')}
+    def propagate_to_members(self, unit = 'men', col = "wprm"):
+        index = self.index[unit]
+        value = self.get_value(col, index)
+        enum = self.description.get_col('qui'+unit).enum
+        for member in enum:
+            self.set_value(col, value, index, opt = member[1]) # TODO
+    
+    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
+        data = {weights_in: self.get_value(weights_in, self.index['men'])}
         for var in marges:
-            data[var] = self.get_value(var)
-        val_pondfin, lambdasol = calmar(data, marges, param = param, pondini='wprm')
-        self.set_value('wprm', val_pondfin, self.index['ind'])
+            data[var] = self.get_value(var, self.index['men'])
+        val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+
+#        for var in marges.iterkeys():
+#            print var
+#            for mod in marges[var].iterkeys():
+#                cat_varname = var + '_' + str(mod)
+#                print 'target margin', marge_new[cat_varname], 'calib margin',  sum(val_pondfin*(data[var]==mod))
+#    
+        self.set_value(weights_out, val_pondfin, self.index['men'])
+        self.propagate_to_members( unit='men', col = weights_out)
+        
+        # TODO propagate the changed weights for men to ind 
+        if return_margins:
+            return marge_new
 
     def inflate(self, totals):
         for varname in totals:
@@ -145,8 +164,9 @@ class DataTable(object):
         self._isPopulated = True
         self.gen_index(['men', 'fam', 'foy'])
         self.set_zone_apl()
-        self.calage()
- 
+        
+        self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
+#        self.calage()
         
     def set_zone_apl(self):
         data_dir = CONF.get('paths', 'data_dir')
@@ -159,27 +179,52 @@ class DataTable(object):
         code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
         zone_apl = self.get_value('zone_apl')
         
-        print code_vec
         for code in zone.keys():
             if isinstance(zone[code], int):
                 zone_apl[code_vec == code] = zone[code]
             else:
+                np.random.seed(0)
                 prob = np.random.rand(len(zone_apl[code_vec == code]))
                 zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
         self.set_value('zone_apl',zone_apl,self.index['men'])
         print self.get_value('zone_apl')    
 
     def calage(self):
-        # update weights with calmar (demography)
-        marges = {}
-        param  = {'totalpop': 62000000}
-        self.update_weights(marges, param)
-        
-        # inflate revenues on totals
         data_dir = CONF.get('paths', 'data_dir')
         year = CONF.get('simulation','datesim')[:4]
         import os
+        if int(year) <= 2008:
+            print 'calage'
+            # update weights with calmar (demography)
+            fname_men = os.path.join(data_dir, 'calage_men.csv')
+            f_tot = open(fname_men)
+            totals = read_csv(f_tot,index_col = (0,1))
+
+            marges = {}
+            for var, mod in totals.index:
+                if not marges.has_key(var):
+                    marges[var] = {}
+                
+                marges[var][mod] =  totals.get_value((var,mod),year)
+            f_tot.close()
+            
+            print marges
+            totalpop = marges.pop('totalpop')[0]
+#            marges.pop('cstotpragr')
+#            marges.pop('naf16pr')
+#            marges.pop('typmen15')
+#            marges.pop('ddipl')
+#            marges.pop('ageq')
+            marges.pop('act5') # variable la plus problématique
+            param ={'use_proportions': True, 
+                    'method': 'logit', 'lo':.1, 'up': 10,
+                    'totalpop' : totalpop,
+                    'xtol': 1e-6}
+            self.update_weights(marges, param)
         
+        #param  = {'totalpop': 62000000, 'use_proportions': True}
+
+        # inflate revenues on totals
         fname = os.path.join(data_dir, 'calage.csv')
         f_tot = open(fname)
         totals = read_csv(f_tot,index_col = 0)
@@ -432,3 +477,23 @@ class SystemSf(DataTable):
         self.set_value(varname, col._func(**funcArgs), idx)
         col._isCalculated = True
 
+
+if __name__ == '__main__':
+        import os
+        fname_men = os.path.join('../data', 'calage_men.csv')
+        #  fname_ind = os.path.join(data_dir, 'calage_ind.csv')
+        
+        
+        f_tot = open(fname_men)
+        totals = read_csv(f_tot,index_col = (0,1))
+        
+#        print totals
+#        print totals.columns
+#        print totals.index.names
+        marges = {}
+        for var, mod in totals.index:
+            if not marges.has_key(var):
+                marges[var] = {}
+            marges[var][mod] =  totals.get_value((var,mod),'2006')
+        f_tot.close()
+        print marges

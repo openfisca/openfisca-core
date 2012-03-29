@@ -37,7 +37,7 @@ VERSION = "0.1.0"
 DEFAULTS = [
             ('simulation', 
              {
-              'datesim': '2010-01-01',
+              'datesim': '2006-01-01',
               'nmen': 101,
               'xaxis':  'sal',
               'maxrev': 50000,
