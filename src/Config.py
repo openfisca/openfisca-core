@@ -26,8 +26,8 @@ import os, os.path as osp
 from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox,QMessageBox, 
-                                QLabel, QSpinBox, QPushButton, QGroupBox, 
-                                QComboBox, QDateEdit, QFileDialog,
+                                QLabel, QSpinBox, QDoubleSpinBox, QPushButton, 
+                                QGroupBox, QComboBox, QDateEdit, QFileDialog,
                                 QSplitter, QIcon, QLineEdit)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
@@ -48,7 +48,17 @@ DEFAULTS = [
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'output_dir' : os.path.expanduser('~'),
-              })]
+              }),
+            ('calibration', 
+             {
+              'date': '2006-01-01',
+              'filename': 'calage_men.csv',
+              'method': 'logit',
+              'up': 3.0,
+              'invlo': 3.0,
+              })
+            
+            ]
 
 class UserConfigParser(RawConfigParser):
     def __init__(self, defaults):
@@ -425,6 +435,37 @@ class OpenFiscaConfigPage(ConfigPage):
         widget.setLayout(layout)
         widget.spin = spinbox
         return widget
+
+    def create_doublespinbox(self, prefix, suffix, option, 
+                       min_=None, max_=None, step=None, tip=None):
+        if prefix:
+            plabel = QLabel(prefix)
+        else:
+            plabel = None
+        if suffix:
+            slabel = QLabel(suffix)
+        else:
+            slabel = None
+        spinbox = QDoubleSpinBox()
+        if min_ is not None:
+            spinbox.setMinimum(min_)
+        if max_ is not None:
+            spinbox.setMaximum(max_)
+        if step is not None:
+            spinbox.setSingleStep(step)
+        if tip is not None:
+            spinbox.setToolTip(tip)
+        self.spinboxes[spinbox] = option
+        layout = QHBoxLayout()
+        for subwidget in (plabel, spinbox, slabel):
+            if subwidget is not None:
+                layout.addWidget(subwidget)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        widget.spin = spinbox
+        return widget
         
     def create_dateedit(self, text, option, tip=None):
         label = QLabel(text)
@@ -509,6 +550,41 @@ class SimConfigPage(GeneralConfigPage):
         
     def apply_settings(self, options):
         self.main.apply_settings()
+        
+class CalConfigPage(GeneralConfigPage):
+    CONF_SECTION = "calibration"
+    def get_name(self):
+        return "Calibration"
+    
+    def get_icon(self):
+        return get_icon("simprefs.png")
+    
+    def setup_page(self):        
+        calibration_group = QGroupBox("Calibration")
+        
+        # TODO cal_dateedit = self.create_dateedit("Date des paramètres de la calibration", 'datecal')
+                
+        method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
+        method_combo = self.create_combobox(u'Choix de la méthode', method_choices, 'method')
+        up_spinbox = self.create_spinbox(u'Ratio de poids maximal autorisé', '', 'up', min_ = 1   , max_ = 100, step = 1)
+        
+        invlo_spinbox = self.create_spinbox(u'Ratio de poids minimal autorisé', '', 'invlo', min_ = 1, max_ = 100, step = 1)
+        
+        calibration_layout = QVBoxLayout()
+        calibration_layout.addWidget(method_combo)
+        calibration_layout.addWidget(up_spinbox)
+        calibration_layout.addWidget(invlo_spinbox)
+
+        calibration_group.setLayout(calibration_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(calibration_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
+        
+    def apply_settings(self, options):
+        self.main.apply_settings()        
+        
 
 class PathConfigPage(GeneralConfigPage):
     CONF_SECTION = "paths"
@@ -539,7 +615,7 @@ def test():
     from PyQt4.QtGui import QApplication
     app = QApplication(sys.argv)
     dlg = ConfigDialog()
-    for ConfigPage in [SimConfigPage]: # 
+    for ConfigPage in [CalConfigPage]: # 
         widget = ConfigPage(dlg, main=None)
         widget.initialize()
         dlg.add_page(widget)

@@ -47,7 +47,7 @@ class EnumCol(IntCol):
     '''
     A column of integer
     '''
-    def __init__(self, enum, label = None, default = 0):
+    def __init__(self, enum=None, label = None, default = 0):
         super(EnumCol, self).__init__(label, default)
         self.enum = enum
             
@@ -76,7 +76,7 @@ class AgesCol(IntCol):
         
 class DateCol(Column):
     '''
-    A column of Int to store ages of people
+    A column of Datetime 64 to store dates of people
     '''
     def __init__(self, label = None, default = 0):
         super(DateCol, self).__init__(label, default)

@@ -71,10 +71,21 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
         F =  raking_ratio
         F_prime =  raking_ratio_prime
     elif param['method'] == 'logit':
+        if not 'up' in param:
+            raise Exception("When method is 'logit', 'up' parameter is needed in param")
+        if not 'lo' in param:
+            raise Exception("When method is 'logit', 'lo' parameter is needed in param")
+        if param['up'] <= 1:
+            raise Exception("When method is 'logit', 'up' should be strictly greater than 1")
+        if param['lo'] >= 1:
+            raise Exception("When method is 'logit', 'lo' should be strictly less than 1")        
         F = lambda x: logit(x, param['lo'], param['up'])
         F_prime = lambda x: logit_prime(x, param['lo'], param['up'])
     else:
         raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
+
+
+         
 
     # construction observations matrix
     if 'totalpop' in param:
@@ -96,8 +107,6 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
     
     for var, val in marge.iteritems():
         if isinstance(val, dict):
-            print var
-            print val
             dummies_dict = build_dummies_dict(data[var])            
             k, pop = 0, 0
             for cat, nb in val.iteritems():
@@ -115,7 +124,6 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
                     for cat, nb in val.iteritems():
                         cat_varname =  var + '_' + str(cat)
                         marge_new[cat_varname] = nb*totalpop/pop
-                    print marge_new
                 else:
                     raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
@@ -156,8 +164,8 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
         
     while (ier==2 or ier==5) and (essai <= 10):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
-        print 'ier: ', ier
-        print 'mesg: ', mesg
+#        print 'ier: ', ier
+#        print 'mesg: ', mesg
         lambda0 = 1*lambdasol
         essai += 1
         

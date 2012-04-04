@@ -32,9 +32,7 @@ from pandas import read_csv
 
 from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt4.QtGui import (QWidget, QLabel, QApplication, QHBoxLayout, QVBoxLayout, 
-                         QPushButton, QDoubleSpinBox, QTableView, QInputDialog)
-import guidata.dataset.datatypes as dt
-import guidata.dataset.dataitems as di
+                         QPushButton, QTableView, QInputDialog)
 from widgets.matplotlibwidget import MatplotlibWidget
 
 from core.datatable import DataTable, SystemSf
@@ -308,7 +306,8 @@ class MarginsModel(QAbstractTableModel):
         if deletion: 
             nbrow = self._margins.howManyFields(str(varname))
             self._margin_to_remove = str(varname)
-            self.removeRows(0,nbrow-1)    
+            self.removeRows(0,nbrow-1)
+            print self._margin_to_remove    
             del self._margin_to_remove
 
     def update_margins(self):
@@ -373,9 +372,12 @@ class Margins(object):
         if isinstance(varcol , BoolCol):
             return 2
         elif isinstance(varcol , AgesCol):
-            return len(np.unique(varcol.get_value()))
+            return len(np.unique(self._inputs.get_value(varname)))
         elif isinstance(varcol , EnumCol):
-            return varcol.enum._count  
+            if varcol.enum:
+                return varcol.enum._count
+            else:
+                return len(np.unique(self._inputs.get_value(varname)))
         else:
             return 1        
 
@@ -399,12 +401,19 @@ class Margins(object):
                     ok2 = self.addVar2(varname, modality)
                 ok = ok and ok2 
             return ok
-        if isinstance(varcol, EnumCol):
-            ok = True
-            for modality, index in varcol.enum.itervars():
-                ok2 = self.addVar2(varname, modality)
-                ok = ok and ok2 
-            return ok    
+        if isinstance(varcol, EnumCol): 
+            if (varcol.enum is not None):
+                ok = True
+                for modality, index in varcol.enum.itervars():
+                    ok2 = self.addVar2(varname, modality)
+                    ok = ok and ok2 
+                return ok
+            else:
+                ok = True
+                for modality in (np.unique(self._inputs.get_value(varname))):
+                    ok2 = self.addVar2(varname, modality)
+                    ok = ok and ok2 
+                return ok
         else:
             ok = self.addVar2(varname, None, target)
             return ok
@@ -425,7 +434,7 @@ class Margins(object):
         varcol = self._inputs.description.get_col(varname) 
         value = self._inputs.get_value(varname, self._inputs.index['men'])
         if modality is not None:     
-            if isinstance(varcol, EnumCol):
+            if isinstance(varcol, EnumCol) and (varcol.enum is not None):
                 total = sum(w*(value == varcol.enum[modality]))
                 total_init = sum(w_init*(value == varcol.enum[modality]))
             else:    
@@ -447,7 +456,6 @@ class Margins(object):
         return True
 
     def rmvVar(self, varname):
-        
         if not varname in self._vars_dict:
             return None
 

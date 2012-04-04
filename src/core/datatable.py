@@ -113,30 +113,15 @@ class DataTable(object):
                 dct.update({person: temp}) 
     
     def propagate_to_members(self, unit = 'men', col = "wprm"):
+        '''
+        Set the variable of all unit member to the value of the (head of) unit
+        '''
         index = self.index[unit]
         value = self.get_value(col, index)
         enum = self.description.get_col('qui'+unit).enum
         for member in enum:
-            self.set_value(col, value, index, opt = member[1]) # TODO
-    
-    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
-        data = {weights_in: self.get_value(weights_in, self.index['men'])}
-        for var in marges:
-            data[var] = self.get_value(var, self.index['men'])
-        val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+            self.set_value(col, value, index, opt = member[1])
 
-#        for var in marges.iterkeys():
-#            print var
-#            for mod in marges[var].iterkeys():
-#                cat_varname = var + '_' + str(mod)
-#                print 'target margin', marge_new[cat_varname], 'calib margin',  sum(val_pondfin*(data[var]==mod))
-#    
-        self.set_value(weights_out, val_pondfin, self.index['men'])
-        self.propagate_to_members( unit='men', col = weights_out)
-        
-        # TODO propagate the changed weights for men to ind 
-        if return_margins:
-            return marge_new
 
     def inflate(self, totals):
         for varname in totals:
@@ -420,6 +405,33 @@ class SystemSf(DataTable):
             dct[col.name] = np.ones(self._nrows, dtyp)*dflt
         
         self.table = DataFrame(dct)
+        
+    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
+        
+        inputs = self._inputs
+        data = {weights_in: inputs.get_value(weights_in, inputs.index['men'])}
+        for var in marges:
+            if var in inputs.col_names:
+                data[var] = inputs.get_value(var, inputs.index['men'])
+            else:
+                data[var] = self.get_value(var, self.index['men'])
+                
+        val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+
+#        for var in marges.iterkeys():
+#            print var
+#            for mod in marges[var].iterkeys():
+#                cat_varname = var + '_' + str(mod)
+#                print 'target margin', marge_new[cat_varname], 'calib margin',  sum(val_pondfin*(data[var]==mod))
+#    
+        inputs.set_value(weights_out, val_pondfin, inputs.index['men'])
+        inputs.propagate_to_members( unit='men', col = weights_out)
+        
+        # TODO propagate the changed weights for men to ind 
+        if return_margins:
+            return marge_new    
+        
+        
         
     def calculate(self, varname = None):
         '''
