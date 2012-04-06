@@ -50,8 +50,7 @@ DEFAULTS = [
               'output_dir' : os.path.expanduser('~'),
               }),
             ('calibration', 
-             {
-              'date': '2006-01-01',
+             {'date': '2006-01-01',
               'filename': 'calage_men.csv',
               'method': 'logit',
               'up': 3.0,

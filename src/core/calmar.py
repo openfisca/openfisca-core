@@ -43,19 +43,19 @@ def build_dummies_dict(data):
         output[val] = (data==val)
     return output
 
-def calmar(data, marge, param = {}, pondini='wprm_init'):
+def calmar(data, margins, param = {}, pondini='wprm_init'):
     ''' 
-    calmar : calage des poids etant des donnees des marges
+    calmar : calibration of weights according to some margins
       - data is a dict containing individual data
       - pondini (char) is the inital weight
-     marge is a dict containing for each var:
+     margins is a dict containing for each var:
       - a scalar var numeric variables
-      - a dict with categories key and population 
+      - a dict with categories key and population
+      - eventually a key named totalpop : total population. If absent initialized to actual total population 
      param is a dict containing the following keys
       - method : 'linear', 'raking ratio', 'logit'
       - lo     : lower bound on weights ratio  <1
       - up     : upper bound on weights ration >1
-      - totalpop : total population. If absent initialized to actual total population
       - use_proportions : default FALSE; if TRUE use proportions if total population from margins doesn't match total population
       - param xtol  : relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
       - param maxfev :  maximum number of function evaluation TODO  
@@ -84,12 +84,9 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
     else:
         raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
 
-
-         
-
     # construction observations matrix
-    if 'totalpop' in param:
-        totalpop = param['totalpop']
+    if 'totalpop' in margins:
+        totalpop = margins.pop('totalpop')
     else:
         totalpop = data[pondini].sum()
 
@@ -103,16 +100,16 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
     # number of lagrange parameters (at least total population)
     nj = 1
     
-    marge_new = {}
+    margins_new = {}
     
-    for var, val in marge.iteritems():
+    for var, val in margins.iteritems():
         if isinstance(val, dict):
             dummies_dict = build_dummies_dict(data[var])            
             k, pop = 0, 0
             for cat, nb in val.iteritems():
                 cat_varname =  var + '_' + str(cat)
                 data[cat_varname] = dummies_dict[cat]
-                marge_new[cat_varname] = nb
+                margins_new[cat_varname] = nb
                 pop += nb
                 k += 1
                 nj += 1
@@ -123,11 +120,11 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
                     warnings.warn('calmar: categorical variable %s is inconsistent with population; using proportions' % var)
                     for cat, nb in val.iteritems():
                         cat_varname =  var + '_' + str(cat)
-                        marge_new[cat_varname] = nb*totalpop/pop
+                        margins_new[cat_varname] = nb*totalpop/pop
                 else:
                     raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
-            marge_new[var] = val
+            margins_new[var] = val
             nj += 1
 
     # On conserve systematiquement la population  
@@ -135,7 +132,7 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
         raise Exception('dummy_is_in_pop is not a valid variable name') 
         
     data['dummy_is_in_pop'] = ones(nk)
-    marge_new['dummy_is_in_pop'] = totalpop
+    margins_new['dummy_is_in_pop'] = totalpop
 
     # paramètres de Lagrange initialisés à zéro
     lambda0 = zeros(nj)
@@ -143,16 +140,16 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
     # initial weights
     d = data[pondini]
     x = zeros((nk, nj)) # nb obs x nb constraints
-    xmarges = zeros(nj)
+    xmargins = zeros(nj)
     
     j=0
-    for var , val in marge_new.iteritems():
+    for var , val in margins_new.iteritems():
         x[:,j] = data[var]
-        xmarges[j] = val
+        xmargins[j] = val
         j += 1
 
     # Résolution des équations du premier ordre
-    constraint = lambda l: dot(d*F(dot(x, l)), x) - xmarges
+    constraint = lambda l: dot(d*F(dot(x, l)), x) - xmargins
     constraint_prime = lambda l: dot(d*( x.T*F_prime( dot(x, l))), x )
     ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
     
@@ -172,23 +169,23 @@ def calmar(data, marge, param = {}, pondini='wprm_init'):
     pondfin = d*F( dot(x, lambdasol))
 
     print "nombre d'essais: ", essai
-    return pondfin, lambdasol, marge_new 
+    return pondfin, lambdasol, margins_new 
 
 def test1():
     data = dict(ident = range(4),
                 x = array([5,2,7,6]),
                 wprm = array([.5,.5,1,1]))
 
-    marge = dict(x=array(5))
+    margins = dict(x=array(5))
     param = dict(method='linear')
 #    param = dict(method='linear',lo=1/3,up=3)
 
-    pondfin, lambdasol  = calmar(data,marge,param)
+    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
 
     print 'initial weights: ', data['wprm'] 
     print 'final weights: ',  pondfin
     print 'lambdas:', lambdasol
-    print 'target margin: ', marge
+    print 'target margin: ', margins
     print 'new margin: ', sum(pondfin*data['x']) 
     print pondfin/data['wprm']    
 
@@ -200,23 +197,23 @@ def test2():
                 j = array([1,0,0,1,1,0,0,0,1, 0, 0]),
                 k = array([0,1,1,0,0,1,1,1,0, 1, 1]),
                 z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
-                wprm = array([10,1,1,11,13,7,8,8,9,10,14]))
-    marge = {'g':32, 'f':60, 'j':42, 'k':50, 'z':140}
+                wprm_init = array([10,1,1,11,13,7,8,8,9,10,14]))
+    margins = {'g':32, 'f':60, 'j':42, 'k':50, 'z':140, 'totalpop': 100}
 
 
     param = dict(method='linear')
 #    param = dict(method='raking ratio')
 #    param = dict(method='logit',lo=.3,up=3)
-    pondfin, lambdasol  = calmar(data,marge,param,ident='i')
+    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
     print pondfin
     print lambdasol
     
-    print 'initial weights: ', data['wprm'] 
+    print 'initial weights: ', data['wprm_init'] 
     print 'final weights: ',  pondfin
     print 'lambdas:', lambdasol
-    print 'target margin: ', marge
+    print 'target margin: ', margins
     print 'new margin: ', sum(pondfin*data['z']) 
-    print pondfin/data['wprm']    
+    print pondfin/data['wprm_init']    
     
 
 def test3():
@@ -225,16 +222,16 @@ def test3():
                 g = array([1,1,1,0,0,0,0,1,0, 0, 0]),
                 j = array([1,0,0,1,1,0,0,0,1, 0, 0]),
                 z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
-                wprm = array([10,1,1,11,13,7,8,8,9,10,14]))
+                wprm_init = array([10,1,1,11,13,7,8,8,9,10,14]))
 
-    marge = {'g':{0:60 ,1: 32}, 'j': {0:50,1:42},'z':140}    
+    margins = {'g':{0:60 ,1: 32}, 'j': {0:50,1:42},'z':140}    
     param = dict(method='linear',lo = .0001,up = 1000)
     
-    pondfin, lambdasol  = calmar(data,marge,param)
+    pondfin, lambdasol  = calmar(data,margins,param)
     
     print pondfin
     print lambdasol
-    print pondfin/data['wprm']    
+    print pondfin/data['wprm_init']    
 
 
 def test4():
@@ -242,22 +239,22 @@ def test4():
     n = 10000
     index = np.arange(n)
     val   = index*100
-    wprm  = np.random.rand(n)
+    wprm_init  = np.random.rand(n)
     
     data = dict(i = index,
                 v = val,
-                wprm = wprm)
+                wprm_init = wprm_init)
 
-    marge = {'v':sum(1.2*data['wprm']*data['v'])}
+    margins = {'v':sum(1.2*data['wprm_init']*data['v'])}
     param = dict(method='logit',lo = .001,up = 100)
     
-    pondfin, lambdasol  = calmar(data,marge,param,ident='i')
+    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
     
-    print 'target margin: ', marge['v']
+    print 'target margin: ', margins['v']
     print 'calib margin',  sum(pondfin*data['v'])
     print pondfin
     print lambdasol
-    print pondfin/data['wprm']    
+    print pondfin/data['wprm_init']    
 #    info(fsolve)
 
     from pylab import hist, setp, show, plot
@@ -269,4 +266,4 @@ def test4():
     show()
 
 if __name__ == '__main__':
-    test3()
+    test2()

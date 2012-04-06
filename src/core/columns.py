@@ -45,11 +45,23 @@ class IntCol(Column):
         
 class EnumCol(IntCol):
     '''
-    A column of integer
+    A column of integer with an enum
     '''
     def __init__(self, enum=None, label = None, default = 0):
         super(EnumCol, self).__init__(label, default)
         self.enum = enum
+        self.categories = []
+        
+#    @property    
+#    def categories(self):
+#        if self._categories_list:
+#            return [category for category in self._categories_list].sort()
+    
+    def update_categories(self):
+        if self.enum:
+            self._categories = self.enum._vars.values().sort()
+            
+            
             
 class BoolCol(Column):
     '''
