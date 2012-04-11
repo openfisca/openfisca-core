@@ -135,5 +135,5 @@ class Description(object):
         for col in self.columns:
             if col_name == col.name:
                 return col
-        raise Exception('Column %s doest not exist' % col_name)
+        raise Exception('Column %s does not exist' % col_name)
 

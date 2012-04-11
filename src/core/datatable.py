@@ -414,7 +414,8 @@ class SystemSf(DataTable):
             if var in inputs.col_names:
                 data[var] = inputs.get_value(var, inputs.index['men'])
             else:
-                data[var] = self.get_value(var, self.index['men'])
+                if var != "totalpop":
+                    data[var] = self.get_value(var, self.index['men'])
                 
         val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
 
