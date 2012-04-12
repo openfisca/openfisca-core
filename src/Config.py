@@ -49,7 +49,7 @@ DEFAULTS = [
               'output_dir' : os.path.expanduser('~'),
               }),
             ('aggregates',
-             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006a/final123.csv',
+             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
               }),
             ('calibration', 
              {'date': '2006-01-01',
