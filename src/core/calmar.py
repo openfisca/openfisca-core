@@ -81,9 +81,9 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
             raise Exception("When method is 'logit', 'lo' should be strictly less than 1")        
         F = lambda x: logit(x, param['lo'], param['up'])
         F_prime = lambda x: logit_prime(x, param['lo'], param['up'])
+    
     else:
         raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
-
     # construction observations matrix
     if 'totalpop' in margins:
         totalpop = margins.pop('totalpop')
@@ -97,7 +97,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
 
     nk = len(data[pondini])
 
-    # number of lagrange parameters (at least total population)
+    # number of Lagrange parameters (at least total population)
     nj = 1
     
     margins_new = {}
@@ -113,7 +113,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
                 pop += nb
                 k += 1
                 nj += 1
-            # verification que la population finale est bonne
+            # Check total popualtion
             if pop != totalpop:
                 if use_proportions:
                     import warnings

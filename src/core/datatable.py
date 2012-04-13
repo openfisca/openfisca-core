@@ -416,19 +416,14 @@ class SystemSf(DataTable):
             else:
                 if var != "totalpop":
                     data[var] = self.get_value(var, self.index['men'])
-                
-        val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+        try:
+            val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+        except:
+            raise Exception("Calmar error")
+            return
 
-#        for var in marges.iterkeys():
-#            print var
-#            for mod in marges[var].iterkeys():
-#                cat_varname = var + '_' + str(mod)
-#                print 'target margin', marge_new[cat_varname], 'calib margin',  sum(val_pondfin*(data[var]==mod))
-#    
         inputs.set_value(weights_out, val_pondfin, inputs.index['men'])
         inputs.propagate_to_members( unit='men', col = weights_out)
-        
-        # TODO propagate the changed weights for men to ind 
         if return_margins:
             return marge_new    
         
