@@ -31,13 +31,13 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QSplitter, QIcon, QLineEdit)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
-
+from datetime import datetime
 VERSION = "0.1.0"
 
 DEFAULTS = [
             ('simulation', 
              {
-              'datesim': '2006-01-01',
+              'datesim': '2010-01-01',
               'nmen': 101,
               'xaxis':  'sal',
               'maxrev': 50000,
@@ -60,14 +60,85 @@ DEFAULTS = [
             ]
 
 class UserConfigParser(RawConfigParser):
-    def __init__(self, defaults):
+    def __init__(self, defaults, filename):
         RawConfigParser.__init__(self)
-        for section in DEFAULTS:
-            self.add_section(section[0])
-            for key, val in section[1].iteritems():
-                self.set(section[0], key, val)
-        
-CONF = UserConfigParser(DEFAULTS)
+        self.defaults = defaults
+
+        try:
+            open(filename)
+            self.read(filename)
+        except:
+            for section in DEFAULTS:
+                self.add_section(section[0])
+                for key, val in section[1].iteritems():
+                    self.set(section[0], key, val)
+
+    def get(self, section, option):
+#    def get(self, section, option, default=NoDefault):
+        """
+        Get an option
+        section=None: attribute a default section name
+        default: default value (if not specified, an exception
+        will be raised if option doesn't exist)
+        """
+#        section = self.__check_section_option(section, option)
+#
+#        if not self.has_section(section):
+#            if default is NoDefault:
+#                raise NoSectionError(section)
+#            else:
+#                self.add_section(section)
+#        
+#        if not self.has_option(section, option):
+#            if default is NoDefault:
+#                raise NoOptionError(option, section)
+#            else:
+#                self.set(section, option, default)
+#                return default
+            
+#        value = ConfigParser.get(self, section, option, self.raw)
+        value = RawConfigParser.get(self, section, option)
+        default_value = self.get_default(section, option)
+        if isinstance(default_value, bool):
+            value = eval(value)
+        elif isinstance(default_value, float):
+            value = float(value)
+        elif isinstance(default_value, int):
+            value = int(value)
+        else:
+            try:
+                value = datetime.strptime(value ,"%Y-%m-%d").date()
+            except:
+                pass
+                
+#        else:
+#            if isinstance(default_value, basestring):
+#                try:
+#                    value = value.decode('utf-8')
+#                except (UnicodeEncodeError, UnicodeDecodeError):
+#                    pass
+#            try:
+#                # lists, tuples, ...
+#                value = eval(value)
+#                print value
+#            except:
+#                pass
+        return value
+
+    def get_default(self, section, option):
+        """
+        Get Default value for a given (section, option)
+        -> useful for type checking in 'get' method
+        """
+#        section = self.__check_section_option(section, option)
+        for sec, options in self.defaults:
+            if sec == section:
+                if option in options:
+                    return options[ option ]
+#        else:
+#            return NoDefault
+
+CONF = UserConfigParser(DEFAULTS, 'main.cfg')
 
 def get_icon(iconFile):
     return QIcon()
@@ -134,7 +205,8 @@ class ConfigDialog(QDialog):
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setMinimumWidth(160 if os.name == 'nt' else 200)
+        self.contents_widget.setMinimumWidth(120)
+        self.contents_widget.setMaximumWidth(120)
         self.contents_widget.setSpacing(1)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
@@ -153,16 +225,17 @@ class ConfigDialog(QDialog):
                      self.pages_widget.setCurrentIndex)
         self.contents_widget.setCurrentRow(0)
 
-        hsplitter = QSplitter()
-        hsplitter.addWidget(self.contents_widget)
-        hsplitter.addWidget(self.pages_widget)
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(self.contents_widget)
+        hlayout.addWidget(self.pages_widget)
+        hlayout.setStretch(1,1)
 
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(hsplitter)
+        vlayout.addLayout(hlayout)
         vlayout.addLayout(btnlayout)
 
         self.setLayout(vlayout)
@@ -321,6 +394,10 @@ class OpenFiscaConfigPage(ConfigPage):
         for combobox, option in self.comboboxes.items():
             data = combobox.itemData(combobox.currentIndex())
             self.set_option(option, unicode(data.toString()))
+        with open('main.cfg', 'wb') as configfile:
+            CONF.write(configfile)
+
+
     
     def has_been_modified(self):
         option = unicode(self.sender().property("option").toString())

@@ -24,7 +24,6 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from Config import CONF
-from datetime import datetime
 from pandas import read_csv, DataFrame, concat
 from core.calmar import calmar
 
@@ -49,7 +48,7 @@ class DataTable(object):
         self.index = {}
         self._nrows = 0
 
-        self.datesim = datetime.strptime(CONF.get('simulation', 'datesim') ,"%Y-%m-%d").date()
+        self.datesim = CONF.get('simulation', 'datesim')
 
         self.NMEN = CONF.get('simulation', 'nmen')
         self.MAXREV = CONF.get('simulation', 'maxrev')
@@ -155,7 +154,7 @@ class DataTable(object):
         
     def set_zone_apl(self):
         data_dir = CONF.get('paths', 'data_dir')
-        year = CONF.get('simulation','datesim')[:4]
+        year = CONF.get('simulation','datesim').year
         import os
         fname = os.path.join(data_dir, 'zone_apl_imputation_data')
         data_file = open(fname, 'rb')

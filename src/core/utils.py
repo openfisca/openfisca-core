@@ -262,7 +262,7 @@ class OutNode(object):
 class Scenario(object):
     def __init__(self):
         super(Scenario, self).__init__()
-        self.year = int(CONF.get('simulation', 'datesim')[:4])
+        self.year = CONF.get('simulation', 'datesim').year
         self.indiv = {}
         # indiv est un dict de dict. La clé est le noi de l'individu
         # Exemple :
