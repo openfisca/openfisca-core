@@ -362,7 +362,7 @@ class OpenFiscaConfigPage(ConfigPage):
                          lambda value: self.has_been_modified())
             
         for dateedit, option in self.dateedits.items():
-            dateedit.setDate(QDate.fromString(self.get_option(option), Qt.ISODate))
+            dateedit.setDate(self.get_option(option))
             dateedit.setProperty("option", QVariant(option))
             self.connect(dateedit, SIGNAL('dateChanged(QDate)'),
                          lambda value: self.has_been_modified())
