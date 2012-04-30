@@ -29,6 +29,7 @@ from core.calmar import calmar
 
 from description import ModelDescription, Description
 import pickle
+import os
 
 class DataTable(object):
     """
@@ -154,8 +155,6 @@ class DataTable(object):
         
     def set_zone_apl(self):
         data_dir = CONF.get('paths', 'data_dir')
-        year = CONF.get('simulation','datesim').year
-        import os
         fname = os.path.join(data_dir, 'zone_apl_imputation_data')
         data_file = open(fname, 'rb')
         zone = pickle.load(data_file)
@@ -175,9 +174,8 @@ class DataTable(object):
 
     def calage(self):
         data_dir = CONF.get('paths', 'data_dir')
-        year = CONF.get('simulation','datesim')[:4]
-        import os
-        if int(year) <= 2008:
+        year = self.datesim.year
+        if year <= 2008:
             print 'calage'
             # update weights with calmar (demography)
             fname_men = os.path.join(data_dir, 'calage_men.csv')
@@ -371,11 +369,12 @@ class SystemSf(DataTable):
         # Build the closest dependencies  
         for col in self.description.columns.itervalues():
             # Disable column if necessary
-            if col._start: 
-                if col._start > self._param.datesim: col.set_disabled()
+            col.set_enabled()
+            if col._start:
+                if col._start > self.datesim: col.set_disabled()
             if col._end:
-                if col._end < self._param.datesim: col.set_disabled()
-            
+                if col._end < self.datesim: col.set_disabled()
+
             for input_varname in col.inputs:
                 if input_varname in self.description.col_names:
                     input_col = self.description.get_col(input_varname)
