@@ -397,8 +397,6 @@ class OpenFiscaConfigPage(ConfigPage):
         with open('main.cfg', 'wb') as configfile:
             CONF.write(configfile)
 
-
-    
     def has_been_modified(self):
         option = unicode(self.sender().property("option").toString())
         self.set_modified(True)
