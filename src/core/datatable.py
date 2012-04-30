@@ -135,7 +135,7 @@ class DataTable(object):
         f.close()
         self._nrows = self.table.shape[0]
         missing_col = []
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             name = col.name
             if not name in self.table:
                 missing_col.append(name)
@@ -364,12 +364,12 @@ class SystemSf(DataTable):
 
     def reset(self):
         """ sets all columns as not calculated """
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             col._isCalculated = False
     
     def build(self):
         # Build the closest dependencies  
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             # Disable column if necessary
             if col._start: 
                 if col._start > self._param.datesim: col.set_disabled()
@@ -398,7 +398,7 @@ class SystemSf(DataTable):
 
         # initialize the pandas DataFrame to store data
         dct = {}
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             dflt = col._default
             dtyp = col._dtype
             dct[col.name] = np.ones(self._nrows, dtyp)*dflt
@@ -439,7 +439,7 @@ class SystemSf(DataTable):
         '''
         if varname is None:
             # TODO:
-            for col in self.description.columns:
+            for col in self.description.columns.itervalues():
                 self.calculate(col.name)
             return "Will calculate all"
 
