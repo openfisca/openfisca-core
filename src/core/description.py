@@ -125,15 +125,17 @@ class ModelDescription(object):
 class Description(object):
     def __init__(self, columns):
         super(Description, self).__init__()
-        self.columns = columns
-
+        self.columns = {}
+        self._col_names = set()
+        for col in columns:
+            self.columns[col.name] = col
+            self._col_names.add(col.name)
+            
     @property
     def col_names(self):
-        return set([col.name for col in self.columns])
+        return self._col_names
 
     def get_col(self, col_name):
-        for col in self.columns:
-            if col_name == col.name:
-                return col
-        raise Exception('Column %s doest not exist' % col_name)
+        return self.columns[col_name]
+        raise Exception('Column %s does not exist' % col_name)
 

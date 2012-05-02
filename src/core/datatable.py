@@ -24,10 +24,12 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from Config import CONF
-from datetime import datetime
-from pandas import read_csv, DataFrame, concat, MultiIndex
-from calmar.calmar import calmar
+from pandas import read_csv, DataFrame, concat
+from core.calmar import calmar
+
 from description import ModelDescription, Description
+import pickle
+import os
 
 class DataTable(object):
     """
@@ -47,7 +49,7 @@ class DataTable(object):
         self.index = {}
         self._nrows = 0
 
-        self.datesim = datetime.strptime(CONF.get('simulation', 'datesim') ,"%Y-%m-%d").date()
+        self.datesim = CONF.get('simulation', 'datesim')
 
         self.NMEN = CONF.get('simulation', 'nmen')
         self.MAXREV = CONF.get('simulation', 'maxrev')
@@ -73,11 +75,10 @@ class DataTable(object):
 #        idents = ['quimen', 'idmen']
 #
 #        self.table.set_index(idents, drop = False, inplace = True)
-#        print self.table.index
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
-                              'nb': self._nrows},
+                      'nb': self._nrows},
                       'noi': {}}
         dct = self.index['noi']
         nois = self.table.noi.values
@@ -110,15 +111,24 @@ class DataTable(object):
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
-
     
-#    def calibrate(self, marge, param=dict(method='linear')):
-#        data=dict(wprm = self.wprm.get_value(), 
-#                  ident = self.ident.get_value())
-#        for var in marge.keys():
-#            data[var] = getattr(self,var).get_value()
-#        val_pondfin, lambdasol = calmar(data, marge, param=param, pondini='wprm', ident='ident')
-#        self.pondfin.set_value(val_pondfin, self.index['ind'])
+    def propagate_to_members(self, unit = 'men', col = "wprm"):
+        '''
+        Set the variable of all unit member to the value of the (head of) unit
+        '''
+        index = self.index[unit]
+        value = self.get_value(col, index)
+        enum = self.description.get_col('qui'+unit).enum
+        for member in enum:
+            self.set_value(col, value, index, opt = member[1])
+
+
+    def inflate(self, totals):
+        for varname in totals:
+            if varname in self.table:
+                x = sum(self.table[varname]*self.table['wprm'])/totals[varname]
+                if x>0:
+                    self.table[varname] = self.table[varname]/x
 
     def populate_from_external_data(self, fname):
         f = open(fname)
@@ -126,20 +136,84 @@ class DataTable(object):
         f.close()
         self._nrows = self.table.shape[0]
         missing_col = []
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             name = col.name
             if not name in self.table:
                 missing_col.append(name)
                 self.table[name] = col._default
             self.table[name].astype(col._dtype)
-
         if missing_col:
             import warnings
             warnings.warn('%s missing' %  missing_col)
         
         self._isPopulated = True
+        self.gen_index(['men', 'fam', 'foy'])
+        self.set_zone_apl()
+        
+        self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
+#        self.calage()
+        
+    def set_zone_apl(self):
+        data_dir = CONF.get('paths', 'data_dir')
+        fname = os.path.join(data_dir, 'zone_apl_imputation_data')
+        data_file = open(fname, 'rb')
+        zone = pickle.load(data_file)
+        data_file.close()
+        code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
+        zone_apl = self.get_value('zone_apl')
+        
+        for code in zone.keys():
+            if isinstance(zone[code], int):
+                zone_apl[code_vec == code] = zone[code]
+            else:
+                np.random.seed(0)
+                prob = np.random.rand(len(zone_apl[code_vec == code]))
+                zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
+        self.set_value('zone_apl',zone_apl,self.index['men'])
+        print self.get_value('zone_apl')    
 
-        self.gen_index(['men', 'fam', 'foy'])                
+    def calage(self):
+        data_dir = CONF.get('paths', 'data_dir')
+        year = self.datesim.year
+        if year <= 2008:
+            print 'calage'
+            # update weights with calmar (demography)
+            fname_men = os.path.join(data_dir, 'calage_men.csv')
+            f_tot = open(fname_men)
+            totals = read_csv(f_tot,index_col = (0,1))
+
+            marges = {}
+            for var, mod in totals.index:
+                if not marges.has_key(var):
+                    marges[var] = {}
+                
+                marges[var][mod] =  totals.get_value((var,mod),year)
+            f_tot.close()
+            
+            print marges
+            totalpop = marges.pop('totalpop')[0]
+#            marges.pop('cstotpragr')
+#            marges.pop('naf16pr')
+#            marges.pop('typmen15')
+#            marges.pop('ddipl')
+#            marges.pop('ageq')
+            marges.pop('act5') # variable la plus problématique
+            param ={'use_proportions': True, 
+                    'method': 'logit', 'lo':.1, 'up': 10,
+                    'totalpop' : totalpop,
+                    'xtol': 1e-6}
+            self.update_weights(marges, param)
+        
+        #param  = {'totalpop': 62000000, 'use_proportions': True}
+
+        # inflate revenues on totals
+        fname = os.path.join(data_dir, 'calage.csv')
+        f_tot = open(fname)
+        totals = read_csv(f_tot,index_col = 0)
+        totals = totals[year]
+        f_tot.close()
+
+        self.inflate(totals)             
 
     def populate_from_scenario(self, scenario):
         self._nrows = self.NMEN*len(scenario.indiv)
@@ -288,18 +362,19 @@ class SystemSf(DataTable):
 
     def reset(self):
         """ sets all columns as not calculated """
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             col._isCalculated = False
     
     def build(self):
         # Build the closest dependencies  
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             # Disable column if necessary
-            if col._start: 
-                if col._start > self._param.datesim: col.set_disabled()
+            col.set_enabled()
+            if col._start:
+                if col._start > self.datesim: col.set_disabled()
             if col._end:
-                if col._end < self._param.datesim: col.set_disabled()
-            
+                if col._end < self.datesim: col.set_disabled()
+
             for input_varname in col.inputs:
                 if input_varname in self.description.col_names:
                     input_col = self.description.get_col(input_varname)
@@ -322,12 +397,35 @@ class SystemSf(DataTable):
 
         # initialize the pandas DataFrame to store data
         dct = {}
-        for col in self.description.columns:
+        for col in self.description.columns.itervalues():
             dflt = col._default
             dtyp = col._dtype
             dct[col.name] = np.ones(self._nrows, dtyp)*dflt
         
         self.table = DataFrame(dct)
+        
+    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
+        
+        inputs = self._inputs
+        data = {weights_in: inputs.get_value(weights_in, inputs.index['men'])}
+        for var in marges:
+            if var in inputs.col_names:
+                data[var] = inputs.get_value(var, inputs.index['men'])
+            else:
+                if var != "totalpop":
+                    data[var] = self.get_value(var, self.index['men'])
+        try:
+            val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+        except:
+            raise Exception("Calmar error")
+            return
+
+        inputs.set_value(weights_out, val_pondfin, inputs.index['men'])
+        inputs.propagate_to_members( unit='men', col = weights_out)
+        if return_margins:
+            return marge_new    
+        
+        
         
     def calculate(self, varname = None):
         '''
@@ -335,7 +433,7 @@ class SystemSf(DataTable):
         '''
         if varname is None:
             # TODO:
-            for col in self.description.columns:
+            for col in self.description.columns.itervalues():
                 self.calculate(col.name)
             return "Will calculate all"
 
@@ -385,3 +483,23 @@ class SystemSf(DataTable):
         self.set_value(varname, col._func(**funcArgs), idx)
         col._isCalculated = True
 
+
+if __name__ == '__main__':
+        import os
+        fname_men = os.path.join('../data', 'calage_men.csv')
+        #  fname_ind = os.path.join(data_dir, 'calage_ind.csv')
+        
+        
+        f_tot = open(fname_men)
+        totals = read_csv(f_tot,index_col = (0,1))
+        
+#        print totals
+#        print totals.columns
+#        print totals.index.names
+        marges = {}
+        for var, mod in totals.index:
+            if not marges.has_key(var):
+                marges[var] = {}
+            marges[var][mod] =  totals.get_value((var,mod),'2006')
+        f_tot.close()
+        print marges
