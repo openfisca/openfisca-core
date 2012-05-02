@@ -43,15 +43,18 @@ DEFAULTS = [
               'maxrev': 50000,
               }),
             ('paths',
-             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
-              'data_dir': 'data',
+             {'data_dir': 'data',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'output_dir' : os.path.expanduser('~'),
               }),
+            ('aggregates',
+             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
+              }),
             ('calibration', 
              {'date': '2006-01-01',
-              'filename': 'calage_men.csv',
+              'inputs_filename': 'calage_men.csv',
+              'pfam_filename': 'calage_pfam.csv',
               'method': 'logit',
               'up': 3.0,
               'invlo': 3.0,
@@ -625,6 +628,34 @@ class SimConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.main.apply_settings()
         
+class AggConfigPage(GeneralConfigPage):
+    CONF_SECTION = "aggregates"
+    def get_name(self):
+        return u"Aggrégats"
+    
+    def get_icon(self):
+        return get_icon("simprefs.png")
+    
+    def setup_page(self):        
+        aggregates_group = QGroupBox(u"Aggrégats")
+        
+        external_data_file_edit = self.create_browsefile(u'Emplacement des données externes', 'external_data_file', tip=None, filters='*.csv')
+        
+        # calib_file_edit = self.create_browsefile(u'Emplacement des données de calibration', 'filename', tip=None, filters='*.csv')       
+        
+        aggregates_layout = QVBoxLayout()
+        aggregates_layout.addWidget(external_data_file_edit)
+        
+        aggregates_group.setLayout(aggregates_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(aggregates_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
+        
+    def apply_settings(self, options):
+        self.main.apply_settings()        
+        
 class CalConfigPage(GeneralConfigPage):
     CONF_SECTION = "calibration"
     def get_name(self):
@@ -639,15 +670,16 @@ class CalConfigPage(GeneralConfigPage):
         # TODO cal_dateedit = self.create_dateedit("Date des paramètres de la calibration", 'datecal')
                 
         method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
-        method_combo = self.create_combobox(u'Choix de la méthode', method_choices, 'method')
-        up_spinbox = self.create_spinbox(u'Ratio de poids maximal autorisé', '', 'up', min_ = 1   , max_ = 100, step = 1)
-        
+        method_combo = self.create_combobox(u'Méthode par défaut', method_choices, 'method')
+        up_spinbox = self.create_spinbox(u'Ratio de poids maximal autorisé', '', 'up', min_ = 1   , max_ = 100, step = 1)    
         invlo_spinbox = self.create_spinbox(u'Ratio de poids minimal autorisé', '', 'invlo', min_ = 1, max_ = 100, step = 1)
+        # calib_file_edit = self.create_browsefile(u'Emplacement des données de calibration', 'filename', tip=None, filters='*.csv')       
         
         calibration_layout = QVBoxLayout()
         calibration_layout.addWidget(method_combo)
         calibration_layout.addWidget(up_spinbox)
         calibration_layout.addWidget(invlo_spinbox)
+#        calibration_layout.addWidget(calib_file_edit)
 
         calibration_group.setLayout(calibration_layout)
         
@@ -671,12 +703,10 @@ class PathConfigPage(GeneralConfigPage):
     def setup_page(self):
         cas_type_dir = self.create_browsedir(u'Emplacement des cas types', 'cas_type_dir')
         reformes_dir = self.create_browsedir(u'Emplacement des réformes', 'reformes_dir')
-        external_data_file_edit = self.create_browsefile(u'Emplacement des données externes', 'external_data_file', tip=None, filters='*.csv')
         data_dir = self.create_browsedir(u'Emplacement des données internes', 'data_dir')
         paths_layout = QVBoxLayout()
         paths_layout.addWidget(cas_type_dir)
         paths_layout.addWidget(reformes_dir)
-        paths_layout.addWidget(external_data_file_edit)
         paths_layout.addWidget(data_dir)
         paths_layout.addStretch(1)
         self.setLayout(paths_layout)
