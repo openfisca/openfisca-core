@@ -148,72 +148,72 @@ class DataTable(object):
         
         self._isPopulated = True
         self.gen_index(['men', 'fam', 'foy'])
-        self.set_zone_apl()
+#        self.set_zone_apl()
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
 #        self.calage()
         
-    def set_zone_apl(self):
-        data_dir = CONF.get('paths', 'data_dir')
-        fname = os.path.join(data_dir, 'zone_apl_imputation_data')
-        data_file = open(fname, 'rb')
-        zone = pickle.load(data_file)
-        data_file.close()
-        code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
-        zone_apl = self.get_value('zone_apl')
-        
-        for code in zone.keys():
-            if isinstance(zone[code], int):
-                zone_apl[code_vec == code] = zone[code]
-            else:
-                np.random.seed(0)
-                prob = np.random.rand(len(zone_apl[code_vec == code]))
-                zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
-        self.set_value('zone_apl',zone_apl,self.index['men'])
-        print self.get_value('zone_apl')    
+#    def set_zone_apl(self):
+#        data_dir = CONF.get('paths', 'data_dir')
+#        fname = os.path.join(data_dir, 'zone_apl_imputation_data')
+#
+#        with open(fname, 'rb') as zone_apl_data:
+#            zone = pickle.load(zone_apl_data)
+#
+#        code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
+#        zone_apl = self.get_value('zone_apl')
+#        
+#        for code in zone.keys():
+#            if isinstance(zone[code], int):
+#                zone_apl[code_vec == code] = zone[code]
+#            else:
+#                np.random.seed(0)
+#                prob = np.random.rand(len(zone_apl[code_vec == code]))
+#                zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
+#        self.set_value('zone_apl',zone_apl,self.index['men'])
+#        print self.get_value('zone_apl')    
 
-    def calage(self):
-        data_dir = CONF.get('paths', 'data_dir')
-        year = self.datesim.year
-        if year <= 2008:
-            print 'calage'
-            # update weights with calmar (demography)
-            fname_men = os.path.join(data_dir, 'calage_men.csv')
-            f_tot = open(fname_men)
-            totals = read_csv(f_tot,index_col = (0,1))
-
-            marges = {}
-            for var, mod in totals.index:
-                if not marges.has_key(var):
-                    marges[var] = {}
-                
-                marges[var][mod] =  totals.get_value((var,mod),year)
-            f_tot.close()
-            
-            print marges
-            totalpop = marges.pop('totalpop')[0]
-#            marges.pop('cstotpragr')
-#            marges.pop('naf16pr')
-#            marges.pop('typmen15')
-#            marges.pop('ddipl')
-#            marges.pop('ageq')
-            marges.pop('act5') # variable la plus problématique
-            param ={'use_proportions': True, 
-                    'method': 'logit', 'lo':.1, 'up': 10,
-                    'totalpop' : totalpop,
-                    'xtol': 1e-6}
-            self.update_weights(marges, param)
-        
-        #param  = {'totalpop': 62000000, 'use_proportions': True}
-
-        # inflate revenues on totals
-        fname = os.path.join(data_dir, 'calage.csv')
-        f_tot = open(fname)
-        totals = read_csv(f_tot,index_col = 0)
-        totals = totals[year]
-        f_tot.close()
-
-        self.inflate(totals)             
+#    def calage(self):
+#        data_dir = CONF.get('paths', 'data_dir')
+#        year = self.datesim.year
+#        if year <= 2008:
+#            print 'calage'
+#            # update weights with calmar (demography)
+#            fname_men = os.path.join(data_dir, 'calage_men.csv')
+#            f_tot = open(fname_men)
+#            totals = read_csv(f_tot,index_col = (0,1))
+#
+#            marges = {}
+#            for var, mod in totals.index:
+#                if not marges.has_key(var):
+#                    marges[var] = {}
+#                
+#                marges[var][mod] =  totals.get_value((var,mod),year)
+#            f_tot.close()
+#            
+#            totalpop = marges.pop('totalpop')[0]
+##            marges.pop('cstotpragr')
+##            marges.pop('naf16pr')
+##            marges.pop('typmen15')
+##            marges.pop('ddipl')
+##            marges.pop('ageq')
+#            marges.pop('act5') # variable la plus problématique
+#            param ={'use_proportions': True, 
+#                    'method': 'logit', 'lo':.1, 'up': 10,
+#                    'totalpop' : totalpop,
+#                    'xtol': 1e-6}
+#            self.update_weights(marges, param)
+#        
+#        #param  = {'totalpop': 62000000, 'use_proportions': True}
+#
+#        # inflate revenues on totals
+#        fname = os.path.join(data_dir, 'calage.csv')
+#        f_tot = open(fname)
+#        totals = read_csv(f_tot,index_col = 0)
+#        totals = totals[year]
+#        f_tot.close()
+#
+#        self.inflate(totals)             
 
     def populate_from_scenario(self, scenario):
         self._nrows = self.NMEN*len(scenario.indiv)
@@ -424,9 +424,7 @@ class SystemSf(DataTable):
         inputs.propagate_to_members( unit='men', col = weights_out)
         if return_margins:
             return marge_new    
-        
-        
-        
+
     def calculate(self, varname = None):
         '''
         Solver: finds dependencies and calculate accordingly all needed variables 
@@ -482,24 +480,3 @@ class SystemSf(DataTable):
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
         self.set_value(varname, col._func(**funcArgs), idx)
         col._isCalculated = True
-
-
-if __name__ == '__main__':
-        import os
-        fname_men = os.path.join('../data', 'calage_men.csv')
-        #  fname_ind = os.path.join(data_dir, 'calage_ind.csv')
-        
-        
-        f_tot = open(fname_men)
-        totals = read_csv(f_tot,index_col = (0,1))
-        
-#        print totals
-#        print totals.columns
-#        print totals.index.names
-        marges = {}
-        for var, mod in totals.index:
-            if not marges.has_key(var):
-                marges[var] = {}
-            marges[var][mod] =  totals.get_value((var,mod),'2006')
-        f_tot.close()
-        print marges
