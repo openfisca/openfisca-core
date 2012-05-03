@@ -105,26 +105,23 @@ def gen_aggregate_output(model):
     idx = model.index[unit]
     enum = inputs.description.get_col('qui'+unit).enum
     people = [x[1] for x in enum]
-    pref = [0]
 
     model.calculate()
     for varname in model.col_names:
         val = model.get_value(varname, idx, opt = people, sum_ = True)
         out_dct[varname] = val
 
-    # TODO: should take care the variables that shouldn't be summed automaticaly
-    varlist = ['wprm', 'typ_men', 'uc']
+    # TODO: should take care the variables that shouldn't be summed automatically
+    varlist = ['wprm', 'typ_men']
     for varname in varlist:
         if varname in model.col_names:
-            model.calculate(varname)
-            val = model.get_value(varname, idx, opt = pref, sum_ = True)
+            val = model.get_value(varname, idx)
         elif varname in inputs.col_names:
-            val = inputs.get_value(varname, idx, opt = pref, sum_ = True)
+            val = inputs.get_value(varname, idx)
         else:
             raise Exception('%s was not find in model nor in inputs' % varname)
         out_dct[varname] = val
 
-    out_dct['nivvie'] = out_dct['revdisp']/out_dct['uc']        
     out_table = DataFrame(out_dct)
     return out_table
 
@@ -265,7 +262,7 @@ class OutNode(object):
 class Scenario(object):
     def __init__(self):
         super(Scenario, self).__init__()
-        self.year = int(CONF.get('simulation', 'datesim')[:4])
+        self.year = CONF.get('simulation', 'datesim').year
         self.indiv = {}
         # indiv est un dict de dict. La clé est le noi de l'individu
         # Exemple :

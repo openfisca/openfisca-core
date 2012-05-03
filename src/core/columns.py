@@ -45,11 +45,23 @@ class IntCol(Column):
         
 class EnumCol(IntCol):
     '''
-    A column of integer
+    A column of integer with an enum
     '''
-    def __init__(self, enum, label = None, default = 0):
+    def __init__(self, enum=None, label = None, default = 0):
         super(EnumCol, self).__init__(label, default)
         self.enum = enum
+        self.categories = []
+        
+#    @property    
+#    def categories(self):
+#        if self._categories_list:
+#            return [category for category in self._categories_list].sort()
+    
+    def update_categories(self):
+        if self.enum:
+            self._categories = self.enum._vars.values().sort()
+            
+            
             
 class BoolCol(Column):
     '''
@@ -76,7 +88,7 @@ class AgesCol(IntCol):
         
 class DateCol(Column):
     '''
-    A column of Int to store ages of people
+    A column of Datetime 64 to store dates of people
     '''
     def __init__(self, label = None, default = 0):
         super(DateCol, self).__init__(label, default)
