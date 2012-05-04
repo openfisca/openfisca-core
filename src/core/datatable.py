@@ -28,8 +28,8 @@ from pandas import read_csv, DataFrame, concat
 from core.calmar import calmar
 
 from description import ModelDescription, Description
-import pickle
-import os
+
+INDEX = ['men', 'fam', 'foy']
 
 class DataTable(object):
     """
@@ -37,7 +37,7 @@ class DataTable(object):
         * title [string]
         * comment [string]: text shown on the top of the first data item
     """
-    def __init__(self, model_description, external_data = None, scenario = None):
+    def __init__(self, model_description, survey_data = None, scenario = None):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -64,17 +64,14 @@ class DataTable(object):
 
         self.col_names = self.description.col_names
 
-        if (external_data and scenario):
-            raise Exception("should provide either external_data or scenario but not both")
-        elif external_data:
-            self.populate_from_external_data(external_data)
+        if (survey_data and scenario):
+            raise Exception("should provide either survey_data or scenario but not both")
+        elif survey_data:
+            self.populate_from_survey_data(survey_data)
         elif scenario:
             self.populate_from_scenario(scenario)
         
     def gen_index(self, units):
-#        idents = ['quimen', 'idmen']
-#
-#        self.table.set_index(idents, drop = False, inplace = True)
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
@@ -130,24 +127,34 @@ class DataTable(object):
                 if x>0:
                     self.table[varname] = self.table[varname]/x
 
-    def populate_from_external_data(self, fname):
-        f = open(fname)
-        self.table = read_csv(f)
-        f.close()
+    def populate_from_survey_data(self, fname):
+        with open(fname) as survey_data_file:
+            self.table = read_csv(survey_data_file)
+
         self._nrows = self.table.shape[0]
         missing_col = []
         for col in self.description.columns.itervalues():
-            name = col.name
-            if not name in self.table:
-                missing_col.append(name)
-                self.table[name] = col._default
-            self.table[name].astype(col._dtype)
+            if not col.name in self.table:
+                missing_col.append(col.name)
+                self.table[col.name] = col._default
+            self.table[col.name].astype(col._dtype)
+
         if missing_col:
-            import warnings
-            warnings.warn('%s missing' %  missing_col)
+            message = "%i input variables missing\n" % len(missing_col)
+            for var in missing_col:
+                message += '  - '+ var + '\n'
+            print Warning(message)
         
+        for var in INDEX:
+            if ('id' + var) in missing_col:
+                raise Exception('Survey data needs variable %s' % ('id' + var))
+            
+            if ('qui' + var) in missing_col:
+                raise Exception('Survey data needs variable %s' % ('qui' + var))
+
+        
+        self.gen_index(INDEX)
         self._isPopulated = True
-        self.gen_index(['men', 'fam', 'foy'])
 #        self.set_zone_apl()
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
@@ -227,7 +234,6 @@ class DataTable(object):
             birth = dct['birth']
             age = datesim.year- birth.year
             agem = 12*(datesim.year- birth.year) + datesim.month - birth.month
-            noipref = dct['noipref']
             noidec = dct['noidec']
             noichef = dct['noichef']
             quifoy = self.description.get_col('quifoy').enum[dct['quifoy']]
@@ -244,7 +250,7 @@ class DataTable(object):
                    'idfam': idmen*100 + noichef}
             self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
 
-        self.gen_index(['foy', 'fam', 'men'])
+        self.gen_index(INDEX)
 
         for name in self.col_names:
             if not name in self.table:
