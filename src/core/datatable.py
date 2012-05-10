@@ -389,6 +389,7 @@ class SystemSf(DataTable):
         # check if all primitives are provided by the inputs
         for prim in self._primitives:
             if not prim in inputs.col_names:
+                print prim
                 raise Exception('%s is a required input for %s and was not found in inputs' % prim)
         # store inputs and indexes and nrows
         self._inputs = inputs
@@ -460,6 +461,7 @@ class SystemSf(DataTable):
         for var in col._parents:
             parentname = var.name
             if parentname in funcArgs:
+                print parentname
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.calculate(parentname)
             if parentname in col._option: 
