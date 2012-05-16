@@ -25,8 +25,8 @@ This file is part of openFisca.
 import os
 
 uiList = ['graph', 'declaration', 'composition', 'logement',
-          'page01', 'page02A', 'page03A', 'page03B', 'page03C', 'page04A', 'page04B', 
-          'page04C', 'parametres', 'baremedialog']
+          'page01', 'page02', 'page03', 'page04', 'page05', 'page06', 'page07', 
+          'page08', 'parametres', 'baremedialog']
 
 commands = []
 for ui in uiList:
