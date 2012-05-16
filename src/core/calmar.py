@@ -61,6 +61,10 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
       - param maxfev :  maximum number of function evaluation TODO  
     '''   
     # choice of method
+    
+    if not margins:
+        pass
+    
     if not 'method' in param:
         param['method'] = 'linear'
 

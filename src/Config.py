@@ -46,6 +46,7 @@ DEFAULTS = [
              {'data_dir': 'data',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
+              'calib_dir'   :  'calibrations',
               'output_dir' : os.path.expanduser('~'),
               'survey_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
               }),
@@ -673,12 +674,14 @@ class PathConfigPage(GeneralConfigPage):
     def setup_page(self):
         cas_type_dir = self.create_browsedir(u'Cas types', 'cas_type_dir')
         reformes_dir = self.create_browsedir(u'Réformes', 'reformes_dir')
+        calib_dir = self.create_browsedir(u'Calages', 'calib_dir')
         data_dir = self.create_browsedir(u'Données internes', 'data_dir')
         survey_file = self.create_browsefile(u"Données d'enquête", 'survey_data_file', tip=None, filters='*.csv')
 
         paths_layout = QVBoxLayout()
         paths_layout.addWidget(cas_type_dir)
         paths_layout.addWidget(reformes_dir)
+        paths_layout.addWidget(calib_dir)
         paths_layout.addWidget(data_dir)
         paths_layout.addWidget(survey_file)
         paths_layout.addStretch(1)

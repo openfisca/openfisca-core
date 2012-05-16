@@ -349,6 +349,35 @@ class DataTable(object):
     def __str__(self):
         return self.table.__str__()
 
+
+    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
+
+        data = {weights_in: self.get_value(weights_in, self.index['men'])}
+        
+        if marges:
+            for var in marges:
+                if var in self.col_names:
+                    data[var] = self.get_value(var, self.index['men'])
+#            else:
+#                if var != "totalpop":
+#                    data[var] = self.get_value(var, self.index['men'])
+            try:
+                val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+            except:
+                raise Exception("Calmar error")
+                return
+        else:
+            val_pondfin = data[weights_in]
+            marge_new = {}
+
+        self.set_value(weights_out, val_pondfin, self.index['men'])
+        self.propagate_to_members( unit='men', col = weights_out)
+        if return_margins:
+            return marge_new    
+
+
+
+
 class SystemSf(DataTable):
     def __init__(self, model_description, param, defaultParam = None):
         DataTable.__init__(self, model_description)
@@ -410,26 +439,6 @@ class SystemSf(DataTable):
         
         self.table = DataFrame(dct)
         
-    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
-        
-        inputs = self._inputs
-        data = {weights_in: inputs.get_value(weights_in, inputs.index['men'])}
-        for var in marges:
-            if var in inputs.col_names:
-                data[var] = inputs.get_value(var, inputs.index['men'])
-            else:
-                if var != "totalpop":
-                    data[var] = self.get_value(var, self.index['men'])
-        try:
-            val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
-        except:
-            raise Exception("Calmar error")
-            return
-
-        inputs.set_value(weights_out, val_pondfin, inputs.index['men'])
-        inputs.propagate_to_members( unit='men', col = weights_out)
-        if return_margins:
-            return marge_new    
 
     def calculate(self, varname = None):
         '''
