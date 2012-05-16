@@ -29,10 +29,10 @@ class Column(object):
     count = 0
     def __init__(self, label = None, default = 0):
         super(Column, self).__init__()
-        Column.count += 1
         self.name = None
         self.label = label
         self._order = Column.count
+        Column.count += 1
         self._default = default
         self._dtype = float
 
