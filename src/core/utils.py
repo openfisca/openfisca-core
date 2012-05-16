@@ -31,11 +31,11 @@ from datetime import datetime
 from pandas import DataFrame
 
 class Enum(object):
-    def __init__(self, varlist):
+    def __init__(self, varlist, start = 0):
         self._vars = {}
         self._count = 0
         for var in varlist:
-            self._vars.update({self._count:var})
+            self._vars.update({self._count + start:var})
             self._count += 1
         for key, var in self._vars.iteritems():
             setattr(self, var, key)
