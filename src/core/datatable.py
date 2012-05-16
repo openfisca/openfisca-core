@@ -422,9 +422,9 @@ class SystemSf(DataTable):
         if not isinstance(inputs, DataTable):
             raise TypeError('inputs must be a DataTable')
         # check if all primitives are provided by the inputs
-        for prim in self._primitives:
-            if not prim in inputs.col_names:
-                raise Exception('%s is a required input for %s and was not found in inputs' % prim)
+#        for prim in self._primitives:
+#            if not prim in inputs.col_names:
+#                raise Exception('%s is a required input and was not found in inputs' % prim)
         # store inputs and indexes and nrows
         self._inputs = inputs
         self.index = inputs.index
