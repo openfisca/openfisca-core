@@ -33,15 +33,15 @@ from pandas import DataFrame
 class Enum(object):
     def __init__(self, varlist, start = 0):
         self._vars = {}
+        self._nums = {}
         self._count = 0
         for var in varlist:
             self._vars.update({self._count + start:var})
+            self._nums.update({var: self._count + start})
             self._count += 1
-        for key, var in self._vars.iteritems():
-            setattr(self, var, key)
             
     def __getitem__(self, var):
-        return getattr(self, var)
+        return self._nums[var]
 
     def __iter__(self):
         return self.itervars()
