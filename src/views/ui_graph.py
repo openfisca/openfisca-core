@@ -63,5 +63,5 @@ class Ui_Graph(object):
     def retranslateUi(self, Graph):
         pass
 
-from matplotlibwidget import MatplotlibWidget
+from widgets.matplotlibwidget import MatplotlibWidget
 import resources_rc
