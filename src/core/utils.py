@@ -112,7 +112,9 @@ def gen_aggregate_output(model):
         out_dct[varname] = val
 
     # TODO: should take care the variables that shouldn't be summed automatically
-    varlist = ['wprm', 'typ_men']
+    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr']
+    
     for varname in varlist:
         if varname in model.col_names:
             val = model.get_value(varname, idx)
