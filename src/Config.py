@@ -659,8 +659,7 @@ class CalConfigPage(GeneralConfigPage):
         self.setLayout(vlayout)
         
     def apply_settings(self, options):
-        self.main.apply_settings()        
-        
+        self.main.apply_settings()
 
 class PathConfigPage(GeneralConfigPage):
     CONF_SECTION = "paths"
@@ -688,6 +687,7 @@ class PathConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         self.main.enable_aggregate(True)
+        self.main.enable_calibration(True)
 
 def test():
     import sys
