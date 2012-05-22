@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-    
 # Copyright © 2012 Clément Schaff, Mahdi Ben Jelloul
 
 """
@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from PyQt4.QtGui import (QAction, QMenu, QTreeView, QTableView, QApplication, QPixmap, QIcon,
-                         QWidget, QLabel, QHBoxLayout, QComboBox, QDoubleSpinBox)
+                         QWidget, QLabel, QHBoxLayout, QComboBox, QSpinBox, QDoubleSpinBox)
 
 
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
@@ -131,6 +131,7 @@ class DataFrameViewWidget(QTableView):
     '''
     def __init__(self, parent = None):
         super(DataFrameViewWidget, self).__init__(parent)
+        self.roles = {}
 
     def set_dataframe(self, dataframe):
         model = DataFrameModel(dataframe, self)
@@ -141,12 +142,20 @@ class DataFrameViewWidget(QTableView):
         if model:
             model.clear()
         self.reset()
+        
+    def set_role(self, role, colnames):        
+        '''
+        Set the role of the 'colnames' to 'role'  
+        '''
+        model = self.model()
+        model.set_role(role, colnames)
 
 class DataFrameModel(QAbstractTableModel):
     def __init__(self, dataframe, parent):
         super(DataFrameModel, self).__init__(parent)
         self.dataframe = dataframe
         self.colnames = self.dataframe.columns
+        self.roles = {}
         
     def rowCount(self, parent):
         return self.dataframe.shape[0]
@@ -176,6 +185,30 @@ class DataFrameModel(QAbstractTableModel):
         self.dataframe = DataFrame()
         self.columns = []
         self.reset()
+        
+    def set_role(self, role, colnames):
+        '''
+        Set the role of the 'colnames' to 'role'  
+        '''
+        numcol = dict(zip(colnames, range(len(colnames))))
+        self.roles[role] = [numcol[name] for name in colnames] 
+        
+    
+    def setData(self, index, value, role = Qt.EditRole):
+        if not index.isValid():
+            return False
+        row = index.row()
+        col = index.column()
+        df = self.dataframe    
+        if role == Qt.EditRole:
+            if 'Edit' in self.roles.keys():
+                for editable_col in self.roles['Edit']:
+                    if col == editable_col: 
+                        df[df[df.columns[row]]][df.index[col]] = value.toPyObject()
+                        self.dataChanged.emit(index, index)
+                        return True
+        return False    
+        
 
 class OfTableView(QTableView):
     def __init__(self, parent = None):
@@ -229,6 +262,47 @@ class OfSs:
          '''
             
 ### Some useful widgets
+
+class MySpinBox(QWidget):
+    def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
+                 step = None, tip = None, value = None, changed =None):
+        super(MySpinBox, self).__init__(parent)
+    
+        if prefix:
+            plabel = QLabel(prefix)
+        else:
+            plabel = None
+        if suffix:
+            slabel = QLabel(suffix)
+        else:
+            slabel = None
+        spinbox = QSpinBox(parent)
+        if min_ is not None:
+            spinbox.setMinimum(min_)
+        if max_ is not None:
+            spinbox.setMaximum(max_)
+        if step is not None:
+            spinbox.setSingleStep(step)
+        if tip is not None:
+            spinbox.setToolTip(tip)
+        layout = QHBoxLayout()
+        for subwidget in (plabel, spinbox, slabel):
+            if subwidget is not None:
+                layout.addWidget(subwidget)
+        if value is not None:
+            spinbox.setValue(value)
+        
+        if changed is not None:
+            self.connect(spinbox, SIGNAL('valueChanged(int)'), changed)
+
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+        self.spin = spinbox
+
+
+
+
             
 class MyDoubleSpinBox(QWidget):
     def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
