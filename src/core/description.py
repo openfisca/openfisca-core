@@ -38,15 +38,22 @@ class MetaModelDescription(type):
         if not parents:
             # If this isn't a subclass of ModelDescription, don't do anything special.
             return super_new(cls, name, bases, dct)
-
+        
         for attrname, col in dct.items():
             if isinstance(col, Column):
                 col.name = attrname
-                if attrname in columns:
-                    col._order = columns[attrname]._order
+#                if attrname in columns:
+#                    col._order = columns[attrname]._order
+#                    raise Exception("column declared twice")
                 columns[attrname] = col
+
         columns_list = columns.values()
         columns_list.sort(key=lambda x:x._order)
+        col_numbers = set([x._order for x in columns_list])
+        for i in range(max(col_numbers)):
+            if not i in col_numbers:
+                raise Exception("The column before %s in class %s is defined twice"% (columns_list[i].name, name))
+        
         dct["columns"] = columns_list
         return super_new(cls, name, bases, dct)
         

@@ -46,14 +46,12 @@ DEFAULTS = [
              {'data_dir': 'data',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
+              'calib_dir'   :  'calibrations',
               'output_dir' : os.path.expanduser('~'),
-              }),
-            ('aggregates',
-             {'external_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
+              'survey_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
               }),
             ('calibration', 
-             {'date': '2006-01-01',
-              'inputs_filename': 'calage_men.csv',
+             {'inputs_filename': 'calage_men.csv',
               'pfam_filename': 'calage_pfam.csv',
               'method': 'logit',
               'up': 3.0,
@@ -628,34 +626,6 @@ class SimConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.main.apply_settings()
         
-class AggConfigPage(GeneralConfigPage):
-    CONF_SECTION = "aggregates"
-    def get_name(self):
-        return u"Aggrégats"
-    
-    def get_icon(self):
-        return get_icon("simprefs.png")
-    
-    def setup_page(self):        
-        aggregates_group = QGroupBox(u"Aggrégats")
-        
-        external_data_file_edit = self.create_browsefile(u'Emplacement des données externes', 'external_data_file', tip=None, filters='*.csv')
-        
-        # calib_file_edit = self.create_browsefile(u'Emplacement des données de calibration', 'filename', tip=None, filters='*.csv')       
-        
-        aggregates_layout = QVBoxLayout()
-        aggregates_layout.addWidget(external_data_file_edit)
-        
-        aggregates_group.setLayout(aggregates_layout)
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(aggregates_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-        
-    def apply_settings(self, options):
-        self.main.apply_settings()        
-        
 class CalConfigPage(GeneralConfigPage):
     CONF_SECTION = "calibration"
     def get_name(self):
@@ -689,8 +659,7 @@ class CalConfigPage(GeneralConfigPage):
         self.setLayout(vlayout)
         
     def apply_settings(self, options):
-        self.main.apply_settings()        
-        
+        self.main.apply_settings()
 
 class PathConfigPage(GeneralConfigPage):
     CONF_SECTION = "paths"
@@ -701,18 +670,24 @@ class PathConfigPage(GeneralConfigPage):
         return get_icon("cheminprefs.png")
     
     def setup_page(self):
-        cas_type_dir = self.create_browsedir(u'Emplacement des cas types', 'cas_type_dir')
-        reformes_dir = self.create_browsedir(u'Emplacement des réformes', 'reformes_dir')
-        data_dir = self.create_browsedir(u'Emplacement des données internes', 'data_dir')
+        cas_type_dir = self.create_browsedir(u'Cas types', 'cas_type_dir')
+        reformes_dir = self.create_browsedir(u'Réformes', 'reformes_dir')
+        calib_dir = self.create_browsedir(u'Calages', 'calib_dir')
+        data_dir = self.create_browsedir(u'Données internes', 'data_dir')
+        survey_file = self.create_browsefile(u"Données d'enquête", 'survey_data_file', tip=None, filters='*.csv')
+
         paths_layout = QVBoxLayout()
         paths_layout.addWidget(cas_type_dir)
         paths_layout.addWidget(reformes_dir)
+        paths_layout.addWidget(calib_dir)
         paths_layout.addWidget(data_dir)
+        paths_layout.addWidget(survey_file)
         paths_layout.addStretch(1)
         self.setLayout(paths_layout)
 
     def apply_settings(self, options):
         self.main.enable_aggregate(True)
+        self.main.enable_calibration(True)
 
 def test():
     import sys

@@ -183,7 +183,7 @@ font-weight : bold;
       </widget>
      </item>
      <item>
-      <widget class="QListView" name="navigationView">
+      <widget class="QListWidget" name="contents_widget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -325,7 +325,7 @@ font-weight : bold;
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="prevButton">
+           <widget class="QToolButton" name="prev_btn">
             <property name="text">
              <string>...</string>
             </property>
@@ -389,7 +389,7 @@ font-weight : bold;
            </spacer>
           </item>
           <item>
-           <widget class="QToolButton" name="nextButton">
+           <widget class="QToolButton" name="next_btn">
             <property name="text">
              <string>...</string>
             </property>

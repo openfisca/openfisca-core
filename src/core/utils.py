@@ -31,17 +31,17 @@ from datetime import datetime
 from pandas import DataFrame
 
 class Enum(object):
-    def __init__(self, varlist):
+    def __init__(self, varlist, start = 0):
         self._vars = {}
+        self._nums = {}
         self._count = 0
         for var in varlist:
-            self._vars.update({self._count:var})
+            self._vars.update({self._count + start:var})
+            self._nums.update({var: self._count + start})
             self._count += 1
-        for key, var in self._vars.iteritems():
-            setattr(self, var, key)
             
     def __getitem__(self, var):
-        return getattr(self, var)
+        return self._nums[var]
 
     def __iter__(self):
         return self.itervars()
@@ -112,7 +112,9 @@ def gen_aggregate_output(model):
         out_dct[varname] = val
 
     # TODO: should take care the variables that shouldn't be summed automatically
-    varlist = ['wprm', 'typ_men']
+    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr']
+    
     for varname in varlist:
         if varname in model.col_names:
             val = model.get_value(varname, idx)

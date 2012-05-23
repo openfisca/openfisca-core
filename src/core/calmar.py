@@ -61,6 +61,10 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
       - param maxfev :  maximum number of function evaluation TODO  
     '''   
     # choice of method
+    
+    if not margins:
+        pass
+    
     if not 'method' in param:
         param['method'] = 'linear'
 
@@ -101,7 +105,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     nj = 1
     
     margins_new = {}
-    
+    margins_new_dict = {}
     for var, val in margins.iteritems():
         if isinstance(val, dict):
             dummies_dict = build_dummies_dict(data[var])            
@@ -110,6 +114,9 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
                 cat_varname =  var + '_' + str(cat)
                 data[cat_varname] = dummies_dict[cat]
                 margins_new[cat_varname] = nb
+                if not margins_new_dict.has_key(var):
+                    margins_new_dict[var] = {}
+                margins_new_dict[var][cat] = nb
                 pop += nb
                 k += 1
                 nj += 1
@@ -121,10 +128,12 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
                     for cat, nb in val.iteritems():
                         cat_varname =  var + '_' + str(cat)
                         margins_new[cat_varname] = nb*totalpop/pop
+                        margins_new_dict[var][cat] = nb
                 else:
                     raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
             margins_new[var] = val
+            margins_new_dict[var] = val
             nj += 1
 
     # On conserve systematiquement la population  
@@ -169,7 +178,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     pondfin = d*F( dot(x, lambdasol))
 
     print "nombre d'essais: ", essai
-    return pondfin, lambdasol, margins_new 
+    return pondfin, lambdasol, margins_new_dict 
 
 def test1():
     data = dict(ident = range(4),
@@ -262,7 +271,7 @@ def test4():
     n, bins, patches = hist(weight_ratio, 100, normed=1, histtype='stepfilled')
     setp(patches, 'facecolor', 'g', 'alpha', 0.75)
     show()
-    plot(wprm, pondfin/wprm, 'x')
+    plot(data['wprm'], pondfin/data['wprm'], 'x')
     show()
 
 if __name__ == '__main__':
