@@ -48,7 +48,7 @@ DEFAULTS = [
               'reformes_dir': 'reformes',
               'calib_dir'   :  'calibrations',
               'output_dir' : os.path.expanduser('~'),
-              'survey_data_file':'C:/Users/Utilisateur/Documents/Data/R/openfisca/2006/final.csv',
+              'survey_data_file':'data/final.csv',
               }),
             ('calibration', 
              {'inputs_filename': 'calage_men.csv',

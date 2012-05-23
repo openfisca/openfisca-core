@@ -50,6 +50,7 @@ class EnumCol(IntCol):
     '''
     def __init__(self, enum=None, label = None, default = 0):
         super(EnumCol, self).__init__(label, default)
+        self._dtype = np.int16
         if isinstance(enum, Enum):
             self.enum = enum
         else:
