@@ -42,7 +42,7 @@ class IntCol(Column):
     '''
     def __init__(self, label = None, default = 0):
         super(IntCol, self).__init__(label, default)
-        self._dtype = np.int32
+        self._dtype = np.float32
         
 class EnumCol(IntCol):
     '''

@@ -137,7 +137,7 @@ class DataTable(object):
             if not col.name in self.table:
                 missing_col.append(col.name)
                 self.table[col.name] = col._default
-            self.table[col.name].astype(col._dtype)
+            self.table[col.name] = self.table[col.name].astype(col._dtype)
 
         if missing_col:
             message = "%i input variables missing\n" % len(missing_col)
