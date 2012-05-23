@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/page07.ui'
 #
-# Created: Wed May 16 11:38:16 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Wed May 23 18:30:46 2012
+#      by: PyQt4 UI code generator 4.8.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Page07(object):
     def setupUi(self, Page07):
         Page07.setObjectName(_fromUtf8("Page07"))
-        Page07.resize(730, 1325)
+        Page07.resize(730, 1324)
         Page07.setMinimumSize(QtCore.QSize(730, 0))
         Page07.setMaximumSize(QtCore.QSize(730, 16777215))
         Page07.setWindowTitle(QtGui.QApplication.translate("Page07", "Form", None, QtGui.QApplication.UnicodeUTF8))

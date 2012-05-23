@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/baremedialog.ui'
 #
-# Created: Wed May 16 11:38:17 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Wed May 23 18:30:47 2012
+#      by: PyQt4 UI code generator 4.8.6
 #
 # WARNING! All changes made in this file will be lost!
 
