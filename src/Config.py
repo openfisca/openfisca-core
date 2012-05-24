@@ -23,16 +23,14 @@ This file is part of openFisca.
 
 import os, os.path as osp
 
-from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
-                                QVBoxLayout, QStackedWidget, QListView,
-                                QHBoxLayout, QDialogButtonBox,QMessageBox, 
-                                QLabel, QSpinBox, QDoubleSpinBox, QPushButton, 
-                                QGroupBox, QComboBox, QDateEdit, QFileDialog,
-                                QSplitter, QIcon, QLineEdit)
+from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem, QVBoxLayout, 
+                         QStackedWidget, QListView, QHBoxLayout, QDialogButtonBox, 
+                         QMessageBox, QLabel, QSpinBox, QDoubleSpinBox, QPushButton, 
+                         QGroupBox, QComboBox, QDateEdit, QFileDialog, QIcon, QLineEdit)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
 from datetime import datetime
-VERSION = "0.1.0"
+VERSION = "0.1.2"
 
 DEFAULTS = [
             ('simulation', 
