@@ -143,12 +143,36 @@ class DataFrameViewWidget(QTableView):
             model.clear()
         self.reset()
         
-    def set_role(self, role, colnames):        
+    def copy(self):
         '''
-        Set the role of the 'colnames' to 'role'  
+        Copy the table selection to the clipboard
         '''
-        model = self.model()
-        model.set_role(role, colnames)
+        selection = self.selectionModel()
+        indexes = selection.selectedIndexes()
+        indexes.sort()
+        previous = indexes.pop(0)
+        data = self.model().data(previous)
+        try:
+            text = data.toString()
+        except:
+            text = str(data)
+        selected_text = QString(text)
+
+        for current in indexes:
+            if current.row() != previous.row():
+                selected_text.append('\n')
+            else:
+                selected_text.append('\t')
+            data = self.model().data(current)
+            try:
+                text = data.toString()
+            except:
+                text = str(data)
+            selected_text.append(text)
+            previous = current
+        selected_text.append('\n')
+        QApplication.clipboard().setText(selected_text)
+
 
 class DataFrameModel(QAbstractTableModel):
     def __init__(self, dataframe, parent):
@@ -186,28 +210,6 @@ class DataFrameModel(QAbstractTableModel):
         self.columns = []
         self.reset()
         
-    def set_role(self, role, colnames):
-        '''
-        Set the role of the 'colnames' to 'role'  
-        '''
-        numcol = dict(zip(colnames, range(len(colnames))))
-        self.roles[role] = [numcol[name] for name in colnames] 
-        
-    
-    def setData(self, index, value, role = Qt.EditRole):
-        if not index.isValid():
-            return False
-        row = index.row()
-        col = index.column()
-        df = self.dataframe    
-        if role == Qt.EditRole:
-            if 'Edit' in self.roles.keys():
-                for editable_col in self.roles['Edit']:
-                    if col == editable_col: 
-                        df[df[df.columns[row]]][df.index[col]] = value.toPyObject()
-                        self.dataChanged.emit(index, index)
-                        return True
-        return False    
         
 
 class OfTableView(QTableView):
