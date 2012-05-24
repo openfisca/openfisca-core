@@ -89,7 +89,7 @@ Taux marginaux</string>
   <customwidget>
    <class>MatplotlibWidget</class>
    <extends>QWidget</extends>
-   <header>matplotlibwidget</header>
+   <header>widgets.matplotlibwidget</header>
   </customwidget>
  </customwidgets>
  <resources>

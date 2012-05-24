@@ -26,7 +26,7 @@ import os
 
 uiList = ['graph', 'declaration', 'composition', 'logement',
           'page01', 'page02', 'page03', 'page04', 'page05', 'page06', 'page07', 
-          'page08', 'parametres', 'baremedialog']
+          'page08', 'page_isf', 'parametres', 'baremedialog']
 
 commands = []
 for ui in uiList:
