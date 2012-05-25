@@ -350,7 +350,7 @@ class DataTable(object):
         return self.table.__str__()
 
 
-    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False):
+    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False, opt_datatable = None):
 
         data = {weights_in: self.get_value(weights_in, self.index['men'])}
         
@@ -358,9 +358,14 @@ class DataTable(object):
             for var in marges:
                 if var in self.col_names:
                     data[var] = self.get_value(var, self.index['men'])
-#            else:
-#                if var != "totalpop":
-#                    data[var] = self.get_value(var, self.index['men'])
+                else:
+                    if opt_datatable is not None:
+                        if var in opt_datatable.col_names:
+                            unit = 'men'
+                            idx = opt_datatable.index['men']
+                            enum = opt_datatable._inputs.description.get_col('qui'+unit).enum
+                            people = [x[1] for x in enum]
+                            data[var] = opt_datatable.get_value(var, index=idx, opt=people, sum_=True)
             try:
                 val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
             except:

@@ -123,12 +123,11 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
             # Check total popualtion
             if pop != totalpop:
                 if use_proportions:
-                    import warnings
-                    warnings.warn('calmar: categorical variable %s is inconsistent with population; using proportions' % var)
+                    print 'calmar: categorical variable %s is inconsistent with population; using proportions' % var
                     for cat, nb in val.iteritems():
                         cat_varname =  var + '_' + str(cat)
                         margins_new[cat_varname] = nb*totalpop/pop
-                        margins_new_dict[var][cat] = nb
+                        margins_new_dict[var][cat] = nb*totalpop/pop
                 else:
                     raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
@@ -150,11 +149,12 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     d = data[pondini]
     x = zeros((nk, nj)) # nb obs x nb constraints
     xmargins = zeros(nj)
-    
+    margins_dict = {}
     j=0
     for var , val in margins_new.iteritems():
         x[:,j] = data[var]
         xmargins[j] = val
+        margins_dict[var] =val
         j += 1
 
     # Résolution des équations du premier ordre
@@ -168,16 +168,29 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     else:
         xtol = 1.49012e-08
         
-    while (ier==2 or ier==5) and (essai <= 10):
+    err_max = 1    
+    conv = 1
+    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-4 and conv < 1e-8 )):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
 #        print 'ier: ', ier
 #        print 'mesg: ', mesg
         lambda0 = 1*lambdasol
         essai += 1
         
-    pondfin = d*F( dot(x, lambdasol))
-
-    print "nombre d'essais: ", essai
+        pondfin = d*F( dot(x, lambdasol))
+        rel_error ={}
+        for var, val in margins_new.iteritems():
+            rel_error[var] =  abs((data[var]*pondfin).sum() - margins_dict[var])/margins_dict[var]
+        import operator
+        sorted_err = sorted(rel_error.iteritems(), key=operator.itemgetter(1), reverse = True)
+        
+#        print '--- essai ', essai, ' -----'
+#        for i in range(3):
+#            print sorted_err[i]
+        conv = abs(err_max - sorted_err[0][1])
+        err_max = sorted_err[0][1]
+            
+    if (ier==2 or ier==5 or ier==4): print "calmar: stopped after ", essai, "tries"
     return pondfin, lambdasol, margins_new_dict 
 
 def test1():
