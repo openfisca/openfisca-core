@@ -109,7 +109,7 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
     
-    def propagate_to_members(self, unit = 'men', col = "wprm"):
+    def propagate_to_members(self, unit , col):
         '''
         Set the variable of all unit member to the value of the (head of) unit
         '''
@@ -159,59 +159,8 @@ class DataTable(object):
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
 #        self.calage()
-        
-#    def set_zone_apl(self):
-#        data_dir = CONF.get('paths', 'data_dir')
-#        fname = os.path.join(data_dir, 'zone_apl_imputation_data')
-#
-#        with open(fname, 'rb') as zone_apl_data:
-#            zone = pickle.load(zone_apl_data)
-#
-#        code_vec = self.get_value('tu99') + 1e1*self.get_value('tau99') + 1e3*self.get_value('reg') + 1e5*self.get_value('pol99')        
-#        zone_apl = self.get_value('zone_apl')
-#        
-#        for code in zone.keys():
-#            if isinstance(zone[code], int):
-#                zone_apl[code_vec == code] = zone[code]
-#            else:
-#                np.random.seed(0)
-#                prob = np.random.rand(len(zone_apl[code_vec == code]))
-#                zone_apl[code_vec == code] = 1+ (zone[code][1]>prob) + (zone[code][2]> prob ) 
-#        self.set_value('zone_apl',zone_apl,self.index['men'])
-#        print self.get_value('zone_apl')    
 
 #    def calage(self):
-#        data_dir = CONF.get('paths', 'data_dir')
-#        year = self.datesim.year
-#        if year <= 2008:
-#            print 'calage'
-#            # update weights with calmar (demography)
-#            fname_men = os.path.join(data_dir, 'calage_men.csv')
-#            f_tot = open(fname_men)
-#            totals = read_csv(f_tot,index_col = (0,1))
-#
-#            marges = {}
-#            for var, mod in totals.index:
-#                if not marges.has_key(var):
-#                    marges[var] = {}
-#                
-#                marges[var][mod] =  totals.get_value((var,mod),year)
-#            f_tot.close()
-#            
-#            totalpop = marges.pop('totalpop')[0]
-##            marges.pop('cstotpragr')
-##            marges.pop('naf16pr')
-##            marges.pop('typmen15')
-##            marges.pop('ddipl')
-##            marges.pop('ageq')
-#            marges.pop('act5') # variable la plus problématique
-#            param ={'use_proportions': True, 
-#                    'method': 'logit', 'lo':.1, 'up': 10,
-#                    'totalpop' : totalpop,
-#                    'xtol': 1e-6}
-#            self.update_weights(marges, param)
-#        
-#        #param  = {'totalpop': 62000000, 'use_proportions': True}
 #
 #        # inflate revenues on totals
 #        fname = os.path.join(data_dir, 'calage.csv')
@@ -379,8 +328,6 @@ class DataTable(object):
         self.propagate_to_members( unit='men', col = weights_out)
         if return_margins:
             return marge_new    
-
-
 
 
 class SystemSf(DataTable):
