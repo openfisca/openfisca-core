@@ -144,5 +144,6 @@ class Description(object):
 
     def get_col(self, col_name):
         return self.columns[col_name]
-        raise Exception('Column %s does not exist' % col_name)
 
+    def has_col(self, col_name):
+        return self.columns.has_key(col_name)

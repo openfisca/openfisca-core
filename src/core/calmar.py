@@ -172,8 +172,6 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     conv = 1
     while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-4 and conv < 1e-8 )):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
-#        print 'ier: ', ier
-#        print 'mesg: ', mesg
         lambda0 = 1*lambdasol
         essai += 1
         
@@ -184,108 +182,10 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
         import operator
         sorted_err = sorted(rel_error.iteritems(), key=operator.itemgetter(1), reverse = True)
         
-#        print '--- essai ', essai, ' -----'
-#        for i in range(3):
-#            print sorted_err[i]
         conv = abs(err_max - sorted_err[0][1])
         err_max = sorted_err[0][1]
             
-    if (ier==2 or ier==5 or ier==4): print "calmar: stopped after ", essai, "tries"
+    if (ier==2 or ier==5 or ier==4): 
+        print "calmar: stopped after ", essai, "tries"
     return pondfin, lambdasol, margins_new_dict 
 
-def test1():
-    data = dict(ident = range(4),
-                x = array([5,2,7,6]),
-                wprm = array([.5,.5,1,1]))
-
-    margins = dict(x=array(5))
-    param = dict(method='linear')
-#    param = dict(method='linear',lo=1/3,up=3)
-
-    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
-
-    print 'initial weights: ', data['wprm'] 
-    print 'final weights: ',  pondfin
-    print 'lambdas:', lambdasol
-    print 'target margin: ', margins
-    print 'new margin: ', sum(pondfin*data['x']) 
-    print pondfin/data['wprm']    
-
-
-def test2():
-    data = dict(i = array([1,2,3,4,5,6,7,8,9,10,11]),
-                g = array([1,1,1,0,0,0,0,1,0, 0, 0]),
-                f = array([0,0,0,1,1,1,1,0,1, 1, 1]),
-                j = array([1,0,0,1,1,0,0,0,1, 0, 0]),
-                k = array([0,1,1,0,0,1,1,1,0, 1, 1]),
-                z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
-                wprm_init = array([10,1,1,11,13,7,8,8,9,10,14]))
-    margins = {'g':32, 'f':60, 'j':42, 'k':50, 'z':140, 'totalpop': 100}
-
-
-    param = dict(method='linear')
-#    param = dict(method='raking ratio')
-#    param = dict(method='logit',lo=.3,up=3)
-    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
-    print pondfin
-    print lambdasol
-    
-    print 'initial weights: ', data['wprm_init'] 
-    print 'final weights: ',  pondfin
-    print 'lambdas:', lambdasol
-    print 'target margin: ', margins
-    print 'new margin: ', sum(pondfin*data['z']) 
-    print pondfin/data['wprm_init']    
-    
-
-def test3():
-    # idem test2 but tests categorical variables
-    data = dict(i = array([1,2,3,4,5,6,7,8,9,10,11]),
-                g = array([1,1,1,0,0,0,0,1,0, 0, 0]),
-                j = array([1,0,0,1,1,0,0,0,1, 0, 0]),
-                z = array([1,2,3,1,3,2,2,2,2, 2, 2]),
-                wprm_init = array([10,1,1,11,13,7,8,8,9,10,14]))
-
-    margins = {'g':{0:60 ,1: 32}, 'j': {0:50,1:42},'z':140}    
-    param = dict(method='linear',lo = .0001,up = 1000)
-    
-    pondfin, lambdasol  = calmar(data,margins,param)
-    
-    print pondfin
-    print lambdasol
-    print pondfin/data['wprm_init']    
-
-
-def test4():
-    # tests large datasets
-    n = 10000
-    index = np.arange(n)
-    val   = index*100
-    wprm_init  = np.random.rand(n)
-    
-    data = dict(i = index,
-                v = val,
-                wprm_init = wprm_init)
-
-    margins = {'v':sum(1.2*data['wprm_init']*data['v'])}
-    param = dict(method='logit',lo = .001,up = 100)
-    
-    pondfin, lambdasol, margins_new  = calmar(data,margins,param)
-    
-    print 'target margin: ', margins['v']
-    print 'calib margin',  sum(pondfin*data['v'])
-    print pondfin
-    print lambdasol
-    print pondfin/data['wprm_init']    
-#    info(fsolve)
-
-    from pylab import hist, setp, show, plot
-    weight_ratio = pondfin/data['wprm']
-    n, bins, patches = hist(weight_ratio, 100, normed=1, histtype='stepfilled')
-    setp(patches, 'facecolor', 'g', 'alpha', 0.75)
-    show()
-    plot(data['wprm'], pondfin/data['wprm'], 'x')
-    show()
-
-if __name__ == '__main__':
-    test2()

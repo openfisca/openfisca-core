@@ -155,7 +155,6 @@ class DataTable(object):
         
         self.gen_index(INDEX)
         self._isPopulated = True
-#        self.set_zone_apl()
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
 #        self.calage()
@@ -427,7 +426,6 @@ class SystemSf(DataTable):
         for var in col._parents:
             parentname = var.name
             if parentname in funcArgs:
-                print parentname
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.calculate(parentname)
             if parentname in col._option: 
