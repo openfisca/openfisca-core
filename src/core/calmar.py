@@ -63,7 +63,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
     # choice of method
     
     if not margins:
-        pass
+        raise Exception("Calmar requires non empty dict of margins")
     
     if not 'method' in param:
         param['method'] = 'linear'

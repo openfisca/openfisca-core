@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/parametres.ui'
 #
-# Created: Thu May 24 14:03:04 2012
-#      by: PyQt4 UI code generator 4.8.6
+# Created: Tue May 29 19:14:56 2012
+#      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -55,7 +55,10 @@ class Ui_Parametres(object):
         self.reset_btn = QtGui.QPushButton(self.dockWidgetContents)
         self.reset_btn.setMinimumSize(QtCore.QSize(0, 30))
         self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
-        self.reset_btn.setText(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
+        self.reset_btn.setText(_fromUtf8(""))
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/images/view-refresh.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.reset_btn.setIcon(icon2)
         self.reset_btn.setIconSize(QtCore.QSize(22, 22))
         self.reset_btn.setObjectName(_fromUtf8("reset_btn"))
         self.horizontalLayout.addWidget(self.reset_btn)

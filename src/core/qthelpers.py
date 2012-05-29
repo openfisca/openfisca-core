@@ -28,6 +28,13 @@ from PyQt4.QtGui import (QAction, QMenu, QTreeView, QTableView, QApplication, QP
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
 from pandas import DataFrame
 
+try:
+    _fromUtf8 = QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
+
+
+
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
     if actions is not None:

@@ -298,37 +298,6 @@ class DataTable(object):
         return self.table.__str__()
 
 
-    def update_weights(self, marges, param = {}, weights_in='wprm_init', weights_out='wprm', return_margins = False, opt_datatable = None):
-
-        data = {weights_in: self.get_value(weights_in, self.index['men'])}
-        
-        if marges:
-            for var in marges:
-                if var in self.col_names:
-                    data[var] = self.get_value(var, self.index['men'])
-                else:
-                    if opt_datatable is not None:
-                        if var in opt_datatable.col_names:
-                            unit = 'men'
-                            idx = opt_datatable.index['men']
-                            enum = opt_datatable._inputs.description.get_col('qui'+unit).enum
-                            people = [x[1] for x in enum]
-                            data[var] = opt_datatable.get_value(var, index=idx, opt=people, sum_=True)
-            try:
-                val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
-            except:
-                raise Exception("Calmar error")
-                return
-        else:
-            val_pondfin = data[weights_in]
-            marge_new = {}
-
-        self.set_value(weights_out, val_pondfin, self.index['men'])
-        self.propagate_to_members( unit='men', col = weights_out)
-        if return_margins:
-            return marge_new    
-
-
 class SystemSf(DataTable):
     def __init__(self, model_description, param, defaultParam = None):
         DataTable.__init__(self, model_description)
