@@ -549,13 +549,13 @@ class OpenFiscaConfigPage(ConfigPage):
         widget.spin = spinbox
         return widget
         
-    def create_dateedit(self, text, option, tip=None):
+    def create_dateedit(self, text, option, tip=None, min_date = None, max_date = None):
         label = QLabel(text)
         dateedit = QDateEdit()
         dateedit.setDisplayFormat('dd MMM yyyy')
-        dateedit.setMaximumDate(QDate(2010,12,31))
-        dateedit.setMinimumDate(QDate(2002,01,01))
-        if tip is not None: dateedit.setToolTip(tip)
+        if min_date: dateedit.setMinimumDate(min_date)
+        if max_date: dateedit.setMaximumDate(max_date)
+        if tip: dateedit.setToolTip(tip)
         self.dateedits[dateedit] = option
         layout = QHBoxLayout()
         for subwidget in (label, dateedit):
@@ -635,7 +635,7 @@ class SimConfigPage(GeneralConfigPage):
     
     def setup_page(self):        
         simulation_group = QGroupBox("Simulation")
-        sim_dateedit = self.create_dateedit("Date de la simulation", 'datesim')
+        sim_dateedit = self.create_dateedit("Date de la simulation", 'datesim', min_date = QDate(2002,01,01), max_date = QDate(2010,12,31))
         nmen_spinbox = self.create_spinbox(u'Nombre de ménages', '', 'nmen', min_ = 1, max_ = 10001, step = 100)
         xaxis_choices = [(u'Salaires', 'sal'),(u'Chômage', 'cho'), (u'Retraites', 'rst')]
         xaxis_combo = self.create_combobox('Axe des abscisses', xaxis_choices, 'xaxis')
