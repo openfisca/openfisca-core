@@ -25,7 +25,7 @@ from __future__ import division
 import numpy as np
 from Config import CONF
 from pandas import read_csv, DataFrame, concat
-from core.calmar import calmar
+import os
 
 from description import ModelDescription, Description
 
@@ -119,13 +119,26 @@ class DataTable(object):
         for member in enum:
             self.set_value(col, value, index, opt = member[1])
 
-
-    def inflate(self, totals):
-        for varname in totals:
-            if varname in self.table:
-                x = sum(self.table[varname]*self.table['wprm'])/totals[varname]
-                if x>0:
-                    self.table[varname] = self.table[varname]/x
+    def inflate(self):
+        '''
+        Inflate inputs data when using totals from the simulation year 
+        '''
+        data_dir = CONF.get('paths', 'data_dir')
+        year     = str(CONF.get('simulation','datesim').year)
+        filename = os.path.join(data_dir, 'calage.csv')
+        with open(filename) as f_tot:
+            totals = read_csv(f_tot,index_col = 0)
+        print totals
+        if year in totals:
+            totals = totals[year]
+            print totals.to_string()
+            for varname in totals.index:
+                if varname in self.table:
+                    print varname, totals.get_value(varname)
+                    x = sum(self.table[varname]*self.table['wprm'])/totals.get_value(varname)
+                    
+                    if x>0:
+                        self.table[varname] = self.table[varname]/x
 
     def populate_from_survey_data(self, fname):
         with open(fname) as survey_data_file:
@@ -157,18 +170,6 @@ class DataTable(object):
         self._isPopulated = True
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
-#        self.calage()
-
-#    def calage(self):
-#
-#        # inflate revenues on totals
-#        fname = os.path.join(data_dir, 'calage.csv')
-#        f_tot = open(fname)
-#        totals = read_csv(f_tot,index_col = 0)
-#        totals = totals[year]
-#        f_tot.close()
-#
-#        self.inflate(totals)             
 
     def populate_from_scenario(self, scenario):
         self._nrows = self.NMEN*len(scenario.indiv)
