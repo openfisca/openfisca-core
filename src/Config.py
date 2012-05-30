@@ -26,11 +26,16 @@ import os, os.path as osp
 from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem, QVBoxLayout, 
                          QStackedWidget, QListView, QHBoxLayout, QDialogButtonBox, 
                          QMessageBox, QLabel, QSpinBox, QDoubleSpinBox, QPushButton, 
-                         QGroupBox, QComboBox, QDateEdit, QFileDialog, QIcon, QLineEdit)
+                         QGroupBox, QComboBox, QDateEdit, QFileDialog, QIcon, QLineEdit,
+                         QRadioButton, QButtonGroup)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
 from datetime import datetime
 VERSION = "0.1.3"
+
+class NoDefault:
+    pass
+
 
 DEFAULTS = [
             ('simulation', 
@@ -45,8 +50,11 @@ DEFAULTS = [
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'calib_dir'   :  'calibrations',
+              'survey_data/file':'data/final.csv',
+              'survey_data/bareme_only': False,
+              'survey_data/survey_enabled': True,
               'output_dir' : os.path.expanduser('~'),
-              'survey_data_file':'data/final.csv',
+
               }),
             ('calibration', 
              {'inputs_filename': 'calage_men.csv',
@@ -99,7 +107,8 @@ class UserConfigParser(RawConfigParser):
         value = RawConfigParser.get(self, section, option)
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
-            value = eval(value)
+            if not isinstance(value, bool):
+                value = eval(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -455,7 +464,7 @@ class OpenFiscaConfigPage(ConfigPage):
         msg = "Invalid file path"
         self.validate_data[edit] = (osp.isfile, msg)
         browse_btn = QPushButton(get_std_icon('FileIcon'), "", self)
-        browse_btn.setToolTip("Select file")
+        browse_btn.setToolTip("Selectionner un fichier")
         self.connect(browse_btn, SIGNAL("clicked()"),
                      lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()
@@ -576,6 +585,31 @@ class OpenFiscaConfigPage(ConfigPage):
         widget.box = combobox
         return widget    
 
+    def create_radiobutton(self, text, option, default=NoDefault,
+                           tip=None, msg_warning=None, msg_info=None,
+                           msg_if_enabled=False, button_group=None):
+        radiobutton = QRadioButton(text)
+        if button_group is None:
+            if self.default_button_group is None:
+                self.default_button_group = QButtonGroup(self)
+            button_group = self.default_button_group
+        button_group.addButton(radiobutton)
+        if tip is not None:
+            radiobutton.setToolTip(tip)
+        self.radiobuttons[radiobutton] = option
+        if msg_warning is not None or msg_info is not None:
+            def show_message(is_checked):
+                if is_checked or not msg_if_enabled:
+                    if msg_warning is not None:
+                        QMessageBox.warning(self, self.get_name(),
+                                            msg_warning, QMessageBox.Ok)
+                    if msg_info is not None:
+                        QMessageBox.information(self, self.get_name(),
+                                                msg_info, QMessageBox.Ok)
+            self.connect(radiobutton, SIGNAL("toggled(bool)"), show_message)
+        return radiobutton
+
+
 class GeneralConfigPage(OpenFiscaConfigPage):
     CONF_SECTION = None
     def __init__(self, parent, main):
@@ -668,24 +702,58 @@ class PathConfigPage(GeneralConfigPage):
         return get_icon("cheminprefs.png")
     
     def setup_page(self):
+        
+        dirs_group = QGroupBox(u"Répertoires de sauvegarde")
         cas_type_dir = self.create_browsedir(u'Cas types', 'cas_type_dir')
         reformes_dir = self.create_browsedir(u'Réformes', 'reformes_dir')
         calib_dir = self.create_browsedir(u'Calages', 'calib_dir')
         data_dir = self.create_browsedir(u'Données internes', 'data_dir')
-        survey_file = self.create_browsefile(u"Données d'enquête", 'survey_data_file', tip=None, filters='*.csv')
 
+        
+        survey_group = QGroupBox(u"Données d'enquête")
+        survey_bg = QButtonGroup(self)
+        survey_label = QLabel(u"Emplacement des données d'enquête pour la microsimulation")
+
+        bareme_only_radio = self.create_radiobutton(u"Mode barème uniquement",
+                                                    'survey_data/bareme_only', False,
+                                                    u"Mode barème uniquement",
+                                button_group = survey_bg)
+        survey_radio = self.create_radiobutton("le fichier suivant",
+                                               'survey_data/survey_enabled', True,
+                                               "Fichier de données pour la microsimulation",
+                                               button_group=survey_bg)
+        survey_file = self.create_browsefile("", 'survey_data/file',
+                                             filters='*.csv')
+        self.connect(bareme_only_radio, SIGNAL("toggled(bool)"),
+                     survey_file.setDisabled)
+        self.connect(survey_radio, SIGNAL("toggled(bool)"),
+                     survey_file.setEnabled)
+        survey_file_layout = QHBoxLayout()
+        survey_file_layout.addWidget(survey_radio)
+        survey_file_layout.addWidget(survey_file)
+
+        survey_layout = QVBoxLayout()
+        survey_layout.addWidget(survey_label)
+        survey_layout.addWidget(bareme_only_radio)
+        survey_layout.addLayout(survey_file_layout)
+        survey_group.setLayout(survey_layout)
+
+        dirs_layout = QVBoxLayout()
+        dirs_layout.addWidget(cas_type_dir)
+        dirs_layout.addWidget(reformes_dir)
+        dirs_layout.addWidget(calib_dir)
+        dirs_group.setLayout(dirs_layout)
+        
         paths_layout = QVBoxLayout()
-        paths_layout.addWidget(cas_type_dir)
-        paths_layout.addWidget(reformes_dir)
-        paths_layout.addWidget(calib_dir)
+        paths_layout.addWidget(dirs_group)
+        paths_layout.addWidget(survey_group)
         paths_layout.addWidget(data_dir)
-        paths_layout.addWidget(survey_file)
+        
         paths_layout.addStretch(1)
         self.setLayout(paths_layout)
 
     def apply_settings(self, options):
         self.main.enable_aggregate(True)
-        self.main.enable_calibration(True)
 
 def test():
     import sys
