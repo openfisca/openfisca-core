@@ -269,7 +269,126 @@ class OfSs:
              border : 1px solid rgb(166, 54, 110);
          }        
          '''
+    declaration_page_style = '''
+        QDialog{
+            background-color: #e6ebf4;
+        }
+        /*----------------- Objets----------------- */        
+        QLineEdit{
+            border: 1px solid gray;
+            border-style: solid;
+            border-radius: 2px;
+            padding: 0 4px;
+            background: white;
+            selection-background-color: darkgray;
+        }
+        QSpinBox{
+            border: 1px solid gray;
+            border-style: solid;
+            border-radius: 2px;
+            padding: 0 4px;
+            background: white;
+            selection-background-color: darkgray;
+            alignment: alignright;
+        }
+        QDateEdit{
+            border: 1px solid gray;
+            border-style: solid;
+            border-radius: 2px;
+            padding: 0 4px;
+            background: white;
+            selection-background-color: darkgray;
+        }
             
+        /*-----------------Textes----------------- */
+        /*  Titres */
+
+        QLabel.titreA{
+            color: rgb(166, 54, 110);
+            font: Arial;
+            font-size : 20px;
+            font-weight : normal;
+        }
+        QLabel.titreB{
+            color: rgb(166, 54, 110);
+            font: Arial;
+            font-size : 12px;
+            font-weight : bold;
+        }
+        QLabel.titreC{
+            color: rgb(166, 54, 110);
+            font: Arial;
+            font-size : 12px;
+            font-weight : normal;
+        }
+        QLabel.titreD{
+            color: rgb(166, 54, 110);
+            font: Arial;
+            font-size : 9px;
+            font-weight : normal;
+        }
+
+        /*  Textes */
+
+        QLabel.texte01{
+            font-size: 11px;
+        }
+        QLabel.texte02{
+            font-size: 9px;
+        }
+        QLabel.code{
+            font-size: 12px;
+            font-weight : bold;
+        }
+        
+        /*----------------- Design----------------- */
+        /*------  page  declaration.ui------*/
+        
+        /*  boite générale */
+        QLabel.sponsor{
+            background-image: url(:/images/logo1.png);  
+        }
+        
+        QFrame.top{
+            background-color: #e7d2d9;
+            border: 2px solid #e7d2d9;
+            border-radius: 6px;
+        }
+        
+        /*  Pages du formulaire */
+        QLabel.boite1{
+            background-color: #e7d2d9;
+            border-top: 2px solid #e7d2d9;
+            border-left: 2px solid #e7d2d9;
+            border-right: 2px solid #e7d2d9;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-size: 20px;
+            text-align:center;
+            font: bold;
+            color: #ffffff;
+        }
+        QListView {
+            border-left: 2px solid #e7d2d9;
+            border-right: 2px solid #e7d2d9;
+            border-bottom: 2px solid #e7d2d9;
+            font-size: 10px;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        QScrollArea{
+            border : 0px;
+        }
+        
+        QStackedWidget{
+            background-color: #e6ebf4;
+            border : 0px;
+        }
+        
+        '''
+
+    
 ### Some useful widgets
 
 class MySpinBox(QWidget):
