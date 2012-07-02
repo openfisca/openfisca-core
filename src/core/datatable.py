@@ -125,16 +125,13 @@ class DataTable(object):
         '''
         data_dir = CONF.get('paths', 'data_dir')
         year     = str(CONF.get('simulation','datesim').year)
-        filename = os.path.join(data_dir, 'calage.csv')
+        filename = os.path.join(data_dir, 'inflate.csv')
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = 0)
-        print totals
         if year in totals:
             totals = totals[year]
-            print totals.to_string()
             for varname in totals.index:
                 if varname in self.table:
-                    print varname, totals.get_value(varname)
                     x = sum(self.table[varname]*self.table['wprm'])/totals.get_value(varname)
                     
                     if x>0:
