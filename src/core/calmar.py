@@ -177,7 +177,7 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
         
     err_max = 1    
     conv = 1
-    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-4 and conv < 1e-8 )):
+    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-6 and conv < 1e-8 )):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
         lambda0 = 1*lambdasol
         essai += 1
