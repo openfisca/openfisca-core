@@ -21,6 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import division
+import os
 from xml.dom import minidom
 from numpy import maximum as max_, minimum as min_
 import numpy as np
@@ -90,7 +91,10 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
             
 def gen_output_data(model):
 
-    _doc = minidom.parse('data/totaux.xml')
+    data_dir = CONF.get('paths', 'data_dir')
+    totals_fname = os.path.join(data_dir,'totaux.xml')
+    _doc = minidom.parse(totals_fname)
+
     tree = OutNode('root', 'root')
 
     handle_output_xml(_doc, tree, model)
