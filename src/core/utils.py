@@ -277,6 +277,8 @@ class Scenario(object):
         self.declar = {}
         # declar est un dict de dict. La clé est le noidec.
         self.famille = {}
+        
+        # menage est un dict de dict la clé est la pref
         self.menage = {0:{'loyer':500,'so':3, 'code_postal':69001, 'zone_apl':2}}
 
         # on ajoute un individu, déclarant et chef de famille

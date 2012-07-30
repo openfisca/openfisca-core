@@ -8,8 +8,8 @@ Created on 22 dec. 2011
 '''
 from __future__ import division
 
-import numpy as np
-from numpy import exp, ones, zeros, unique, array, dot
+
+from numpy import exp, ones, zeros, unique, array, dot, float64
 from scipy.optimize import fsolve
 
 def linear(u):
@@ -43,9 +43,9 @@ def build_dummies_dict(data):
         output[val] = (data==val)
     return output
 
-def calmar(data, margins, param = {}, pondini='wprm_init'):
+def calmar(data_in, margins, param = {}, pondini='wprm_init'):
     ''' 
-    calmar : calibration of weights according to some margins
+    Calibraters weights according to some margins
       - data is a dict containing individual data
       - pondini (char) is the inital weight
      margins is a dict containing for each var:
@@ -60,11 +60,18 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
       - param xtol  : relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
       - param maxfev :  maximum number of function evaluation TODO  
     '''   
-    # choice of method
+
+    # remove null weights and keep original data
+    data = dict()
+    is_weight_not_null = (data_in[pondini] > 0) 
+    for a in data_in:
+        data[a] = data_in[a][is_weight_not_null]
+    
     
     if not margins:
         raise Exception("Calmar requires non empty dict of margins")
-    
+
+    # choice of method    
     if not 'method' in param:
         param['method'] = 'linear'
 
@@ -170,7 +177,7 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
         
     err_max = 1    
     conv = 1
-    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-4 and conv < 1e-8 )):
+    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-6 and conv < 1e-8 )):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
         lambda0 = 1*lambdasol
         essai += 1
@@ -187,5 +194,11 @@ def calmar(data, margins, param = {}, pondini='wprm_init'):
             
     if (ier==2 or ier==5 or ier==4): 
         print "calmar: stopped after ", essai, "tries"
-    return pondfin, lambdasol, margins_new_dict 
+    
+    
+    # rebuilding a weight vector with the same size of the initial one
+    pondfin_out = array(data_in[pondini], dtype=float64)
+    pondfin_out[is_weight_not_null] = pondfin
+    
+    return pondfin_out, lambdasol, margins_new_dict 
 

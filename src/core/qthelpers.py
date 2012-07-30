@@ -27,6 +27,7 @@ from PyQt4.QtGui import (QAction, QMenu, QTreeView, QTableView, QApplication, QP
 
 from PyQt4.QtCore import Qt, SIGNAL, QVariant, QString, QAbstractTableModel
 from pandas import DataFrame
+from numpy import isnan, isinf
 
 try:
     _fromUtf8 = QString.fromUtf8
@@ -203,7 +204,12 @@ class DataFrameModel(QAbstractTableModel):
             if isinstance(val, str) or isinstance(val, unicode):
                 return QString(val)
             else:
-                return QVariant(int(round(val)))
+                if isnan(val):
+                    return QString("NaN")
+                elif isinf(val):
+                    return QString("Inf")
+                else:
+                    return QVariant(int(round(val)))
     
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:

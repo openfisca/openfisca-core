@@ -147,6 +147,12 @@ class BoolPresta(Prestation, BoolCol):
         BoolCol.__init__(self, label)
         Prestation.__init__(self, func, unit, label, start, end)
 
+class IntPresta(Prestation, IntCol):
+    def __init__(self, func, unit= 'ind', label = None, start = None, end = None):
+        IntCol.__init__(self, label = label)
+        Prestation.__init__(self, func, unit, label, start, end)
+
+
 
 #    def dep_resolve(self, resolved=set(), unresolved=set()):
 #        '''
