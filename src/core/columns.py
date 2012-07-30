@@ -35,14 +35,17 @@ class Column(object):
         Column.count += 1
         self._default = default
         self._dtype = float
-
+       
 class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, label = None, default = 0):
+    def __init__(self, label = None, default = 0, unit= 'ind', start = None, end = None):
         super(IntCol, self).__init__(label, default)
         self._dtype = np.float32
+        self.unit = unit
+        self.start = start
+        self.end = end 
         
 class EnumCol(IntCol):
     '''
