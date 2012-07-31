@@ -63,7 +63,7 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False):
+    def __init__(self, label = None, default = False,unit= 'ind', start = None, end = None):
         super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
         
