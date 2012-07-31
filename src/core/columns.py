@@ -51,7 +51,7 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    def __init__(self, enum=None, label = None, default = 0):
+    def __init__(self, enum=None, label = None, default = 0, unit= 'ind', start = None, end = None):
         super(EnumCol, self).__init__(label, default)
         self._dtype = np.int16
         if isinstance(enum, Enum):
@@ -63,7 +63,7 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False,unit= 'ind', start = None, end = None):
+    def __init__(self, label = None, default = False, unit= 'ind', start = None, end = None):
         super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
         
