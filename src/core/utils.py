@@ -252,6 +252,7 @@ class OutNode(object):
         return self.log()
 
     def difference(self, other):
+       
         self.vals -=  other.vals
         for child in self.children:
             child.difference(other[child.code])

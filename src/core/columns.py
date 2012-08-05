@@ -35,20 +35,23 @@ class Column(object):
         Column.count += 1
         self._default = default
         self._dtype = float
-
+       
 class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, label = None, default = 0):
+    def __init__(self, label = None, default = 0, unit= 'ind', start = None, end = None):
         super(IntCol, self).__init__(label, default)
         self._dtype = np.float32
+        self.unit = unit
+        self.start = start
+        self.end = end 
         
 class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    def __init__(self, enum=None, label = None, default = 0):
+    def __init__(self, enum=None, label = None, default = 0, unit= 'ind', start = None, end = None):
         super(EnumCol, self).__init__(label, default)
         self._dtype = np.int16
         if isinstance(enum, Enum):
@@ -60,7 +63,7 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False):
+    def __init__(self, label = None, default = False, unit= 'ind', start = None, end = None):
         super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
         
