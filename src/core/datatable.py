@@ -27,7 +27,7 @@ from Config import CONF
 from pandas import read_csv, DataFrame, concat
 import os
 
-from description import ModelDescription, Description
+from description import ModelDescription
 
 INDEX = ['men', 'fam', 'foy']
 
