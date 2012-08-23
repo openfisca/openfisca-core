@@ -117,7 +117,7 @@ def gen_aggregate_output(model):
 
     # TODO: should take care the variables that shouldn't be summed automatically
     # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
-    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr']
+    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile']
     
     for varname in varlist:
         if varname in model.col_names:
@@ -777,7 +777,7 @@ class Bareme(object):
 
 
 # from http://pastebin.com/KTLip9ee
-def mark_weighted_percentiles(a, labels, weights, method):
+def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
 # a is an input array of values.
 # weights is an input array of weights, so weights[i] goes with a[i]
 # labels are the names you want to give to the xtiles
@@ -917,4 +917,7 @@ def mark_weighted_percentiles(a, labels, weights, method):
         ret[a<=quantiles[0]] = labels[0]
         ret[a>=quantiles[-1]] = labels[-1]
     
-        return ret
+        if return_quantiles:
+            return ret, quantiles
+        else:
+            return ret

@@ -66,6 +66,9 @@ class BoolCol(Column):
     def __init__(self, label = None, default = False, unit= 'ind', start = None, end = None):
         super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
+        self.unit = unit
+        self.start = start
+        self.end = end
         
 class FloatCol(Column):
     '''
@@ -146,15 +149,28 @@ class Prestation(Column):
         prestation._parents.add(self)
 
 class BoolPresta(Prestation, BoolCol):
-    def __init__(self, func, unit= 'ind', label = None, start = None, end = None):
+    '''
+    A Prestation inheriting from BoolCol
+    '''
+    def __init__(self, func, unit = 'ind', label = None, start = None, end = None):
         BoolCol.__init__(self, label)
         Prestation.__init__(self, func, unit, label, start, end)
 
 class IntPresta(Prestation, IntCol):
-    def __init__(self, func, unit= 'ind', label = None, start = None, end = None):
-        IntCol.__init__(self, label = label)
+    '''
+    A Prestation inheriting from IntCol
+    '''
+    def __init__(self, func, unit = 'ind', label = None, start = None, end = None):
+        IntCol.__init__(self, label)
         Prestation.__init__(self, func, unit, label, start, end)
 
+class EnumPresta(Prestation, EnumCol):
+    '''
+    A Prestation inheriting from EnumCol
+    '''
+    def __init__(self, func, unit = 'ind', label = None, enum = None, start = None, end = None):
+        EnumCol.__init__(self, enum, label)
+        Prestation.__init__(self, func, unit, label, start, end)
 
 
 #    def dep_resolve(self, resolved=set(), unresolved=set()):

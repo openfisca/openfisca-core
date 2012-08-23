@@ -117,10 +117,13 @@ class ModelDescription(object):
                     length = column_length
         for column in self.columns:
             if debug:
-                if column.label is not None:
-                    label = column.label
+                if hasattr(column, 'label'):
+                    if column.label is not None:
+                        label = column.label
+                    else:
+                        label = ""
                 else:
-                    label = ""
+                    label = "doesn't have a label"
             else:
                 label = column.get_prop_value("display", self, "label")
             if length:
@@ -152,5 +155,3 @@ class ModelDescription(object):
 
     def has_col(self, col_name):
         return self.columns.has_key(col_name)
-        
-
