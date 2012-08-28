@@ -70,8 +70,7 @@ class ModelTunisie(ModelDescription):
     sal_net = Prestation(ir._sal_net)
     pen_net = Prestation(ir._pen_net)
     tspr    = Prestation(ir._tspr)
-    
-    
+        
     rng = Prestation(ir._rng, 'foy', label = u"Revenu net global")
     
     # Déductions
@@ -112,15 +111,5 @@ class ModelTunisie(ModelDescription):
 #    pen = Prestation(cm._pen)
 #    chonet = Prestation(cm._chonet)
 #    rstnet = Prestation(cm._rstnet)
-#    cotsoc_bar = Prestation(cm._cotsoc_bar)
-#    cotsoc_lib = Prestation(cm._cotsoc_lib)
-#    rev_cap = Prestation(cm._rev_cap)
-#    psoc = Prestation(cm._psoc)
-#    pfam = Prestation(cm._pfam)
-#    mini = Prestation(cm._mini)
-#    logt = Prestation(cm._logt)
 #    impo = Prestation(cm._impo)
-#    ############################################################
-#    # Gestion des variations de législation
-#    ############################################################
 

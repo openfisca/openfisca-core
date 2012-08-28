@@ -27,7 +27,7 @@ from Config import CONF
 from pandas import read_csv, DataFrame, concat
 import os
 
-from description import ModelDescription, Description
+from description import ModelDescription
 
 INDEX = ['men', 'fam', 'foy']
 
@@ -58,7 +58,8 @@ class DataTable(object):
         # Build the description attribute        
         if type(model_description) == type(ModelDescription):
             descr = model_description()
-            self.description = Description(descr.columns)
+            descr.build_cols()
+            self.description = descr
         else:
             raise Exception("model_description should be an ModelDescription inherited class")
 

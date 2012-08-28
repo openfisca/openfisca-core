@@ -276,7 +276,7 @@ def _deduc_smig():
     '''
     Déduction supplémentaire pour les salariés payés au « SMIG » et « SMAG »
     '''
-    return 0 # TODO
+    return 0 # TODO voir avec tspr
 
 def _rni(rgn, deduc_fam, rente, ass_vie):
     '''
