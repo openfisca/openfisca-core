@@ -49,9 +49,301 @@
     	<VALUE valeur="105.024" deb="1995-05-01" fin="1996-04-31" />    	
       </CODE>
     </NODE>
-    <NODE description="Régime des salariés non agricoles" code="rsna" >
+    <NODE description="Régime des salariés non agricoles (régime général)" code="rsna" >
+      <NODE description="Patronales" code="pat" >
+    	<BAREME description="Prestations familiales" code="pre_fam">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".022111" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".006139" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".004694" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".040006" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".077639" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+		<BAREME description="Accidents du travail - Maladies professionelles" code="atmp" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".007222" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+		<BAREME description="PST" code="pst" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".002889" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+		<BAREME description="Fond spécial de l'Etat" code="fse" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".005" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  	  </NODE>
+	  <NODE description="Salariales" code="sal" >
+    	<BAREME description="Prestations familiales" code="pre_fam">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".008889" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".002361" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".001806" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".027494" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".047361" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+		<BAREME description="Accidents du travail - Maladies professionelles" code="atmp" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".002778" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+		<BAREME description="PST" code="pst" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".001111" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  	  </NODE>
+	</NODE>
+	<NODE description="Régime des salariés agricoles" code="rsa" >
+      <NODE description="Patronales" code="pat" >
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0018" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".000375" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".040000" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".035" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  	  </NODE>      
       <NODE description="Salariales" code="sal" >
-    	<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0006" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".000125" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0275" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0175" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  	  </NODE>
+    </NODE>    	
+    <NODE description="Régime des salariés agricoles amélioré" code="rsaa" >
+	  <NODE description="Patronales" code="pat" >
+    	<BAREME description="Prestations familiales" code="pre_fam">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".03" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".004" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0008" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".04" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
     	  <TRANCHE code="tranche0">	            
 		    <SEUIL>
 	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
@@ -61,235 +353,183 @@
 	    	</TAUX>
     	  </TRANCHE>
     	</BAREME>
-    	<BAREME description="Cotisation supplémentaire assurance maladie" code="sup_mal" option="noncontrib">
+      </NODE>
+	  <NODE description="Salariales" code="sal" >
+    	<BAREME description="Prestations familiales" code="pre_fam">
     	  <TRANCHE code="tranche0">	            
 		    <SEUIL>
 	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
     	    </SEUIL>
 	    	<TAUX>
-    	      <VALUE valeur=".0143" deb="2009-07-01" fin="2011-12-31"/>
-    	      <VALUE valeur=".0072" deb="2008-07-01" fin="2009-06-31"/>
-    	      <VALUE valeur="0"     deb="1960-01-01" fin="2008-06-31"/>
+    	      <VALUE valeur=".015" deb="1960-01-01" fin="2011-12-31"/>
 	    	</TAUX>
     	  </TRANCHE>
-    	</BAREME>    	
-    	<BAREME description="Régime des pensions" code="pension" option="contrib">
+    	</BAREME>
+    	<NODE description="Assurances sociales" code="ass_soc" >
+    	  <BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".002" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0004" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+  		  <BAREME description="Assurance Maladie" code="mal">
+    	  	<TRANCHE code="tranche0">	            
+		      <SEUIL>
+	    	    <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	      </SEUIL>
+	    	  <TAUX>
+    	        <VALUE valeur=".0275" deb="1960-01-01" fin="2011-12-31"/>
+	    	  </TAUX>
+    	    </TRANCHE>
+    	  </BAREME>
+		</NODE>	
+    	<BAREME description="Pensions" code="pension" >
     	  <TRANCHE code="tranche0">	            
 		    <SEUIL>
 	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
     	    </SEUIL>
 	    	<TAUX>
-    	      <VALUE valeur=".0275" deb="1960-01-01" fin="2011-12-31"/>
+    	      <VALUE valeur=".025" deb="1960-01-01" fin="2011-12-31"/>
 	    	</TAUX>
     	  </TRANCHE>
     	</BAREME>
-	  </NODE>
-	  <NODE description="Employeurs" code="pat" >
-		<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
-		  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-			  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
-		    </SEUIL>
-			<TAUX>
-		      <VALUE valeur=".13" deb="1996-10-01" fin="2011-12-31"/>
-		      <VALUE valeur=".15" deb="1960-01-01" fin="1996-09-30"/>
-			</TAUX>
-		  </TRANCHE>
-		</BAREME>
-		<BAREME description="Cotisation supplémentaire assurance maladie" code="sup_mal" option="noncontrib">
-		  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-			  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
-		    </SEUIL>
-			<TAUX>
-		      <VALUE valeur=".0057" deb="2008-07-01" fin="2011-12-31"/>
-		      <VALUE valeur="0"     deb="1960-01-01" fin="2008-06-31"/>
-			</TAUX>
-		  </TRANCHE>
-		</BAREME>    	
-		<BAREME description="Régime des pensions" code="pension" option="contrib">
-		  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-			  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
-		    </SEUIL>
-			<TAUX>
-		      <VALUE valeur=".025" deb="1960-01-01" fin="2011-12-31"/>
-			</TAUX>
-		  </TRANCHE>
-		</BAREME>
-		<BAREME description="Majoration loi 1974-101 " code="maj" option="contrib">
-		  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-			  <VALUE valeur="0" deb="1974-01-01" fin="2011-12-31"/>
-		    </SEUIL>
-			<TAUX>
-		      <VALUE valeur=".005" deb="1974-01-01" fin="2011-12-31"/>
-			</TAUX>
-		  </TRANCHE>
-		</BAREME>
-	  </NODE>
-  	</NODE>
-  	<NODE description="Régime des salariés agricoles" code="rsa" >
-  	  <NODE description="Salariales" code="sal" >
-	    <NODE description="Assurances sociales" code="ass_soc" >    	  
-    	  <BAREME description="Maladie, maternité, décès" code="ass_soc" option="noncontrib">
-    	    <TRANCHE code="tranche0">	            
-		      <SEUIL>
-	    	    <VALUE valeur="0" deb="1970-01-01" fin="2011-12-31"/>
-    	      </SEUIL>
-	    	  <TAUX>
-    	        <VALUE valeur=".09" deb="1981-01-01" fin="2008-06-30"/>
-	    	  </TAUX>
-    	    </TRANCHE>
-    	  </BAREME>
-    	  <BAREME description="Maladie" code="ass_soc" option="noncontrib">
-    	    <TRANCHE code="tranche0">	            
-		      <SEUIL>
-	    	    <VALUE valeur="0" deb="1970-01-01" fin="2011-12-31"/>
-    	      </SEUIL>
-	    	  <TAUX>
-    	        <VALUE valeur=".0275" deb="2011-07-01" fin="2011-12-31"/>
-    	        <VALUE valeur=".0212" deb="2010-07-01" fin="2011-06-30"/>
-    	        <VALUE valeur=".0149" deb="2009-07-01" fin="2010-06-30"/>
-    	        <VALUE valeur=".0086" deb="2008-07-01" fin="2009-06-30"/>
-	    	  </TAUX>
-    	    </TRANCHE>
-    	  </BAREME>
-    	  <BAREME description="Famille" code="ass_soc" option="noncontrib">
-    	    <TRANCHE code="tranche0">	            x
-		      <SEUIL>
-	    	    <VALUE valeur="0" deb="1970-01-01" fin="2011-12-31"/>
-    	      </SEUIL>
-	    	  <TAUX>
-    	        <VALUE valeur=".007" deb="2008-07-01" fin="2011-12-31"/>
-	    	  </TAUX>
-    	    </TRANCHE>
-    	  </BAREME>
-    	</NODE>    	
-    	<BAREME description="Régime des pensions" code="pension" option="contrib">
-    	  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-	    	  <VALUE valeur="0" deb="1981-01-01" fin="2011-12-31"/>
-    	    </SEUIL>
-	    	<TAUX>
-    	      <VALUE valeur=".0175" deb="1981-01-01" fin="2011-12-31"/>
-	    	</TAUX>
-    	  </TRANCHE>
-    	</BAREME>
-	  </NODE>
-	  <NODE description="Employeurs" code="pat" >
-		<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
-    	  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-	    	  <VALUE valeur="0" deb="1970-01-01" fin="2011-12-31"/>
-    	    </SEUIL>
-	    	<TAUX>
-    	      <VALUE valeur=".0762" deb="2011-07-01" fin="2011-12-31"/>
-    	      <VALUE valeur=".0706" deb="2010-07-01" fin="2011-06-30"/>
-    	      <VALUE valeur=".0640" deb="2009-07-01" fin="2010-06-30"/>
-    	      <VALUE valeur=".0574" deb="2008-07-01" fin="2009-06-30"/>
-    	      <VALUE valeur=".0507" deb="2007-07-01" fin="2008-06-30"/>
-    	      <VALUE valeur=".0440" deb="1981-01-01" fin="2007-06-30"/>
-    	    </TAUX>
-    	  </TRANCHE>
-    	</BAREME>
-    	<BAREME description="Régime des pensions" code="pension" option="contrib">
-    	  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-	    	  <VALUE valeur="0" deb="1981-01-01" fin="2011-12-31"/>
-    	    </SEUIL>
-	    	<TAUX>
-    	      <VALUE valeur="3.50" deb="1981-01-01" fin="2011-12-31"/>
-	    	</TAUX>
-    	  </TRANCHE>
-    	</BAREME>
-    	
-	  </NODE>
-  	</NODE>
-  	
-  	
-  	<NODE description="Régime des salariés agricoles amélioré" code="rsaa" >
-  	  <NODE description="Salariales" code="sal" >
-    	<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
-    	  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-	    	  <VALUE valeur="0" deb="1989-01-01" fin="2011-12-31"/>
-    	    </SEUIL>
-	    	<TAUX>
-    	      <VALUE valeur=".0699" deb="2010-07-01" fin="2011-12-31"/>
-    	      <VALUE valeur=".0633" deb="2009-07-01" fin="2010-06-30"/>
-    	      <VALUE valeur=".0567" deb="2008-07-01" fin="2009-06-30"/>
-    	      <VALUE valeur=".05" deb="1989-01-01" fin="2008-06-30"/>
-	    	</TAUX>
-    	  </TRANCHE>
-    	</BAREME>
-	  </NODE>
-	  <NODE description="Employeurs" code="pat" >
-		<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
-    	  <TRANCHE code="tranche0">	            
-		    <SEUIL>
-	    	  <VALUE valeur="0" deb="1970-01-01" fin="2011-12-31"/>
-    	    </SEUIL>
-	    	<TAUX>
-    	      <VALUE valeur=".1248" deb="2010-07-01" fin="2012-06-30"/>
-    	      <VALUE valeur=".1186" deb="2009-07-01" fin="2010-06-30"/>
-    	      <VALUE valeur=".1124" deb="2008-07-01" fin="2009-06-30"/>
-    	      <VALUE valeur=".1062" deb="2007-07-01" fin="2008-06-30"/>
-    	      <VALUE valeur=".10" deb="1970-01-01" fin="2007-06-30"/>
-    	    </TAUX>
-    	  </TRANCHE>
-    	</BAREME>
-	  </NODE>
+      </NODE>
   	</NODE>
   	<NODE description="Régime des travailleurs non salariés" code="rtns" >
-  	  <BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+	  <NODE description="Assurances sociales" code="ass_soc" >
+    	<BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0051" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0045" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Assurance Maladie" code="mal">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0675" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+      </NODE>	
+      <BAREME description="Pensions" code="pension" >
     	<TRANCHE code="tranche0">	            
 		  <SEUIL>
-	    	<VALUE valeur="0" deb="1989-01-01" fin="2011-12-31"/>
+	    	<VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
     	  </SEUIL>
 	      <TAUX>
-    	    <VALUE valeur=".1471" deb="2010-07-01" fin="2011-12-31"/>
-    	    <VALUE valeur=".1379" deb="2009-07-01" fin="2010-06-30"/>
-    	    <VALUE valeur=".1286" deb="2008-07-01" fin="2009-06-30"/>
-    	    <VALUE valeur=".1193" deb="2007-07-01" fin="2008-06-30"/>
-    	    <VALUE valeur=".11"   deb="1995-01-01" fin="2007-06-30"/>
-	   	  </TAUX>
+    	    <VALUE valeur=".07" deb="1960-01-01" fin="2011-12-31"/>
+	      </TAUX>
     	</TRANCHE>
-   	  </BAREME>
-    </NODE>
+      </BAREME>  		
+  	</NODE>
 ## TODO	classe de salaire et mettre les deux régimes qui existaient entre 1982 en 1995
   	<NODE description="Régime des travailleurs tunisiens à l'étranger" code="rtte" >
-  	  <BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+	  <NODE description="Assurances sociales" code="ass_soc" >
+    	<BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0074" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0056" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Assurance Maladie" code="mal">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0675" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+      </NODE>	
+      <BAREME description="Pensions" code="pension" >
     	<TRANCHE code="tranche0">	            
 		  <SEUIL>
-	    	<VALUE valeur="0" deb="1989-01-01" fin="2011-12-31"/>
+	    	<VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
     	  </SEUIL>
 	      <TAUX>
-    	    <VALUE valeur=".1330" deb="2009-07-01" fin="2011-12-31"/>
-    	    <VALUE valeur=".1242" deb="2008-07-01" fin="2009-06-30"/>
-    	    <VALUE valeur=".1154" deb="2007-07-01" fin="2008-06-30"/>
-    	    <VALUE valeur=".1065"   deb="1989-01-01" fin="2007-06-30"/>
-	   	  </TAUX>
+    	    <VALUE valeur=".0525" deb="1960-01-01" fin="2011-12-31"/>
+	      </TAUX>
     	</TRANCHE>
-   	  </BAREME>
-    </NODE>
-  	
+      </BAREME>  		
+  	</NODE>
   	<NODE description="Régime des étudiants" code="re" >
   	  <CODE description="Montant de la cotisation" code="cot" format="integer">
         <VALUE valeur="5.000" deb="1965-07-01" fin="2012-12-31" />
       </CODE>
     </NODE>
-  	
-  	
-  	<NODE description="Régime des catégories à faibles revenus" code="rcfr" >
+  	<NODE description="Régime des travailleurs à faibles revenus" code="rtfr" >
   	  <NODE description="Salariales" code="sal" >
-    	<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+    	<BAREME description="Soins" code="soin">
     	  <TRANCHE code="tranche0">	            
 		    <SEUIL>
 	    	  <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
     	    </SEUIL>
 	    	<TAUX>
-    	      <VALUE valeur=".025" deb="2002-03-12" fin="2011-12-31"/>
+    	      <VALUE valeur=".008333" deb="2002-03-12" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	  <TRANCHE code="tranche1">	            
+		    <SEUIL>
+	    	  <VALUE valeur=".66" deb="2002-03-12" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+    	<BAREME description="Pensions" code="pension">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".008333" deb="2002-03-12" fin="2011-12-31"/>
 	    	</TAUX>
     	  </TRANCHE>
     	  <TRANCHE code="tranche1">	            
@@ -302,14 +542,32 @@
     	  </TRANCHE>
     	</BAREME>
 	  </NODE>
-	  <NODE description="Employeurs" code="pat" >
-		<BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+	  <NODE description="Patronales" code="pat" >
+		<BAREME description="Soins" code="soin" option="noncontrib">
     	  <TRANCHE code="tranche0">	            
 		    <SEUIL>
 	    	  <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
     	    </SEUIL>
 	    	<TAUX>
-    	      <VALUE valeur=".05" deb="2002-03-12" fin="2011-12-31"/>
+    	      <VALUE valeur=".016667" deb="2002-03-12" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	  <TRANCHE code="tranche1">	            
+		    <SEUIL>
+	    	  <VALUE valeur=".66" deb="2002-03-12" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+    	<BAREME description="Pensions" code="pension">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".008333" deb="2002-03-12" fin="2011-12-31"/>
 	    	</TAUX>
     	  </TRANCHE>
     	  <TRANCHE code="tranche1">	            
@@ -322,58 +580,137 @@
     	  </TRANCHE>
     	</BAREME>
 	  </NODE>
-  	</NODE>
+  	</NODE>  	
   	<NODE description="Régime des artistes, intellectuels et créateurs" code="raic" >
-  	  <BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+	  <NODE description="Assurances sociales" code="ass_soc" >
+    	<BAREME description="Indemnités de maladie et maternité" code="mat">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0074" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Indemnités de décès et capital décès" code="dec">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0056" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+  		<BAREME description="Assurance Maladie" code="mal">
+    	  <TRANCHE code="tranche0">	            
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
+    	    </SEUIL>
+	    	<TAUX>
+    	      <VALUE valeur=".0675" deb="1960-01-01" fin="2011-12-31"/>
+	    	</TAUX>
+    	  </TRANCHE>
+    	</BAREME>
+      </NODE>	
+      <BAREME description="Pensions" code="pension" >
     	<TRANCHE code="tranche0">	            
 		  <SEUIL>
-	    	<VALUE valeur="0" deb="1989-01-01" fin="2011-12-31"/>
+	    	<VALUE valeur="0" deb="1960-01-01" fin="2011-12-31"/>
     	  </SEUIL>
 	      <TAUX>
-    	    <VALUE valeur=".1471" deb="2010-07-01" fin="2011-12-31"/>
-    	    <VALUE valeur=".1379" deb="2009-07-01" fin="2010-06-30"/>
-    	    <VALUE valeur=".1286" deb="2008-07-01" fin="2009-06-30"/>
-    	    <VALUE valeur=".1193" deb="2007-07-01" fin="2008-06-30"/>
-    	    <VALUE valeur=".11"   deb="2003-01-01" fin="2007-06-30"/>
-	   	  </TAUX>
+    	    <VALUE valeur=".0525" deb="1960-01-01" fin="2011-12-31"/>
+	      </TAUX>
     	</TRANCHE>
-   	  </BAREME>
-    </NODE> 	
-    <NODE description="Régime des agents de l'Etat" code="cnrps" >
-	  <NODE description="Salariales" code="sal" >            
-        <BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+      </BAREME>    
+    </NODE>
+    <NODE description="Régime général des agents de l'Etat" code="cnrps" >
+	  <NODE description="Patronales" code="pat" >            
+        <BAREME description="Retraite" code="ret" >
           <TRANCHE code="tranche0">	            
 	        <SEUIL>
     	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
 	        </SEUIL>
     	    <TAUX>
-	          <VALUE valeur=".025" deb="2009-07-01" fin="2011-12-31"/>
-	          <VALUE valeur=".025" deb="2008-07-01" fin="2019-06-30"/>
-	          <VALUE valeur=".074" deb="2007-07-01" fin="2018-06-30"/>
-	          <VALUE valeur=".070" deb="2006-01-01" fin="2007-06-30"/>
-	          <VALUE valeur=".060" deb="1995-01-01" fin="2005-12-31"/>
-	          <VALUE valeur=".050" deb="1985-01-01" fin="1994-12-31"/>	        	        	        	        
+	          <VALUE valeur=".125" deb="2011-01-01" fin="2011-12-31"/>
+	          <VALUE valeur=".115" deb="2009-01-01" fin="2010-12-31"/>
+	          <VALUE valeur=".097" deb="2006-01-01" fin="2008-12-31"/>
+	          <VALUE valeur=".082" deb="1995-01-01" fin="2006-12-31"/>
+	          <VALUE valeur=".07" deb="1985-01-01" fin="1994-12-31"/>
     	    </TAUX>
 	      </TRANCHE>
 	    </BAREME>    	  
+	    <BAREME description="Prévoyance sociale" code="prev_soc">
+          <TRANCHE code="tranche0">	            
+	        <SEUIL>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	        </SEUIL>
+    	    <TAUX>
+	          <VALUE valeur=".04" deb="1985-01-01" fin="2011-12-31"/>
+    	    </TAUX>
+	      </TRANCHE>
+	    </BAREME>
       </NODE>
-      <NODE description="Employeur" code="pat" >            
-        <BAREME description="Assurances sociales" code="ass_soc" option="noncontrib">
+      <NODE description="Salariales" code="sal" >            
+        <BAREME description="Retraite" code="ret">
           <TRANCHE code="tranche0">	            
 	        <SEUIL>
     	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
 	        </SEUIL>
     	    <TAUX>
-	          <VALUE valeur=".025" deb="2009-01-01" fin="2011-12-31"/>
-	          <VALUE valeur=".025" deb="2008-01-01" fin="2011-09-31"/>
-	          <VALUE valeur=".025" deb="2007-01-01" fin="2011-08-31"/>
-	          <VALUE valeur=".025" deb="2002-03-12" fin="2011-12-31"/>
-	          <VALUE valeur=".025" deb="2002-03-12" fin="2011-12-31"/>	        	        	        	        
+	          <VALUE valeur=".082" deb="2009-01-01" fin="2011-12-31"/>
+	          <VALUE valeur=".07" deb="2006-01-01" fin="2008-12-31"/>
+	          <VALUE valeur=".06" deb="1995-01-01" fin="2006-12-31"/>
+	          <VALUE valeur=".05" deb="1985-01-01" fin="1994-12-31"/>
     	    </TAUX>
 	      </TRANCHE>
-	    </BAREME>    	  
+	    </BAREME>
+	    <BAREME description="Prévoyance sociale" code="prev_soc">
+          <TRANCHE code="tranche0">	            
+	        <SEUIL>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	        </SEUIL>
+    	    <TAUX>
+	          <VALUE valeur=".0275" deb="1985-01-01" fin="2011-12-31"/>
+    	    </TAUX>
+	      </TRANCHE>
+	    </BAREME>
+	    <BAREME description="Capital décès" code="dec">
+          <TRANCHE code="tranche0">	            
+	        <SEUIL>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	        </SEUIL>
+    	    <TAUX>
+	          <VALUE valeur=".01" deb="1985-01-01" fin="2011-12-31"/>
+    	    </TAUX>
+	      </TRANCHE>
+	    </BAREME>
       </NODE>
     </NODE>
+    <NODE description="Cotisations des agents pensionnés de l'Etat" code="cnrps" >  
+	    <BAREME description="Prévoyance sociale" code="prev_soc">
+          <TRANCHE code="tranche0">	            
+	        <SEUIL>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	        </SEUIL>
+    	    <TAUX>
+	          <VALUE valeur=".0275" deb="1985-01-01" fin="2011-12-31"/>
+    	    </TAUX>
+	      </TRANCHE>
+	    </BAREME>
+	    <BAREME description="Capital décès" code="dec">
+          <TRANCHE code="tranche0">	            
+	        <SEUIL>
+    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	        </SEUIL>
+    	    <TAUX>
+	          <VALUE valeur=".01" deb="1985-01-01" fin="2011-12-31"/>
+    	    </TAUX>
+	      </TRANCHE>
+	    </BAREME>
+	  </NODE>
+  </NODE>
     <NODE description="Impôt sur le revenu" code="ir">
       <BAREME code = "bareme" description="Tranches de l'IR">
         <TRANCHE code = "tranche0">
