@@ -366,7 +366,11 @@ class SystemSf(DataTable):
         if varname is None:
             # TODO:
             for col in self.description.columns.itervalues():
-                self.calculate(col.name)
+                try:
+                    self.calculate(col.name)
+                except Exception, e:
+                    print e
+                    print col.name
             return "Will calculate all"
 
         col = self.description.get_col(varname)
