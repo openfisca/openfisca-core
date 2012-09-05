@@ -24,11 +24,13 @@ This file is part of openFiscaTn.
 from datetime import date
 from core.description import ModelDescription
 from core.columns import Prestation, BoolPresta
-import tunisie.cotsoc as cs
-import tunisie.irpp as ir
-import tunisie.pfam as pf
+import tunisia.cotsoc as cs
+import tunisia.irpp as ir
+import tunisia.common as cm
+#import tunisie.pfam as pf
 
-class ModelTunisie(ModelDescription):
+
+class ModelSF(ModelDescription):
     
 
     ############################################################
@@ -36,11 +38,12 @@ class ModelTunisie(ModelDescription):
     ############################################################
     
     # Salaires
-#    salbrut = Prestation(cs._salbrut)
+    salbrut = Prestation(cs._salbrut)
     cotpat  = Prestation(cs._cotpat)
     cotsal  = Prestation(cs._cotsal)
+    salsuperbrut = Prestation(cs._salsuperbrut)
 #    sal = Prestation(cs._sal)    
-#    salsuperbrut = Prestation(cs._salsuperbrut)
+    
     
     # Chômage
 
@@ -55,41 +58,43 @@ class ModelTunisie(ModelDescription):
     divor = BoolPresta(ir._divor, 'foy')
     veuf = BoolPresta(ir._veuf, 'foy')
     
+    nb_enf = Prestation(ir._nb_enf, 'foy')
+    nb_enf_sup = Prestation(ir._nb_enf_sup, 'foy')
+    nb_par     = Prestation(ir._nb_par, 'foy')
+    nb_infirme = Prestation(ir._nb_infirme, 'foy')
     
 #    rbg = Prestation(ir._rbg, 'foy', label = u"Revenu brut global")
-
     
-    bic = Prestation(ir._bic)
-    bnc = Prestation(ir._bnc)
-    beap = Prestation(ir._beap)
-    rvcm = Prestation(ir._rvcm)
-    fon_forf_bati = Prestation(ir._fon_forf_bati)
-    fon_forf_nbat = Prestation(ir._fon_forf_nbat)
-    rfon = Prestation(ir._rfon)
-                               
-    sal_net = Prestation(ir._sal_net)
-    pen_net = Prestation(ir._pen_net)
-    tspr    = Prestation(ir._tspr)
-        
+    bic = Prestation(ir._bic, 'foy')
+    bnc = Prestation(ir._bnc, 'foy')
+    beap = Prestation(ir._beap, 'foy')
+    rvcm = Prestation(ir._rvcm, 'foy')
+    fon_forf_bati = Prestation(ir._fon_forf_bati, 'foy')
+    fon_forf_nbat = Prestation(ir._fon_forf_nbat, 'foy')
+    rfon = Prestation(ir._rfon, 'foy')
+
+    sal = Prestation(ir._sal, 'foy', "Salaires y compris salaires en nature")
+    sal_net = Prestation(ir._sal_net, 'foy', "Salaires nets")
+    pen_net = Prestation(ir._pen_net, 'foy')                               
+    tspr    = Prestation(ir._tspr, 'foy')
+    retr    = Prestation(ir._retr, 'foy')
     rng = Prestation(ir._rng, 'foy', label = u"Revenu net global")
     
     # Déductions
     
     deduc_fam = Prestation(ir._deduc_fam, 'foy', label = u"Déductions pour situation et charges de famille")
-    rente     = Prestation(ir._rente, 'foy', label = u"Arrérages et rentes payées à titre obligatoire et gratuit")
+    deduc_rente     = Prestation(ir._deduc_rente, 'foy', label = u"Arrérages et rentes payées à titre obligatoire et gratuit")
     ass_vie   = Prestation(ir._ass_vie, 'foy', label = u"Primes afférentes aux contrats d'assurance-vie")
     # réductions d'impots
     
-    deduc_smig = Prestation(ir._ass_vie, 'foy', label = u"Déduction supplémentaire pour les salariés payés au SMIG et SMAG")
-    
+    deduc_smig = Prestation(ir._deduc_smig, 'foy', label = u"Déduction supplémentaire pour les salariés payés au SMIG et SMAG")
     rni = Prestation(ir._rni, 'foy', label = u"Revenu net imposable")
+    ir_brut = Prestation(ir._ir_brut, 'foy', label = u"Impôt avant non-imposabilité")
+    irpp = Prestation(ir._irpp, 'foy', label = u"Impôt sur le revenu des personnes physiques")
 
-    
-    ir_brut = Prestation(ir._ir_brut, 'foy')
-
-#    ############################################################
-#    # Unité de consommation du ménage
-#    ############################################################
+    ############################################################
+    # Unité de consommation du ménage
+    ############################################################
 #    uc = Prestation(cm._uc, 'men', label = u"Unités de consommation")
 
 #    ############################################################
@@ -100,16 +105,19 @@ class ModelTunisie(ModelDescription):
 #    nb_ageq0 = IntPresta(cl._nb_ageq0, 'men', label = u"Effectifs des tranches d'âge quiquennal")
 #    nbinde2 = IntPresta(cl._nbinde2, 'men', label = u"Nombre d'individus dans le ménage")
 #
-#    ############################################################
-#    # Totaux
-#    ############################################################
-#
-#    revdisp_i = Prestation(cm._revdisp_i, label = u"Revenu disponible individuel")
-#    revdisp = Prestation(cm._revdisp, 'men', label = u"Revenu disponible du ménage")
-#    nivvie = Prestation(cm._nivvie, 'men', label = u"Niveau de vie du ménage")
-#    rev_trav = Prestation(cm._rev_trav)
+    ############################################################
+    # Totaux
+    ############################################################
+
+    revdisp_i = Prestation(cm._revdisp_i, label = u"Revenu disponible individuel")
+    revdisp = Prestation(cm._revdisp, 'men', label = u"Revenu disponible du ménage")
+    nivvie = Prestation(cm._nivvie, 'men', label = u"Niveau de vie du ménage")
+    rev_trav = Prestation(cm._rev_trav)
 #    pen = Prestation(cm._pen)
-#    chonet = Prestation(cm._chonet)
+#    
 #    rstnet = Prestation(cm._rstnet)
-#    impo = Prestation(cm._impo)
+    rev_cap = Prestation(cm._rev_cap)
+#    
+    
+    impo = Prestation(cm._impo)
 

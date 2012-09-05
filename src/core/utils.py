@@ -31,6 +31,7 @@ import pickle
 from datetime import datetime
 from pandas import DataFrame
 
+
 class Enum(object):
     def __init__(self, varlist, start = 0):
         self._vars = {}
@@ -90,9 +91,17 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
 
             
 def gen_output_data(model):
-
-    data_dir = CONF.get('paths', 'data_dir')
-    totals_fname = os.path.join(data_dir,'totaux.xml')
+    '''
+    Generates output data according to totaux.xml
+    '''
+    country = CONF.get('simulation', 'country')
+    if country == 'france':
+        data_dir = CONF.get('paths', 'data_dir')
+        totals_fname = os.path.join(data_dir,'totaux.xml')
+    elif country == 'tunisia':
+        data_dir = CONF.get('paths', 'data_dir')
+        totals_fname = os.path.join(data_dir,'../tunisia/totaux.xml')
+        
     _doc = minidom.parse(totals_fname)
 
     tree = OutNode('root', 'root')
@@ -104,7 +113,6 @@ def gen_aggregate_output(model):
 
     out_dct = {}
     inputs = model._inputs
-
     unit = 'men'
     idx = model.index[unit]
     enum = inputs.description.get_col('qui'+unit).enum
@@ -552,6 +560,11 @@ class Scenario(object):
         self.famille = S['famille']
         self.menage = S['menage']
 
+
+############################################################################
+## Bareme and helper functions for Baremes
+############################################################################
+
 class Bareme(object):
     '''
     Object qui contient des tranches d'imposition en taux marginaux et en taux moyen
@@ -775,7 +788,43 @@ class Bareme(object):
 
 
 
+def combineBaremes(BarColl, name="onsenfout"):
+    '''
+    Combine all the Baremes in the BarColl in a signle Bareme
+    '''
+    baremeTot = Bareme(name=name)
+    baremeTot.addTranche(0,0)
+    for val in BarColl.__dict__.itervalues():
+        if isinstance(val, Bareme):
+            baremeTot.addBareme(val)
+        else: 
+            combineBaremes(val, baremeTot)
+    return baremeTot
 
+class Object(object):
+    def __init__(self):
+        object.__init__(self)
+
+def scaleBaremes(BarColl, factor):
+    '''
+    Scales all the Bareme in the BarColl
+    '''
+    if isinstance(BarColl, Bareme):
+        return BarColl.multSeuils(factor)
+    out = Object()
+    from parametres.paramData import Tree2Object
+    for key, val in BarColl.__dict__.iteritems():
+        if isinstance(val, Bareme):
+            setattr(out, key, val.multSeuils(factor))
+        elif isinstance(val, Tree2Object):
+            setattr(out, key, scaleBaremes(val, factor))
+        else:
+            setattr(out, key, val)
+    return out
+
+############################################################################
+## Helper functions for stats
+############################################################################
 # from http://pastebin.com/KTLip9ee
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
 # a is an input array of values.

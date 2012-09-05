@@ -29,7 +29,12 @@ import os
 
 from description import ModelDescription
 
-INDEX = ['men', 'fam', 'foy']
+
+country = CONF.get('simulation', 'country')
+if country == 'france':
+    INDEX = ['men', 'fam', 'foy']
+elif country == 'tunisia':
+    INDEX = ['men', 'foy']
 
 class DataTable(object):
     """
@@ -67,13 +72,16 @@ class DataTable(object):
 
         if (survey_data and scenario):
             raise Exception("should provide either survey_data or scenario but not both")
-        elif survey_data:
+        elif survey_data and country=="france":
             self.populate_from_survey_data(survey_data)
         elif scenario:
             self.populate_from_scenario(scenario)
         
     def gen_index(self, units):
-
+        '''
+        Genrates indexex for the relevant units
+        '''
+        
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)},
                       'nb': self._nrows},
@@ -86,7 +94,7 @@ class DataTable(object):
             idxUnit = np.searchsorted(listnoi, nois[idxIndi])
             temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
             dct.update({noi: temp}) 
-            
+
         for unit in units:
             enum = self.description.get_col('qui'+unit).enum
             try:
@@ -170,6 +178,10 @@ class DataTable(object):
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
 
     def populate_from_scenario(self, scenario):
+        '''
+        Populates a DataTable from a Scenario
+        '''
+        country = CONF.get('simulation', 'country')
         self._nrows = self.NMEN*len(scenario.indiv)
         MAXREV = self.MAXREV
         datesim = self.datesim
@@ -177,25 +189,39 @@ class DataTable(object):
         self.table = DataFrame()
 
         idmen = np.arange(60001, 60001 + self.NMEN)
+        
         for noi, dct in scenario.indiv.iteritems():
             birth = dct['birth']
             age = datesim.year- birth.year
             agem = 12*(datesim.year- birth.year) + datesim.month - birth.month
             noidec = dct['noidec']
-            noichef = dct['noichef']
             quifoy = self.description.get_col('quifoy').enum[dct['quifoy']]
-            quifam = self.description.get_col('quifam').enum[dct['quifam']]
+            
+            if country == 'france':
+                quifam = self.description.get_col('quifam').enum[dct['quifam']]
+                noichef = dct['noichef']
+            
             quimen = self.description.get_col('quimen').enum[dct['quimen']]
-            dct = {'noi': noi*np.ones(self.NMEN),
-                   'age': age*np.ones(self.NMEN),
-                   'agem': agem*np.ones(self.NMEN),
-                   'quimen': quimen*np.ones(self.NMEN),
-                   'quifoy': quifoy*np.ones(self.NMEN),
-                   'quifam': quifam*np.ones(self.NMEN),
-                   'idmen': idmen,
-                   'idfoy': idmen*100 + noidec,
-                   'idfam': idmen*100 + noichef}
-            self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
+            if country == 'france':
+                dct = {'noi': noi*np.ones(self.NMEN),
+                       'age': age*np.ones(self.NMEN),
+                       'agem': agem*np.ones(self.NMEN),
+                       'quimen': quimen*np.ones(self.NMEN),
+                       'quifoy': quifoy*np.ones(self.NMEN),
+                       'quifam': quifam*np.ones(self.NMEN),
+                       'idmen': idmen,
+                       'idfoy': idmen*100 + noidec,
+                       'idfam': idmen*100 + noichef}
+            else:
+                dct = {'noi': noi*np.ones(self.NMEN),
+                       'age': age*np.ones(self.NMEN),
+                       'agem': agem*np.ones(self.NMEN),
+                       'quimen': quimen*np.ones(self.NMEN),
+                       'quifoy': quifoy*np.ones(self.NMEN),
+                       'idmen': idmen,
+                       'idfoy': idmen*100 + noidec}
+                
+        self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
 
         self.gen_index(INDEX)
 
@@ -227,6 +253,8 @@ class DataTable(object):
             
         # set xaxis
         # TODO: how to set xaxis vals properly
+#        print self.NMEN
+#        print self.XAXIS
         if self.NMEN>1:
             var = self.XAXIS
             vls = np.linspace(0, MAXREV, self.NMEN)
@@ -383,7 +411,7 @@ class SystemSf(DataTable):
         
         if not col._enabled:
             return
-
+        
         idx = self.index[col._unit]
 
         required = set(col.inputs)
