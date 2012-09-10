@@ -24,7 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from Config import CONF
-from pandas import read_csv, DataFrame, concat
+from pandas import read_csv, DataFrame, concat, HDFStore
 import os
 
 from description import ModelDescription
@@ -124,7 +124,11 @@ class DataTable(object):
         '''
         index = self.index[unit]
         value = self.get_value(col, index)
-        enum = self.description.get_col('qui'+unit).enum
+        try:
+            enum = self.description.get_col('qui'+unit).enum
+        except:
+            enum = self._inputs.description.get_col('qui'+unit).enum
+        
         for member in enum:
             self.set_value(col, value, index, opt = member[1])
 
@@ -147,9 +151,20 @@ class DataTable(object):
                         self.table[varname] = self.table[varname]/x
 
     def populate_from_survey_data(self, fname):
-        with open(fname) as survey_data_file:
-            self.table = read_csv(survey_data_file)
-
+        
+        if fname[-4:] == '.csv':
+            with open(fname) as survey_data_file:
+                self.table = read_csv(survey_data_file)
+#                store = HDFStore('france\data\survey.h5')
+#                store['survey_2006'] = self.table
+#                store.close() 
+        elif fname[-3:] == '.h5':
+            store = HDFStore(fname)
+            year  = str(CONF.get('simulation','datesim').year)
+            base_name = 'survey_'+ str(year)
+            self.table = store[str(base_name)] 
+            store.close()
+            
         self._nrows = self.table.shape[0]
         missing_col = []
         for col in self.description.columns.itervalues():

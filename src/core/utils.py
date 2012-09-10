@@ -93,15 +93,10 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
 def gen_output_data(model):
     '''
     Generates output data according to totaux.xml
-    '''
+    '''    
     country = CONF.get('simulation', 'country')
-    if country == 'france':
-        data_dir = CONF.get('paths', 'data_dir')
-        totals_fname = os.path.join(data_dir,'totaux.xml')
-    elif country == 'tunisia':
-        data_dir = CONF.get('paths', 'data_dir')
-        totals_fname = os.path.join(data_dir,'../tunisia/totaux.xml')
-        
+    totals_fname = os.path.join(country,'totaux.xml')
+    print totals_fname
     _doc = minidom.parse(totals_fname)
 
     tree = OutNode('root', 'root')
@@ -119,6 +114,9 @@ def gen_aggregate_output(model):
     people = [x[1] for x in enum]
 
     model.calculate()
+    
+    model.propagate_to_members( unit='men', col = 'nivvie')
+    
     for varname in model.col_names:
         val = model.get_value(varname, idx, opt = people, sum_ = True)
         out_dct[varname] = val
@@ -970,3 +968,107 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret, quantiles
         else:
             return ret
+        
+
+from numpy import cumsum, ones, sort, random       
+from pandas import DataFrame
+
+def gini(values, weights = None, bin_size = None):
+    '''
+    Gini coefficient (normalized to 1)
+    Using fastgini formula :
+
+
+                      i=N      j=i
+                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
+                      i=1      j=1
+          G = 1 - 2* ----------------------------------
+                           i=N             i=N
+                           SUM W_i*X_i  *  SUM W_i
+                           i=1             i=1
+
+
+        where observations are sorted in ascending order of X.
+    
+    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    '''
+    if weights is None:
+        weights = ones(len(values))
+        
+    df = DataFrame( {'x': values, 'w':weights} )    
+    df = df.sort_index(by='x')
+    x = df['x']
+    w = df['w']
+    wx = w*x
+    
+    cdf = cumsum(wx)-0.5*wx  
+    numerator = (w*cdf).sum()
+    denominator = ( (wx).sum() )*( w.sum() )
+    gini = 1 - 2*( numerator/denominator) 
+    
+    return gini
+
+
+def lorenz(values, weights = None):
+    '''
+    Computes Lorenz Curve coordinates
+    '''
+    if weights is None:
+        weights = ones(len(values))
+        
+    df = DataFrame( {'v': values, 'w':weights} )    
+    df = df.sort_index( by = 'v')    
+    x = cumsum(df['w'])
+    x = x/float(x[-1:])
+    y = cumsum( df['v']*df['w'] )
+    y = y/float(y[-1:])
+    
+    return x, y
+
+from widgets.matplotlibwidget import MatplotlibWidget
+
+def test():
+    import sys
+    from PyQt4.QtGui import QMainWindow, QApplication
+    
+    class ApplicationWindow(QMainWindow):
+        def __init__(self):
+            QMainWindow.__init__(self)
+            self.mplwidget = MatplotlibWidget(self, title='Example',
+                                              xlabel='x',
+                                              ylabel='y',
+                                              hold=True)
+            self.mplwidget.setFocus()
+            self.setCentralWidget(self.mplwidget)
+            self.plot(self.mplwidget.axes)
+            
+        def plot(self, axes):
+            x, y = lorenz(random.uniform(low=1,high=1.5,size=400))
+            
+            axes.plot(x,y)
+            axes.plot(x,x)
+        
+    app = QApplication(sys.argv)
+    win = ApplicationWindow()
+    win.show()
+    sys.exit(app.exec_())
+
+
+if __name__=='__main__':
+
+    test()
+
+    
+    
+#    
+#    
+#    print gini(random.uniform(low=1,high=1.5,size=40000))
+#    print 2/9
+#    print 'x'
+#    print x.head(), x.tail()
+#    print 'y'
+#    print y.head(), y.tail()
+#
+#    mplwidget = MatplotlibWidget()
+#    
+#    
