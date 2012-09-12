@@ -72,7 +72,7 @@ class DataTable(object):
 
         if (survey_data and scenario):
             raise Exception("should provide either survey_data or scenario but not both")
-        elif survey_data and country=="france":
+        elif survey_data:
             self.populate_from_survey_data(survey_data)
         elif scenario:
             self.populate_from_scenario(scenario)
@@ -236,7 +236,8 @@ class DataTable(object):
                        'idmen': idmen,
                        'idfoy': idmen*100 + noidec}
                 
-        self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
+            self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
+
 
         self.gen_index(INDEX)
 
@@ -274,7 +275,7 @@ class DataTable(object):
             var = self.XAXIS
             vls = np.linspace(0, MAXREV, self.NMEN)
             self.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
-        
+
         self._isPopulated = True
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):

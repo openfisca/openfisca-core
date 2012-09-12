@@ -153,7 +153,7 @@ class BoolPresta(Prestation, BoolCol):
     A Prestation inheriting from BoolCol
     '''
     def __init__(self, func, unit = 'ind', label = None, start = None, end = None):
-        BoolCol.__init__(self, label)
+        BoolCol.__init__(self, label = label, unit = unit, start = start, end = end)
         Prestation.__init__(self, func, unit, label, start, end)
 
 class IntPresta(Prestation, IntCol):
@@ -161,7 +161,7 @@ class IntPresta(Prestation, IntCol):
     A Prestation inheriting from IntCol
     '''
     def __init__(self, func, unit = 'ind', label = None, start = None, end = None):
-        IntCol.__init__(self, label)
+        IntCol.__init__(self, label = label, unit = unit,  start = start, end = end)
         Prestation.__init__(self, func, unit, label, start, end)
 
 class EnumPresta(Prestation, EnumCol):
@@ -169,7 +169,7 @@ class EnumPresta(Prestation, EnumCol):
     A Prestation inheriting from EnumCol
     '''
     def __init__(self, func, unit = 'ind', label = None, enum = None, start = None, end = None):
-        EnumCol.__init__(self, enum, label)
+        EnumCol.__init__(self, enum = enum, label = label, unit = unit,  start = start, end = end)
         Prestation.__init__(self, func, unit, label, start, end)
 
 

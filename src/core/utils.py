@@ -74,7 +74,7 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
                 else: typv = 0
                 child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
                 tree.addChild(child)
-                handle_output_xml(element, child, model)
+                handle_output_xml(element, child, model, unit)
     else:
         idx = model.index[unit]
         inputs = model._inputs
@@ -96,7 +96,6 @@ def gen_output_data(model):
     '''    
     country = CONF.get('simulation', 'country')
     totals_fname = os.path.join(country,'totaux.xml')
-    print totals_fname
     _doc = minidom.parse(totals_fname)
 
     tree = OutNode('root', 'root')
@@ -114,25 +113,24 @@ def gen_aggregate_output(model):
     people = [x[1] for x in enum]
 
     model.calculate()
-    
-    model.propagate_to_members( unit='men', col = 'nivvie')
-    
-    for varname in model.col_names:
-        val = model.get_value(varname, idx, opt = people, sum_ = True)
-        out_dct[varname] = val
 
-    # TODO: should take care the variables that shouldn't be summed automatically
-    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
-    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile']
-    
-    for varname in varlist:
+    varlist = set(['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
+    for varname in model.col_names.union(varlist):
         if varname in model.col_names:
-            val = model.get_value(varname, idx)
+            if model.description.get_col(varname)._unit != unit:
+                val = model.get_value(varname, idx, opt = people, sum_ = True)    
+            else:
+                val = model.get_value(varname, idx)
         elif varname in inputs.col_names:
             val = inputs.get_value(varname, idx)
         else:
             raise Exception('%s was not find in model nor in inputs' % varname)
-        out_dct[varname] = val
+        
+        out_dct[varname] = val      
+    # TODO: should take care the variables that shouldn't be summed automatically
+    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+    
+    
 
     out_table = DataFrame(out_dct)
     return out_table
@@ -1058,17 +1056,3 @@ if __name__=='__main__':
 
     test()
 
-    
-    
-#    
-#    
-#    print gini(random.uniform(low=1,high=1.5,size=40000))
-#    print 2/9
-#    print 'x'
-#    print x.head(), x.tail()
-#    print 'y'
-#    print y.head(), y.tail()
-#
-#    mplwidget = MatplotlibWidget()
-#    
-#    
