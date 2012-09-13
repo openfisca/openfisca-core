@@ -1023,6 +1023,46 @@ def lorenz(values, weights = None):
     
     return x, y
 
+
+def pseudo_lorenz(values, ineq_axis, weights = None):
+    '''
+    Computes The pseudo Lorenz Curve coordinates
+    '''
+    if weights is None:
+        weights = ones(len(values))
+    df = DataFrame( {'v': values, 'a': ineq_axis, 'w':weights} )    
+    df = df.sort_index( by = 'a')
+    x = cumsum(df['w'])
+    x = x/float(x[-1:])
+    y = cumsum( df['v']*df['w'] )
+    y = y/float(y[-1:])
+    
+    return x, y
+
+
+def kakwani(values, ineq_axis, weights = None):
+    '''
+    Computes the Kakwani index
+    '''
+    if weights is None:
+        weights = ones(len(values))
+    
+#    sign = -1
+#    if tax == True: 
+#        sign = -1
+#    else:
+#        sign = 1
+        
+    PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
+    LCx, LCy = lorenz(ineq_axis, weights)
+    
+    del PLCx
+    
+    from scipy.integrate import simps
+    
+    return simps( (LCy - PLCy), LCx)
+        
+
 from widgets.matplotlibwidget import MatplotlibWidget
 
 def test():
@@ -1041,10 +1081,19 @@ def test():
             self.plot(self.mplwidget.axes)
             
         def plot(self, axes):
-            x, y = lorenz(random.uniform(low=1,high=1.5,size=400))
+            a = random.uniform(low=0,high=1,size=400)
+            from numpy import exp
+            #v = a
+            v = -(exp(10*a).max() - exp(10*a)) 
+            print v.sum()
             
-            axes.plot(x,y)
+            x, y = lorenz(a)
+            print kakwani(v,a)
+            x2, z = pseudo_lorenz(v,a)
+            axes.plot(x,y, label='L')
+            axes.plot(x2,z, label='PL')
             axes.plot(x,x)
+            axes.legend()
         
     app = QApplication(sys.argv)
     win = ApplicationWindow()
