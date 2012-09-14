@@ -68,7 +68,9 @@ class XmlReader(object):
                 if element.tagName == "BAREME":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
+                    option = element.getAttribute('option')
                     tranches = Bareme(code)
+                    tranches.setOption(option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
                         seuil = self.handleValues(tranche.getElementsByTagName("SEUIL")[0], self._date)
                         assi = tranche.getElementsByTagName("ASSIETTE")
@@ -312,7 +314,7 @@ class BaremeNode(Node):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
-        self.default = Bareme(value._name)
+        self.default = Bareme(value._name, option = value.option)
         for s , t in value._tranches:
             self.default.addTranche(s, t)
         self.default.marToMoy()

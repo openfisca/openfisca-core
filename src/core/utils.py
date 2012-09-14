@@ -565,7 +565,7 @@ class Bareme(object):
     '''
     Object qui contient des tranches d'imposition en taux marginaux et en taux moyen
     '''
-    def __init__(self, name = 'untitled Bareme'):
+    def __init__(self, name = 'untitled Bareme', option = None):
         super(Bareme, self).__init__()
         self._name = name
         self._tranches = []
@@ -574,6 +574,15 @@ class Bareme(object):
         # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
         # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
         self._linear_taux_moy = False
+        self._option = option
+
+
+    @property
+    def option(self):
+        return self._option
+ 
+    def setOption(self, option):
+        self._option = option
 
     @property
     def nb(self):
@@ -618,7 +627,7 @@ class Bareme(object):
         '''
         Returns a new instance of Bareme with scaled 'seuils' and same 'taux'
         '''
-        b = Bareme(self._name)
+        b = Bareme(self._name, option = self._option)
         for i in range(self.nb):
             b.addTranche(factor*self.seuils[i], self.taux[i])
         return b

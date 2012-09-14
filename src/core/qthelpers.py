@@ -209,8 +209,11 @@ class DataFrameModel(QAbstractTableModel):
                 elif isinf(val):
                     return QString("Inf")
                 else:
-                    return QVariant(int(round(val))) # ('%.3g' % val)  #float(val)) # QVariant(int(round(val)))
-    
+                    if val > 1:
+                        return QVariant(int(round(val))) # ('%.3g' % val)  #float(val)) # QVariant(int(round(val)))
+                    else:
+                        return QVariant(('%.3g' % val))
+                
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
