@@ -24,11 +24,11 @@ This file is part of openFisca.
 from __future__ import division
 from numpy import (round, floor, zeros, maximum as max_, minimum as min_,
                    logical_not as not_)
+
 from tunisia.data import QUIFAM
 
-
 CHEF = QUIFAM['chef']
-PART = QUIFAM['part']
+PART = QUIFAM['part'] 
 ENFS = [QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'], QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9'], ]
 
 def _nb_par(quifam, _option={'quifam':[PART]}):
@@ -63,48 +63,107 @@ def _etu(activite):
     ''' 
     return activite == 2
 
-
+def _smig75(sal, _P):
+    '''
+    Indicatrice de rémunération inférieur à 55% du smic
+    '''
+    return sal < _P.cotscoc.gen.smig40
 
 ############################################################################
 # Allocations familiales
 ############################################################################
     
-def _af_base(af_nbenf, _P):
+    
+def _af_nbenf(age, smic75,  activite, inv, _P, _option={'age': ENFS, 'smic75': ENFS, 'inv': ENFS}):
+    '''
+    Nombre d'enfants au titre des allocations familiales
+    'fam'
+    '''
+#    From http://www.allocationfamiliale.com/allocationsfamiliales/allocationsfamilialestunisie.htm
+#    Jusqu'à l'âge de 16 ans sans conditions.
+#    Jusqu'à l'âge de 18 ans pour les enfants en apprentissage qui ne perçoivent pas une rémunération supérieure à 75 % du SMIG.
+#    Jusqu'à l'âge de 21 ans pour les enfants qui fréquentent régulièrement un établissement secondaire, supérieur, 
+#      technique ou professionnel, à condition que les enfants n'occupent pas d'emplois salariés.
+#    Jusqu'à l'âge de 21 ans pour la jeune fille qui remplace sa mère auprès de ses frères et sœurs.
+#    Sans limite d'âge et quelque soit leur rang pour les enfants atteints d'une infirmité ou d'une maladie incurable et se trouvant, 
+#    de ce fait, dans l'impossibilité permanente et absolue d'exercer un travail lucratif, et pour les handicapés titulaires d'une carte d'handicapé 
+#    qui ne sont pas pris en charge intégralement par un organisme public ou privé benéficiant de l'aide de l'Etat ou des collectivités locales.
+    res = None    
+    if res is None: res = zeros(len(age))
+    for key, ag in age.iteritems():
+        res =+ ( (ag < 16) + 
+                 (ag < 18)*smic75[key]*(activite[key] =='aprenti')  + # TODO apprenti
+                 (ag < 21)*(activite[key]=='eleve' | activite[key]=='etudiant') + 
+                 inv[key] )  > 1
+    return res
+    
+    
+def _af_base(af_nbenf, sal, _P, _option = {'sal' : [CHEF, PART]} ):
     '''
     Allocations familiales - allocation de base
     'fam'
     '''
-    P = _P.fam
-    bm = P.af.plaf_trim/3 # base mensuelle    
+    # Le montant trimestriel est calculé en pourcentage de la rémunération globale trimestrielle palfonnée à 122 dinars
+    # TODO ajouter éligibilité des parents aux allocations familiales 
+    P = _P.pfam
+    bm =  min_( max_(sal[CHEF],sal[PART])/4,  P.af.plaf_trim) # base trimestrielle    
     # prestations familliales 
-    af_1enf = round(bm * P.af.taux.enf1, 2)
-    af_2enf = round(bm * P.af.taux.enf2, 2)
-    af_3enf = round(bm * P.af.taux.enf3, 2)
-    af_base = (af_nbenf >= 1)*af_1enf + (af_nbenf >= 2)*af_2enf + (af_nbenf==3)*af_3enf
-    return 12 * af_base  # annualisé
+    af_1enf = round(bm * P.af.taux.enf1, 3)
+    af_2enf = round(bm * P.af.taux.enf2, 3)
+    af_3enf = round(bm * P.af.taux.enf3, 3)
+    af_base = (af_nbenf >= 1)*af_1enf + (af_nbenf >= 2)*af_2enf + (af_nbenf >=3 )*af_3enf
+    return 4 * af_base  # annualisé
 
-def _af_sal_uniq(age, af_nbenf, smic55, _P, _option={'age': ENFS, 'smic55': ENFS}):
+
+
+def _af_sal_uniq(sal_uniq, af_nbenf, _P):
     '''
     Allocations familiales - majoration salaire unique
     'fam'
     '''
-    # TODO
-    return 0
-
+    P = _P.pfam.af
+    af_1enf = round( P.sal_uniq.enf1, 3)
+    af_2enf = round( P.sal_uniq.enf2, 3)
+    af_3enf = round( P.sal_uniq.enf3, 3)
+    af = (af_nbenf >= 1)*af_1enf + (af_nbenf >= 2)*af_2enf + (af_nbenf >=3 )*af_3enf
+    return 4 * af  # annualisé
+    
 
 def _af_cong_naiss(age, _P, _option={'age': ENFS}):
     return 0
 
 def _af_cong_jeun_trav(age, _P, _option={'age': ENFS}):
+#    Les salariés de moins de 18 ans du régime non agricole bénéficient de 
+#    2 jours de congés par mois et au maximum 24 jours ouvrables, 
+#    l'employeur se fera rembourser par la CNSS 12 jours de congés. Les 
+#    salariés âgés de 18 à 20 ans bénéficient de 18 jours de congés 
+#    ouvrables par an soit 6 jours remboursés à l'employeur par la CNSS.
+#    Le remboursement à l'employeur est effectué par la Caisse Nationale 
+#    de Sécurité Sociale de l'avance faite en exécution de l'article 113 
+#    alinéa 2 du Code du Travail.
     return 0
 
     
-def _af_creche(age, _P, _option={'age': ENFS}):
+def _af_creche(sal, agem, _P, _option={'age': ENFS, 'sal': [CHEF, PART]}):
     '''
     Allocations familiales - contribution au frais de crêche
     'fam'
     '''
-    return 0
+    # Une prise en charge peut être accordée à la mère exerçant une 
+    # activité salariée et dont le salaire ne dépasse pas deux fois et demie 
+    # le SMIG pour 48 heures de travail par semaine. Cette contribution est 
+    # versée pour les enfants ouvrant droit aux prestations familiales et 
+    # dont l'âge est compris entre 2 et 36 mois. Elle s'élève à 15 dinars par 
+    # enfant et par mois pendant 11 mois.
+    smig48 = _P.cotsoc.gen.smig_48h
+    P = _P.pfam.creche
+    elig_age = (agem <= P.age_max)*(agem >= P.age_min) 
+    elig_sal = sal < P.plaf*smig48 
+    
+    
+    return P.montant*elig_age*elig_sal*min_(P.duree,12-agem)
+
+
 
 
 def _af(af_base, af_sal_uniq, _af_cong_naiss, af_cong_jeun_trav, af_creche):

@@ -710,7 +710,54 @@
 	  </BAREME>
     </NODE>
   </NODE>
-  
+  <NODE description="Prestations familiales" code="pfam">
+    <NODE description="Allocations familiales" code="af">
+      <CODE description="Plafond de revenus trimestriels" code = "plaf_trim" format='integer'>
+        <VALUE valeur="122" deb="1960-01-01" fin="2011-12-31"/>
+      </CODE>
+      <NODE description="Taux (% de la BTAF)" code = "taux">
+		<CODE description="Premier enfant à charge" code="enf1" format = 'percent'>
+	  	  <VALUE valeur=".18" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+		<CODE description="Deuxième enfant à charge" code="enf2" format = 'percent'>
+	  	  <VALUE valeur="0.16" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+		<CODE description="Troisième enfant à charge" code="enf3" format = 'percent'>
+	      <VALUE valeur="0.14" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+      </NODE>
+    </NODE>
+    <NODE description="Majoration trimestrielle pour salaire unique" code = "sal_uniq">
+      <CODE description="Premier enfant à charge" code="enf1" format = 'float'>
+	  	<VALUE valeur="9.375" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Deuxième enfant à charge" code="enf2" format = 'float'>
+	  	<VALUE valeur="18.750" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Troisième enfant" code="enf3" format = 'float'>
+	    <VALUE valeur="23.475" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+    </NODE>
+    <NODE description="Allocation pour congé de naissance" code = "naiss">
+    </NODE>
+	<NODE description="Contribution au frais de crêche" code = "creche">
+	  <CODE description="Plafond de ressources (en SMIG 48h)" code="plaf" format = 'percent'>
+	    <VALUE valeur="2.5" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>	
+	  <CODE description="Montant" code="montant" format = 'integer'>
+	    <VALUE valeur="15" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Age (en mois) minimal" code="age_min" format = 'integer'>
+	    <VALUE valeur="2" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Age (en mois) maximal" code="age_max" format = 'integer'>
+	    <VALUE valeur="36" deb="1960-01-01" fin="2011-12-31"/>
+      </CODE>
+	  <CODE description="Durée maximale (en mois)" code="duree" format = 'integer'>
+	    <VALUE valeur="11" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+    </NODE>
+  </NODE>
   <NODE description="Impôt sur le revenu" code="ir">
     <BAREME code = "bareme" description="Tranches de l'IR">
       <TRANCHE code = "tranche0">

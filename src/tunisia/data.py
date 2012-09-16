@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from core.description import ModelDescription
-from core.columns import IntCol, EnumCol, BoolCol, AgesCol, FloatCol
+from core.columns import IntCol, EnumCol, BoolCol, AgesCol
 from core.utils import Enum
 
 QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
