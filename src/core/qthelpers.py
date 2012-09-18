@@ -212,7 +212,7 @@ class DataFrameModel(QAbstractTableModel):
                     if abs(val) <= 1:
                         return QVariant(('%.3g' % val))
                     else:
-                        return QVariant(int(round(val))) # ('%.3g' % val)  #float(val)) # QVariant(int(round(val)))                      
+                        return QVariant(int(round(val))) 
     
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
