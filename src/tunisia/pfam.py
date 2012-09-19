@@ -23,7 +23,7 @@ This file is part of openFisca.
 
 from __future__ import division
 from numpy import (round, floor, zeros, maximum as max_, minimum as min_,
-                   logical_not as not_)
+                   logical_xor as xor_)
 
 from tunisia.data import QUIFAM
 
@@ -44,12 +44,6 @@ def _maries(statmarit):
     '''
     return statmarit == 1
 
-def _concub(nb_par):
-    '''
-    concub = 1 si vie en couple TODO pas très heureux  
-    '''
-    # TODO: concub n'est pas égal à 1 pour les conjoints
-    return nb_par == 2
 
 def _isol(nb_par):
     '''
@@ -69,12 +63,19 @@ def _smig75(sal, _P):
     '''
     return sal < _P.cotscoc.gen.smig40
 
+def _sal_uniq(sal, _P, _option = {'sal' : [CHEF, PART]}):
+    '''
+    Indicatrice de salaire uniue
+    '''
+    uniq = xor_(sal[CHEF]>0, sal[PART]>0)
+    return uniq
+
 ############################################################################
 # Allocations familiales
 ############################################################################
     
     
-def _af_nbenf(age, smic75,  activite, inv, _P, _option={'age': ENFS, 'smic75': ENFS, 'inv': ENFS}):
+def _af_nbenf(age, smig75, activite, inv, _P, _option={'age': ENFS, 'smig75': ENFS, 'inv': ENFS}):
     '''
     Nombre d'enfants au titre des allocations familiales
     'fam'
@@ -92,15 +93,15 @@ def _af_nbenf(age, smic75,  activite, inv, _P, _option={'age': ENFS, 'smic75': E
     if res is None: res = zeros(len(age))
     for key, ag in age.iteritems():
         res =+ ( (ag < 16) + 
-                 (ag < 18)*smic75[key]*(activite[key] =='aprenti')  + # TODO apprenti
+                 (ag < 18)*smig75[key]*(activite[key] =='aprenti')  + # TODO apprenti
                  (ag < 21)*(activite[key]=='eleve' | activite[key]=='etudiant') + 
                  inv[key] )  > 1
     return res
     
     
-def _af_base(af_nbenf, sal, _P, _option = {'sal' : [CHEF, PART]} ):
+def _af(af_nbenf, sal, _P, _option = {'sal' : [CHEF, PART]} ):
     '''
-    Allocations familiales - allocation de base
+    Allocations familiales
     'fam'
     '''
     # Le montant trimestriel est calculé en pourcentage de la rémunération globale trimestrielle palfonnée à 122 dinars
@@ -116,9 +117,9 @@ def _af_base(af_nbenf, sal, _P, _option = {'sal' : [CHEF, PART]} ):
 
 
 
-def _af_sal_uniq(sal_uniq, af_nbenf, _P):
+def _maj_sal_uniq(sal_uniq, af_nbenf, _P):
     '''
-    Allocations familiales - majoration salaire unique
+    Majoration salaire unique
     'fam'
     '''
     P = _P.pfam.af
@@ -144,9 +145,9 @@ def _af_cong_jeun_trav(age, _P, _option={'age': ENFS}):
     return 0
 
     
-def _af_creche(sal, agem, _P, _option={'age': ENFS, 'sal': [CHEF, PART]}):
+def _contr_creche(sal, agem, _P, _option={'agem': ENFS, 'sal': [CHEF, PART]}):
     '''
-    Allocations familiales - contribution au frais de crêche
+    Contribution aux frais de crêche
     'fam'
     '''
     # Une prise en charge peut être accordée à la mère exerçant une 
@@ -159,19 +160,17 @@ def _af_creche(sal, agem, _P, _option={'age': ENFS, 'sal': [CHEF, PART]}):
     P = _P.pfam.creche
     elig_age = (agem <= P.age_max)*(agem >= P.age_min) 
     elig_sal = sal < P.plaf*smig48 
-    
-    
     return P.montant*elig_age*elig_sal*min_(P.duree,12-agem)
 
 
 
 
-def _af(af_base, af_sal_uniq, _af_cong_naiss, af_cong_jeun_trav, af_creche):
+def _pfam(af, maj_sal_uniq, contr_creche):  # , _af_cong_naiss, af_cong_jeun_trav
     '''
-    Allocations familiales - total des allocations
+    Prestations familiales
     'fam'
     '''
-    return af_base + af_sal_uniq + _af_cong_naiss + af_cong_jeun_trav + af_creche
+    return af + maj_sal_uniq + contr_creche
 
 ############################################################################
 # Assurances sociales   Maladie

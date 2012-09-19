@@ -27,7 +27,7 @@ from core.columns import Prestation, BoolPresta
 import tunisia.cotsoc as cs
 import tunisia.irpp as ir
 import tunisia.common as cm
-#import tunisie.pfam as pf
+import tunisia.pfam as pf
 
 
 class ModelSF(ModelDescription):
@@ -42,12 +42,23 @@ class ModelSF(ModelDescription):
     cotpat  = Prestation(cs._cotpat)
     cotsal  = Prestation(cs._cotsal)
     salsuperbrut = Prestation(cs._salsuperbrut)
-#    sal = Prestation(cs._sal)    
-    
+#    sal = Prestation(cs._sal)        
     
     # Chômage
 
     # Pension
+    
+    ############################################################
+    # Impôt sur le revenu
+    ############################################################
+    
+    smig75   = BoolPresta(pf._smig75, label="Indicatrice de salaire supérieur à 75% du smig" ) 
+    af_nbenf = Prestation(pf._af_nbenf, label="Nombre d'enfants au sens des allocations familiales")
+    af  = Prestation(pf._af, label="Allocations familiales")
+    sal_uniq = BoolPresta(pf._sal_uniq,label="Indicatrice de salaire unique")
+    maj_sal_uniq = Prestation(pf._maj_sal_uniq, label="")
+    contr_creche = Prestation(pf._contr_creche, label="Contribution aux frais de crêche")
+    pfam = Prestation(pf._pfam, label="Prestations familales")
     
     ############################################################
     # Impôt sur le revenu

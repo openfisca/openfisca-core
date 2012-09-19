@@ -751,7 +751,7 @@ class Bareme(object):
     def calc(self, assiette, getT = False):
         '''
         Calcule un impôt selon le barême non linéaire exprimé en tranches de taux marginaux.
-        'assiette' est l'assiette de l'impôt, en colonne;
+        'assiette' est l'assiette de l'impôt, en colonne
         '''
         k = self.nb
         n = len(assiette)
@@ -876,9 +876,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         # interp-weights that involve the cumulative sum of weights.
         for brk in breaks:
             if brk <= p_vals[0]: 
-                i_low = 0; i_high = 0;
+                i_low = 0
+                i_high = 0
             elif brk >= p_vals[-1]:
-                i_low = N-1; i_high = N-1;
+                i_low = N-1
+                i_high = N-1
             else:
                 for ii in range(N-1):
                     if (p_vals[ii] <= brk) and (brk < p_vals[ii+1]):
@@ -922,7 +924,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         cu_weights = np.cumsum(tmp_weights)
     
         # Formula from stats.stackexchange.com post.
-        s_vals = [0.0];
+        s_vals = [0.0]
         for ii in range(1,N):
             s_vals.append( ii*tmp_weights[ii] + (N-1)*cu_weights[ii-1])
         s_vals = np.asarray(s_vals)
@@ -944,9 +946,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         # interp-weights that involve the cumulative sum of weights.
         for brk in breaks:
             if brk <= norm_s_vals[0]: 
-                i_low = 0; i_high = 0;
+                i_low = 0
+                i_high = 0
             elif brk >= norm_s_vals[-1]:
-                i_low = N-1; i_high = N-1;
+                i_low = N-1
+                i_high = N-1
             else:
                 for ii in range(N-1):
                     if (norm_s_vals[ii] <= brk) and (brk < norm_s_vals[ii+1]):
