@@ -792,40 +792,79 @@ class Bareme(object):
         return (t[1:]-t[:-1])/(s[1:]-s[:-1])
 
 
+class BaremeDict(dict):
+    '''
+    A dict of Bareme's
+    '''
+    def __init__(self, name = None, tree2object = None):
+        
+        super(BaremeDict, self).__init__()
 
-def combineBaremes(BarColl, name="onsenfout"):
+        if name is None:
+            raise Exception("BaremeDict instance needs a name to be created")
+        else:
+            self._name = name
+        
+        if tree2object is not None:
+            self.init_from_param(tree2object) 
+        
+    
+    def init_from_param(self, tree2object):
+        '''
+        Init a BaremeDict form a Tree2Object
+        '''
+        from parametres.paramData import Tree2Object
+        
+        if isinstance(tree2object, Bareme):
+            self[tree2object._name] = tree2object 
+        elif isinstance(tree2object, Tree2Object):
+            for key, bar in tree2object.__dict__.iteritems():
+                if isinstance(bar, Bareme):
+                    self[key] = bar
+                elif isinstance(bar, Tree2Object):
+                    new = BaremeDict(key, bar)
+                    self[key] = new   
+        
+            
+def combineBaremes(bardict, name = None):
     '''
-    Combine all the Baremes in the BarColl in a signle Bareme
+    Combine all the Baremes in the BaremeDict in a signle Bareme
     '''
-    baremeTot = Bareme(name=name)
+    if name is None:
+        name = 'Combined ' + bardict._name
+    baremeTot = Bareme(name = name)
     baremeTot.addTranche(0,0)
-    for val in BarColl.__dict__.itervalues():
-        if isinstance(val, Bareme):
-            baremeTot.addBareme(val)
+    for name, bar in bardict.iteritems():
+        if isinstance(bar, Bareme):
+            baremeTot.addBareme(bar)
         else: 
-            combineBaremes(val, baremeTot)
+            combineBaremes(bar, baremeTot)
     return baremeTot
 
-class Object(object):
-    def __init__(self):
-        object.__init__(self)
 
-def scaleBaremes(BarColl, factor):
+
+
+def scaleBaremes(bar_set, factor):
     '''
     Scales all the Bareme in the BarColl
     '''
-    if isinstance(BarColl, Bareme):
-        return BarColl.multSeuils(factor)
-    out = Object()
     from parametres.paramData import Tree2Object
-    for key, val in BarColl.__dict__.iteritems():
-        if isinstance(val, Bareme):
-            setattr(out, key, val.multSeuils(factor))
-        elif isinstance(val, Tree2Object):
-            setattr(out, key, scaleBaremes(val, factor))
-        else:
-            setattr(out, key, val)
-    return out
+    
+    if isinstance(bar_set, Bareme):
+        return bar_set.multSeuils(factor)
+    
+    if isinstance(bar_set, BaremeDict):
+        out = BaremeDict(name = bar_set._name)
+    
+        for key, bar in bar_set.iteritems():
+            if isinstance(bar, Bareme):
+                out[key] = bar.multSeuils(factor)
+            elif isinstance(bar, BaremeDict):
+                out[key] = scaleBaremes(bar, factor)
+            else:
+                setattr(out, key, bar)
+        return out
+    
 
 ############################################################################
 ## Helper functions for stats
