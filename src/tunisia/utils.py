@@ -59,16 +59,17 @@ class Scenario(object):
         '''
         Vérifie que le ménage entré est valide
         '''
+
         for noi, vals in self.indiv.iteritems():
             age = self.year - vals['birth'].year
             if age < 0:
                 return u"L'année de naissance doit être antérieure à celle de la simulation (voir Fichier->Paramètres pour régler la date de la simulation"
             if vals['quifoy'] in ('vous', 'conj'):
-                if age < 18: return u'Le déclarant et son éventuel conjoint doivent avoir plus de 18 ans'
+                if age < 18: return u'Le déclarant et son éventuel conjoint doivent avoir plus de 18 ans'  # TODO
             else:
                 if age > 25 and (vals['inv']==0): return u'Les personnes à charges doivent avoir moins de 25 ans si elles ne sont pas invalides'
-            if vals['quifoy'] == 'conj' and not vals['quifam'] == 'part':
-                return u"Un conjoint sur la déclaration d'impôt doit être le partenaire dans la famille"
+#            if vals['quifoy'] == 'conj' and not vals['quifam'] == 'part':
+#                return u"Un conjoint sur la déclaration d'impôt doit être le partenaire dans la famille"
         return ''
     
     def modify(self, noi, newQuifoy = None, newFoyer = None):

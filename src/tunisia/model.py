@@ -49,16 +49,16 @@ class ModelSF(ModelDescription):
     # Pension
     
     ############################################################
-    # Impôt sur le revenu
+    # Prestation familiales
     ############################################################
     
     smig75   = BoolPresta(pf._smig75, label="Indicatrice de salaire supérieur à 75% du smig" ) 
-    af_nbenf = Prestation(pf._af_nbenf, label="Nombre d'enfants au sens des allocations familiales")
-    af  = Prestation(pf._af, label="Allocations familiales")
-    sal_uniq = BoolPresta(pf._sal_uniq,label="Indicatrice de salaire unique")
-    maj_sal_uniq = Prestation(pf._maj_sal_uniq, label="")
-    contr_creche = Prestation(pf._contr_creche, label="Contribution aux frais de crêche")
-    pfam = Prestation(pf._pfam, label="Prestations familales")
+    af_nbenf = Prestation(pf._af_nbenf, 'foy', label="Nombre d'enfants au sens des allocations familiales")
+    af  = Prestation(pf._af, 'foy', label="Allocations familiales")
+    sal_uniq = BoolPresta(pf._sal_uniq, 'foy', label="Indicatrice de salaire unique")
+    maj_sal_uniq = Prestation(pf._maj_sal_uniq, 'foy', label="Majoration du salaire unique")
+    contr_creche = Prestation(pf._contr_creche, 'foy', label="Contribution aux frais de crêche")
+    pfam = Prestation(pf._pfam, 'foy', label="Prestations familales")
     
     ############################################################
     # Impôt sur le revenu

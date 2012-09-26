@@ -27,12 +27,11 @@ from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt
 from views.ui_composition import Ui_Menage
 from views.ui_logement import Ui_Logement
 from widgets.InfoComp import InfoComp
-from widgets.Declaration import Declaration
 from datetime import date
 import pickle
-from Config import CONF
+from src.Config import CONF
 import os
-from core.utils import Scenario
+from src.tunisia.utils import Scenario
 
 class S:
     name = 0

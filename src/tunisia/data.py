@@ -26,7 +26,7 @@ from core.columns import IntCol, EnumCol, BoolCol, AgesCol
 from core.utils import Enum
 
 QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
-QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
+#QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 QUIMEN = Enum(['pref', 'cref', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 CAT    = Enum(['rsna', 'rsa', 'rsaa', 'rtns', 'rtte', 're', 'rtfr', 'raic', 'cnrps_sal', 'cnrps_pen'])
 
@@ -45,14 +45,11 @@ class InputTable(ModelDescription):
 
     quimen  = EnumCol(QUIMEN)
     quifoy  = EnumCol(QUIFOY)
-    quifam  = EnumCol(QUIFAM)
-    
-    
-    
-    type_sal = EnumCol(CAT, default=0)
-    
+#    quifam  = EnumCol(QUIFAM)
     
 
+    type_sal = EnumCol(CAT, default=0)
+    
     inv = BoolCol(label = u'invalide')
     
     

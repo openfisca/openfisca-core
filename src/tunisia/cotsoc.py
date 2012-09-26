@@ -26,6 +26,7 @@ from tunisia.data import CAT
 from numpy import  zeros, logical_not as not_
 from core.utils import scaleBaremes, combineBaremes
 
+from core.utils import  scaleBaremes, combineBaremes, BaremeDict
 
 class Object(object):
     def __init__(self):
@@ -74,8 +75,9 @@ def _salbrut(sali, type_sal, _defaultP):
     '''
     Calcule le salaire brut à partir du salaire net
     '''
-    P = _defaultP.cotsoc
-    smig = P.gen.smig_40h
+    
+    smig = _defaultP.cotsoc.gen.smig_40h
+    cotsoc = BaremeDict('cotsoc', _defaultP.cotsoc)
     
     plaf_ss = 12*smig
 
@@ -83,8 +85,8 @@ def _salbrut(sali, type_sal, _defaultP):
     salbrut = zeros(n)
     for categ in CAT:
         iscat = (type_sal == categ[1])
-        if 'sal' in  getattr(P,categ[0]).__dict__:
-            sal = getattr(P,categ[0]).__dict__['sal']
+        if 'sal' in  cotsoc[categ[0]]:
+            sal = cotsoc[categ[0]]['sal']
             baremes = scaleBaremes(sal, plaf_ss)
             bar = combineBaremes(baremes)
             invbar = bar.inverse()
@@ -105,17 +107,19 @@ def _cotpat(salbrut, type_sal, _P):
     '''
     # TODO traiter les différents régimes séparément ?
 
-    P = _P.cotsoc
-    smig = P.gen.smig_40h
-        
+
+    smig = _P.cotsoc.gen.smig_40h
+    cotsoc = BaremeDict('cotsoc', _P.cotsoc)
+    
     plaf_ss = 12*smig
 
+    
     n = len(salbrut)
     cotpat = zeros(n)
     for categ in CAT:
         iscat = (type_sal == categ[1])
-        if 'pat' in  getattr(P,categ[0]).__dict__:
-            pat = getattr(P,categ[0]).__dict__['pat']
+        if 'pat' in  cotsoc[categ[0]]:
+            pat = cotsoc[categ[0]]['pat']
             baremes = scaleBaremes(pat, plaf_ss)
             bar = combineBaremes(baremes)
             temp = - (iscat*bar.calc(salbrut))
@@ -128,9 +132,9 @@ def _cotsal(salbrut, type_sal, _P):
     Cotisations sociales salariales
     '''
     # TODO traiter les différents régimes
-    P = _P.cotsoc
-    smig = P.gen.smig_40h
     
+    smig = _P.cotsoc.gen.smig_40h
+    cotsoc = BaremeDict('cotsoc', _P.cotsoc)    
     plaf_ss = 12*smig
 
     n = len(salbrut)
@@ -138,8 +142,8 @@ def _cotsal(salbrut, type_sal, _P):
     
     for categ in CAT:
         iscat = (type_sal == categ[1])
-        if 'sal' in  getattr(P,categ[0]).__dict__:
-            pat = getattr(P,categ[0]).__dict__['sal']
+        if 'sal' in  cotsoc[categ[0]]:
+            pat = cotsoc[categ[0]]['sal']
             baremes = scaleBaremes(pat, plaf_ss)
             bar = combineBaremes(baremes)
             temp = - (iscat*bar.calc(salbrut))

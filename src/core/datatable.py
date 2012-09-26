@@ -444,7 +444,7 @@ class SystemSf(DataTable):
             if parentname in funcArgs:
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.calculate(parentname)
-            if parentname in col._option: 
+            if parentname in col._option:
                 funcArgs[parentname] = self.get_value(parentname, idx, col._option[parentname])
             else:
                 funcArgs[parentname] = self.get_value(parentname, idx)

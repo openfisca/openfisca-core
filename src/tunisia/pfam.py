@@ -22,21 +22,72 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from numpy import (round, floor, zeros, maximum as max_, minimum as min_,
-                   logical_xor as xor_)
+from numpy import (round, zeros, maximum as max_, minimum as min_,
+                   logical_xor as xor_, logical_or as or_, logical_not as not_,
+                   asanyarray, amin, amax, arange)
 
-from tunisia.data import QUIFAM
+from tunisia.data import QUIFOY
+CHEF = QUIFOY['vous']
+PART = QUIFOY['conj']
 
-CHEF = QUIFAM['chef']
-PART = QUIFAM['part'] 
-ENFS = [QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'], QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9'], ]
+PACS = [ QUIFOY[ 'pac' + str(i)] for i in range(1,10) ]
+ENFS = [ QUIFOY[ 'pac' + str(i)] for i in range(1,10) ]
 
-def _nb_par(quifam, _option={'quifam':[PART]}):
+def age_en_mois_benjamin(agems):
+    '''
+    Renvoi un vecteur (une entree pour chaque famille) avec l'age du benjamin.  
+    '''
+    agem_benjamin = 12 * 9999
+    for agem in agems.itervalues():
+        isbenjamin = (agem < agem_benjamin)*(agem >= 0)
+        agem_benjamin = isbenjamin * agem + not_(isbenjamin) * agem_benjamin
+    return agem_benjamin
+
+def age_min(age, minimal_age = None):
+    '''
+    Returns minimal age higher than or equal to a
+    '''
+    if minimal_age is None:
+        minimal_age = 0
+    ages = asanyarray(age)
+    ages = ages + (ages < minimal_age)*9999
+    return amin(ages, axis = 1)
+
+
+def age_max(age):
+    '''
+    Returns minimal age higher than or equal to a
+    '''
+    ages = asanyarray(age)
+    return amax(ages, axis = 1)
+
+def ages_first_kids(age,  nb = None):
+    '''
+    Returns the ages of the nb first born kids according to age  
+    '''
+    ages = asanyarray(age.values())
+    
+    ages = (ages.T + .00001*arange(ages.shape[0])).T # To deal with twins
+    
+    if nb is None:
+        nb = 3  # TODO 4e enfant qui en bénéficiait en 1989
+    i = 0
+    age_list = []
+    
+    while i < 4:
+        from numpy import putmask
+        maximas = amax(ages, axis = 0)
+        age_list.append(round(maximas))
+        putmask(ages, ages == maximas, -99999)
+        i += 1
+    return age_list
+
+def _nb_par(quifoy, _option={'quifoy': [PART]}):
     '''
     Nombre d'adultes (parents) dans la famille
     'fam'
     '''
-    return 1 + 1 * (quifam[PART] == 1) 
+    return 1 + 1 * (quifoy[PART] == 1) 
     
 def _maries(statmarit):
     '''
@@ -61,7 +112,7 @@ def _smig75(sal, _P):
     '''
     Indicatrice de rémunération inférieur à 55% du smic
     '''
-    return sal < _P.cotscoc.gen.smig40
+    return sal < _P.cotsoc.gen.smig_40h
 
 def _sal_uniq(sal, _P, _option = {'sal' : [CHEF, PART]}):
     '''
@@ -78,41 +129,45 @@ def _sal_uniq(sal, _P, _option = {'sal' : [CHEF, PART]}):
 def _af_nbenf(age, smig75, activite, inv, _P, _option={'age': ENFS, 'smig75': ENFS, 'inv': ENFS}):
     '''
     Nombre d'enfants au titre des allocations familiales
-    'fam'
+    'foy'
     '''
 #    From http://www.allocationfamiliale.com/allocationsfamiliales/allocationsfamilialestunisie.htm
 #    Jusqu'à l'âge de 16 ans sans conditions.
 #    Jusqu'à l'âge de 18 ans pour les enfants en apprentissage qui ne perçoivent pas une rémunération supérieure à 75 % du SMIG.
 #    Jusqu'à l'âge de 21 ans pour les enfants qui fréquentent régulièrement un établissement secondaire, supérieur, 
 #      technique ou professionnel, à condition que les enfants n'occupent pas d'emplois salariés.
-#    Jusqu'à l'âge de 21 ans pour la jeune fille qui remplace sa mère auprès de ses frères et sœurs.
+#    Jusqu'à l'âge de 21 ans pour la jeune fille qui remplace sa mère auprès de ses frères et sœurs. TODO
 #    Sans limite d'âge et quelque soit leur rang pour les enfants atteints d'une infirmité ou d'une maladie incurable et se trouvant, 
 #    de ce fait, dans l'impossibilité permanente et absolue d'exercer un travail lucratif, et pour les handicapés titulaires d'une carte d'handicapé 
 #    qui ne sont pas pris en charge intégralement par un organisme public ou privé benéficiant de l'aide de l'Etat ou des collectivités locales.
-    res = None    
-    if res is None: res = zeros(len(age))
-    for key, ag in age.iteritems():
-        res =+ ( (ag < 16) + 
-                 (ag < 18)*smig75[key]*(activite[key] =='aprenti')  + # TODO apprenti
-                 (ag < 21)*(activite[key]=='eleve' | activite[key]=='etudiant') + 
-                 inv[key] )  > 1
+    
+    ages = ages_first_kids(age,  nb = 3)
+    res = zeros(ages[0].shape)
+    
+    for ag in ages:
+        res += (ag >=0 )* ( ( 1*(ag < 16) + 1*(ag < 18) + 1*(ag < 21) ) >= 1) 
+#                 (ag < 18) + # *smig75[key]*(activite[key] =='aprenti')  + # TODO apprenti
+#                 (ag < 21) # *(or_(activite[key]=='eleve', activite[key]=='etudiant'))  
+#                 )  > 1
+    
     return res
     
     
 def _af(af_nbenf, sal, _P, _option = {'sal' : [CHEF, PART]} ):
     '''
     Allocations familiales
-    'fam'
+    'foy'
     '''
     # Le montant trimestriel est calculé en pourcentage de la rémunération globale trimestrielle palfonnée à 122 dinars
     # TODO ajouter éligibilité des parents aux allocations familiales 
-    P = _P.pfam
+    P = _P.pfam 
     bm =  min_( max_(sal[CHEF],sal[PART])/4,  P.af.plaf_trim) # base trimestrielle    
-    # prestations familliales 
-    af_1enf = round(bm * P.af.taux.enf1, 3)
-    af_2enf = round(bm * P.af.taux.enf2, 3)
-    af_3enf = round(bm * P.af.taux.enf3, 3)
+    # prestations familliales  # Règle d'arrondi ?
+    af_1enf = round(bm * P.af.taux.enf1, 2)
+    af_2enf = round(bm * P.af.taux.enf2, 2)
+    af_3enf = round(bm * P.af.taux.enf3, 2)
     af_base = (af_nbenf >= 1)*af_1enf + (af_nbenf >= 2)*af_2enf + (af_nbenf >=3 )*af_3enf
+
     return 4 * af_base  # annualisé
 
 
@@ -122,7 +177,7 @@ def _maj_sal_uniq(sal_uniq, af_nbenf, _P):
     Majoration salaire unique
     'fam'
     '''
-    P = _P.pfam.af
+    P = _P.pfam
     af_1enf = round( P.sal_uniq.enf1, 3)
     af_2enf = round( P.sal_uniq.enf2, 3)
     af_3enf = round( P.sal_uniq.enf3, 3)
@@ -158,9 +213,10 @@ def _contr_creche(sal, agem, _P, _option={'agem': ENFS, 'sal': [CHEF, PART]}):
     # enfant et par mois pendant 11 mois.
     smig48 = _P.cotsoc.gen.smig_48h
     P = _P.pfam.creche
-    elig_age = (agem <= P.age_max)*(agem >= P.age_min) 
+    age_m_benj = age_en_mois_benjamin(agem)
+    elig_age = (age_m_benj <= P.age_max)*(age_m_benj >= P.age_min) 
     elig_sal = sal < P.plaf*smig48 
-    return P.montant*elig_age*elig_sal*min_(P.duree,12-agem)
+    return P.montant*elig_age*elig_sal*min_(P.duree, 12 - age_m_benj)
 
 
 

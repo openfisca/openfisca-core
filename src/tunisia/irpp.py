@@ -25,7 +25,7 @@ from numpy import ( maximum as max_, minimum as min_, logical_xor as xor_, zeros
                      logical_not as not_, round) 
 
 from tunisia.data import QUIFOY
-from tunisia.data import QUIFAM
+#from tunisia.data import QUIFAM
 
 VOUS = QUIFOY['vous']
 CONJ = QUIFOY['conj']
@@ -33,8 +33,9 @@ PAC1 = QUIFOY['pac1']
 PAC2 = QUIFOY['pac2']
 PAC3 = QUIFOY['pac3']
 ALL = [x[1] for x in QUIFOY]
-ENFS = [ QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'],
-         QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9']]       
+PACS = [ QUIFOY[ 'pac' + str(i)] for i in range(1,10) ]
+#ENFS = [ QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'],
+#         QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9']]       
 
 ###############################################################################
 ## Initialisation de quelques variables utiles pour la suite
@@ -71,28 +72,21 @@ def _veuf(statmarit):
     '''
     return statmarit == 4
 
-def _irpp_rang(age, _P, option = { 'age' : ENFS}):
-    '''
-    0 enfant de rang > 4
-    1,2,3,4 
-    '''
-    
-    
 
-def _irpp_nb_enf(age, _P, option = { 'age' }):
+def _nb_enf(age, _P):
     '''
     Nombre d'enfants TODO
     '''
-    res = None
-    i = 1    
-    if res is None: res = zeros(len(age))
-    for key, ag in age.iteritems():
-        i += 1
-        res =+ ( (ag < 20) + 
-                 (ag < 25)*not_(boursier)*() )
+#    res = None
+#    i = 1    
+#    if res is None: res = zeros(len(age))
+#    for key, ag in age.iteritems():
+#        i += 1
+#        res =+ ( (ag < 20) + 
+#                 (ag < 25)*not_(boursier)*() )
 
     
-    return 
+    return age*0 
 
 def _nb_enf_sup(agem, boursier):
     '''
@@ -183,8 +177,8 @@ def _sal(sali, sal_nat):
     Salaires y compris salaires en nature
     'foy'
     '''
-#    return (sali + sal_nat)
-    return sali
+    return (sali + sal_nat)
+#    return sali
 
 def _sal_net(sal, smig, _P):
     '''
@@ -246,7 +240,7 @@ def _deduc_int(capm_banq, capm_cent, capm_oblig, _P):
     return  max_( max_( max_(capm_banq, P.banq.plaf) + max_(capm_cent, P.cent.plaf), P.banq.plaf ) +  
                  max_(capm_oblig, P.oblig.plaf), P.oblig.plaf) 
 
-def _deduc_fam(rng, chef, nb_par, _P, _option = {'age': ENFS, 'inv': ENFS, 'boursier'}):
+def _deduc_fam(rng, chef, nb_par, _P):
     ''' 
     Déductions pour situation et charges de famille
     'foy'
@@ -254,21 +248,22 @@ def _deduc_fam(rng, chef, nb_par, _P, _option = {'age': ENFS, 'inv': ENFS, 'bour
     P = _P.ir.deduc.fam
     # chef de famille
     chef = P.chef*chef 
-    from scipy.stats import rankdata
+#    from scipy.stats import rankdata
+#    
+#    ages = [a in age.values() if a >= 0 ]
+#    rk = rankdata(age.values())
+#    TODO
+#    rk = rk[-4:]
+#    rk = round(rk + -.01*range(len(rk))) # to properly rank twins 
+#    
+#    
+#    enf =  (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
+#    sup = P.enf_sup*nb_enf_sup 
+#    infirme =  P.infirme*nb_infirme
+#    parent = min_(P.parent_taux*rng, P.parent_max)
     
-    ages = [a in age.values() if a >= 0 ]
-    rk = rankdata(age.values())
-    TODO
-    rk = rk[-4:]
-    rk = round(rk + -.01*range(len(rk))) # to properly rank twins 
-    
-    
-    enf =  (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
-    sup = P.enf_sup*nb_enf_sup 
-    infirme =  P.infirme*nb_infirme
-    parent = min_(P.parent_taux*rng, P.parent_max)
-    
-    return chef + enf + sup + infirme + parent
+#    return chef + enf + sup + infirme + parent
+    return 0*chef
 
 def _deduc_rente(rente):
     '''
