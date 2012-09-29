@@ -453,7 +453,6 @@
     	</TRANCHE>
       </BAREME>  		
   	</NODE>
-## TODO	classe de salaire et mettre les deux régimes qui existaient entre 1982 en 1995
   	<NODE description="Régime des travailleurs tunisiens à l'étranger" code="rtte" >
 	  <NODE description="Assurances sociales" code="ass_soc" >
     	<BAREME description="Indemnités de maladie et maternité" code="mat">
@@ -625,7 +624,7 @@
     	</TRANCHE>
       </BAREME>    
     </NODE>
-    <NODE description="Régime général des agents de l'Etat" code="cnrps" >
+    <NODE description="Régime général des agents de l'Etat" code="cnrps_sal" >
 	  <NODE description="Patronales" code="pat" >            
         <BAREME description="Retraite" code="ret" >
           <TRANCHE code="tranche0">	            
@@ -688,267 +687,320 @@
 	    </BAREME>
       </NODE>
     </NODE>
-    <NODE description="Cotisations des agents pensionnés de l'Etat" code="cnrps" >  
-	    <BAREME description="Prévoyance sociale" code="prev_soc">
-          <TRANCHE code="tranche0">	            
-	        <SEUIL>
-    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
-	        </SEUIL>
-    	    <TAUX>
-	          <VALUE valeur=".0275" deb="1985-01-01" fin="2011-12-31"/>
-    	    </TAUX>
-	      </TRANCHE>
-	    </BAREME>
-	    <BAREME description="Capital décès" code="dec">
-          <TRANCHE code="tranche0">	            
-	        <SEUIL>
-    	      <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
-	        </SEUIL>
-    	    <TAUX>
-	          <VALUE valeur=".01" deb="1985-01-01" fin="2011-12-31"/>
-    	    </TAUX>
-	      </TRANCHE>
-	    </BAREME>
-	  </NODE>
-  </NODE>
-    <NODE description="Impôt sur le revenu" code="ir">
-      <BAREME code = "bareme" description="Tranches de l'IR">
-        <TRANCHE code = "tranche0">
+    <NODE description="Cotisations des agents pensionnés de l'Etat" code="cnrps_pen" >  
+	  <BAREME description="Prévoyance sociale" code="prev_soc">
+        <TRANCHE code="tranche0">	            
 	      <SEUIL>
-	        <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
+    	    <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
 	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
-        <TRANCHE code = "tranche1">
-	      <SEUIL>
-	        <VALUE valeur="1500" deb="1990-01-01" fin="2011-12-31"/>
-	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur=".15" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
-        <TRANCHE code = "tranche2">
-	      <SEUIL>
-	        <VALUE valeur="5000" deb="1990-01-01" fin="2011-12-31"/>
-	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur=".20" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
-        <TRANCHE code = "tranche3">
-	      <SEUIL>
-	        <VALUE valeur="10000" deb="1990-01-01" fin="2011-12-31"/>
-	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur=".25" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
-        <TRANCHE code = "tranche4">
-	      <SEUIL>
-	        <VALUE valeur="20000" deb="1990-01-01" fin="2011-12-31"/>
-	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur=".30" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
-        <TRANCHE code = "tranche5">
-	      <SEUIL>
-	        <VALUE valeur="50000" deb="1990-01-01" fin="2011-12-31"/>
-	      </SEUIL>
-	      <TAUX>
-	        <VALUE valeur=".35" deb="1990-01-01" fin="2011-12-31"/>
- 	      </TAUX>
-        </TRANCHE>
+    	  <TAUX>
+	        <VALUE valeur=".0275" deb="1985-01-01" fin="2011-12-31"/>
+    	  </TAUX>
+	    </TRANCHE>
 	  </BAREME>
-	  <NODE description="Traitements, salaires, pensions et rentes" code="tspr" >
-        <CODE description="Abattement sur les salaires" code="abat_sal" format="integer">
-          <VALUE valeur=".10" deb="1990-01-01" fin="2012-12-31" />
+	  <BAREME description="Capital décès" code="dec">
+        <TRANCHE code="tranche0">	            
+	      <SEUIL>
+    	    <VALUE valeur="0" deb="2002-03-12" fin="2011-12-31"/>
+	      </SEUIL>
+    	  <TAUX>
+	        <VALUE valeur=".01" deb="1985-01-01" fin="2011-12-31"/>
+    	  </TAUX>
+	    </TRANCHE>
+	  </BAREME>
+    </NODE>
+  </NODE>
+  <NODE description="Prestations familiales" code="pfam">
+    <NODE description="Allocations familiales" code="af">
+      <CODE description="Plafond de revenus trimestriels" code = "plaf_trim" format='integer'>
+        <VALUE valeur="122" deb="1960-01-01" fin="2011-12-31"/>
+      </CODE>
+      <NODE description="Taux (% de la BTAF)" code = "taux">
+		<CODE description="Premier enfant à charge" code="enf1" format = 'percent'>
+	  	  <VALUE valeur=".18" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+		<CODE description="Deuxième enfant à charge" code="enf2" format = 'percent'>
+	  	  <VALUE valeur="0.16" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+		<CODE description="Troisième enfant à charge" code="enf3" format = 'percent'>
+	      <VALUE valeur="0.14" deb="1960-01-01" fin="2011-12-31"/>
+		</CODE>
+      </NODE>
+    </NODE>
+    <NODE description="Majoration trimestrielle pour salaire unique" code = "sal_uniq">
+      <CODE description="Premier enfant à charge" code="enf1" format = 'float'>
+	  	<VALUE valeur="9.375" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Deuxième enfant à charge" code="enf2" format = 'float'>
+	  	<VALUE valeur="18.750" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Troisième enfant" code="enf3" format = 'float'>
+	    <VALUE valeur="23.475" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+    </NODE>
+    <NODE description="Allocation pour congé de naissance" code = "naiss">
+    </NODE>
+	<NODE description="Contribution au frais de crêche" code = "creche">
+	  <CODE description="Plafond de ressources (en SMIG 48h)" code="plaf" format = 'percent'>
+	    <VALUE valeur="2.5" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>	
+	  <CODE description="Montant" code="montant" format = 'integer'>
+	    <VALUE valeur="15" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Age (en mois) minimal" code="age_min" format = 'integer'>
+	    <VALUE valeur="2" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+	  <CODE description="Age (en mois) maximal" code="age_max" format = 'integer'>
+	    <VALUE valeur="36" deb="1960-01-01" fin="2011-12-31"/>
+      </CODE>
+	  <CODE description="Durée maximale (en mois)" code="duree" format = 'integer'>
+	    <VALUE valeur="11" deb="1960-01-01" fin="2011-12-31"/>
+	  </CODE>
+    </NODE>
+  </NODE>
+  <NODE description="Impôt sur le revenu" code="ir">
+    <BAREME code = "bareme" description="Tranches de l'IR">
+      <TRANCHE code = "tranche0">
+	    <SEUIL>
+	      <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+      <TRANCHE code = "tranche1">
+	    <SEUIL>
+	      <VALUE valeur="1500" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur=".15" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+      <TRANCHE code = "tranche2">
+	    <SEUIL>
+	      <VALUE valeur="5000" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur=".20" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+      <TRANCHE code = "tranche3">
+	    <SEUIL>
+	      <VALUE valeur="10000" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur=".25" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+      <TRANCHE code = "tranche4">
+	    <SEUIL>
+	      <VALUE valeur="20000" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur=".30" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+      <TRANCHE code = "tranche5">
+	    <SEUIL>
+	      <VALUE valeur="50000" deb="1990-01-01" fin="2011-12-31"/>
+	    </SEUIL>
+	    <TAUX>
+	      <VALUE valeur=".35" deb="1990-01-01" fin="2011-12-31"/>
+ 	    </TAUX>
+      </TRANCHE>
+	</BAREME>
+	<NODE description="Traitements, salaires, pensions et rentes" code="tspr" >
+      <CODE description="Abattement sur les salaires" code="abat_sal" format="integer">
+        <VALUE valeur=".10" deb="1990-01-01" fin="2012-12-31" />
+      </CODE>
+      <CODE description="Déduction pour salaire minimum" code="smig" format="integer">
+        <VALUE valeur="1000" deb="2010-01-01" fin="2012-12-31" />
+        <VALUE valeur="500"  deb="2005-01-01" fin="2009-12-31" />
+      </CODE>
+	  <CODE description="Abattement sur les pensions" code="abat_pen" format="integer">
+        <VALUE valeur=".25" deb="1990-01-01" fin="2012-12-31" />
+      </CODE>
+      <CODE description="Abattement sur les pensions étrangères" code="abat_pen_etr" format="integer">
+        <VALUE valeur=".80" deb="2007-01-01" fin="2012-12-31" />
+        <VALUE valeur=".0" deb="2001-01-01" fin="2006-12-31" />
+      </CODE>
+    </NODE>
+    <NODE description="Bénéfices industriels et commerciaux" code="bic" >
+      <NODE description="Régime réel" code="reel">
+        <CODE description="TODO" code="forfait" format="integer">
+          <VALUE valeur="0" deb="2007-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Déduction pour salaire minimum" code="smig" format="integer">
+      </NODE>
+      <NODE description="Régime réel simplifié" code="simpl">
+      	<CODE description="TODO" code="forfait" format="integer">
+          <VALUE valeur="0" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>
+      </NODE>
+      <NODE description="Régime forfaitaire" code="forf">
+        <CODE description="Montant de l'impot forfaitaire dispensant du paiement de accomptes provisionnels" code="forfait" format="integer">
+          <VALUE valeur="1500" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Accomptes (en % de l'impôt forfaitaire dû)" code="acc" format="percent">
+          <VALUE valeur=".30" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>
+      	<BAREME code = "bareme" description="Tranches de l'IR">
+          <TRANCHE code = "tranche0">
+		    <SEUIL>
+	    	  <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
+	   	    </SEUIL>
+	        <TAUX>
+	          <VALUE valeur="25" deb="1990-01-01" fin="2011-12-31"/>
+            </TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche1">
+	      	<SEUIL>
+	          <VALUE valeur="3000" deb="1990-01-01" fin="2011-12-31"/>
+	      	</SEUIL>
+	      	<TAUX>
+              <VALUE valeur="45" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche2">
+	      	<SEUIL>
+	          <VALUE valeur="6000" deb="1990-01-01" fin="2011-12-31"/>
+            </SEUIL>
+	        <TAUX>
+	          <VALUE valeur="75" deb="1990-01-01" fin="2011-12-31"/>
+ 	        </TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche3">
+	        <SEUIL>
+	          <VALUE valeur="9000" deb="1990-01-01" fin="2011-12-31"/>
+	        </SEUIL>
+	        <TAUX>
+	          <VALUE valeur="120" deb="1990-01-01" fin="2011-12-31"/>
+ 	        </TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche4">
+	        <SEUIL>
+	          <VALUE valeur="12000" deb="1990-01-01" fin="2011-12-31"/>
+	        </SEUIL>
+	        <TAUX>
+	          <VALUE valeur="180" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche5">
+	        <SEUIL>
+	          <VALUE valeur="18000" deb="1990-01-01" fin="2011-12-31"/>
+	      	</SEUIL>
+	      	<TAUX>
+	          <VALUE valeur="260" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche6">
+            <SEUIL>
+	          <VALUE valeur="18000" deb="1990-01-01" fin="2011-12-31"/>
+	      	</SEUIL>
+	      	<TAUX>
+              <VALUE valeur="260" deb="1990-01-01" fin="2011-12-31"/>
+            </TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche7">
+            <SEUIL>
+              <VALUE valeur="21000" deb="1990-01-01" fin="2011-12-31"/>
+	      	</SEUIL>
+	      	<TAUX>
+	          <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche8">
+	      	<SEUIL>
+	          <VALUE valeur="24000" deb="1990-01-01" fin="2011-12-31"/>
+	        </SEUIL>
+	      	<TAUX>
+              <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+          <TRANCHE code = "tranche9">
+	        <SEUIL>
+	          <VALUE valeur="27000" deb="1990-01-01" fin="2011-12-31"/>
+	      	</SEUIL>
+	      	<TAUX>
+	          <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
+ 	      	</TAUX>
+          </TRANCHE>
+		</BAREME>
+      </NODE>
+    </NODE>
+    <NODE description="Déductions" code="deduc" >
+      <NODE description="Déductions pour charge de famille" code="fam" >
+        <CODE description="Chef de famille" code="chef" format="integer">
+          <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+	    <CODE description="1er enfant à charge" code="enf1" format="integer">
+          <VALUE valeur="90" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="2e enfant à charge" code="enf2" format="integer">
+          <VALUE valeur="75" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="3e enfant à charge" code="enf3" format="integer">
+          <VALUE valeur="60" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="4e enfant à charge" code="enf4" format="integer">
+          <VALUE valeur="45" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Age limite (exclu) des enfants à charge" code="age" format="integer">
+          <VALUE valeur="20" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Enfant non boursier du supérieur" code="enf_sup" format="integer">
+          <VALUE valeur="300" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Age limite (exclu) des enfants de supérieur à charge" code="age_sup" format="integer">
+          <VALUE valeur="25" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Enfant infirme TODO dates" code="infirme" format="integer">
+          <VALUE valeur="500" deb="1990-01-01" fin="2003-12-31" />  
+          <VALUE valeur="600" deb="2004-01-01" fin="2004-12-31" />
+          <VALUE valeur="750" deb="2005-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Parent à charge (en pourcentage du revenu)" code="parent_taux" format="percent">
+          <VALUE valeur=".05" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Parent à charge (montant maximum)" code="parent_max" format="integer">
+          <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Parent à charge (plafond de revenu en SMIG)" code="parent_plaf" format="integer">
+          <VALUE valeur="1" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
+      </NODE>
+      <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès des banques" code="banq" >
+        <CODE description="Plafond de la déduction" code="plaf" format="integer">
           <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-	    <CODE description="Abattement sur les pensions" code="abat_pen" format="integer">
-          <VALUE valeur=".25" deb="1990-01-01" fin="2012-12-31" />
+      </NODE>
+      <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès de la CENT" code="cent" >
+        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+           <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Abattement sur les pensions étrangères" code="abat_pen_etr" format="integer">
-          <VALUE valeur=".80" deb="2007-01-01" fin="2012-12-31" />
+      </NODE>
+      <NODE description="Intérêts des emprunts obligataires" code="oblig" >
+        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+          <VALUE valeur="1500" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
-      <NODE description="Bénéfices industriels et commerciaux" code="bic" >
-      	<NODE description="Régime réel" code="reel">
-      	</NODE>
-      	<NODE description="Régime réel simplifié" code="simpl">
-      	</NODE>
-      	<NODE description="Régime forfaitaire" code="forf">
-      	  <CODE description="Montant de l'impot forfaitaire dispensant du paiement de accomptes provisionnels" code="forfait" format="integer">
-            <VALUE valeur="1500" deb="2007-01-01" fin="2012-12-31" />
-          </CODE>
-      	  <CODE description="Accomptes (en % de l'impôt forfaitaire dû)" code="acc" format="percent">
-            <VALUE valeur=".30" deb="2007-01-01" fin="2012-12-31" />
-          </CODE>
-      	  <BAREME code = "bareme" description="Tranches de l'IR">
-	        <TRANCHE code = "tranche0">
-		      <SEUIL>
-	    	    <VALUE valeur="0" deb="1990-01-01" fin="2011-12-31"/>
-	   	      </SEUIL>
-	          <TAUX>
-	        	<VALUE valeur="25" deb="1990-01-01" fin="2011-12-31"/>
-              </TAUX>
-        	</TRANCHE>
-        	<TRANCHE code = "tranche1">
-	      	  <SEUIL>
-	            <VALUE valeur="3000" deb="1990-01-01" fin="2011-12-31"/>
-	      	  </SEUIL>
-	      	  <TAUX>
-	        	<VALUE valeur="45" deb="1990-01-01" fin="2011-12-31"/>
- 	      	  </TAUX>
-        	</TRANCHE>
-        	<TRANCHE code = "tranche2">
-	      	  <SEUIL>
-	            <VALUE valeur="6000" deb="1990-01-01" fin="2011-12-31"/>
-	          </SEUIL>
-	          <TAUX>
-	            <VALUE valeur="75" deb="1990-01-01" fin="2011-12-31"/>
- 	          </TAUX>
-              </TRANCHE>
-              <TRANCHE code = "tranche3">
-	            <SEUIL>
-	              <VALUE valeur="9000" deb="1990-01-01" fin="2011-12-31"/>
-	            </SEUIL>
-	            <TAUX>
-	              <VALUE valeur="120" deb="1990-01-01" fin="2011-12-31"/>
- 	            </TAUX>
-        	  </TRANCHE>
-        	  <TRANCHE code = "tranche4">
-	            <SEUIL>
-	              <VALUE valeur="12000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="180" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-              <TRANCHE code = "tranche5">
-	      		<SEUIL>
-	        	  <VALUE valeur="18000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="260" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-        	  <TRANCHE code = "tranche6">
-	      		<SEUIL>
-	        	  <VALUE valeur="18000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="260" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-        	  <TRANCHE code = "tranche7">
-	      		<SEUIL>
-	        	  <VALUE valeur="21000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-        	  <TRANCHE code = "tranche8">
-	      		<SEUIL>
-	        	  <VALUE valeur="24000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-        	  <TRANCHE code = "tranche9">
-	      		<SEUIL>
-	        	  <VALUE valeur="27000" deb="1990-01-01" fin="2011-12-31"/>
-	      		</SEUIL>
-	      		<TAUX>
-	        	  <VALUE valeur="360" deb="1990-01-01" fin="2011-12-31"/>
- 	      		</TAUX>
-        	  </TRANCHE>
-			</BAREME>
-      	</NODE>
+      <NODE description="Intérêts des comptes épargne pour l'investissement" code="epinv" >
+        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+          <VALUE valeur="2000" deb="1990-01-01" fin="2012-12-31" />
+        </CODE>
       </NODE>
-      <NODE description="Bénéfices industriels et commerciaux" code="bic" >
-      </NODE>
-	  <NODE description="Déductions" code="deduc" >
-		<NODE description="Déductions pour charge de famille" code="fam" >
-		  <CODE description="Chef de famille" code="chef" format="integer">
-            <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-	      <CODE description="1er enfant à charge" code="enf1" format="integer">
-            <VALUE valeur="90" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="2e enfant à charge" code="enf2" format="integer">
-            <VALUE valeur="75" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="3e enfant à charge" code="enf3" format="integer">
-            <VALUE valeur="60" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="4e enfant à charge" code="enf4" format="integer">
-            <VALUE valeur="45" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Age limite (exclu) des enfants à charge" code="age" format="integer">
-            <VALUE valeur="20" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Enfant non boursier du supérieur" code="enf_sup" format="integer">
-            <VALUE valeur="300" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Age limite (exclu) des enfants de supérieur à charge" code="age_sup" format="integer">
-            <VALUE valeur="25" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Enfant infirme" code="infirme" format="integer">
-            <VALUE valeur="500" deb="1990-01-01" fin="2003-12-31" />  # TODO Check dates
-            <VALUE valeur="600" deb="2004-01-01" fin="2004-12-31" />
-            <VALUE valeur="750" deb="2005-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Parent à charge (en pourcentage du revenu)" code="parent_taux" format="percent">
-            <VALUE valeur=".05" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Parent à charge (montant maximum)" code="parent_max" format="integer">
-            <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Parent à charge (plafond de revenu en SMIG)" code="parent_plaf" format="integer">
-            <VALUE valeur="1" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
-        <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès des banques" code="banq" >
-          <CODE description="Plafond de la déduction" code="plaf" format="integer">
-            <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
-        <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès de la CENT" code="cent" >
-          <CODE description="Plafond de la déduction" code="plaf" format="integer">
-            <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
-        <NODE description="Intérêts des emprunts obligataires" code="oblig" >
-          <CODE description="Plafond de la déduction" code="plaf" format="integer">
-            <VALUE valeur="1500" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
-        <NODE description="Intérêts des comptes épargne pour l'investissement" code="epinv" >
-          <CODE description="Plafond de la déduction" code="plaf" format="integer">
-            <VALUE valeur="2000" deb="1990-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
-        <NODE description="Assurance vie" code="ass_vie" >
-          <CODE description="Plafond de la déduction" code="plaf" format="integer">
-            <VALUE valeur="800" deb="1990-01-01" fin="2006-12-31" />
-            <VALUE valeur="1200" deb="2007-01-01" fin="2012-12-31" />
-          </CODE>
-          <CODE description="Majoration au titre du conjoint" code="conj_plaf" format="integer">
-			<VALUE valeur="400" deb="1990-01-01" fin="2006-12-31" />
-            <VALUE valeur="600" deb="2007-01-01" fin="2012-12-31" />
-          </CODE>	
-          <CODE description="Majoration au titre des enfants" code="enf_plaf" format="integer">
-            <VALUE valeur="200" deb="1990-01-01" fin="2006-12-31" />
-            <VALUE valeur="300" deb="2007-01-01" fin="2012-12-31" />
-          </CODE>
-        </NODE>
+      <NODE description="Assurance vie" code="ass_vie" >
+        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+          <VALUE valeur="800" deb="1990-01-01" fin="2006-12-31" />
+          <VALUE valeur="1200" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>
+        <CODE description="Majoration au titre du conjoint" code="conj_plaf" format="integer">
+		  <VALUE valeur="400" deb="1990-01-01" fin="2006-12-31" />
+          <VALUE valeur="600" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>	
+        <CODE description="Majoration au titre des enfants" code="enf_plaf" format="integer">
+          <VALUE valeur="200" deb="1990-01-01" fin="2006-12-31" />
+          <VALUE valeur="300" deb="2007-01-01" fin="2012-12-31" />
+        </CODE>
       </NODE>
     </NODE>
   </NODE>

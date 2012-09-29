@@ -31,6 +31,7 @@ import pickle
 from datetime import datetime
 from pandas import DataFrame
 
+
 class Enum(object):
     def __init__(self, varlist, start = 0):
         self._vars = {}
@@ -73,7 +74,7 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
                 else: typv = 0
                 child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
                 tree.addChild(child)
-                handle_output_xml(element, child, model)
+                handle_output_xml(element, child, model, unit)
     else:
         idx = model.index[unit]
         inputs = model._inputs
@@ -90,9 +91,11 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
 
             
 def gen_output_data(model):
-
-    data_dir = CONF.get('paths', 'data_dir')
-    totals_fname = os.path.join(data_dir,'totaux.xml')
+    '''
+    Generates output data according to totaux.xml
+    '''    
+    country = CONF.get('simulation', 'country')
+    totals_fname = os.path.join(country,'totaux.xml')
     _doc = minidom.parse(totals_fname)
 
     tree = OutNode('root', 'root')
@@ -104,29 +107,30 @@ def gen_aggregate_output(model):
 
     out_dct = {}
     inputs = model._inputs
-
     unit = 'men'
     idx = model.index[unit]
     enum = inputs.description.get_col('qui'+unit).enum
     people = [x[1] for x in enum]
 
     model.calculate()
-    for varname in model.col_names:
-        val = model.get_value(varname, idx, opt = people, sum_ = True)
-        out_dct[varname] = val
 
-    # TODO: should take care the variables that shouldn't be summed automatically
-    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
-    varlist = ['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile']
-    
-    for varname in varlist:
+    varlist = set(['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
+    for varname in model.col_names.union(varlist):
         if varname in model.col_names:
-            val = model.get_value(varname, idx)
+            if model.description.get_col(varname)._unit != unit:
+                val = model.get_value(varname, idx, opt = people, sum_ = True)    
+            else:
+                val = model.get_value(varname, idx)
         elif varname in inputs.col_names:
             val = inputs.get_value(varname, idx)
         else:
             raise Exception('%s was not find in model nor in inputs' % varname)
-        out_dct[varname] = val
+        
+        out_dct[varname] = val      
+    # TODO: should take care the variables that shouldn't be summed automatically
+    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+    
+    
 
     out_table = DataFrame(out_dct)
     return out_table
@@ -552,11 +556,16 @@ class Scenario(object):
         self.famille = S['famille']
         self.menage = S['menage']
 
+
+############################################################################
+## Bareme and helper functions for Baremes
+############################################################################
+
 class Bareme(object):
     '''
     Object qui contient des tranches d'imposition en taux marginaux et en taux moyen
     '''
-    def __init__(self, name = 'untitled Bareme'):
+    def __init__(self, name = 'untitled Bareme', option = None):
         super(Bareme, self).__init__()
         self._name = name
         self._tranches = []
@@ -565,6 +574,15 @@ class Bareme(object):
         # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
         # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
         self._linear_taux_moy = False
+        self._option = option
+
+
+    @property
+    def option(self):
+        return self._option
+ 
+    def setOption(self, option):
+        self._option = option
 
     @property
     def nb(self):
@@ -609,7 +627,7 @@ class Bareme(object):
         '''
         Returns a new instance of Bareme with scaled 'seuils' and same 'taux'
         '''
-        b = Bareme(self._name)
+        b = Bareme(self._name, option = self._option)
         for i in range(self.nb):
             b.addTranche(factor*self.seuils[i], self.taux[i])
         return b
@@ -733,7 +751,7 @@ class Bareme(object):
     def calc(self, assiette, getT = False):
         '''
         Calcule un impôt selon le barême non linéaire exprimé en tranches de taux marginaux.
-        'assiette' est l'assiette de l'impôt, en colonne;
+        'assiette' est l'assiette de l'impôt, en colonne
         '''
         k = self.nb
         n = len(assiette)
@@ -774,8 +792,83 @@ class Bareme(object):
         return (t[1:]-t[:-1])/(s[1:]-s[:-1])
 
 
+class BaremeDict(dict):
+    '''
+    A dict of Bareme's
+    '''
+    def __init__(self, name = None, tree2object = None):
+        
+        super(BaremeDict, self).__init__()
+
+        if name is None:
+            raise Exception("BaremeDict instance needs a name to be created")
+        else:
+            self._name = name
+        
+        if tree2object is not None:
+            self.init_from_param(tree2object) 
+        
+    
+    def init_from_param(self, tree2object):
+        '''
+        Init a BaremeDict form a Tree2Object
+        '''
+        from parametres.paramData import Tree2Object
+        
+        if isinstance(tree2object, Bareme):
+            self[tree2object._name] = tree2object 
+        elif isinstance(tree2object, Tree2Object):
+            for key, bar in tree2object.__dict__.iteritems():
+                if isinstance(bar, Bareme):
+                    self[key] = bar
+                elif isinstance(bar, Tree2Object):
+                    new = BaremeDict(key, bar)
+                    self[key] = new   
+        
+            
+def combineBaremes(bardict, name = None):
+    '''
+    Combine all the Baremes in the BaremeDict in a signle Bareme
+    '''
+    if name is None:
+        name = 'Combined ' + bardict._name
+    baremeTot = Bareme(name = name)
+    baremeTot.addTranche(0,0)
+    for name, bar in bardict.iteritems():
+        if isinstance(bar, Bareme):
+            baremeTot.addBareme(bar)
+        else: 
+            combineBaremes(bar, baremeTot)
+    return baremeTot
 
 
+
+
+def scaleBaremes(bar_set, factor):
+    '''
+    Scales all the Bareme in the BarColl
+    '''
+    from parametres.paramData import Tree2Object
+    
+    if isinstance(bar_set, Bareme):
+        return bar_set.multSeuils(factor)
+    
+    if isinstance(bar_set, BaremeDict):
+        out = BaremeDict(name = bar_set._name)
+    
+        for key, bar in bar_set.iteritems():
+            if isinstance(bar, Bareme):
+                out[key] = bar.multSeuils(factor)
+            elif isinstance(bar, BaremeDict):
+                out[key] = scaleBaremes(bar, factor)
+            else:
+                setattr(out, key, bar)
+        return out
+    
+
+############################################################################
+## Helper functions for stats
+############################################################################
 # from http://pastebin.com/KTLip9ee
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
 # a is an input array of values.
@@ -822,9 +915,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         # interp-weights that involve the cumulative sum of weights.
         for brk in breaks:
             if brk <= p_vals[0]: 
-                i_low = 0; i_high = 0;
+                i_low = 0
+                i_high = 0
             elif brk >= p_vals[-1]:
-                i_low = N-1; i_high = N-1;
+                i_low = N-1
+                i_high = N-1
             else:
                 for ii in range(N-1):
                     if (p_vals[ii] <= brk) and (brk < p_vals[ii+1]):
@@ -868,7 +963,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         cu_weights = np.cumsum(tmp_weights)
     
         # Formula from stats.stackexchange.com post.
-        s_vals = [0.0];
+        s_vals = [0.0]
         for ii in range(1,N):
             s_vals.append( ii*tmp_weights[ii] + (N-1)*cu_weights[ii-1])
         s_vals = np.asarray(s_vals)
@@ -890,9 +985,11 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         # interp-weights that involve the cumulative sum of weights.
         for brk in breaks:
             if brk <= norm_s_vals[0]: 
-                i_low = 0; i_high = 0;
+                i_low = 0
+                i_high = 0
             elif brk >= norm_s_vals[-1]:
-                i_low = N-1; i_high = N-1;
+                i_low = N-1
+                i_high = N-1
             else:
                 for ii in range(N-1):
                     if (norm_s_vals[ii] <= brk) and (brk < norm_s_vals[ii+1]):
@@ -921,3 +1018,142 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret, quantiles
         else:
             return ret
+        
+
+from numpy import cumsum, ones, sort, random       
+from pandas import DataFrame
+
+def gini(values, weights = None, bin_size = None):
+    '''
+    Gini coefficient (normalized to 1)
+    Using fastgini formula :
+
+
+                      i=N      j=i
+                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
+                      i=1      j=1
+          G = 1 - 2* ----------------------------------
+                           i=N             i=N
+                           SUM W_i*X_i  *  SUM W_i
+                           i=1             i=1
+
+
+        where observations are sorted in ascending order of X.
+    
+    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    '''
+    if weights is None:
+        weights = ones(len(values))
+        
+    df = DataFrame( {'x': values, 'w':weights} )    
+    df = df.sort_index(by='x')
+    x = df['x']
+    w = df['w']
+    wx = w*x
+    
+    cdf = cumsum(wx)-0.5*wx  
+    numerator = (w*cdf).sum()
+    denominator = ( (wx).sum() )*( w.sum() )
+    gini = 1 - 2*( numerator/denominator) 
+    
+    return gini
+
+
+def lorenz(values, weights = None):
+    '''
+    Computes Lorenz Curve coordinates
+    '''
+    if weights is None:
+        weights = ones(len(values))
+        
+    df = DataFrame( {'v': values, 'w':weights} )    
+    df = df.sort_index( by = 'v')    
+    x = cumsum(df['w'])
+    x = x/float(x[-1:])
+    y = cumsum( df['v']*df['w'] )
+    y = y/float(y[-1:])
+    
+    return x, y
+
+
+def pseudo_lorenz(values, ineq_axis, weights = None):
+    '''
+    Computes The pseudo Lorenz Curve coordinates
+    '''
+    if weights is None:
+        weights = ones(len(values))
+    df = DataFrame( {'v': values, 'a': ineq_axis, 'w':weights} )    
+    df = df.sort_index( by = 'a')
+    x = cumsum(df['w'])
+    x = x/float(x[-1:])
+    y = cumsum( df['v']*df['w'] )
+    y = y/float(y[-1:])
+    
+    return x, y
+
+
+def kakwani(values, ineq_axis, weights = None):
+    '''
+    Computes the Kakwani index
+    '''
+    if weights is None:
+        weights = ones(len(values))
+    
+#    sign = -1
+#    if tax == True: 
+#        sign = -1
+#    else:
+#        sign = 1
+        
+    PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
+    LCx, LCy = lorenz(ineq_axis, weights)
+    
+    del PLCx
+    
+    from scipy.integrate import simps
+    
+    return simps( (LCy - PLCy), LCx)
+        
+
+from widgets.matplotlibwidget import MatplotlibWidget
+
+def test():
+    import sys
+    from PyQt4.QtGui import QMainWindow, QApplication
+    
+    class ApplicationWindow(QMainWindow):
+        def __init__(self):
+            QMainWindow.__init__(self)
+            self.mplwidget = MatplotlibWidget(self, title='Example',
+                                              xlabel='x',
+                                              ylabel='y',
+                                              hold=True)
+            self.mplwidget.setFocus()
+            self.setCentralWidget(self.mplwidget)
+            self.plot(self.mplwidget.axes)
+            
+        def plot(self, axes):
+            a = random.uniform(low=0,high=1,size=400)
+            from numpy import exp
+            #v = a
+            v = -(exp(10*a).max() - exp(10*a)) 
+            print v.sum()
+            
+            x, y = lorenz(a)
+            print kakwani(v,a)
+            x2, z = pseudo_lorenz(v,a)
+            axes.plot(x,y, label='L')
+            axes.plot(x2,z, label='PL')
+            axes.plot(x,x)
+            axes.legend()
+        
+    app = QApplication(sys.argv)
+    win = ApplicationWindow()
+    win.show()
+    sys.exit(app.exec_())
+
+
+if __name__=='__main__':
+
+    test()
+

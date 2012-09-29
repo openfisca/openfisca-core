@@ -40,17 +40,18 @@ class NoDefault:
 DEFAULTS = [
             ('simulation', 
              {
-              'datesim': '2010-01-01',
+              'country': 'france',
+              'datesim': '2006-01-01',
               'nmen': 101,
               'xaxis':  'sal',
               'maxrev': 50000,
               }),
             ('paths',
-             {'data_dir': 'data',
+             {'data_dir': 'france/data',
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'calib_dir'   :  'calibrations',
-              'survey_data/file':'data/final.csv',
+              'survey_data/file':'france/data/final.csv',
               'survey_data/bareme_only': False,
               'survey_data/survey_enabled': True,
               'output_dir' : os.path.expanduser('~'),
@@ -62,8 +63,7 @@ DEFAULTS = [
               'method': 'logit',
               'up': 3.0,
               'invlo': 3.0,
-              })
-            
+              })            
             ]
 
 class UserConfigParser(RawConfigParser):
@@ -635,6 +635,9 @@ class SimConfigPage(GeneralConfigPage):
     
     def setup_page(self):        
         simulation_group = QGroupBox("Simulation")
+        
+        country_choices = [(u'France', 'france'),(u'Tunisie', 'tunisia')]
+        country_combo = self.create_combobox('Pays', country_choices, 'country')
         sim_dateedit = self.create_dateedit("Date de la simulation", 'datesim', min_date = QDate(2002,01,01), max_date = QDate(2010,12,31))
         nmen_spinbox = self.create_spinbox(u'Nombre de ménages', '', 'nmen', min_ = 1, max_ = 10001, step = 100)
         xaxis_choices = [(u'Salaires', 'sal'),(u'Chômage', 'cho'), (u'Retraites', 'rst')]
@@ -643,6 +646,7 @@ class SimConfigPage(GeneralConfigPage):
                                              'euros', 'maxrev', min_ = 0, max_ = 10000000, step = 1000)
         
         simulation_layout = QVBoxLayout()
+        simulation_layout.addWidget(country_combo)
         simulation_layout.addWidget(sim_dateedit)
         simulation_layout.addWidget(nmen_spinbox)
         simulation_layout.addWidget(xaxis_combo)

@@ -21,10 +21,11 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import division
-from numpy import ( maximum as max_, minimum as min_, logical_xor as xor_, 
+from numpy import ( maximum as max_, minimum as min_, logical_xor as xor_, zeros, 
                      logical_not as not_, round) 
 
-from tunisie.data import QUIFOY
+from tunisia.data import QUIFOY
+#from tunisia.data import QUIFAM
 
 VOUS = QUIFOY['vous']
 CONJ = QUIFOY['conj']
@@ -32,14 +33,13 @@ PAC1 = QUIFOY['pac1']
 PAC2 = QUIFOY['pac2']
 PAC3 = QUIFOY['pac3']
 ALL = [x[1] for x in QUIFOY]
-        
-
-
+PACS = [ QUIFOY[ 'pac' + str(i)] for i in range(1,10) ]
+#ENFS = [ QUIFAM['enf1'], QUIFAM['enf2'], QUIFAM['enf3'], QUIFAM['enf4'], QUIFAM['enf5'],
+#         QUIFAM['enf6'], QUIFAM['enf7'], QUIFAM['enf8'], QUIFAM['enf9']]       
 
 ###############################################################################
 ## Initialisation de quelques variables utiles pour la suite
 ###############################################################################
-
 
 def _nb_adult(marie, celdiv, veuf):
     return 2*marie + 1*(celdiv | veuf)
@@ -73,27 +73,38 @@ def _veuf(statmarit):
     return statmarit == 4
 
 
+def _nb_enf(age, _P):
+    '''
+    Nombre d'enfants TODO
+    '''
+#    res = None
+#    i = 1    
+#    if res is None: res = zeros(len(age))
+#    for key, ag in age.iteritems():
+#        i += 1
+#        res =+ ( (ag < 20) + 
+#                 (ag < 25)*not_(boursier)*() )
 
-def _nb_enf():
-    '''
-    Nombre d'enfants
-    '''
-    pass
+    
+    return age*0 
 
-def _nb_enf_sup():
+def _nb_enf_sup(agem, boursier):
     '''
-    Nombre d'enfants étudiant du supérieur non boursiers
+    Nombre d'enfants étudiant du supérieur non boursiers TODO
     '''
-    pass
+    return 0*agem
     
-def nb_infirme(): 
+def _nb_infirme(agem, inv): 
     '''
-    Nombre d'enfants infirmes
+    Nombre d'enfants infirmes TODO
     '''
-    pass
+    return 0*agem
     
-def nb_par():
-    pass
+def _nb_par(agem):
+    '''
+    Nombre de parents TODO
+    '''
+    return 0*agem
 
 
 ###############################################################################
@@ -101,71 +112,87 @@ def nb_par():
 ###############################################################################
 
 
-def _bic():
+def _bic(agem):
     '''
-    Bénéfices industriels et commerciaux
+    Bénéfices industriels et commerciaux TODO
+    'foy'
     ''' 
 #    return bic_reel + bic_simpl + bic_forf TODO
-    pass
+    return 0*agem
 
 # régime réel
 # régime réel simplifié
 # régime forfaitaire
 
 
-def _bnc():   
+def _bnc(agem):   
     '''
-    Bénéfices des professions non commerciales
+    Bénéfices des professions non commerciales TODO
+    'foy'
     '''
-    pass
+    return 0*agem
      
-def _beap():
+def _beap(agem):
     '''
-    Bénéfices de l'exploitation agricole et de pêche
+    Bénéfices de l'exploitation agricole et de pêche TODO
+    'foy'
     '''
-    pass
+    return 0*agem
 
     
 def _rvcm(capm_banq, capm_cent, capm_caut, capm_part, capm_oblig, capm_caisse, capm_plfcc, capm_epinv, capm_aut):
     '''
     Revenus de valeurs mobilières et de capitaux mobiliers
+    'foy'
     '''
     return capm_banq + capm_cent + capm_caut + capm_part + capm_oblig + capm_caisse + capm_plfcc + capm_epinv + capm_aut
     
     
 def _fon_forf_bati(fon_forf_bati_rec, fon_forf_bati_rel, fon_forf_bati_fra, fon_forf_bati_tax, _P):
     '''
-    Revenus fonciers net des immeubles bâtis
+    Revenus fonciers net des immeubles bâtis #TODO
+    'foy'
     '''
-    P = _P.ir.fon.abat_bat
-    return max(0, fon_forf_bati_rec*(1-P) + fon_forf_bati_rel - fon_forf_bati_fra - fon_forf_bati_tax)
+    P = 0
+    #P = _P.ir.fon.abat_bat
+    return max_(0, fon_forf_bati_rec*(1-P) + fon_forf_bati_rel - fon_forf_bati_fra - fon_forf_bati_tax)
 
 def _fon_forf_nbat(fon_forf_nbat_rec, fon_forf_nbat_dep, fon_forf_nbat_tax, _P):
     '''
     Revenus fonciers net des terrains non bâtis
+    'foy'
     '''
-    return max(0, fon_forf_nbat_rec - fon_forf_nbat_dep - fon_forf_nbat_tax)
+    return max_(0, fon_forf_nbat_rec - fon_forf_nbat_dep - fon_forf_nbat_tax)
 
 
-def _rfon(fon_reel_fisc, fon_forf_bat, fon_forf_nbat, fon_sp):
+def _rfon(fon_reel_fisc, fon_forf_bati, fon_forf_nbat, fon_sp):
     '''
     Revenus fonciers
+    'foy'
     '''    
-    return fon_reel_fisc + fon_forf_bat + fon_forf_nbat + fon_sp
+    return fon_reel_fisc + fon_forf_bati + fon_forf_nbat + fon_sp
 
-def _sal_net(tra_sal, sal_nat, smig, _P):
+def _sal(sali, sal_nat):
+    '''
+    Salaires y compris salaires en nature
+    'foy'
+    '''
+    return (sali + sal_nat)
+#    return sali
+
+def _sal_net(sal, smig, _P):
     '''
     Revenu imposé comme des salaires net des abatements 
-    'ind'
+    'foy'
     '''
     P = _P.ir.tspr
-    return (tra_sal + sal_nat)*(1 - P.abat_sal) - smig*P.smig 
+    return sal*(1 - P.abat_sal) - smig*P.smig 
 
 
 def _pen_net(pen, pen_nat, _P):
     '''
     Pensions et rentes viagères après abattements
-    'ind'
+    'foy'
     '''
     P = _P.ir.tspr
     return (pen + pen_nat)*(1-P.abat_pen) 
@@ -173,13 +200,14 @@ def _pen_net(pen, pen_nat, _P):
 def _tspr(sal_net, pen_net):
     '''
     Traitemens salaires pensions 
-    'ind'
+    'foy'
     '''
     return sal_net + pen_net
         
 def _retr(etr_sal, etr_pen, etr_trans, etr_aut, _P):
     '''
     Autres revenus ie revenus de source étrangère n’ayant pas subi l’impôt dans le pays d'origine
+    'foy'
     '''
     P = _P.ir.tspr
     return etr_sal*(1-P.abat_sal) + etr_pen*(1-P.abat_pen) + etr_trans*(1-P.abat_pen_etr) + etr_aut
@@ -209,35 +237,49 @@ def _rng(tspr, rfon, retr, rvcm):
 
 def _deduc_int(capm_banq, capm_cent, capm_oblig, _P):
     P = _P.deduc
-    return  max ( max( max(capm_banq, P.banq.plaf) + max(capm_cent, P.cent.plaf), P.banq.plaf ) +  
-                 max(capm_oblig, P.oblig.plaf), P.oblig.plaf) 
+    return  max_( max_( max_(capm_banq, P.banq.plaf) + max_(capm_cent, P.cent.plaf), P.banq.plaf ) +  
+                 max_(capm_oblig, P.oblig.plaf), P.oblig.plaf) 
 
-def _deduc_fam(rgn, chef, nb_enf, nb_enf_sup, nb_infirme, nb_par, _P):
+def _deduc_fam(rng, chef, nb_par, _P):
     ''' 
     Déductions pour situation et charges de famille
+    'foy'
     '''
-    P = _P.ir.fam
+    P = _P.ir.deduc.fam
+    # chef de famille
+    chef = P.chef*chef 
+#    from scipy.stats import rankdata
+#    
+#    ages = [a in age.values() if a >= 0 ]
+#    rk = rankdata(age.values())
+#    TODO
+#    rk = rk[-4:]
+#    rk = round(rk + -.01*range(len(rk))) # to properly rank twins 
+#    
+#    
+#    enf =  (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
+#    sup = P.enf_sup*nb_enf_sup 
+#    infirme =  P.infirme*nb_infirme
+#    parent = min_(P.parent_taux*rng, P.parent_max)
     
-    enf = P.chef*chef + (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
-    sup = P.enf_sup*nb_enf_sup 
-    infirme =  P.infirme*nb_infirme
-    parent = min(P.parent_taux*rgn, P.parent_max)
-    
-    return enf + sup + infirme + parent
+#    return chef + enf + sup + infirme + parent
+    return 0*chef
 
-def _rente():
+def _deduc_rente(rente):
     '''
     Déductions des arrérages et rentes payées à titre obligatoire et gratuit
+    'foy'
     '''
-    return 0 # TODO
+    return rente # TODO
     
 def _ass_vie(prime_ass_vie, statmarit, nb_enf, _P):
     '''    
     Primes afférentes aux contrats d'assurance-vie collectifs ou individuels
+    'foy'
     '''
     P = _P.ir.deduc.ass_vie
     marie = statmarit # TODO
-    deduc = min(prime_ass_vie, P.plaf + marie*P.conj_plaf + nb_enf*P.enf_plaf) 
+    deduc = min_(prime_ass_vie, P.plaf + marie*P.conj_plaf + nb_enf*P.enf_plaf) 
     return deduc
 
 
@@ -272,26 +314,34 @@ def _ass_vie(prime_ass_vie, statmarit, nb_enf, _P):
 #    pour une période minimale de trois ans. 
 
 
-def _deduc_smig():
+def _deduc_smig(chef):
     '''
     Déduction supplémentaire pour les salariés payés au « SMIG » et « SMAG »
+    'foy'
     '''
-    return 0 # TODO voir avec tspr
+    return 0*chef # TODO voir avec tspr
 
-def _rni(rgn, deduc_fam, rente, ass_vie):
+def _rni(rng, deduc_fam, rente, ass_vie):
     '''
     Revenu net imposable ie soumis à au barême de l'impôt après déduction des dépenses et charges professionnelles et des revenus non soumis à l'impôt
+    'foy'
     '''
-    return rgn - (deduc_fam + rente + ass_vie)
+    return rng - (deduc_fam + rente + ass_vie)
     
-
 def _ir_brut(rni, _P):
     '''
     Impot sur le revenu avant non imposabilité
+    'foy'
     '''
     bar = _P.ir.bareme
     bar.t_x()
-    return bar.calc(rni)
+    return - bar.calc(rni)
 
-
+def _irpp(ir_brut, _P):
+    '''
+    Impot sur le revenu payé TODO
+    'foy'
+    '''
+    irpp = ir_brut
+    return irpp
 

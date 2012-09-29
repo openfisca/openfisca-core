@@ -22,13 +22,13 @@ This file is part of openFisca.
 """
 
 from core.description import ModelDescription
-from core.columns import IntCol, EnumCol, BoolCol, AgesCol, FloatCol
+from core.columns import IntCol, EnumCol, BoolCol, AgesCol
 from core.utils import Enum
 
 QUIFOY = Enum(['vous', 'conj', 'pac1','pac2','pac3','pac4','pac5','pac6','pac7','pac8','pac9'])
-QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
+#QUIFAM = Enum(['chef', 'part', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
 QUIMEN = Enum(['pref', 'cref', 'enf1','enf2','enf3','enf4','enf5','enf6','enf7','enf8','enf9'])
-CAT    = Enum(['noncadre', 'cadre', 'fonc'])
+CAT    = Enum(['rsna', 'rsa', 'rsaa', 'rtns', 'rtte', 're', 'rtfr', 'raic', 'cnrps_sal', 'cnrps_pen'])
 
 
 class InputTable(ModelDescription):
@@ -45,26 +45,27 @@ class InputTable(ModelDescription):
 
     quimen  = EnumCol(QUIMEN)
     quifoy  = EnumCol(QUIFOY)
-    quifam  = EnumCol(QUIFAM)
+#    quifam  = EnumCol(QUIFAM)
     
-    type_sal = EnumCol(CAT)
-    
-    salbrut = IntCol(label = 'salaire brut')
 
+    type_sal = EnumCol(CAT, default=0)
+    
     inv = BoolCol(label = u'invalide')
+    
     
 
     jour_xyz = IntCol(default = 360)
     age = AgesCol(label = u"âge")
     agem = AgesCol(label = u"âge (en mois)")
     
-    loyer = IntCol(unit='menage') # Loyer mensuel
+    loyer = IntCol(unit='men') # Loyer mensuel
     activite = IntCol()
     boursier = BoolCol()
-    code_postal = IntCol(unit='menage')
+    code_postal = IntCol(unit='men')
+    so = IntCol()
     
     statmarit = IntCol(default = 2)
-    
+    chef      = BoolCol()
 
     # bic Bénéfices industriels et commerciaux
     # régime réel
@@ -114,8 +115,8 @@ class InputTable(ModelDescription):
 
     # Salaires et pensions
     
-    tra_sal = IntCol( label="Salaires")
-    sal_nat = IntCol( label="Avantages en nature assimilables à des salaires")
+    sali = IntCol( label="Salaires", default=10000)
+    sal_nat = IntCol( label="Avantages en nature assimilables à des salaires", default=0 )
     smig = BoolCol( label="Salarié percevant le SMIG ou le SMAG")
     pen = IntCol(label="Pensions et rentes viagères")
     pen_nat = IntCol( label="Avantages en nature assimilables à des pensions")
@@ -188,7 +189,7 @@ class InputTable(ModelDescription):
     deduc_obli  = IntCol( label="Intérêts des emprunts obligataires")
     deduc_epinv = IntCol( label="Intérêts des comptes épargne pour l'investissement")
     rente       = IntCol( label="Rentes payées obligatoirement et à titre gratuit")
-    ass_vie     = IntCol( label="Prime d’assurance-vie")
+    prime_ass_vie     = IntCol( label="Prime d’assurance-vie")
     dons        = IntCol( label="Dons au profit du fonds national de solidarité 26-26 et du Fonds National de l’Emploi 21-21")
     pret_univ   = IntCol( label="Remboursement des prêts universitaires en principal et intérêts")
     cotis_nonaf = IntCol( label="Les cotisations payées par les travailleurs non salariés affiliés à l’un des régimes légaux de la sécurité sociale")
@@ -222,3 +223,12 @@ class InputTable(ModelDescription):
 #Bénéfices et revenus réinvestis dans le cadre de la mise à niveau des entreprises publiques.
 #    
     
+
+    # TODO Remove Me
+    rstbrut  = IntCol()
+    alr = IntCol()
+    alv = IntCol()
+    rto = IntCol()
+    psoc = IntCol()
+    af = IntCol()
+    uc = IntCol()

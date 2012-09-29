@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/logement.ui'
 #
-# Created: Tue May 29 19:14:52 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Wed Aug 29 11:35:45 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -20,7 +20,6 @@ class Ui_Logement(object):
         Logement.resize(300, 175)
         Logement.setMinimumSize(QtCore.QSize(300, 175))
         Logement.setMaximumSize(QtCore.QSize(300, 175))
-        Logement.setWindowTitle(QtGui.QApplication.translate("Logement", "Logement du ménage", None, QtGui.QApplication.UnicodeUTF8))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/images/home.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Logement.setWindowIcon(icon)
@@ -29,7 +28,6 @@ class Ui_Logement(object):
         self.gridLayout = QtGui.QGridLayout()
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.label = QtGui.QLabel(Logement)
-        self.label.setText(QtGui.QApplication.translate("Logement", "Statut d\'occupation", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.comboSo = QtGui.QComboBox(Logement)
@@ -40,30 +38,22 @@ class Ui_Logement(object):
         self.comboSo.setSizePolicy(sizePolicy)
         self.comboSo.setObjectName(_fromUtf8("comboSo"))
         self.comboSo.addItem(_fromUtf8(""))
-        self.comboSo.setItemText(0, QtGui.QApplication.translate("Logement", "Propriétaire accédant", None, QtGui.QApplication.UnicodeUTF8))
         self.comboSo.addItem(_fromUtf8(""))
-        self.comboSo.setItemText(1, QtGui.QApplication.translate("Logement", "Propriétaire non accédant", None, QtGui.QApplication.UnicodeUTF8))
         self.comboSo.addItem(_fromUtf8(""))
-        self.comboSo.setItemText(2, QtGui.QApplication.translate("Logement", "Locataire", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout.addWidget(self.comboSo, 0, 1, 1, 2)
         self.label_2 = QtGui.QLabel(Logement)
-        self.label_2.setText(QtGui.QApplication.translate("Logement", "Loyer mensuel", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
         self.label_3 = QtGui.QLabel(Logement)
-        self.label_3.setText(QtGui.QApplication.translate("Logement", "Code postal", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setObjectName(_fromUtf8("label_3"))
         self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
         self.label_4 = QtGui.QLabel(Logement)
-        self.label_4.setText(QtGui.QApplication.translate("Logement", "Commune", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
         self.commune = QtGui.QLabel(Logement)
-        self.commune.setText(QtGui.QApplication.translate("Logement", "dfe", None, QtGui.QApplication.UnicodeUTF8))
         self.commune.setObjectName(_fromUtf8("commune"))
         self.gridLayout.addWidget(self.commune, 3, 1, 1, 2)
         self.label_6 = QtGui.QLabel(Logement)
-        self.label_6.setText(QtGui.QApplication.translate("Logement", "Zone allocation logement", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setObjectName(_fromUtf8("label_6"))
         self.gridLayout.addWidget(self.label_6, 4, 0, 1, 1)
         self.spinCP = QtGui.QSpinBox(Logement)
@@ -107,6 +97,15 @@ class Ui_Logement(object):
         QtCore.QMetaObject.connectSlotsByName(Logement)
 
     def retranslateUi(self, Logement):
-        pass
+        Logement.setWindowTitle(QtGui.QApplication.translate("Logement", "Logement du ménage", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("Logement", "Statut d\'occupation", None, QtGui.QApplication.UnicodeUTF8))
+        self.comboSo.setItemText(0, QtGui.QApplication.translate("Logement", "Propriétaire accédant", None, QtGui.QApplication.UnicodeUTF8))
+        self.comboSo.setItemText(1, QtGui.QApplication.translate("Logement", "Propriétaire non accédant", None, QtGui.QApplication.UnicodeUTF8))
+        self.comboSo.setItemText(2, QtGui.QApplication.translate("Logement", "Locataire", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("Logement", "Loyer mensuel", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("Logement", "Code postal", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_4.setText(QtGui.QApplication.translate("Logement", "Commune", None, QtGui.QApplication.UnicodeUTF8))
+        self.commune.setText(QtGui.QApplication.translate("Logement", "dfe", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_6.setText(QtGui.QApplication.translate("Logement", "Zone allocation logement", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc
