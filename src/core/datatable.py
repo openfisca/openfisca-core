@@ -27,7 +27,7 @@ from Config import CONF
 from pandas import read_csv, DataFrame, concat, HDFStore
 import os
 
-from description import ModelDescription
+from description import ModelDescription, Description
 
 
 country = CONF.get('simulation', 'country')
@@ -63,8 +63,7 @@ class DataTable(object):
         # Build the description attribute        
         if type(model_description) == type(ModelDescription):
             descr = model_description()
-            descr.build_cols()
-            self.description = descr
+            self.description = Description(descr.columns)
         else:
             raise Exception("model_description should be an ModelDescription inherited class")
 

@@ -26,7 +26,7 @@ from columns import Column
 
 class MetaModelDescription(type):
     """
-    ModelDescription metaclass
+    DataTable metaclass
     
     Create class attribute `columns`: list of the ModelDescription class attributes,
     created in the same order as these attributes were written
@@ -58,10 +58,6 @@ class MetaModelDescription(type):
         return super_new(cls, name, bases, dct)
         
 class ModelDescription(object):
-    """
-    ModelDescription is used as an argument to create a DataTable compatible with the socio-fiscal model
-    that it describes
-    """
     __metaclass__ = MetaModelDescription
 
     def __init__(self):
@@ -117,13 +113,7 @@ class ModelDescription(object):
                     length = column_length
         for column in self.columns:
             if debug:
-                if hasattr(column, 'label'):
-                    if column.label is not None:
-                        label = column.label
-                    else:
-                        label = ""
-                else:
-                    label = "doesn't have a label"
+                label = column._name
             else:
                 label = column.get_prop_value("display", self, "label")
             if length:
@@ -137,14 +127,16 @@ class ModelDescription(object):
     def __str__(self):
         return self.to_string(debug=True)
 
-    def build_cols(self):
-        columns = self.columns
-        columns2 = {}
+
+
+class Description(object):
+    def __init__(self, columns):
+        super(Description, self).__init__()
+        self.columns = {}
         self._col_names = set()
         for col in columns:
-            columns2[col.name] = col
+            self.columns[col.name] = col
             self._col_names.add(col.name)
-        self.columns = columns2
             
     @property
     def col_names(self):

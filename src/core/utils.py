@@ -76,6 +76,7 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
                 tree.addChild(child)
                 handle_output_xml(element, child, model, unit)
     else:
+
         idx = model.index[unit]
         inputs = model._inputs
         enum = inputs.description.get_col('qui'+unit).enum
@@ -844,19 +845,19 @@ def combineBaremes(bardict, name = None):
 
 
 
-def scaleBaremes(bar_set, factor):
+def scaleBaremes(bar_dict, factor):
     '''
     Scales all the Bareme in the BarColl
     '''
-    from parametres.paramData import Tree2Object
+#    from parametres.paramData import Tree2Object
     
-    if isinstance(bar_set, Bareme):
-        return bar_set.multSeuils(factor)
+    if isinstance(bar_dict, Bareme):
+        return bar_dict.multSeuils(factor)
     
-    if isinstance(bar_set, BaremeDict):
-        out = BaremeDict(name = bar_set._name)
+    if isinstance(bar_dict, BaremeDict):
+        out = BaremeDict(name = bar_dict._name)
     
-        for key, bar in bar_set.iteritems():
+        for key, bar in bar_dict.iteritems():
             if isinstance(bar, Bareme):
                 out[key] = bar.multSeuils(factor)
             elif isinstance(bar, BaremeDict):
