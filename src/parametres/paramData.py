@@ -334,7 +334,7 @@ class BaremeNode(Node):
             T = bareme.taux
             date = CONF.get('simulation', 'datesim')
 
-            for i in range(self.value.getNb()):
+            for i in range(self.value._nb):
                 tranche = SubElement(child, 
                                      tag = 'TRANCHE', 
                                      attrib = {'code': 'tranche%d' % i})
