@@ -621,7 +621,7 @@ class Bareme(object):
     
     
     def multTaux(self, factor):
-        for i in range(self.getNb()):
+        for i in range(self._nb):
             self.setTaux(i,factor*self.taux[i])
 
     def multSeuils(self, factor):

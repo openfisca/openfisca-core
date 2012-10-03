@@ -1,6 +1,6 @@
 <NODE datesim="2010-01-01">
     <NODE description="Impot sur le revenu" code="ir">
-        <BAREME description="Taxe exceptionnelle sur les hauts revenus" code="tehr">
+        <BAREME description="Contribution exceptionnelle sur les hauts revenus" code="cehr">
             <TRANCHE code="tranche0">
                 <SEUIL>
                     <VALUE valeur="0.000000" fin="2010-01-01" deb="2010-01-01"/>

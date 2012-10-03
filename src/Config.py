@@ -638,7 +638,7 @@ class SimConfigPage(GeneralConfigPage):
         
         country_choices = [(u'France', 'france'),(u'Tunisie', 'tunisia')]
         country_combo = self.create_combobox('Pays', country_choices, 'country')
-        sim_dateedit = self.create_dateedit("Date de la simulation", 'datesim', min_date = QDate(2002,01,01), max_date = QDate(2010,12,31))
+        sim_dateedit = self.create_dateedit("Date de la simulation", 'datesim', min_date = QDate(2002,01,01), max_date = QDate(2012,12,31))
         nmen_spinbox = self.create_spinbox(u'Nombre de ménages', '', 'nmen', min_ = 1, max_ = 10001, step = 100)
         xaxis_choices = [(u'Salaires', 'sal'),(u'Chômage', 'cho'), (u'Retraites', 'rst')]
         xaxis_combo = self.create_combobox('Axe des abscisses', xaxis_choices, 'xaxis')
