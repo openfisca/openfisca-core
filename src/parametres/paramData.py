@@ -40,24 +40,16 @@ class Tree2Object(object):
             else:
                 setattr(self,a, Tree2Object(b, defaut))
 
-class XmlReader2(object):
-    def __init__(self, paramFile, date = None):
-        super(XmlReader, self).__init__()
-        self._doc = minidom.parse(paramFile)        
-        self.tree = Node('root')
-        if date is None: self._date = datetime.strptime(self._doc.childNodes[0].getAttribute('datesim'),"%Y-%m-%d").date()
-        else: self._date = date
-        self.handleNodeList(self._doc.childNodes, self.tree)
-        self.tree = self.tree.child(0)
-        self.param = Tree2Object(self.tree)
 
 class XmlReader(object):
     def __init__(self, paramFile, date = None):
         super(XmlReader, self).__init__()
         self._doc = minidom.parse(paramFile)        
         self.tree = Node('root')
-        if date is None: self._date = datetime.strptime(self._doc.childNodes[0].getAttribute('datesim'),"%Y-%m-%d").date()
-        else: self._date = date
+        if date is None: 
+            self._date = datetime.strptime(self._doc.childNodes[0].getAttribute('datesim'),"%Y-%m-%d").date()
+        else: 
+            self._date = date
         self.handleNodeList(self._doc.childNodes, self.tree)
         self.tree = self.tree.child(0)
         self.param = Tree2Object(self.tree)
@@ -148,8 +140,9 @@ class Node(object):
 
     def asXml(self, fileName):
         doc = ElementTree()
+        datesim = str(CONF.get('simulation', 'datesim'))
         root = Element(tag = self.typeInfo, 
-                       attrib={'datesim': CONF.get('simulation', 'datesim')})
+                       attrib={'datesim': datesim})
 
         for i in self._children:
             i._recurseXml(root)
@@ -277,7 +270,7 @@ class CodeNode(Node):
                                attrib = {'code': self.code,
                                          'description': self.description})
 
-            date = CONF.get('simulation', 'datesim')
+            date = str(CONF.get('simulation', 'datesim'))
             SubElement(child, 
                        tag = 'VALUE', 
                        attrib = {'valeur': '%f' % self.value,
@@ -332,9 +325,9 @@ class BaremeNode(Node):
             bareme = self.value
             S = bareme.seuils
             T = bareme.taux
-            date = CONF.get('simulation', 'datesim')
+            date = str(CONF.get('simulation', 'datesim'))
 
-            for i in range(self.value.getNb()):
+            for i in range(self.value._nb):
                 tranche = SubElement(child, 
                                      tag = 'TRANCHE', 
                                      attrib = {'code': 'tranche%d' % i})
