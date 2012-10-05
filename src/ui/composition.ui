@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>393</width>
-    <height>199</height>
+    <width>478</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -71,7 +71,7 @@
      <rect>
       <x>9</x>
       <y>50</y>
-      <width>375</width>
+      <width>441</width>
       <height>118</height>
      </rect>
     </property>
@@ -80,6 +80,9 @@
       <width>375</width>
       <height>100</height>
      </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -98,7 +101,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>356</width>
+       <width>422</width>
        <height>116</height>
       </rect>
      </property>
@@ -240,11 +243,14 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>371</width>
+      <width>441</width>
       <height>32</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
      <item>
       <widget class="QPushButton" name="save_btn">
        <property name="toolTip">
@@ -458,6 +464,16 @@ p, li { white-space: pre-wrap; }
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QComboBox" name="xaxis_box">
+       <property name="toolTip">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="maxrev_box"/>
      </item>
     </layout>
    </widget>

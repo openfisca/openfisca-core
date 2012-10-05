@@ -27,17 +27,6 @@ import pickle
 from datetime import datetime
 
 
-
-
-
-
-
- 
-
-
-
-
-
 class Scenario(object):
     def __init__(self):
         super(Scenario, self).__init__()
@@ -243,3 +232,106 @@ class Scenario(object):
         self.indiv = S['indiv']
         self.declar = S['declar']
         self.menage = S['menage']
+        
+        
+        
+def populate_from_scenario(datatable, scenario):
+    
+    from pandas import DataFrame, concat
+    import numpy as np
+
+    
+    NMEN = CONF.get('simulation', 'nmen')
+    datatable.NMEN = NMEN
+    
+    datatable._nrows = datatable.NMEN*len(scenario.indiv)
+    MAXREV =     datatable.NMEN = CONF.get('simulation', 'maxrev')
+    datesim = datatable.datesim
+
+    datatable.table = DataFrame()
+
+    idmen = np.arange(60001, 60001 + NMEN)
+    
+    for noi, dct in scenario.indiv.iteritems():
+        birth = dct['birth']
+        age = datesim.year- birth.year
+        agem = 12*(datesim.year- birth.year) + datesim.month - birth.month
+        noidec = dct['noidec']
+        quifoy = datatable.description.get_col('quifoy').enum[dct['quifoy']]
+        
+        country = CONF.get('simulation', 'country')
+        if country == 'france':
+            quifam = datatable.description.get_col('quifam').enum[dct['quifam']]
+            noichef = dct['noichef']
+        
+        quimen = datatable.description.get_col('quimen').enum[dct['quimen']]
+        if country == 'france':
+            dct = {'noi': noi*np.ones(NMEN),
+                   'age': age*np.ones(NMEN),
+                   'agem': agem*np.ones(NMEN),
+                   'quimen': quimen*np.ones(NMEN),
+                   'quifoy': quifoy*np.ones(NMEN),
+                   'quifam': quifam*np.ones(NMEN),
+                   'idmen': idmen,
+                   'idfoy': idmen*100 + noidec,
+                   'idfam': idmen*100 + noichef}
+        else:
+            dct = {'noi': noi*np.ones(NMEN),
+                   'age': age*np.ones(NMEN),
+                   'agem': agem*np.ones(NMEN),
+                   'quimen': quimen*np.ones(NMEN),
+                   'quifoy': quifoy*np.ones(NMEN),
+                   'idmen': idmen,
+                   'idfoy': idmen*100 + noidec}
+            
+        datatable.table = concat([datatable.table, DataFrame(dct)], ignore_index = True)
+
+    country = CONF.get('simulation', 'country')
+    if country == 'france':
+        INDEX = ['men', 'fam', 'foy']
+    elif country == 'tunisia':
+        INDEX = ['men', 'foy']
+
+    datatable.gen_index(INDEX)
+
+    for name in datatable.col_names:
+        if not name in datatable.table:
+            datatable.table[name] = datatable.description.get_col(name)._default
+        
+    index = datatable.index['men']
+    nb = index['nb']
+    for noi, dct in scenario.indiv.iteritems():
+        for var, val in dct.iteritems():
+            if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
+            if not index[noi] is None:
+                datatable.set_value(var, np.ones(nb)*val, index, noi)
+
+    index = datatable.index['foy']
+    nb = index['nb']
+    for noi, dct in scenario.declar.iteritems():
+        for var, val in dct.iteritems():
+            if not index[noi] is None:
+                datatable.set_value(var, np.ones(nb)*val, index, noi)
+
+    index = datatable.index['men']
+    nb = index['nb']
+    for noi, dct in scenario.menage.iteritems():
+        for var, val in dct.iteritems():
+            if not index[noi] is None:
+                datatable.set_value(var, np.ones(nb)*val, index, noi)
+        
+
+    datatable.MAXREV = CONF.get('simulation', 'maxrev')
+    var = CONF.get('simulation', 'xaxis')
+    print var
+    if var in ['sal', 'cho', 'rst']:
+        datatable.XAXIS =  var + 'i'
+    else:
+        datatable.XAXIS =  'sali'
+        
+    if NMEN>1:
+        var = datatable.XAXIS
+        vls = np.linspace(0, MAXREV, NMEN)
+        datatable.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
+
+    datatable._isPopulated = True

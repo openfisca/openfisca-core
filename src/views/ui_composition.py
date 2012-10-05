@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/composition.ui'
 #
-# Created: Wed Aug 29 11:35:45 2012
+# Created: Fri Oct 05 18:24:46 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Menage(object):
     def setupUi(self, Menage):
         Menage.setObjectName(_fromUtf8("Menage"))
-        Menage.resize(393, 199)
+        Menage.resize(478, 274)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -47,15 +47,16 @@ class Ui_Menage(object):
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
         self.line.setObjectName(_fromUtf8("line"))
         self.scrollArea = QtGui.QScrollArea(self.dockWidgetContents)
-        self.scrollArea.setGeometry(QtCore.QRect(9, 50, 375, 118))
+        self.scrollArea.setGeometry(QtCore.QRect(9, 50, 441, 118))
         self.scrollArea.setMinimumSize(QtCore.QSize(375, 100))
+        self.scrollArea.setAutoFillBackground(False)
         self.scrollArea.setFrameShape(QtGui.QFrame.StyledPanel)
         self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 356, 116))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 422, 116))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setSpacing(0)
@@ -100,9 +101,10 @@ class Ui_Menage(object):
         self.verticalLayout_2.addItem(spacerItem)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.layoutWidget = QtGui.QWidget(self.dockWidgetContents)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 371, 32))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 441, 32))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.layoutWidget)
+        self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setMargin(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.save_btn = QtGui.QPushButton(self.layoutWidget)
@@ -188,6 +190,13 @@ class Ui_Menage(object):
         self.horizontalLayout.addWidget(self.reset_btn)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
+        self.xaxis_box = QtGui.QComboBox(self.layoutWidget)
+        self.xaxis_box.setToolTip(_fromUtf8(""))
+        self.xaxis_box.setObjectName(_fromUtf8("xaxis_box"))
+        self.horizontalLayout.addWidget(self.xaxis_box)
+        self.maxrev_box = QtGui.QSpinBox(self.layoutWidget)
+        self.maxrev_box.setObjectName(_fromUtf8("maxrev_box"))
+        self.horizontalLayout.addWidget(self.maxrev_box)
         Menage.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(Menage)
