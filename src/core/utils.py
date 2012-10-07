@@ -876,6 +876,14 @@ def of_class_import(country, module, classname):
     return getattr(_temp, classname)
     
 
+def of_import(module, classname):
+    '''
+    Returns country specific class found in country module
+    '''
+    country = CONF.get('simulation', 'country')
+    _temp = __import__(country + '.' + module, globals(), locals(), [classname], -1)
+    return getattr(_temp, classname)
+
 
 if __name__=='__main__':
 

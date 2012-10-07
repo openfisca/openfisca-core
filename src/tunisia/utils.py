@@ -335,3 +335,26 @@ def populate_from_scenario(datatable, scenario):
         datatable.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
 
     datatable._isPopulated = True
+
+
+XAXES = {}
+XAXES['sal'] = ( [u'Salaire super brut',
+                  u'Salaire brut',
+                  u'Salaire imposable',
+                  u'Salaire net'],  2 , 'sali')
+XAXES['cho'] = ( [u'Chômage brut',
+                  u'Chômage imposable',
+                  u'Chômage net'], 1, 'choi')
+XAXES['rst'] = ([u'Retraite brut',
+                 u'Retraite imposable',
+                 u'Retraite nette'], 0, 'rsti')
+XAXES['cap'] = ([u'Revenus du capital brut',
+                 u'Revenus du capital net'], 0 )
+ 
+
+
+
+REV_TYPE = {'superbrut' : ['superbrut'],
+             'brut': ['salbrut'],
+             'net'      : ['sali']}        
+
