@@ -147,3 +147,28 @@ class Description(object):
 
     def has_col(self, col_name):
         return self.columns.has_key(col_name)
+    
+    
+    def builds_dicts(self):
+        '''
+        Builds dicts label2var, var2label, var2enum
+        '''
+        label2var = {}
+        var2label = {}
+        var2enum = {}
+        from core.columns import EnumCol
+        for var in self.col_names:
+            varcol  = self.get_col(var)
+            if isinstance(varcol, EnumCol):
+                var2enum[var] = varcol.enum
+            else:
+                var2enum[var] = None
+                    
+            if varcol.label:
+                    label2var[varcol.label] = var
+                    var2label[var]          = varcol.label        
+            else:
+                    label2var[var] = var
+                    var2label[var] = var
+        
+        return label2var, var2label, var2enum

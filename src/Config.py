@@ -51,7 +51,7 @@ DEFAULTS = [
               'cas_type_dir': 'castypes',
               'reformes_dir': 'reformes',
               'calib_dir'   :  'calibrations',
-              'survey_data/file':'france/data/final.csv',
+              'survey_data/file':'france/data/survey.h5',
               'survey_data/bareme_only': False,
               'survey_data/survey_enabled': True,
               'output_dir' : os.path.expanduser('~'),

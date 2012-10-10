@@ -55,10 +55,7 @@ class DataTable(object):
         self._nrows = 0
 
         self.datesim = CONF.get('simulation', 'datesim')
-
-        self.NMEN = CONF.get('simulation', 'nmen')
-        self.MAXREV = CONF.get('simulation', 'maxrev')
-        self.XAXIS = CONF.get('simulation', 'xaxis') + 'i'
+        self.survey_year = None
         
         # Build the description attribute        
         if type(model_description) == type(ModelDescription):
@@ -159,8 +156,16 @@ class DataTable(object):
 #                store.close() 
         elif fname[-3:] == '.h5':
             store = HDFStore(fname)
-            year  = str(CONF.get('simulation','datesim').year)
+            available_years = sorted([int(x[-4:]) for x in  store.keys()])
+            year_ds  = CONF.get('simulation','datesim').year
+            year = year_ds+0
+            while year not in available_years and year > available_years[0]:
+                year = year - 1
             base_name = 'survey_'+ str(year)
+            if year_ds != year:
+                print 'Survey data for year ', str(year_ds), ' not found. Using year ', str(year)
+            if year in available_years:
+                self.survey_year = year
             self.table = store[str(base_name)] 
             store.close()
             
@@ -196,86 +201,10 @@ class DataTable(object):
         Populates a DataTable from a Scenario
         '''
         country = CONF.get('simulation', 'country')
-        self._nrows = self.NMEN*len(scenario.indiv)
-        MAXREV = self.MAXREV
-        datesim = self.datesim
-
-        self.table = DataFrame()
-
-        idmen = np.arange(60001, 60001 + self.NMEN)
+        from utils import of_class_import
+        populate_from_scenario = of_class_import(country, 'utils', 'populate_from_scenario')
+        populate_from_scenario(self, scenario)
         
-        for noi, dct in scenario.indiv.iteritems():
-            birth = dct['birth']
-            age = datesim.year- birth.year
-            agem = 12*(datesim.year- birth.year) + datesim.month - birth.month
-            noidec = dct['noidec']
-            quifoy = self.description.get_col('quifoy').enum[dct['quifoy']]
-            
-            if country == 'france':
-                quifam = self.description.get_col('quifam').enum[dct['quifam']]
-                noichef = dct['noichef']
-            
-            quimen = self.description.get_col('quimen').enum[dct['quimen']]
-            if country == 'france':
-                dct = {'noi': noi*np.ones(self.NMEN),
-                       'age': age*np.ones(self.NMEN),
-                       'agem': agem*np.ones(self.NMEN),
-                       'quimen': quimen*np.ones(self.NMEN),
-                       'quifoy': quifoy*np.ones(self.NMEN),
-                       'quifam': quifam*np.ones(self.NMEN),
-                       'idmen': idmen,
-                       'idfoy': idmen*100 + noidec,
-                       'idfam': idmen*100 + noichef}
-            else:
-                dct = {'noi': noi*np.ones(self.NMEN),
-                       'age': age*np.ones(self.NMEN),
-                       'agem': agem*np.ones(self.NMEN),
-                       'quimen': quimen*np.ones(self.NMEN),
-                       'quifoy': quifoy*np.ones(self.NMEN),
-                       'idmen': idmen,
-                       'idfoy': idmen*100 + noidec}
-                
-            self.table = concat([self.table, DataFrame(dct)], ignore_index = True)
-
-
-        self.gen_index(INDEX)
-
-        for name in self.col_names:
-            if not name in self.table:
-                self.table[name] = self.description.get_col(name)._default
-            
-        index = self.index['men']
-        nb = index['nb']
-        for noi, dct in scenario.indiv.iteritems():
-            for var, val in dct.iteritems():
-                if var in ('birth', 'noipref', 'noidec', 'noichef', 'quifoy', 'quimen', 'quifam'): continue
-                if not index[noi] is None:
-                    self.set_value(var, np.ones(nb)*val, index, noi)
-
-        index = self.index['foy']
-        nb = index['nb']
-        for noi, dct in scenario.declar.iteritems():
-            for var, val in dct.iteritems():
-                if not index[noi] is None:
-                    self.set_value(var, np.ones(nb)*val, index, noi)
-
-        index = self.index['men']
-        nb = index['nb']
-        for noi, dct in scenario.menage.iteritems():
-            for var, val in dct.iteritems():
-                if not index[noi] is None:
-                    self.set_value(var, np.ones(nb)*val, index, noi)
-            
-        # set xaxis
-        # TODO: how to set xaxis vals properly
-#        print self.NMEN
-#        print self.XAXIS
-        if self.NMEN>1:
-            var = self.XAXIS
-            vls = np.linspace(0, MAXREV, self.NMEN)
-            self.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
-
-        self._isPopulated = True
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
         '''
