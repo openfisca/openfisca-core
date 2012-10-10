@@ -55,7 +55,7 @@ class DataTable(object):
         self._nrows = 0
 
         self.datesim = CONF.get('simulation', 'datesim')
-
+        self.survey_year = None
         
         # Build the description attribute        
         if type(model_description) == type(ModelDescription):
@@ -156,8 +156,16 @@ class DataTable(object):
 #                store.close() 
         elif fname[-3:] == '.h5':
             store = HDFStore(fname)
-            year  = str(CONF.get('simulation','datesim').year)
+            available_years = sorted([int(x[-4:]) for x in  store.keys()])
+            year_ds  = CONF.get('simulation','datesim').year
+            year = year_ds+0
+            while year not in available_years and year > available_years[0]:
+                year = year - 1
             base_name = 'survey_'+ str(year)
+            if year_ds != year:
+                print 'Survey data for year ', str(year_ds), ' not found. Using year ', str(year)
+            if year in available_years:
+                self.survey_year = year
             self.table = store[str(base_name)] 
             store.close()
             

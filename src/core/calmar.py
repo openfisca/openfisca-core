@@ -46,7 +46,7 @@ def build_dummies_dict(data):
 def calmar(data_in, margins, param = {}, pondini='wprm_init'):
     ''' 
     Calibraters weights according to some margins
-      - data is a dict containing individual data
+      - data_in is a dict containing individual data
       - pondini (char) is the inital weight
      margins is a dict containing for each var:
       - a scalar var numeric variables
@@ -66,7 +66,6 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
     is_weight_not_null = (data_in[pondini] > 0) 
     for a in data_in:
         data[a] = data_in[a][is_weight_not_null]
-    
     
     if not margins:
         raise Exception("Calmar requires non empty dict of margins")
