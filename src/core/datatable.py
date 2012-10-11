@@ -330,6 +330,11 @@ class SystemSf(DataTable):
         
         self.table = DataFrame(dct)
         
+        from utils import of_import
+        preproc_inputs = of_import('utils','preproc_inputs')
+        if preproc_inputs is not None:
+            preproc_inputs(self._inputs)
+        
 
     def calculate(self, varname = None):
         '''

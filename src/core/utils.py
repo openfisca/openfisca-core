@@ -882,7 +882,7 @@ def of_import(module, classname):
     '''
     country = CONF.get('simulation', 'country')
     _temp = __import__(country + '.' + module, globals(), locals(), [classname], -1)
-    return getattr(_temp, classname)
+    return getattr(_temp, classname, None)
 
 
 if __name__=='__main__':
