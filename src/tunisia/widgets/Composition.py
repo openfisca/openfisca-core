@@ -21,17 +21,23 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox,  
+from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox, QSpinBox,  QDoubleSpinBox, 
                          QPushButton, QApplication, QFileDialog, QMessageBox, QDialogButtonBox)
-from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt
+from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt, QVariant
 from views.ui_composition import Ui_Menage
 from views.ui_logement import Ui_Logement
 from widgets.InfoComp import InfoComp
 from datetime import date
 import pickle
+from core.utils import of_import
 from src.Config import CONF
 import os
 from src.tunisia.utils import Scenario
+
+
+Scenario = of_import('utils', 'Scenario')
+InputTable = of_import('data', 'InputTable')
+
 
 class S:
     name = 0
@@ -46,9 +52,33 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
     def __init__(self, scenario, parent = None):
         super(ScenarioWidget, self).__init__(parent)
         self.setupUi(self)
+        
+        
         self.parent = parent
         self.scenario = scenario
 
+
+        # Initialize xaxes
+        
+        build_axes = of_import('utils','build_axes')
+        axes = build_axes()
+        
+        xaxis = CONF.get('simulation', 'xaxis')
+        axes_names = []
+        for axe in axes:
+            self.xaxis_box.addItem(axe.label, QVariant(axe.name))
+            axes_names.append(axe.name)
+                        
+        self.xaxis_box.setCurrentIndex(axes_names.index(xaxis))            
+        
+        # Initialize maxrev # mae it xountry dependant  
+        self.maxrev_box.setMinimum(0)
+        self.maxrev_box.setMaximum(1000000)
+        self.maxrev_box.setSingleStep(50)
+        self.maxrev_box.setSuffix(u" DT")
+        maxrev = CONF.get('simulation', 'maxrev')
+        self.maxrev_box.setValue(maxrev)
+        
         self.connect(self.open_btn, SIGNAL('clicked()'), self.openScenario)
         self.connect(self.save_btn, SIGNAL('clicked()'), self.saveScenario)
         self.connect(self.add_btn, SIGNAL('clicked()'), self.addPerson)
@@ -56,6 +86,9 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         self.connect(self.lgt_btn, SIGNAL('clicked()'), self.openLogement)
         self.connect(self.inf_btn, SIGNAL('clicked()'), self.openInfoComp)
         self.connect(self.reset_btn, SIGNAL('clicked()'), self.resetScenario)
+        self.connect(self.xaxis_box, SIGNAL('currentIndexChanged(int)'), self.set_xaxis)
+        self.connect(self.maxrev_box, SIGNAL('valueChanged(int)'), self.set_maxrev)
+
         self.connect(self, SIGNAL('compoChanged()'), self.changed)
 
 
@@ -63,6 +96,29 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         self.addPref()
         self.rmv_btn.setEnabled(False)
         self.emit(SIGNAL("ok()"))
+
+
+    def set_xaxis(self):
+        '''
+        Sets the varying variable of the scenario
+        '''
+        widget = self.xaxis_box
+        if isinstance(widget, QComboBox):
+            data = widget.itemData(widget.currentIndex())
+            xaxis = unicode(data.toString())
+            CONF.set('simulation', 'xaxis', xaxis) 
+        self.emit(SIGNAL('compoChanged()'))
+    
+    def set_maxrev(self):
+        '''
+        Sets the varying variable of the scenario
+        '''
+        widget = self.maxrev_box
+        if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
+            print widget.value()
+            CONF.set('simulation', 'maxrev', widget.value()) 
+        self.emit(SIGNAL('compoChanged()'))
+
 
     def changed(self):
         self.disconnectAll()

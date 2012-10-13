@@ -200,9 +200,8 @@ class DataTable(object):
         '''
         Populates a DataTable from a Scenario
         '''
-        country = CONF.get('simulation', 'country')
-        from utils import of_class_import
-        populate_from_scenario = of_class_import(country, 'utils', 'populate_from_scenario')
+        from utils import of_import
+        populate_from_scenario = of_import('utils', 'populate_from_scenario')
         populate_from_scenario(self, scenario)
         
 
@@ -244,6 +243,9 @@ class DataTable(object):
                 return sumout
 
     def set_value(self, varname, value, index, opt = None):
+        '''
+        Sets the value of varname using index and opt
+        '''
         if opt is None:
             idx = index[0]
         else:

@@ -38,13 +38,12 @@ class ModelSF(ModelDescription):
     ############################################################
     
     # Salaires
-    salbrut = Prestation(cs._salbrut)
+    salbrut = Prestation(cs._salbrut, label="Salaires bruts")
     cotpat  = Prestation(cs._cotpat)
     cotsal  = Prestation(cs._cotsal)
-    salsuperbrut = Prestation(cs._salsuperbrut)
+    salsuperbrut = Prestation(cs._salsuperbrut, label="Salaires super bruts")
 #    sal = Prestation(cs._sal)        
     
-    # Chômage
 
     # Pension
     

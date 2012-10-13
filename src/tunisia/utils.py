@@ -242,10 +242,8 @@ def populate_from_scenario(datatable, scenario):
 
     
     NMEN = CONF.get('simulation', 'nmen')
-    datatable.NMEN = NMEN
-    
+    datatable.NMEN = NMEN    
     datatable._nrows = datatable.NMEN*len(scenario.indiv)
-    MAXREV =     datatable.NMEN = CONF.get('simulation', 'maxrev')
     datesim = datatable.datesim
 
     datatable.table = DataFrame()
@@ -259,39 +257,19 @@ def populate_from_scenario(datatable, scenario):
         noidec = dct['noidec']
         quifoy = datatable.description.get_col('quifoy').enum[dct['quifoy']]
         
-        country = CONF.get('simulation', 'country')
-        if country == 'france':
-            quifam = datatable.description.get_col('quifam').enum[dct['quifam']]
-            noichef = dct['noichef']
         
         quimen = datatable.description.get_col('quimen').enum[dct['quimen']]
-        if country == 'france':
-            dct = {'noi': noi*np.ones(NMEN),
-                   'age': age*np.ones(NMEN),
-                   'agem': agem*np.ones(NMEN),
-                   'quimen': quimen*np.ones(NMEN),
-                   'quifoy': quifoy*np.ones(NMEN),
-                   'quifam': quifam*np.ones(NMEN),
-                   'idmen': idmen,
-                   'idfoy': idmen*100 + noidec,
-                   'idfam': idmen*100 + noichef}
-        else:
-            dct = {'noi': noi*np.ones(NMEN),
-                   'age': age*np.ones(NMEN),
-                   'agem': agem*np.ones(NMEN),
-                   'quimen': quimen*np.ones(NMEN),
-                   'quifoy': quifoy*np.ones(NMEN),
-                   'idmen': idmen,
-                   'idfoy': idmen*100 + noidec}
+        dct = {'noi': noi*np.ones(NMEN),
+               'age': age*np.ones(NMEN),
+               'agem': agem*np.ones(NMEN),
+               'quimen': quimen*np.ones(NMEN),
+               'quifoy': quifoy*np.ones(NMEN),
+               'idmen': idmen,
+               'idfoy': idmen*100 + noidec}
             
         datatable.table = concat([datatable.table, DataFrame(dct)], ignore_index = True)
 
-    country = CONF.get('simulation', 'country')
-    if country == 'france':
-        INDEX = ['men', 'fam', 'foy']
-    elif country == 'tunisia':
-        INDEX = ['men', 'foy']
-
+    INDEX = ['men', 'foy']
     datatable.gen_index(INDEX)
 
     for name in datatable.col_names:
@@ -321,40 +299,79 @@ def populate_from_scenario(datatable, scenario):
                 datatable.set_value(var, np.ones(nb)*val, index, noi)
         
 
-    datatable.MAXREV = CONF.get('simulation', 'maxrev')
-    var = CONF.get('simulation', 'xaxis')
-    print var
-    if var in ['sal', 'cho', 'rst']:
-        datatable.XAXIS =  var + 'i'
-    else:
-        datatable.XAXIS =  'sali'
-        
+    MAXREV = CONF.get('simulation', 'maxrev')
+    datatable.MAXREV = MAXREV
+    xaxis = CONF.get('simulation', 'xaxis')    
+    
+    axes = build_axes()
     if NMEN>1:
-        var = datatable.XAXIS
-        vls = np.linspace(0, MAXREV, NMEN)
-        datatable.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
+        for axe in axes:
+            print xaxis
+            if axe.name == xaxis:
+                datatable.XAXIS = axe.col_name 
+                vls = np.linspace(0, MAXREV, NMEN)
+                var = axe.col_name
+                print 'var : ', var
+                print MAXREV
+                print vls
+                datatable.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
 
     datatable._isPopulated = True
 
 
-XAXES = {}
-XAXES['sal'] = ( [u'Salaire super brut',
-                  u'Salaire brut',
-                  u'Salaire imposable',
-                  u'Salaire net'],  2 , 'sali')
-XAXES['cho'] = ( [u'Chômage brut',
-                  u'Chômage imposable',
-                  u'Chômage net'], 1, 'choi')
-XAXES['rst'] = ([u'Retraite brut',
-                 u'Retraite imposable',
-                 u'Retraite nette'], 0, 'rsti')
-XAXES['cap'] = ([u'Revenus du capital brut',
-                 u'Revenus du capital net'], 0 )
- 
+class Xaxis(object):
+    def __init__(self, col_name = None):
+        super(Xaxis, self).__init__()
+        
+        self.col_name = col_name
+        if self.col_name is not None:
+            self.set(col_name)
+            self.set_label()
+        else:
+            self.typ_tot = None
+            self.typ_tot_default = None
+                 
+    def set_label(self):
+        from core.utils import of_import
+        from core.datatable import Description
+        InputTable = of_import('data', 'InputTable')
+        description = Description(InputTable().columns)
+        label2var, var2label, var2enum = description.builds_dicts()
+        if self.col_name in var2label:
+            self.label = var2label[self.col_name]
+        else:
+            self.label =  self.col_name
+#        self.typ_tot_labels = {}
+#        for var in self.typ_tot:
+#            self.typ_tot_labels[var] = var2label[var]
+        
+    def set(self, col_name):
+        '''
+        Sets xaxis
+        '''
+        if col_name == 'sali':
+            self.name = 'sal'
+            self.col_name = 'sali' 
+            self.typ_tot = {'salsuperbrut' : 'Salaire super brut',
+                            'salbrut': 'Salaire brut',
+                            'sal':  'Salaire imposable'}
+            self.typ_tot_default = 'sal'
+            
+            
 
 
+def build_axes():
+    from core.utils import of_import
+    Xaxis = of_import('utils','Xaxis')
+    axes = []
+    for col_name in ['sali']:
+        axe = Xaxis(col_name)
+        axes.append(axe)
+    del axe
+    return axes
 
-REV_TYPE = {'superbrut' : ['superbrut'],
+
+REV_TYPE = {'superbrut' : ['salsuperbrut'],
              'brut': ['salbrut'],
-             'net'      : ['sali']}        
+             'imposable'      : ['sal']}        
 
