@@ -77,7 +77,7 @@ class DataTable(object):
         elif survey_data:
             self.populate_from_survey_data(survey_data)
         elif scenario:
-            self.populate_from_scenario(scenario)
+            scenario.populate_datatable(self)
         
     def gen_index(self, units):
         '''
@@ -202,14 +202,6 @@ class DataTable(object):
         self._isPopulated = True
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
-
-    def populate_from_scenario(self, scenario, country = None):
-        '''
-        Populates a DataTable from a Scenario
-        '''
-        from utils import of_import
-        populate_from_scenario = of_import('utils', 'populate_from_scenario', country)
-        populate_from_scenario(self, scenario)
         
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
