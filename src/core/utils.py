@@ -100,7 +100,7 @@ def gen_output_data(model, filename = None):
         totals_fname = os.path.join(country,'totaux.xml')
     else:
         totals_fname = filename
-        
+    
     _doc = minidom.parse(totals_fname)
     tree = OutNode('root', 'root')
     handle_output_xml(_doc, tree, model)
@@ -878,11 +878,13 @@ def of_class_import(country, module, classname):
     return getattr(_temp, classname)
     
 
-def of_import(module, classname):
+def of_import(module, classname, country = None):
     '''
     Returns country specific class found in country module
     '''
-    country = CONF.get('simulation', 'country')
+    if country is None:
+        country = CONF.get('simulation', 'country')
+    
     _temp = __import__(country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
     return getattr(_temp, classname, None)
 

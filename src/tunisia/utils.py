@@ -298,7 +298,6 @@ def populate_from_scenario(datatable, scenario):
             if not index[noi] is None:
                 datatable.set_value(var, np.ones(nb)*val, index, noi)
         
-
     MAXREV = CONF.get('simulation', 'maxrev')
     datatable.MAXREV = MAXREV
     xaxis = CONF.get('simulation', 'xaxis')    
@@ -306,14 +305,10 @@ def populate_from_scenario(datatable, scenario):
     axes = build_axes()
     if NMEN>1:
         for axe in axes:
-            print xaxis
             if axe.name == xaxis:
                 datatable.XAXIS = axe.col_name 
                 vls = np.linspace(0, MAXREV, NMEN)
                 var = axe.col_name
-                print 'var : ', var
-                print MAXREV
-                print vls
                 datatable.set_value(var, vls, {0:{'idxIndi': index[0]['idxIndi'], 'idxUnit': index[0]['idxIndi']}})
 
     datatable._isPopulated = True

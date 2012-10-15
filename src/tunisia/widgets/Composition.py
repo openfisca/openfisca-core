@@ -30,9 +30,8 @@ from widgets.InfoComp import InfoComp
 from datetime import date
 import pickle
 from core.utils import of_import
-from src.Config import CONF
+from Config import CONF
 import os
-from src.tunisia.utils import Scenario
 
 
 Scenario = of_import('utils', 'Scenario')
@@ -115,8 +114,7 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         '''
         widget = self.maxrev_box
         if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
-            print widget.value()
-            CONF.set('simulation', 'maxrev', widget.value()) 
+            CONF.set('simulation', 'maxrev', widget.value())
         self.emit(SIGNAL('compoChanged()'))
 
 
