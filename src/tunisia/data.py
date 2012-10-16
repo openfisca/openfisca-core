@@ -115,7 +115,7 @@ class InputTable(ModelDescription):
 
     # Salaires et pensions
     
-    sali = IntCol( label="Salaires", default=10000)
+    sali = IntCol( label="Salaires imposables", default=10000)
     sal_nat = IntCol( label="Avantages en nature assimilables à des salaires", default=0 )
     smig = BoolCol( label="Salarié percevant le SMIG ou le SMAG")
     pen = IntCol(label="Pensions et rentes viagères")

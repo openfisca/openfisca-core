@@ -30,6 +30,8 @@ import os
 from description import ModelDescription, Description
 
 
+INDEX = ['men', 'fam', 'foy']
+
 country = CONF.get('simulation', 'country')
 if country == 'france':
     INDEX = ['men', 'fam', 'foy']
@@ -42,7 +44,7 @@ class DataTable(object):
         * title [string]
         * comment [string]: text shown on the top of the first data item
     """
-    def __init__(self, model_description, survey_data = None, scenario = None):
+    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -53,8 +55,12 @@ class DataTable(object):
         self.table = DataFrame()
         self.index = {}
         self._nrows = 0
-
-        self.datesim = CONF.get('simulation', 'datesim')
+        
+        if datesim is None:
+            self.datesim = CONF.get('simulation', 'datesim')
+        else:
+            self.datesim = datesim
+            
         self.survey_year = None
         
         # Build the description attribute        
@@ -71,7 +77,7 @@ class DataTable(object):
         elif survey_data:
             self.populate_from_survey_data(survey_data)
         elif scenario:
-            self.populate_from_scenario(scenario)
+            scenario.populate_datatable(self)
         
     def gen_index(self, units):
         '''
@@ -128,13 +134,14 @@ class DataTable(object):
         for member in enum:
             self.set_value(col, value, index, opt = member[1])
 
-    def inflate(self):
+    def inflate(self, filename = None):
         '''
         Inflate inputs data when using totals from the simulation year 
         '''
-        data_dir = CONF.get('paths', 'data_dir')
-        year     = str(CONF.get('simulation','datesim').year)
-        filename = os.path.join(data_dir, 'inflate.csv')
+        if filename is None:
+            data_dir = CONF.get('paths', 'data_dir')
+            year     = str(CONF.get('simulation','datesim').year)
+            filename = os.path.join(data_dir, 'inflate.csv')
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = 0)
         if year in totals:
@@ -195,15 +202,6 @@ class DataTable(object):
         self._isPopulated = True
         
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
-
-    def populate_from_scenario(self, scenario):
-        '''
-        Populates a DataTable from a Scenario
-        '''
-        country = CONF.get('simulation', 'country')
-        from utils import of_class_import
-        populate_from_scenario = of_class_import(country, 'utils', 'populate_from_scenario')
-        populate_from_scenario(self, scenario)
         
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
@@ -244,6 +242,9 @@ class DataTable(object):
                 return sumout
 
     def set_value(self, varname, value, index, opt = None):
+        '''
+        Sets the value of varname using index and opt
+        '''
         if opt is None:
             idx = index[0]
         else:
@@ -270,13 +271,15 @@ class DataTable(object):
 
 
 class SystemSf(DataTable):
-    def __init__(self, model_description, param, defaultParam = None):
-        DataTable.__init__(self, model_description)
+    def __init__(self, model_description, param, defaultParam = None, datesim = None):
+        DataTable.__init__(self, model_description, datesim = None)
         self._primitives = set()
         self._param = param
         self._default_param = defaultParam
         self._inputs = None
         self.index = None
+        if datesim is not None:
+            self.datesim = datesim
         self.reset()
         self.build()
 
@@ -329,6 +332,11 @@ class SystemSf(DataTable):
             dct[col.name] = np.ones(self._nrows, dtyp)*dflt
         
         self.table = DataFrame(dct)
+        
+        from utils import of_import
+        preproc_inputs = of_import('utils','preproc_inputs')
+        if preproc_inputs is not None:
+            preproc_inputs(self._inputs)
         
 
     def calculate(self, varname = None):
