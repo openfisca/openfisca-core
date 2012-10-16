@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/declaration.ui'
 #
-# Created: Wed Oct 10 22:02:30 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Tue Oct 16 12:07:39 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,7 +25,6 @@ class Ui_Declaration(object):
         Declaration.setSizePolicy(sizePolicy)
         Declaration.setMinimumSize(QtCore.QSize(700, 500))
         Declaration.setMaximumSize(QtCore.QSize(1000, 640))
-        Declaration.setWindowTitle(QtGui.QApplication.translate("Declaration", "Déclaration", None, QtGui.QApplication.UnicodeUTF8))
         Declaration.setStyleSheet(_fromUtf8("QDialog{\n"
 "background-color: #e6ebf4;\n"
 "}\n"
@@ -148,9 +147,7 @@ class Ui_Declaration(object):
         self.label_8.setMinimumSize(QtCore.QSize(0, 27))
         self.label_8.setMaximumSize(QtCore.QSize(16777215, 27))
         self.label_8.setStyleSheet(_fromUtf8(""))
-        self.label_8.setText(QtGui.QApplication.translate("Declaration", "PAGES", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_8.setProperty("class", QtGui.QApplication.translate("Declaration", "boite1", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setObjectName(_fromUtf8("label_8"))
         self.verticalLayout.addWidget(self.label_8)
         self.contents_widget = QtGui.QListWidget(Declaration)
@@ -173,7 +170,6 @@ class Ui_Declaration(object):
         self.label_5.setText(_fromUtf8(""))
         self.label_5.setScaledContents(True)
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setProperty("class", QtGui.QApplication.translate("Declaration", "sponsor", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.horizontalLayout_2.addWidget(self.label_5)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -192,7 +188,6 @@ class Ui_Declaration(object):
         self.frame.setStyleSheet(_fromUtf8(""))
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
-        self.frame.setProperty("class", QtGui.QApplication.translate("Declaration", "top", None, QtGui.QApplication.UnicodeUTF8))
         self.frame.setObjectName(_fromUtf8("frame"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout_2.setSpacing(0)
@@ -203,11 +198,9 @@ class Ui_Declaration(object):
         self.horizontalLayout.setContentsMargins(6, -1, 6, -1)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.label = QtGui.QLabel(self.frame)
-        self.label.setText(QtGui.QApplication.translate("Declaration", "Précédent", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout.addWidget(self.label)
         self.prev_btn = QtGui.QToolButton(self.frame)
-        self.prev_btn.setText(QtGui.QApplication.translate("Declaration", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.prev_btn.setArrowType(QtCore.Qt.LeftArrow)
         self.prev_btn.setObjectName(_fromUtf8("prev_btn"))
         self.horizontalLayout.addWidget(self.prev_btn)
@@ -217,20 +210,16 @@ class Ui_Declaration(object):
         self.label_10.setMinimumSize(QtCore.QSize(200, 27))
         self.label_10.setMaximumSize(QtCore.QSize(16777215, 27))
         self.label_10.setStyleSheet(_fromUtf8(""))
-        self.label_10.setText(QtGui.QApplication.translate("Declaration", "FORMULAIRE", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_10.setProperty("class", QtGui.QApplication.translate("Declaration", "boite1", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setObjectName(_fromUtf8("label_10"))
         self.horizontalLayout.addWidget(self.label_10)
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem3)
         self.next_btn = QtGui.QToolButton(self.frame)
-        self.next_btn.setText(QtGui.QApplication.translate("Declaration", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.next_btn.setArrowType(QtCore.Qt.RightArrow)
         self.next_btn.setObjectName(_fromUtf8("next_btn"))
         self.horizontalLayout.addWidget(self.next_btn)
         self.label_2 = QtGui.QLabel(self.frame)
-        self.label_2.setText(QtGui.QApplication.translate("Declaration", "Suivant", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.horizontalLayout.addWidget(self.label_2)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -254,6 +243,16 @@ class Ui_Declaration(object):
         QtCore.QMetaObject.connectSlotsByName(Declaration)
 
     def retranslateUi(self, Declaration):
-        pass
+        Declaration.setWindowTitle(QtGui.QApplication.translate("Declaration", "Déclaration", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_8.setText(QtGui.QApplication.translate("Declaration", "PAGES", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_8.setProperty("class", QtGui.QApplication.translate("Declaration", "boite1", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_5.setProperty("class", QtGui.QApplication.translate("Declaration", "sponsor", None, QtGui.QApplication.UnicodeUTF8))
+        self.frame.setProperty("class", QtGui.QApplication.translate("Declaration", "top", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("Declaration", "Précédent", None, QtGui.QApplication.UnicodeUTF8))
+        self.prev_btn.setText(QtGui.QApplication.translate("Declaration", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_10.setText(QtGui.QApplication.translate("Declaration", "FORMULAIRE", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_10.setProperty("class", QtGui.QApplication.translate("Declaration", "boite1", None, QtGui.QApplication.UnicodeUTF8))
+        self.next_btn.setText(QtGui.QApplication.translate("Declaration", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("Declaration", "Suivant", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc

@@ -48,7 +48,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <item>
         <property name="text">
@@ -62,7 +62,22 @@
        </item>
        <item>
         <property name="text">
-         <string>Locataire</string>
+         <string> Locataire HLM</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Locataire (non HLM)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Locataire  (meublé, hôtel)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Logé gratuitement</string>
         </property>
        </item>
       </widget>

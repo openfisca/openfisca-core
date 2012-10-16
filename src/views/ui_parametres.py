@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/parametres.ui'
 #
-# Created: Wed Oct 10 22:02:36 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Tue Oct 16 12:07:41 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -19,7 +19,6 @@ class Ui_Parametres(object):
         Parametres.setObjectName(_fromUtf8("Parametres"))
         Parametres.resize(400, 300)
         Parametres.setLocale(QtCore.QLocale(QtCore.QLocale.French, QtCore.QLocale.France))
-        Parametres.setWindowTitle(QtGui.QApplication.translate("Parametres", "Paramètres", None, QtGui.QApplication.UnicodeUTF8))
         self.dockWidgetContents = QtGui.QWidget()
         self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
         self.verticalLayout = QtGui.QVBoxLayout(self.dockWidgetContents)
@@ -30,7 +29,6 @@ class Ui_Parametres(object):
         self.horizontalLayout.setSpacing(2)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.save_btn = QtGui.QPushButton(self.dockWidgetContents)
-        self.save_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Enregistrer les paramètres actuels", None, QtGui.QApplication.UnicodeUTF8))
         self.save_btn.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/images/document-save.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -39,7 +37,6 @@ class Ui_Parametres(object):
         self.save_btn.setObjectName(_fromUtf8("save_btn"))
         self.horizontalLayout.addWidget(self.save_btn)
         self.open_btn = QtGui.QPushButton(self.dockWidgetContents)
-        self.open_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Ouvrir des paramètres", None, QtGui.QApplication.UnicodeUTF8))
         self.open_btn.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/images/document-open.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -54,7 +51,6 @@ class Ui_Parametres(object):
         self.horizontalLayout.addWidget(self.line)
         self.reset_btn = QtGui.QPushButton(self.dockWidgetContents)
         self.reset_btn.setMinimumSize(QtCore.QSize(0, 30))
-        self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.reset_btn.setText(_fromUtf8(""))
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/images/view-refresh.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -77,6 +73,9 @@ class Ui_Parametres(object):
         QtCore.QMetaObject.connectSlotsByName(Parametres)
 
     def retranslateUi(self, Parametres):
-        pass
+        Parametres.setWindowTitle(QtGui.QApplication.translate("Parametres", "Paramètres", None, QtGui.QApplication.UnicodeUTF8))
+        self.save_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Enregistrer les paramètres actuels", None, QtGui.QApplication.UnicodeUTF8))
+        self.open_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Ouvrir des paramètres", None, QtGui.QApplication.UnicodeUTF8))
+        self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc

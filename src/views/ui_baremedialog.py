@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/baremedialog.ui'
 #
-# Created: Wed Oct 10 22:02:36 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Tue Oct 16 12:07:42 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,25 +25,14 @@ class Ui_BaremeDialog(object):
         BaremeDialog.setSizePolicy(sizePolicy)
         BaremeDialog.setMinimumSize(QtCore.QSize(549, 308))
         BaremeDialog.setMaximumSize(QtCore.QSize(549, 16777215))
-        BaremeDialog.setWindowTitle(QtGui.QApplication.translate("BaremeDialog", "Barème", None, QtGui.QApplication.UnicodeUTF8))
         BaremeDialog.setSizeGripEnabled(False)
         self.gridLayout = QtGui.QGridLayout(BaremeDialog)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.marLabel = QtGui.QLabel(BaremeDialog)
-        self.marLabel.setText(QtGui.QApplication.translate("BaremeDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; font-weight:600;\">Tranches de taux marginaux</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.marLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.marLabel.setObjectName(_fromUtf8("marLabel"))
         self.gridLayout.addWidget(self.marLabel, 0, 0, 1, 3)
         self.moyLabel = QtGui.QLabel(BaremeDialog)
-        self.moyLabel.setText(QtGui.QApplication.translate("BaremeDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; font-weight:600;\">Tranches de taux moyens</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.moyLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.moyLabel.setObjectName(_fromUtf8("moyLabel"))
         self.gridLayout.addWidget(self.moyLabel, 0, 3, 1, 2)
@@ -91,6 +80,16 @@ class Ui_BaremeDialog(object):
         QtCore.QMetaObject.connectSlotsByName(BaremeDialog)
 
     def retranslateUi(self, BaremeDialog):
-        pass
+        BaremeDialog.setWindowTitle(QtGui.QApplication.translate("BaremeDialog", "Barème", None, QtGui.QApplication.UnicodeUTF8))
+        self.marLabel.setText(QtGui.QApplication.translate("BaremeDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; font-weight:600;\">Tranches de taux marginaux</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.moyLabel.setText(QtGui.QApplication.translate("BaremeDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; font-weight:600;\">Tranches de taux moyens</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc
