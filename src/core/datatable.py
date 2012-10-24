@@ -72,11 +72,12 @@ class DataTable(object):
 
         self.col_names = self.description.col_names
 
-        if (survey_data and scenario):
+        if (survey_data is not None) and (scenario is not None):
             raise Exception("should provide either survey_data or scenario but not both")
-        elif survey_data:
+        elif survey_data is not None:
             self.populate_from_survey_data(survey_data)
-        elif scenario:
+        elif scenario is not None:
+            self.scenario = scenario
             scenario.populate_datatable(self)
         
     def gen_index(self, units):
@@ -182,8 +183,11 @@ class DataTable(object):
             if not col.name in self.table:
                 missing_col.append(col.name)
                 self.table[col.name] = col._default
-            self.table[col.name] = self.table[col.name].astype(col._dtype)
-
+            try:   
+                self.table[col.name] = self.table[col.name].astype(col._dtype)
+            except:
+                raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
+            
         if missing_col:
             message = "%i input variables missing\n" % len(missing_col)
             for var in missing_col:
