@@ -132,8 +132,6 @@ def gen_aggregate_output(model):
         out_dct[varname] = val      
     # TODO: should take care the variables that shouldn't be summed automatically
     # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
-    
-    
 
     out_table = DataFrame(out_dct)
     return out_table
@@ -149,8 +147,10 @@ class OutNode(object):
         self.typevar = typevar
         self._vals = vals
         self._taille = 0
-        if shortname: self.shortname = shortname
-        else: self.shortname = code
+        if shortname: 
+            self.shortname = shortname
+        else: 
+            self.shortname = code
         
     def addChild(self, child):
         self.children.append(child)
