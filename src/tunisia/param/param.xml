@@ -813,9 +813,12 @@
       <CODE description="Abattement sur les salaires" code="abat_sal" format="integer">
         <VALUE valeur=".10" deb="1990-01-01" fin="2012-12-31" />
       </CODE>
-      <CODE description="Déduction pour salaire minimum" code="smig" format="integer">
+      <CODE description="Abattement pour salaire minimum" code="smig" format="integer">
         <VALUE valeur="1000" deb="2010-01-01" fin="2012-12-31" />
         <VALUE valeur="500"  deb="2005-01-01" fin="2009-12-31" />
+      </CODE>
+      <CODE description="Extension de l'abattement précédent aux bas salaires" code="smig_ext" format="integer">
+        <VALUE valeur="0" deb="2011-01-01" fin="2012-12-31" />
       </CODE>
 	  <CODE description="Abattement sur les pensions" code="abat_pen" format="integer">
         <VALUE valeur=".25" deb="1990-01-01" fin="2012-12-31" />

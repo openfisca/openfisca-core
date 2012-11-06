@@ -73,10 +73,11 @@ def _veuf(statmarit):
     return statmarit == 4
 
 
-def _nb_enf(age, _P):
+def _nb_enf(age, _P, _option={'age': PACS}):
     '''
     Nombre d'enfants TODO
     '''
+    P = _P.ir.deduc.fam
 #    res = None
 #    i = 1    
 #    if res is None: res = zeros(len(age))
@@ -84,9 +85,11 @@ def _nb_enf(age, _P):
 #        i += 1
 #        res =+ ( (ag < 20) + 
 #                 (ag < 25)*not_(boursier)*() )
+    res = 0
+    for ag in age.itervalues():
 
-    
-    return age*0 
+        res +=  1*(ag < P.age)*(ag>=0)
+    return res 
 
 def _nb_enf_sup(agem, boursier):
     '''
@@ -186,7 +189,11 @@ def _sal_net(sal, smig, _P):
     'foy'
     '''
     P = _P.ir.tspr
-    return sal*(1 - P.abat_sal) - smig*P.smig 
+    if _P.datesim.year >= 2011:
+        res = max_(sal*(1 - P.abat_sal) - max_(smig*P.smig, (sal <= P.smig_ext)*P.smig), 0)
+    else:
+        res = max_(sal*(1 - P.abat_sal) - smig*P.smig,0)
+    return res  
 
 
 def _pen_net(pen, pen_nat, _P):
@@ -240,14 +247,15 @@ def _deduc_int(capm_banq, capm_cent, capm_oblig, _P):
     return  max_( max_( max_(capm_banq, P.banq.plaf) + max_(capm_cent, P.cent.plaf), P.banq.plaf ) +  
                  max_(capm_oblig, P.oblig.plaf), P.oblig.plaf) 
 
-def _deduc_fam(rng, chef, nb_par, _P):
+def _deduc_fam(rng, chef, nb_enf, nb_par, _P):
     ''' 
     Déductions pour situation et charges de famille
     'foy'
     '''
     P = _P.ir.deduc.fam
     # chef de famille
-    chef = P.chef*chef 
+    chef = P.chef*(nb_enf>0) # TODO
+    
 #    from scipy.stats import rankdata
 #    
 #    ages = [a in age.values() if a >= 0 ]
@@ -257,13 +265,14 @@ def _deduc_fam(rng, chef, nb_par, _P):
 #    rk = round(rk + -.01*range(len(rk))) # to properly rank twins 
 #    
 #    
-#    enf =  (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
+    enf =  (nb_enf >= 1)*P.enf1 + (nb_enf >= 2)*P.enf2 + (nb_enf >= 3)*P.enf3 + (nb_enf >= 4)*P.enf4   
 #    sup = P.enf_sup*nb_enf_sup 
 #    infirme =  P.infirme*nb_infirme
 #    parent = min_(P.parent_taux*rng, P.parent_max)
     
 #    return chef + enf + sup + infirme + parent
-    return 0*chef
+    res = chef + enf
+    return res
 
 def _deduc_rente(rente):
     '''

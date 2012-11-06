@@ -24,7 +24,7 @@ This file is part of openFisca.
 from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox, QSpinBox,  QDoubleSpinBox, 
                          QPushButton, QApplication, QFileDialog, QMessageBox, QDialogButtonBox)
 from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt, QVariant
-from views.ui_composition import Ui_Menage
+from tunisia.views.ui_composition import Ui_Menage
 from views.ui_logement import Ui_Logement
 from widgets.InfoComp import InfoComp
 from datetime import date
@@ -82,7 +82,7 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         self.connect(self.save_btn, SIGNAL('clicked()'), self.saveScenario)
         self.connect(self.add_btn, SIGNAL('clicked()'), self.addPerson)
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmvPerson)
-        self.connect(self.lgt_btn, SIGNAL('clicked()'), self.openLogement)
+#        self.connect(self.lgt_btn, SIGNAL('clicked()'), self.openLogement)
         self.connect(self.inf_btn, SIGNAL('clicked()'), self.openInfoComp)
         self.connect(self.reset_btn, SIGNAL('clicked()'), self.resetScenario)
         self.connect(self.xaxis_box, SIGNAL('currentIndexChanged(int)'), self.set_xaxis)
@@ -311,6 +311,8 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         
     def openDeclaration(self):
         pass
+        
+
 #        noi = int(self.sender().objectName()[3])
 #        self.scenario.genNbEnf()
 #        msg = self.scenario.check_consistency()
