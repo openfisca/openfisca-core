@@ -35,7 +35,7 @@ import os
 
 
 Scenario = of_import('utils', 'Scenario')
-InputTable = of_import('data', 'InputTable')
+InputTable = of_import('model.data', 'InputTable')
 
 
 class S:

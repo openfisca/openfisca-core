@@ -24,10 +24,10 @@ This file is part of openFiscaTn.
 from datetime import date
 from core.description import ModelDescription
 from core.columns import Prestation, BoolPresta
-import tunisia.cotsoc as cs
-import tunisia.irpp as ir
-import tunisia.common as cm
-import tunisia.pfam as pf
+import tunisia.model.cotsoc as cs
+import tunisia.model.irpp as ir
+import tunisia.model.common as cm
+import tunisia.model.pfam as pf
 
 
 class ModelSF(ModelDescription):

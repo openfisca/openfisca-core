@@ -24,7 +24,7 @@ from __future__ import division
 from numpy import ( maximum as max_, minimum as min_, logical_xor as xor_, zeros, 
                      logical_not as not_, round) 
 
-from tunisia.data import QUIFOY
+from tunisia.model.data import QUIFOY
 #from tunisia.data import QUIFAM
 
 VOUS = QUIFOY['vous']

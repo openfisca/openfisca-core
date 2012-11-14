@@ -257,7 +257,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_tranche)
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmv_tranche)
 
-        if self._bareme.nb == 1:
+        if self._bareme.nb <= 1:
             self.rmv_btn.setEnabled(False)
 
     def add_tranche(self):
@@ -265,6 +265,9 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.rmv_btn.setEnabled(True)
     
     def rmv_tranche(self):
+        '''
+        Removes last bareme tranche
+        '''
         self._marModel.removeRows(0, 1)
         if self._bareme.nb == 1:
             self.rmv_btn.setEnabled(False)
@@ -302,9 +305,14 @@ class MarModel(QAbstractTableModel):
         
     def insertRows(self, row, count, parent = QModelIndex() ):
         self.beginInsertRows(parent, row, row)
-        s = self._bareme.seuils[-1]
-        t = self._bareme.taux[-1]
-        self._bareme.addTranche(s + 1000,t)
+        if self._bareme.nb == 0:
+            s = 0
+            t = 0
+        else:
+            s = self._bareme.seuils[-1] + 1000
+            t = self._bareme.taux[-1]
+            
+        self._bareme.addTranche(s ,t)
         self._bareme.marToMoy()
         self.endInsertRows()
         return True
