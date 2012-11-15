@@ -4,7 +4,7 @@
       <CODE description="Plafond de la sécurité sociale (en SMIG)" code="plaf_ss" format="integer">
         <VALUE valeur="6" deb="1960-01-01" fin="2012-12-31" />
       </CODE>
-      <CODE description="SMIG 48h" code="smig_48h" >
+      <CODE description="SMIG 48h" code="smig_48h" format="float" type="monetary">
     	<VALUE valeur="255.632" deb="2011-05-01" fin="2011-12-31" />
     	<VALUE valeur="242.111" deb="2010-07-01" fin="2011-12-31" />
     	<VALUE valeur="230.256" deb="2009-08-01" fin="2010-12-31" />
@@ -26,7 +26,7 @@
     	<VALUE valeur="129.792" deb="1996-05-01" fin="1996-09-08" />
     	<VALUE valeur="123.760" deb="1995-05-01" fin="1996-04-31" />
       </CODE>
-      <CODE description="SMIG 40h" code="smig_40h" >
+      <CODE description="SMIG 40h" code="smig_40h" format="float" type="monetary">
 		<VALUE valeur="216.306" deb="2011-05-01" fin="2011-12-31" />
     	<VALUE valeur="205.040" deb="2010-07-01" fin="2011-12-31" />
     	<VALUE valeur="195.160" deb="2009-08-01" fin="2010-12-31" />
@@ -498,8 +498,8 @@
       </BAREME>  		
   	</NODE>
   	<NODE description="Régime des étudiants" code="re" >
-  	  <CODE description="Montant de la cotisation" code="cot" format="integer">
-        <VALUE valeur="5.000" deb="1965-07-01" fin="2012-12-31" />
+  	  <CODE description="Montant de la cotisation" code="cot" format="integer"  type="monetary">
+        <VALUE valeur="5" deb="1965-07-01" fin="2012-12-31" />
       </CODE>
     </NODE>
   	<NODE description="Régime des travailleurs à faibles revenus" code="rtfr" >
@@ -712,7 +712,7 @@
   </NODE>
   <NODE description="Prestations familiales" code="pfam">
     <NODE description="Allocations familiales" code="af">
-      <CODE description="Plafond de revenus trimestriels" code = "plaf_trim" format='integer'>
+      <CODE description="Plafond de revenus trimestriels" code = "plaf_trim" format='integer' type="monetary">
         <VALUE valeur="122" deb="1960-01-01" fin="2011-12-31"/>
       </CODE>
       <NODE description="Taux (% de la BTAF)" code = "taux">
@@ -727,33 +727,33 @@
 		</CODE>
       </NODE>
     </NODE>
-    <NODE description="Majoration trimestrielle pour salaire unique" code = "sal_uniq">
-      <CODE description="Premier enfant à charge" code="enf1" format = 'float'>
+    <NODE description="Majoration trimestrielle pour salaire unique" code = "sal_uniq" >
+      <CODE description="Premier enfant à charge" code="enf1" format = 'float' type = "monetary">
 	  	<VALUE valeur="9.375" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
-	  <CODE description="Deuxième enfant à charge" code="enf2" format = 'float'>
+	  <CODE description="Deuxième enfant à charge" code="enf2" format = 'float' type = "monetary">
 	  	<VALUE valeur="18.750" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
-	  <CODE description="Troisième enfant" code="enf3" format = 'float'>
+	  <CODE description="Troisième enfant" code="enf3" format = 'float' type = "monetary">
 	    <VALUE valeur="23.475" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
     </NODE>
-    <NODE description="Allocation pour congé de naissance" code = "naiss">
+    <NODE description="Allocation pour congé de naissance" code = "naiss"> # TODO
     </NODE>
 	<NODE description="Contribution au frais de crêche" code = "creche">
 	  <CODE description="Plafond de ressources (en SMIG 48h)" code="plaf" format = 'percent'>
 	    <VALUE valeur="2.5" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>	
-	  <CODE description="Montant" code="montant" format = 'integer'>
+	  <CODE description="Montant" code="montant" format = 'integer' type="monetary">
 	    <VALUE valeur="15" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
-	  <CODE description="Age (en mois) minimal" code="age_min" format = 'integer'>
+	  <CODE description="Age (en mois) minimal" code="age_min" format = 'integer' type = "age">
 	    <VALUE valeur="2" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
-	  <CODE description="Age (en mois) maximal" code="age_max" format = 'integer'>
+	  <CODE description="Age (en mois) maximal" code="age_max" format = 'integer' type = "months">
 	    <VALUE valeur="36" deb="1960-01-01" fin="2011-12-31"/>
       </CODE>
-	  <CODE description="Durée maximale (en mois)" code="duree" format = 'integer'>
+	  <CODE description="Durée maximale (en mois)" code="duree" format = 'integer' type = "months">
 	    <VALUE valeur="11" deb="1960-01-01" fin="2011-12-31"/>
 	  </CODE>
     </NODE>
@@ -810,20 +810,20 @@
       </TRANCHE>
 	</BAREME>
 	<NODE description="Traitements, salaires, pensions et rentes" code="tspr" >
-      <CODE description="Abattement sur les salaires" code="abat_sal" format="integer">
+      <CODE description="Abattement sur les salaires" code="abat_sal" format="percent">
         <VALUE valeur=".10" deb="1990-01-01" fin="2012-12-31" />
       </CODE>
-      <CODE description="Abattement pour salaire minimum" code="smig" format="integer">
+      <CODE description="Abattement pour salaire minimum" code="smig" format="integer" type="monetary">
         <VALUE valeur="1000" deb="2010-01-01" fin="2012-12-31" />
         <VALUE valeur="500"  deb="2005-01-01" fin="2009-12-31" />
       </CODE>
       <CODE description="Extension de l'abattement précédent aux bas salaires" code="smig_ext" format="integer">
         <VALUE valeur="0" deb="2011-01-01" fin="2012-12-31" />
       </CODE>
-	  <CODE description="Abattement sur les pensions" code="abat_pen" format="integer">
+	  <CODE description="Abattement sur les pensions" code="abat_pen" format="percent">
         <VALUE valeur=".25" deb="1990-01-01" fin="2012-12-31" />
       </CODE>
-      <CODE description="Abattement sur les pensions étrangères" code="abat_pen_etr" format="integer">
+      <CODE description="Abattement sur les pensions étrangères" code="abat_pen_etr" format="percent">
         <VALUE valeur=".80" deb="2007-01-01" fin="2012-12-31" />
         <VALUE valeur=".0" deb="2001-01-01" fin="2006-12-31" />
       </CODE>
@@ -840,7 +840,7 @@
         </CODE>
       </NODE>
       <NODE description="Régime forfaitaire" code="forf">
-        <CODE description="Montant de l'impot forfaitaire dispensant du paiement de accomptes provisionnels" code="forfait" format="integer">
+        <CODE description="Montant de l'impot forfaitaire dispensant du paiement de accomptes provisionnels" code="forfait" format="integer" type="monetary">
           <VALUE valeur="1500" deb="2007-01-01" fin="2012-12-31" />
         </CODE>
         <CODE description="Accomptes (en % de l'impôt forfaitaire dû)" code="acc" format="percent">
@@ -932,75 +932,75 @@
     </NODE>
     <NODE description="Déductions" code="deduc" >
       <NODE description="Déductions pour charge de famille" code="fam" >
-        <CODE description="Chef de famille" code="chef" format="integer">
+        <CODE description="Chef de famille" code="chef" format="integer" type="monetary">
           <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-	    <CODE description="1er enfant à charge" code="enf1" format="integer">
+	    <CODE description="1er enfant à charge" code="enf1" format="integer" type="monetary">
           <VALUE valeur="90" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="2e enfant à charge" code="enf2" format="integer">
+        <CODE description="2e enfant à charge" code="enf2" format="integer" type="monetary">
           <VALUE valeur="75" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="3e enfant à charge" code="enf3" format="integer">
+        <CODE description="3e enfant à charge" code="enf3" format="integer" type="monetary">
           <VALUE valeur="60" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="4e enfant à charge" code="enf4" format="integer">
+        <CODE description="4e enfant à charge" code="enf4" format="integer" type="monetary">
           <VALUE valeur="45" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Age limite (exclu) des enfants à charge" code="age" format="integer">
+        <CODE description="Age limite (exclu) des enfants à charge" code="age" format="integer" type="age">
           <VALUE valeur="20" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Enfant non boursier du supérieur" code="enf_sup" format="integer">
+        <CODE description="Enfant non boursier du supérieur" code="enf_sup" format="integer" type="monetary">
           <VALUE valeur="300" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Age limite (exclu) des enfants de supérieur à charge" code="age_sup" format="integer">
+        <CODE description="Age limite (exclu) des enfants de supérieur à charge" code="age_sup" format="integer" type = "age">
           <VALUE valeur="25" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Enfant infirme TODO dates" code="infirme" format="integer">
+        <CODE description="Enfant infirme TODO dates" code="infirme" format="integer" type="monetary">
           <VALUE valeur="500" deb="1990-01-01" fin="2003-12-31" />  
           <VALUE valeur="600" deb="2004-01-01" fin="2004-12-31" />
           <VALUE valeur="750" deb="2005-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Parent à charge (en pourcentage du revenu)" code="parent_taux" format="percent">
+        <CODE description="Parent à charge (en % du revenu)" code="parent_taux" format="percent">
           <VALUE valeur=".05" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Parent à charge (montant maximum)" code="parent_max" format="integer">
+        <CODE description="Parent à charge (montant maximum)" code="parent_max" format="integer" type="monetary">
           <VALUE valeur="150" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
         <CODE description="Parent à charge (plafond de revenu en SMIG)" code="parent_plaf" format="integer">
           <VALUE valeur="1" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
-      <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès des banques" code="banq" >
+      <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès des banques" code="banq" type="monetary">
         <CODE description="Plafond de la déduction" code="plaf" format="integer">
           <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
       <NODE description="Intérêts des comptes spéciaux d’épargne ouverts auprès de la CENT" code="cent" >
-        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+        <CODE description="Plafond de la déduction" code="plaf" format="integer" type="monetary">
            <VALUE valeur="1000" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
       <NODE description="Intérêts des emprunts obligataires" code="oblig" >
-        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+        <CODE description="Plafond de la déduction" code="plaf" format="integer" type="monetary">
           <VALUE valeur="1500" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
       <NODE description="Intérêts des comptes épargne pour l'investissement" code="epinv" >
-        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+        <CODE description="Plafond de la déduction" code="plaf" format="integer" type="monetary">
           <VALUE valeur="2000" deb="1990-01-01" fin="2012-12-31" />
         </CODE>
       </NODE>
       <NODE description="Assurance vie" code="ass_vie" >
-        <CODE description="Plafond de la déduction" code="plaf" format="integer">
+        <CODE description="Plafond de la déduction" code="plaf" format="integer" type="monetary">
           <VALUE valeur="800" deb="1990-01-01" fin="2006-12-31" />
           <VALUE valeur="1200" deb="2007-01-01" fin="2012-12-31" />
         </CODE>
-        <CODE description="Majoration au titre du conjoint" code="conj_plaf" format="integer">
+        <CODE description="Majoration au titre du conjoint" code="conj_plaf" format="integer" type="monetary">
 		  <VALUE valeur="400" deb="1990-01-01" fin="2006-12-31" />
           <VALUE valeur="600" deb="2007-01-01" fin="2012-12-31" />
         </CODE>	
-        <CODE description="Majoration au titre des enfants" code="enf_plaf" format="integer">
+        <CODE description="Majoration au titre des enfants" code="enf_plaf" format="integer" type="monetary">
           <VALUE valeur="200" deb="1990-01-01" fin="2006-12-31" />
           <VALUE valeur="300" deb="2007-01-01" fin="2012-12-31" />
         </CODE>
