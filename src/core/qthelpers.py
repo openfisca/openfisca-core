@@ -71,7 +71,9 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     return action
 
 def add_actions(target, actions, insert_before=None):
-    """Add actions to a menu"""
+    """
+    Add actions to a menu
+    """
     previous_action = None
     target_actions = list(target.actions())
     if target_actions:
@@ -97,7 +99,9 @@ def add_actions(target, actions, insert_before=None):
         previous_action = action
 
 def get_icon(name):
-    """Return image inside a QIcon object"""
+    """
+    Return image inside a QIcon object
+    """
     image_path = ":/images/" + name
     icon = QIcon()
     icon.addPixmap(QPixmap(image_path), QIcon.Normal, QIcon.Off)
@@ -212,7 +216,10 @@ class DataFrameModel(QAbstractTableModel):
                     if abs(val) <= 1:
                         return QVariant(('%.3g' % val))
                     else:
-                        return QVariant(int(round(val))) 
+                        return QVariant(int(round(val)))            
+        elif role == Qt.TextAlignmentRole:
+            return QVariant(Qt.AlignRight | Qt.AlignVCenter)
+                    
     
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
@@ -497,6 +504,9 @@ class MyComboBox(QWidget):
         self.setLayout(layout)
         self.box = combobox
 
+
+
+# TODO should improve qtpandas 
 from pandas import Index
 
 def testDf():

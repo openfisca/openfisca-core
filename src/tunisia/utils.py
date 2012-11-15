@@ -27,6 +27,9 @@ import pickle
 from datetime import datetime
 
 
+currency = u"DT"
+
+
 class Scenario(object):
     def __init__(self):
         super(Scenario, self).__init__()
@@ -333,7 +336,7 @@ class Xaxis(object):
     def set_label(self):
         from core.utils import of_import
         from core.datatable import Description
-        InputTable = of_import('data', 'InputTable')
+        InputTable = of_import('model.data', 'InputTable')
         description = Description(InputTable().columns)
         label2var, var2label, var2enum = description.builds_dicts()
         if self.col_name in var2label:
