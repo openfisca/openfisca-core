@@ -77,9 +77,10 @@ class XmlReader(object):
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
                     valueFormat = element.getAttribute('format')
+                    valueType   = element.getAttribute('type')
                     val = self.handleValues(element, self._date)
                     if not val is None:
-                        node = CodeNode(code, desc, float(val), parent, valueFormat)
+                        node = CodeNode(code, desc, float(val), parent, valueFormat, valueType)
                 else:
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -104,6 +105,7 @@ class Node(object):
         self.code = code
         self.description = description
         self.valueFormat = 'none'
+        self.valueType = 'none'
         self.typeInfo = 'NODE'
         
         if parent is not None:
@@ -200,6 +202,18 @@ class Node(object):
     
     valueFormat = property(getValueFormat, setValueFormat)
 
+    def getValueType(self):
+        return self._type
+
+    def setValueType(self, value):
+        type_list = ('none', 'monetary', 'age', 'hours', 'days', 'years')
+        if not value in type_list:
+            return Exception("Unknowned %s valueType: valueType can be 'none', 'monetary', 'age', 'hours', 'days', 'years'" % value)
+        self._type = value
+    
+    valueType = property(getValueType, setValueType)
+
+
     def getValue(self):
         return self._value
 
@@ -256,12 +270,13 @@ class Node(object):
         if column is 0: pass
     
 class CodeNode(Node):
-    def __init__(self, code, description, value, parent, valueFormat = 'none'):
+    def __init__(self, code, description, value, parent, valueFormat = 'none', valueType = 'none'):
         super(CodeNode, self).__init__(code, description, parent)
         self.value = value
         self.default = value
         self.typeInfo = 'CODE'
         self.valueFormat = valueFormat
+        self.valueType   = valueType
 
     def _recurseXml(self, parent):
         if self.isDirty():

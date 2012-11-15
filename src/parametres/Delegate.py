@@ -92,12 +92,17 @@ class ValueColumnDelegate(QStyledItemDelegate):
         self._parent = parent
 
     def paint(self, painter, option, index):
+        
+        from core.utils import of_import
+        currency = of_import('utils', 'currency')
+        year = "an"
+        years = "ans"
+        
+        
         painter.save()
         if index.isValid():
-
             style = self.parent().style()
             styleOption = QStyleOptionViewItemV4(option)
-
             node = index.internalPointer()
             val = index.model().data(index).toPyObject()
 
@@ -105,9 +110,25 @@ class ValueColumnDelegate(QStyledItemDelegate):
                 if node.valueFormat == 'percent':
                     text = '%.2f %%  ' % (val*100)
                 elif node.valueFormat == 'integer':
-                    text = '%d  ' % val
+                    if node.valueType == 'monetary':
+                        text = '%d  %s' %( val, currency)  
+                    elif node.valueType == 'age':
+                        if val <= 1:
+                            text = '%d  %s' %( val, year)
+                        else:
+                            text = '%d  %s' %( val, years)
+                    else:
+                        text = '%d  ' % val
+                elif node.valueFormat == 'float':
+                    if node.valueType == 'monetary':
+                        text = '%.2f  %s' %( val, currency)  
+                    else:
+                        text = '%.2f  ' % val
                 else:
-                    text = '%.2f  ' % val
+                    if node.valueType == 'monetary':
+                        text = '%.2f  %s' %( val, currency)  
+                    else:
+                        text = '%.2f  ' % val
 
                 styleOption.text = text
                 styleOption.displayAlignment = Qt.AlignRight
