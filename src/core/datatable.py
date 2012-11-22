@@ -135,24 +135,6 @@ class DataTable(object):
         for member in enum:
             self.set_value(col, value, index, opt = member[1])
 
-    def inflate(self, filename = None):
-        '''
-        Inflate inputs data when using totals from the simulation year 
-        '''
-        if filename is None:
-            data_dir = CONF.get('paths', 'data_dir')
-            year     = str(CONF.get('simulation','datesim').year)
-            filename = os.path.join(data_dir, 'inflate.csv')
-        with open(filename) as f_tot:
-            totals = read_csv(f_tot,index_col = 0)
-        if year in totals:
-            totals = totals[year]
-            for varname in totals.index:
-                if varname in self.table:
-                    x = sum(self.table[varname]*self.table['wprm'])/totals.get_value(varname)
-                    
-                    if x>0:
-                        self.table[varname] = self.table[varname]/x
 
     def populate_from_survey_data(self, fname):
         
