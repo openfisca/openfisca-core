@@ -109,6 +109,8 @@ class ValueColumnDelegate(QStyledItemDelegate):
             if node.typeInfo == 'CODE':
                 if node.valueFormat == 'percent':
                     text = '%.2f %%  ' % (val*100)
+                elif node.valueFormat == 'bool':
+                    text = '%d  ' % val
                 elif node.valueFormat == 'integer':
                     if node.valueType == 'monetary':
                         text = '%d  %s' %( val, currency)  
@@ -151,6 +153,10 @@ class ValueColumnDelegate(QStyledItemDelegate):
         painter.restore()
     
     def createEditor(self, parent, option, index):
+        
+        from core.utils import of_import
+        currency = of_import('utils', 'currency')
+        
         node = index.internalPointer()
         if node.typeInfo == 'CODE':
             if node.valueFormat == 'percent':
@@ -164,9 +170,12 @@ class ValueColumnDelegate(QStyledItemDelegate):
         elif node.typeInfo == 'BAREME':
             editor = QPushButton(parent)
             editor.setText('Editer')
+            unit = None
+            if node.valueType == 'monetary':
+                unit = currency
             value = node._value
             value.marToMoy()
-            self.baremeDialog = BaremeDialog(value, self._parent)
+            self.baremeDialog = BaremeDialog(value, self._parent, unit = unit)
             self.connect(editor, SIGNAL('clicked()'), self.runBaremeDialog)
             self.runBaremeDialog()
         else:
@@ -196,7 +205,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
         self.baremeDialog.exec_()                    
         
 class BaremeColumnDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super(BaremeColumnDelegate, self).__init__(parent)
 
     def paint(self, painter, option, index):
@@ -217,7 +226,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
             if col == 1:
                 text = '%.2f %%  ' % (val*100)
             else:
-                text = '%d  ' % (val)
+                text = '%d ' % (val)
             
             QApplication.style().drawItemText(painter, option.rect, Qt.AlignRight | Qt.AlignVCenter,
                                               option.palette, True, text,
@@ -234,6 +243,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
             editor.setSuffix('%')
         else:
             editor = QSpinBox(parent)
+            
         editor.setMaximum(100000000)
 
         return editor
@@ -255,10 +265,12 @@ class BaremeColumnDelegate(QStyledItemDelegate):
         model.setData(index, QVariant(newValue))
 
 class BaremeDialog(QDialog, Ui_BaremeDialog):
-    def __init__(self, bareme, parent = None):
+    def __init__(self, bareme, parent = None, unit = None):
         super(BaremeDialog, self).__init__(parent)
         self.setupUi(self)
         self._bareme = bareme
+        self._bareme.unit = unit
+        
         self._marModel = MarModel(self._bareme, self)
         self.marView.setModel(self._marModel)
 
@@ -318,8 +330,14 @@ class MarModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if column == 0 : return QVariant(self._bareme.seuils[row])
-            if column == 1 : return QVariant(self._bareme.taux[row])
+            if column == 0 : 
+                if (self._bareme.unit is not None) and (role == Qt.DisplayRole):
+                    return QVariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
+                else:                
+                    return QVariant(self._bareme.seuils[row])
+            if column == 1 : 
+                return QVariant(self._bareme.taux[row])
+        
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
 
@@ -367,6 +385,7 @@ class MoyModel(QSortFilterProxyModel):
         self.setSourceModel(marModel)
         self.source = self.sourceModel()
         self._bareme = self.source._bareme
+
 #        self.setDynamicSortFilter(True)
     
     def rowCount(self, parent):
@@ -376,7 +395,11 @@ class MoyModel(QSortFilterProxyModel):
         row = index.row()
         column = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if column == 0 : return QVariant(self._bareme.seuilsM[row])
+            if column == 0 : 
+                if self._bareme.unit is not None and role == Qt.DisplayRole:
+                    return QVariant( str(self._bareme.seuilsM[row]) + ' ' + self._bareme.unit)
+                else: 
+                    return QVariant( str(self._bareme.seuilsM[row]))
             if column == 1 : return QVariant(self._bareme.tauxM[row])
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
@@ -389,7 +412,10 @@ class MoyModel(QSortFilterProxyModel):
                 if row == self.rowCount(QModelIndex())-1:
                     return False
                 self._bareme.setSeuilM(row,value.toInt()[0])
-            if column == 1 : self._bareme.setTauxM(row,value.toFloat()[0])
+            if column == 1 : 
+                print value.toFloat()[0]
+                self._bareme.setTauxM(row,value.toFloat()[0])
+                
             self._bareme.moyToMar()
             self.dataChanged.emit(index, index)
             return True

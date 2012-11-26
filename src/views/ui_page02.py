@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/page02.ui'
 #
-# Created: Sun Nov 04 23:45:50 2012
+# Created: Wed Nov 21 19:32:55 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!

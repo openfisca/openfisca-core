@@ -87,9 +87,12 @@ class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    def __init__(self, label = None, default = -9999):
-        super(AgesCol, self).__init__(label, default)
-        self.val_type = "years"
+    def __init__(self, label = None, default = -9999, start = None, end = None, val_type = None):
+        super(AgesCol, self).__init__(label, default, start = None, end = None, val_type = None)
+        self.start = start
+        self.end = end
+        self.val_type = val_type
+
         
 class DateCol(Column):
     '''

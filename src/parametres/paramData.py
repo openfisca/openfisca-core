@@ -61,6 +61,7 @@ class XmlReader(object):
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
                     option = element.getAttribute('option')
+                    valueType   = element.getAttribute('type')
                     tranches = Bareme(code)
                     tranches.setOption(option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
@@ -72,7 +73,7 @@ class XmlReader(object):
                         if not seuil is None and not taux is None:
                             tranches.addTranche(seuil, taux*assiette)
                     tranches.marToMoy()
-                    node = BaremeNode(code, desc, tranches, parent)
+                    node = BaremeNode(code, desc, tranches, parent, valueType)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -318,7 +319,7 @@ class CodeNode(Node):
 
 class BaremeNode(Node):
     
-    def __init__(self, code, description, value, parent):
+    def __init__(self, code, description, value, parent, valueType = 'none'):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
@@ -327,6 +328,8 @@ class BaremeNode(Node):
             self.default.addTranche(s, t)
         self.default.marToMoy()
         self.typeInfo = 'BAREME'
+        self.valueType  = valueType
+        
 
     def _recurseXml(self, parent):
         if self.isDirty():
