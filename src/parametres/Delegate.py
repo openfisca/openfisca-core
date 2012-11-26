@@ -331,7 +331,7 @@ class MarModel(QAbstractTableModel):
         column = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 : 
-                if self._bareme.unit is not None and role == Qt.DisplayRole:
+                if (self._bareme.unit is not None) and (role == Qt.DisplayRole):
                     return QVariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
                 else:                
                     return QVariant(self._bareme.seuils[row])
@@ -412,7 +412,10 @@ class MoyModel(QSortFilterProxyModel):
                 if row == self.rowCount(QModelIndex())-1:
                     return False
                 self._bareme.setSeuilM(row,value.toInt()[0])
-            if column == 1 : self._bareme.setTauxM(row,value.toFloat()[0])
+            if column == 1 : 
+                print value.toFloat()[0]
+                self._bareme.setTauxM(row,value.toFloat()[0])
+                
             self._bareme.moyToMar()
             self.dataChanged.emit(index, index)
             return True
