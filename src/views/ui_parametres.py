@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/parametres.ui'
 #
-# Created: Wed Nov 21 19:32:58 2012
+# Created: Tue Nov 27 17:24:33 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -60,6 +60,10 @@ class Ui_Parametres(object):
         self.horizontalLayout.addWidget(self.reset_btn)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
+        self.label = QtGui.QLabel(self.dockWidgetContents)
+        self.label.setText(_fromUtf8(""))
+        self.label.setObjectName(_fromUtf8("label"))
+        self.horizontalLayout.addWidget(self.label)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.uiTree = QtGui.QTreeView(self.dockWidgetContents)
         self.uiTree.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
@@ -77,5 +81,6 @@ class Ui_Parametres(object):
         self.save_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Enregistrer les paramètres actuels", None, QtGui.QApplication.UnicodeUTF8))
         self.open_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Ouvrir des paramètres", None, QtGui.QApplication.UnicodeUTF8))
         self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setToolTip(QtGui.QApplication.translate("Parametres", "datesim", None, QtGui.QApplication.UnicodeUTF8))
 
 import resources_rc
