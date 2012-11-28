@@ -42,6 +42,7 @@ DEFAULTS = [
              {
               'country': 'france',
               'datesim': '2006-01-01',
+#              'survey_year': '2006-01-01',
               'nmen': 101,
               'xaxis':  'sal',
               'maxrev': 50000,
@@ -55,7 +56,8 @@ DEFAULTS = [
               'survey_data/bareme_only': False,
               'survey_data/survey_enabled': True,
               'output_dir' : os.path.expanduser('~'),
-
+              'table': 'csv',
+# TODO:              'image': '',
               }),
             ('calibration', 
              {'inputs_filename': 'calage_men.csv',
@@ -63,7 +65,7 @@ DEFAULTS = [
               'method': 'logit',
               'up': 3.0,
               'invlo': 3.0,
-              })            
+              })
             ]
 
 class UserConfigParser(RawConfigParser):
@@ -697,6 +699,11 @@ class CalConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.main.apply_settings()
 
+
+
+
+
+
 class PathConfigPage(GeneralConfigPage):
     CONF_SECTION = "paths"
     def get_name(self):
@@ -712,7 +719,7 @@ class PathConfigPage(GeneralConfigPage):
         reformes_dir = self.create_browsedir(u'Réformes', 'reformes_dir')
         calib_dir = self.create_browsedir(u'Calages', 'calib_dir')
         data_dir = self.create_browsedir(u'Données internes', 'data_dir')
-
+        
         
         survey_group = QGroupBox(u"Données d'enquête")
         survey_bg = QButtonGroup(self)
@@ -727,7 +734,9 @@ class PathConfigPage(GeneralConfigPage):
                                                "Fichier de données pour la microsimulation",
                                                button_group=survey_bg)
         survey_file = self.create_browsefile("", 'survey_data/file',
-                                             filters='*.csv')
+                                             filters='*.h5')
+        
+        
         self.connect(bareme_only_radio, SIGNAL("toggled(bool)"),
                      survey_file.setDisabled)
         self.connect(survey_radio, SIGNAL("toggled(bool)"),
@@ -747,10 +756,20 @@ class PathConfigPage(GeneralConfigPage):
         dirs_layout.addWidget(reformes_dir)
         dirs_layout.addWidget(calib_dir)
         dirs_group.setLayout(dirs_layout)
+
+        # Formats
+        format_group = QGroupBox(u"Formats")
+        table_format_choices = [(u".csv", 'csv'), (u".xls", 'xls')]
+        table_format = self.create_combobox("Format d'exportation des tableaux", table_format_choices, 'table')
+        
+        format_layout = QVBoxLayout() 
+        format_layout.addWidget(table_format)
+        format_group.setLayout(format_layout)
         
         paths_layout = QVBoxLayout()
         paths_layout.addWidget(dirs_group)
         paths_layout.addWidget(survey_group)
+        paths_layout.addWidget(format_group)
         paths_layout.addWidget(data_dir)
         
         paths_layout.addStretch(1)
