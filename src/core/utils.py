@@ -881,13 +881,6 @@ def test():
     win = ApplicationWindow()
     win.show()
     sys.exit(app.exec_())
-
-def of_class_import(country, module, classname):
-    '''
-    Returns country specific class found in country module
-    '''
-    _temp = __import__(country + '.' + module, globals(), locals(), [classname], -1)
-    return getattr(_temp, classname)
     
 
 def of_import(module, classname, country = None):
@@ -896,12 +889,19 @@ def of_import(module, classname, country = None):
     '''
     if country is None:
         country = CONF.get('simulation', 'country')
-    
+#    This is a failed tentative to overcome py2exe problem
+#    import sys
+#    src_dir = os.path.dirname(sys.argv[0])
+#    imports_dir = os.path.join(src_dir, country)
+#    print imports_dir
+#    sys.path.insert(0, imports_dir)
+#    
+
     _temp = __import__(country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+    
+#    from tentative to overcome py2exe problem
+#    sys.path.pop(0)
     return getattr(_temp, classname, None)
-
-
-
 
 
 if __name__=='__main__':

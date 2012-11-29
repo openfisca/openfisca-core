@@ -31,7 +31,7 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem, QVBoxLa
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant, QDate
 from ConfigParser import RawConfigParser
 from datetime import datetime
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 
 class NoDefault:
     pass
