@@ -26,9 +26,8 @@ from xml.dom import minidom
 from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
-from Config import CONF, VERSION
-import pickle
-from datetime import datetime
+from Config import CONF
+
 from pandas import DataFrame
 
 
@@ -750,8 +749,8 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
         
 
-from numpy import cumsum, ones, sort, random       
-from pandas import DataFrame
+from numpy import cumsum, ones, random       
+
 
 def gini(values, weights = None, bin_size = None):
     '''

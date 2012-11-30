@@ -136,7 +136,7 @@ class DataTable(object):
             self.set_value(col, value, index, opt = member[1])
 
 
-    def populate_from_survey_data(self, fname):
+    def populate_from_survey_data(self, fname, year = None):
         
         if fname[-4:] == '.csv':
             with open(fname) as survey_data_file:
@@ -147,14 +147,18 @@ class DataTable(object):
         elif fname[-3:] == '.h5':
             store = HDFStore(fname)
             available_years = sorted([int(x[-4:]) for x in  store.keys()])
-            year_ds  = CONF.get('simulation','datesim').year
-            year = year_ds+0
-            while year not in available_years and year > available_years[0]:
-                year = year - 1
-            base_name = 'survey_'+ str(year)
-            if year_ds != year:
-                print 'Survey data for year ', str(year_ds), ' not found. Using year ', str(year)
-            if year in available_years:
+            
+            if year is None:
+                year_ds  = CONF.get('simulation','datesim').year
+            else:
+                year_ds = year
+            yr = year_ds+0
+            while yr not in available_years and yr > available_years[0]:
+                yr = yr - 1
+            base_name = 'survey_'+ str(yr)
+            if year_ds != yr:
+                print 'Survey data for year ', str(year_ds), ' not found. Using year ', str(yr)
+            if yr in available_years:
                 self.survey_year = year
             self.table = store[str(base_name)] 
             store.close()
