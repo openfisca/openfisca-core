@@ -117,11 +117,11 @@ class Simulation(object):
         '''
         P_default = self.P_default     
         P         = self.P                 
-        output = SystemSf(self.ModelSF, P, P_default)
+        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default)
+            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = self.datesim, country = self.country)
             output_default.set_inputs(input_table, country = self.country)
         else:
             output_default = output
@@ -140,6 +140,7 @@ class ScenarioSimulation(Simulation):
         super(ScenarioSimulation, self).__init__()
         
         self.scenario = None
+        self.alternative_scenario = None
         self.nmen = None
         self.xaxis = None
         self.maxrev = None
@@ -166,24 +167,87 @@ class ScenarioSimulation(Simulation):
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
 
-    def compute(self):
+    def set_alternative_scenario(self, scenario):
+        self.alternative_scenario = scenario
+        
+    def set_marginal_alternative_scenario(self, unit = None, id_in_unit = None, variable = None, value = None):
+        '''
+        Modifies scenario by changing the setting value of the variable of the individual whith 
+        position 'id' if necessary in unit named 'unit' 
+        '''
+        self.alternative_scenario = self.scenario.copy()
+        scenario = self.alternative_scenario
+        if unit is not None:
+            alt_unit = getattr(scenario, unit)
+            if id_unit is not None:
+                alt_unit[id_in_unit][variable] = value
+
+    def compute(self, difference = True):
         """
         Computes output_data from scenario
         """
         
-        input_table = DataTable(self.InputTable, scenario = self.scenario)
-        output, output_default = self._preproc(input_table)
-        data = gen_output_data(output)
+        alter = self.alternative_scenario is not None
+        if self.reforme and alter:
+            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
+
+        input_table = DataTable(self.InputTable, scenario = self.scenario, datesim = self.datesim, country = self.country)
+        if not alter:
+            output, output_default = self._preproc(input_table)
+        else:
+            input_table_alter = DataTable(self.InputTable, scenario = self.alternative_scenario, datesim = self.datesim, country = self.country)
+            output, output_default = self.preproc_alter_scenario(input_table_alter, input_table)
         
-        if self.reforme:
+        data = gen_output_data(output, filename = self.totaux_file)
+        
+        if self.reforme or alter:
             output_default.reset()
-            data_default = gen_output_data(output_default) # TODO: take gen_output_data form core.utils
-            data.difference(data_default)
+            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take gen_output_data form core.utils
+            if difference:
+                data.difference(data_default)            
         else:
             data_default = data
 
         return data, data_default
 
+        
+    def preproc_alter_scenario(self, input_table_alter, input_table):
+        '''
+        Prepare the output values according to the ModelSF definitions and input_table when an alternative scenario is present
+        '''
+        P_default = self.P_default     
+        P         = self.P         
+                
+        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output.set_inputs(input_table, country = self.country)
+                
+        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output_alter.set_inputs(input_table_alter, country = self.country)
+    
+        return output_alter, output
+
+    def get_results_dataframe(self, default = False):
+        '''
+        Formats data into a dataframe
+        '''
+        data, data_default = self.compute()
+        
+        data_dict = dict()
+        index = []
+        
+        if default is True:
+            data = data_default
+        
+        for row in data:
+            if not row.desc in ('root'):
+                index.append(row.desc)
+                data_dict[row.desc] = row.vals
+                
+        df = DataFrame(data_dict).T
+        df = df.reindex(index)
+        return df
+        
+        
 
 class SurveySimulation(Simulation):
     '''
@@ -213,18 +277,25 @@ class SurveySimulation(Simulation):
                 if hasattr(self, key):
                     setattr(self, key, val)
   
-    def set_survey(self, filename = None, datesim = None):
+    def set_survey(self, filename = None, datesim = None, country = None):
         '''
         Sets survey input data
         '''
-        if datesim is None and self.datesim is not None:
-            datesim = self.datesim
+        if self.datesim is not None:
+            datesim = self.datesim        
+        elif datesim is not None:
+            datesim = datesim 
+            
+        if self.country is not None:
+            country = self.country        
+        elif country is not None:
+            country = country
             
         if filename is None:
-            if self.country is not None:
-                filename = os.path.join(SRC_PATH, self.country, 'data', 'survey.h5')
-            
-        self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim)
+            if country is not None:
+                filename = os.path.join(SRC_PATH, country, 'data', 'survey.h5')
+        
+        self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim, country = country)
         self._build_dicts(option = 'input_only')
 
     def compute(self):
@@ -241,9 +312,8 @@ class SurveySimulation(Simulation):
         """
         Generates aggregates at the household level ('men')
         """
-        print "Aggregating households"
         if self.outputs is None:
-            raise Exception('outputs should be no None')
+            raise Exception('self.outputs should not be None')
         
         models = [self.outputs]
         if self.reforme is True:
@@ -265,7 +335,6 @@ class SurveySimulation(Simulation):
             if varlist is not None:
                 input_varlist = input_varlist.union( set(inputs.col_names).intersection(varlist))
  
-
             if varlist is not None:
                 output_varlist = set(model.col_names).intersection(varlist)
             if all_output_vars:
@@ -293,6 +362,30 @@ class SurveySimulation(Simulation):
                 
         return out_tables[0], out_tables[1]
 
+
+    def _calculate_all(self):
+        '''
+        Computes all prestations
+        '''
+        input_table = self.survey
+        output, output_default = self._preproc(input_table)
+        
+        output.calculate()
+        if self.reforme:
+            output_default.reset()
+            output_default.calculate()
+        else:
+            output_default = output
+
+        return output, output_default
+
+    def clear(self):
+        '''
+        Clears outputs table 
+        '''
+        self.survey_outputs = None
+        self.survey_outputs_default = None
+        
     @property
     def input_var_list(self):
         '''
@@ -334,27 +427,3 @@ class SurveySimulation(Simulation):
             self.label2var.update(l2v)
             self.var2label.update(v2l)
             self.var2enum.update(v2e)
-
-    def _calculate_all(self):
-        '''
-        Computes all prestations
-        '''
-        input_table = self.survey
-        output, output_default = self._preproc(input_table)
-        
-        output.calculate()
-        if self.reforme:
-            output_default.reset()
-            output_default.calculate()
-        else:
-            output_default = output
-
-        return output, output_default
-
-    def clear(self):
-        '''
-        Clears outputs table 
-        '''
-        self.survey_outputs = None
-        self.survey_outputs_default = None
-        

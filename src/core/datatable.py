@@ -23,20 +23,11 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-from Config import CONF
-from pandas import read_csv, DataFrame, concat, HDFStore
-import os
-
+from pandas import DataFrame, read_csv, HDFStore
+from src.core.utils import of_import
 from description import ModelDescription, Description
 
 
-INDEX = ['men', 'fam', 'foy']
-
-country = CONF.get('simulation', 'country')
-if country == 'france':
-    INDEX = ['men', 'fam', 'foy']
-elif country == 'tunisia':
-    INDEX = ['men', 'foy']
 
 class DataTable(object):
     """
@@ -44,7 +35,7 @@ class DataTable(object):
         * title [string]
         * comment [string]: text shown on the top of the first data item
     """
-    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None):
+    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None, country = None):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -57,9 +48,15 @@ class DataTable(object):
         self._nrows = 0
         
         if datesim is None:
-            self.datesim = CONF.get('simulation', 'datesim')
+            raise Exception('InputTable: datesim should be provided')
         else:
-            self.datesim = datesim
+            self.datesim = datesim 
+            
+        if country is None:
+            raise Exception('InputTable: country should be provided')
+        else:
+            self.country = country
+        
             
         self.survey_year = None
         
@@ -137,6 +134,14 @@ class DataTable(object):
 
 
     def populate_from_survey_data(self, fname, year = None):
+        '''
+        Populates a DataTable from survey data
+        '''
+
+        if self.country is None:
+            raise Exception('DataTable: country key word variable must be set') 
+               
+        INDEX = of_import('utils', 'INDEX', self.country)
         
         if fname[-4:] == '.csv':
             with open(fname) as survey_data_file:
@@ -149,15 +154,21 @@ class DataTable(object):
             available_years = sorted([int(x[-4:]) for x in  store.keys()])
             
             if year is None:
-                year_ds  = CONF.get('simulation','datesim').year
+                if self.datesim is not None:
+                    year_ds  = self.datesim.year
+                else:
+                    raise Exception('self.datesim or year should be defined') 
             else:
                 year_ds = year
-            yr = year_ds+0
+           
+            yr = year_ds+0 # to avoid pointers problem
             while yr not in available_years and yr > available_years[0]:
                 yr = yr - 1
             base_name = 'survey_'+ str(yr)
             if year_ds != yr:
-                print 'Survey data for year ', str(year_ds), ' not found. Using year ', str(yr)
+                print 'Survey data for year %s not found. Using year %s' %(str(year_ds), str(yr))
+            else:
+                print 'Survey data for year %s found' %str(year_ds)
             if yr in available_years:
                 self.survey_year = year
             self.table = store[str(base_name)] 
@@ -261,8 +272,8 @@ class DataTable(object):
 
 
 class SystemSf(DataTable):
-    def __init__(self, model_description, param, defaultParam = None, datesim = None):
-        DataTable.__init__(self, model_description, datesim = None)
+    def __init__(self, model_description, param, defaultParam = None, datesim = None, country = None):
+        DataTable.__init__(self, model_description, datesim = datesim, country = country)
         self._primitives = set()
         self._param = param
         self._default_param = defaultParam
@@ -270,6 +281,7 @@ class SystemSf(DataTable):
         self.index = None
         if datesim is not None:
             self.datesim = datesim
+            
         self.reset()
         self.build()
 
@@ -323,7 +335,6 @@ class SystemSf(DataTable):
         
         self.table = DataFrame(dct)
         
-        from utils import of_import
         if country is None:
             country = 'france'
         preproc_inputs = of_import('utils','preproc_inputs', country = country)

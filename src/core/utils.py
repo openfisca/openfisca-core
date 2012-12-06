@@ -95,11 +95,9 @@ def gen_output_data(model, filename = None):
     Generates output data according to filename or totaux.xml
     '''
     if filename is None:
-        country = CONF.get('simulation', 'country')
-        totals_fname = os.path.join(country,'totaux.xml')
-    else:
-        totals_fname = filename
-    
+        raise Exception('gen_output_data:  filename should be provided')
+
+    totals_fname = filename
     _doc = minidom.parse(totals_fname)
     tree = OutNode('root', 'root')
     handle_output_xml(_doc, tree, model)

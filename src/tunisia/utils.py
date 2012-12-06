@@ -26,7 +26,7 @@ from Config import CONF, VERSION
 import pickle
 from datetime import datetime
 
-
+INDEX = ['men', 'foy']
 currency = u"DT"
 
 
