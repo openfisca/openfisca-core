@@ -301,7 +301,7 @@ class SystemSf(DataTable):
                 else:                    
                     self._primitives.add(input_varname)
         
-    def set_inputs(self, inputs):
+    def set_inputs(self, inputs, country = None):
         ''' sets the input DataTable '''
         if not isinstance(inputs, DataTable):
             raise TypeError('inputs must be a DataTable')
@@ -324,7 +324,9 @@ class SystemSf(DataTable):
         self.table = DataFrame(dct)
         
         from utils import of_import
-        preproc_inputs = of_import('utils','preproc_inputs')
+        if country is None:
+            country = 'france'
+        preproc_inputs = of_import('utils','preproc_inputs', country = country)
         if preproc_inputs is not None:
             preproc_inputs(self._inputs)
         
@@ -334,14 +336,13 @@ class SystemSf(DataTable):
         Solver: finds dependencies and calculate accordingly all needed variables 
         '''
         if varname is None:
-            # TODO:
             for col in self.description.columns.itervalues():
                 try:
                     self.calculate(col.name)
-                except Exception, e:
+                except Exception as e:
                     print e
                     print col.name
-            return "Will calculate all"
+            return # Will calculate all and exit
 
         col = self.description.get_col(varname)
 

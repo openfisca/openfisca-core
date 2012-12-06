@@ -114,7 +114,7 @@ def gen_aggregate_output(model):
     enum = inputs.description.get_col('qui'+unit).enum
     people = [x[1] for x in enum]
 
-    model.calculate()
+    # model.calculate()
 
     varlist = set(['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
     for varname in model.col_names.union(varlist):
@@ -130,7 +130,7 @@ def gen_aggregate_output(model):
         
         out_dct[varname] = val      
     # TODO: should take care the variables that shouldn't be summed automatically
-    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+
 
     out_table = DataFrame(out_dct)
     return out_table
@@ -886,20 +886,14 @@ def of_import(module, classname, country = None):
     '''
     Returns country specific class found in country module
     '''
+    import warnings
     if country is None:
         country = CONF.get('simulation', 'country')
-#    This is a failed tentative to overcome py2exe problem
-#    import sys
-#    src_dir = os.path.dirname(sys.argv[0])
-#    imports_dir = os.path.join(src_dir, country)
-#    print imports_dir
-#    sys.path.insert(0, imports_dir)
-#    
+        warnings.warn("country should be provided. import form CONF will be deprecated soon", PendingDeprecationWarning)
 
     _temp = __import__(country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
     
-#    from tentative to overcome py2exe problem
-#    sys.path.pop(0)
+
     return getattr(_temp, classname, None)
 
 
