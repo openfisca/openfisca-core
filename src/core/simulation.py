@@ -32,6 +32,9 @@ from src import SRC_PATH
 
 from pandas import DataFrame
 
+from src.plugins.scenario.graph import drawTaux, drawBareme
+
+
 class Simulation(object):
     """
     A simulation objects should contains all attributes to compute a simulation from a scenario or a survey
@@ -179,7 +182,7 @@ class ScenarioSimulation(Simulation):
         scenario = self.alternative_scenario
         if unit is not None:
             alt_unit = getattr(scenario, unit)
-            if id_unit is not None:
+            if id_in_unit is not None:
                 alt_unit[id_in_unit][variable] = value
 
     def compute(self, difference = True):
@@ -246,6 +249,31 @@ class ScenarioSimulation(Simulation):
         df = DataFrame(data_dict).T
         df = df.reindex(index)
         return df
+        
+    def draw_bareme(self, ax, graph_xaxis = None, legend = False):
+        '''
+        Draws a bareme on matplotlib.axes.Axes object ax
+        '''
+        reforme = self.reforme or (self.alternative_scenario is not None)
+        data, data_default = self.compute()
+        data.setLeavesVisible()
+        data_default.setLeavesVisible()
+        if graph_xaxis is None:
+            graph_xaxis = 'sal'
+        drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
+        
+    def draw_taux(self, ax, graph_xaxis = None, legend = True):
+        '''
+        Draws a bareme on matplotlib.axes.Axes object ax
+        '''
+        reforme = self.reforme or (self.alternative_scenario is not None)
+        data, data_default = self.compute()
+        data.setLeavesVisible()
+        data_default.setLeavesVisible()
+        if graph_xaxis is None:
+            graph_xaxis = 'sal'
+        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
+        
         
         
 
