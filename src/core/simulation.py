@@ -32,7 +32,7 @@ from src import SRC_PATH
 
 from pandas import DataFrame
 
-from src.plugins.scenario.graph import drawTaux, drawBareme
+from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds
 
 
 class Simulation(object):
@@ -148,6 +148,7 @@ class ScenarioSimulation(Simulation):
         self.xaxis = None
         self.maxrev = None
         self.mode = None
+        self.same_rev_couple = False
        
     def set_config(self, **kwargs):
         '''
@@ -169,6 +170,7 @@ class ScenarioSimulation(Simulation):
         self.scenario.nmen   = self.nmen
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
+        self.scenario.same_rev_couple  = self.same_rev_couple
 
     def set_alternative_scenario(self, scenario):
         self.alternative_scenario = scenario
@@ -229,11 +231,11 @@ class ScenarioSimulation(Simulation):
     
         return output_alter, output
 
-    def get_results_dataframe(self, default = False):
+    def get_results_dataframe(self, default = False, difference = True, index_by_code = False):
         '''
         Formats data into a dataframe
         '''
-        data, data_default = self.compute()
+        data, data_default = self.compute(difference = difference)
         
         data_dict = dict()
         index = []
@@ -243,25 +245,34 @@ class ScenarioSimulation(Simulation):
         
         for row in data:
             if not row.desc in ('root'):
-                index.append(row.desc)
-                data_dict[row.desc] = row.vals
+                if index_by_code is True:
+                    index.append(row.code)
+                    data_dict[row.code] = row.vals
+                else:
+                    index.append(row.desc)
+                    data_dict[row.desc] = row.vals
                 
         df = DataFrame(data_dict).T
         df = df.reindex(index)
         return df
         
-    def draw_bareme(self, ax, graph_xaxis = None, legend = False):
+    def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
         '''
         Draws a bareme on matplotlib.axes.Axes object ax
         '''
-        reforme = self.reforme or (self.alternative_scenario is not None)
+        reforme = self.reforme 
+        alter = (self.alternative_scenario is not None)
         data, data_default = self.compute()
         data.setLeavesVisible()
         data_default.setLeavesVisible()
         if graph_xaxis is None:
             graph_xaxis = 'sal'
-        drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
-        
+        if not alter:
+            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
+        else:
+            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
+
+
     def draw_taux(self, ax, graph_xaxis = None, legend = True):
         '''
         Draws a bareme on matplotlib.axes.Axes object ax
