@@ -26,7 +26,7 @@ from xml.dom import minidom
 from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
-from Config import CONF
+from src.Config import CONF
 
 from pandas import DataFrame
 
@@ -528,7 +528,7 @@ class BaremeDict(dict):
         '''
         Init a BaremeDict form a Tree2Object
         '''
-        from parametres.paramData import Tree2Object
+        from src.parametres.paramData import Tree2Object
         
         if isinstance(tree2object, Bareme):
             self[tree2object._name] = tree2object 
@@ -563,7 +563,7 @@ def scaleBaremes(bar_dict, factor):
     '''
     Scales all the Bareme in the BarColl
     '''
-#    from parametres.paramData import Tree2Object
+
     
     if isinstance(bar_dict, Bareme):
         return bar_dict.multSeuils(factor)
@@ -842,7 +842,7 @@ def kakwani(values, ineq_axis, weights = None):
     return simps( (LCy - PLCy), LCx)
         
 
-from widgets.matplotlibwidget import MatplotlibWidget
+from src.widgets.matplotlibwidget import MatplotlibWidget
 
 def test():
     import sys
@@ -889,7 +889,7 @@ def of_import(module, classname, country = None):
         country = CONF.get('simulation', 'country')
         warnings.warn("country should be provided. import form CONF will be deprecated soon", PendingDeprecationWarning)
 
-    _temp = __import__(country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+    _temp = __import__('src.' + country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
     
 
     return getattr(_temp, classname, None)

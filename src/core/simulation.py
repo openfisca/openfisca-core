@@ -25,9 +25,9 @@ This file is part of openFisca.
 from datetime import datetime
 import gc
 import os
-from core.datatable import DataTable, SystemSf
-from parametres.paramData import XmlReader, Tree2Object
-from core.utils import gen_output_data, of_import
+from src.core.datatable import DataTable, SystemSf
+from src.parametres.paramData import XmlReader, Tree2Object
+from src.core.utils import gen_output_data, of_import
 from src import SRC_PATH
 
 from pandas import DataFrame
@@ -271,8 +271,7 @@ class ScenarioSimulation(Simulation):
             drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
         else:
             drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
-
-
+        
     def draw_taux(self, ax, graph_xaxis = None, legend = True):
         '''
         Draws a bareme on matplotlib.axes.Axes object ax
