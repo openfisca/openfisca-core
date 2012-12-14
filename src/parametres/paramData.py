@@ -23,9 +23,9 @@ This file is part of openFisca.
     
 from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
-from core.utils import Bareme
+from src.core.utils import Bareme
 from datetime import datetime
-from Config import CONF
+from src.Config import CONF
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):

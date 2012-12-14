@@ -26,9 +26,8 @@ from xml.dom import minidom
 from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
-from Config import CONF, VERSION
-import pickle
-from datetime import datetime
+from src.Config import CONF
+
 from pandas import DataFrame
 
 
@@ -96,11 +95,9 @@ def gen_output_data(model, filename = None):
     Generates output data according to filename or totaux.xml
     '''
     if filename is None:
-        country = CONF.get('simulation', 'country')
-        totals_fname = os.path.join(country,'totaux.xml')
-    else:
-        totals_fname = filename
-    
+        raise Exception('gen_output_data:  filename should be provided')
+
+    totals_fname = filename
     _doc = minidom.parse(totals_fname)
     tree = OutNode('root', 'root')
     handle_output_xml(_doc, tree, model)
@@ -115,7 +112,7 @@ def gen_aggregate_output(model):
     enum = inputs.description.get_col('qui'+unit).enum
     people = [x[1] for x in enum]
 
-    model.calculate()
+    # model.calculate()
 
     varlist = set(['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
     for varname in model.col_names.union(varlist):
@@ -131,7 +128,7 @@ def gen_aggregate_output(model):
         
         out_dct[varname] = val      
     # TODO: should take care the variables that shouldn't be summed automatically
-    # MBJ: should we introduce a scope (men, fam, ind) in a the definition of columns ?
+
 
     out_table = DataFrame(out_dct)
     return out_table
@@ -531,7 +528,7 @@ class BaremeDict(dict):
         '''
         Init a BaremeDict form a Tree2Object
         '''
-        from parametres.paramData import Tree2Object
+        from src.parametres.paramData import Tree2Object
         
         if isinstance(tree2object, Bareme):
             self[tree2object._name] = tree2object 
@@ -566,7 +563,7 @@ def scaleBaremes(bar_dict, factor):
     '''
     Scales all the Bareme in the BarColl
     '''
-#    from parametres.paramData import Tree2Object
+
     
     if isinstance(bar_dict, Bareme):
         return bar_dict.multSeuils(factor)
@@ -750,8 +747,8 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
         
 
-from numpy import cumsum, ones, sort, random       
-from pandas import DataFrame
+from numpy import cumsum, ones, random       
+
 
 def gini(values, weights = None, bin_size = None):
     '''
@@ -845,7 +842,7 @@ def kakwani(values, ineq_axis, weights = None):
     return simps( (LCy - PLCy), LCx)
         
 
-from widgets.matplotlibwidget import MatplotlibWidget
+from src.widgets.matplotlibwidget import MatplotlibWidget
 
 def test():
     import sys
@@ -887,20 +884,14 @@ def of_import(module, classname, country = None):
     '''
     Returns country specific class found in country module
     '''
+    import warnings
     if country is None:
         country = CONF.get('simulation', 'country')
-#    This is a failed tentative to overcome py2exe problem
-#    import sys
-#    src_dir = os.path.dirname(sys.argv[0])
-#    imports_dir = os.path.join(src_dir, country)
-#    print imports_dir
-#    sys.path.insert(0, imports_dir)
-#    
+        warnings.warn("country should be provided. import form CONF will be deprecated soon", PendingDeprecationWarning)
 
-    _temp = __import__(country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+    _temp = __import__('src.' + country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
     
-#    from tentative to overcome py2exe problem
-#    sys.path.pop(0)
+
     return getattr(_temp, classname, None)
 
 

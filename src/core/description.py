@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from columns import Column
+from src.core.columns import Column
 
 class MetaModelDescription(type):
     """
@@ -156,7 +156,7 @@ class Description(object):
         label2var = {}
         var2label = {}
         var2enum = {}
-        from core.columns import EnumCol
+        from src.core.columns import EnumCol
         for var in self.col_names:
             varcol  = self.get_col(var)
             if isinstance(varcol, EnumCol):

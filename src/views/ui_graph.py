@@ -62,5 +62,5 @@ class Ui_Graph(object):
         self.option_btn.setToolTip(QtGui.QApplication.translate("Graph", "Affichage et couleurs du graphique", None, QtGui.QApplication.UnicodeUTF8))
         self.option_btn.setText(QtGui.QApplication.translate("Graph", "Options", None, QtGui.QApplication.UnicodeUTF8))
 
-from widgets.matplotlibwidget import MatplotlibWidget
-import resources_rc
+from src.widgets.matplotlibwidget import MatplotlibWidget
+import src.resources_rc

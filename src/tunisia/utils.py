@@ -26,14 +26,14 @@ from Config import CONF, VERSION
 import pickle
 from datetime import datetime
 
-
+INDEX = ['men', 'foy']
 currency = u"DT"
 
 
 class Scenario(object):
     def __init__(self):
         super(Scenario, self).__init__()
-        self.year = CONF.get('simulation', 'datesim').year
+        self.year = None
         self.indiv = {}
         # indiv est un dict de dict. La clé est le noi de l'individu
         # Exemple :
