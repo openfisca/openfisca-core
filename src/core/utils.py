@@ -26,7 +26,7 @@ from xml.dom import minidom
 from numpy import maximum as max_, minimum as min_
 import numpy as np
 from bisect import bisect_right
-from src.Config import CONF
+from src.core.config import CONF
 
 from pandas import DataFrame
 

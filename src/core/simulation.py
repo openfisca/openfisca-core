@@ -164,8 +164,8 @@ class ScenarioSimulation(Simulation):
 
         self.scenario.year = self.datesim.year
         for key, val in specific_kwargs.iteritems():        
-                if hasattr(self, key):
-                    setattr(self, key, val)
+            if hasattr(self, key):
+                setattr(self, key, val)
         
         self.scenario.nmen   = self.nmen
         self.scenario.maxrev = self.maxrev
@@ -312,8 +312,8 @@ class SurveySimulation(Simulation):
         specific_kwargs = self._set_config(**kwargs)
 
         for key, val in specific_kwargs.iteritems():        
-                if hasattr(self, key):
-                    setattr(self, key, val)
+            if hasattr(self, key):
+                setattr(self, key, val)
   
     def set_survey(self, filename = None, datesim = None, country = None):
         '''

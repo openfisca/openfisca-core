@@ -25,7 +25,7 @@ from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
 from src.core.utils import Bareme
 from datetime import datetime
-from src.Config import CONF
+from src.core.config import CONF
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):

@@ -71,7 +71,7 @@ class Ui_Parametres(object):
         self.uiTree.setIndentation(10)
         self.uiTree.setObjectName(_fromUtf8("uiTree"))
         self.verticalLayout.addWidget(self.uiTree)
-        Parametres.setWidget(self.dockWidgetContents)
+        #Parametres.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(Parametres)
         QtCore.QMetaObject.connectSlotsByName(Parametres)
@@ -83,4 +83,4 @@ class Ui_Parametres(object):
         self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setToolTip(QtGui.QApplication.translate("Parametres", "datesim", None, QtGui.QApplication.UnicodeUTF8))
 
-import resources_rc
+import src.resources_rc
