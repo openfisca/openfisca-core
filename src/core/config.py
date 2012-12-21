@@ -18,7 +18,7 @@ import os
 import sys
 import os.path as osp
 
-from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from src.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from src.core.userconfig import UserConfig, get_home_dir, NoDefault
@@ -60,6 +60,7 @@ EDIT_FILETYPES = (
     (_("Web page files"), ('.css', '.htm', '.html',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
+    (_("Composiiton"), ('.ofct',)),
                  )
 
 def _get_filters(filetypes):
@@ -79,7 +80,7 @@ EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
 
 # Extensions supported by Spyder's Variable explorer
-# IMPORT_EXT = iofuncs.iofunctions.load_extensions.values()
+#IMPORT_EXT = iofuncs.iofunctions.load_extensions.values()
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.png', '.ico', '.svg']
