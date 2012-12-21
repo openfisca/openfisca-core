@@ -75,7 +75,7 @@ except ImportError:
 
 
 try:
-    from spyderlib.pil_patch import Image
+    from src.core.pil_patch import Image
     if sys.byteorder == 'little':
         _ENDIAN = '<'
     else:
@@ -198,10 +198,10 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.baseconfig import get_conf_path, STDERR
+from src.core.baseconfig import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
-                      '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
+                      '.openfisca.ini', '.temp.py', '.temp.spydata', 'template.py',
                       '.projects', '.history.py', '.history_internal.py',
                       '.spyderproject', '.ropeproject', '.workingdir',
                       'monitor.log', 'monitor_debug.log', 'rope.log')
@@ -287,7 +287,7 @@ def load_session(filename):
     return error_message
 
 
-from spyderlib.baseconfig import _
+from src.core.baseconfig import _
 
 class IOFunctions(object):
     def __init__(self):

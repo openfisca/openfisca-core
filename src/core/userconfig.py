@@ -159,13 +159,12 @@ class UserConfig(ConfigParser):
         Save config into the associated .ini file
         """
         # TODO: error on closing the conf file ...
-#         
-        conf_file = file(self.filename(),'r')
-        conf_file.close()
-        print self.filename()
-
-        conf_file = file(self.filename(),'w')
-#        print conf_file
+        try:
+            conf_file = file(self.filename(),'w')
+        except:
+            conf_file = file(self.filename(),'r')
+            conf_file.close()
+            conf_file = file(self.filename(),'w')
         self.write(conf_file)
         conf_file.close()
 
