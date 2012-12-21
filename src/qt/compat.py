@@ -196,7 +196,7 @@ def getsavefilename(parent=None, caption='', basedir='', filters='',
                                 options=options)
 
 if __name__ == '__main__':
-    from src.core.qthelpers_new import qapplication
+    from src.core.utils.qthelpers import qapplication
     app = qapplication()
     print repr(getexistingdirectory())
     print repr(getopenfilename(filters='*.py;;*.txt'))

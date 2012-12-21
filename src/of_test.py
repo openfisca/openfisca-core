@@ -116,7 +116,7 @@ from src.plugins.survey.aggregates import AggregatesWidget
 from src.plugins.survey.distribution import DistributionWidget
 from src.plugins.survey.inequality import InequalityWidget
 
-from src.core.qthelpers_new import (create_action, add_actions, get_std_icon,
+from src.core.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
