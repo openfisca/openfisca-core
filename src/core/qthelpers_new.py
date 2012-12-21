@@ -9,16 +9,16 @@
 import os, re
 import os.path as osp
 
-from src.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton)
-from src.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
+from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo)
-from src.qt.compat import to_qvariant, from_qvariant
+from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local import
-from src.core.guiconfig import get_icon
-from src.core.utils import programs
+from src.core.config import get_icon
+from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -38,7 +38,7 @@ def qapplication(translate=True):
     if not app:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = QApplication(['OpenFisca'])
+        app = QApplication(['Spyder'])
     if translate:
         install_translator(app)
     return app
