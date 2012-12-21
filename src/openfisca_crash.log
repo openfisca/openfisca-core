@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 2018, in main
+    mainwindow = run_spyder(app, options)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1923, in run_spyder
+    main.setup()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 736, in setup
+    self.survey_explorer.set_simulation(self.survey_simulation)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\survey_explorer.py", line 136, in set_simulation
+    self.survey_simulation.set_config(year = year, country = country, reforme = reforme)
+AttributeError: 'SurveyExplorerWidget' object has no attribute 'survey_simulation'

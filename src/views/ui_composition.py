@@ -26,7 +26,7 @@ class Ui_Menage(object):
         Menage.setMinimumSize(QtCore.QSize(441, 199))
         Menage.setToolTip(_fromUtf8(""))
         Menage.setLocale(QtCore.QLocale(QtCore.QLocale.French, QtCore.QLocale.France))
-        Menage.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)
+        #Menage.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)
         self.dockWidgetContents = QtGui.QWidget()
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -196,7 +196,7 @@ class Ui_Menage(object):
         self.verticalLayout_2.addItem(spacerItem1)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout.addWidget(self.scrollArea)
-        Menage.setWidget(self.dockWidgetContents)
+        #Menage.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(Menage)
         QtCore.QMetaObject.connectSlotsByName(Menage)

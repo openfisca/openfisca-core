@@ -159,12 +159,13 @@ class UserConfig(ConfigParser):
         Save config into the associated .ini file
         """
         # TODO: error on closing the conf file ...
+#         
         conf_file = file(self.filename(),'r')
         conf_file.close()
         print self.filename()
 
         conf_file = file(self.filename(),'w')
-        print conf_file
+#        print conf_file
         self.write(conf_file)
         conf_file.close()
 
@@ -263,7 +264,6 @@ class UserConfig(ConfigParser):
         try:
             from datetime import datetime
             value = datetime.strptime(value ,"%Y-%m-%d").date()
-            print 'coucou'
             return value
         except:
             pass
