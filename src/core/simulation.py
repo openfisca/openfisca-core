@@ -150,6 +150,8 @@ class ScenarioSimulation(Simulation):
         self.maxrev = None
         self.mode = None
         self.same_rev_couple = False
+        self.data = None
+        self.data_default = None
        
     def set_config(self, **kwargs):
         '''
@@ -217,12 +219,14 @@ class ScenarioSimulation(Simulation):
         
         if self.reforme or alter:
             output_default.reset()
-            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take gen_output_data form core.utils
+            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take out gen_output_data form core.utils
             if difference:
                 data.difference(data_default)            
         else:
             data_default = data
 
+        self.data = data
+        self.data_default = data_default
         return data, data_default
 
         
@@ -455,8 +459,10 @@ class SurveySimulation(Simulation):
         '''
         List of variables pesent in survey and output
         '''
-        return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
-        
+        try:
+            return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
+        except:
+            return list(set(self.survey.description.col_names))
 
     def _build_dicts(self, option = None):
         '''

@@ -1,12 +1,13 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1947, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1994, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1863, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1910, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 924, in setup
-    self.setup_layout(default=False)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1099, in setup_layout
-    is_maximized, is_fullscreen)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1013, in set_window_settings
-    if not self.light:
-AttributeError: 'MainWindow' object has no attribute 'light'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 726, in setup
+    triggered=self.closing()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils\qthelpers.py", line 189, in create_action
+    parent.connect(action, SIGNAL("triggered()"), triggered)
+TypeError: arguments did not match any overloaded call:
+  QObject.connect(QObject, SIGNAL(), QObject, SLOT(), Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'bool'
+  QObject.connect(QObject, SIGNAL(), callable, Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'bool'
+  QObject.connect(QObject, SIGNAL(), SLOT(), Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'bool'

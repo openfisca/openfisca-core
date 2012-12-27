@@ -880,11 +880,20 @@ def test():
     sys.exit(app.exec_())
     
 
-def of_import(module, classname, country):
+def of_import(module = None, classname = None, country = None):
     '''
     Returns country specific class found in country module
     '''
-    _temp = __import__('src.' + country + '.' + module, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+    
+    if module is None:
+        module_str = ""
+    else:
+        module_str = "." + module
+    
+    if classname is None or country is None:
+        raise Exception("clasanme or country needed")
+    
+    _temp = __import__('src.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
     
     return getattr(_temp, classname, None)
 

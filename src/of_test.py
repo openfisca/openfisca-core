@@ -5,7 +5,7 @@
 # (see src/__init__.py for details)
 
 """
-Openfisca
+openfisca
 =====================================================
 
 Developped and maintained by Mahdi Ben Jelloul and Clément Schaff 
@@ -63,7 +63,7 @@ from src.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
-from src.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
+from src.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
 from src.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
@@ -79,9 +79,9 @@ try:
     from src.utils.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
-from src.widgets.pathmanager import PathManager #TODO
+#from src.widgets.pathmanager import PathManager #TODO
 
-from spyderlib.widgets.status import MemoryStatus, CPUStatus
+from src.spyder_widgets.status import MemoryStatus, CPUStatus
 from src.plugins.general.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from src.plugins.general.shortcuts import ShortcutsConfigPage
@@ -127,7 +127,7 @@ from src.core.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
 
 from src.core.guiconfig import get_icon, get_image_path, get_shortcut
-from src.core.config import CONF, EDIT_EXT, get_icon, get_image_path, get_shortcut
+from src.core.config import CONF, EDIT_EXT
 from src.otherplugins import get_openfiscaplugins_mods
 from src.core.utils.iofuncs import load_session, save_session, reset_session
 from src.core.userconfig import NoDefault, NoOptionError
@@ -177,21 +177,15 @@ def get_focus_widget_properties():
     booleans: (is_console, not_readonly, readwrite_editor)
     """
     widget = QApplication.focusWidget()
-
-#    from spyderlib.widgets.shell import ShellBaseWidget
-#    from spyderlib.widgets.editor import TextEditBaseWidget
-#    textedit_properties = None
-#    if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-#        console = isinstance(widget, ShellBaseWidget)
-    console = False
+    
     try:
         not_readonly = not widget.isReadOnly()
     except:
         not_readonly = False
     readwrite_editor = not_readonly and not console
+    console = False
     textedit_properties = (console, not_readonly, readwrite_editor)
     return widget, textedit_properties
-
 
 #TODO: Improve the stylesheet below for separator handles to be visible
 #      (in Qt, these handles are by default not visible on Windows!)
@@ -302,8 +296,8 @@ class MainWindow(QMainWindow):
         self.inspector = None
         self.onlinehelp     = None
         self.parameters     = None
-        self.scenario_graph = None 
-        self.scenario_table = None
+        self.test_case_graph = None 
+        self.test_case_table = None
         self.aggregates     = None
         self.distribution   = None
         self.inequality   = None
@@ -336,14 +330,10 @@ class MainWindow(QMainWindow):
         self.file_menu_actions = []
         self.edit_menu = None
         self.edit_menu_actions = []
-        self.search_menu = None
-        self.search_menu_actions = []
-        self.source_menu = None
-        self.source_menu_actions = []
+#        self.search_menu = None
+#        self.search_menu_actions = []
         self.run_menu = None
         self.run_menu_actions = []
-        self.interact_menu = None
-        self.interact_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
         self.external_tools_menu = None # We must keep a reference to this,
@@ -373,7 +363,7 @@ class MainWindow(QMainWindow):
         self.run_toolbar_actions = []
         
         # Set Window title and icon
-        title = "OpenFisca"
+        title = "openFisca"
         if self.debug:
             title += " (DEBUG MODE)"
         self.setWindowTitle(title)
@@ -417,10 +407,71 @@ class MainWindow(QMainWindow):
         # Session manager
         self.next_session_name = None
         self.save_session_name = None
-        
         self.apply_settings()
-        
         self.debug_print("End of MainWindow constructor")
+        
+        
+    def set_reform_mode(self, b):
+        self.reforme = b
+        self.scenario_simulation.set_config(reforme = self.reforme)
+        self.survey_simulation.set_config(reforme = self.reforme)
+        self.refresh_survey()
+        self.refresh_test_case()
+        
+    def enable_refresh_test_case(self):
+        """
+        Enable refresh test case action
+        """
+        try:
+            self.action_refresh_test_case.setEnabled(True)
+        except:
+            pass
+        
+    def refresh_test_case(self):
+        '''
+        Refresh test case plugins after conputation
+        '''
+        # Consistency check on scenario
+        msg = self.scenario_simulation.scenario.check_consistency()
+        if msg:
+            QMessageBox.critical(self, u"Ménage non valide",
+                                 msg, 
+                                 QMessageBox.Ok, QMessageBox.NoButton)
+            return False
+        # If it is consistent starts the computation
+        self.test_case_graph.starting_long_process(_("Computing test case ..."))
+        self.action_refresh_test_case.setEnabled(False)
+        P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
+        self.scenario_simulation.set_param(P, P_default)
+        self.scenario_simulation.compute()
+        self.test_case_graph.refresh_plugin()
+        self.test_case_table.refresh_plugin()
+        self.test_case_graph.ending_long_process( _("Test case results are updated"))
+
+    def enable_refresh_survey(self):
+        """
+        Enable refresh test case action
+        """
+        try:
+            self.action_refresh_survey.setEnabled(True)
+        except:
+            pass
+        
+    def refresh_survey(self):
+        '''
+        Refresh survey plugins after computation
+        '''
+        self.aggregates.starting_long_process(_("Computing microsimulation results ..."))
+        self.action_refresh_survey.setEnabled(False)
+        P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
+        self.survey_simulation.set_param(P, P_default)
+        self.survey_simulation.compute()
+        self.aggregates.refresh_plugin()
+        self.inequality.refresh_plugin()
+        self.distribution.refresh_plugin()
+        self.survey_explorer.refresh_plugin()
+        self.aggregates.ending_long_process(_("Microsimulation results are updated"))
+    
         
     def debug_print(self, message):
         """
@@ -506,7 +557,6 @@ class MainWindow(QMainWindow):
                                        self.find_next_action,
                                        self.replace_action]
 
-        namespace = None
 
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
@@ -545,7 +595,7 @@ class MainWindow(QMainWindow):
 #            self.search_toolbar = self.create_toolbar(_("Search toolbar"),
 #                                                      "search_toolbar")
                         
-            # Run menu/toolbar
+        # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                "run_toolbar")
@@ -685,8 +735,8 @@ class MainWindow(QMainWindow):
 #            
 #            # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
-                                    icon='exit.png', tip=_("Quit"),
-                                    #triggered=self.console.quit
+                                    icon = 'exit.png', tip=_("Quit"),
+                                    triggered = SLOT('close()')
                                     )
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         self.file_menu_actions += [self.load_temp_session_action,
@@ -694,6 +744,24 @@ class MainWindow(QMainWindow):
                                    self.save_session_action,
                                    None, quit_action]
         self.set_splash("")
+
+        self.action_refresh_test_case = create_action(self, _('Comput test case'),
+                                                      shortcut = 'F9',
+                                                      icon = 'calculator_green.png', 
+                                                      triggered = self.refresh_test_case)
+        self.action_refresh_survey  = create_action(self, _('Compute aggregates'), 
+                                                       shortcut = 'F10', 
+                                                       icon = 'calculator_blue.png', 
+                                                       triggered = self.refresh_survey)
+
+#        self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
+#        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
+
+#        action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
+#        action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
+#        action_mode_reforme = create_action(self, u'Réforme', icon = 'comparison22.png', toggled = self.modeReforme, tip = u"Différence entre la situation simulée et la situation actuelle")
+
+
                 
         # Parameters widget
         if CONF.get('parameters', 'enable'):                
@@ -706,32 +774,32 @@ class MainWindow(QMainWindow):
         self.scenario = self.scenario_simulation.scenario
         CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
         
-        if CONF.get('scenario', 'enable'):                
-            self.set_splash(_("Loading Scenario..."))
-            self.composition = CompositionWidget(self.scenario_simulation, self)
-            self.composition.register_plugin()
+
+        self.set_splash(_("Loading Test case composer ..."))
+        self.composition = CompositionWidget(self.scenario_simulation, self)
+        self.composition.register_plugin()
                      
         # Scenario Graph widget
-        if CONF.get('scenario/graph', 'enable'):
+        if CONF.get('composition', 'graph/enable'):
             self.set_splash(_("Loading ScenarioGraph..."))
-            self.scenario_graph = ScenarioGraphWidget(self)
-            self.scenario_graph.register_plugin()
+            self.test_case_graph = ScenarioGraphWidget(self)
+            self.test_case_graph.register_plugin()
 
-       # Scenario Table widget
-        if CONF.get('scenario/table', 'enable'):
+        # Scenario Table widget
+        if CONF.get('composition', 'table/enable'):
             self.set_splash(_("Loading ScenarioTable..."))
-            self.scenario_table = ScenarioTableWidget(self)
-            self.scenario_table.register_plugin()
+            self.test_case_table = ScenarioTableWidget(self)
+            self.test_case_table.register_plugin()
        
         self.survey_simulation = SurveySimulation()
+
         # SurveyExplorer widget
         if CONF.get('survey', 'enable'):
             self.set_splash(_("Loading SurveyExplorer..."))
             self.survey_explorer = SurveyExplorerWidget(self)
-            self.survey_explorer.set_simulation(self.survey_simulation)
             self.survey_explorer.register_plugin()
             self.survey_simulation.set_param()
-            self.survey_explorer.load_from_file()
+
             
         # Aggregates widget
         if CONF.get('aggregates', 'enable'):
@@ -763,8 +831,13 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Loading online help..."))
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
-#                
-            
+               
+        action_reform_mode = create_action(self, u'Réforme', 
+                                           icon = 'comparison22.png', 
+                                           toggled = self.set_reform_mode, 
+                                           tip = u"Différence entre la situation simulée et la situation actuelle")
+               
+        self.run_menu_actions += [self.action_refresh_test_case, self.action_refresh_survey, action_reform_mode]
             
             
         # ? menu
@@ -930,7 +1003,7 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu) and child != self.help_menu:
                 child.setTearOffEnabled(True)
         
-        # Menu about to show
+#        # Menu about to show
 #        for child in self.menuBar().children():
 #            if isinstance(child, QMenu):
 #                self.connect(child, SIGNAL("aboutToShow()"),
@@ -985,7 +1058,7 @@ class MainWindow(QMainWindow):
         Symetric to the 'set_window_settings' setter
         """
         size = self.window_size
-        width, height = size.width(), size.height()
+#        width, height = size.width(), size.height()
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
             is_maximized = self.maximized_flag
@@ -994,7 +1067,7 @@ class MainWindow(QMainWindow):
         pos = self.window_position
         posx, posy = pos.x(), pos.y()
         hexstate = str(self.saveState().toHex())
-        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
+        return hexstate, size, posx, posy, is_maximized, is_fullscreen
         
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
@@ -1047,12 +1120,12 @@ class MainWindow(QMainWindow):
         CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
         pos = self.window_position
         CONF.set(section, prefix+'position', (pos.x(), pos.y()))
-        if not self.light:
-            self.maximize_dockwidget(restore=True)# Restore non-maximized layout
-            qba = self.saveState()
-            CONF.set(section, prefix+'state', str(qba.toHex()))
-            CONF.set(section, prefix+'statusbar',
-                     not self.statusBar().isHidden())
+
+        self.maximize_dockwidget(restore=True)# Restore non-maximized layout
+        qba = self.saveState()
+        CONF.set(section, prefix+'state', str(qba.toHex()))
+        CONF.set(section, prefix+'statusbar',
+                 not self.statusBar().isHidden())
         
     def setup_layout(self, default=False):
         """
@@ -1062,34 +1135,33 @@ class MainWindow(QMainWindow):
         (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
          is_fullscreen) = self.load_window_settings(prefix, default)
         
-        scenario_plugins = [ self.composition, self.scenario_graph, self.scenario_table ]
-        survey_plugins   = [ self.aggregates, self.distribution, self.inequality, self.survey_explorer]
+        self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
+        self.survey_plugins   = [ self.aggregates, self.distribution, self.inequality, self.survey_explorer]
         
         if hexstate is None:
             # First Spyder execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
             splitting = (
-                         (self.scenario_graph, self.parameters, Qt.Horizontal),
+                         (self.test_case_graph, self.parameters, Qt.Horizontal),
                          (self.parameters, self.composition, Qt.Vertical),
                          )
             for first, second, orientation in splitting:
                 if first is not None and second is not None:
                     self.splitDockWidget(first.dockwidget, second.dockwidget,
                                          orientation)
-            for first, second in ((self.scenario_graph, self.scenario_table),
-                                   (self.scenario_table, self.aggregates), 
+            for first, second in ((self.test_case_graph, self.test_case_table),
+                                   (self.test_case_table, self.aggregates), 
                                    (self.aggregates, self.distribution), 
                                    (self.distribution, self.inequality),
                                    (self.inequality, self.survey_explorer)
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-            for plugin in [self.onlinehelp,
-                             ]+self.thirdparty_plugins:
+            for plugin in [self.onlinehelp, ]+self.thirdparty_plugins:
                 if plugin is not None:
                     plugin.dockwidget.close()
-            for plugin in scenario_plugins + survey_plugins:
+            for plugin in self.test_case_plugins + self.survey_plugins:
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             for toolbar in (self.run_toolbar,):
@@ -1149,19 +1221,11 @@ class MainWindow(QMainWindow):
         Update file menu
         """
         self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
-        
-        widget, textedit_properties = get_focus_widget_properties()
-        
-        if textedit_properties is None: # widget is not an editor/console
-            return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
-        console, not_readonly, readwrite_editor = textedit_properties
-        
-        # Editor has focus and there is no file opened in it
-        if not console and not_readonly and not self.editor.is_file_opened():
-            return
-
-        
+#        widget, textedit_properties = get_focus_widget_properties()
+#        for widget in self.widgetlist:
+#            if widget.isvisible:
+#                widget.get_plugin_actions()
+#                add_actions(self.file_menu, self.file_menu_actions)
         
     def update_edit_menu(self):
         """
@@ -1170,8 +1234,8 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return
         # Disabling all actions to begin with
-        for child in self.edit_menu.actions():
-            child.setEnabled(False)        
+#        for child in self.edit_menu.actions():
+#            child.setEnabled(False)        
         
         widget, textedit_properties = get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
@@ -1278,8 +1342,6 @@ class MainWindow(QMainWindow):
         """
         if self.already_closed or self.is_starting_up:
             return True
-#        prefix = ('lightwindow' if self.light else 'window') + '/'
-#        self.save_current_window_settings(prefix)
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
@@ -1385,7 +1447,7 @@ class MainWindow(QMainWindow):
             add_actions(toolbar, actions)
 
     def about(self):
-        """About OpenFisca"""
+        """About openFisca"""
         pass
 
         not_installed = _('(not installed)')
@@ -1409,9 +1471,9 @@ class MainWindow(QMainWindow):
 #                    full.strip('+'), short, full)
         import src.qt.QtCore
         QMessageBox.about(self,
-            _("About %s") % "OpenFisca",
+            _("About %s") % "openFisca",
             
-          u''' <b>OpenFisca</b><sup>beta</sup> v %s
+          u''' <b>openFisca</b><sup>beta</sup> v %s
               <p> %s
               <p> Copyright &copy; 2011 Clément Schaff, Mahdi Ben Jelloul
               Tout droit réservé
@@ -1622,7 +1684,9 @@ class MainWindow(QMainWindow):
         
     #---- Preferences
     def apply_settings(self):
-        """Apply settings changed in 'Preferences' dialog box"""
+        """
+        Apply settings changed in 'Preferences' dialog box
+        """
         qapp = QApplication.instance()
         qapp.setStyle(CONF.get('main', 'windows_style', self.default_style))
         
@@ -1652,7 +1716,7 @@ class MainWindow(QMainWindow):
         
     def edit_preferences(self):
         """
-        Edit OpenFisca preferences
+        Edit openFisca preferences
         """
         dlg = ConfigDialog(self)
         self.connect(dlg, SIGNAL("size_change(QSize)"),
@@ -1663,8 +1727,8 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.onlinehelp, self.distribution, self.parameters, self.scenario_table, self.scenario_graph, self.aggregates,
-                       ]+self.thirdparty_plugins:
+        
+        for plugin in [self.onlinehelp, ] + self.survey_plugins + self.test_case_plugins + self.thirdparty_plugins:
             if plugin is not None:
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:
@@ -1693,7 +1757,7 @@ class MainWindow(QMainWindow):
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           default=NoDefault):
         """
-        Register QAction or QShortcut to Spyder main application,
+        Register QAction or QShortcut to openFisca main application,
         with shortcut (context, name, default)
         """
         self.shortcut_data.append( (qaction_or_qshortcut,
@@ -1735,7 +1799,7 @@ class MainWindow(QMainWindow):
         Save session and quit application
         """
         filename, _selfilter = getsavefilename(self, _("Save session"),
-                        os.getcwdu(), _("OpenFisca sessions")+" (*.session.tar)")
+                        os.getcwdu(), _("openFisca sessions")+" (*.session.tar)")
         if filename:
             if self.close():
                 self.save_session_name = filename
@@ -1782,7 +1846,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from spyderlib.qt import QtGui
+    from src.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
     #----Monkey patching rope
@@ -1896,7 +1960,7 @@ def main():
         reset_session()
         return
     elif options.reset_to_defaults:
-        # Reset OpenFisca settings to defaults
+        # Reset openFisca settings to defaults
         CONF.reset_to_defaults(save=True)
         return
     elif options.optimize:

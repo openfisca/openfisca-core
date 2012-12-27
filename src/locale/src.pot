@@ -1,0 +1,869 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2012-12-25 23:34+Paris, Madrid\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: src\core\config.py:49
+msgid "Python files"
+msgstr ""
+
+#: src\core\config.py:50
+msgid "Cython/Pyrex files"
+msgstr ""
+
+#: src\core\config.py:51
+msgid "C files"
+msgstr ""
+
+#: src\core\config.py:52
+msgid "C++ files"
+msgstr ""
+
+#: src\core\config.py:53
+msgid "OpenCL files"
+msgstr ""
+
+#: src\core\config.py:54
+msgid "Fortran files"
+msgstr ""
+
+#: src\core\config.py:55
+msgid "Patch and diff files"
+msgstr ""
+
+#: src\core\config.py:56
+msgid "Batch files"
+msgstr ""
+
+#: src\core\config.py:57 src\core\utils\iofuncs.py:337
+msgid "Text files"
+msgstr ""
+
+#: src\core\config.py:58
+msgid "reStructured Text files"
+msgstr ""
+
+#: src\core\config.py:59
+msgid "gettext files"
+msgstr ""
+
+#: src\core\config.py:60
+msgid "Web page files"
+msgstr ""
+
+#: src\core\config.py:61
+msgid "Configuration files"
+msgstr ""
+
+#: src\core\config.py:63
+msgid "Composiiton"
+msgstr ""
+
+#: src\core\config.py:70
+msgid "All files"
+msgstr ""
+
+#: src\core\utils\environ.py:94 src\core\utils\environ.py:107
+#: src\of_test.py:1134 src\of_test.py:1154
+msgid "Warning"
+msgstr ""
+
+#: src\core\utils\environ.py:95
+msgid "Module <b>pywin32 was not found</b>.<br>Please restart this Windows <i>session</i> (not the computer) for changes to take effect."
+msgstr ""
+
+#: src\core\utils\environ.py:108
+msgid "If you accept changes, this will modify the current user environment variables directly <b>in Windows registry</b>. Use it with precautions, at your own risks.<br><br>Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like <i>Python(x,y) Home</i> for example)"
+msgstr ""
+
+#: src\core\utils\inspector\sphinxify.py:170
+#: src\core\utils\inspector\sphinxify.py:180
+msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
+msgstr ""
+
+#: src\core\utils\iofuncs.py:321
+msgid "Supported files"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:332
+msgid "Spyder data files"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:334
+msgid "NumPy arrays"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:335
+msgid "Matlab files"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:336
+msgid "CSV text files"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:338
+msgid "JPEG images"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:339
+msgid "PNG images"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:340
+msgid "GIF images"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:341
+msgid "TIFF images"
+msgstr ""
+
+#: src\core\utils\iofuncs.py:360 src\core\utils\iofuncs.py:367
+msgid "<b>Unsupported file type '%s'</b>"
+msgstr ""
+
+#: src\core\utils\vcs.py:68
+msgid "For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
+msgstr ""
+
+#: src\france\widgets\Composition.py:415
+msgid "Open a test case"
+msgstr ""
+
+#: src\france\widgets\Composition.py:440
+msgid "Save a test casr"
+msgstr ""
+
+#: src\france\widgets\Composition.py:476
+msgid "&Open..."
+msgstr ""
+
+#: src\france\widgets\Composition.py:477
+msgid "Open composition file"
+msgstr ""
+
+#: src\france\widgets\Composition.py:481
+msgid "&Save"
+msgstr ""
+
+#: src\france\widgets\Composition.py:482
+msgid "Save current composition"
+msgstr ""
+
+#: src\of_test.py:236
+msgid "Openfisca"
+msgstr ""
+
+#: src\of_test.py:239
+msgid "PyQt4 Reference Guide"
+msgstr ""
+
+#: src\of_test.py:242
+msgid "PyQt4 API Reference"
+msgstr ""
+
+#: src\of_test.py:244
+msgid "Matplotlib documentation"
+msgstr ""
+
+#: src\of_test.py:277
+msgid "Reload last session"
+msgstr ""
+
+#: src\of_test.py:281
+msgid "Load session..."
+msgstr ""
+
+#: src\of_test.py:284
+msgid "Load Openfisca session"
+msgstr ""
+
+#: src\of_test.py:286
+msgid "Save session and quit..."
+msgstr ""
+
+#: src\of_test.py:289
+msgid "Save current session and quit application"
+msgstr ""
+
+#: src\of_test.py:382
+msgid "Initializing..."
+msgstr ""
+
+#: src\of_test.py:467
+msgid "Close current dockwidget"
+msgstr ""
+
+#: src\of_test.py:473
+msgid "&Find text"
+msgstr ""
+
+#: src\of_test.py:479
+msgid "Find &next"
+msgstr ""
+
+#: src\of_test.py:485
+msgid "Find &previous"
+msgstr ""
+
+#: src\of_test.py:490
+msgid "&Replace text"
+msgstr ""
+
+#: src\of_test.py:505
+msgid "Undo"
+msgstr ""
+
+#: src\of_test.py:507
+msgid "Redo"
+msgstr ""
+
+#: src\of_test.py:508
+msgid "Copy"
+msgstr ""
+
+#: src\of_test.py:510
+msgid "Cut"
+msgstr ""
+
+#: src\of_test.py:511
+msgid "Paste"
+msgstr ""
+
+#: src\of_test.py:513
+msgid "Delete"
+msgstr ""
+
+#: src\of_test.py:516
+msgid "Select All"
+msgstr ""
+
+#: src\of_test.py:539
+msgid "Fullscreen mode"
+msgstr ""
+
+#: src\of_test.py:547
+msgid "Main toolbar"
+msgstr ""
+
+#: src\of_test.py:551
+msgid "&File"
+msgstr ""
+
+#: src\of_test.py:554
+msgid "File toolbar"
+msgstr ""
+
+#: src\of_test.py:568
+msgid "&Run"
+msgstr ""
+
+#: src\of_test.py:569
+msgid "Run toolbar"
+msgstr ""
+
+#: src\of_test.py:573
+msgid "&Tools"
+msgstr ""
+
+#: src\of_test.py:576
+msgid "&View"
+msgstr ""
+
+#: src\of_test.py:584
+msgid "Welcome to Spyder!"
+msgstr ""
+
+#: src\of_test.py:588
+msgid "Pre&ferences"
+msgstr ""
+
+#: src\of_test.py:594 src\widgets\pathmanager.py:45
+msgid "PYTHONPATH manager"
+msgstr ""
+
+#: src\of_test.py:597
+msgid "Open Spyder path manager"
+msgstr ""
+
+#: src\of_test.py:600
+msgid "Update module names list"
+msgstr ""
+
+#: src\of_test.py:603
+msgid "Refresh list of module names available in PYTHONPATH"
+msgstr ""
+
+#: src\of_test.py:610
+msgid "Current user environment variables..."
+msgstr ""
+
+#: src\of_test.py:612
+msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
+msgstr ""
+
+#: src\of_test.py:619 src\of_test.py:919
+msgid "External Tools"
+msgstr ""
+
+#: src\of_test.py:636
+msgid "Qt Designer"
+msgstr ""
+
+#: src\of_test.py:641
+msgid "Qt Linguist"
+msgstr ""
+
+#: src\of_test.py:647
+msgid "Qt examples"
+msgstr ""
+
+#: src\of_test.py:668
+msgid "ViTables"
+msgstr ""
+
+#: src\of_test.py:706
+msgid "&Quit"
+msgstr ""
+
+#: src\of_test.py:707
+msgid "Quit"
+msgstr ""
+
+#: src\of_test.py:728
+msgid "Loading Parameters..."
+msgstr ""
+
+#: src\of_test.py:737
+msgid "Loading Test case composer ..."
+msgstr ""
+
+#: src\of_test.py:743
+msgid "Loading ScenarioGraph..."
+msgstr ""
+
+#: src\of_test.py:749
+msgid "Loading ScenarioTable..."
+msgstr ""
+
+#: src\of_test.py:756
+msgid "Loading SurveyExplorer..."
+msgstr ""
+
+#: src\of_test.py:765
+msgid "Loading Aggregates..."
+msgstr ""
+
+#: src\of_test.py:771
+msgid "Loading Distribution..."
+msgstr ""
+
+#: src\of_test.py:777
+msgid "Loading Inequality..."
+msgstr ""
+
+#: src\of_test.py:790
+msgid "Loading online help..."
+msgstr ""
+
+#: src\of_test.py:802
+msgid "About %s..."
+msgstr ""
+
+#: src\of_test.py:806
+msgid "Report issue..."
+msgstr ""
+
+#: src\of_test.py:827
+msgid "Spyder documentation"
+msgstr ""
+
+#: src\of_test.py:832
+msgid "Python documentation"
+msgstr ""
+
+#: src\of_test.py:838
+msgid "Qt Assistant"
+msgstr ""
+
+#: src\of_test.py:865
+msgid "Web Resources"
+msgstr ""
+
+#: src\of_test.py:886
+msgid "Windows and toolbars"
+msgstr ""
+
+#: src\of_test.py:890
+msgid "Reset window layout"
+msgstr ""
+
+#: src\of_test.py:892
+msgid "Custom window layouts"
+msgstr ""
+
+#: src\of_test.py:898
+msgid "Switch to/from layout %d"
+msgstr ""
+
+#: src\of_test.py:904
+msgid "Set layout %d"
+msgstr ""
+
+#: src\of_test.py:1135
+msgid ""
+"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+"Do you want to continue?"
+msgstr ""
+
+#: src\of_test.py:1155
+msgid "Quick switch layout #%d has not yet been defined."
+msgstr ""
+
+#: src\of_test.py:1333
+msgid "Maximize current plugin"
+msgstr ""
+
+#: src\of_test.py:1334
+msgid "Maximize current plugin to fit the whole application window"
+msgstr ""
+
+#: src\of_test.py:1338
+msgid "Restore current plugin"
+msgstr ""
+
+#: src\of_test.py:1339
+msgid "Restore current plugin to its original size and position within the application window"
+msgstr ""
+
+#: src\of_test.py:1413
+msgid "(not installed)"
+msgstr ""
+
+#: src\of_test.py:1434
+msgid "About %s"
+msgstr ""
+
+#: src\of_test.py:1750
+msgid "Open session"
+msgstr ""
+
+#: src\of_test.py:1751
+msgid "Spyder sessions"
+msgstr ""
+
+#: src\of_test.py:1761
+msgid "Save session"
+msgstr ""
+
+#: src\of_test.py:1762
+msgid "openFisca sessions"
+msgstr ""
+
+#: src\plugins\general\Parametres.py:43
+msgid "Legislatives parameters"
+msgstr ""
+
+#: src\plugins\general\Parametres.py:47
+msgid "Legislation"
+msgstr ""
+
+#: src\plugins\general\Parametres.py:52
+msgid "Country: "
+msgstr ""
+
+#: src\plugins\general\Parametres.py:56
+msgid "Simulation date"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:133
+msgid "Preferences"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:424
+msgid "Invalid directory path"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:427
+#: src\plugins\general\configdialog.py:443 src\widgets\pathmanager.py:218
+msgid "Select directory"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:455
+msgid "Invalid file path"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:458
+#: src\plugins\general\configdialog.py:476
+msgid "Select file"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:475
+msgid "All files (*)"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:539
+msgid "Bold"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:542
+msgid "Italic"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:580
+msgid "Font: "
+msgstr ""
+
+#: src\plugins\general\configdialog.py:584
+msgid "Size: "
+msgstr ""
+
+#: src\plugins\general\configdialog.py:593
+msgid "Font style"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:637
+msgid "General"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:643
+msgid "Interface"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:646
+msgid "Qt windows style"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:650
+msgid "Vertical dockwidget title bars"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:652
+msgid "Vertical dockwidget tabs"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:654
+msgid "Animated toolbars and dockwidgets"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:656
+msgid "Custom dockwidget margin:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:687
+msgid "Syntax coloring"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:698
+msgid "Background:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:699
+msgid "Current line:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:700
+msgid "Occurence:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:701
+msgid "Link:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:702
+msgid "Side areas:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:703
+msgid "Matched parentheses:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:704
+msgid "Unmatched parentheses:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:705
+msgid "Normal text:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:706
+msgid "Keyword:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:707
+msgid "Builtin:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:708
+msgid "Definition:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:709
+msgid "Comment:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:710
+msgid "String:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:711
+msgid "Number:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:712
+msgid "Instance:"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:718
+msgid "Color scheme"
+msgstr ""
+
+#: src\plugins\general\configdialog.py:740
+#: src\plugins\general\shortcuts.py:343
+msgid "Reset to default values"
+msgstr ""
+
+#: src\plugins\general\onlinehelp.py:66
+msgid "Online help"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:175
+msgid "Context"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:177
+msgid "Name"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:179
+msgid "Mod1"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:181
+msgid "Mod2"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:183
+msgid "Mod3"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:185
+msgid "Key"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:318
+msgid "Conflicts"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:319
+msgid "The following conflicts have been detected:"
+msgstr ""
+
+#: src\plugins\general\shortcuts.py:331
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:12
+msgid "Composition"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:16
+msgid "Axis"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:36
+msgid "Legend"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:40
+msgid "upper right"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:41
+msgid "upper left"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:42
+msgid "lower left"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:43
+msgid "lower right"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:44
+msgid "right"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:45
+msgid "center left"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:46
+msgid "center right"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:47
+msgid "lower center"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:48
+msgid "upper center"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:49
+msgid "center"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:50
+msgid "Legend location"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:60
+msgid "Export"
+msgstr ""
+
+#: src\plugins\scenario\__init__.py:63
+msgid "Table export format"
+msgstr ""
+
+#: src\plugins\scenario\table.py:148
+msgid "Save table"
+msgstr ""
+
+#: src\plugins\scenario\table.py:175
+msgid "Computed on %s at %s"
+msgstr ""
+
+#: src\plugins\scenario\table.py:176
+msgid "Socio-fiscal legislation of date %s"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:321
+msgid "Aggregates"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:325
+msgid "Columns"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:327
+msgid "Display expenses"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:329
+msgid "Display beneficiaries"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:331
+msgid "Display actual values"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:333
+msgid "Display differences"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:335
+msgid "Display relative differences"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:337
+msgid "Display absolute differences"
+msgstr ""
+
+#: src\plugins\survey\aggregates.py:339
+msgid "Display default values"
+msgstr ""
+
+#: src\plugins\survey\distribution.py:214
+#: src\plugins\survey\distribution.py:217
+msgid "Distribution"
+msgstr ""
+
+#: src\plugins\survey\distribution.py:222
+msgid "Index variables: "
+msgstr ""
+
+#: src\plugins\survey\distribution.py:228
+msgid "Column variables: "
+msgstr ""
+
+#: src\plugins\survey\inequality.py:50
+msgid "Table"
+msgstr ""
+
+#: src\plugins\survey\inequality.py:54
+msgid ""
+msgstr ""
+
+#: src\plugins\survey\survey_explorer.py:46
+msgid "Survey data explorer"
+msgstr ""
+
+#: src\plugins\survey\survey_explorer.py:84
+msgid "Reform"
+msgstr ""
+
+#: src\plugins\survey\survey_explorer.py:85
+msgid "Reform mode"
+msgstr ""
+
+#: src\widgets\pathmanager.py:84
+msgid "Move to top"
+msgstr ""
+
+#: src\widgets\pathmanager.py:90
+msgid "Move up"
+msgstr ""
+
+#: src\widgets\pathmanager.py:96
+msgid "Move down"
+msgstr ""
+
+#: src\widgets\pathmanager.py:102
+msgid "Move to bottom"
+msgstr ""
+
+#: src\widgets\pathmanager.py:113 src\widgets\pathmanager.py:225
+msgid "Add path"
+msgstr ""
+
+#: src\widgets\pathmanager.py:118 src\widgets\pathmanager.py:209
+msgid "Remove path"
+msgstr ""
+
+#: src\widgets\pathmanager.py:128
+msgid "Synchronize..."
+msgstr ""
+
+#: src\widgets\pathmanager.py:130
+msgid "Synchronize Spyder's path list with PYTHONPATH environment variable"
+msgstr ""
+
+#: src\widgets\pathmanager.py:141
+msgid "Synchronize"
+msgstr ""
+
+#: src\widgets\pathmanager.py:142
+msgid "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment variable for current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br>Do you want to clear contents of PYTHONPATH before adding Spyder's path list?"
+msgstr ""
+
+#: src\widgets\pathmanager.py:210
+msgid "Do you really want to remove selected path?"
+msgstr ""
+
+#: src\widgets\pathmanager.py:226
+msgid "This directory is already included in Spyder path list.<br>Do you want to move it to the top of the list?"
+msgstr ""
+

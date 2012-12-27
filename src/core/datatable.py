@@ -141,7 +141,7 @@ class DataTable(object):
         if self.country is None:
             raise Exception('DataTable: country key word variable must be set') 
                
-        INDEX = of_import('utils', 'INDEX', self.country)
+        INDEX = of_import(None, 'ENTITIES_INDEX', self.country)
         
         if fname[-4:] == '.csv':
             with open(fname) as survey_data_file:
