@@ -25,14 +25,14 @@ from src.core.utils.programs import is_module_installed
 
 if is_module_installed('IPython.frontend.qt', '>=0.13'):
     # Importing IPython will eventually set the QT_API environment variable
-    import IPython  # analysis:ignore
+    import IPython  #@UnresolvedImport #@UnusedImport
     if os.environ.get('QT_API', 'pyqt') == 'pyqt':
         # If PyQt is the selected GUI toolkit (at this stage, only the
         # bootstrap script has eventually set this option), switch to 
         # PyQt API #2 by simply importing the IPython qt module
         os.environ['QT_API'] = 'pyqt'
         try:
-            from IPython.external import qt  #analysis:ignore
+            from IPython.external import qt  #analysis:ignore 
         except ImportError:
             # Avoid raising any error here: the spyderlib.requirements module
             # will take care of it, in a user-friendly way (Tkinter message box
@@ -159,17 +159,7 @@ def get_python_doc_path():
 #==============================================================================
 # Openfisca's main window widgets utilities
 #==============================================================================
-#def get_focus_python_shell():
-#    """Extract and return Python shell from widget
-#    Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
-#    widget = QApplication.focusWidget()
-#    from spyderlib.widgets.shell import PythonShellWidget
-#    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-#    if isinstance(widget, PythonShellWidget):
-#        return widget
-#    elif isinstance(widget, ExternalPythonShell):
-#        return widget.shell
-#
+
 def get_focus_widget_properties():
     """
     Get properties of focus widget
@@ -182,6 +172,7 @@ def get_focus_widget_properties():
         not_readonly = not widget.isReadOnly()
     except:
         not_readonly = False
+    console = False
     readwrite_editor = not_readonly and not console
     console = False
     textedit_properties = (console, not_readonly, readwrite_editor)
@@ -289,11 +280,9 @@ class MainWindow(QMainWindow):
                                               "and quit application"))
         
         # Plugins
-        self.console = None
-        self.workingdirectory = None
-        self.editor = None
-        self.explorer = None
-        self.inspector = None
+        self.scenario_simulation = None
+        self.survey_simulation = None
+        
         self.onlinehelp     = None
         self.parameters     = None
         self.test_case_graph = None 
@@ -353,14 +342,8 @@ class MainWindow(QMainWindow):
         self.main_toolbar_actions = []
         self.file_toolbar = None
         self.file_toolbar_actions = []
-        self.edit_toolbar = None
-        self.edit_toolbar_actions = []
-        self.search_toolbar = None
-        self.search_toolbar_actions = []
-        self.source_toolbar = None
-        self.source_toolbar_actions = []
-        self.run_toolbar = None
-        self.run_toolbar_actions = []
+        self.test_case_toolbar = None
+        self.survey_toolbar_actions = []
         
         # Set Window title and icon
         title = "openFisca"
@@ -411,12 +394,20 @@ class MainWindow(QMainWindow):
         self.debug_print("End of MainWindow constructor")
         
         
-    def set_reform_mode(self, b):
-        self.reforme = b
-        self.scenario_simulation.set_config(reforme = self.reforme)
-        self.survey_simulation.set_config(reforme = self.reforme)
-        self.refresh_survey()
+    def set_test_case_reform(self, reform):
+        '''
+        Toggle reform mode for test case
+        '''
+        self
+        self.scenario_simulation.set_config(reforme = reform)
         self.refresh_test_case()
+
+    def set_survey_reform(self, reform):
+        '''
+        Toggle reform mode for survey based microsimulation
+        '''
+        self.survey_simulation.set_config(reforme = reform)
+        self.refresh_survey()
         
     def enable_refresh_test_case(self):
         """
@@ -597,8 +588,12 @@ class MainWindow(QMainWindow):
                         
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
-                                               "run_toolbar")
+        self.test_case_toolbar = self.create_toolbar(_("Test case toolbar"),
+                                               "test_case_toolbar")
+        
+        if self.survey_simulation is not None:
+            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
+                                                      "survey_toolbar")
         
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -621,21 +616,21 @@ class MainWindow(QMainWindow):
                                      triggered=self.edit_preferences)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                "Ctrl+Alt+Shift+P")
-        openfisca_path_action = create_action(self,
-                                _("PYTHONPATH manager"),
-                                None, 'pythonpath_mgr.png',
-                                triggered=self.path_manager_callback,
-                                tip=_("Open Spyder path manager"),
-                                menurole=QAction.ApplicationSpecificRole)
+#        openfisca_path_action = create_action(self,
+#                                _("PYTHONPATH manager"),
+#                                None, 'pythonpath_mgr.png',
+#                                triggered=self.path_manager_callback,
+#                                tip=_("Open Spyder path manager"),
+#                                menurole=QAction.ApplicationSpecificRole)
         update_modules_action = create_action(self,
                                     _("Update module names list"),
                                     None, 'reload.png',
                                     triggered=module_completion.reset,
                                     tip=_("Refresh list of module names "
                                           "available in PYTHONPATH"))
-        self.tools_menu_actions = [prefs_action, openfisca_path_action]
+        self.tools_menu_actions = [prefs_action,]
         self.tools_menu_actions += [update_modules_action, None]
-        self.main_toolbar_actions += [prefs_action, openfisca_path_action]
+        self.main_toolbar_actions += [prefs_action,]
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
                     _("Current user environment variables..."),
@@ -649,18 +644,7 @@ class MainWindow(QMainWindow):
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
-#            # Python(x,y) launcher
-#            self.xy_action = create_action(self,
-#                                   _("Python(x,y) launcher"),
-#                                   icon=get_icon('pythonxy.png'),
-#                                   triggered=lambda:
-#                                   programs.run_python_script('xy', 'xyhome'))
-#            self.external_tools_menu_actions.append(self.xy_action)
-#            if not is_module_installed('xy'):
-#                self.xy_action.setDisabled(True)
-#                self.xy_action.setToolTip(self.xy_action.toolTip() + \
-#                                          '\nPlease install Python(x,y) to '
-#                                          'enable this feature')
+
         # Qt-related tools
         additact = [None]
         for name in ("designer-qt4", "designer"):
@@ -683,18 +667,7 @@ class MainWindow(QMainWindow):
                 additact.append(act)
         if len(additact) > 1:
             self.external_tools_menu_actions += additact
-#                
-#            # Sift
-#            if is_module_installed('guidata') \
-#               and is_module_installed('guiqwt'):
-#                from guidata import configtools
-#                from guiqwt import config  # (loading icons) analysis:ignore
-#                sift_icon = configtools.get_icon('sift.svg')
-#                sift_act = create_python_script_action(self, _("Sift"),
-#                               sift_icon, "guiqwt", osp.join("tests", "sift"))
-#                if sift_act:
-#                    self.external_tools_menu_actions += [None, sift_act]
-#                
+
         # ViTables
         vitables_act = create_program_action(self, _("ViTables"),
                                              'vitables.png', "vitables")
@@ -745,14 +718,7 @@ class MainWindow(QMainWindow):
                                    None, quit_action]
         self.set_splash("")
 
-        self.action_refresh_test_case = create_action(self, _('Comput test case'),
-                                                      shortcut = 'F9',
-                                                      icon = 'calculator_green.png', 
-                                                      triggered = self.refresh_test_case)
-        self.action_refresh_survey  = create_action(self, _('Compute aggregates'), 
-                                                       shortcut = 'F10', 
-                                                       icon = 'calculator_blue.png', 
-                                                       triggered = self.refresh_survey)
+
 
 #        self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
 #        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
@@ -770,15 +736,26 @@ class MainWindow(QMainWindow):
             self.parameters = ParamWidget(self)
             self.parameters.register_plugin()
                         
+                        
+        # Test case widgets
         self.scenario_simulation = ScenarioSimulation()
         self.scenario = self.scenario_simulation.scenario
         CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
         
-
         self.set_splash(_("Loading Test case composer ..."))
         self.composition = CompositionWidget(self.scenario_simulation, self)
         self.composition.register_plugin()
-                     
+
+        self.action_refresh_test_case = create_action(self, _('Comput test case'),
+                                                      shortcut = 'F9',
+                                                      icon = 'calculator_green.png', 
+                                                      triggered = self.refresh_test_case)
+
+        action_test_case_reform_mode = create_action(self, _('Reform mode'), 
+                                                     icon = 'comparison22.png', 
+                                                     toggled = self.set_test_case_reform, 
+                                                     tip = u"Différence entre la situation simulée et la situation actuelle")
+
         # Scenario Graph widget
         if CONF.get('composition', 'graph/enable'):
             self.set_splash(_("Loading ScenarioGraph..."))
@@ -791,58 +768,62 @@ class MainWindow(QMainWindow):
             self.test_case_table = ScenarioTableWidget(self)
             self.test_case_table.register_plugin()
        
-        self.survey_simulation = SurveySimulation()
 
+        self.run_menu_actions += [self.action_refresh_test_case, action_test_case_reform_mode,
+                                    None, ]
+
+
+        # Survey Widgets
         # SurveyExplorer widget
         if CONF.get('survey', 'enable'):
+            self.survey_simulation = SurveySimulation()
             self.set_splash(_("Loading SurveyExplorer..."))
             self.survey_explorer = SurveyExplorerWidget(self)
             self.survey_explorer.register_plugin()
             self.survey_simulation.set_param()
-
-            
-        # Aggregates widget
-        if CONF.get('aggregates', 'enable'):
-            self.set_splash(_("Loading Aggregates..."))
-            self.aggregates = AggregatesWidget(self)
-            self.aggregates.register_plugin()
-            
-        # Distribution widget
-        if CONF.get('distribution', 'enable'):
-            self.set_splash(_("Loading Distribution..."))
-            self.distribution = DistributionWidget(self)
-            self.distribution.register_plugin()
         
-        # Inequality widget
-        if CONF.get('inequality', 'enable'):
-            self.set_splash(_("Loading Inequality..."))
-            self.inequality = InequalityWidget(self)
-            self.inequality.register_plugin()
+            # Aggregates widget
+            if CONF.get('aggregates', 'enable'):
+                self.set_splash(_("Loading Aggregates..."))
+                self.aggregates = AggregatesWidget(self)
+                self.aggregates.register_plugin()
+                
+            # Distribution widget
+            if CONF.get('distribution', 'enable'):
+                self.set_splash(_("Loading Distribution..."))
+                self.distribution = DistributionWidget(self)
+                self.distribution.register_plugin()
+            
+            # Inequality widget
+            if CONF.get('inequality', 'enable'):
+                self.set_splash(_("Loading Inequality..."))
+                self.inequality = InequalityWidget(self)
+                self.inequality.register_plugin()
 
-#
-#            # History log widget
-#            if CONF.get('historylog', 'enable'):
-#                self.set_splash(_("Loading history plugin..."))
-#                self.historylog = HistoryLog(self)
-#                self.historylog.register_plugin()
-#                
-#            # Online help widget
+
+            self.action_refresh_survey  = create_action(self, _('Compute aggregates'), 
+                                                        shortcut = 'F10', 
+                                                        icon = 'calculator_blue.png', 
+                                                        triggered = self.refresh_survey)                
+            action_survey_reform_mode = create_action(self, _('Reform mode'), 
+                                               icon = 'comparison22.png', 
+                                               toggled = self.set_survey_reform, 
+                                               tip = u"Différence entre la situation simulée et la situation actuelle")
+
+            self.run_menu_actions += [None, self.action_refresh_survey, action_survey_reform_mode]
+
+            
+        # Online help widget
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
             self.set_splash(_("Loading online help..."))
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
                
-        action_reform_mode = create_action(self, u'Réforme', 
-                                           icon = 'comparison22.png', 
-                                           toggled = self.set_reform_mode, 
-                                           tip = u"Différence entre la situation simulée et la situation actuelle")
-               
-        self.run_menu_actions += [self.action_refresh_test_case, self.action_refresh_survey, action_reform_mode]
-            
+
             
         # ? menu
         about_action = create_action(self,
-                                _("About %s...") % "Spyder",
+                                _("About %s...") % "openFisca",
                                 icon=get_std_icon('MessageBoxInformation'),
                                 triggered=self.about)
         report_action = create_action(self,
@@ -967,9 +948,7 @@ class MainWindow(QMainWindow):
             
         # Filling out menu/toolbar entries:
         add_actions(self.file_menu, self.file_menu_actions)
-#            add_actions(self.edit_menu, self.edit_menu_actions)
-#            add_actions(self.search_menu, self.search_menu_actions)
-#            add_actions(self.source_menu, self.source_menu_actions)
+
         add_actions(self.run_menu, self.run_menu_actions)
 #            add_actions(self.interact_menu, self.interact_menu_actions)
 
@@ -980,10 +959,9 @@ class MainWindow(QMainWindow):
         
         add_actions(self.main_toolbar, self.main_toolbar_actions)
         add_actions(self.file_toolbar, self.file_toolbar_actions)
-#            add_actions(self.edit_toolbar, self.edit_toolbar_actions)
-#            add_actions(self.search_toolbar, self.search_toolbar_actions)
-#            add_actions(self.source_toolbar, self.source_toolbar_actions)
-        add_actions(self.run_toolbar, self.run_toolbar_actions)
+
+        add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
+        add_actions(self.survey_toolbar, self.survey_toolbar_actions)
         
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()

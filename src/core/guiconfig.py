@@ -17,7 +17,7 @@ Important note regarding shortcuts:
 import os
 import os.path as osp
 
-from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from src.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 from src.core.baseconfig import get_module_data_path
 from src.core.config import CONF
@@ -35,7 +35,7 @@ def add_image_path(path):
         for dir in dirs:
             IMG_PATH.append(osp.join(path, dir))
 
-add_image_path(get_module_data_path('spyderlib', relpath='images'))
+add_image_path(get_module_data_path('src', relpath='images'))
 
 from spyderlib.otherplugins import PLUGIN_PATH
 if PLUGIN_PATH is not None:

@@ -133,6 +133,7 @@ DEFAULTS = [
               'maxrev': 50000,
               'import_dir': 'france/castypes',
               'export_dir': 'france/castypes',
+              'reform': 'False',
               'graph/enable': 'True',
               'graph/legend/enable': 'True',
               'graph/legend/location': '2',
@@ -145,7 +146,7 @@ DEFAULTS = [
              {
               'enable': 'True',
               'data_file':'france/data/survey.h5',
-              'reforme': 'False',
+              'reform': 'False',
               }),            
             ('calibration', 
              {'inputs_filename': 'calage_men.csv',
