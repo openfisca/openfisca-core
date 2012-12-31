@@ -51,18 +51,12 @@ if os.name == 'nt':
     from src.core.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible)
 
-# Workaround: importing rope.base.project here, otherwise this module can't
-# be imported if Spyder was executed from another folder than spyderlib
-try:
-    import rope.base.project  # analysis:ignore
-except ImportError:
-    pass
-
 
 from src.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
+
 from src.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
 from src.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
@@ -85,11 +79,6 @@ from src.spyder_widgets.status import MemoryStatus, CPUStatus
 from src.plugins.general.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from src.plugins.general.shortcuts import ShortcutsConfigPage
-#from spyderlib.plugins.console import Console
-#from spyderlib.plugins.workingdirectory import WorkingDirectory
-#from spyderlib.plugins.editor import Editor
-#from spyderlib.plugins.history import HistoryLog
-#from spyderlib.plugins.inspector import ObjectInspector
 
 
 try:
@@ -98,11 +87,6 @@ try:
 except ImportError:
     # Qt < v4.4
     OnlineHelp = None  # analysis:ignore
-
-# if is_module_installed('IPython.frontend.qt', '>=0.13'):
-#    # TODO: add ability for plugins to disable themself if their
-#    #       requirements are not met before failing during import
-#    from spyderlib.plugins.ipythonconsole import IPythonConsole
 
 
 from src.core.utils_old import of_import
@@ -343,6 +327,8 @@ class MainWindow(QMainWindow):
         self.file_toolbar = None
         self.file_toolbar_actions = []
         self.test_case_toolbar = None
+        self.test_case_toolbar_actions = []
+        self.survey_toolbar = None
         self.survey_toolbar_actions = []
         
         # Set Window title and icon
@@ -393,76 +379,31 @@ class MainWindow(QMainWindow):
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
         
-        
-    def set_test_case_reform(self, reform):
-        '''
-        Toggle reform mode for test case
-        '''
-        self
-        self.scenario_simulation.set_config(reforme = reform)
-        self.refresh_test_case()
 
-    def set_survey_reform(self, reform):
-        '''
-        Toggle reform mode for survey based microsimulation
-        '''
-        self.survey_simulation.set_config(reforme = reform)
-        self.refresh_survey()
-        
-    def enable_refresh_test_case(self):
+    def parameters_changed(self):
         """
         Enable refresh test case action
         """
-        try:
-            self.action_refresh_test_case.setEnabled(True)
-        except:
-            pass
+        self.composition.action_compute.setEnabled(True)
+        self.survey_explorer.action_compute.setEnabled(True)
+
         
-    def refresh_test_case(self):
+    def refresh_test_case_plugins(self):
         '''
         Refresh test case plugins after conputation
         '''
-        # Consistency check on scenario
-        msg = self.scenario_simulation.scenario.check_consistency()
-        if msg:
-            QMessageBox.critical(self, u"Ménage non valide",
-                                 msg, 
-                                 QMessageBox.Ok, QMessageBox.NoButton)
-            return False
-        # If it is consistent starts the computation
-        self.test_case_graph.starting_long_process(_("Computing test case ..."))
-        self.action_refresh_test_case.setEnabled(False)
-        P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
-        self.scenario_simulation.set_param(P, P_default)
-        self.scenario_simulation.compute()
         self.test_case_graph.refresh_plugin()
         self.test_case_table.refresh_plugin()
-        self.test_case_graph.ending_long_process( _("Test case results are updated"))
 
-    def enable_refresh_survey(self):
-        """
-        Enable refresh test case action
-        """
-        try:
-            self.action_refresh_survey.setEnabled(True)
-        except:
-            pass
         
-    def refresh_survey(self):
+    def refresh_survey_plugins(self):
         '''
         Refresh survey plugins after computation
         '''
-        self.aggregates.starting_long_process(_("Computing microsimulation results ..."))
-        self.action_refresh_survey.setEnabled(False)
-        P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
-        self.survey_simulation.set_param(P, P_default)
-        self.survey_simulation.compute()
         self.aggregates.refresh_plugin()
         self.inequality.refresh_plugin()
         self.distribution.refresh_plugin()
         self.survey_explorer.refresh_plugin()
-        self.aggregates.ending_long_process(_("Microsimulation results are updated"))
-    
         
     def debug_print(self, message):
         """
@@ -575,25 +516,11 @@ class MainWindow(QMainWindow):
                      self.update_file_menu)
         self.file_toolbar = self.create_toolbar(_("File toolbar"),
                                                 "file_toolbar")
-            
-#            # Edit menu/toolbar
-#            self.edit_menu = self.menuBar().addMenu(_("&Edit"))
-#            self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
-#                                                    "edit_toolbar")
-            
-#            # Search menu/toolbar
-#            self.search_menu = self.menuBar().addMenu(_("&Search"))
-#            self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-#                                                      "search_toolbar")
                         
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.test_case_toolbar = self.create_toolbar(_("Test case toolbar"),
                                                "test_case_toolbar")
-        
-        if self.survey_simulation is not None:
-            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
-                                                      "survey_toolbar")
         
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -607,7 +534,7 @@ class MainWindow(QMainWindow):
         # Status bar
         status = self.statusBar()
         status.setObjectName("StatusBar")
-        status.showMessage(_("Welcome to Spyder!"), 5000)
+        status.showMessage(_("Welcome to Openfisca!"), 5000)
         
         
         # Tools + External Tools
@@ -616,12 +543,7 @@ class MainWindow(QMainWindow):
                                      triggered=self.edit_preferences)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                "Ctrl+Alt+Shift+P")
-#        openfisca_path_action = create_action(self,
-#                                _("PYTHONPATH manager"),
-#                                None, 'pythonpath_mgr.png',
-#                                triggered=self.path_manager_callback,
-#                                tip=_("Open Spyder path manager"),
-#                                menurole=QAction.ApplicationSpecificRole)
+
         update_modules_action = create_action(self,
                                     _("Update module names list"),
                                     None, 'reload.png',
@@ -673,40 +595,8 @@ class MainWindow(QMainWindow):
                                              'vitables.png', "vitables")
         if vitables_act:
             self.external_tools_menu_actions += [None, vitables_act]
-        
-#            
-#            # Internal console plugin
-#            self.console = Console(self, namespace, debug=self.debug,
-#                                   exitfunc=self.closing, profile=self.profile,
-#                                   multithreaded=self.multithreaded,
-#                                   message='Inspect Spyder internals: '\
-#                                           'spy.app, spy.window')
-#            self.console.register_plugin()
-#            
-        # Working directory plugin
-#            self.workingdirectory = WorkingDirectory(self, self.init_workdir)
-#            self.workingdirectory.register_plugin()
-    
-#            # Object inspector plugin
-#            if CONF.get('inspector', 'enable'):
-#                self.set_splash(_("Loading object inspector..."))
-#                self.inspector = ObjectInspector(self)
-#                self.inspector.register_plugin()
-#            
-#            # Outline explorer widget
-#            if CONF.get('outline_explorer', 'enable'):
-#                self.set_splash(_("Loading outline explorer..."))
-#                fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
-#                self.outlineexplorer = OutlineExplorer(self,
-#                                            fullpath_sorting=fullpath_sorting)
-#                self.outlineexplorer.register_plugin()
-#            
-#            # Editor plugin
-#            self.set_splash(_("Loading editor..."))
-#            self.editor = Editor(self)
-#            self.editor.register_plugin()
-#            
-#            # Populating file menu entries
+                    
+        # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon = 'exit.png', tip=_("Quit"),
                                     triggered = SLOT('close()')
@@ -718,16 +608,8 @@ class MainWindow(QMainWindow):
                                    None, quit_action]
         self.set_splash("")
 
-
-
 #        self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
 #        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
-
-#        action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
-#        action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
-#        action_mode_reforme = create_action(self, u'Réforme', icon = 'comparison22.png', toggled = self.modeReforme, tip = u"Différence entre la situation simulée et la situation actuelle")
-
-
                 
         # Parameters widget
         if CONF.get('parameters', 'enable'):                
@@ -735,8 +617,7 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Loading Parameters..."))
             self.parameters = ParamWidget(self)
             self.parameters.register_plugin()
-                        
-                        
+                                                
         # Test case widgets
         self.scenario_simulation = ScenarioSimulation()
         self.scenario = self.scenario_simulation.scenario
@@ -745,16 +626,6 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading Test case composer ..."))
         self.composition = CompositionWidget(self.scenario_simulation, self)
         self.composition.register_plugin()
-
-        self.action_refresh_test_case = create_action(self, _('Comput test case'),
-                                                      shortcut = 'F9',
-                                                      icon = 'calculator_green.png', 
-                                                      triggered = self.refresh_test_case)
-
-        action_test_case_reform_mode = create_action(self, _('Reform mode'), 
-                                                     icon = 'comparison22.png', 
-                                                     toggled = self.set_test_case_reform, 
-                                                     tip = u"Différence entre la situation simulée et la situation actuelle")
 
         # Scenario Graph widget
         if CONF.get('composition', 'graph/enable'):
@@ -768,11 +639,6 @@ class MainWindow(QMainWindow):
             self.test_case_table = ScenarioTableWidget(self)
             self.test_case_table.register_plugin()
        
-
-        self.run_menu_actions += [self.action_refresh_test_case, action_test_case_reform_mode,
-                                    None, ]
-
-
         # Survey Widgets
         # SurveyExplorer widget
         if CONF.get('survey', 'enable'):
@@ -800,27 +666,15 @@ class MainWindow(QMainWindow):
                 self.inequality = InequalityWidget(self)
                 self.inequality.register_plugin()
 
-
-            self.action_refresh_survey  = create_action(self, _('Compute aggregates'), 
-                                                        shortcut = 'F10', 
-                                                        icon = 'calculator_blue.png', 
-                                                        triggered = self.refresh_survey)                
-            action_survey_reform_mode = create_action(self, _('Reform mode'), 
-                                               icon = 'comparison22.png', 
-                                               toggled = self.set_survey_reform, 
-                                               tip = u"Différence entre la situation simulée et la situation actuelle")
-
-            self.run_menu_actions += [None, self.action_refresh_survey, action_survey_reform_mode]
-
-            
+            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
+                                                      "survey_toolbar")
+     
         # Online help widget
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
             self.set_splash(_("Loading online help..."))
             self.onlinehelp = OnlineHelp(self)
             self.onlinehelp.register_plugin()
-               
-
-            
+                           
         # ? menu
         about_action = create_action(self,
                                 _("About %s...") % "openFisca",
@@ -831,6 +685,7 @@ class MainWindow(QMainWindow):
                                 icon=get_icon('bug.png'),
                                 triggered=self.report_issue
                                 )
+        
         # Spyder documentation
         doc_path = get_module_data_path('spyderlib', relpath="doc",
                                         attr_name='DOCPATH')
@@ -851,6 +706,7 @@ class MainWindow(QMainWindow):
                            _("Spyder documentation"), shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'))
         self.help_menu_actions = [about_action, report_action, doc_action]
+        
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -1142,8 +998,8 @@ class MainWindow(QMainWindow):
             for plugin in self.test_case_plugins + self.survey_plugins:
                 if plugin is not None:
                     plugin.dockwidget.raise_()
-            for toolbar in (self.run_toolbar,):
-                toolbar.close()
+#            for toolbar in (self.run_toolbar,):
+#                toolbar.close()
 
         self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
@@ -1425,28 +1281,9 @@ class MainWindow(QMainWindow):
             add_actions(toolbar, actions)
 
     def about(self):
-        """About openFisca"""
-        pass
-
-        not_installed = _('(not installed)')
-        try:
-            from pyflakes import __version__ as pyflakes_version
-        except ImportError:
-            pyflakes_version = not_installed  # analysis:ignore
-        try:
-            from rope import VERSION as rope_version
-        except ImportError:
-            rope_version = not_installed  # analysis:ignore
-#        # Show Mercurial revision for development version
-#        revlink = ''
-#        import spyderlib
-#        spyderpath = spyderlib.__path__[0]
-#        if osp.isdir(osp.abspath(spyderpath)):
-#            full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
-#            if full:
-#                revlink = " (<a href='%s%s'>%s:%s</a>)" % (
-#                    'http://code.google.com/p/spyderlib/source/detail?r=',
-#                    full.strip('+'), short, full)
+        """
+        About openFisca
+        """
         import src.qt.QtCore
         QMessageBox.about(self,
             _("About %s") % "openFisca",
@@ -1603,7 +1440,6 @@ class MainWindow(QMainWindow):
         getattr(widget, callback)()
         
 
-        
     def open_file(self, fname):
         """
         Open filename with the appropriate application
@@ -1827,13 +1663,6 @@ def initialize():
     from src.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
-    #----Monkey patching rope
-    try:
-        from spyderlib import rope_patch
-        rope_patch.apply()
-    except ImportError:
-        # rope 0.9.2/0.9.3 is not installed
-        pass
     
     #----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
@@ -1850,37 +1679,7 @@ def initialize():
     except ImportError:
         pass
 
-    #----Monkey patching rope (if installed)
-    #       Compatibility with new Mercurial API (>= 1.3).
-    #       New versions of rope (> 0.9.2) already handle this issue
-    try:
-        import rope
-        if rope.VERSION == '0.9.2':
-            import rope.base.fscommands
-            
-            class MercurialCommands(rope.base.fscommands.MercurialCommands):
-                def __init__(self, root):
-                    self.hg = self._import_mercurial()
-                    self.normal_actions = rope.base.fscommands.FileSystemCommands()
-                    try:
-                        self.ui = self.hg.ui.ui(
-                            verbose=False, debug=False, quiet=True,
-                            interactive=False, traceback=False,
-                            report_untrusted=False)
-                    except:
-                        self.ui = self.hg.ui.ui()
-                        self.ui.setconfig('ui', 'interactive', 'no')
-                        self.ui.setconfig('ui', 'debug', 'no')
-                        self.ui.setconfig('ui', 'traceback', 'no')
-                        self.ui.setconfig('ui', 'verbose', 'no')
-                        self.ui.setconfig('ui', 'report_untrusted', 'no')
-                        self.ui.setconfig('ui', 'quiet', 'yes')
-                    self.repo = self.hg.hg.repository(self.ui, root)
-                
-            rope.base.fscommands.MercurialCommands = MercurialCommands
-    except ImportError:
-        pass
-    
+        
     return app
 
 
