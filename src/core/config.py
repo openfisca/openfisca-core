@@ -187,6 +187,13 @@ DEFAULTS = [
              {
               'enable': 'True',
               }),
+            ('onlinehelp',
+             {
+              'shortcut': "Ctrl+Shift+D",
+              'enable': True,
+              'zoom_factor': .8,
+              'max_history_entries': 20,
+              }),
             ]
 
 DEV = not __file__.startswith(sys.prefix)
