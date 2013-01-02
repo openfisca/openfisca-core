@@ -1,13 +1,12 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1923, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1783, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1839, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1699, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 702, in setup
-    self.composition.register_plugin()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\france\widgets\Composition.py", line 568, in register_plugin
-    self.connect(self, SIGNAL('changed()'), self.action_compute.setEnabled(True))
-TypeError: arguments did not match any overloaded call:
-  QObject.connect(QObject, SIGNAL(), QObject, SLOT(), Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'NoneType'
-  QObject.connect(QObject, SIGNAL(), callable, Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'NoneType'
-  QObject.connect(QObject, SIGNAL(), SLOT(), Qt.ConnectionType=Qt.AutoConnection): argument 3 has unexpected type 'NoneType'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 633, in setup
+    self.test_case_graph = ScenarioGraphWidget(self)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\scenario\graph.py", line 192, in __init__
+    self.setupUi(self)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\views\ui_graph.py", line 51, in setupUi
+    Graph.setWidget(self.dockWidgetContents)
+AttributeError: 'ScenarioGraphWidget' object has no attribute 'setWidget'

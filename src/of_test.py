@@ -1239,11 +1239,6 @@ class MainWindow(QMainWindow):
             #  and the latter won't be refreshed if not visible)
             self.last_plugin.show()
             self.last_plugin.visibility_changed(True)
-            if self.last_plugin is self.editor:
-                # Automatically show the outline if the editor was maximized:
-                self.addDockWidget(Qt.RightDockWidgetArea,
-                                   self.outlineexplorer.dockwidget)
-                self.outlineexplorer.dockwidget.show()
         else:
             # Restore original layout (before maximizing current dockwidget)
             self.last_plugin.dockwidget.setWidget(self.last_plugin)

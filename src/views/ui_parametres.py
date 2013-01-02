@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/parametres.ui'
 #
-# Created: Tue Nov 27 17:24:33 2012
+# Created: Mon Dec 31 15:23:38 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -71,7 +71,7 @@ class Ui_Parametres(object):
         self.uiTree.setIndentation(10)
         self.uiTree.setObjectName(_fromUtf8("uiTree"))
         self.verticalLayout.addWidget(self.uiTree)
-        #Parametres.setWidget(self.dockWidgetContents)
+#        Parametres.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(Parametres)
         QtCore.QMetaObject.connectSlotsByName(Parametres)
@@ -83,4 +83,4 @@ class Ui_Parametres(object):
         self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setToolTip(QtGui.QApplication.translate("Parametres", "datesim", None, QtGui.QApplication.UnicodeUTF8))
 
-import src.resources_rc
+import resources_rc

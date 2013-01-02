@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/graph.ui'
 #
-# Created: Tue Nov 27 17:24:28 2012
+# Created: Mon Dec 31 15:23:35 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,7 +48,7 @@ class Ui_Graph(object):
         self.mplwidget = MatplotlibWidget(self.dockWidgetContents)
         self.mplwidget.setObjectName(_fromUtf8("mplwidget"))
         self.verticalLayout.addWidget(self.mplwidget)
-
+#        Graph.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(Graph)
         QtCore.QMetaObject.connectSlotsByName(Graph)
@@ -63,4 +63,4 @@ class Ui_Graph(object):
         self.option_btn.setText(QtGui.QApplication.translate("Graph", "Options", None, QtGui.QApplication.UnicodeUTF8))
 
 from src.widgets.matplotlibwidget import MatplotlibWidget
-import src.resources_rc
+import resources_rc

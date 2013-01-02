@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/declaration.ui'
 #
-# Created: Tue Nov 27 17:24:28 2012
+# Created: Mon Dec 31 15:23:35 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!

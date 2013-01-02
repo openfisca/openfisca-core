@@ -1,26 +1,13 @@
 # -*- coding:utf-8 -*-
-"""
-Created on Nov 30, 2012
-@author: Mahd Ben Jelloul
+#
+# This file is part of OpenFisca.
+# OpenFisca is socio-fiscal microsimulation software
+# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
-This file is part of openFisca.
 
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from datetime import datetime
 import gc
@@ -35,17 +22,21 @@ from pandas import DataFrame
 from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds
 
 
+__all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
+
 class Simulation(object):
     """
-    A simulation objects should contains all attributes to compute a simulation from a scenario or a survey
-    It should also provide results that can be used by other functions
-    """
+    A simulation object contains all parameters to compute a simulation from a 
+    test-case household (scenario) or a survey-like data 
     
+    See also
+    --------
+    ScenarioSimulation, SurveySimulation 
+    """
     def __init__(self):
         super(Simulation, self).__init__()
-
-        self.reforme = False
-        self.country = None
+        self.reforme = False   # Boolean signaling reform mode 
+        self.country = None    # String denoting the country 
         self.datesim = None
         self.P = None
         self.P_default = None
@@ -53,10 +44,9 @@ class Simulation(object):
         self.param_file = None
         
     def _set_config(self, **kwargs):
-        '''
+        """
         Sets some general Simulation attributes 
-        '''
-        
+        """
         remaining = kwargs.copy()
         
         for key, val in kwargs.iteritems():
@@ -85,39 +75,49 @@ class Simulation(object):
                 
         # Sets required country specific classes
         if self.country is not None:            
-            self.InputTable = of_import('model.data', 'InputTable', country = self.country)
-            self.ModelSF = of_import('model.model', 'ModelSF', country = self.country)        
+            self.InputTable = of_import('model.data', 'InputTable', country=self.country)
+            self.ModelSF = of_import('model.model', 'ModelSF', country=self.country)        
 
         # TODO: insert definition of fam foy , QUIMEN QUIFOY etc etc here !
 
         return remaining
                         
-    def set_param(self, P = None, P_default = None):
-        '''
+    def set_param(self, param=None, param_default=None):
+        """
         Sets the parameters of the simulation
-        '''
+        
+        Parameters
+        ----------
+        
+        param         : a socio-fiscal parameter object to be used in the microsimulation. 
+                By default, the method uses the one provided by the attribute param_file
+        param_default : a socio-fiscal parameter object to be used 
+                in the microsimulation to compute some gross quantities not available in the initial data. 
+                parma_default is necessarily different from param when examining a reform
+        """
         reader = XmlReader(self.param_file, self.datesim)
         rootNode = reader.tree
 
-        if P_default is None:
-            self.P_default = Tree2Object(rootNode, defaut = True)
+        if param_default is None:
+            self.P_default = Tree2Object(rootNode, defaut=True)
             self.P_default.datesim = self.datesim
         else:
-            self.P_default = P_default
+            self.P_default = param_default
             
-        if P is None:
-            self.P = Tree2Object(rootNode, defaut = False)
+        if param is None:
+            self.P = Tree2Object(rootNode, defaut=False)
             self.P.datesim = self.datesim
         else:
-            self.P = P
+            self.P = param
+            
               
     def compute(self):
         NotImplementedError          
         
     def _preproc(self, input_table):
-        '''
+        """
         Prepare the output values according to the ModelSF definitions/Reform status/input_table
-        '''
+        """
         P_default = self.P_default     
         P         = self.P                 
         output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
@@ -136,12 +136,12 @@ class Simulation(object):
         NotImplementedError
   
 class ScenarioSimulation(Simulation):
-    '''
+    """
     A Simulation class tailored to deal with scenarios
-    '''
+    """
+    
     def __init__(self):
-        super(ScenarioSimulation, self).__init__()
-        
+        super(ScenarioSimulation, self).__init__()    
         self.Scenario = None
         self.scenario = None
         self.alternative_scenario = None
@@ -154,9 +154,18 @@ class ScenarioSimulation(Simulation):
         self.data_default = None
        
     def set_config(self, **kwargs):
-        '''
+        """
         Configures the ScenarioSimulation
-        '''
+        
+        Parameters
+        ----------
+        scenario : a scenario
+        country  : a string containing the name of the country
+        param_file : the socio-fiscal parameters file
+        totaux_file : the totaux file
+        """
+        
+        
         specific_kwargs = self._set_config(**kwargs)
         self.Scenario = of_import('utils', 'Scenario', country = self.country)
         if self.scenario is None:
@@ -188,10 +197,10 @@ class ScenarioSimulation(Simulation):
         self.alternative_scenario = scenario
         
     def set_marginal_alternative_scenario(self, unit = None, id_in_unit = None, variable = None, value = None):
-        '''
+        """
         Modifies scenario by changing the setting value of the variable of the individual whith 
         position 'id' if necessary in unit named 'unit' 
-        '''
+        """
         self.alternative_scenario = self.scenario.copy()
         scenario = self.alternative_scenario
         if unit is not None:
@@ -231,9 +240,9 @@ class ScenarioSimulation(Simulation):
 
         
     def preproc_alter_scenario(self, input_table_alter, input_table):
-        '''
+        """
         Prepare the output values according to the ModelSF definitions and input_table when an alternative scenario is present
-        '''
+        """
         P_default = self.P_default     
         P         = self.P         
                 
@@ -246,9 +255,9 @@ class ScenarioSimulation(Simulation):
         return output_alter, output
 
     def get_results_dataframe(self, default = False, difference = True, index_by_code = False):
-        '''
+        """
         Formats data into a dataframe
-        '''
+        """
         data, data_default = self.compute(difference = difference)
         
         data_dict = dict()
@@ -271,9 +280,9 @@ class ScenarioSimulation(Simulation):
         return df
         
     def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
-        '''
+        """
         Draws a bareme on matplotlib.axes.Axes object ax
-        '''
+        """
         reforme = self.reforme 
         alter = (self.alternative_scenario is not None)
         data, data_default = self.compute()
@@ -287,9 +296,9 @@ class ScenarioSimulation(Simulation):
             drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
         
     def draw_taux(self, ax, graph_xaxis = None, legend = True):
-        '''
+        """
         Draws a bareme on matplotlib.axes.Axes object ax
-        '''
+        """
         reforme = self.reforme or (self.alternative_scenario is not None)
         data, data_default = self.compute()
         data.setLeavesVisible()
@@ -302,9 +311,9 @@ class ScenarioSimulation(Simulation):
         
 
 class SurveySimulation(Simulation):
-    '''
-    A Simaultion class tailored to deal with survey data
-    '''
+    """
+    A Simulation class tailored to deal with survey data
+    """
     def __init__(self):
         super(SurveySimulation, self).__init__()
         
@@ -319,9 +328,9 @@ class SurveySimulation(Simulation):
 
     
     def set_config(self, **kwargs):
-        '''
+        """
         Configures the SurveySimulation
-        '''
+        """
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
 
@@ -330,9 +339,9 @@ class SurveySimulation(Simulation):
                 setattr(self, key, val)
   
     def set_survey(self, filename = None, datesim = None, country = None):
-        '''
-        Sets survey input data
-        '''
+        """
+        Set survey input data
+        """
         if self.datesim is not None:
             datesim = self.datesim        
         elif datesim is not None:
@@ -418,9 +427,9 @@ class SurveySimulation(Simulation):
 
 
     def _calculate_all(self):
-        '''
-        Computes all prestations
-        '''
+        """
+        Compute all prestations
+        """
         input_table = self.survey
         output, output_default = self._preproc(input_table)
         
@@ -434,40 +443,40 @@ class SurveySimulation(Simulation):
         return output, output_default
 
     def clear(self):
-        '''
-        Clears outputs table 
-        '''
+        """
+        Clear the outputs table 
+        """
         self.survey_outputs = None
         self.survey_outputs_default = None
         
     @property
     def input_var_list(self):
-        '''
-        List of survey variables
-        '''
+        """
+        List of input survey variables
+        """
         return self.survey.description.col_names
         
     @property
     def output_var_list(self):
-        '''
-        List of survey variables
-        '''
+        """
+        List of output survey variables
+        """
         return self.outputs.description.col_names
         
     @property
     def var_list(self):
-        '''
+        """
         List of variables pesent in survey and output
-        '''
+        """
         try:
             return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
         except:
             return list(set(self.survey.description.col_names))
 
     def _build_dicts(self, option = None):
-        '''
+        """
         Builds dictionaries from description
-        '''
+        """
         try:
             if option is 'input_only':
                 descriptions = [self.survey.description]
