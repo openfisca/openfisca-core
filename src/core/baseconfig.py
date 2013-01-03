@@ -2,7 +2,7 @@
 #
 # Copyright © 2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see openfisca/spyder.txt for details)
 
 """
 Spyder base configuration management

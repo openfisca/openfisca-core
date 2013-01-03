@@ -1220,7 +1220,7 @@ Landais, Piketty, Saez (2011)</p>
 
 </div>
 <div class="section" id="module-src.france.model.irpp">
-<span id="les-impots"></span><h2>Les impôts<a class="headerlink" href="#module-src.france.model.irpp" title="Permalink to this headline">¶</a></h2>
+<span id="l-impot-sur-le-revenu"></span><h2>L&#8217;impôt sur le revenu<a class="headerlink" href="#module-src.france.model.irpp" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="src.france.model.irpp._abat_sal_pen">
 <tt class="descclassname">src.france.model.irpp.</tt><tt class="descname">_abat_sal_pen</tt><big>(</big><em>sal_net</em>, <em>pen_net</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.irpp._abat_sal_pen" title="Permalink to this definition">¶</a></dt>
@@ -2230,6 +2230,971 @@ TODO check formula and parameters</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-src.france.model.isf">
+<span id="l-impot-de-solidarite-sur-la-fortune-et-le-bouclier-fiscal"></span><h2>L&#8217;impôt de solidarité sur la fortune et le bouclier fiscal<a class="headerlink" href="#module-src.france.model.isf" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.france.model.isf._bouclier_rev">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_bouclier_rev</tt><big>(</big><em>rbg</em>, <em>maj_cga</em>, <em>csg_deduc</em>, <em>rvcm_plus_abat</em>, <em>rev_cap_lib</em>, <em>rev_exo</em>, <em>rev_or</em>, <em>cd_penali</em>, <em>cd_eparet</em><big>)</big><a class="headerlink" href="#src.france.model.isf._bouclier_rev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total des revenus sur l&#8217;année &#8216;n&#8217; net de charges</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._bouclier_sumimp">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_bouclier_sumimp</tt><big>(</big><em>bouclier_imp_gen</em>, <em>restitutions</em><big>)</big><a class="headerlink" href="#src.france.model.isf._bouclier_sumimp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Somme totale des impôts moins restitutions et degrèvements</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_actions_sal">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_actions_sal</tt><big>(</big><em>b1cl</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_actions_sal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parts ou actions détenues par les salariés et mandataires sociaux</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_apres_plaf">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_apres_plaf</tt><big>(</big><em>tot_impot</em>, <em>revetproduits</em>, <em>isf_avant_plaf</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_apres_plaf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Impôt sur la fortune après plafonnement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_avant_plaf">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_avant_plaf</tt><big>(</big><em>isf_iai</em>, <em>isf_inv_pme</em>, <em>isf_org_int_gen</em>, <em>isf_reduc_pac</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_avant_plaf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Montant de l&#8217;impôt avant plafonnement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_imm_bati">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_imm_bati</tt><big>(</big><em>b1ab</em>, <em>b1ac</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_imm_bati" title="Permalink to this definition">¶</a></dt>
+<dd><p>Immeubles bâtis</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_imm_non_bati">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_imm_non_bati</tt><big>(</big><em>b1bc</em>, <em>b1be</em>, <em>b1bh</em>, <em>b1bk</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_imm_non_bati" title="Permalink to this definition">¶</a></dt>
+<dd><p>Immeubles non bâtis</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_inv_pme">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_inv_pme</tt><big>(</big><em>b2mt</em>, <em>b2ne</em>, <em>b2mv</em>, <em>b2nf</em>, <em>b2mx</em>, <em>b2na</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_inv_pme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Réductions pour investissements dans les PME
+à partir de 2008!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._isf_reduc_pac">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_isf_reduc_pac</tt><big>(</big><em>nb_pac</em>, <em>nbH</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._isf_reduc_pac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Réductions pour personnes à charges</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._maj_cga">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_maj_cga</tt><big>(</big><em>maj_cga_i</em>, <em>_option={'maj_cga_i': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.isf._maj_cga" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traitemens salaires pensions et rentes
+&#8216;foy&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._maj_cga_i">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_maj_cga_i</tt><big>(</big><em>frag_impo</em>, <em>nrag_impg</em>, <em>nbic_impn</em>, <em>nbic_imps</em>, <em>nbic_defn</em>, <em>nbic_defs</em>, <em>nacc_impn</em>, <em>nacc_imps</em>, <em>nacc_defn</em>, <em>nacc_defs</em>, <em>nbnc_impo</em>, <em>nbnc_defi</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.isf._maj_cga_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Majoration pour non adhésion à un centre de gestion agréé
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._restitutions">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_restitutions</tt><big>(</big><em>ppe</em>, <em>restit_imp</em><big>)</big><a class="headerlink" href="#src.france.model.isf._restitutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restitutions d&#8217;impôt sur le revenu et degrèvements percus en l&#8217;année &#8216;n&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.isf._rvcm_plus_abat">
+<tt class="descclassname">src.france.model.isf.</tt><tt class="descname">_rvcm_plus_abat</tt><big>(</big><em>rev_cat_rvcm</em>, <em>rfr_rvcm</em><big>)</big><a class="headerlink" href="#src.france.model.isf._rvcm_plus_abat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu catégoriel avec abattement de 40% réintégré.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.france.model.mini">
+<span id="les-minimas-sociaux"></span><h2>Les minimas sociaux<a class="headerlink" href="#module-src.france.model.mini" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.france.model.mini._aah">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_aah</tt><big>(</big><em>br_pf_i, br_aah, inv, age, smic55, concub, af_nbenf, _P, _option={'smic55': [0, 1], 'inv': [0, 1], 'age': [0, 1], 'br_pf_i': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._aah" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation adulte handicapé</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._aefa">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_aefa</tt><big>(</big><em>age, smic55, af_nbenf, nb_par, ass, aer, api, rsa, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._aefa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aide exceptionelle de fin d&#8217;année (prime de Noël)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._api">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_api</tt><big>(</big><em>agem, age, smic55, isol, forf_log, br_rmi, af_majo, rsa, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'agem': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation de parent isolé</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._asi_aspa_elig">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_asi_aspa_elig</tt><big>(</big><em>aspa_elig, asi_elig, _option={'aspa_elig': [0, 1], 'asi_elig': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._asi_aspa_elig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Éligibilité des membres de la famille à l&#8217;ASPA et à l&#8217;ASI</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._asi_coexist_aspa">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_asi_coexist_aspa</tt><big>(</big><em>asi_aspa_elig</em>, <em>maries</em>, <em>marpac</em>, <em>br_mv</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._asi_coexist_aspa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Montant de l&#8217;ASI quand une personne perçoit l&#8217;ASI et l&#8217;autre l&#8217;ASPA</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._asi_elig">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_asi_elig</tt><big>(</big><em>aspa_elig</em>, <em>inv</em>, <em>activite</em><big>)</big><a class="headerlink" href="#src.france.model.mini._asi_elig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Éligibilité individuelle à l&#8217;ASI
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._asi_pure">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_asi_pure</tt><big>(</big><em>asi_elig</em>, <em>marpac</em>, <em>maries</em>, <em>asi_aspa_nb_alloc</em>, <em>br_mv</em>, <em>_P</em>, <em>_option={'asi_elig': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._asi_pure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule l&#8217;ASI lorsqu&#8217;il y a un ou deux bénéficiaire de l&#8217;ASI et aucun bénéficiaire de l&#8217;ASPA</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._aspa_coexist_asi">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_aspa_coexist_asi</tt><big>(</big><em>asi_aspa_elig</em>, <em>maries</em>, <em>marpac</em>, <em>br_mv</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._aspa_coexist_asi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Montant de l&#8217;ASPA quand une personne perçoit l&#8217;ASPA et l&#8217;autre l&#8217;ASI</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._aspa_elig">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_aspa_elig</tt><big>(</big><em>age</em>, <em>inv</em>, <em>activite</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._aspa_elig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eligibitié individuelle à l&#8217;ASPA
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._aspa_pure">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_aspa_pure</tt><big>(</big><em>aspa_elig</em>, <em>marpac</em>, <em>maries</em>, <em>asi_aspa_nb_alloc</em>, <em>br_mv</em>, <em>_P</em>, <em>_option={'aspa_elig': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._aspa_pure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule l&#8217;ASPA lorsqu&#8217;il y a un ou deux bénéficiaire de l&#8217;ASPA et aucun bénéficiaire de l&#8217;ASI</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._ass">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_ass</tt><big>(</big><em>br_pf</em>, <em>cho</em>, <em>concub</em>, <em>_P</em>, <em>_option={'cho': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._ass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation de solidarité spécifique</p>
+<p>L’Allocation de Solidarité Spécifique (ASS) est une allocation versée aux 
+personnes ayant épuisé leurs droits à bénéficier de l&#8217;assurance chômage.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_aah">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_aah</tt><big>(</big><em>br_pf</em>, <em>asi</em>, <em>aspa</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_aah" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressources de l&#8217;allocation adulte handicapé
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_mv">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_mv</tt><big>(</big><em>br_mv_i</em>, <em>_option={'br_mv_i': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_mv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource du minimlum vieillesse et assimilés (ASPA)
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_mv_i">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_mv_i</tt><big>(</big><em>sal</em>, <em>cho</em>, <em>rst</em>, <em>alr</em>, <em>rto</em>, <em>rpns</em>, <em>rev_cap_bar</em>, <em>rev_cap_lib</em>, <em>rfon_ms</em>, <em>div_ms</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_mv_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource individuelle du minimlum vieillesse et assimilés (ASPA)
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_rmi">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_rmi</tt><big>(</big><em>br_rmi_pf, br_rmi_ms, br_rmi_i, _P, _option={'br_rmi_i': [0, 1], 'br_rmi_ms': [0, 1], 'br_rmi_pf': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_rmi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressources du Rmi ou du Rsa</p>
+<p>Sont pris en compte:
+1 L’ensemble des revenus tirés d’une activité salariée ou non salariée ;
+2 Les revenus tirés de stages de formation professionnelle ;
+3 Les revenus tirés de stages réalisés en application de l’article 9 de</p>
+<blockquote>
+<div>la loi no  2006-396 du 31 mars 2006 pour l’égalité des chances ;</div></blockquote>
+<p>4 L’aide légale ou conventionnelle aux salariés en chômage partiel ;
+5 Les indemnités perçues à l’occasion des congés légaux de maternité, de paternité ou d’adoption ;
+6 Les indemnités journalières de sécurité sociale, de base et complémentaires, perçues en cas d’incapacité</p>
+<blockquote>
+<div>physique médicalement constatée de continuer ou de reprendre le travail, d’accident du travail ou de maladie
+professionnelle pendant une durée qui ne peut excéder trois mois à compter de l’arrêt de travail</div></blockquote>
+<p>On ne tient pas compte:
+1 De la prime à la naissance ou à l’adoption mentionnée à l’article L. 531-2 du code de la sécurité</p>
+<blockquote>
+<div>sociale ;</div></blockquote>
+<dl class="docutils">
+<dt>2 De l’allocation de base mentionnée à l’article L. 531-3 du code de la sécurité sociale due pour le mois</dt>
+<dd>au cours duquel intervient la naissance ou, dans les situations visées à l’article L. 262-9 du présent code,
+jusqu’au dernier jour du mois civil au cours duquel l’enfant atteint l’âge de trois mois ;</dd>
+<dt>3 De la majoration pour âge des allocations familiales mentionnée à l’article L. 521-3 du code de la</dt>
+<dd>sécurité sociale ainsi que de l’allocation forfaitaire instituée par le second alinéa de l’article L. 521-1 du même
+code ;</dd>
+</dl>
+<p>4 De l’allocation de rentrée scolaire mentionnée à l’article L. 543-1 du code de la sécurité sociale ;
+5 Du complément de libre choix du mode de garde mentionné aux articles L. 531-5 à L. 531-9 du code de</p>
+<blockquote>
+<div>la sécurité sociale ;16 avril 2009 JOURNAL OFFICIEL DE LA RÉPUBLIQUE
+FRANÇAISE Texte 3 sur 110.</div></blockquote>
+<dl class="docutils">
+<dt>6 De l’allocation d’éducation de l’enfant handicapé et de ses compléments mentionnés à l’article L. 541-1</dt>
+<dd>du code de la sécurité sociale, de la majoration spécifique pour personne isolée mentionnée à l’article L. 541-4
+du même code ainsi que de la prestation de compensation du handicap lorsqu’elle est perçue en application de
+l’article 94 de la loi no 2007-1786 du 19 décembre 2007 de financement de la sécurité sociale pour 2008 ;</dd>
+</dl>
+<p>7 De l’allocation journalière de présence parentale mentionnée à l’article L. 544-1 du code de la sécurité sociale ;
+8 Des primes de déménagement prévues par les articles L. 542-8 du code de la sécurité sociale et L. 351-5</p>
+<blockquote>
+<div>du code de la construction et de l’habitation ;</div></blockquote>
+<dl class="docutils">
+<dt>9 De la prestation de compensation mentionnée à l’article L. 245-1 ou de l’allocation compensatrice</dt>
+<dd>prévue au chapitre V du titre IV du livre II du code de l’action sociale et des familles dans sa rédaction antérieure 
+à la loi no 2005-102 du 11 février 2005 pour l’égalité des droits et des chances, la participation et la
+citoyenneté des personnes handicapées, lorsque l’une ou l’autre sert à rémunérer un tiers ne faisant pas partie
+du foyer du bénéficiaire du revenu de solidarité active ;</dd>
+<dt>10 Des prestations en nature dues au titre des assurances maladie, maternité, accidents du travail et</dt>
+<dd>maladies professionnelles ou au titre de l’aide médicale de l’Etat ;</dd>
+<dt>11 De l’allocation de remplacement pour maternité prévue par les articles L. 613-19-1 et L. 722-8-1 du</dt>
+<dd>code de la sécurité sociale et L. 732-10 du code rural ;</dd>
+<dt>12 De l’indemnité en capital attribuée à la victime d’un accident du travail prévue à l’article L. 434-1 du</dt>
+<dd>code de la sécurité sociale ;</dd>
+<dt>13 De la prime de rééducation et du prêt d’honneur mentionnés à l’article R. 432-10 du code de la sécurité</dt>
+<dd>sociale ;</dd>
+<dt>14 Des aides et secours financiers dont le montant ou la périodicité n’ont pas de caractère régulier ainsi</dt>
+<dd>que des aides et secours affectés à des dépenses concourant à l’insertion du bénéficiaire et de sa famille,
+notamment dans les domaines du logement, des transports, de l’éducation et de la formation ;</dd>
+<dt>15 De la prime de retour à l’emploi et de l’aide personnalisée de retour à l’emploi mentionnées</dt>
+<dd>respectivement aux articles L. 5133-1 et L. 5133-8 du code du travail ainsi que de l’allocation mentionnée à
+l’article L. 5131-6 du même code ;</dd>
+</dl>
+<p>16 Des bourses d’études ainsi que de l’allocation pour la diversité dans la fonction publique ;
+17 Des frais funéraires mentionnés à l’article L. 435-1 du code de la sécurité sociale ;
+18 Du capital décès servi par un régime de sécurité sociale ;
+19 De l’allocation du fonds de solidarité en faveur des anciens combattants d’Afrique du Nord prévue à</p>
+<blockquote>
+<div>l’article 125 de la loi no 91-1322 de finances pour 1992 ;</div></blockquote>
+<dl class="docutils">
+<dt>20 De l’aide spécifique en faveur des conjoints survivants de nationalité française des membres des</dt>
+<dd>formations supplétives et assimilés, mentionnée aux premier et troisième alinéas de l’article 10 de la loi
+no 94-488 du 11 juin 1994 relative aux rapatriés, anciens membres des formations supplétives et assimilés ou
+victimes de la captivité en Algérie ;</dd>
+</dl>
+<p>21 De l’allocation de reconnaissance instituée par l’article 47 de la loi no 99-1173 de finances rectificative pour 1999 ;
+22 Des mesures de réparation mentionnées à l’article 2 du décret no 2000-657 du 13 juillet 2000 instituant</p>
+<blockquote>
+<div>une mesure de réparation pour les orphelins dont les parents ont été victimes de persécutions antisémites ;</div></blockquote>
+<dl class="docutils">
+<dt>23 Des mesures de réparation mentionnées à l’article 2 du décret no 2004-751 du 27 juillet 2004 instituant</dt>
+<dd>une aide financière en reconnaissance des souffrances endurées par les orphelins dont les parents ont été
+victimes d’actes de barbarie durant la Deuxième Guerre mondiale</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_rmi_i">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_rmi_i</tt><big>(</big><em>ra_rsa</em>, <em>cho</em>, <em>rst</em>, <em>alr</em>, <em>rto</em>, <em>rev_cap_bar</em>, <em>rev_cap_lib</em>, <em>rfon_ms</em>, <em>div_ms</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_rmi_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource individuelle du RSA/RMI
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_rmi_ms">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_rmi_ms</tt><big>(</big><em>aspa</em>, <em>asi</em>, <em>aah</em>, <em>caah</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_rmi_ms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minima sociaux inclus dans la base ressource RSA/RMI
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._br_rmi_pf">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_br_rmi_pf</tt><big>(</big><em>af_base</em>, <em>cf</em>, <em>asf</em>, <em>paje_base</em>, <em>paje_clca</em>, <em>paje_colca</em>, <em>apje</em>, <em>ape</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._br_rmi_pf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestations familiales inclues dans la base ressource RSA/RMI
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._caah">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_caah</tt><big>(</big><em>aah</em>, <em>asi</em>, <em>br_aah</em>, <em>al</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._caah" title="Permalink to this definition">¶</a></dt>
+<dd><p>Complément d&#8217;allocation adulte handicapé</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._forf_log">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_forf_log</tt><big>(</big><em>so</em>, <em>rmi_nbp</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.mini._forf_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forfait logement intervenant dans le calcul du Rmi ou du Rsa
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._ra_rsa">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_ra_rsa</tt><big>(</big><em>sal</em>, <em>hsup</em>, <em>rpns</em>, <em>etr</em><big>)</big><a class="headerlink" href="#src.france.model.mini._ra_rsa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenus d&#8217;activité au sens du Rsa
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._rfon_ms">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_rfon_ms</tt><big>(</big><em>f4ba</em>, <em>f4be</em><big>)</big><a class="headerlink" href="#src.france.model.mini._rfon_ms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenus fonciers pour la base ressource du rmi/rsa
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._rmi">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_rmi</tt><big>(</big><em>rsa_socle</em>, <em>forf_log</em>, <em>br_rmi</em><big>)</big><a class="headerlink" href="#src.france.model.mini._rmi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cacule le montant du RMI 
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._rmi_nbp">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_rmi_nbp</tt><big>(</big><em>age, smic55, nb_par, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._rmi_nbp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre de personne à charge au sens du Rmi ou du Rsa
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._rsa">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_rsa</tt><big>(</big><em>rsa_socle</em>, <em>ra_rsa</em>, <em>forf_log</em>, <em>br_rmi</em>, <em>_P</em>, <em>_option={'ra_rsa': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._rsa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cacule le montant du RSA
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.mini._rsa_socle">
+<tt class="descclassname">src.france.model.mini.</tt><tt class="descname">_rsa_socle</tt><big>(</big><em>forf_log</em>, <em>age</em>, <em>nb_par</em>, <em>rmi_nbp</em>, <em>ra_rsa</em>, <em>br_rmi</em>, <em>_P</em>, <em>_option={'age': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.mini._rsa_socle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rsa socle / Rmi
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.france.model.pfam">
+<span id="les-allocations-familiales"></span><h2>Les allocations familiales<a class="headerlink" href="#module-src.france.model.pfam" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.france.model.pfam._aeeh">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_aeeh</tt><big>(</big><em>age, inv, isol, categ_inv, _P, _option={'age': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'inv': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'categ_inv': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._aeeh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation d&#8217;éducation de l&#8217;enfant handicapé (Allocation d&#8217;éducation spécialisée avant le 1er janvier 2006)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._af">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_af</tt><big>(</big><em>af_base</em>, <em>af_majo</em>, <em>af_forf</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._af" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocations familiales - total des allocations
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._af_base">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_af_base</tt><big>(</big><em>af_nbenf</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._af_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocations familiales - allocation de base
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._af_forf">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_af_forf</tt><big>(</big><em>age, af_nbenf, smic55, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._af_forf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocations familiales - forfait
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._af_majo">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_af_majo</tt><big>(</big><em>age, smic55, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._af_majo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocations familiales - majoration pour âge
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._afeama">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_afeama</tt><big>(</big><em>age, smic55, ape, af_nbenf, br_pf, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._afeama" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aide à la famille pour l&#8217;emploi d&#8217;une assistante maternelle agréée</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._aged">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_aged</tt><big>(</big><em>age, smic55, br_pf, ape_taux_partiel, dep_trim, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._aged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation garde d&#8217;enfant à domicile</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._ape">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_ape</tt><big>(</big><em>age, smic55, inactif, partiel1, partiel2, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._ape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation parentale d&#8217;éducation
+&#8216;fam&#8217;
+L’allocation parentale d’éducation s’adresse aux parents qui souhaitent arrêter ou 
+réduire leur activité pour s’occuper de leurs jeunes enfants, à condition que ceux-ci 
+soient nés avant le 01/01/2004. En effet, pour les enfants nés depuis cette date, 
+dans le cadre de la Prestation d’Accueil du Jeune Enfant, les parents peuvent bénéficier 
+du « complément de libre choix d’activité. »</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._ape_cumul">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_ape_cumul</tt><big>(</big><em>apje_temp</em>, <em>ape_temp</em>, <em>cf_temp</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._ape_cumul" title="Permalink to this definition">¶</a></dt>
+<dd><p>L&#8217;allocation de base de la paje n&#8217;est pas cummulable avec le complément familial</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._apje">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_apje</tt><big>(</big><em>br_pf, age, smic55, isol, biact, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._apje" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation pour jeune enfant</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._apje_cumul">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_apje_cumul</tt><big>(</big><em>apje_temp</em>, <em>ape_temp</em>, <em>cf_temp</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._apje_cumul" title="Permalink to this definition">¶</a></dt>
+<dd><p>L&#8217;APJE n&#8217;est pas cummulable avec le complément familial et l&#8217;APE</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._ars">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_ars</tt><big>(</big><em>age, smic55, br_pf, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._ars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation de rentrée scolaire</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._asf">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_asf</tt><big>(</big><em>age, rst, isol, asf_elig, smic55, _P, _option={'rst': [0, 1], 'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._asf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation de soutien familial</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._biact">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_biact</tt><big>(</big><em>br_pf_i</em>, <em>_P</em>, <em>_option={'br_pf_i': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._biact" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice de biactivité des adultes de la famille</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._br_pf">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_br_pf</tt><big>(</big><em>br_pf_i, rev_coll, _option={'rev_coll': [0, 1], 'br_pf_i': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._br_pf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource des prestations familiales de la famille
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._br_pf_i">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_br_pf_i</tt><big>(</big><em>tspr</em>, <em>hsup</em>, <em>rpns</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._br_pf_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource individuelle des prestations familiales
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._cf">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_cf</tt><big>(</big><em>age, br_pf, isol, biact, smic55, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._cf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Complément familial
+Vous avez au moins 3 enfants à charge tous âgés de plus de 3 ans. 
+Vos ressources ne dépassent pas certaines limites. 
+Vous avez peut-être droit au Complément Familial à partir du mois 
+suivant les 3 ans du 3ème, 4ème, etc. enfant.</p>
+<p># TODO: 
+# En théorie, il faut comparer les revenus de l&#8217;année n-2 à la bmaf de
+# l&#8217;année n-2 pour déterminer l&#8217;éligibilité avec le cf_seuil. Il faudrait
+# pouvoir déflater les revenus de l&#8217;année courante pour en tenir compte.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._cf_cumul">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_cf_cumul</tt><big>(</big><em>paje_base_temp</em>, <em>apje_temp</em>, <em>ape_temp</em>, <em>cf_temp</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._cf_cumul" title="Permalink to this definition">¶</a></dt>
+<dd><p>L&#8217;allocation de base de la paje n&#8217;est pas cummulable avec le complément familial</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._concub">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_concub</tt><big>(</big><em>nb_par</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._concub" title="Permalink to this definition">¶</a></dt>
+<dd><p>concub = 1 si vie en couple TODO pas très heureux</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._crds_pfam">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_crds_pfam</tt><big>(</big><em>af</em>, <em>cf</em>, <em>asf</em>, <em>ars</em>, <em>paje</em>, <em>ape</em>, <em>apje</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._crds_pfam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renvoie la CRDS des prestations familiales</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._etu">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_etu</tt><big>(</big><em>activite</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._etu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice individuelle etudiant</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._isol">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_isol</tt><big>(</big><em>nb_par</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._isol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parent (s&#8217;il y a lieu) isolé</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._maries">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_maries</tt><big>(</big><em>statmarit</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._maries" title="Permalink to this definition">¶</a></dt>
+<dd><p>couple = 1 si couple marié sinon 0 TODO faire un choix avec couple ?</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._nb_par">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_nb_par</tt><big>(</big><em>quifam</em>, <em>_option={'quifam': [1]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._nb_par" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre d&#8217;adultes (parents) dans la famille
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje</tt><big>(</big><em>paje_base</em>, <em>paje_nais</em>, <em>paje_clca</em>, <em>paje_clmg</em>, <em>paje_colca</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d&#8217;accueil du jeune enfant</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_base">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_base</tt><big>(</big><em>age, br_pf, isol, biact, smic55, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d&#8217;acceuil du jeune enfant - allocation de base</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_clca">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_clca</tt><big>(</big><em>agem</em>, <em>af_nbenf</em>, <em>paje_base</em>, <em>inactif</em>, <em>partiel1</em>, <em>partiel2</em>, <em>_P</em>, <em>_option={'agem': [2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_clca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d&#8217;accueil du jeune enfant - Complément de libre choix d&#8217;activité
+&#8216;fam&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_clmg">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_clmg</tt><big>(</big><em>aah, age, smic55, etu, sal, hsup, concub, af_nbenf, br_pf, empl_dir, ass_mat, gar_dom, paje_clca_taux_partiel, paje_clca_taux_plein, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'hsup': [0, 1], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'sal': [0, 1], 'etu': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_clmg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d accueil du jeune enfant - Complément de libre choix du mode de garde</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_colca">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_colca</tt><big>(</big><em>af_nbenf</em>, <em>agem</em>, <em>opt_colca</em>, <em>paje_base</em>, <em>_P</em>, <em>_option={'agem': [2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_colca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d&#8217;accueil du jeune enfant - Complément optionnel de libre choix du mode de garde</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_cumul">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_cumul</tt><big>(</big><em>paje_base_temp</em>, <em>cf_temp</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_cumul" title="Permalink to this definition">¶</a></dt>
+<dd><p>L&#8217;allocation de base de la paje n&#8217;est pas cummulable avec le complément familial</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._paje_nais">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_paje_nais</tt><big>(</big><em>agem, age, af_nbenf, br_pf, isol, biact, _P, _option={'age': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'agem': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._paje_nais" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestation d&#8217;accueil du jeune enfant - Allocation de naissance</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._rev_coll">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_rev_coll</tt><big>(</big><em>rto_net</em>, <em>rev_cap_lib</em>, <em>rev_cap_bar</em>, <em>div</em>, <em>abat_spe</em>, <em>glo</em>, <em>fon</em>, <em>alv</em>, <em>f7ga</em>, <em>f7gb</em>, <em>f7gc</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._rev_coll" title="Permalink to this definition">¶</a></dt>
+<dd><p>revenus collectif</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam._smic55">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">_smic55</tt><big>(</big><em>sal</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.pfam._smic55" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice individuelle d&#8217;un salaire supérieur à 55% du smic
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam.age_aine">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">age_aine</tt><big>(</big><em>ages</em>, <em>ag1</em>, <em>ag2</em><big>)</big><a class="headerlink" href="#src.france.model.pfam.age_aine" title="Permalink to this definition">¶</a></dt>
+<dd><p>renvoi un vecteur avec l&#8217;âge de l&#8217;ainé (au sens des allocations 
+familiales) de chaque famille</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam.age_en_mois_benjamin">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">age_en_mois_benjamin</tt><big>(</big><em>agems</em><big>)</big><a class="headerlink" href="#src.france.model.pfam.age_en_mois_benjamin" title="Permalink to this definition">¶</a></dt>
+<dd><p>renvoi un vecteur (une entree pour chaque famille) avec l&#8217;age du benjamin.  # TODO check agem &gt; 0</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.pfam.nb_enf">
+<tt class="descclassname">src.france.model.pfam.</tt><tt class="descname">nb_enf</tt><big>(</big><em>ages</em>, <em>smic55</em>, <em>ag1</em>, <em>ag2</em><big>)</big><a class="headerlink" href="#src.france.model.pfam.nb_enf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renvoie le nombre d&#8217;enfant au sens des allocations familiales dont l&#8217;âge est compris entre ag1 et ag2</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.france.model.lgtm">
+<span id="les-allocations-logement"></span><h2>Les allocations logement<a class="headerlink" href="#module-src.france.model.lgtm" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.france.model.lgtm._al">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_al</tt><big>(</big><em>concub</em>, <em>br_al</em>, <em>so</em>, <em>loyer</em>, <em>coloc</em>, <em>isol</em>, <em>al_pac</em>, <em>zone_apl</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._al" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formule des aides aux logements en secteur locatif
+Attention, cette fonction calcul l&#8217;aide mensuelle</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._al_pac">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_al_pac</tt><big>(</big><em>age, smic55, nbR, _P, _option={'smic55': [2, 3, 4, 5, 6, 7, 8, 9, 10], 'age': [2, 3, 4, 5, 6, 7, 8, 9, 10]}</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._al_pac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre de personne à charge au sens des allocations logement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._alf">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_alf</tt><big>(</big><em>al</em>, <em>al_pac</em>, <em>so</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._alf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation logement familiale</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._als">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_als</tt><big>(</big><em>als_nonet</em>, <em>alset</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._als" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation logement sociale</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._als_nonet">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_als_nonet</tt><big>(</big><em>al</em>, <em>al_pac</em>, <em>etu</em>, <em>so</em>, <em>_option={'etu': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._als_nonet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation logement sociale (non étudiante)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._alset">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_alset</tt><big>(</big><em>al</em>, <em>al_pac</em>, <em>etu</em>, <em>so</em>, <em>_option={'etu': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._alset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocation logement sociale étudiante</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._apl">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_apl</tt><big>(</big><em>al</em>, <em>so</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._apl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aide personalisée au logement (réservée aux logements conventionné, surtout des HLM, 
+et financé par le fonds national de l&#8217;habitation)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._br_al">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_br_al</tt><big>(</big><em>etu, boursier, br_pf_i, rev_coll, biact, _P, _option={'boursier': [0, 1], 'br_pf_i': [0, 1], 'etu': [0, 1]}</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._br_al" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base ressource des allocations logement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._crds_lgtm">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_crds_lgtm</tt><big>(</big><em>al</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._crds_lgtm" title="Permalink to this definition">¶</a></dt>
+<dd><p>CRDS des allocations logement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.lgtm._uc">
+<tt class="descclassname">src.france.model.lgtm.</tt><tt class="descname">_uc</tt><big>(</big><em>agem</em>, <em>_option={'agem': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.lgtm._uc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule le nombre d&#8217;unités de consommation du ménage avec l&#8217;échelle de l&#8217;insee
+&#8216;men&#8217;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.france.model.th">
+<span id="la-taxe-d-habitation"></span><h2>La taxe d&#8217;habitation<a class="headerlink" href="#module-src.france.model.th" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="src.france.model.th._tax_hab">
+<tt class="descclassname">src.france.model.th.</tt><tt class="descname">_tax_hab</tt><big>(</big><em>zthabm</em>, <em>aah</em>, <em>aspa</em>, <em>asi</em>, <em>age</em>, <em>isf_tot</em>, <em>rfr</em>, <em>statmarit</em>, <em>nbptr</em>, <em>_P</em><big>)</big><a class="headerlink" href="#src.france.model.th._tax_hab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Taxe d&#8217;habitation
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<p>D&#8217;autres caractéristiques sont également disponibles.</p>
+<span class="target" id="module-src.france.model.common"></span><dl class="function">
+<dt id="src.france.model.common._chonet">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_chonet</tt><big>(</big><em>cho</em>, <em>csgchoi</em>, <em>crdscho</em><big>)</big><a class="headerlink" href="#src.france.model.common._chonet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chômage net</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._cotsoc_bar">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_cotsoc_bar</tt><big>(</big><em>csg_cap_bar</em>, <em>prelsoc_cap_bar</em>, <em>crds_cap_bar</em><big>)</big><a class="headerlink" href="#src.france.model.common._cotsoc_bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cotisations sociales sur les revenus du capital imposés au barème</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._cotsoc_lib">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_cotsoc_lib</tt><big>(</big><em>csg_cap_lib</em>, <em>prelsoc_cap_lib</em>, <em>crds_cap_lib</em><big>)</big><a class="headerlink" href="#src.france.model.common._cotsoc_lib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cotisations sociales sur les revenus du capital soumis au prélèvement libératoire</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._cotsoc_noncontrib">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_cotsoc_noncontrib</tt><big>(</big><em>cotpat_noncontrib</em>, <em>cotsal_noncontrib</em>, <em>prelsoc_cap_lib</em>, <em>prelsoc_cap_bar</em><big>)</big><a class="headerlink" href="#src.france.model.common._cotsoc_noncontrib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cotisations sociales non contributives</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._crds">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_crds</tt><big>(</big><em>crdssal</em>, <em>crdsrst</em>, <em>crdscho</em>, <em>crds_cap_bar</em>, <em>crds_cap_lib</em>, <em>crds_pfam</em>, <em>crds_lgtm</em>, <em>crds_mini</em><big>)</big><a class="headerlink" href="#src.france.model.common._crds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contribution au remboursemetn de la dette sociale</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._csg">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_csg</tt><big>(</big><em>csgsali</em>, <em>csgsald</em>, <em>csgchoi</em>, <em>csgchod</em>, <em>csgrsti</em>, <em>csg_cap_lib</em>, <em>csg_cap_bar</em><big>)</big><a class="headerlink" href="#src.france.model.common._csg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contribution sociale généralisée</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._decile">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_decile</tt><big>(</big><em>nivvie</em>, <em>champm</em>, <em>wprm</em><big>)</big><a class="headerlink" href="#src.france.model.common._decile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Décile de niveau de vie disponible
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._decile_net">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_decile_net</tt><big>(</big><em>nivvie_net</em>, <em>champm</em>, <em>wprm</em><big>)</big><a class="headerlink" href="#src.france.model.common._decile_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Décile de niveau de vie net
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._impo">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_impo</tt><big>(</big><em>irpp</em>, <em>tax_hab</em><big>)</big><a class="headerlink" href="#src.france.model.common._impo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Impôts directs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._logt">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_logt</tt><big>(</big><em>apl</em>, <em>als</em>, <em>alf</em>, <em>crds_lgtm</em><big>)</big><a class="headerlink" href="#src.france.model.common._logt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestations logement</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._mini">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_mini</tt><big>(</big><em>aspa</em>, <em>aah</em>, <em>caah</em>, <em>asi</em>, <em>rsa</em>, <em>aefa</em>, <em>api</em>, <em>ass</em><big>)</big><a class="headerlink" href="#src.france.model.common._mini" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minima sociaux</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._nivvie">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_nivvie</tt><big>(</big><em>revdisp</em>, <em>uc</em><big>)</big><a class="headerlink" href="#src.france.model.common._nivvie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Niveau de vie du ménage
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._nivvie_ini">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_nivvie_ini</tt><big>(</big><em>revini</em>, <em>uc</em><big>)</big><a class="headerlink" href="#src.france.model.common._nivvie_ini" title="Permalink to this definition">¶</a></dt>
+<dd><p>Niveau de vie initial du ménage
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._nivvie_net">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_nivvie_net</tt><big>(</big><em>revnet</em>, <em>uc</em><big>)</big><a class="headerlink" href="#src.france.model.common._nivvie_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Niveau de vie net du ménage
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._pauvre50">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_pauvre50</tt><big>(</big><em>nivvie</em>, <em>champm</em>, <em>wprm</em><big>)</big><a class="headerlink" href="#src.france.model.common._pauvre50" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice de pauvreté à 50% du niveau de vie median
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._pauvre60">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_pauvre60</tt><big>(</big><em>nivvie</em>, <em>champm</em>, <em>wprm</em><big>)</big><a class="headerlink" href="#src.france.model.common._pauvre60" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice de pauvreté à 60% du niveau de vie median
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._pen">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_pen</tt><big>(</big><em>chonet</em>, <em>rstnet</em>, <em>alr</em>, <em>alv</em>, <em>rto</em><big>)</big><a class="headerlink" href="#src.france.model.common._pen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pensions</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._pfam">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_pfam</tt><big>(</big><em>af</em>, <em>cf</em>, <em>ars</em>, <em>aeeh</em>, <em>paje</em>, <em>asf</em>, <em>crds_pfam</em><big>)</big><a class="headerlink" href="#src.france.model.common._pfam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestations familiales</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._psoc">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_psoc</tt><big>(</big><em>pfam</em>, <em>mini</em>, <em>logt</em><big>)</big><a class="headerlink" href="#src.france.model.common._psoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prestations sociales</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._rev_cap">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_rev_cap</tt><big>(</big><em>fon</em>, <em>rev_cap_bar</em>, <em>cotsoc_bar</em>, <em>rev_cap_lib</em>, <em>cotsoc_lib</em>, <em>imp_lib</em>, <em>rac</em><big>)</big><a class="headerlink" href="#src.france.model.common._rev_cap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenus du patrimoine</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._rev_trav">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_rev_trav</tt><big>(</big><em>rev_sal</em>, <em>rag</em>, <em>ric</em>, <em>rnc</em><big>)</big><a class="headerlink" href="#src.france.model.common._rev_trav" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu du travail</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revdisp">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revdisp</tt><big>(</big><em>revdisp_i</em>, <em>_option={'revdisp_i': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.common._revdisp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu disponible - ménage
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revdisp_i">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revdisp_i</tt><big>(</big><em>rev_trav</em>, <em>pen</em>, <em>rev_cap</em>, <em>ir_lps</em>, <em>psoc</em>, <em>ppe</em>, <em>impo</em><big>)</big><a class="headerlink" href="#src.france.model.common._revdisp_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu disponible
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revini">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revini</tt><big>(</big><em>revini_i</em>, <em>_option={'revini_i': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.common._revini" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu initial du ménage
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revini_i">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revini_i</tt><big>(</big><em>rev_trav</em>, <em>pen</em>, <em>rev_cap</em>, <em>cotpat_contrib</em>, <em>cotsal_contrib</em><big>)</big><a class="headerlink" href="#src.france.model.common._revini_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu initial individuel
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revnet">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revnet</tt><big>(</big><em>revnet_i</em>, <em>_option={'revnet_i': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.common._revnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu net du ménage
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revnet_i">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revnet_i</tt><big>(</big><em>rev_trav</em>, <em>pen</em>, <em>rev_cap</em><big>)</big><a class="headerlink" href="#src.france.model.common._revnet_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu net individuel
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revprim">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revprim</tt><big>(</big><em>revprim_i</em>, <em>_option={'revprim_i': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.common._revprim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu net du ménage
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._revprim_i">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_revprim_i</tt><big>(</big><em>rev_trav</em>, <em>cho</em>, <em>rev_cap</em>, <em>cotpat</em>, <em>cotsal</em><big>)</big><a class="headerlink" href="#src.france.model.common._revprim_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revenu primaire individuel
+Ensemble des revenus d&#8217;activités superbruts avant tout prélèvement
+Il est égale à la valeur ajoutée produite par les ésidents
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._rstnet">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_rstnet</tt><big>(</big><em>rst</em>, <em>csgrsti</em>, <em>crdsrst</em><big>)</big><a class="headerlink" href="#src.france.model.common._rstnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retraites nettes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._typ_men">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_typ_men</tt><big>(</big><em>isol</em>, <em>af_nbenf</em><big>)</big><a class="headerlink" href="#src.france.model.common._typ_men" title="Permalink to this definition">¶</a></dt>
+<dd><p>type de menage
+&#8216;men&#8217;
+TODO: prendre les enfants du ménages et non ceux de la famille</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.common._uc">
+<tt class="descclassname">src.france.model.common.</tt><tt class="descname">_uc</tt><big>(</big><em>agem</em>, <em>_option={'agem': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.common._uc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule le nombre d&#8217;unités de consommation du ménage avec l&#8217;échelle de l&#8217;insee
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<span class="target" id="module-src.france.model.calage"></span><dl class="function">
+<dt id="src.france.model.calage._act_cpl">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_act_cpl</tt><big>(</big><em>activite</em>, <em>cohab</em>, <em>_option={'activite': [0</em>, <em>1]}</em><big>)</big><a class="headerlink" href="#src.france.model.calage._act_cpl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre d&#8217;actifs parmi la personne de référence et son conjoint
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._act_enf">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_act_enf</tt><big>(</big><em>activite</em>, <em>_option={'activite': [2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.calage._act_enf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre de membres actifs du ménage autre que la personne de référence ou son conjoint
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._ageq">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_ageq</tt><big>(</big><em>agem</em><big>)</big><a class="headerlink" href="#src.france.model.calage._ageq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule la tranche d&#8217;âge quinquennal
+moins de 25 ans : 0
+25 à 29 ans     : 1
+30 à 34 ans     : 2
+35 à 39 ans     : 3
+40 à 44 ans     : 4
+45 à 49 ans     : 5
+50 à 54 ans     : 6
+55 à 59 ans     : 7
+60 à 64 ans     : 8
+65 à 69 ans     : 9
+70 à 74 ans     :10
+75 à 79 ans     :11
+80 ans et plus  :12
+&#8216;ind&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._cohab">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_cohab</tt><big>(</big><em>quimen</em>, <em>_option={'quimen': [1]}</em><big>)</big><a class="headerlink" href="#src.france.model.calage._cohab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice de vie en couple
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._cplx">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_cplx</tt><big>(</big><em>typmen15</em><big>)</big><a class="headerlink" href="#src.france.model.calage._cplx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicatrice de ménage complexe
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._nb_act">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_nb_act</tt><big>(</big><em>act_cpl</em>, <em>act_enf</em><big>)</big><a class="headerlink" href="#src.france.model.calage._nb_act" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nombre de membres actifs du ménage
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._nb_ageq0">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_nb_ageq0</tt><big>(</big><em>agem</em>, <em>_option={'agem': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.calage._nb_ageq0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calcule le nombre d&#8217;individus dans chaque tranche d&#8217;âge quinquennal (voir ageq)
+&#8216;men&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._nbinde">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_nbinde</tt><big>(</big><em>agem</em>, <em>_option={'agem': [0</em>, <em>1</em>, <em>2</em>, <em>3</em>, <em>4</em>, <em>5</em>, <em>6</em>, <em>7</em>, <em>8</em>, <em>9</em>, <em>10]}</em><big>)</big><a class="headerlink" href="#src.france.model.calage._nbinde" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of household members
+&#8216;men&#8217;
+Values range between 1 and 6 for 6 members or more</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.france.model.calage._typmen15">
+<tt class="descclassname">src.france.model.calage.</tt><tt class="descname">_typmen15</tt><big>(</big><em>typmen15</em>, <em>nbindebis</em>, <em>cohab</em>, <em>act_cpl</em>, <em>cplx</em>, <em>act_enf</em><big>)</big><a class="headerlink" href="#src.france.model.calage._typmen15" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type de ménage en 15 modalités
+1 Personne seule active
+2 Personne seule inactive
+3 Familles monoparentales, parent actif
+4 Familles monoparentales, parent inactif et au moins un enfant actif
+5 Familles monoparentales, tous inactifs
+6 Couples sans enfant, 1 actif
+7 Couples sans enfant, 2 actifs
+8 Couples sans enfant, tous inactifs
+9 Couples avec enfant, 1 membre du couple actif
+10 Couples avec enfant, 2 membres du couple actif
+11 Couples avec enfant, couple inactif et au moins un enfant actif
+12 Couples avec enfant, tous inactifs
+13 Autres ménages, 1 actif
+14 Autres ménages, 2 actifs ou plus
+15 Autres ménages, tous inactifs
+&#8216;men&#8217;</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -2247,7 +3212,12 @@ TODO check formula and parameters</p>
 <li class="toctree-l1"><a class="reference internal" href="survey.html">Survey based microsimulation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">France</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.cotsoc">Les cotisations sociales</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.irpp">Les impôts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.irpp">L&#8217;impôt sur le revenu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.isf">L&#8217;impôt de solidarité sur la fortune et le bouclier fiscal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.mini">Les minimas sociaux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.pfam">Les allocations familiales</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.lgtm">Les allocations logement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.france.model.th">La taxe d&#8217;habitation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OpenFisca</a></li>
