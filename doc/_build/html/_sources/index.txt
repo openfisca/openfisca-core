@@ -40,6 +40,7 @@ Contents:
 	overview
 	testcase
 	survey
+	france
 	contributing
 
 Indices and tables

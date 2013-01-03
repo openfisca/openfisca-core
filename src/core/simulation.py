@@ -1,12 +1,10 @@
 # -*- coding:utf-8 -*-
 #
 # This file is part of OpenFisca.
-# OpenFisca is socio-fiscal microsimulation software
+# OpenFisca is a socio-fiscal microsimulation software
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
-
-
 
 
 from datetime import datetime

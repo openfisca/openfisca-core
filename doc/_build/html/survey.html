@@ -56,23 +56,6 @@
             
   <div class="section" id="module-src.core.simulation">
 <span id="survey-based-microsimulation"></span><span id="survey"></span><h1>Survey based microsimulation<a class="headerlink" href="#module-src.core.simulation" title="Permalink to this headline">¶</a></h1>
-<p>Created on Nov 30, 2012
-&#64;author: Mahd Ben Jelloul</p>
-<p>openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul</p>
-<p>This file is part of openFisca.</p>
-<blockquote>
-<div><p>openFisca is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>openFisca is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with openFisca.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
-</div></blockquote>
 <dl class="class">
 <dt id="src.core.simulation.Simulation">
 <em class="property">class </em><tt class="descclassname">src.core.simulation.</tt><tt class="descname">Simulation</tt><a class="headerlink" href="#src.core.simulation.Simulation" title="Permalink to this definition">¶</a></dt>
@@ -80,7 +63,7 @@ along with openFisca.  If not, see &lt;<a class="reference external" href="http:
 test-case household (scenario) or a survey-like data</p>
 <div class="admonition-see-also admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#src.core.simulation.ScenarioSimulation" title="src.core.simulation.ScenarioSimulation"><tt class="xref py py-obj docutils literal"><span class="pre">ScenarioSimulation</span></tt></a>, <a class="reference internal" href="#src.core.simulation.SurveySimulation" title="src.core.simulation.SurveySimulation"><tt class="xref py py-obj docutils literal"><span class="pre">SurveySimulation</span></tt></a></p>
+<p class="last"><tt class="xref py py-obj docutils literal"><span class="pre">ScenarioSimulation</span></tt>, <a class="reference internal" href="#src.core.simulation.SurveySimulation" title="src.core.simulation.SurveySimulation"><tt class="xref py py-obj docutils literal"><span class="pre">SurveySimulation</span></tt></a></p>
 </div>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
@@ -121,115 +104,6 @@ parma_default is necessarily different from param when examining a reform</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="src.core.simulation.ScenarioSimulation">
-<em class="property">class </em><tt class="descclassname">src.core.simulation.</tt><tt class="descname">ScenarioSimulation</tt><a class="headerlink" href="#src.core.simulation.ScenarioSimulation" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Simulation class tailored to deal with scenarios</p>
-<p class="rubric">Methods</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">clear</span></tt>()</td>
-<td></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.compute" title="src.core.simulation.ScenarioSimulation.compute"><tt class="xref py py-obj docutils literal"><span class="pre">compute</span></tt></a>([difference])</td>
-<td>Computes output_data from scenario</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.draw_bareme" title="src.core.simulation.ScenarioSimulation.draw_bareme"><tt class="xref py py-obj docutils literal"><span class="pre">draw_bareme</span></tt></a>(ax[,&nbsp;graph_xaxis,&nbsp;legend,&nbsp;position])</td>
-<td>Draws a bareme on matplotlib.axes.Axes object ax</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.draw_taux" title="src.core.simulation.ScenarioSimulation.draw_taux"><tt class="xref py py-obj docutils literal"><span class="pre">draw_taux</span></tt></a>(ax[,&nbsp;graph_xaxis,&nbsp;legend])</td>
-<td>Draws a bareme on matplotlib.axes.Axes object ax</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.get_results_dataframe" title="src.core.simulation.ScenarioSimulation.get_results_dataframe"><tt class="xref py py-obj docutils literal"><span class="pre">get_results_dataframe</span></tt></a>([default,&nbsp;difference,&nbsp;...])</td>
-<td>Formats data into a dataframe</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.preproc_alter_scenario" title="src.core.simulation.ScenarioSimulation.preproc_alter_scenario"><tt class="xref py py-obj docutils literal"><span class="pre">preproc_alter_scenario</span></tt></a>(input_table_alter,&nbsp;...)</td>
-<td>Prepare the output values according to the ModelSF definitions and input_table when an alternative scenario is present</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.reset_scenario" title="src.core.simulation.ScenarioSimulation.reset_scenario"><tt class="xref py py-obj docutils literal"><span class="pre">reset_scenario</span></tt></a>()</td>
-<td>Reset scanarios</td>
-</tr>
-<tr class="row-even"><td><tt class="xref py py-obj docutils literal"><span class="pre">set_alternative_scenario</span></tt>(scenario)</td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.set_config" title="src.core.simulation.ScenarioSimulation.set_config"><tt class="xref py py-obj docutils literal"><span class="pre">set_config</span></tt></a>(**kwargs)</td>
-<td>Configures the ScenarioSimulation</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#src.core.simulation.ScenarioSimulation.set_marginal_alternative_scenario" title="src.core.simulation.ScenarioSimulation.set_marginal_alternative_scenario"><tt class="xref py py-obj docutils literal"><span class="pre">set_marginal_alternative_scenario</span></tt></a>([unit,&nbsp;...])</td>
-<td>Modifies scenario by changing the setting value of the variable of the individual whith</td>
-</tr>
-<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">set_param</span></tt>([param,&nbsp;param_default])</td>
-<td>Sets the parameters of the simulation</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.compute">
-<tt class="descname">compute</tt><big>(</big><em>difference=True</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.compute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes output_data from scenario</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.draw_bareme">
-<tt class="descname">draw_bareme</tt><big>(</big><em>ax</em>, <em>graph_xaxis=None</em>, <em>legend=False</em>, <em>position=1</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.draw_bareme" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draws a bareme on matplotlib.axes.Axes object ax</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.draw_taux">
-<tt class="descname">draw_taux</tt><big>(</big><em>ax</em>, <em>graph_xaxis=None</em>, <em>legend=True</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.draw_taux" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draws a bareme on matplotlib.axes.Axes object ax</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.get_results_dataframe">
-<tt class="descname">get_results_dataframe</tt><big>(</big><em>default=False</em>, <em>difference=True</em>, <em>index_by_code=False</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.get_results_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Formats data into a dataframe</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.preproc_alter_scenario">
-<tt class="descname">preproc_alter_scenario</tt><big>(</big><em>input_table_alter</em>, <em>input_table</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.preproc_alter_scenario" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare the output values according to the ModelSF definitions and input_table when an alternative scenario is present</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.reset_scenario">
-<tt class="descname">reset_scenario</tt><big>(</big><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.reset_scenario" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset scanarios</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.set_config">
-<tt class="descname">set_config</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.set_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configures the ScenarioSimulation</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>scenario</strong> : a scenario</p>
-<p><strong>country</strong> : a string containing the name of the country</p>
-<p><strong>param_file</strong> : the socio-fiscal parameters file</p>
-<p class="last"><strong>totaux_file</strong> : the totaux file</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="src.core.simulation.ScenarioSimulation.set_marginal_alternative_scenario">
-<tt class="descname">set_marginal_alternative_scenario</tt><big>(</big><em>unit=None</em>, <em>id_in_unit=None</em>, <em>variable=None</em>, <em>value=None</em><big>)</big><a class="headerlink" href="#src.core.simulation.ScenarioSimulation.set_marginal_alternative_scenario" title="Permalink to this definition">¶</a></dt>
-<dd><p>Modifies scenario by changing the setting value of the variable of the individual whith 
-position &#8216;id&#8217; if necessary in unit named &#8216;unit&#8217;</p>
 </dd></dl>
 
 </dd></dl>
@@ -332,6 +206,7 @@ position &#8216;id&#8217; if necessary in unit named &#8216;unit&#8217;</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Survey based microsimulation</a><ul class="simple">
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="france.html">France</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OpenFisca</a></li>
 </ul>
 

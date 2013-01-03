@@ -4,6 +4,8 @@
 Contributing to OpenFisca
 *************************
 
+More information on https://github.com/openfisca/openfisca/wiki/Developer's-guide
+
 Comment contribuer à OpenFisca (beta) ?
 ---------------------------------------
 OpenFisca (beta) est un projet en cours de développement sous licence

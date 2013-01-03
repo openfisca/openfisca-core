@@ -8,6 +8,6 @@ Survey based microsimulation
 ****************************	
 
 .. automodule:: src.core.simulation
-   :members: Simulation, ScenarioSimulation, SurveySimulation
+   :members: Simulation, SurveySimulation
       
 
