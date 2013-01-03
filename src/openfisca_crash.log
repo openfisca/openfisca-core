@@ -3,10 +3,12 @@ Traceback (most recent call last):
     mainwindow = run_spyder(app, options)
   File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1699, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 633, in setup
-    self.test_case_graph = ScenarioGraphWidget(self)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\scenario\graph.py", line 192, in __init__
-    self.setupUi(self)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\views\ui_graph.py", line 51, in setupUi
-    Graph.setWidget(self.dockWidgetContents)
-AttributeError: 'ScenarioGraphWidget' object has no attribute 'setWidget'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 624, in setup
+    CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 896, in of_import
+    _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 22, in <module>
+    from src.widgets.InfoComp import InfoComp
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\widgets\InfoComp.py", line 26, in <module>
+    from core.qthelpers import get_icon, OfSs
+ImportError: cannot import name get_icon

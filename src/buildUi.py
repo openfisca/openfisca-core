@@ -38,7 +38,7 @@ country_views = {'tunisia' : ['composition']}
 
 for country in country_views.iterkeys():
     for ui in country_views[country]:
-        commands.append("pyuic4 -o " + country + "/views/ui_" + ui +".py " + country + "/ui/" + ui + ".ui")
+        commands.append("pyuic4 -o countries/" + country + "/views/ui_" + ui +".py " + country + "/ui/" + ui + ".ui")
 
 commands.append("pyrcc4 -o resources_rc.py resources.qrc")
 

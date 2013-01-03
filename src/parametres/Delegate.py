@@ -1,32 +1,20 @@
 # -*- coding:utf-8 -*-
+#
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
-This file is part of openFisca.
+from src.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
+from src.qt.compat import to_qvariant, from_qvariant
 
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
-from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, QString, SIGNAL, QModelIndex
-from PyQt4.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
+from src.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
                          QStyledItemDelegate, QDoubleSpinBox, QSpinBox,
                          QPushButton, QStyleOptionButton, QSortFilterProxyModel,
-                         QStyleOptionViewItemV4, QPainter)
-from views.ui_baremedialog import Ui_BaremeDialog
+                         QStyleOptionViewItemV4)
+from src.views.ui_baremedialog import Ui_BaremeDialog
 
 
 class CustomDelegate(QStyledItemDelegate):
@@ -104,7 +92,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
             style = self.parent().style()
             styleOption = QStyleOptionViewItemV4(option)
             node = index.internalPointer()
-            val = index.model().data(index).toPyObject()
+            val = from_qvariant(index.model().data(index))
 
             if node.typeInfo == 'CODE':
                 if node.valueFormat == 'percent':
@@ -201,7 +189,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
             newValue = editor.value()*0.01
         else:
             newValue = editor.value()
-        model.setData(index, QVariant(newValue))
+        model.setData(index, to_qvariant(newValue))
 
     def runBaremeDialog(self):
         self.baremeDialog.exec_()                    
@@ -264,7 +252,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
             newValue = editor.value()*0.01
         else:
             newValue = editor.value()
-        model.setData(index, QVariant(newValue))
+        model.setData(index, to_qvariant(newValue))
 
 class BaremeDialog(QDialog, Ui_BaremeDialog):
     def __init__(self, bareme, parent = None, unit = None):
@@ -334,11 +322,11 @@ class MarModel(QAbstractTableModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 : 
                 if (self._bareme.unit is not None) and (role == Qt.DisplayRole):
-                    return QVariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
+                    return to_qvariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
                 else:                
-                    return QVariant(self._bareme.seuils[row])
+                    return to_qvariant(self._bareme.seuils[row])
             if column == 1 : 
-                return QVariant(self._bareme.taux[row])
+                return to_qvariant(self._bareme.taux[row])
         
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
@@ -399,10 +387,10 @@ class MoyModel(QSortFilterProxyModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 : 
                 if self._bareme.unit is not None and role == Qt.DisplayRole:
-                    return QVariant( str(self._bareme.seuilsM[row]) + ' ' + self._bareme.unit)
+                    return to_qvariant( str(self._bareme.seuilsM[row]) + ' ' + self._bareme.unit)
                 else: 
-                    return QVariant( str(self._bareme.seuilsM[row]))
-            if column == 1 : return QVariant(self._bareme.tauxM[row])
+                    return to_qvariant( str(self._bareme.seuilsM[row]))
+            if column == 1 : return to_qvariant(self._bareme.tauxM[row])
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
 

@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 #
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
+# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GPL (version 3 or later) license
+# (see openfisca/__init__.py for details)# 
+#
+# It is almost a copy of Spyder
 # Copyright © 2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
-# (see spyderlib/__init__.py for details)
+# (see openfisca/spyder.txt for details)
 
 """
 Spyder base configuration management

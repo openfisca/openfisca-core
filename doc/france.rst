@@ -32,8 +32,8 @@ Les cotisations sociales
    :members: 
    :private-members:
 
-Les impôts
-----------
+L'impôt sur le revenu
+---------------------
 
 .. automodule:: src.france.model.irpp
    :members: 
@@ -51,4 +51,50 @@ Les impôts
    :members: 
    :private-members:
 
+L'impôt de solidarité sur la fortune et le bouclier fiscal
+----------------------------------------------------------
+
+.. automodule:: src.france.model.isf
+   :members: 
+   :private-members:
    
+
+Les minimas sociaux
+-------------------
+
+.. automodule:: src.france.model.mini
+   :members: 
+   :private-members:
+
+Les allocations familiales
+--------------------------
+
+.. automodule:: src.france.model.pfam
+   :members: 
+   :private-members:
+
+
+Les allocations logement
+------------------------
+
+.. automodule:: src.france.model.lgtm
+   :members: 
+   :private-members:
+   
+La taxe d'habitation
+--------------------
+
+.. automodule:: src.france.model.th
+   :members: 
+   :private-members:
+   
+   
+D'autres caractéristiques sont également disponibles.
+
+.. automodule:: src.france.model.common
+   :members: 
+   :private-members:
+   
+.. automodule:: src.france.model.calage
+   :members: 
+   :private-members:

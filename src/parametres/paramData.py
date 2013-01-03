@@ -26,6 +26,7 @@ from xml.dom import minidom
 from src.core.utils_old import Bareme
 from datetime import datetime
 from src.core.config import CONF
+from src.qt.compat import from_qvariant
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
@@ -315,7 +316,7 @@ class CodeNode(Node):
     def setData(self, column, value):
         super(CodeNode, self).setData(column, value)        
         if   column is 1: pass
-        elif column is 2: self.value = value.toPyObject()
+        elif column is 2: self.value = from_qvariant(value)
 
 class BaremeNode(Node):
     
