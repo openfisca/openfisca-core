@@ -65,11 +65,12 @@ class Simulation(object):
     
         if self.param_file is None:
             if self.country is not None:
-                self.param_file = os.path.join(SRC_PATH, self.country, 'param', 'param.xml')
+                self.param_file = os.path.join(SRC_PATH, 'countries', self.country, 'param', 'param.xml')
                 
         if self.totaux_file is None:
             if self.country is not None:
-                self.totaux_file = os.path.join(SRC_PATH, self.country, 'totaux.xml')
+                self.totaux_file = os.path.join(SRC_PATH, 'countries', self.country, 'totaux.xml')
+
                 
         # Sets required country specific classes
         if self.country is not None:            
@@ -352,7 +353,7 @@ class SurveySimulation(Simulation):
             
         if filename is None:
             if country is not None:
-                filename = os.path.join(SRC_PATH, country, 'data', 'survey.h5')
+                filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
         
         self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim, country = country)
         print self.survey

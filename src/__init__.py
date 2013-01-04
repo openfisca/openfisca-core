@@ -1,6 +1,7 @@
 import os
 
-__version__ = "v0.1.4"
+__version__ = "0.1.4"
+
 __project_url__ = "http://www.openfisca.fr/"
 __forum_url__  = "http://github.com/openfisca/openfisca/issues?state=open"
 

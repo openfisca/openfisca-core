@@ -145,7 +145,7 @@ DEFAULTS = [
             ('survey', 
              {
               'enable': 'True',
-              'data_file':'france/data/survey.h5',
+              'data_file':'countries/france/data/survey.h5',
               'reform': 'False',
               }),            
             ('calibration', 
