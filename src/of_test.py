@@ -1,16 +1,19 @@
-# -*- coding: utf-8 -*-
+# -*- coding:utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
-# Licensed under the terms of the MIT License
-# (see src/__init__.py for details)
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
+# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
+
+# This file is inspired by Spyder, see openfisca/spyder.txt for more details
 
 """
-openfisca
-=====================================================
+OpenFisca
+=========
 
-Developped and maintained by Mahdi Ben Jelloul and Clément Schaff 
+Developed and maintained by Mahdi Ben Jelloul and Clément Schaff 
 
-TODO: license etc
 """
 
 import os
@@ -842,7 +845,9 @@ class MainWindow(QMainWindow):
 #            if isinstance(child, QMenu):
 #                self.connect(child, SIGNAL("aboutToShow()"),
 #                             self.update_edit_menu)
-        
+
+
+
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
         
@@ -1000,7 +1005,10 @@ class MainWindow(QMainWindow):
                     plugin.dockwidget.raise_()
 #            for toolbar in (self.run_toolbar,):
 #                toolbar.close()
-
+        
+        self.composition.compute()
+        self.test_case_graph.dockwidget.raise_()
+        
         self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
 
@@ -1692,7 +1700,7 @@ def run_spyder(app, options):
     Patch matplotlib for figure integration
     Start QApplication event loop
     """
-    #TODO: insert here
+
     # Main window
     main = MainWindow(options)
     try:

@@ -71,7 +71,6 @@ class Simulation(object):
             if self.country is not None:
                 self.totaux_file = os.path.join(SRC_PATH, 'countries', self.country, 'totaux.xml')
 
-                
         # Sets required country specific classes
         if self.country is not None:            
             self.InputTable = of_import('model.data', 'InputTable', country=self.country)
@@ -88,7 +87,7 @@ class Simulation(object):
         Parameters
         ----------
         
-        param         : a socio-fiscal parameter object to be used in the microsimulation. 
+        param : a socio-fiscal parameter object to be used in the microsimulation. 
                 By default, the method uses the one provided by the attribute param_file
         param_default : a socio-fiscal parameter object to be used 
                 in the microsimulation to compute some gross quantities not available in the initial data. 
@@ -158,12 +157,15 @@ class ScenarioSimulation(Simulation):
         
         Parameters
         ----------
-        scenario : a scenario
+        scenario : a scenario (by default, None selects Scenario())
         country  : a string containing the name of the country
         param_file : the socio-fiscal parameters file
         totaux_file : the totaux file
+        xaxis : the revenue category along which revenue varies
+        maxrev : the maximal value of the revenue
+        same_rev_couple : divide the revenue equally between the two partners
+        mode : 'bareme' or 'castype' TODO: change this 
         """
-        
         
         specific_kwargs = self._set_config(**kwargs)
         self.Scenario = of_import('utils', 'Scenario', country = self.country)
@@ -183,9 +185,21 @@ class ScenarioSimulation(Simulation):
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
 
+    def create_description(self):
+        '''
+        Creates a description dataframe of the ScenarioSimulation
+        '''
+        now = datetime.now()
+        descr =  [u'OpenFisca', 
+                         u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+                         u'Système socio-fiscal au %s' % str(self.datesim)]
+        # TODO: addd other parameters
+        
+        return DataFrame(descr)
+    
     def reset_scenario(self):
         """
-        Reset scanarios
+        Reset scenario and alternative_scenario to their default values 
         """
         if self.Scenario is not None:
             self.scenario = self.Scenario()
@@ -193,11 +207,18 @@ class ScenarioSimulation(Simulation):
         
 
     def set_alternative_scenario(self, scenario):
+        """
+        Set alternative-scenario
+        
+        Parameters
+        ----------
+        scenario : an instance of the class Scenario
+        """
         self.alternative_scenario = scenario
         
     def set_marginal_alternative_scenario(self, unit = None, id_in_unit = None, variable = None, value = None):
         """
-        Modifies scenario by changing the setting value of the variable of the individual whith 
+        Modifies scenario by changing the setting value of the variable of the individual with 
         position 'id' if necessary in unit named 'unit' 
         """
         self.alternative_scenario = self.scenario.copy()
@@ -210,6 +231,17 @@ class ScenarioSimulation(Simulation):
     def compute(self, difference = True):
         """
         Computes output_data from scenario
+        
+        Parameters
+        ----------
+        difference : boolean, default True
+                When in reform mode, compute the difference between actual and default  
+        
+        
+        Returns
+        -------
+        data, data_default : Computed data and possibly data_default according to totaux_file
+        
         """
         
         alter = self.alternative_scenario is not None
@@ -240,7 +272,8 @@ class ScenarioSimulation(Simulation):
         
     def preproc_alter_scenario(self, input_table_alter, input_table):
         """
-        Prepare the output values according to the ModelSF definitions and input_table when an alternative scenario is present
+        Prepare the output values according to the ModelSF definitions and 
+        input_table when an alternative scenario is present
         """
         P_default = self.P_default     
         P         = self.P         
@@ -256,6 +289,20 @@ class ScenarioSimulation(Simulation):
     def get_results_dataframe(self, default = False, difference = True, index_by_code = False):
         """
         Formats data into a dataframe
+        
+        Parameters
+        ----------
+        default : boolean, default False
+                  If True compute the default results
+        difference :  boolean, default True
+                  If True compute the default results
+        index_by_code : boolean, default False
+                  Index the row by the code instead of name of the different element
+                  of totaux_file  
+        
+        Returns
+        -------
+        df : A DataFrame with computed data according to totaux_file
         """
         data, data_default = self.compute(difference = difference)
         
@@ -280,7 +327,9 @@ class ScenarioSimulation(Simulation):
         
     def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
         """
-        Draws a bareme on matplotlib.axes.Axes object ax
+        Draws a bareme on matplotlib.axes.Axes
+        
+        
         """
         reforme = self.reforme 
         alter = (self.alternative_scenario is not None)
@@ -329,6 +378,7 @@ class SurveySimulation(Simulation):
     def set_config(self, **kwargs):
         """
         Configures the SurveySimulation
+        
         """
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
@@ -428,6 +478,10 @@ class SurveySimulation(Simulation):
     def _calculate_all(self):
         """
         Compute all prestations
+        
+        Returns
+        -------
+        output, output_default
         """
         input_table = self.survey
         output, output_default = self._preproc(input_table)
@@ -452,6 +506,10 @@ class SurveySimulation(Simulation):
     def input_var_list(self):
         """
         List of input survey variables
+        
+        Returns
+        -------
+        survey.description.col_names : List of input survey variables 
         """
         return self.survey.description.col_names
         

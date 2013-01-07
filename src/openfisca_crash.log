@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1791, in main
+    mainwindow = run_spyder(app, options)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1707, in run_spyder
+    main.setup()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 834, in setup
+    self.setup_layout(default=False)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1010, in setup_layout
+    self.test_case_graph.dockwideget.raise_()
+AttributeError: 'ScenarioGraphWidget' object has no attribute 'dockwideget'

@@ -59,7 +59,44 @@
             
   <div class="section" id="test-case">
 <span id="testcase"></span><h1>Test case<a class="headerlink" href="#test-case" title="Permalink to this headline">¶</a></h1>
-<p>Test-case specific documentation</p>
+<p>A simple test case example can be found in the following src/scripts/example.py.</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="c"># -*- coding:utf-8 -*-# -*- coding:utf-8 -*-</span>
+<span class="c">#</span>
+<span class="c"># This file is part of OpenFisca.</span>
+<span class="c"># OpenFisca is a socio-fiscal microsimulation software</span>
+<span class="c"># Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul</span>
+<span class="c"># Licensed under the terms of the GVPLv3 or later license</span>
+<span class="c"># (see openfisca/__init__.py for details)</span>
+
+
+<span class="c"># Exemple of a simple simualtion</span>
+
+<span class="kn">from</span> <span class="nn">src.core.simulation</span> <span class="kn">import</span> <span class="n">ScenarioSimulation</span> 
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">yr</span> <span class="o">=</span> <span class="mi">2009</span>
+    <span class="n">country</span> <span class="o">=</span> <span class="s">&#39;france&#39;</span>
+
+    <span class="n">simu</span> <span class="o">=</span> <span class="n">ScenarioSimulation</span><span class="p">()</span>
+    <span class="n">simu</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">year</span> <span class="o">=</span> <span class="n">yr</span><span class="p">,</span> <span class="n">country</span> <span class="o">=</span> <span class="n">country</span><span class="p">,</span> 
+                    <span class="n">nmen</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span> <span class="n">maxrev</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span> <span class="n">xaxis</span> <span class="o">=</span> <span class="s">&#39;sali&#39;</span><span class="p">)</span>
+    <span class="n">simu</span><span class="o">.</span><span class="n">set_param</span><span class="p">()</span>
+    
+    <span class="n">simu</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">simu</span><span class="o">.</span><span class="n">get_results_dataframe</span><span class="p">()</span>
+
+    <span class="k">print</span> <span class="n">df</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="c"># Save example to excel</span>
+    <span class="c"># destination_dir = &quot;c:/users/utilisateur/documents/&quot;</span>
+    <span class="c"># fname = &quot;Example_%s.%s&quot; %(str(yr), &quot;xls&quot;)    </span>
+    <span class="c"># df.to_excel(destination_dir = &quot;c:/users/utilisateur/documents/&quot; + fname)</span>
+</pre></div>
+</div>
+</div></blockquote>
 </div>
 
 
