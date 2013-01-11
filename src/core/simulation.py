@@ -176,6 +176,7 @@ class ScenarioSimulation(Simulation):
                 self.scenario = self.Scenario()
 
         self.scenario.year = self.datesim.year
+        
         for key, val in specific_kwargs.iteritems():        
             if hasattr(self, key):
                 setattr(self, key, val)

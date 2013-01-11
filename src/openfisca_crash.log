@@ -1,10 +1,10 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1791, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1799, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1707, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1715, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 834, in setup
-    self.setup_layout(default=False)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1010, in setup_layout
-    self.test_case_graph.dockwideget.raise_()
-AttributeError: 'ScenarioGraphWidget' object has no attribute 'dockwideget'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 824, in setup
+    add_actions(self.survey_toolbar, self.survey_toolbar_actions)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils\qthelpers.py", line 216, in add_actions
+    target_actions = list(target.actions())
+AttributeError: 'NoneType' object has no attribute 'actions'

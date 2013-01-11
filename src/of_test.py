@@ -274,6 +274,7 @@ class MainWindow(QMainWindow):
         self.parameters     = None
         self.test_case_graph = None 
         self.test_case_table = None
+        self.survey_explorer = None
         self.aggregates     = None
         self.distribution   = None
         self.inequality   = None
@@ -818,9 +819,11 @@ class MainWindow(QMainWindow):
         
         add_actions(self.main_toolbar, self.main_toolbar_actions)
         add_actions(self.file_toolbar, self.file_toolbar_actions)
-
+        
         add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
-        add_actions(self.survey_toolbar, self.survey_toolbar_actions)
+        if self.survey_toolbar is not None:
+            add_actions(self.survey_toolbar, self.survey_toolbar_actions)
+        
         
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
@@ -975,7 +978,11 @@ class MainWindow(QMainWindow):
          is_fullscreen) = self.load_window_settings(prefix, default)
         
         self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
-        self.survey_plugins   = [ self.aggregates, self.distribution, self.inequality, self.survey_explorer]
+        
+        if CONF.get('survey', 'enable'):
+            self.survey_plugins   = [ self.aggregates, self.distribution, self.inequality, self.survey_explorer]
+        else:
+            self.survey_plugins = []
         
         if hexstate is None:
             # First Spyder execution:
@@ -989,6 +996,7 @@ class MainWindow(QMainWindow):
                 if first is not None and second is not None:
                     self.splitDockWidget(first.dockwidget, second.dockwidget,
                                          orientation)
+
             for first, second in ((self.test_case_graph, self.test_case_table),
                                    (self.test_case_table, self.aggregates), 
                                    (self.aggregates, self.distribution), 
@@ -997,6 +1005,7 @@ class MainWindow(QMainWindow):
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
+            
             for plugin in [self.onlinehelp, ]+self.thirdparty_plugins:
                 if plugin is not None:
                     plugin.dockwidget.close()
