@@ -404,10 +404,10 @@ class MainWindow(QMainWindow):
         '''
         Refresh survey plugins after computation
         '''
-        self.aggregates.refresh_plugin()
-        self.inequality.refresh_plugin()
-        self.distribution.refresh_plugin()
-        self.survey_explorer.refresh_plugin()
+        if CONF.get('survey', 'enable'):
+            for plugin in self.survey_plugins:
+                plugin.refresh()
+
         
     def debug_print(self, message):
         """
@@ -645,33 +645,14 @@ class MainWindow(QMainWindow):
        
         # Survey Widgets
         # SurveyExplorer widget
-        if CONF.get('survey', 'enable'):
-            self.survey_simulation = SurveySimulation()
-            self.set_splash(_("Loading SurveyExplorer..."))
-            self.survey_explorer = SurveyExplorerWidget(self)
-            self.survey_explorer.register_plugin()
-            self.survey_simulation.set_param()
-        
-            # Aggregates widget
-            if CONF.get('aggregates', 'enable'):
-                self.set_splash(_("Loading Aggregates..."))
-                self.aggregates = AggregatesWidget(self)
-                self.aggregates.register_plugin()
-                
-            # Distribution widget
-            if CONF.get('distribution', 'enable'):
-                self.set_splash(_("Loading Distribution..."))
-                self.distribution = DistributionWidget(self)
-                self.distribution.register_plugin()
-            
-            # Inequality widget
-            if CONF.get('inequality', 'enable'):
-                self.set_splash(_("Loading Inequality..."))
-                self.inequality = InequalityWidget(self)
-                self.inequality.register_plugin()
 
-            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
-                                                      "survey_toolbar")
+        self.survey_explorer = SurveyExplorerWidget(self)
+        self.set_splash(_("Loading SurveyExplorer..."))
+        self.survey_explorer.register_plugin()
+        self.survey_plugins = [ self.survey_explorer]
+
+        if CONF.get('survey', 'enable'):
+            self.register_survey_widgets(True)
      
         # Online help widget
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
@@ -853,7 +834,52 @@ class MainWindow(QMainWindow):
 
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
+ 
+    def register_survey_widgets(self, bool = True):
+        """
+        Registers enabled survey widgets
+        """
+        if bool is True:
+            self.survey_simulation = SurveySimulation()
+            self.survey_explorer.initialize()
+            self.survey_simulation.set_param()
+            # Aggregates widget
+            if CONF.get('aggregates', 'enable'):
+                self.set_splash(_("Loading Aggregates..."))
+                self.aggregates = AggregatesWidget(self)
+                self.aggregates.register_plugin()
+            
+            # Distribution widget
+            if CONF.get('distribution', 'enable'):
+                self.set_splash(_("Loading Distribution..."))
+                self.distribution = DistributionWidget(self)
+                self.distribution.register_plugin()
+            
+            # Inequality widget
+            if CONF.get('inequality', 'enable'):
+                self.set_splash(_("Loading Inequality..."))
+                self.inequality = InequalityWidget(self)
+                self.inequality.register_plugin()
+
+            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
+                                                      "survey_toolbar")
+            self.survey_plugins  += [ self.aggregates, self.distribution, self.inequality]
         
+            for first, second in ((self.test_case_table, self.survey_explorer),
+                                  (self.survey_explorer, self.aggregates), 
+                                  (self.aggregates, self.distribution), 
+                                   (self.distribution, self.inequality),
+                                  ):
+                if first is not None and second is not None:
+                    self.tabifyDockWidget(first.dockwidget, second.dockwidget)
+
+
+        else:
+            for plugin in self.survey_plugins:
+                if plugin is not self.survey_explorer:
+                    self.removeDockWidget(plugin.dockwidget)
+#            self.update_windows_toolbars_menu()
+            
     def post_visible_setup(self):
         """
         Actions to be performed only after the main window's `show` method 
@@ -978,12 +1004,8 @@ class MainWindow(QMainWindow):
          is_fullscreen) = self.load_window_settings(prefix, default)
         
         self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
-        
-        if CONF.get('survey', 'enable'):
-            self.survey_plugins   = [ self.aggregates, self.distribution, self.inequality, self.survey_explorer]
-        else:
-            self.survey_plugins = []
-        
+
+                
         if hexstate is None:
             # First Spyder execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
@@ -1012,6 +1034,9 @@ class MainWindow(QMainWindow):
             for plugin in self.test_case_plugins + self.survey_plugins:
                 if plugin is not None:
                     plugin.dockwidget.raise_()
+                    
+            if not CONF.get('survey', 'enable'):
+                self.survey_explorer.dockwidget.hide()
 #            for toolbar in (self.run_toolbar,):
 #                toolbar.close()
         
@@ -1523,10 +1548,12 @@ class MainWindow(QMainWindow):
             default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
         
+        print 'apply_settings'
         for child in self.widgetlist:
             features = child.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features|QDockWidget.DockWidgetVerticalTitleBar
+            print child
             child.dockwidget.setFeatures(features)
             child.update_margins()
         

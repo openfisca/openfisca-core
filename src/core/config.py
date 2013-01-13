@@ -144,7 +144,7 @@ DEFAULTS = [
               }),
             ('survey', 
              {
-              'enable': 'False',
+              'enable': 'True',
               'data_file':'countries/france/data/survey.h5',
               'reform': 'False',
               }),            
