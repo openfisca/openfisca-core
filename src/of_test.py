@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
         '''
         if CONF.get('survey', 'enable'):
             for plugin in self.survey_plugins:
-                plugin.refresh()
+                plugin.refresh_plugin()
 
         
     def debug_print(self, message):
