@@ -835,11 +835,11 @@ class MainWindow(QMainWindow):
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
  
-    def register_survey_widgets(self, bool = True):
+    def register_survey_widgets(self, boolean = True):
         """
         Registers enabled survey widgets
         """
-        if bool is True:
+        if boolean is True:
             self.survey_simulation = SurveySimulation()
             self.survey_explorer.initialize()
             self.survey_simulation.set_param()

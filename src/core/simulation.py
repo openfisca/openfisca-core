@@ -329,8 +329,6 @@ class ScenarioSimulation(Simulation):
     def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
         """
         Draws a bareme on matplotlib.axes.Axes
-        
-        
         """
         reforme = self.reforme 
         alter = (self.alternative_scenario is not None)
