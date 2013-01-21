@@ -40,7 +40,7 @@ import os, re, os.path as osp, shutil
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
-from spyderlib.utils import encoding
+from src.core.utils import encoding
 
 
 def get_home_dir():

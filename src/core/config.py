@@ -158,7 +158,7 @@ DEFAULTS = [
               }),
             ('parameters',
              {
-              'enable': 'True',
+              'enable': True,
               'country': 'france',
               'datesim': '2009-01-01',
               'reformes_dir': 'france/reformes',  

@@ -414,7 +414,6 @@ class MoyModel(QSortFilterProxyModel):
                     return False
                 self._bareme.setSeuilM(row,value.toInt()[0])
             if column == 1 : 
-                print value.toFloat()[0]
                 self._bareme.setTauxM(row,value.toFloat()[0])
                 
             self._bareme.moyToMar()
