@@ -8,7 +8,7 @@
 Environment variable utilities
 """
 
-from spyderlib.qt.QtGui import QDialog, QMessageBox
+from src.qt.QtGui import QDialog, QMessageBox
 
 import os
 

@@ -52,8 +52,8 @@ def start_file(filename):
     """Generalized os.startfile for all platforms supported by Qt
     (this function is simply wrapping QDesktopServices.openUrl)
     Returns True if successfull, otherwise returns False."""
-    from spyderlib.qt.QtGui import QDesktopServices
-    from spyderlib.qt.QtCore import QUrl
+    from src.qt.QtGui import QDesktopServices
+    from src.qt.QtCore import QUrl
 
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on

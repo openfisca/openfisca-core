@@ -1,12 +1,30 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1827, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1830, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1743, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1746, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 631, in setup
-    self.composition = CompositionWidget(self.scenario_simulation, self)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 62, in __init__
-    self.setupUi(self)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\views\ui_composition.py", line 199, in setupUi
-    Menage.setWidget(self.dockWidgetContents)
-AttributeError: 'CompositionWidget' object has no attribute 'setWidget'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 820, in setup
+    self.setup_layout(default=False)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1046, in setup_layout
+    self.composition.compute()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\tunisia\widgets\Composition.py", line 436, in compute
+    self.simulation.compute()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\simulation.py", line 252, in compute
+    input_table = DataTable(self.InputTable, scenario = self.scenario, datesim = self.datesim, country = self.country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\datatable.py", line 78, in __init__
+    scenario.populate_datatable(self)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\tunisia\utils.py", line 328, in populate_datatable
+    axes = build_axes('france')
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\tunisia\utils.py", line 399, in build_axes
+    axe = Xaxis(col_name, country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\utils.py", line 502, in __init__
+    self.set_label(country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\utils.py", line 510, in set_label
+    InputTable = of_import('model.data', 'InputTable', country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 896, in of_import
+    _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\model\data.py", line 20, in <module>
+    class InputTable(ModelDescription):
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\description.py", line 55, in __new__
+    raise Exception("The column before %s in class %s is defined twice"% (columns_list[i].name, name))
+Exception: The column before noi in class InputTable is defined twice

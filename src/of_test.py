@@ -650,8 +650,8 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading SurveyExplorer..."))
         self.survey_explorer.register_plugin()
         self.survey_plugins = [ self.survey_explorer]
-
-        if CONF.get('survey', 'enable'):
+        
+        if CONF.get('survey', 'enable') is True:
             self.register_survey_widgets(True)
      
         # Online help widget
@@ -839,6 +839,7 @@ class MainWindow(QMainWindow):
         """
         Registers enabled survey widgets
         """
+        self.debug_print("Register survey widgets")
         if boolean is True:
             self.survey_simulation = SurveySimulation()
             self.survey_explorer.initialize()
@@ -1548,12 +1549,10 @@ class MainWindow(QMainWindow):
             default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
         
-        print 'apply_settings'
         for child in self.widgetlist:
             features = child.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features|QDockWidget.DockWidgetVerticalTitleBar
-            print child
             child.dockwidget.setFeatures(features)
             child.update_margins()
         
@@ -1581,7 +1580,7 @@ class MainWindow(QMainWindow):
             widget.initialize()
             dlg.add_page(widget)
         
-        for plugin in [self.onlinehelp, ] + self.survey_plugins + self.test_case_plugins + self.thirdparty_plugins:
+        for plugin in [self.onlinehelp, self.parameters] + self.survey_plugins + self.test_case_plugins + self.thirdparty_plugins:
             if plugin is not None:
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:

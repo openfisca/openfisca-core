@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.qt.compat
+src.qt.compat
 -------------------
 
 Transitional module providing compatibility functions intended to help 

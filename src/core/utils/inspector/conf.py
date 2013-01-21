@@ -10,7 +10,7 @@
 from sphinx import __version__ as sphinx_version
 
 # Local imports
-from spyderlib.config import CONF
+from src.core.config import CONF
 
 #==============================================================================
 # General configuration
