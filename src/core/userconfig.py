@@ -260,10 +260,10 @@ class UserConfig(ConfigParser):
         value = ConfigParser.get(self, section, option, self.raw)
         default_value = self.get_default(section, option)
         
-        try:
+        try:   # really ugly
             from datetime import datetime
             value = datetime.strptime(value ,"%Y-%m-%d").date()
-            return value
+            return default_value
         except:
             pass
 

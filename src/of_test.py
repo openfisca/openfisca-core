@@ -839,8 +839,8 @@ class MainWindow(QMainWindow):
         """
         Registers enabled survey widgets
         """
-        self.debug_print("Register survey widgets")
         if boolean is True:
+            self.debug_print("Register survey widgets")
             self.survey_simulation = SurveySimulation()
             self.survey_explorer.initialize()
             self.survey_simulation.set_param()
@@ -1640,7 +1640,7 @@ class MainWindow(QMainWindow):
         """Load session"""
         if filename is None:
             filename, _selfilter = getopenfilename(self, _("Open session"),
-                        os.getcwdu(), _("Spyder sessions")+" (*.session.tar)")
+                        os.getcwdu(), _("Openfisca sessions")+" (*.session.tar)")
             if not filename:
                 return
         if self.close():

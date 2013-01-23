@@ -231,7 +231,7 @@ class ScenarioSimulation(Simulation):
 
     def compute(self, difference = True):
         """
-        Computes output_data from scenario
+        Computes output_data for the ScenarioSimulation
         
         Parameters
         ----------

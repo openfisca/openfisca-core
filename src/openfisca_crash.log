@@ -3,14 +3,12 @@ Traceback (most recent call last):
     mainwindow = run_spyder(app, options)
   File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1742, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 655, in setup
-    self.register_survey_widgets(True)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 857, in register_survey_widgets
-    self.distribution.register_plugin()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 447, in register_plugin
-    dist.set_simulation(self.main.survey_simulation)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 63, in set_simulation
-    self.by_var_choices = self.simulation.var_list
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\simulation.py", line 530, in var_list
-    return list(set(self.survey.description.col_names))
-AttributeError: 'NoneType' object has no attribute 'description'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 622, in setup
+    self.parameters = ParamWidget(self)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\general\Parametres.py", line 95, in __init__
+    self.initialize()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\general\Parametres.py", line 115, in initialize
+    self._date = datetime.strptime(value ,"%Y-%m-%d").date()
+  File "C:\Python27\lib\_strptime.py", line 325, in _strptime
+    (data_string, format))
+ValueError: time data '01 janv. 2007' does not match format '%Y-%m-%d'
