@@ -174,7 +174,7 @@ DEFAULTS = [
               'show_diff': True,
               'show_diff_rel': True,
               'show_diff_abs': True,
-              'show_default': True,
+              'show_default': False,
               'table/format': 'xls',
               'table/export_dir': os.path.expanduser('~'),
               }),
