@@ -839,6 +839,12 @@ class MainWindow(QMainWindow):
         """
         Registers enabled survey widgets
         """
+        
+        
+        for plugin in self.survey_plugins:
+            if plugin is not self.survey_explorer:
+                self.removeDockWidget(plugin.dockwidget)
+
         if boolean is True:
             self.debug_print("Register survey widgets")
             self.survey_simulation = SurveySimulation()
@@ -875,10 +881,6 @@ class MainWindow(QMainWindow):
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
 
 
-        else:
-            for plugin in self.survey_plugins:
-                if plugin is not self.survey_explorer:
-                    self.removeDockWidget(plugin.dockwidget)
 #            self.update_windows_toolbars_menu()
             
     def post_visible_setup(self):

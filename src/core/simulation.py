@@ -405,8 +405,7 @@ class SurveySimulation(Simulation):
                 filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
         
         self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim, country = country)
-        print self.survey
-        print self.survey.survey_year
+
         self._build_dicts(option = 'input_only')
 
     def compute(self):
