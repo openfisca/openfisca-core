@@ -269,6 +269,9 @@ class DataTable(object):
     def __str__(self):
         return self.table.__str__()
 
+    def inflate(self, varname, inflator):
+        self.table[varname] = inflator*self.table[varname]
+
 
 class SystemSf(DataTable):
     def __init__(self, model_description, param, defaultParam = None, datesim = None, country = None):

@@ -408,6 +408,26 @@ class SurveySimulation(Simulation):
 
         self._build_dicts(option = 'input_only')
 
+    def inflate_survey(self, inflators):
+        """
+        Inflate some variable of the survey data
+        
+        Parameters
+        ----------
+        
+        inflators : dict or DataFrame which keys or variable column contains the variable to inflate 
+        and values of the value column the value of the inflator
+        """
+        
+        if isinstance(inflators, DataFrame):
+            for varname in inflators['variable']:
+                inflators.set_index('variable')
+                inflator = inflators.get_value(varname, 'value')
+                self.survey.inflate(varname, inflator)
+        if isinstance(inflators, dict):
+            for varname, inflator in inflators.iteritems():
+                self.survey.inflate(varname, inflator)
+
     def compute(self):
         """
         Computes output_data from scenario
