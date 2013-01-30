@@ -1,16 +1,30 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1826, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1828, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1742, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1744, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 655, in setup
-    self.register_survey_widgets(True)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 850, in register_survey_widgets
-    self.aggregates = AggregatesWidget(self)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\aggregates.py", line 421, in __init__
-    self.show_diff = self.get_option('show_diff ')
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\__init__.py", line 226, in get_option
-    return CONF.get(self.CONF_SECTION, option, default)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 255, in get
-    raise NoOptionError(option, section)
-NoOptionError: No option 'show_diff ' in section: 'aggregates'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 818, in setup
+    self.setup_layout(default=False)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1046, in setup_layout
+    self.composition.compute()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 461, in compute
+    self.simulation.compute()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\simulation.py", line 259, in compute
+    data = gen_output_data(output, filename = self.totaux_file)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 103, in gen_output_data
+    handle_output_xml(_doc, tree, model)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 76, in handle_output_xml
+    handle_output_xml(element, child, model, unit)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 76, in handle_output_xml
+    handle_output_xml(element, child, model, unit)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 76, in handle_output_xml
+    handle_output_xml(element, child, model, unit)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 76, in handle_output_xml
+    handle_output_xml(element, child, model, unit)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\utils_old.py", line 84, in handle_output_xml
+    model.calculate(tree.code)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\datatable.py", line 400, in calculate
+    self.set_value(varname, col._func(**funcArgs), idx)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\model\pfam.py", line 221, in _asf
+    no_alr = (not (alr.sum() > 0))
+AttributeError: 'dict' object has no attribute 'sum'
