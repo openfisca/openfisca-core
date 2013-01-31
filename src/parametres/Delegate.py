@@ -83,9 +83,9 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         
-        from src.core.utils_old import of_import
-        currency = of_import('utils', 'currency', 'france') # TODO: should be more general
-        year = "an"
+        from src.countries.france import CURRENCY
+        currency = CURRENCY
+        year = "an"  # TODO: localization
         years = "ans"
         
         
@@ -218,7 +218,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
                 textColor = QPalette.WindowText
             
             col = index.column()
-            val = index.model().data(index).toFloat()[0]
+            val = from_qvariant(index.model().data(index))
             if col == 1:
                 text = '%.2f %%  ' % (val*100)
             else:
@@ -246,7 +246,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         col = index.column()
-        val = index.model().data(index).toFloat()[0]
+        val = from_qvariant(index.model().data(index))[0]
         if col == 1:
             editor.setValue(val*100)
         else:
@@ -367,8 +367,8 @@ class MarModel(QAbstractTableModel):
         if role == Qt.EditRole:
             row = index.row()
             column = index.column()
-            if column == 0 : self._bareme.setSeuil(row,value.toInt()[0])
-            if column == 1 : self._bareme.setTaux(row,value.toFloat()[0])
+            if column == 0 : self._bareme.setSeuil(row, from_qvariant(value))
+            if column == 1 : self._bareme.setTaux(row, from_qvariant(value))
             self._bareme.marToMoy()
             self.dataChanged.emit(index, index)
             return True
@@ -412,9 +412,9 @@ class MoyModel(QSortFilterProxyModel):
             if column == 0 :
                 if row == self.rowCount(QModelIndex())-1:
                     return False
-                self._bareme.setSeuilM(row,value.toInt()[0])
+                self._bareme.setSeuilM(row, from_qvariant(value))
             if column == 1 : 
-                self._bareme.setTauxM(row,value.toFloat()[0])
+                self._bareme.setTauxM(row, from_qvariant(value))
                 
             self._bareme.moyToMar()
             self.dataChanged.emit(index, index)
