@@ -146,10 +146,10 @@ class ValueColumnDelegate(QStyledItemDelegate):
     
     def createEditor(self, parent, option, index):
         
-        from src.core.utils_old import of_import
-        from src.core.config import CONF
-        country = CONF.get('parameters','country')
-        currency = of_import('utils', 'currency', country)
+
+        from src.countries.france import CURRENCY
+
+        currency = CURRENCY
         
         node = index.internalPointer()
         if node.typeInfo == 'CODE':
@@ -246,7 +246,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         col = index.column()
-        val = from_qvariant(index.model().data(index))[0]
+        val = from_qvariant(index.model().data(index))
         if col == 1:
             editor.setValue(val*100)
         else:
