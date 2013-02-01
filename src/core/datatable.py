@@ -141,7 +141,7 @@ class DataTable(object):
         if self.country is None:
             raise Exception('DataTable: country key word variable must be set') 
                
-        INDEX = of_import(None, 'ENTITIES_INDEX', self.country)
+        INDEX = of_import(None, 'ENTITIES_INDEX', self.country) # import ENTITIES_INDEX from country.__init__.py
         
         if fname[-4:] == '.csv':
             with open(fname) as survey_data_file:
@@ -206,13 +206,23 @@ class DataTable(object):
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
         '''
-        method to read the value in an array
-        index is a dict with the coordinates of each person in the array
+        Read the value in an array
+        
+        Parameters
+        ----------
+        index : dict
+             dict of the coordinates of each person in the array
             - if index is none, returns the whole column (every person)
             - if index is not none, return an array of length len(unit)
-        opt is a dict with the id of the person for which you want the value
+        opt : dict
+             dict with the id of the person for which you want the value
             - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men')
             - if opt is not None, return a dict with key 'person' and values for this person
+        
+        Returns
+        -------
+        sumout: array
+        
         '''
         col = self.description.get_col(varname)
         dflt = col._default

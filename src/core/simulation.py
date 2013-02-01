@@ -415,8 +415,9 @@ class SurveySimulation(Simulation):
         Parameters
         ----------
         
-        inflators : dict or DataFrame which keys or variable column contains the variable to inflate 
-        and values of the value column the value of the inflator
+        inflators : dict or DataFrame 
+                    keys or a variable column should contain the variables to 
+                    inflate and values of the value column the value of the inflator
         """
         
         if isinstance(inflators, DataFrame):
@@ -438,13 +439,38 @@ class SurveySimulation(Simulation):
         self.outputs, self.outputs_default = self._calculate_all()
         self._build_dicts(option = 'output_only')
 
-    def aggregated_by_household(self, varlist = None, all_output_vars = True, all_input_vars = False):
+
+    def aggregated_by_entity(self, entity = None, varlist = None, all_output_vars = True, all_input_vars = False):
         """
-        Generates aggregates at the household level ('men')
+        Generates aggregates at entity level
+        
+        Parameters
+        ----------
+        
+        entity : string, default None 
+                 one of the entities which list can be found in countries.country.__init__.py
+                 when None the first entity of ENTITIES_INDEX is used
+        varlist : list
+                 variables to aggregate
+        all_output_vars : boolean, default True
+                          If True select all output variables
+        all_output_vars : boolean, default False
+                          If True select all input variables
+                          
+        Returns
+        -------
+        out_tables[0], out_tables[1]: DataFrame
+        
+                          
         """
+              
         if self.outputs is None:
             raise Exception('self.outputs should not be None')
-        
+  
+        if entity is None:
+            ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', self.country) # import ENTITIES_INDEX from country.__init__.py
+            entity = ENTITIES_INDEX[0]
+            
         models = [self.outputs]
         if self.reforme is True:
             models.append(self.outputs_default) 
@@ -454,10 +480,13 @@ class SurveySimulation(Simulation):
         for model in models:
             out_dct = {}
             inputs = model._inputs
-            unit = 'men'
-            idx = model.index[unit]
-            enum = inputs.description.get_col('qui'+unit).enum
-            people = [x[1] for x in enum]
+            idx = model.index[entity]
+            try:
+                enum = inputs.description.get_col('qui'+entity).enum
+                people = [x[1] for x in enum]
+                
+            except:
+                people = None
 
             input_varlist = set(['wprm'])
             if all_input_vars:           
@@ -473,7 +502,7 @@ class SurveySimulation(Simulation):
             varnames = output_varlist.union(input_varlist)
             for varname in varnames:
                 if varname in model.col_names:
-                    if model.description.get_col(varname)._unit != unit:
+                    if model.description.get_col(varname)._unit != entity:
                         val = model.get_value(varname, idx, opt = people, sum_ = True)    
                     else:
                         val = model.get_value(varname, idx)
@@ -491,7 +520,7 @@ class SurveySimulation(Simulation):
                 out_tables.append(None)
                 
         return out_tables[0], out_tables[1]
-
+        
 
     def _calculate_all(self):
         """
