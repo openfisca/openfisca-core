@@ -304,9 +304,19 @@ class SystemSf(DataTable):
         return self._primitives
 
     def reset(self):
-        """ sets all columns as not calculated """
+        """ 
+        Sets all columns as not calculated 
+        """
         for col in self.description.columns.itervalues():
             col._isCalculated = False
+                
+    def disable(self, disabled_prestations):
+        """
+        Sets some column as calculated so they are cot evaluated and keep their default value
+        """
+        if disabled_prestations is not None:
+            for colname in disabled_prestations:
+                self.description.columns[colname]._isCalculated = True
     
     def build(self):
         # Build the closest dependencies  
@@ -333,6 +343,7 @@ class SystemSf(DataTable):
 #        for prim in self._primitives:
 #            if not prim in inputs.col_names:
 #                raise Exception('%s is a required input and was not found in inputs' % prim)
+
         # store inputs and indexes and nrows
         self._inputs = inputs
         self.index = inputs.index
@@ -347,6 +358,7 @@ class SystemSf(DataTable):
         
         self.table = DataFrame(dct)
         
+        # Preprocess the input data according to country specification
         if country is None:
             country = 'france'
         preproc_inputs = of_import('utils','preproc_inputs', country = country)
@@ -357,6 +369,13 @@ class SystemSf(DataTable):
     def calculate(self, varname = None):
         '''
         Solver: finds dependencies and calculate accordingly all needed variables 
+        
+        Parameters
+        ----------
+        
+        varname : string, default None
+                  By default calculate all otherwise, calculate only one variable
+        
         '''
         if varname is None:
             for col in self.description.columns.itervalues():

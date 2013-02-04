@@ -40,6 +40,7 @@ class Simulation(object):
         self.P_default = None
         self.totaux_file = None
         self.param_file = None
+        self.disabled_prestations = None
         
     def _set_config(self, **kwargs):
         """
@@ -82,7 +83,7 @@ class Simulation(object):
                         
     def set_param(self, param=None, param_default=None):
         """
-        Sets the parameters of the simulation
+        Set the parameters of the simulation
         
         Parameters
         ----------
@@ -107,7 +108,18 @@ class Simulation(object):
             self.P.datesim = self.datesim
         else:
             self.P = param
-            
+    
+    def disable_prestations(self, disabled_prestations = None):
+        """
+        Disable some prestations that will remain to their default value
+        
+        Parameters
+        ----------
+        
+        disabled_prestations : list of strings, default None
+                               names of the prestations to be disabled
+        """
+        self.disabled_prestations = disabled_prestations
               
     def compute(self):
         NotImplementedError          
@@ -115,6 +127,11 @@ class Simulation(object):
     def _preproc(self, input_table):
         """
         Prepare the output values according to the ModelSF definitions/Reform status/input_table
+        
+        Parameters
+        ----------
+        
+        input_table : TODO: complete
         """
         P_default = self.P_default     
         P         = self.P                 
@@ -127,6 +144,9 @@ class Simulation(object):
         else:
             output_default = output
     
+        output.disable(self.disabled_prestations)
+        output_default.disable(self.disabled_prestations)
+
         return output, output_default
 
 
@@ -194,7 +214,7 @@ class ScenarioSimulation(Simulation):
         descr =  [u'OpenFisca', 
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % str(self.datesim)]
-        # TODO: addd other parameters
+        # TODO: add other parameters
         
         return DataFrame(descr)
     
@@ -255,11 +275,12 @@ class ScenarioSimulation(Simulation):
         else:
             input_table_alter = DataTable(self.InputTable, scenario = self.alternative_scenario, datesim = self.datesim, country = self.country)
             output, output_default = self.preproc_alter_scenario(input_table_alter, input_table)
-        
+            
         data = gen_output_data(output, filename = self.totaux_file)
         
         if self.reforme or alter:
             output_default.reset()
+            output_default.disable(self.disabled_prestations)
             data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take out gen_output_data form core.utils
             if difference:
                 data.difference(data_default)            
@@ -275,6 +296,12 @@ class ScenarioSimulation(Simulation):
         """
         Prepare the output values according to the ModelSF definitions and 
         input_table when an alternative scenario is present
+        
+        Parameters
+        ---------
+        
+        input_table_alter : TODO: complete
+        input_table : TODO: complete
         """
         P_default = self.P_default     
         P         = self.P         
@@ -285,9 +312,12 @@ class ScenarioSimulation(Simulation):
         output_alter = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
         output_alter.set_inputs(input_table_alter, country = self.country)
     
+        output.disable(self.disabled_prestations)
+        output_alter.disable(self.disabled_prestations)
+    
         return output_alter, output
 
-    def get_results_dataframe(self, default = False, difference = True, index_by_code = False):
+    def get_results_dataframe(self, default = False, difference = True, index_by_code = False, ):
         """
         Formats data into a dataframe
         
@@ -305,8 +335,12 @@ class ScenarioSimulation(Simulation):
         -------
         df : A DataFrame with computed data according to totaux_file
         """
-        data, data_default = self.compute(difference = difference)
-        
+        if self.data is None:
+            data, data_default = self.compute(difference = difference)        
+        else:
+            data = self.data
+            data_default = self.data_default
+            
         data_dict = dict()
         index = []
         
@@ -436,7 +470,19 @@ class SurveySimulation(Simulation):
         # Clear outputs
         self.clear()
         gc.collect()
-        self.outputs, self.outputs_default = self._calculate_all()
+                
+        input_table = self.survey
+        output, output_default = self._preproc(input_table)
+        
+        output.calculate()
+        if self.reforme:
+            output_default.reset()
+            output_default.disable(self.disabled_prestations)
+            output_default.calculate()
+        else:
+            output_default = output
+        
+        self.outputs, self.outputs_default = output, output_default
         self._build_dicts(option = 'output_only')
 
 
@@ -460,7 +506,6 @@ class SurveySimulation(Simulation):
         Returns
         -------
         out_tables[0], out_tables[1]: DataFrame
-        
                           
         """
               
@@ -530,17 +575,7 @@ class SurveySimulation(Simulation):
         -------
         output, output_default
         """
-        input_table = self.survey
-        output, output_default = self._preproc(input_table)
-        
-        output.calculate()
-        if self.reforme:
-            output_default.reset()
-            output_default.calculate()
-        else:
-            output_default = output
 
-        return output, output_default
 
     def clear(self):
         """
@@ -570,7 +605,7 @@ class SurveySimulation(Simulation):
     @property
     def var_list(self):
         """
-        List of variables pesent in survey and output
+        List the variables present in survey and output
         """
         try:
             return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
