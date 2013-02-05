@@ -843,7 +843,7 @@ from src.widgets.matplotlibwidget import MatplotlibWidget
 
 def test():
     import sys
-    from PyQt4.QtGui import QMainWindow, QApplication
+    from src.qt.QtGui import QMainWindow, QApplication
     
     class ApplicationWindow(QMainWindow):
         def __init__(self):

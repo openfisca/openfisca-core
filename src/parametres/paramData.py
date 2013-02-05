@@ -23,11 +23,11 @@ This file is part of openFisca.
     
 from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
-from src.core.utils_old import Bareme
-from datetime import datetime
-from src.core.config import CONF
-
 from src.qt.compat import from_qvariant
+from src.core.config import CONF
+from datetime import datetime
+
+from src.core.utils_old import Bareme
 
 
 class Tree2Object(object):
