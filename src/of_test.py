@@ -624,7 +624,7 @@ class MainWindow(QMainWindow):
                                                 
         # Test case widgets
         self.scenario_simulation = ScenarioSimulation()
-        self.scenario = self.scenario_simulation.scenario
+#        self.scenario = self.scenario_simulation.scenario
         CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
         
         self.set_splash(_("Loading Test case composer ..."))
@@ -652,8 +652,10 @@ class MainWindow(QMainWindow):
         self.survey_plugins = [ self.survey_explorer]
         
         if CONF.get('survey', 'enable') is True:
-            self.register_survey_widgets(True)
-     
+            try:
+                self.register_survey_widgets(True)
+            except:
+                pass
         # Online help widget
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
             self.set_splash(_("Loading online help..."))

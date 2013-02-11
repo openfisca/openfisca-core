@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1828, in main
+    mainwindow = run_spyder(app, options)
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1744, in run_spyder
+    main.setup()
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 655, in setup
+    self.register_survey_widgets(True)
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 863, in register_survey_widgets
+    self.distribution.register_plugin()
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/plugins/survey/distribution.py", line 480, in register_plugin
+    dist.set_simulation(self.main.survey_simulation)
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/plugins/survey/distribution.py", line 72, in set_simulation
+    self.by_var_choices = self.simulation.var_list
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/core/simulation.py", line 613, in var_list
+    return list(set(self.survey.description.col_names))
+AttributeError: 'NoneType' object has no attribute 'description'
