@@ -17,11 +17,10 @@ import sip
 if API == 'pyqt':
     # We do not force QString, QVariant, ... API to #1 or #2 anymore 
     # as spyderlib is now compatible with both APIs
-#    import sip
     try:
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
-    except AttributeError:
+    except: # AttributeError:
         # PyQt < v4.6: in future version, we should warn the user 
         # that PyQt is outdated and won't be supported by Spyder >v2.1
         pass

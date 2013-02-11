@@ -543,7 +543,7 @@ class SurveySimulation(Simulation):
                 output_varlist = set(model.col_names).intersection(varlist)
             if all_output_vars:
                 output_varlist = set(model.col_names)
-                
+            
             varnames = output_varlist.union(input_varlist)
             for varname in varnames:
                 if varname in model.col_names:
