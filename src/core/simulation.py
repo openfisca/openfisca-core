@@ -389,7 +389,6 @@ class ScenarioSimulation(Simulation):
         drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
         
         
-        
 
 class SurveySimulation(Simulation):
     """
@@ -631,3 +630,16 @@ class SurveySimulation(Simulation):
             self.label2var.update(l2v)
             self.var2label.update(v2l)
             self.var2enum.update(v2e)
+
+
+    def get_col(self, varname):
+        '''
+        Looks for a column in inputs description, then in outputs description
+        '''
+        if self.survey.description.has_col(varname):
+            return self.survey.description.get_col(varname)
+        elif self.outputs.description.has_col(varname):
+            return self.outputs.description.get_col(varname)
+        else:
+            print "Variable %s is absent from both inputs and outputs" % varname
+            return None
