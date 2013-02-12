@@ -1,0 +1,965 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0xb6d09578, pid=29024, tid=3076601536
+#
+# JRE version: 6.0_24-b24
+# Java VM: OpenJDK Client VM (20.0-b12 mixed mode, sharing linux-x86 )
+# Derivative: IcedTea6 1.11.4
+# Distribution: Debian GNU/Linux unstable (sid), package 6b24-1.11.4-3
+# Problematic frame:
+# V  [libjvm.so+0x235578]  JNI_ArgumentPusherVaArg::JNI_ArgumentPusherVaArg(Thread*, _jmethodID*, char*)+0x18
+#
+# If you would like to submit a bug report, please include
+# instructions how to reproduce the bug and visit:
+#   http://icedtea.classpath.org/bugzilla
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x09317800):  JavaThread "main" [_thread_in_vm, id=29024, stack(0xbfc03000,0xbfc53000)]
+
+siginfo:si_signo=SIGSEGV: si_errno=0, si_code=1 (SEGV_MAPERR), si_addr=0x00000000
+
+Registers:
+EAX=0x00000000, EBX=0xb6ffc584, ECX=0xb779a000, EDX=0xb700f3cc
+ESP=0xbfc4f7a4, EBP=0x00000000, ESI=0xbfc4f808, EDI=0xbfc4f808
+EIP=0xb6d09578, EFLAGS=0x00210296, CR2=0x00000000
+
+Top of Stack: (sp=0xbfc4f7a4)
+0xbfc4f7a4:   00000000 00000000 b3edaabd 00000001
+0xbfc4f7b4:   648c0758 b6ffc584 09317800 b6d04210
+0xbfc4f7c4:   bfc4f808 09317800 00000000 bfc4f888
+0xbfc4f7d4:   00000002 09318090 b3fb7ff4 b6d090da
+0xbfc4f7e4:   b3ee8856 b3fb7ff4 0000000a b6ffc584
+0xbfc4f7f4:   09317800 09317800 00000000 b6cf944c
+0xbfc4f804:   09317800 00000006 00000004 b6cf633c
+0xbfc4f814:   00010002 bfc4f854 b4009ff4 00000000 
+
+Instructions: (pc=0xb6d09578)
+0xb6d09558:   00 00 58 5b 5e c3 90 90 56 53 83 ec 14 e8 e1 75
+0xb6d09568:   e1 ff 81 c3 1a 30 2f 00 8b 44 24 28 8b 74 24 20
+0xb6d09578:   8b 00 8b 50 08 8b 40 0c 66 8b 52 2a 81 e2 ff ff
+0xb6d09588:   00 00 8b 44 90 28 89 34 24 89 44 24 08 8b 44 24 
+
+Register to memory mapping:
+
+EAX=0x00000000 is an unknown value
+EBX=0xb6ffc584: <offset 0x528584> in /usr/lib/jvm/java-6-openjdk-i386/jre/bin/../lib/i386/client/libjvm.so at 0xb6ad4000
+ECX=0xb779a000 is an unknown value
+EDX=0xb700f3cc: <offset 0x53b3cc> in /usr/lib/jvm/java-6-openjdk-i386/jre/bin/../lib/i386/client/libjvm.so at 0xb6ad4000
+ESP=0xbfc4f7a4 is pointing into the stack for thread: 0x09317800
+EBP=0x00000000 is an unknown value
+ESI=0xbfc4f808 is pointing into the stack for thread: 0x09317800
+EDI=0xbfc4f808 is pointing into the stack for thread: 0x09317800
+
+
+Stack: [0xbfc03000,0xbfc53000],  sp=0xbfc4f7a4,  free space=305k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0x235578]  JNI_ArgumentPusherVaArg::JNI_ArgumentPusherVaArg(Thread*, _jmethodID*, char*)+0x18
+
+[error occurred during error reporting (printing native stack), id 0xb]
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+J  org.eclipse.swt.internal.gtk.OS._gtk_main_do_event(I)V
+J  org.eclipse.swt.widgets.Display.eventProc(II)I
+v  ~StubRoutines::call_stub
+J  org.eclipse.swt.internal.gtk.OS._g_main_context_iteration(IZ)Z
+J  org.eclipse.swt.widgets.Display.readAndDispatch()Z
+j  org.eclipse.swt.widgets.Display.release()V+67
+j  org.eclipse.swt.graphics.Device.dispose()V+50
+j  com.aptana.rcp.IDEApplication.start(Lorg/eclipse/equinox/app/IApplicationContext;)Ljava/lang/Object;+158
+j  org.eclipse.equinox.internal.app.EclipseAppHandle.run(Ljava/lang/Object;)Ljava/lang/Object;+135
+j  org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(Ljava/lang/Object;)Ljava/lang/Object;+103
+j  org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(Ljava/lang/Object;)Ljava/lang/Object;+29
+j  org.eclipse.core.runtime.adaptor.EclipseStarter.run(Ljava/lang/Object;)Ljava/lang/Object;+149
+j  org.eclipse.core.runtime.adaptor.EclipseStarter.run([Ljava/lang/String;Ljava/lang/Runnable;)Ljava/lang/Object;+183
+v  ~StubRoutines::call_stub
+j  sun.reflect.NativeMethodAccessorImpl.invoke0(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+0
+j  sun.reflect.NativeMethodAccessorImpl.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+87
+j  sun.reflect.DelegatingMethodAccessorImpl.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+6
+j  java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;+161
+j  org.eclipse.equinox.launcher.Main.invokeFramework([Ljava/lang/String;[Ljava/net/URL;)V+211
+j  org.eclipse.equinox.launcher.Main.basicRun([Ljava/lang/String;)V+126
+j  org.eclipse.equinox.launcher.Main.run([Ljava/lang/String;)I+4
+v  ~StubRoutines::call_stub
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x0937a800 JavaThread "Keep-Alive-Timer" daemon [_thread_blocked, id=1911, stack(0xac3d4000,0xac425000)]
+  0x099e1c00 JavaThread "Worker-109" [_thread_blocked, id=1906, stack(0xb2a23000,0xb2a74000)]
+  0x09849c00 JavaThread "Worker-108" [_thread_blocked, id=1905, stack(0xac476000,0xac4c7000)]
+  0x0984e400 JavaThread "Worker-107" [_thread_blocked, id=1320, stack(0xac2e1000,0xac332000)]
+  0x099e2c00 JavaThread "Worker-106" [_thread_blocked, id=1319, stack(0xac4c7000,0xac518000)]
+  0x09645800 JavaThread "Worker-105" [_thread_blocked, id=1270, stack(0xac5ba000,0xac60b000)]
+  0xab88b400 JavaThread "Worker-95" [_thread_blocked, id=616, stack(0xac332000,0xac383000)]
+  0x097e6400 JavaThread "Worker-87" [_thread_blocked, id=32397, stack(0xac6ad000,0xac6fe000)]
+  0xac05f800 JavaThread "Thread-730" [_thread_blocked, id=31552, stack(0xb2e6b000,0xb2ebc000)]
+  0xaba56400 JavaThread "Provisioning Event Dispatcher" daemon [_thread_blocked, id=29117, stack(0xab9af000,0xaba00000)]
+  0xac1fe800 JavaThread "MultiThreadedHttpConnectionManager cleanup" daemon [_thread_blocked, id=29112, stack(0xabb6b000,0xabbbc000)]
+  0x0955e800 JavaThread "INotify thread" daemon [_thread_in_native, id=29110, stack(0xb20af000,0xb2100000)]
+  0x095d4c00 JavaThread "Shell reader (stderr)" daemon [_thread_in_native, id=29108, stack(0xb224d000,0xb229e000)]
+  0x09421400 JavaThread "Shell reader (stdout)" daemon [_thread_in_native, id=29107, stack(0xb24eb000,0xb253c000)]
+  0x09546c00 JavaThread "process reaper" daemon [_thread_in_native, id=29105, stack(0xac23e000,0xac28f000)]
+  0xb264d800 JavaThread "CommandLineArgsServer" [_thread_in_native, id=29099, stack(0xac290000,0xac2e1000)]
+  0x0973ac00 JavaThread "Java indexing" daemon [_thread_blocked, id=29079, stack(0xac98e000,0xac9df000)]
+  0x09732000 JavaThread "[ThreadPool Manager] - Idle Thread" daemon [_thread_blocked, id=29078, stack(0xb243e000,0xb248f000)]
+  0x094c1400 JavaThread "Thread-7" daemon [_thread_blocked, id=29070, stack(0xb2568000,0xb25b9000)]
+  0xb2338800 JavaThread "Bundle File Closer" daemon [_thread_blocked, id=29060, stack(0xb229e000,0xb22ef000)]
+  0x094bf800 JavaThread "Worker-JM" [_thread_blocked, id=29050, stack(0xb2dc9000,0xb2e1a000)]
+  0x093e1c00 JavaThread "[Timer] - Main Queue Handler" daemon [_thread_blocked, id=29049, stack(0xb2e1a000,0xb2e6b000)]
+  0x093c2c00 JavaThread "Framework Event Dispatcher" daemon [_thread_blocked, id=29047, stack(0xb2ebc000,0xb2f0d000)]
+  0xb3001c00 JavaThread "Start Level Event Dispatcher" daemon [_thread_blocked, id=29046, stack(0xb2f0d000,0xb2f5e000)]
+  0xb3004000 JavaThread "State Data Manager" daemon [_thread_blocked, id=29045, stack(0xb2f5e000,0xb2faf000)]
+  0xb304e000 JavaThread "Framework Active Thread" [_thread_blocked, id=29044, stack(0xb2faf000,0xb3000000)]
+  0xb4100c00 JavaThread "Low Memory Detector" daemon [_thread_blocked, id=29042, stack(0xb40af000,0xb4100000)]
+  0x0934fc00 JavaThread "C1 CompilerThread0" daemon [_thread_blocked, id=29041, stack(0xb4214000,0xb4295000)]
+  0x0934e000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=29040, stack(0xb4295000,0xb42e6000)]
+  0x0934a400 JavaThread "Finalizer" daemon [_thread_blocked, id=29039, stack(0xb42e6000,0xb4337000)]
+  0x09345c00 JavaThread "Reference Handler" daemon [_thread_blocked, id=29038, stack(0xb4337000,0xb4388000)]
+=>0x09317800 JavaThread "main" [_thread_in_vm, id=29024, stack(0xbfc03000,0xbfc53000)]
+
+Other Threads:
+  0x09343c00 VMThread [stack: 0xb4388000,0xb4409000] [id=29037]
+  0xb4103400 WatcherThread [stack: 0xb402e000,0xb40af000] [id=29043]
+
+VM state:not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap
+ def new generation   total 61952K, used 15525K [0x62c20000, 0x66f50000, 0x6d6c0000)
+  eden space 55104K,  28% used [0x62c20000, 0x63b495f0, 0x661f0000)
+  from space 6848K,   0% used [0x661f0000, 0x661f0000, 0x668a0000)
+  to   space 6848K,   0% used [0x668a0000, 0x668a0000, 0x66f50000)
+ tenured generation   total 137436K, used 81010K [0x6d6c0000, 0x75cf7000, 0x82c20000)
+   the space 137436K,  58% used [0x6d6c0000, 0x725dc8a0, 0x725dca00, 0x75cf7000)
+ compacting perm gen  total 68608K, used 68564K [0x82c20000, 0x86f20000, 0x92c20000)
+   the space 68608K,  99% used [0x82c20000, 0x86f151a0, 0x86f15200, 0x86f20000)
+    ro space 10240K,  73% used [0x92c20000, 0x93380318, 0x93380400, 0x93620000)
+    rw space 12288K,  60% used [0x93620000, 0x93d68e50, 0x93d69000, 0x94220000)
+
+Code Cache  [0xb4913000, 0xb557b000, 0xb6913000)
+ total_blobs=5843 nmethods=5629 adapters=147 free_code_cache=20560832 largest_free_block=384
+
+Dynamic libraries:
+08048000-0804c000 r-xp 00000000 08:03 880107     /usr/local/Aptana Studio 3/AptanaStudio3
+0804c000-0804d000 rw-p 00003000 08:03 880107     /usr/local/Aptana Studio 3/AptanaStudio3
+0930d000-09b30000 rw-p 00000000 00:00 0          [heap]
+62c20000-66f50000 rw-p 00000000 00:00 0 
+66f50000-6d6c0000 rw-p 00000000 00:00 0 
+6d6c0000-75cf7000 rw-p 00000000 00:00 0 
+75cf7000-82c20000 rw-p 00000000 00:00 0 
+82c20000-86f20000 rw-p 00000000 00:00 0 
+86f20000-875a0000 ---p 00000000 00:00 0 
+875a0000-92c20000 rw-p 00000000 00:00 0 
+92c20000-93381000 r--s 00001000 08:03 1775477    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/classes.jsa
+93381000-93620000 rw-p 00000000 00:00 0 
+93620000-93d69000 rw-p 00762000 08:03 1775477    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/classes.jsa
+93d69000-94220000 rw-p 00000000 00:00 0 
+94220000-9431c000 rw-p 00eab000 08:03 1775477    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/classes.jsa
+9431c000-94620000 rw-p 00000000 00:00 0 
+94620000-94628000 r-xs 00fa7000 08:03 1775477    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/classes.jsa
+94628000-94a20000 rw-p 00000000 00:00 0 
+a1c00000-a1d96000 rw-p 00000000 00:00 0 
+a1d96000-a1e00000 ---p 00000000 00:00 0 
+a1e00000-a1e73000 rw-p 00000000 00:00 0 
+a1e73000-a1f00000 ---p 00000000 00:00 0 
+a1f00000-a2000000 rw-p 00000000 00:00 0 
+a2000000-a20fc000 rw-p 00000000 00:00 0 
+a20fc000-a2100000 ---p 00000000 00:00 0 
+a212a000-a2149000 rw-p 00000000 00:00 0 
+a2168000-a2268000 rw-p 00000000 00:00 0 
+a2268000-a22ae000 r--p 00000000 08:03 913244     /usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf
+a22ae000-a2372000 rw-p 00000000 00:00 0 
+a2372000-a238f000 r--s 0035e000 08:03 1010040    /usr/local/Aptana Studio 3/plugins/com.aptana.scripting_3.0.0.1341241194.jar
+a238f000-a23a6000 r--s 00174000 08:03 360633     /usr/local/Aptana Studio 3/plugins/org.python.pydev.jython_2.6.0.2012062515/pydev-jython.jar
+a23a6000-a27c5000 rw-p 00000000 00:00 0 
+a27d8000-a27e4000 r--s 00083000 08:03 1011933    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.workbench.texteditor_3.7.0.v20110928-1504.jar
+a27e4000-a27e5000 ---p 00000000 00:00 0 
+a27e5000-a2fe5000 rw-p 00000000 00:00 0 
+a2fe5000-a2fe6000 ---p 00000000 00:00 0 
+a2fe6000-a37e6000 rw-p 00000000 00:00 0 
+a37e6000-a37e7000 ---p 00000000 00:00 0 
+a37e7000-a3fe7000 rw-p 00000000 00:00 0 
+a3fe7000-a3fee000 r--p 00000000 08:05 3041637    /home/benjello/.config/dconf/user
+a3fee000-a3ff5000 r-xp 00000000 08:03 2217972    /usr/lib/i386-linux-gnu/gio/modules/libdconfsettings.so
+a3ff5000-a3ff6000 r--p 00006000 08:03 2217972    /usr/lib/i386-linux-gnu/gio/modules/libdconfsettings.so
+a3ff6000-a3ff7000 rw-p 00007000 08:03 2217972    /usr/lib/i386-linux-gnu/gio/modules/libdconfsettings.so
+a3ff7000-a401e000 r--p 00000000 08:03 1062129    /usr/share/glib-2.0/schemas/gschemas.compiled
+a401e000-a4022000 r-xp 00000000 08:03 2221915    /usr/lib/i386-linux-gnu/gio/modules/libgiognomeproxy.so
+a4022000-a4023000 r--p 00003000 08:03 2221915    /usr/lib/i386-linux-gnu/gio/modules/libgiognomeproxy.so
+a4023000-a4024000 rw-p 00004000 08:03 2221915    /usr/lib/i386-linux-gnu/gio/modules/libgiognomeproxy.so
+a4024000-a4025000 ---p 00000000 00:00 0 
+a4025000-a4825000 rw-p 00000000 00:00 0 
+a4825000-a482c000 r--p 00000000 08:03 358658     /usr/share/locale/fr/LC_MESSAGES/webkit-2.0.mo
+a482c000-a492c000 rw-p 00000000 00:00 0 
+a492c000-a492d000 ---p 00000000 00:00 0 
+a492d000-a512d000 rw-p 00000000 00:00 0 
+a512d000-a5220000 r-xp 00000000 08:03 2218639    /usr/lib/i386-linux-gnu/libasound.so.2.0.0
+a5220000-a5224000 r--p 000f2000 08:03 2218639    /usr/lib/i386-linux-gnu/libasound.so.2.0.0
+a5224000-a5225000 rw-p 000f6000 08:03 2218639    /usr/lib/i386-linux-gnu/libasound.so.2.0.0
+a5225000-a5276000 r-xp 00000000 08:03 2177361    /usr/lib/libhunspell-1.2.so.0.0.0
+a5276000-a527a000 rw-p 00051000 08:03 2177361    /usr/lib/libhunspell-1.2.so.0.0.0
+a527a000-a52a2000 r-xp 00000000 08:03 2218750    /usr/lib/i386-linux-gnu/libsmime3.so
+a52a2000-a52a3000 ---p 00028000 08:03 2218750    /usr/lib/i386-linux-gnu/libsmime3.so
+a52a3000-a52a5000 r--p 00028000 08:03 2218750    /usr/lib/i386-linux-gnu/libsmime3.so
+a52a5000-a52a6000 rw-p 0002a000 08:03 2218750    /usr/lib/i386-linux-gnu/libsmime3.so
+a52a6000-a52e1000 r-xp 00000000 08:03 2218764    /usr/lib/i386-linux-gnu/libssl3.so
+a52e1000-a52e2000 ---p 0003b000 08:03 2218764    /usr/lib/i386-linux-gnu/libssl3.so
+a52e2000-a52e4000 r--p 0003b000 08:03 2218764    /usr/lib/i386-linux-gnu/libssl3.so
+a52e4000-a52e5000 rw-p 0003d000 08:03 2218764    /usr/lib/i386-linux-gnu/libssl3.so
+a52e5000-a53e8000 r-xp 00000000 08:03 2175839    /usr/lib/libmozjs.so.2d
+a53e8000-a53ee000 rw-p 00103000 08:03 2175839    /usr/lib/libmozjs.so.2d
+a53ee000-a5411000 r-xp 00000000 08:03 2216020    /usr/lib/i386-linux-gnu/libjpeg.so.62.0.0
+a5411000-a5412000 rw-p 00022000 08:03 2216020    /usr/lib/i386-linux-gnu/libjpeg.so.62.0.0
+a5415000-a5435000 rw-p 00000000 00:00 0 
+a5435000-a6443000 r-xp 00000000 08:03 2183722    /usr/lib/xulrunner-1.9.1/libxul.so
+a6443000-a6531000 rw-p 0100d000 08:03 2183722    /usr/lib/xulrunner-1.9.1/libxul.so
+a6531000-a6541000 rw-p 00000000 00:00 0 
+a6541000-a6557000 r-xp 00000000 08:03 2216508    /usr/lib/i386-linux-gnu/libICE.so.6.3.0
+a6557000-a6559000 rw-p 00015000 08:03 2216508    /usr/lib/i386-linux-gnu/libICE.so.6.3.0
+a6559000-a655a000 rw-p 00000000 00:00 0 
+a655a000-a6561000 r-xp 00000000 08:03 2218843    /usr/lib/i386-linux-gnu/libSM.so.6.0.1
+a6561000-a6562000 rw-p 00006000 08:03 2218843    /usr/lib/i386-linux-gnu/libSM.so.6.0.1
+a6562000-a81a7000 r-xp 00000000 08:03 2004548    /usr/lib/i386-linux-gnu/libnvidia-glcore.so.302.17
+a81a7000-a820b000 rwxp 01c45000 08:03 2004548    /usr/lib/i386-linux-gnu/libnvidia-glcore.so.302.17
+a820b000-a821f000 rwxp 00000000 00:00 0 
+a821f000-a8244000 r-xp 00000000 08:03 2037863    /lib/i386-linux-gnu/liblzma.so.5.0.0
+a8244000-a8245000 r--p 00024000 08:03 2037863    /lib/i386-linux-gnu/liblzma.so.5.0.0
+a8245000-a8246000 rw-p 00025000 08:03 2037863    /lib/i386-linux-gnu/liblzma.so.5.0.0
+a8246000-a82d2000 r-xp 00000000 08:03 2005883    /usr/lib/i386-linux-gnu/liborc-0.4.so.0.16.0
+a82d2000-a82d3000 r--p 0008b000 08:03 2005883    /usr/lib/i386-linux-gnu/liborc-0.4.so.0.16.0
+a82d3000-a82d7000 rw-p 0008c000 08:03 2005883    /usr/lib/i386-linux-gnu/liborc-0.4.so.0.16.0
+a82d7000-a8330000 r-xp 00000000 08:03 2216389    /usr/lib/i386-linux-gnu/libXt.so.6.0.0
+a8330000-a8331000 ---p 00059000 08:03 2216389    /usr/lib/i386-linux-gnu/libXt.so.6.0.0
+a8331000-a8332000 r--p 00059000 08:03 2216389    /usr/lib/i386-linux-gnu/libXt.so.6.0.0
+a8332000-a8335000 rw-p 0005a000 08:03 2216389    /usr/lib/i386-linux-gnu/libXt.so.6.0.0
+a8335000-a94a4000 r-xp 00000000 08:03 2217751    /usr/lib/i386-linux-gnu/libicudata.so.48.1.1
+a94a4000-a94a5000 r--p 0116e000 08:03 2217751    /usr/lib/i386-linux-gnu/libicudata.so.48.1.1
+a94a5000-a94a6000 rw-p 0116f000 08:03 2217751    /usr/lib/i386-linux-gnu/libicudata.so.48.1.1
+a94a6000-a9601000 r-xp 00000000 08:03 2217748    /usr/lib/i386-linux-gnu/libicuuc.so.48.1.1
+a9601000-a960b000 r--p 0015a000 08:03 2217748    /usr/lib/i386-linux-gnu/libicuuc.so.48.1.1
+a960b000-a960c000 rw-p 00164000 08:03 2217748    /usr/lib/i386-linux-gnu/libicuuc.so.48.1.1
+a960c000-a9610000 rw-p 00000000 00:00 0 
+a9610000-a97e2000 r-xp 00000000 08:03 2217752    /usr/lib/i386-linux-gnu/libicui18n.so.48.1.1
+a97e2000-a97e9000 r--p 001d1000 08:03 2217752    /usr/lib/i386-linux-gnu/libicui18n.so.48.1.1
+a97e9000-a97ea000 rw-p 001d8000 08:03 2217752    /usr/lib/i386-linux-gnu/libicui18n.so.48.1.1
+a97ea000-a9896000 r-xp 00000000 08:03 570508     /usr/lib/i386-linux-gnu/nvidia/current/libGL.so.302.17
+a9896000-a98b6000 rwxp 000ab000 08:03 570508     /usr/lib/i386-linux-gnu/nvidia/current/libGL.so.302.17
+a98b6000-a98c5000 rwxp 00000000 00:00 0 
+a98c5000-a9a11000 r-xp 00000000 08:03 2218571    /usr/lib/i386-linux-gnu/libxml2.so.2.8.0
+a9a11000-a9a12000 ---p 0014c000 08:03 2218571    /usr/lib/i386-linux-gnu/libxml2.so.2.8.0
+a9a12000-a9a16000 r--p 0014c000 08:03 2218571    /usr/lib/i386-linux-gnu/libxml2.so.2.8.0
+a9a16000-a9a17000 rw-p 00150000 08:03 2218571    /usr/lib/i386-linux-gnu/libxml2.so.2.8.0
+a9a17000-a9a18000 rw-p 00000000 00:00 0 
+a9a18000-a9a53000 r-xp 00000000 08:03 2217842    /usr/lib/i386-linux-gnu/libxslt.so.1.1.26
+a9a53000-a9a54000 r--p 0003b000 08:03 2217842    /usr/lib/i386-linux-gnu/libxslt.so.1.1.26
+a9a54000-a9a55000 rw-p 0003c000 08:03 2217842    /usr/lib/i386-linux-gnu/libxslt.so.1.1.26
+a9a55000-a9a8d000 r-xp 00000000 08:03 2004424    /usr/lib/i386-linux-gnu/libjpeg.so.8.4.0
+a9a8d000-a9a8e000 rw-p 00037000 08:03 2004424    /usr/lib/i386-linux-gnu/libjpeg.so.8.4.0
+a9a8e000-a9b75000 r-xp 00000000 08:03 2004217    /usr/lib/i386-linux-gnu/libgstreamer-0.10.so.0.30.0
+a9b75000-a9b79000 rw-p 000e6000 08:03 2004217    /usr/lib/i386-linux-gnu/libgstreamer-0.10.so.0.30.0
+a9b79000-a9b7a000 rw-p 00000000 00:00 0 
+a9b7a000-a9bda000 r-xp 00000000 08:03 2004215    /usr/lib/i386-linux-gnu/libgstbase-0.10.so.0.30.0
+a9bda000-a9bdb000 rw-p 00060000 08:03 2004215    /usr/lib/i386-linux-gnu/libgstbase-0.10.so.0.30.0
+a9bdb000-a9bf7000 r-xp 00000000 08:03 2216239    /usr/lib/i386-linux-gnu/libgstvideo-0.10.so.0.25.0
+a9bf7000-a9bf8000 rw-p 0001c000 08:03 2216239    /usr/lib/i386-linux-gnu/libgstvideo-0.10.so.0.25.0
+a9bf8000-a9c19000 r-xp 00000000 08:03 2004225    /usr/lib/i386-linux-gnu/libgstpbutils-0.10.so.0.25.0
+a9c19000-a9c1b000 rw-p 00020000 08:03 2004225    /usr/lib/i386-linux-gnu/libgstpbutils-0.10.so.0.25.0
+a9c1b000-a9c2b000 r-xp 00000000 08:03 2004310    /usr/lib/i386-linux-gnu/libgstinterfaces-0.10.so.0.25.0
+a9c2b000-a9c2c000 rw-p 0000f000 08:03 2004310    /usr/lib/i386-linux-gnu/libgstinterfaces-0.10.so.0.25.0
+a9c2c000-a9c36000 r-xp 00000000 08:03 2004363    /usr/lib/i386-linux-gnu/libgstfft-0.10.so.0.25.0
+a9c36000-a9c37000 rw-p 00009000 08:03 2004363    /usr/lib/i386-linux-gnu/libgstfft-0.10.so.0.25.0
+a9c37000-a9c74000 r-xp 00000000 08:03 2004224    /usr/lib/i386-linux-gnu/libgstaudio-0.10.so.0.25.0
+a9c74000-a9c76000 rw-p 0003c000 08:03 2004224    /usr/lib/i386-linux-gnu/libgstaudio-0.10.so.0.25.0
+a9c76000-a9c81000 r-xp 00000000 08:03 2004402    /usr/lib/i386-linux-gnu/libgstapp-0.10.so.0.25.0
+a9c81000-a9c82000 rw-p 0000b000 08:03 2004402    /usr/lib/i386-linux-gnu/libgstapp-0.10.so.0.25.0
+a9c82000-a9ca7000 r-xp 00000000 08:03 2217544    /usr/lib/i386-linux-gnu/libdbus-glib-1.so.2.2.2
+a9ca7000-a9ca8000 rw-p 00024000 08:03 2217544    /usr/lib/i386-linux-gnu/libdbus-glib-1.so.2.2.2
+a9ca8000-a9cbb000 r-xp 00000000 08:03 2175803    /usr/lib/libgeoclue.so.0.0.0
+a9cbb000-a9cbc000 rw-p 00013000 08:03 2175803    /usr/lib/libgeoclue.so.0.0.0
+a9cbc000-aa06e000 r-xp 00000000 08:03 2285467    /usr/lib/libjavascriptcoregtk-1.0.so.0.13.2
+aa06e000-aa075000 r--p 003b2000 08:03 2285467    /usr/lib/libjavascriptcoregtk-1.0.so.0.13.2
+aa075000-aa079000 rw-p 003b9000 08:03 2285467    /usr/lib/libjavascriptcoregtk-1.0.so.0.13.2
+aa079000-aa08a000 rw-p 00000000 00:00 0 
+aa08a000-aa0f1000 r-xp 00000000 08:03 2221231    /usr/lib/i386-linux-gnu/libsoup-2.4.so.1.5.0
+aa0f1000-aa0f2000 r--p 00066000 08:03 2221231    /usr/lib/i386-linux-gnu/libsoup-2.4.so.1.5.0
+aa0f2000-aa0f3000 rw-p 00067000 08:03 2221231    /usr/lib/i386-linux-gnu/libsoup-2.4.so.1.5.0
+aa0f3000-aa0f4000 rw-p 00000000 00:00 0 
+aa0f4000-ab691000 r-xp 00000000 08:03 2285465    /usr/lib/libwebkitgtk-1.0.so.0.13.2
+ab691000-ab751000 r--p 0159c000 08:03 2285465    /usr/lib/libwebkitgtk-1.0.so.0.13.2
+ab751000-ab75a000 rw-p 0165c000 08:03 2285465    /usr/lib/libwebkitgtk-1.0.so.0.13.2
+ab75a000-ab761000 rw-p 00000000 00:00 0 
+ab763000-ab773000 rw-p 00000000 00:00 0 
+ab773000-ab77c000 r-xp 00000000 08:03 2170718    /usr/lib/libstartup-notification-1.so.0.0.0
+ab77c000-ab77d000 rw-p 00008000 08:03 2170718    /usr/lib/libstartup-notification-1.so.0.0.0
+ab77d000-ab782000 r-xp 00000000 08:03 913420     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-xpcominit-gtk-3740.so
+ab782000-ab784000 rw-p 00005000 08:03 913420     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-xpcominit-gtk-3740.so
+ab784000-ab7b3000 r-xp 00000000 08:03 2004038    /usr/lib/i386-linux-gnu/libbluray.so.1.1.0
+ab7b3000-ab7b4000 r--p 0002f000 08:03 2004038    /usr/lib/i386-linux-gnu/libbluray.so.1.1.0
+ab7b4000-ab7b5000 rw-p 00030000 08:03 2004038    /usr/lib/i386-linux-gnu/libbluray.so.1.1.0
+ab7b5000-ab7fe000 r-xp 00000000 08:03 1972159    /lib/i386-linux-gnu/libdbus-1.so.3.7.1
+ab7fe000-ab7ff000 r--p 00049000 08:03 1972159    /lib/i386-linux-gnu/libdbus-1.so.3.7.1
+ab7ff000-ab800000 rw-p 0004a000 08:03 1972159    /lib/i386-linux-gnu/libdbus-1.so.3.7.1
+ab800000-ab900000 rw-p 00000000 00:00 0 
+ab905000-ab913000 r--s 000a6000 08:03 1010071    /usr/local/Aptana Studio 3/plugins/org.eclipse.compare_3.5.202.R37x_v20111109-0800.jar
+ab913000-ab92f000 r--s 00154000 08:03 2429439    /usr/local/Aptana Studio 3/plugins/org.eclipse.egit.ui_0.11.1.jar
+ab92f000-ab95a000 r-xp 00000000 08:03 2216478    /usr/lib/i386-linux-gnu/gio/modules/libgvfsdbus.so
+ab95a000-ab95b000 r--p 0002a000 08:03 2216478    /usr/lib/i386-linux-gnu/gio/modules/libgvfsdbus.so
+ab95b000-ab95c000 rw-p 0002b000 08:03 2216478    /usr/lib/i386-linux-gnu/gio/modules/libgvfsdbus.so
+ab95c000-ab95f000 ---p 00000000 00:00 0 
+ab95f000-ab9ad000 rw-p 00000000 00:00 0 
+ab9af000-ab9b2000 ---p 00000000 00:00 0 
+ab9b2000-aba00000 rw-p 00000000 00:00 0 
+aba00000-abafd000 rw-p 00000000 00:00 0 
+abafd000-abb00000 ---p 00000000 00:00 0 
+abb06000-abb1a000 r--s 0012c000 08:03 2429441    /usr/local/Aptana Studio 3/plugins/org.eclipse.jgit_0.11.1.jar
+abb1a000-abb1d000 ---p 00000000 00:00 0 
+abb1d000-abb6b000 rw-p 00000000 00:00 0 
+abb6b000-abb6e000 ---p 00000000 00:00 0 
+abb6e000-abbbc000 rw-p 00000000 00:00 0 
+abbbc000-abbbf000 ---p 00000000 00:00 0 
+abbbf000-abc0d000 rw-p 00000000 00:00 0 
+abc0d000-abc61000 r-xp 00000000 08:03 2282960    /usr/lib/i386-linux-gnu/nss/libfreebl3.so
+abc61000-abc62000 r--p 00053000 08:03 2282960    /usr/lib/i386-linux-gnu/nss/libfreebl3.so
+abc62000-abc63000 rw-p 00054000 08:03 2282960    /usr/lib/i386-linux-gnu/nss/libfreebl3.so
+abc63000-abc67000 rw-p 00000000 00:00 0 
+abc67000-abd14000 r-xp 00000000 08:03 2215786    /usr/lib/i386-linux-gnu/libsqlite3.so.0.8.6
+abd14000-abd15000 ---p 000ad000 08:03 2215786    /usr/lib/i386-linux-gnu/libsqlite3.so.0.8.6
+abd15000-abd16000 r--p 000ad000 08:03 2215786    /usr/lib/i386-linux-gnu/libsqlite3.so.0.8.6
+abd16000-abd17000 rw-p 000ae000 08:03 2215786    /usr/lib/i386-linux-gnu/libsqlite3.so.0.8.6
+abd17000-abd18000 rw-p 00000000 00:00 0 
+abd18000-abd59000 r-xp 00000000 08:03 1286762    /usr/lib/i386-linux-gnu/nss/libsoftokn3.so
+abd59000-abd5a000 ---p 00041000 08:03 1286762    /usr/lib/i386-linux-gnu/nss/libsoftokn3.so
+abd5a000-abd5b000 r--p 00041000 08:03 1286762    /usr/lib/i386-linux-gnu/nss/libsoftokn3.so
+abd5b000-abd5c000 rw-p 00042000 08:03 1286762    /usr/lib/i386-linux-gnu/nss/libsoftokn3.so
+abd5c000-abd97000 r-xp 00000000 08:03 2216025    /usr/lib/i386-linux-gnu/libnspr4.so
+abd97000-abd98000 r--p 0003a000 08:03 2216025    /usr/lib/i386-linux-gnu/libnspr4.so
+abd98000-abd99000 rw-p 0003b000 08:03 2216025    /usr/lib/i386-linux-gnu/libnspr4.so
+abd99000-abd9b000 rw-p 00000000 00:00 0 
+abd9b000-abdb7000 r-xp 00000000 08:03 2216140    /usr/lib/i386-linux-gnu/libnssutil3.so
+abdb7000-abdb8000 ---p 0001c000 08:03 2216140    /usr/lib/i386-linux-gnu/libnssutil3.so
+abdb8000-abdbb000 r--p 0001c000 08:03 2216140    /usr/lib/i386-linux-gnu/libnssutil3.so
+abdbb000-abdbc000 rw-p 0001f000 08:03 2216140    /usr/lib/i386-linux-gnu/libnssutil3.so
+abdbc000-abefa000 r-xp 00000000 08:03 2218577    /usr/lib/i386-linux-gnu/libnss3.so
+abefa000-abefb000 ---p 0013e000 08:03 2218577    /usr/lib/i386-linux-gnu/libnss3.so
+abefb000-abefe000 r--p 0013e000 08:03 2218577    /usr/lib/i386-linux-gnu/libnss3.so
+abefe000-abf00000 rw-p 00141000 08:03 2218577    /usr/lib/i386-linux-gnu/libnss3.so
+abf00000-ac0ff000 rw-p 00000000 00:00 0 
+ac0ff000-ac100000 ---p 00000000 00:00 0 
+ac100000-ac1ff000 rw-p 00000000 00:00 0 
+ac1ff000-ac200000 ---p 00000000 00:00 0 
+ac200000-ac20a000 r--s 00069000 08:03 1011916    /usr/local/Aptana Studio 3/plugins/org.eclipse.search_3.7.0.v20110928-1504.jar
+ac20a000-ac221000 r-xp 00000000 08:03 2217014    /usr/lib/i386-linux-gnu/gvfs/libgvfscommon.so
+ac221000-ac222000 r--p 00016000 08:03 2217014    /usr/lib/i386-linux-gnu/gvfs/libgvfscommon.so
+ac222000-ac223000 rw-p 00017000 08:03 2217014    /usr/lib/i386-linux-gnu/gvfs/libgvfscommon.so
+ac223000-ac23e000 r--s 00145000 08:03 1011919    /usr/local/Aptana Studio 3/plugins/org.eclipse.team.ui_3.6.101.R37x_v20111109-0800.jar
+ac23e000-ac241000 ---p 00000000 00:00 0 
+ac241000-ac28f000 rw-p 00000000 00:00 0 
+ac290000-ac293000 ---p 00000000 00:00 0 
+ac293000-ac2e1000 rw-p 00000000 00:00 0 
+ac2e1000-ac2e4000 ---p 00000000 00:00 0 
+ac2e4000-ac332000 rw-p 00000000 00:00 0 
+ac332000-ac335000 ---p 00000000 00:00 0 
+ac335000-ac383000 rw-p 00000000 00:00 0 
+ac383000-ac386000 ---p 00000000 00:00 0 
+ac386000-ac3d4000 rw-p 00000000 00:00 0 
+ac3d4000-ac3d7000 ---p 00000000 00:00 0 
+ac3d7000-ac425000 rw-p 00000000 00:00 0 
+ac425000-ac428000 ---p 00000000 00:00 0 
+ac428000-ac476000 rw-p 00000000 00:00 0 
+ac476000-ac479000 ---p 00000000 00:00 0 
+ac479000-ac4c7000 rw-p 00000000 00:00 0 
+ac4c7000-ac4ca000 ---p 00000000 00:00 0 
+ac4ca000-ac518000 rw-p 00000000 00:00 0 
+ac518000-ac51b000 ---p 00000000 00:00 0 
+ac51b000-ac569000 rw-p 00000000 00:00 0 
+ac569000-ac56c000 ---p 00000000 00:00 0 
+ac56c000-ac5ba000 rw-p 00000000 00:00 0 
+ac5ba000-ac5bd000 ---p 00000000 00:00 0 
+ac5bd000-ac60b000 rw-p 00000000 00:00 0 
+ac60b000-ac60e000 ---p 00000000 00:00 0 
+ac60e000-ac65c000 rw-p 00000000 00:00 0 
+ac65c000-ac65f000 ---p 00000000 00:00 0 
+ac65f000-ac6ad000 rw-p 00000000 00:00 0 
+ac6ad000-ac6b0000 ---p 00000000 00:00 0 
+ac6b0000-ac6fe000 rw-p 00000000 00:00 0 
+ac6fe000-ac701000 ---p 00000000 00:00 0 
+ac701000-ac74f000 rw-p 00000000 00:00 0 
+ac74f000-ac752000 ---p 00000000 00:00 0 
+ac752000-ac7a0000 rw-p 00000000 00:00 0 
+ac7a0000-ac800000 rw-s 00000000 00:04 16482317   /SYSV00000000 (deleted)
+ac800000-ac8fb000 rw-p 00000000 00:00 0 
+ac8fb000-ac900000 ---p 00000000 00:00 0 
+ac901000-ac90b000 r--s 00065000 08:03 1011913    /usr/local/Aptana Studio 3/plugins/org.eclipse.ltk.ui.refactoring_3.6.0.v20110928-1453.jar
+ac90b000-ac90e000 ---p 00000000 00:00 0 
+ac90e000-ac95c000 rw-p 00000000 00:00 0 
+ac95c000-ac98e000 r--s 00244000 08:03 1010528    /usr/local/Aptana Studio 3/plugins/org.eclipse.debug.ui_3.7.102.v20111129-1423_r372.jar
+ac98e000-ac991000 ---p 00000000 00:00 0 
+ac991000-ac9df000 rw-p 00000000 00:00 0 
+ac9df000-b0c44000 r--p 00000000 08:03 2280356    /usr/share/icons/gnome/icon-theme.cache
+b0c44000-b1f3b000 r--p 00000000 08:03 2264099    /usr/share/icons/hicolor/icon-theme.cache
+b1f3b000-b1f64000 r--s 00425000 08:03 2429421    /usr/local/Aptana Studio 3/plugins/org.eclipse.jdt.core_3.6.2.v_A76_R36x.jar
+b1f64000-b1ff6000 r--s 008f6000 08:03 2429422    /usr/local/Aptana Studio 3/plugins/org.eclipse.jdt.ui_3.6.2.r362_v20110203.jar
+b1ff6000-b20af000 r--s 008fd000 08:03 928544     /usr/local/Aptana Studio 3/plugins/org.jruby_1.6.4.1331328108/lib/jruby.jar
+b20af000-b20b2000 ---p 00000000 00:00 0 
+b20b2000-b2100000 rw-p 00000000 00:00 0 
+b2100000-b2200000 rw-p 00000000 00:00 0 
+b2200000-b2204000 r--s 0001e000 08:03 1011925    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.externaltools_3.2.0.v20111007_r372.jar
+b2204000-b2219000 r--s 0020d000 08:03 34354      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.php.epl_3.0.0.1342037941.jar
+b2219000-b2225000 r--s 000ba000 08:03 1010524    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.resources_3.7.101.v20120125-1505.jar
+b2226000-b2234000 r--s 000be000 08:03 34353      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.php_3.0.3.1342550187.jar
+b2241000-b224d000 r--s 00082000 08:03 1972697    /usr/local/Aptana Studio 3/plugins/org.python.pydev.debug_2.6.0.2012062515/pydev-debug.jar
+b224d000-b2250000 ---p 00000000 00:00 0 
+b2250000-b229e000 rw-p 00000000 00:00 0 
+b229e000-b22a1000 ---p 00000000 00:00 0 
+b22a1000-b22ef000 rw-p 00000000 00:00 0 
+b22f2000-b2300000 r--p 00000000 08:03 310174     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraMoBI.ttf
+b2300000-b23fa000 rw-p 00000000 00:00 0 
+b23fa000-b2400000 ---p 00000000 00:00 0 
+b2403000-b2411000 r--p 00000000 08:03 310167     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraMoIt.ttf
+b241a000-b2426000 r--s 00081000 08:03 1011924    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.editors_3.7.0.v20110928-1504.jar
+b2426000-b242e000 r--s 0003f000 08:03 359089     /usr/local/Aptana Studio 3/plugins/org.python.pydev.refactoring_2.6.0.2012062515/refactoring.jar
+b242e000-b243e000 r--p 00000000 08:03 310151     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraBI.ttf
+b243e000-b2441000 ---p 00000000 00:00 0 
+b2441000-b248f000 rw-p 00000000 00:00 0 
+b248f000-b2492000 ---p 00000000 00:00 0 
+b2492000-b24e0000 rw-p 00000000 00:00 0 
+b24e0000-b24e4000 r--s 00018000 08:03 1010027    /usr/local/Aptana Studio 3/plugins/com.aptana.ruby.debug.ui_3.0.2.1339543082.jar
+b24e4000-b24eb000 r--s 000d4000 08:03 374672     /usr/local/Aptana Studio 3/plugins/org.python.pydev.parser_2.6.0.2012062515/parser.jar
+b24eb000-b24ee000 ---p 00000000 00:00 0 
+b24ee000-b253c000 rw-p 00000000 00:00 0 
+b253d000-b2549000 r--p 00000000 08:03 310168     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraMoBd.ttf
+b2549000-b2559000 r--p 00000000 08:03 309488     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraIt.ttf
+b2559000-b2568000 r--p 00000000 08:03 309547     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraBd.ttf
+b2568000-b256b000 ---p 00000000 00:00 0 
+b256b000-b25b9000 rw-p 00000000 00:00 0 
+b25b9000-b2600000 r--s 003b3000 08:03 1011932    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.workbench_3.7.1.v20120104-1859.jar
+b2600000-b26fb000 rw-p 00000000 00:00 0 
+b26fb000-b2700000 ---p 00000000 00:00 0 
+b2701000-b270e000 r--s 000a9000 08:03 33639      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.common_3.0.3.1342126218.jar
+b270e000-b2736000 r--s 00214000 08:03 1011927    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.ide_3.7.0.v20110928-1505.jar
+b2736000-b273b000 r--s 00038000 08:03 1011920    /usr/local/Aptana Studio 3/plugins/org.eclipse.text_3.5.101.v20110928-1504.jar
+b273e000-b2756000 r--s 001b6000 08:03 863781     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/276/1/.cp/css-validator.jar
+b2756000-b276a000 r--s 0021f000 08:03 1012015    /usr/local/Aptana Studio 3/plugins/org.eclipse.swt.gtk.linux.x86_3.7.2.v3740f.jar
+b276c000-b2773000 r--s 00048000 08:03 1011912    /usr/local/Aptana Studio 3/plugins/org.eclipse.ltk.core.refactoring_3.5.201.r372_v20111101-0700.jar
+b2773000-b277e000 r--s 000d0000 08:03 34349      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.js_3.0.3.1342549990.jar
+b277e000-b2785000 r--s 0003b000 08:03 35267      /usr/local/Aptana Studio 3/plugins/com.aptana.js.debug.ui_3.0.0.1337406272.jar
+b2785000-b2793000 r-xp 00000000 08:03 1938313    /lib/i386-linux-gnu/libudev.so.0.13.0
+b2793000-b2794000 r--p 0000d000 08:03 1938313    /lib/i386-linux-gnu/libudev.so.0.13.0
+b2794000-b2795000 rw-p 0000e000 08:03 1938313    /lib/i386-linux-gnu/libudev.so.0.13.0
+b2795000-b27af000 r--s 00179000 08:03 1726686    /usr/local/Aptana Studio 3/plugins/org.python.pydev_2.6.0.2012062515/pydev.jar
+b27af000-b27b2000 ---p 00000000 00:00 0 
+b27b2000-b2800000 rw-p 00000000 00:00 0 
+b2800000-b28fa000 rw-p 00000000 00:00 0 
+b28fa000-b2900000 ---p 00000000 00:00 0 
+b2902000-b290a000 r--s 00070000 08:03 1010049    /usr/local/Aptana Studio 3/plugins/com.aptana.syncing.ui_3.0.3.1339455718.jar
+b290a000-b291e000 r--s 000f3000 08:03 1011908    /usr/local/Aptana Studio 3/plugins/org.eclipse.jface_3.7.0.v20110928-1505.jar
+b2921000-b292b000 r-xp 00000000 08:03 2166915    /usr/lib/libenchant.so.1.6.0
+b292b000-b292c000 r--p 00009000 08:03 2166915    /usr/lib/libenchant.so.1.6.0
+b292c000-b292d000 rw-p 0000a000 08:03 2166915    /usr/lib/libenchant.so.1.6.0
+b292d000-b2937000 r-xp 00000000 08:03 521756     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-cairo-gtk-3740.so
+b2937000-b2938000 rw-p 00009000 08:03 521756     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-cairo-gtk-3740.so
+b2938000-b293b000 rw-s 00000000 00:04 15532043   /SYSV00000000 (deleted)
+b293b000-b2941000 r-xp 00000000 08:03 1466044    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so
+b2941000-b2942000 r--p 00005000 08:03 1466044    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so
+b2942000-b2943000 rw-p 00006000 08:03 1466044    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so
+b2943000-b2948000 r-xp 00000000 08:03 2216762    /usr/lib/i386-linux-gnu/libxcb-util.so.0.0.0
+b2948000-b2949000 rw-p 00004000 08:03 2216762    /usr/lib/i386-linux-gnu/libxcb-util.so.0.0.0
+b294d000-b2950000 ---p 00000000 00:00 0 
+b2950000-b299e000 rw-p 00000000 00:00 0 
+b29a2000-b29a8000 r--s 0004f000 08:03 33795      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.html_3.0.3.1342043762.jar
+b29a8000-b29ac000 r--s 0002a000 08:03 1011898    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.p2.engine_2.1.1.R37x_v20111003.jar
+b29ac000-b29b0000 r-xp 00000000 08:03 2215989    /usr/lib/i386-linux-gnu/libplc4.so
+b29b0000-b29b1000 r--p 00003000 08:03 2215989    /usr/lib/i386-linux-gnu/libplc4.so
+b29b1000-b29b2000 rw-p 00004000 08:03 2215989    /usr/lib/i386-linux-gnu/libplc4.so
+b29b2000-b29ba000 r--s 0004d000 08:03 1010527    /usr/local/Aptana Studio 3/plugins/org.eclipse.debug.core_3.7.1.v20111129-2031.jar
+b29ba000-b29be000 r-xp 00000000 08:03 1971017    /lib/i386-linux-gnu/libuuid.so.1.3.0
+b29be000-b29bf000 r--p 00003000 08:03 1971017    /lib/i386-linux-gnu/libuuid.so.1.3.0
+b29bf000-b29c0000 rw-p 00004000 08:03 1971017    /lib/i386-linux-gnu/libuuid.so.1.3.0
+b29c0000-b29c4000 r--s 0003e000 08:03 33021      /usr/local/Aptana Studio 3/plugins/com.aptana.core_3.0.4.1341511062.jar
+b29c7000-b29cc000 r--s 0004a000 08:03 1352375    /usr/local/Aptana Studio 3/plugins/com.python.pydev.analysis_2.6.0.2012062515/analysis.jar
+b29cc000-b29d0000 r--s 00024000 08:03 1011923    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.console_3.5.100.v20111007_r372.jar
+b29d0000-b29d7000 r--s 00044000 08:03 1775528    /usr/local/Aptana Studio 3/plugins/org.python.pydev.core_2.6.0.2012062515/core.jar
+b29d7000-b29db000 r--s 0001a000 08:03 1011929    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.navigator.resources_3.4.300.v20110928-1505.jar
+b29e0000-b29e6000 r--s 00039000 08:03 1010052    /usr/local/Aptana Studio 3/plugins/com.aptana.ui.epl_3.0.0.1341597287.jar
+b29e7000-b29ed000 r--s 00036000 08:03 1092003    /usr/local/Aptana Studio 3/plugins/com.aptana.parsing_3.0.0.1341324919/libs/jaxen-1.1.2.jar
+b29ed000-b29f6000 r--s 00058000 08:03 1011918    /usr/local/Aptana Studio 3/plugins/org.eclipse.team.core_3.6.0.I20110525-0800.jar
+b29f9000-b29fd000 rwxp 00000000 00:00 0 
+b29fd000-b2a01000 r--s 00029000 08:03 1011903    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.registry_3.5.101.R37x_v20110810-1611.jar
+b2a02000-b2a06000 rwxp 00000000 00:00 0 
+b2a06000-b2a0d000 r--s 0004f000 08:03 35178      /usr/local/Aptana Studio 3/plugins/com.aptana.git.ui_3.0.3.1341866455.jar
+b2a10000-b2a23000 r--s 000dd000 08:03 1011910    /usr/local/Aptana Studio 3/plugins/org.eclipse.jface.text_3.7.2.v20111213-1208.jar
+b2a23000-b2a26000 ---p 00000000 00:00 0 
+b2a26000-b2a74000 rw-p 00000000 00:00 0 
+b2a74000-b2a7d000 r-xp 00000000 08:03 521753     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-atk-gtk-3740.so
+b2a7d000-b2a7e000 rw-p 00009000 08:03 521753     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-atk-gtk-3740.so
+b2a7e000-b2a83000 r--s 00045000 08:03 1009973    /usr/local/Aptana Studio 3/plugins/com.aptana.portal.ui_3.0.0.1342050236.jar
+b2a83000-b2a87000 r--s 00022000 08:03 33793      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.findbar_3.0.0.1340405996.jar
+b2a87000-b2a8e000 r-xp 00000000 08:03 2215620    /usr/lib/i386-linux-gnu/libgailutil.so.18.0.1
+b2a8e000-b2a8f000 rw-p 00006000 08:03 2215620    /usr/lib/i386-linux-gnu/libgailutil.so.18.0.1
+b2a8f000-b2a93000 r--s 0002d000 08:03 1010050    /usr/local/Aptana Studio 3/plugins/com.aptana.theme_3.0.0.1339679951.jar
+b2a93000-b2a95000 r-xp 00000000 08:03 716836     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/635/1/.cp/os/linux/x86/libunixfile_1_0_0.so
+b2a95000-b2a96000 rw-p 00001000 08:03 716836     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/635/1/.cp/os/linux/x86/libunixfile_1_0_0.so
+b2a99000-b2a9c000 r--s 00014000 08:03 1010121    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.contenttype_3.4.100.v20110423-0524.jar
+b2a9d000-b2aa1000 r--s 0001d000 08:03 35176      /usr/local/Aptana Studio 3/plugins/com.aptana.formatter.epl_3.2.0.1341616068.jar
+b2aa1000-b2aa6000 r--s 0002c000 08:03 1010051    /usr/local/Aptana Studio 3/plugins/com.aptana.ui_3.1.4.1343342720.jar
+b2aa6000-b2aaa000 r-xp 00000000 08:03 2182719    /usr/lib/xulrunner-1.9.1/libxpcom.so
+b2aaa000-b2aab000 rw-p 00003000 08:03 2182719    /usr/lib/xulrunner-1.9.1/libxpcom.so
+b2aab000-b2aaf000 r-xp 00000000 08:03 674406     /lib/i386-linux-gnu/i686/cmov/libnss_dns-2.13.so
+b2aaf000-b2ab0000 r--p 00004000 08:03 674406     /lib/i386-linux-gnu/i686/cmov/libnss_dns-2.13.so
+b2ab0000-b2ab1000 rw-p 00005000 08:03 674406     /lib/i386-linux-gnu/i686/cmov/libnss_dns-2.13.so
+b2ab1000-b2ab6000 r--s 00021000 08:03 1011921    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui_3.7.0.v20110928-1505.jar
+b2ab8000-b2ab9000 r-xp 00000000 08:03 1889561    /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/551/1/.cp/os/linux/x86/libjnotify.so
+b2ab9000-b2aba000 rw-p 00001000 08:03 1889561    /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/551/1/.cp/os/linux/x86/libjnotify.so
+b2abb000-b2abd000 r--s 00008000 08:03 33020      /usr/local/Aptana Studio 3/plugins/com.aptana.console_3.0.0.1337406272.jar
+b2abd000-b2ac0000 r-xp 00000000 08:03 2352969    /usr/lib/i386-linux-gnu/tls/libnvidia-tls.so.302.17
+b2ac0000-b2ac1000 rw-p 00002000 08:03 2352969    /usr/lib/i386-linux-gnu/tls/libnvidia-tls.so.302.17
+b2ac1000-b2ac9000 r-xp 00000000 08:03 913415     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-webkit-gtk-3740.so
+b2ac9000-b2aca000 rw-p 00007000 08:03 913415     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-webkit-gtk-3740.so
+b2aca000-b2acb000 r--s 00008000 08:03 33572      /usr/local/Aptana Studio 3/plugins/com.aptana.deploy.ftp_3.0.3.1339628739.jar
+b2acb000-b2acd000 r--s 00006000 08:03 1011943    /usr/local/Aptana Studio 3/plugins/com.aptana.deploy.ui_1.0.0.1339628739.jar
+b2acd000-b2ad1000 r-xp 00000000 08:03 1498996    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-png.so
+b2ad1000-b2ad2000 r--p 00003000 08:03 1498996    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-png.so
+b2ad2000-b2ad3000 rw-p 00004000 08:03 1498996    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-png.so
+b2ad4000-b2ae1000 r--p 00000000 08:03 310067     /usr/share/fonts/truetype/ttf-bitstream-vera/VeraMono.ttf
+b2ae1000-b2af2000 r--p 00000000 08:03 310072     /usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf
+b2af2000-b2af4000 r-xp 00000000 08:03 2363421    /usr/lib/i386-linux-gnu/pango/1.6.0/modules/pango-basic-fc.so
+b2af4000-b2af5000 r--p 00001000 08:03 2363421    /usr/lib/i386-linux-gnu/pango/1.6.0/modules/pango-basic-fc.so
+b2af5000-b2af6000 rw-p 00002000 08:03 2363421    /usr/lib/i386-linux-gnu/pango/1.6.0/modules/pango-basic-fc.so
+b2af6000-b2afc000 r--s 00000000 08:03 722007     /var/cache/fontconfig/945677eb7aeaf62f1d50efc3fb3ec7d8-le32d4.cache-3
+b2afc000-b2afd000 r--s 00000000 08:03 722005     /var/cache/fontconfig/617957603a337376ca8784972c6029f5-le32d4.cache-3
+b2afd000-b2b01000 r--s 00000000 08:03 721973     /var/cache/fontconfig/6eb3985aa4124903f6ff08ba781cd364-le32d4.cache-3
+b2b01000-b2b08000 r--s 00000000 08:03 721971     /var/cache/fontconfig/6d41288fd70b0be22e8c3a91e032eec0-le32d4.cache-3
+b2b08000-b2b0b000 r--s 00000000 08:03 721969     /var/cache/fontconfig/de156ccd2eddbdc19d37a45b8b2aac9c-le32d4.cache-3
+b2b0b000-b2b0c000 r--s 00000000 08:03 721968     /var/cache/fontconfig/9c956a7723ca69a44b382d9179c9802f-le32d4.cache-3
+b2b0c000-b2b0d000 r--s 00000000 08:03 721967     /var/cache/fontconfig/9451a55048e8dbe8633e64d34165fdf2-le32d4.cache-3
+b2b0d000-b2b0e000 r--s 00000000 08:03 721966     /var/cache/fontconfig/4794a0821666d79190d59a36cb4f44b5-le32d4.cache-3
+b2b0e000-b2b0f000 r--s 00000000 08:03 721965     /var/cache/fontconfig/9eae20f1ff8cc0a7d125749e875856bd-le32d4.cache-3
+b2b0f000-b2b11000 r--s 00000000 08:03 721964     /var/cache/fontconfig/bf2c1853a9e9b00bb02fe2e9bcf1e201-le32d4.cache-3
+b2b11000-b2b34000 r--s 00000000 08:03 721963     /var/cache/fontconfig/365b55f210c0a22e9a19e35191240f32-le32d4.cache-3
+b2b34000-b2b36000 r--s 00000000 08:03 721962     /var/cache/fontconfig/c57959a16110560c8d0fcea73374aeeb-le32d4.cache-3
+b2b36000-b2b3a000 r--s 00000000 08:03 721961     /var/cache/fontconfig/3047814df9a2f067bd2d96a2b9c36e5a-le32d4.cache-3
+b2b3a000-b2b3c000 r--s 00000000 08:03 721960     /var/cache/fontconfig/14d493b97896515cad3840ba4896e372-le32d4.cache-3
+b2b3c000-b2b3e000 r--s 00000000 08:03 721958     /var/cache/fontconfig/e49e89034d371f0f9de17aab02136486-le32d4.cache-3
+b2b3e000-b2b4b000 r--s 00000000 08:03 721956     /var/cache/fontconfig/d52a8644073d54c13679302ca1180695-le32d4.cache-3
+b2b4b000-b2b52000 r--s 00000000 08:03 721948     /var/cache/fontconfig/83bf95040141907cd45bb53cf7c1c148-le32d4.cache-3
+b2b52000-b2b5b000 r--s 00000000 08:03 721947     /var/cache/fontconfig/53d14c92082a93e67d5078324eb314ca-le32d4.cache-3
+b2b5b000-b2b68000 r--s 00000000 08:03 717551     /var/cache/fontconfig/4ac51e5cfbc76fc3f983e470323a16d3-le32d4.cache-3
+b2b68000-b2b79000 r--s 00000000 08:03 719316     /var/cache/fontconfig/e13b20fdb08344e0e664864cc2ede53d-le32d4.cache-3
+b2b79000-b2b7e000 r-xp 00000000 08:03 2217330    /usr/lib/i386-linux-gnu/libXtst.so.6.1.0
+b2b7e000-b2b7f000 rw-p 00004000 08:03 2217330    /usr/lib/i386-linux-gnu/libXtst.so.6.1.0
+b2b7f000-b2b85000 r--s 00000000 08:03 721955     /var/cache/fontconfig/3f7329c5293ffd510edef78f73874cfd-le32d4.cache-3
+b2b85000-b2b9e000 r--p 00000000 08:03 2169479    /usr/share/locale/fr/LC_MESSAGES/glib20.mo
+b2b9e000-b2ba2000 rwxp 00000000 00:00 0 
+b2ba2000-b2bfd000 r-xp 00000000 08:03 456131     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-pi-gtk-3740.so
+b2bfd000-b2bff000 rw-p 0005a000 08:03 456131     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-pi-gtk-3740.so
+b2bff000-b2c00000 rw-p 00000000 00:00 0 
+b2c00000-b2d00000 rw-p 00000000 00:00 0 
+b2d00000-b2d01000 r--s 00000000 08:03 721959     /var/cache/fontconfig/89034621ae2a8922916bb6bfa5799546-le32d4.cache-3
+b2d01000-b2d02000 r--s 00000000 08:03 721957     /var/cache/fontconfig/4b14b093aebc79c320de5e86ae1d3314-le32d4.cache-3
+b2d02000-b2d04000 r--s 00000000 08:03 721954     /var/cache/fontconfig/65f976e5259cbe6dc7697b8648396239-le32d4.cache-3
+b2d04000-b2d05000 r--s 00000000 08:03 721953     /var/cache/fontconfig/94f7fe9bd33aadfac165873bd010d595-le32d4.cache-3
+b2d05000-b2d06000 r--s 00000000 08:03 721952     /var/cache/fontconfig/423767150eb258c59035de29db6fca84-le32d4.cache-3
+b2d06000-b2d07000 r--s 00000000 08:03 721951     /var/cache/fontconfig/406a1d2d2bf3ed7664fbadefac0b2f66-le32d4.cache-3
+b2d07000-b2d09000 r--s 00000000 08:03 721950     /var/cache/fontconfig/67709b7835c0f764c1135060c9575660-le32d4.cache-3
+b2d09000-b2d0c000 r-xp 00000000 08:03 456085     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-gtk-3740.so
+b2d0c000-b2d0d000 rw-p 00002000 08:03 456085     /usr/local/Aptana Studio 3/configuration/org.eclipse.osgi/bundles/720/1/.cp/libswt-gtk-3740.so
+b2d0d000-b2d0e000 rw-p 00000000 00:00 0 
+b2d0e000-b2d10000 r--s 00010000 08:03 1010525    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.runtime_3.7.0.v20110110.jar
+b2d12000-b2d14000 r--s 00059000 08:03 35175      /usr/local/Aptana Studio 3/plugins/com.aptana.filewatcher_3.0.1.1337406272.jar
+b2d14000-b2d15000 rw-p 00000000 00:00 0 
+b2d15000-b2d17000 r--s 0000b000 08:03 1841419    /usr/local/Aptana Studio 3/plugins/org.python.pydev.customizations_2.6.0.2012062515/customizations.jar
+b2d17000-b2d53000 r--s 00629000 08:03 1010067    /usr/local/Aptana Studio 3/plugins/com.ibm.icu_4.4.2.v20110823.jar
+b2d53000-b2d54000 rw-p 00000000 00:00 0 
+b2d54000-b2d56000 r-xp 00000000 08:03 169050     /lib/libnss_mdns4_minimal.so.2
+b2d56000-b2d57000 rw-p 00001000 08:03 169050     /lib/libnss_mdns4_minimal.so.2
+b2d59000-b2d5c000 r--s 00019000 08:03 1010486    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.filebuffers_3.5.200.v20110928-1504.jar
+b2d5c000-b2d5f000 r-xp 00000000 08:03 2037990    /usr/lib/i386-linux-gnu/libplds4.so
+b2d5f000-b2d60000 r--p 00002000 08:03 2037990    /usr/lib/i386-linux-gnu/libplds4.so
+b2d60000-b2d61000 rw-p 00003000 08:03 2037990    /usr/lib/i386-linux-gnu/libplds4.so
+b2d62000-b2d66000 r--s 00013000 08:03 1011930    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.views_3.6.0.v20110928-1505.jar
+b2d66000-b2d69000 r--s 0000e000 08:03 1011942    /usr/local/Aptana Studio 3/plugins/org.radrails.rails.ui_3.0.2.1340741978.jar
+b2d6a000-b2d6e000 r--s 00033000 08:03 1369634    /usr/local/Aptana Studio 3/plugins/com.python.pydev.refactoring_2.6.0.2012062515/refactoring.jar
+b2d6e000-b2d70000 r--s 00016000 08:03 1011964    /usr/local/Aptana Studio 3/plugins/org.eclipse.ant.core_3.2.302.v20120110-1739.jar
+b2d70000-b2d72000 r--s 0000f000 08:03 1011944    /usr/local/Aptana Studio 3/plugins/com.aptana.jetty.util.epl_3.0.0.1337703431.jar
+b2d73000-b2d76000 r--s 00017000 08:03 34361      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.xml_3.0.0.1342101363.jar
+b2d76000-b2d78000 r--s 00006000 08:03 2036200    /usr/local/Aptana Studio 3/plugins/com.python.pydev.codecompletion_2.6.0.2012062515/codecompletion.jar
+b2d7b000-b2d7e000 r--s 0000c000 08:03 33651      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.dtd_3.0.0.1339705085.jar
+b2d7e000-b2d80000 r--s 0000c000 08:03 1011993    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.p2.operations_2.1.1.R37x_v20111111.jar
+b2d80000-b2d82000 r--s 0000d000 08:03 1012002    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.p2.ui.sdk.scheduler_1.0.100.v20110815-1419.jar
+b2d82000-b2d86000 r--s 00156000 08:03 35265      /usr/local/Aptana Studio 3/plugins/com.aptana.js.debug.core_3.0.3.1337406272.jar
+b2d86000-b2d87000 r-xp 00000000 08:03 2216422    /usr/lib/i386-linux-gnu/libX11-xcb.so.1.0.0
+b2d87000-b2d88000 rw-p 00000000 08:03 2216422    /usr/lib/i386-linux-gnu/libX11-xcb.so.1.0.0
+b2d88000-b2d8c000 r--s 00017000 08:03 1010073    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.commands_3.6.0.I20110111-0800.jar
+b2d8c000-b2d9b000 r-xp 00000000 08:03 1874990    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libj2pkcs11.so
+b2d9b000-b2d9c000 rw-p 0000e000 08:03 1874990    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libj2pkcs11.so
+b2d9c000-b2d9e000 r--s 0000c000 08:03 1010060    /usr/local/Aptana Studio 3/plugins/com.aptana.webserver.core_3.0.0.1337406272.jar
+b2d9e000-b2da2000 r--s 00029000 08:03 2429437    /usr/local/Aptana Studio 3/plugins/org.eclipse.egit.core_0.11.1.jar
+b2da2000-b2dab000 r--s 0005a000 08:03 1011928    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.navigator_3.5.101.v20120106-1355.jar
+b2dab000-b2dae000 r--s 00013000 08:03 1010167    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.expressions_3.4.300.v20110228.jar
+b2dae000-b2db0000 r--s 0000b000 08:03 1010521    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.filesystem_1.3.100.v20110423-0524.jar
+b2db0000-b2db1000 r--s 00000000 08:05 3682017    /home/benjello/.cache/dconf/user
+b2db1000-b2db3000 r--s 0000a000 08:03 33080      /usr/local/Aptana Studio 3/plugins/com.aptana.debug.core_3.0.3.1337406272.jar
+b2db3000-b2db5000 r-xp 00000000 08:03 674407     /lib/i386-linux-gnu/i686/cmov/libutil-2.13.so
+b2db5000-b2db6000 r--p 00001000 08:03 674407     /lib/i386-linux-gnu/i686/cmov/libutil-2.13.so
+b2db6000-b2db7000 rw-p 00002000 08:03 674407     /lib/i386-linux-gnu/i686/cmov/libutil-2.13.so
+b2db7000-b2dba000 r--s 0002e000 08:03 1010068    /usr/local/Aptana Studio 3/plugins/com.jcraft.jsch_0.1.44.v201101211721.jar
+b2dbd000-b2dbe000 r--s 00008000 08:03 1011911    /usr/local/Aptana Studio 3/plugins/org.eclipse.jsch.core_1.1.300.I20110514-0800.jar
+b2dbe000-b2dc1000 r--s 0001b000 08:03 33067      /usr/local/Aptana Studio 3/plugins/com.aptana.core.io_3.0.3.1339455718.jar
+b2dc1000-b2dc3000 r--s 0000f000 08:03 1010034    /usr/local/Aptana Studio 3/plugins/com.aptana.ruby.ui_3.0.2.1339022046.jar
+b2dc3000-b2dc5000 r--s 00013000 08:03 816035     /usr/lib/jvm/java-6-openjdk-common/jre/lib/jce.jar
+b2dc7000-b2dc9000 r--s 001d1000 08:03 1011954    /usr/local/Aptana Studio 3/plugins/com.aptana.rcp_3.2.1.201207261642.jar
+b2dc9000-b2dcc000 ---p 00000000 00:00 0 
+b2dcc000-b2e1a000 rw-p 00000000 00:00 0 
+b2e1a000-b2e1d000 ---p 00000000 00:00 0 
+b2e1d000-b2e6b000 rw-p 00000000 00:00 0 
+b2e6b000-b2e6e000 ---p 00000000 00:00 0 
+b2e6e000-b2ebc000 rw-p 00000000 00:00 0 
+b2ebc000-b2ebf000 ---p 00000000 00:00 0 
+b2ebf000-b2f0d000 rw-p 00000000 00:00 0 
+b2f0d000-b2f10000 ---p 00000000 00:00 0 
+b2f10000-b2f5e000 rw-p 00000000 00:00 0 
+b2f5e000-b2f61000 ---p 00000000 00:00 0 
+b2f61000-b2faf000 rw-p 00000000 00:00 0 
+b2faf000-b2fb2000 ---p 00000000 00:00 0 
+b2fb2000-b3000000 rw-p 00000000 00:00 0 
+b3000000-b30fe000 rw-p 00000000 00:00 0 
+b30fe000-b3100000 ---p 00000000 00:00 0 
+b3100000-b3103000 r--s 00019000 08:03 1011902    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.preferences_3.4.2.v20120111-2020.jar
+b3103000-b3104000 r--s 00006000 08:03 1010032    /usr/local/Aptana Studio 3/plugins/com.aptana.ruby.rake_3.0.0.1332171281.jar
+b3104000-b3106000 r--s 00018000 08:03 1011896    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.common_3.6.0.v20110523.jar
+b3106000-b3107000 r--s 0000d000 08:03 33066      /usr/local/Aptana Studio 3/plugins/com.aptana.core.epl_3.0.0.1342116881.jar
+b3107000-b3108000 r--p 00000000 00:00 0 
+b3108000-b310a000 r--s 0000c000 08:03 32934      /usr/local/Aptana Studio 3/plugins/com.aptana.buildpath.core_3.1.0.1340306105.jar
+b310a000-b310b000 r--s 00006000 08:03 2379575    /usr/local/Aptana Studio 3/plugins/org.python.pydev_2.6.0.2012062515/libs/WinRegistry-4.4.jar
+b310d000-b310e000 rw-p 00000000 00:00 0 
+b310e000-b3110000 r--s 00012000 08:03 1010048    /usr/local/Aptana Studio 3/plugins/com.aptana.syncing.core_3.0.0.1339455718.jar
+b3110000-b3112000 r--s 00015000 08:03 1010016    /usr/local/Aptana Studio 3/plugins/com.aptana.projects_3.0.0.1341495176.jar
+b3112000-b3114000 r--s 00001000 08:03 1369869    /usr/local/Aptana Studio 3/plugins/org.eclipse.ui.workbench.compatibility_3.2.100.I20110413-1600/compatibility.jar
+b3114000-b3117000 r--s 0000e000 08:03 977713     /usr/local/Aptana Studio 3/plugins/org.python.pydev.django_2.6.0.2012062515/pydev_django.jar
+b3117000-b3118000 r--s 00002000 08:03 1011966    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.filesystem.linux.x86_1.4.0.v20110423-0524.jar
+b3118000-b311a000 r--s 00019000 08:03 1270652    /usr/local/Aptana Studio 3/plugins/com.python.pydev_2.6.0.2012062515/pydev.jar
+b311a000-b3122000 r-xp 00000000 08:03 1875000    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libnio.so
+b3122000-b3123000 rw-p 00007000 08:03 1875000    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libnio.so
+b3123000-b3138000 r-xp 00000000 08:03 1613874    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libnet.so
+b3138000-b3139000 rw-p 00015000 08:03 1613874    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libnet.so
+b3139000-b314d000 r--s 0013a000 08:03 1011914    /usr/local/Aptana Studio 3/plugins/org.eclipse.osgi_3.7.2.v20120110-1415.jar
+b314d000-b317d000 rw-s 00000000 00:04 15466506   /SYSV00000000 (deleted)
+b317d000-b31f4000 rw-p 00000000 00:00 0 
+b31f4000-b31f7000 r-xp 00000000 08:03 1466053    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so
+b31f7000-b31f8000 r--p 00002000 08:03 1466053    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so
+b31f8000-b31f9000 rw-p 00003000 08:03 1466053    /usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so
+b31f9000-b3218000 r--s 00000000 08:03 1172914    /usr/share/mime/mime.cache
+b3218000-b3219000 r--s 00000000 08:05 1210286    /home/benjello/.local/share/mime/mime.cache
+b3219000-b321a000 r--s 00002000 08:03 2085389    /usr/local/Aptana Studio 3/plugins/org.eclipse.core.runtime.compatibility.registry_3.5.0.v20110505/runtime_registry_compatibility.jar
+b321a000-b3244000 r--p 00000000 08:03 2168816    /usr/share/locale/fr/LC_MESSAGES/gtk20-properties.mo
+b3244000-b3267000 r--p 00000000 08:03 391734     /usr/share/locale/fr/LC_MESSAGES/libc.mo
+b3267000-b3286000 r-xp 00000000 08:03 2003425    /usr/lib/i386-linux-gnu/libatk-1.0.so.0.20409.1
+b3286000-b3288000 r--p 0001e000 08:03 2003425    /usr/lib/i386-linux-gnu/libatk-1.0.so.0.20409.1
+b3288000-b3289000 rw-p 00020000 08:03 2003425    /usr/lib/i386-linux-gnu/libatk-1.0.so.0.20409.1
+b3289000-b36f5000 r-xp 00000000 08:03 2220019    /usr/lib/i386-linux-gnu/libgtk-x11-2.0.so.0.2400.10
+b36f5000-b36fb000 rw-p 0046b000 08:03 2220019    /usr/lib/i386-linux-gnu/libgtk-x11-2.0.so.0.2400.10
+b36fb000-b36fc000 rw-p 00000000 00:00 0 
+b36fc000-b3701000 r-xp 00000000 08:03 2217084    /usr/lib/i386-linux-gnu/libXdmcp.so.6.0.0
+b3701000-b3702000 rw-p 00004000 08:03 2217084    /usr/lib/i386-linux-gnu/libXdmcp.so.6.0.0
+b3702000-b3704000 r-xp 00000000 08:03 2217062    /usr/lib/i386-linux-gnu/libXau.so.6.0.0
+b3704000-b3705000 rw-p 00001000 08:03 2217062    /usr/lib/i386-linux-gnu/libXau.so.6.0.0
+b3705000-b3726000 r-xp 00000000 08:03 2004761    /usr/lib/i386-linux-gnu/libxcb.so.1.1.0
+b3726000-b3727000 r--p 00020000 08:03 2004761    /usr/lib/i386-linux-gnu/libxcb.so.1.1.0
+b3727000-b3728000 rw-p 00021000 08:03 2004761    /usr/lib/i386-linux-gnu/libxcb.so.1.1.0
+b3728000-b3731000 r-xp 00000000 08:03 2005150    /usr/lib/i386-linux-gnu/libxcb-render.so.0.0.0
+b3731000-b3732000 r--p 00008000 08:03 2005150    /usr/lib/i386-linux-gnu/libxcb-render.so.0.0.0
+b3732000-b3733000 rw-p 00009000 08:03 2005150    /usr/lib/i386-linux-gnu/libxcb-render.so.0.0.0
+b3733000-b3735000 r-xp 00000000 08:03 2215172    /usr/lib/i386-linux-gnu/libxcb-shm.so.0.0.0
+b3735000-b3736000 r--p 00001000 08:03 2215172    /usr/lib/i386-linux-gnu/libxcb-shm.so.0.0.0
+b3736000-b3737000 rw-p 00002000 08:03 2215172    /usr/lib/i386-linux-gnu/libxcb-shm.so.0.0.0
+b3737000-b37ca000 r-xp 00000000 08:03 2216284    /usr/lib/i386-linux-gnu/libpixman-1.so.0.26.0
+b37ca000-b37ce000 rw-p 00093000 08:03 2216284    /usr/lib/i386-linux-gnu/libpixman-1.so.0.26.0
+b37ce000-b37f4000 r-xp 00000000 08:03 212610     /lib/i386-linux-gnu/libexpat.so.1.6.0
+b37f4000-b37f5000 ---p 00026000 08:03 212610     /lib/i386-linux-gnu/libexpat.so.1.6.0
+b37f5000-b37f7000 r--p 00026000 08:03 212610     /lib/i386-linux-gnu/libexpat.so.1.6.0
+b37f7000-b37f8000 rw-p 00028000 08:03 212610     /lib/i386-linux-gnu/libexpat.so.1.6.0
+b37f8000-b3808000 r-xp 00000000 08:03 674395     /lib/i386-linux-gnu/i686/cmov/libresolv-2.13.so
+b3808000-b3809000 r--p 00010000 08:03 674395     /lib/i386-linux-gnu/i686/cmov/libresolv-2.13.so
+b3809000-b380a000 rw-p 00011000 08:03 674395     /lib/i386-linux-gnu/i686/cmov/libresolv-2.13.so
+b380a000-b380c000 rw-p 00000000 00:00 0 
+b380c000-b382a000 r-xp 00000000 08:03 213975     /lib/i386-linux-gnu/libselinux.so.1
+b382a000-b382b000 r--p 0001d000 08:03 213975     /lib/i386-linux-gnu/libselinux.so.1
+b382b000-b382c000 rw-p 0001e000 08:03 213975     /lib/i386-linux-gnu/libselinux.so.1
+b382c000-b3854000 r-xp 00000000 08:03 212597     /lib/i386-linux-gnu/libpng12.so.0.49.0
+b3854000-b3855000 r--p 00027000 08:03 212597     /lib/i386-linux-gnu/libpng12.so.0.49.0
+b3855000-b3856000 rw-p 00028000 08:03 212597     /lib/i386-linux-gnu/libpng12.so.0.49.0
+b3856000-b38ed000 r-xp 00000000 08:03 2217088    /usr/lib/i386-linux-gnu/libfreetype.so.6.8.1
+b38ed000-b38f1000 r--p 00096000 08:03 2217088    /usr/lib/i386-linux-gnu/libfreetype.so.6.8.1
+b38f1000-b38f2000 rw-p 0009a000 08:03 2217088    /usr/lib/i386-linux-gnu/libfreetype.so.6.8.1
+b38f2000-b391e000 r-xp 00000000 08:03 2003839    /usr/lib/i386-linux-gnu/libpangoft2-1.0.so.0.3000.0
+b391e000-b391f000 r--p 0002b000 08:03 2003839    /usr/lib/i386-linux-gnu/libpangoft2-1.0.so.0.3000.0
+b391f000-b3920000 rw-p 0002c000 08:03 2003839    /usr/lib/i386-linux-gnu/libpangoft2-1.0.so.0.3000.0
+b3920000-b3923000 r-xp 00000000 08:03 2216363    /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0.3200.3
+b3923000-b3924000 r--p 00002000 08:03 2216363    /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0.3200.3
+b3924000-b3925000 rw-p 00003000 08:03 2216363    /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0.3200.3
+b3925000-b3a59000 r-xp 00000000 08:03 2215969    /usr/lib/i386-linux-gnu/libX11.so.6.3.0
+b3a59000-b3a5d000 rw-p 00133000 08:03 2215969    /usr/lib/i386-linux-gnu/libX11.so.6.3.0
+b3a5d000-b3b67000 r-xp 00000000 08:03 2216616    /usr/lib/i386-linux-gnu/libcairo.so.2.11200.2
+b3b67000-b3b69000 r--p 00109000 08:03 2216616    /usr/lib/i386-linux-gnu/libcairo.so.2.11200.2
+b3b69000-b3b6a000 rw-p 0010b000 08:03 2216616    /usr/lib/i386-linux-gnu/libcairo.so.2.11200.2
+b3b6a000-b3b6b000 rw-p 00000000 00:00 0 
+b3b6b000-b3b70000 r-xp 00000000 08:03 2216023    /usr/lib/i386-linux-gnu/libXfixes.so.3.1.0
+b3b70000-b3b71000 rw-p 00004000 08:03 2216023    /usr/lib/i386-linux-gnu/libXfixes.so.3.1.0
+b3b71000-b3b73000 r-xp 00000000 08:03 2216269    /usr/lib/i386-linux-gnu/libXdamage.so.1.1.0
+b3b73000-b3b74000 rw-p 00001000 08:03 2216269    /usr/lib/i386-linux-gnu/libXdamage.so.1.1.0
+b3b74000-b3b76000 r-xp 00000000 08:03 2216876    /usr/lib/i386-linux-gnu/libXcomposite.so.1.0.0
+b3b76000-b3b77000 rw-p 00001000 08:03 2216876    /usr/lib/i386-linux-gnu/libXcomposite.so.1.0.0
+b3b77000-b3b80000 r-xp 00000000 08:03 2004393    /usr/lib/i386-linux-gnu/libXcursor.so.1.0.2
+b3b80000-b3b81000 rw-p 00009000 08:03 2004393    /usr/lib/i386-linux-gnu/libXcursor.so.1.0.2
+b3b81000-b3b88000 r-xp 00000000 08:03 2215305    /usr/lib/i386-linux-gnu/libXrandr.so.2.2.0
+b3b88000-b3b89000 rw-p 00006000 08:03 2215305    /usr/lib/i386-linux-gnu/libXrandr.so.2.2.0
+b3b89000-b3b97000 r-xp 00000000 08:03 2004387    /usr/lib/i386-linux-gnu/libXi.so.6.1.0
+b3b97000-b3b98000 rw-p 0000d000 08:03 2004387    /usr/lib/i386-linux-gnu/libXi.so.6.1.0
+b3b98000-b3b9a000 r-xp 00000000 08:03 2215492    /usr/lib/i386-linux-gnu/libXinerama.so.1.0.0
+b3b9a000-b3b9b000 rw-p 00001000 08:03 2215492    /usr/lib/i386-linux-gnu/libXinerama.so.1.0.0
+b3b9b000-b3ba3000 r-xp 00000000 08:03 2217986    /usr/lib/i386-linux-gnu/libXrender.so.1.3.0
+b3ba3000-b3ba4000 rw-p 00008000 08:03 2217986    /usr/lib/i386-linux-gnu/libXrender.so.1.3.0
+b3ba4000-b3bb5000 r-xp 00000000 08:03 2004353    /usr/lib/i386-linux-gnu/libXext.so.6.4.0
+b3bb5000-b3bb6000 rw-p 00010000 08:03 2004353    /usr/lib/i386-linux-gnu/libXext.so.6.4.0
+b3bb6000-b3bea000 r-xp 00000000 08:03 2219816    /usr/lib/i386-linux-gnu/libfontconfig.so.1.5.0
+b3bea000-b3beb000 r--p 00033000 08:03 2219816    /usr/lib/i386-linux-gnu/libfontconfig.so.1.5.0
+b3beb000-b3bec000 rw-p 00034000 08:03 2219816    /usr/lib/i386-linux-gnu/libfontconfig.so.1.5.0
+b3bec000-b3d45000 r-xp 00000000 08:03 2216250    /usr/lib/i386-linux-gnu/libgio-2.0.so.0.3200.3
+b3d45000-b3d47000 r--p 00159000 08:03 2216250    /usr/lib/i386-linux-gnu/libgio-2.0.so.0.3200.3
+b3d47000-b3d48000 rw-p 0015b000 08:03 2216250    /usr/lib/i386-linux-gnu/libgio-2.0.so.0.3200.3
+b3d48000-b3d49000 rw-p 00000000 00:00 0 
+b3d49000-b3d69000 r-xp 00000000 08:03 2004301    /usr/lib/i386-linux-gnu/libgdk_pixbuf-2.0.so.0.2600.1
+b3d69000-b3d6a000 r--p 0001f000 08:03 2004301    /usr/lib/i386-linux-gnu/libgdk_pixbuf-2.0.so.0.2600.1
+b3d6a000-b3d6b000 rw-p 00020000 08:03 2004301    /usr/lib/i386-linux-gnu/libgdk_pixbuf-2.0.so.0.2600.1
+b3d6b000-b3db5000 r-xp 00000000 08:03 2003987    /usr/lib/i386-linux-gnu/libpango-1.0.so.0.3000.0
+b3db5000-b3db6000 r--p 0004a000 08:03 2003987    /usr/lib/i386-linux-gnu/libpango-1.0.so.0.3000.0
+b3db6000-b3db7000 rw-p 0004b000 08:03 2003987    /usr/lib/i386-linux-gnu/libpango-1.0.so.0.3000.0
+b3db7000-b3dc2000 r-xp 00000000 08:03 2003974    /usr/lib/i386-linux-gnu/libpangocairo-1.0.so.0.3000.0
+b3dc2000-b3dc3000 r--p 0000b000 08:03 2003974    /usr/lib/i386-linux-gnu/libpangocairo-1.0.so.0.3000.0
+b3dc3000-b3dc4000 rw-p 0000c000 08:03 2003974    /usr/lib/i386-linux-gnu/libpangocairo-1.0.so.0.3000.0
+b3dc4000-b3e72000 r-xp 00000000 08:03 2215737    /usr/lib/i386-linux-gnu/libgdk-x11-2.0.so.0.2400.10
+b3e72000-b3e75000 rw-p 000ad000 08:03 2215737    /usr/lib/i386-linux-gnu/libgdk-x11-2.0.so.0.2400.10
+b3e75000-b3eb2000 r-xp 00000000 08:03 213841     /lib/i386-linux-gnu/libpcre.so.3.13.1
+b3eb2000-b3eb3000 rw-p 0003c000 08:03 213841     /lib/i386-linux-gnu/libpcre.so.3.13.1
+b3eb3000-b3ebb000 r-xp 00000000 08:03 2218379    /usr/lib/i386-linux-gnu/libffi.so.5.0.10
+b3ebb000-b3ebc000 rw-p 00008000 08:03 2218379    /usr/lib/i386-linux-gnu/libffi.so.5.0.10
+b3ebc000-b3fb7000 r-xp 00000000 08:03 211914     /lib/i386-linux-gnu/libglib-2.0.so.0.3200.3
+b3fb7000-b3fb8000 r--p 000fa000 08:03 211914     /lib/i386-linux-gnu/libglib-2.0.so.0.3200.3
+b3fb8000-b3fb9000 rw-p 000fb000 08:03 211914     /lib/i386-linux-gnu/libglib-2.0.so.0.3200.3
+b3fb9000-b4009000 r-xp 00000000 08:03 2216425    /usr/lib/i386-linux-gnu/libgobject-2.0.so.0.3200.3
+b4009000-b400a000 r--p 0004f000 08:03 2216425    /usr/lib/i386-linux-gnu/libgobject-2.0.so.0.3200.3
+b400a000-b400b000 rw-p 00050000 08:03 2216425    /usr/lib/i386-linux-gnu/libgobject-2.0.so.0.3200.3
+b400b000-b4012000 r--s 000fb000 08:03 816033     /usr/lib/jvm/java-6-openjdk-common/jre/lib/resources.jar
+b4012000-b4018000 r--p 00000000 08:03 2178364    /usr/share/locale/fr/LC_MESSAGES/gdk-pixbuf.mo
+b4018000-b401f000 r--s 00000000 08:03 1419684    /usr/lib/i386-linux-gnu/gconv/gconv-modules.cache
+b401f000-b402e000 r--p 00000000 08:03 2168758    /usr/share/locale/fr/LC_MESSAGES/gtk20.mo
+b402e000-b402f000 ---p 00000000 00:00 0 
+b402f000-b40af000 rw-p 00000000 00:00 0 
+b40af000-b40b2000 ---p 00000000 00:00 0 
+b40b2000-b4100000 rw-p 00000000 00:00 0 
+b4100000-b41f3000 rw-p 00000000 00:00 0 
+b41f3000-b4200000 ---p 00000000 00:00 0 
+b4200000-b4202000 r--s 00006000 08:03 33653      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.epl_3.0.0.1329404579.jar
+b4202000-b4203000 r-xp 00000000 08:03 2216245    /usr/lib/i386-linux-gnu/libgthread-2.0.so.0.3200.3
+b4203000-b4204000 r--p 00000000 08:03 2216245    /usr/lib/i386-linux-gnu/libgthread-2.0.so.0.3200.3
+b4204000-b4205000 rw-p 00001000 08:03 2216245    /usr/lib/i386-linux-gnu/libgthread-2.0.so.0.3200.3
+b4205000-b4208000 r--s 0007d000 08:03 816037     /usr/lib/jvm/java-6-openjdk-common/jre/lib/jsse.jar
+b4208000-b420b000 r--s 00031000 08:03 2069522    /usr/lib/jvm/java-6-openjdk-common/jre/lib/ext/sunjce_provider.jar
+b420b000-b420d000 r--s 0000f000 08:03 2069520    /usr/lib/jvm/java-6-openjdk-common/jre/lib/ext/pulse-java.jar
+b420d000-b4210000 r--s 00077000 08:03 1063445    /usr/lib/jvm/java-6-openjdk-common/jre/lib/ext/localedata.jar
+b4210000-b4214000 r--s 00038000 08:03 1156588    /usr/lib/jvm/java-6-openjdk-common/jre/lib/ext/sunpkcs11.jar
+b4214000-b4217000 ---p 00000000 00:00 0 
+b4217000-b4295000 rw-p 00000000 00:00 0 
+b4295000-b4298000 ---p 00000000 00:00 0 
+b4298000-b42e6000 rw-p 00000000 00:00 0 
+b42e6000-b42e9000 ---p 00000000 00:00 0 
+b42e9000-b4337000 rw-p 00000000 00:00 0 
+b4337000-b433a000 ---p 00000000 00:00 0 
+b433a000-b4388000 rw-p 00000000 00:00 0 
+b4388000-b4389000 ---p 00000000 00:00 0 
+b4389000-b443c000 rw-p 00000000 00:00 0 
+b443c000-b45ce000 r--s 037bf000 08:03 2281729    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/rt.jar
+b45ce000-b45fd000 rw-p 00000000 00:00 0 
+b45fd000-b4600000 ---p 00000000 00:00 0 
+b4600000-b465c000 rw-p 00000000 00:00 0 
+b465c000-b46a0000 rw-p 00000000 00:00 0 
+b46a0000-b4707000 rw-p 00000000 00:00 0 
+b4707000-b4729000 rw-p 00000000 00:00 0 
+b4729000-b475c000 rw-p 00000000 00:00 0 
+b475c000-b47a0000 rw-p 00000000 00:00 0 
+b47a0000-b4807000 rw-p 00000000 00:00 0 
+b4807000-b4829000 rw-p 00000000 00:00 0 
+b4829000-b482c000 ---p 00000000 00:00 0 
+b482c000-b4887000 rw-p 00000000 00:00 0 
+b4887000-b48c5000 rw-p 00000000 00:00 0 
+b48c5000-b4913000 rw-p 00000000 00:00 0 
+b4913000-b557b000 rwxp 00000000 00:00 0 
+b557b000-b6913000 rw-p 00000000 00:00 0 
+b6913000-b691d000 r-xp 00000000 08:03 674403     /lib/i386-linux-gnu/i686/cmov/libnss_files-2.13.so
+b691d000-b691e000 r--p 00009000 08:03 674403     /lib/i386-linux-gnu/i686/cmov/libnss_files-2.13.so
+b691e000-b691f000 rw-p 0000a000 08:03 674403     /lib/i386-linux-gnu/i686/cmov/libnss_files-2.13.so
+b691f000-b6932000 r-xp 00000000 08:03 674398     /lib/i386-linux-gnu/i686/cmov/libnsl-2.13.so
+b6932000-b6933000 r--p 00012000 08:03 674398     /lib/i386-linux-gnu/i686/cmov/libnsl-2.13.so
+b6933000-b6934000 rw-p 00013000 08:03 674398     /lib/i386-linux-gnu/i686/cmov/libnsl-2.13.so
+b6934000-b6936000 rw-p 00000000 00:00 0 
+b6936000-b6937000 r--s 00006000 08:03 721826     /usr/local/Aptana Studio 3/plugins/org.python.pydev.red_core_2.6.0.2012062515/red-core.jar
+b6937000-b6938000 r--s 00004000 08:03 1011917    /usr/local/Aptana Studio 3/plugins/org.eclipse.swt_3.7.2.v3740f.jar
+b6938000-b694f000 r-xp 00000000 08:03 1939486    /lib/i386-linux-gnu/libz.so.1.2.7
+b694f000-b6950000 r--p 00016000 08:03 1939486    /lib/i386-linux-gnu/libz.so.1.2.7
+b6950000-b6951000 rw-p 00017000 08:03 1939486    /lib/i386-linux-gnu/libz.so.1.2.7
+b6951000-b6958000 r-xp 00000000 08:03 1612851    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libzip.so
+b6958000-b6959000 rw-p 00007000 08:03 1612851    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libzip.so
+b6959000-b6980000 r-xp 00000000 08:03 1874997    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libjava.so
+b6980000-b6982000 rw-p 00027000 08:03 1874997    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libjava.so
+b6982000-b699e000 r-xp 00000000 08:03 211786     /lib/i386-linux-gnu/libgcc_s.so.1
+b699e000-b699f000 rw-p 0001b000 08:03 211786     /lib/i386-linux-gnu/libgcc_s.so.1
+b699f000-b69c3000 r-xp 00000000 08:03 674397     /lib/i386-linux-gnu/i686/cmov/libm-2.13.so
+b69c3000-b69c4000 r--p 00023000 08:03 674397     /lib/i386-linux-gnu/i686/cmov/libm-2.13.so
+b69c4000-b69c5000 rw-p 00024000 08:03 674397     /lib/i386-linux-gnu/i686/cmov/libm-2.13.so
+b69c5000-b6aa5000 r-xp 00000000 08:03 2218542    /usr/lib/i386-linux-gnu/libstdc++.so.6.0.17
+b6aa5000-b6aa9000 r--p 000e0000 08:03 2218542    /usr/lib/i386-linux-gnu/libstdc++.so.6.0.17
+b6aa9000-b6aaa000 rw-p 000e4000 08:03 2218542    /usr/lib/i386-linux-gnu/libstdc++.so.6.0.17
+b6aaa000-b6ab1000 rw-p 00000000 00:00 0 
+b6ab1000-b6ab2000 r--s 00006000 08:03 34360      /usr/local/Aptana Studio 3/plugins/com.aptana.editor.text_3.0.0.1339173764.jar
+b6ab2000-b6ab3000 r--s 0000b000 08:03 1011984    /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar
+b6ab3000-b6abb000 rw-s 00000000 08:03 722025     /tmp/hsperfdata_benjello/29024
+b6abb000-b6ac4000 r-xp 00000000 08:03 674265     /lib/i386-linux-gnu/i686/cmov/libnss_nis-2.13.so
+b6ac4000-b6ac5000 r--p 00008000 08:03 674265     /lib/i386-linux-gnu/i686/cmov/libnss_nis-2.13.so
+b6ac5000-b6ac6000 rw-p 00009000 08:03 674265     /lib/i386-linux-gnu/i686/cmov/libnss_nis-2.13.so
+b6ac6000-b6ad3000 r-xp 00000000 08:03 1874993    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libverify.so
+b6ad3000-b6ad4000 rw-p 0000c000 08:03 1874993    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/libverify.so
+b6ad4000-b6fe6000 r-xp 00000000 08:03 2316106    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/libjvm.so
+b6fe6000-b700a000 rw-p 00512000 08:03 2316106    /usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client/libjvm.so
+b700a000-b7421000 rw-p 00000000 00:00 0 
+b7421000-b7613000 r--p 00000000 08:03 2182657    /usr/lib/locale/locale-archive
+b7613000-b7614000 rw-p 00000000 00:00 0 
+b7614000-b776a000 r-xp 00000000 08:03 674402     /lib/i386-linux-gnu/i686/cmov/libc-2.13.so
+b776a000-b776b000 ---p 00156000 08:03 674402     /lib/i386-linux-gnu/i686/cmov/libc-2.13.so
+b776b000-b776d000 r--p 00156000 08:03 674402     /lib/i386-linux-gnu/i686/cmov/libc-2.13.so
+b776d000-b776e000 rw-p 00158000 08:03 674402     /lib/i386-linux-gnu/i686/cmov/libc-2.13.so
+b776e000-b7772000 rw-p 00000000 00:00 0 
+b7772000-b7774000 r-xp 00000000 08:03 674390     /lib/i386-linux-gnu/i686/cmov/libdl-2.13.so
+b7774000-b7775000 r--p 00001000 08:03 674390     /lib/i386-linux-gnu/i686/cmov/libdl-2.13.so
+b7775000-b7776000 rw-p 00002000 08:03 674390     /lib/i386-linux-gnu/i686/cmov/libdl-2.13.so
+b7776000-b778b000 r-xp 00000000 08:03 674387     /lib/i386-linux-gnu/i686/cmov/libpthread-2.13.so
+b778b000-b778c000 r--p 00014000 08:03 674387     /lib/i386-linux-gnu/i686/cmov/libpthread-2.13.so
+b778c000-b778d000 rw-p 00015000 08:03 674387     /lib/i386-linux-gnu/i686/cmov/libpthread-2.13.so
+b778d000-b778f000 rw-p 00000000 00:00 0 
+b778f000-b7791000 r--s 00001000 08:03 1091317    /usr/lib/jvm/java-6-openjdk-common/jre/lib/ext/dnsns.jar
+b7791000-b7792000 r--s 00007000 08:03 2248780    /usr/share/java/java-atk-wrapper.jar
+b7792000-b7798000 r-xp 00000000 08:03 674396     /lib/i386-linux-gnu/i686/cmov/libnss_compat-2.13.so
+b7798000-b7799000 r--p 00005000 08:03 674396     /lib/i386-linux-gnu/i686/cmov/libnss_compat-2.13.so
+b7799000-b779a000 rw-p 00006000 08:03 674396     /lib/i386-linux-gnu/i686/cmov/libnss_compat-2.13.so
+b779a000-b779b000 rw-p 00000000 00:00 0 
+b779b000-b779c000 r--p 00000000 00:00 0 
+b779c000-b77a3000 r-xp 00000000 08:03 674408     /lib/i386-linux-gnu/i686/cmov/librt-2.13.so
+b77a3000-b77a4000 r--p 00006000 08:03 674408     /lib/i386-linux-gnu/i686/cmov/librt-2.13.so
+b77a4000-b77a5000 rw-p 00007000 08:03 674408     /lib/i386-linux-gnu/i686/cmov/librt-2.13.so
+b77a5000-b77b1000 r-xp 00000000 08:03 847476     /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.launcher.gtk.linux.x86_1.1.100.v20110505/eclipse_1407.so
+b77b1000-b77b2000 rw-p 0000c000 08:03 847476     /usr/local/Aptana Studio 3/plugins/org.eclipse.equinox.launcher.gtk.linux.x86_1.1.100.v20110505/eclipse_1407.so
+b77b2000-b77b4000 rw-p 00000000 00:00 0 
+b77b4000-b77b5000 r-xp 00000000 00:00 0          [vdso]
+b77b5000-b77d1000 r-xp 00000000 08:03 1973076    /lib/i386-linux-gnu/ld-2.13.so
+b77d1000-b77d2000 r--p 0001b000 08:03 1973076    /lib/i386-linux-gnu/ld-2.13.so
+b77d2000-b77d3000 rw-p 0001c000 08:03 1973076    /lib/i386-linux-gnu/ld-2.13.so
+bfc03000-bfc06000 ---p 00000000 00:00 0 
+bfc07000-bfc53000 rw-p 00000000 00:00 0          [stack]
+
+VM Arguments:
+jvm_args: -Xms40m -Xmx512m -Declipse.p2.unsignedPolicy=allow -Declipse.log.size.max=10000 -Declipse.log.backup.max=5 -Djava.awt.headless=true -XX:MaxPermSize=256m 
+java_command: <unknown>
+Launcher Type: generic
+
+Environment Variables:
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+USERNAME=benjello
+LD_LIBRARY_PATH=/usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386/client:/usr/lib/jvm/java-6-openjdk-i386/jre/lib/i386:
+SHELL=/bin/zsh
+DISPLAY=:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0x3ed620], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGBUS: [libjvm.so+0x3ed620], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGFPE: [libjvm.so+0x30b6e0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGPIPE: SIG_IGN, sa_mask[0]=0x00001000, sa_flags=0x10000000
+SIGXFSZ: [libjvm.so+0x30b6e0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGILL: [libjvm.so+0x30b6e0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGUSR1: SIG_DFL, sa_mask[0]=0x00000000, sa_flags=0x00000000
+SIGUSR2: [libjvm.so+0x30b580], sa_mask[0]=0x00000000, sa_flags=0x10000004
+SIGHUP: [libjvm.so+0x30e150], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGINT: [libjvm.so+0x30e150], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGTERM: [libjvm.so+0x30e150], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGQUIT: [libjvm.so+0x30e150], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+
+
+---------------  S Y S T E M  ---------------
+
+OS:wheezy/sid
+
+uname:Linux 3.2.0-3-686-pae #1 SMP Mon Jul 23 03:50:34 UTC 2012 i686
+libc:glibc 2.13 NPTL 2.13 
+rlimit: STACK 8192k, CORE 0k, NPROC 16111, NOFILE 4096, AS infinity
+load average:1,86 2,23 1,89
+
+/proc/meminfo:
+MemTotal:        2073088 kB
+MemFree:          556836 kB
+Buffers:            5644 kB
+Cached:           328756 kB
+SwapCached:        20624 kB
+Active:           717416 kB
+Inactive:         735016 kB
+Active(anon):     655112 kB
+Inactive(anon):   465220 kB
+Active(file):      62304 kB
+Inactive(file):   269796 kB
+Unevictable:          56 kB
+Mlocked:              56 kB
+HighTotal:       1184328 kB
+HighFree:         151656 kB
+LowTotal:         888760 kB
+LowFree:          405180 kB
+SwapTotal:       2731012 kB
+SwapFree:        2458168 kB
+Dirty:               496 kB
+Writeback:             0 kB
+AnonPages:       1100932 kB
+Mapped:            70464 kB
+Shmem:              2244 kB
+Slab:              33636 kB
+SReclaimable:      17852 kB
+SUnreclaim:        15784 kB
+KernelStack:        3832 kB
+PageTables:        11800 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     3767556 kB
+Committed_AS:    2788620 kB
+VmallocTotal:     122880 kB
+VmallocUsed:       37456 kB
+VmallocChunk:      83012 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:         0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:        8184 kB
+DirectMap2M:      903168 kB
+
+
+CPU:total 2 (2 cores per cpu, 1 threads per core) family 6 model 15 stepping 6, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3
+
+Memory: 4k page, physical 2073088k(556836k free), swap 2731012k(2458168k free)
+
+vm_info: OpenJDK Client VM (20.0-b12) for linux-x86 JRE (1.6.0_24-b24), built on Sep  2 2012 23:54:53 by "buildd" with gcc 4.7.1
+
+time: Wed Sep 19 01:11:13 2012
+elapsed time: 9881 seconds
+
