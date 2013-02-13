@@ -102,6 +102,7 @@ from src.plugins.survey.survey_explorer import SurveyExplorerWidget
 from src.plugins.survey.aggregates import AggregatesWidget
 from src.plugins.survey.distribution import DistributionWidget
 from src.plugins.survey.inequality import InequalityWidget
+from src.plugins.survey.Calibration import CalibrationWidget
 
 from src.core.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
@@ -278,6 +279,7 @@ class MainWindow(QMainWindow):
         self.aggregates     = None
         self.distribution   = None
         self.inequality   = None
+        self.calibration = None
         self.thirdparty_plugins = []
         
         # Preferences
@@ -652,10 +654,10 @@ class MainWindow(QMainWindow):
         self.survey_plugins = [ self.survey_explorer]
         
         if CONF.get('survey', 'enable') is True:
-            try:
-                self.register_survey_widgets(True)
-            except:
-                pass
+            #try:
+            self.register_survey_widgets(True)
+#            except:
+#                pass
         # Online help widget
         if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
             self.set_splash(_("Loading online help..."))
@@ -852,32 +854,45 @@ class MainWindow(QMainWindow):
             self.survey_simulation = SurveySimulation()
             self.survey_explorer.initialize()
             self.survey_simulation.set_param()
+
+
+            
+            # Calibration widget
+            if CONF.get('calibration', 'enable'):
+                self.set_splash(_("Loading Aggregates..."))
+                self.calibration = CalibrationWidget(self)
+                self.calibration.register_plugin()
+                self.survey_plugins  += [ self.calibration]
             # Aggregates widget
             if CONF.get('aggregates', 'enable'):
                 self.set_splash(_("Loading Aggregates..."))
                 self.aggregates = AggregatesWidget(self)
                 self.aggregates.register_plugin()
-            
+                self.survey_plugins  += [ self.aggregates]
+                
             # Distribution widget
             if CONF.get('distribution', 'enable'):
                 self.set_splash(_("Loading Distribution..."))
                 self.distribution = DistributionWidget(self)
                 self.distribution.register_plugin()
+                self.survey_plugins  += [ self.distribution]
             
             # Inequality widget
             if CONF.get('inequality', 'enable'):
                 self.set_splash(_("Loading Inequality..."))
                 self.inequality = InequalityWidget(self)
                 self.inequality.register_plugin()
+                self.survey_plugins  += [ self.inequality]
 
             self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
                                                       "survey_toolbar")
-            self.survey_plugins  += [ self.aggregates, self.distribution, self.inequality]
+
         
             for first, second in ((self.test_case_table, self.survey_explorer),
                                   (self.survey_explorer, self.aggregates), 
                                   (self.aggregates, self.distribution), 
                                    (self.distribution, self.inequality),
+                                   (self.inequality, self.calibration)
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
@@ -1586,6 +1601,7 @@ class MainWindow(QMainWindow):
         
         for plugin in [self.onlinehelp, self.parameters] + self.survey_plugins + self.test_case_plugins + self.thirdparty_plugins:
             if plugin is not None:
+                print plugin
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:
                     dlg.add_page(widget)

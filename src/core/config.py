@@ -146,16 +146,17 @@ DEFAULTS = [
              {
               'enable': True,
               'bareme_only': False,
-              'data_file':'countries/france/data/survey.h5',
+              'data_file': "countries/france/data/survey.h5",
               'reform': False,
               }),            
             ('calibration', 
-             {'inputs_filename': 'calage_men.csv',
-              'pfam_filename': 'calage_pfam.csv',
+             {'enable' : True,
+              'inputs_filename' : "countries/france/calibrations/calib_2006.csv",
+              'outputs_filename' : None,
               'method': 'logit',
               'up': 3.0,
               'invlo': 3.0,
-              'calib_dir' : 'france/calibrations', 
+              'automatic' : False
               }),
             ('parameters',
              {
