@@ -8,14 +8,14 @@
 # (see openfisca/__init__.py for details)
 
 
-from src.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
-from src.qt.compat import to_qvariant, from_qvariant
+from src.gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
+from src.gui.qt.compat import to_qvariant, from_qvariant
 
-from src.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
+from src.gui.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
                          QStyledItemDelegate, QDoubleSpinBox, QSpinBox,
                          QPushButton, QStyleOptionButton, QSortFilterProxyModel,
                          QStyleOptionViewItemV4)
-from src.views.ui_baremedialog import Ui_BaremeDialog
+from src.gui.views.ui_baremedialog import Ui_BaremeDialog
 
 
 

@@ -24,7 +24,7 @@ import re
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
-from src.core.utils.programs import is_module_installed
+from src.gui.utils.programs import is_module_installed
 
 if is_module_installed('IPython.frontend.qt', '>=0.13'):
     # Importing IPython will eventually set the QT_API environment variable
@@ -43,7 +43,7 @@ if is_module_installed('IPython.frontend.qt', '>=0.13'):
             pass
         
 ## Check requirements
-from src import requirements
+from src.gui import requirements
 requirements.check_path()
 requirements.check_qt()
 #
@@ -51,34 +51,34 @@ requirements.check_qt()
 set_attached_console_visible = None
 is_attached_console_visible = None
 if os.name == 'nt':
-    from src.core.utils.windows import (set_attached_console_visible,
+    from src.gui.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible)
 
 
-from src.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
+from src.gui.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
 
-from src.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
-from src.qt.compat import (from_qvariant, getopenfilename,
+from src.gui.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
+from src.gui.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
 # when PySide is selected by the QT_API environment variable and when PyQt4 
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
-from src.qt import QtSvg  # analysis:ignore
+from src.gui.qt import QtSvg  # analysis:ignore
 
 # Local imports
 from src import __version__, __project_url__, __forum_url__
-from src.core.utils import encoding, vcs, programs
+from src.gui.utils import encoding, vcs, programs
 try:
     from src.utils.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 #from src.widgets.pathmanager import PathManager #TODO
 
-from src.spyder_widgets.status import MemoryStatus, CPUStatus
+from src.gui.spyder_widgets.status import MemoryStatus, CPUStatus
 from src.plugins.general.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from src.plugins.general.shortcuts import ShortcutsConfigPage
@@ -92,8 +92,8 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 
 
-from src.core.utils_old import of_import
-from src.core.simulation import SurveySimulation, ScenarioSimulation
+from src.lib.utils import of_import
+from src.lib.simulation import SurveySimulation, ScenarioSimulation
 
 from src.plugins.general.Parametres import ParamWidget
 from src.plugins.scenario.graph import ScenarioGraphWidget
@@ -104,22 +104,22 @@ from src.plugins.survey.distribution import DistributionWidget
 from src.plugins.survey.inequality import InequalityWidget
 from src.plugins.survey.Calibration import CalibrationWidget
 
-from src.core.utils.qthelpers import (create_action, add_actions, get_std_icon,
+from src.gui.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
                                        create_python_script_action, file_uri)
 
-from src.core.baseconfig import (get_conf_path, _, get_module_data_path,
+from src.gui.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
 
-from src.core.guiconfig import get_icon, get_image_path, get_shortcut
-from src.core.config import CONF, EDIT_EXT
+from src.gui.guiconfig import get_icon, get_image_path, get_shortcut
+from src.gui.config import CONF, EDIT_EXT
 from src.otherplugins import get_openfiscaplugins_mods
-from src.core.utils.iofuncs import load_session, save_session, reset_session
-from src.core.userconfig import NoDefault, NoOptionError
-from src.core.utils import module_completion
+from src.gui.utils.iofuncs import load_session, save_session, reset_session
+from src.gui.userconfig import NoDefault, NoOptionError
+from src.gui.utils import module_completion
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
@@ -1341,7 +1341,7 @@ class MainWindow(QMainWindow):
         """
         About openFisca
         """
-        import src.qt.QtCore
+        import src.gui.qt.QtCore
         QMessageBox.about(self,
             _("About %s") % "openFisca",
             
@@ -1352,12 +1352,12 @@ class MainWindow(QMainWindow):
               <p> License GPL version 3 ou supérieure
               <p> Python %s - Qt %s - PyQt %s on %s'''
               % (__version__, __project_url__, platform.python_version(),
-                          src.qt.QtCore.__version__, src.qt.__version__, platform.system()))
+                          src.gui.qt.QtCore.__version__, src.gui.qt.__version__, platform.system()))
 #                 __project_url__, __forum_url__,
 #                 platform.python_version(),
-#                 src.qt.QtCore.__version__,
-#                 src.qt.API_NAME,
-#                 src.qt.__version__,
+#                 src.gui.qt.QtCore.__version__,
+#                 src.gui.qt.API_NAME,
+#                 src.gui.qt.__version__,
 #                 platform.system()) )
 
 #            """<b>%s %s</b> %s
@@ -1395,9 +1395,9 @@ class MainWindow(QMainWindow):
 #                 "</b></span>",
 #                 __project_url__, __forum_url__,
 #                 platform.python_version(),
-#                 src.qt.QtCore.__version__,
-#                 src.qt.API_NAME,
-#                 src.qt.__version__,
+#                 src.gui.qt.QtCore.__version__,
+#                 src.gui.qt.API_NAME,
+#                 src.gui.qt.__version__,
 #                 platform.system()) )
 
     def report_issue(self):
@@ -1718,7 +1718,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from src.qt import QtGui
+    from src.gui.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
     

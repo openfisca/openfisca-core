@@ -1,4 +1,5 @@
-What is OpenFisca (beta) ?
+OpenFisca
+=========
 
 OpenFisca (beta) is a versatile microsimulation free software.
 It includes a framework to microsiumalte any socio-fiscal system.

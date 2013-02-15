@@ -3,12 +3,12 @@ Traceback (most recent call last):
     mainwindow = run_spyder(app, options)
   File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1762, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 658, in setup
-    self.register_survey_widgets(True)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 864, in register_survey_widgets
-    self.calibration.register_plugin()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\Calibration.py", line 991, in register_plugin
-    calibration.set_simulation(simulation)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\Calibration.py", line 96, in set_simulation
-    self.weights = 1*inputs.get_value("wprm", inputs.index[self.unit])
-AttributeError: 'NoneType' object has no attribute 'get_value'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 630, in setup
+    CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 893, in of_import
+    _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 21, in <module>
+    from src.gui.views.ui_composition import Ui_Menage
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\gui\views\ui_composition.py", line 265, in <module>
+    import src.resources_rc
+ImportError: No module named resources_rc
