@@ -170,7 +170,7 @@ class DataTable(object):
 
             if yr in available_years:
                 self.survey_year = yr
-            self.table = store[str(base_name)] 
+            self.table = store[str(base_name)] # only valid for frame 
             store.close()
             
         self._nrows = self.table.shape[0]
@@ -201,8 +201,18 @@ class DataTable(object):
         self.gen_index(INDEX)
         self._isPopulated = True
         
+        # Initialize default weights
         self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
         
+        print self.table.get_dtype_counts()
+        
+        
+        for col in self.table.columns:
+            if col not in self.description.col_names:
+                print 'removing : ',  col
+                del self.table[col]
+        
+        print self.table.get_dtype_counts()
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
         '''
