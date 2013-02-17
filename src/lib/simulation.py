@@ -461,6 +461,15 @@ class SurveySimulation(Simulation):
         if isinstance(inflators, dict):
             for varname, inflator in inflators.iteritems():
                 self.survey.inflate(varname, inflator)
+                
+                
+    def check_survey(self):
+        """
+        Consistency check of survey input data
+        """
+        
+        check_consistency = of_import('utils', 'check_consistency', self.country)
+        check_consistency(self.survey)
 
     def compute(self):
         """
