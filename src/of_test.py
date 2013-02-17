@@ -1428,9 +1428,9 @@ class MainWindow(QMainWindow):
 #""" % (__version__,
 #       revlink,
 #       platform.python_version(),
-#       spyderlib.qt.QtCore.__version__,
-#       spyderlib.qt.API_NAME,
-#       spyderlib.qt.__version__,
+#       src.gui.qt.QtCore.__version__,
+#       src.gui.qt.API_NAME,
+#       src.gui.qt.__version__,
 #       platform.system())
 #       
 #        url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
@@ -1444,8 +1444,8 @@ class MainWindow(QMainWindow):
 #        if self.light:
 #            return self.extconsole
 #        widget = QApplication.focusWidget()
-#        from spyderlib.widgets.editor import TextEditBaseWidget
-#        from spyderlib.widgets.shell import ShellBaseWidget
+#        from src.gui.spyder_widgets.editor import TextEditBaseWidget
+#        from src.gui.spyder_widgets.shell import ShellBaseWidget
 #        if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
 #            return
 #        for plugin in self.widgetlist:
@@ -1454,7 +1454,7 @@ class MainWindow(QMainWindow):
 #        else:
 #            # External Editor window
 #            plugin = widget
-#            from spyderlib.widgets.editor import EditorWidget
+#            from src.gui.spyder_widgets.editor import EditorWidget
 #            while not isinstance(plugin, EditorWidget):
 #                plugin = plugin.parent()
 #            return plugin
@@ -1492,7 +1492,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         action = self.sender()
         callback = from_qvariant(action.data(), unicode)
-#        from spyderlib.widgets.editor import TextEditBaseWidget
+#        from src.gui.spyder_widgets.editor import TextEditBaseWidget
 #        if isinstance(widget, TextEditBaseWidget):
         getattr(widget, callback)()
         

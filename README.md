@@ -16,7 +16,7 @@ Informations are available on www.openfisca.fr
 
 How to contribute to OpenFisca (beta) ? 
 
-The development of OpenFisca (beta) is an FLOSS project wich code is distributed 
+OpenFisca (beta) is a FLOSS project wich code is distributed 
 under the GPL licence version 3 or later (see license.txt). 
 The source code is freely available and still undergoes heavy development.
 Feel free to join the OpenFisca developpment team on GitHub 
