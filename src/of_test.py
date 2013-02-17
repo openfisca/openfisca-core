@@ -859,27 +859,27 @@ class MainWindow(QMainWindow):
             
             # Calibration widget
             if CONF.get('calibration', 'enable'):
-                self.set_splash(_("Loading Aggregates..."))
+                self.set_splash(_("Loading calibration widget ..."))
                 self.calibration = CalibrationWidget(self)
                 self.calibration.register_plugin()
                 self.survey_plugins  += [ self.calibration]
             # Aggregates widget
             if CONF.get('aggregates', 'enable'):
-                self.set_splash(_("Loading Aggregates..."))
+                self.set_splash(_("Loading aggregates widget ..."))
                 self.aggregates = AggregatesWidget(self)
                 self.aggregates.register_plugin()
                 self.survey_plugins  += [ self.aggregates]
                 
             # Distribution widget
             if CONF.get('distribution', 'enable'):
-                self.set_splash(_("Loading Distribution..."))
+                self.set_splash(_("Loading distribution widget ..."))
                 self.distribution = DistributionWidget(self)
                 self.distribution.register_plugin()
                 self.survey_plugins  += [ self.distribution]
             
             # Inequality widget
             if CONF.get('inequality', 'enable'):
-                self.set_splash(_("Loading Inequality..."))
+                self.set_splash(_("Loading inequality widget ..."))
                 self.inequality = InequalityWidget(self)
                 self.inequality.register_plugin()
                 self.survey_plugins  += [ self.inequality]
@@ -892,7 +892,7 @@ class MainWindow(QMainWindow):
                                   (self.survey_explorer, self.aggregates), 
                                   (self.aggregates, self.distribution), 
                                    (self.distribution, self.inequality),
-                                   (self.inequality, self.calibration)
+                                   (self.inequality, self.calibration),
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
@@ -1043,7 +1043,8 @@ class MainWindow(QMainWindow):
                                    (self.test_case_table, self.aggregates), 
                                    (self.aggregates, self.distribution), 
                                    (self.distribution, self.inequality),
-                                   (self.inequality, self.survey_explorer)
+                                   (self.inequality, self.survey_explorer),
+                                   (self.survey_explorer, self.calibration),
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
