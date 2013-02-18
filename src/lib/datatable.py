@@ -141,7 +141,11 @@ class DataTable(object):
         if self.country is None:
             raise Exception('DataTable: country key word variable must be set') 
                
-        INDEX = of_import(None, 'ENTITIES_INDEX', self.country) # import ENTITIES_INDEX from country.__init__.py
+        # imports country specific variables from country.__init__.py
+        INDEX = of_import(None, 'ENTITIES_INDEX', self.country)
+        WEIGHT = of_import(None, 'WEIGHT', self.country)
+        WEIGHT_INI = of_import(None, 'WEIGHT_INI', self.country)
+        
         
         if fname[-4:] == '.csv':
             with open(fname) as survey_data_file:
@@ -202,10 +206,9 @@ class DataTable(object):
         self._isPopulated = True
         
         # Initialize default weights
-        self.set_value('wprm_init', self.get_value('wprm'),self.index['ind'])
+        self.set_value(WEIGHT_INI, self.get_value(WEIGHT),self.index['ind'])
         
         print self.table.get_dtype_counts()
-        
         
         for col in self.table.columns:
             if col not in self.description.col_names:

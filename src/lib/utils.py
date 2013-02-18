@@ -100,35 +100,35 @@ def gen_output_data(model, filename = None):
     handle_output_xml(_doc, tree, model)
     return tree
 
-def gen_aggregate_output(model):
-
-    out_dct = {}
-    inputs = model._inputs
-    unit = 'men'
-    idx = model.index[unit]
-    enum = inputs.description.get_col('qui'+unit).enum
-    people = [x[1] for x in enum]
-
-    # model.calculate()
-
-    varlist = set(['wprm', 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
-    for varname in model.col_names.union(varlist):
-        if varname in model.col_names:
-            if model.description.get_col(varname)._unit != unit:
-                val = model.get_value(varname, idx, opt = people, sum_ = True)    
-            else:
-                val = model.get_value(varname, idx)
-        elif varname in inputs.col_names:
-            val = inputs.get_value(varname, idx)
-        else:
-            raise Exception('%s was not find in model nor in inputs' % varname)
-        
-        out_dct[varname] = val      
-    # TODO: should take care the variables that shouldn't be summed automatically
-
-
-    out_table = DataFrame(out_dct)
-    return out_table
+#def gen_aggregate_output(model, country):
+#
+#    out_dct = {}
+#    inputs = model._inputs
+#    unit = 'men'
+#    idx = model.index[unit]
+#    enum = inputs.description.get_col('qui'+unit).enum
+#    people = [x[1] for x in enum]
+#
+#    # model.calculate()
+#
+#    WEIGHT = of_import(None, 'WEIGHT', country) # import WEIGHT from country.__init__.py
+#    varlist = set([WEIGHT, 'typ_men', 'so', 'typmen15', 'tu99', 'ddipl', 'ageq', 'cstotpragr', 'decile', 'champm'])
+#    for varname in model.col_names.union(varlist):
+#        if varname in model.col_names:
+#            if model.description.get_col(varname)._unit != unit:
+#                val = model.get_value(varname, idx, opt = people, sum_ = True)    
+#            else:
+#                val = model.get_value(varname, idx)
+#        elif varname in inputs.col_names:
+#            val = inputs.get_value(varname, idx)
+#        else:
+#            raise Exception('%s was not find in model nor in inputs' % varname)
+#        
+#        out_dct[varname] = val      
+#    # TODO: should take care the variables that shouldn't be summed automatically
+#
+#    out_table = DataFrame(out_dct)
+#    return out_table
 
 class OutNode(object):
     def __init__(self, code, desc, shortname = '', vals = 0, color = (0,0,0), typevar = 0, parent = None):

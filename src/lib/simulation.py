@@ -516,7 +516,10 @@ class SurveySimulation(Simulation):
         out_tables[0], out_tables[1]: DataFrame
                           
         """
-              
+
+        WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
+            
+        
         if self.outputs is None:
             raise Exception('self.outputs should not be None')
   
@@ -541,7 +544,7 @@ class SurveySimulation(Simulation):
             except:
                 people = None
 
-            input_varlist = set(['wprm'])
+            input_varlist = set([WEIGHT])
             if all_input_vars:           
                 input_varlist = input_varlist.union(set(inputs.col_names))
             if varlist is not None:
