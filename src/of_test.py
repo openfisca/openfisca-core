@@ -676,59 +676,58 @@ class MainWindow(QMainWindow):
                                 )
         
         # Spyder documentation
-        doc_path = get_module_data_path('spyderlib', relpath="doc",
+        doc_path = get_module_data_path('src', relpath="doc",
                                         attr_name='DOCPATH')
         # * Trying to find the chm doc
-        spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, os.pardir, os.pardir,
+        openfisca_doc = osp.join(doc_path, "Spyderdoc.chm")
+        if not osp.isfile(openfisca_doc):
+            openfisca_doc = osp.join(doc_path, os.pardir, os.pardir,
                                   "Spyderdoc.chm")
         # * Trying to find the html doc
-        if not osp.isfile(spyder_doc):
-            spyder_doc = osp.join(doc_path, "index.html")
-            if not osp.isfile(spyder_doc):  # development version
-                spyder_doc = osp.join(get_module_source_path('spyderlib'),
-                                      os.pardir, 'build', 'lib',
-                                      'spyderlib', 'doc', "index.html")
-        spyder_doc = file_uri(spyder_doc)
-        doc_action = create_bookmark_action(self, spyder_doc,
-                           _("Spyder documentation"), shortcut="F1",
+        if not osp.isfile(openfisca_doc):
+            openfisca_doc = osp.join(doc_path, "index.html")
+            if not osp.isfile(openfisca_doc):  # development version
+                openfisca_doc = osp.join(get_module_source_path("src"),
+                                      "doc", "_build", "html", "index.html")
+        openfisca_doc = file_uri(openfisca_doc)
+        doc_action = create_bookmark_action(self, openfisca_doc,
+                           _("Openfisca documentation"), shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'))
         self.help_menu_actions = [about_action, report_action, doc_action]
         
-        # Python documentation
-        if get_python_doc_path() is not None:
-            pydoc_act = create_action(self, _("Python documentation"),
-                              icon=get_icon('python.png'),
-                              triggered=lambda:
-                              programs.start_file(get_python_doc_path()))
-            self.help_menu_actions += [None, pydoc_act]
-        # Qt assistant link
-        qta_act = create_program_action(self, _("Qt Assistant"),
-                                        'qtassistant.png', "assistant")
-        if qta_act:
-            self.help_menu_actions.append(qta_act)
-        # Windows-only: documentation located in sys.prefix/Doc
-        def add_doc_action(text, path):
-            """Add doc action to help menu"""
-            ext = osp.splitext(path)[1]
-            if ext:
-                icon = get_icon(ext[1:]+".png")
-            else:
-                icon = get_std_icon("DirIcon")
-            path = file_uri(path)
-            action = create_action(self, text, icon=icon,
-                   triggered=lambda path=path: programs.start_file(path))
-            self.help_menu_actions.append(action)
-        if os.name == 'nt':
-            sysdocpth = osp.join(sys.prefix, 'Doc')
-            for docfn in os.listdir(sysdocpth):
-                pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
-                match = re.match(pt, docfn)
-                if match is not None:
-                    pname = match.groups()[0]
-                    if pname not in ('Python', ):
-                        add_doc_action(pname, osp.join(sysdocpth, docfn))
+#        # Python documentation
+#        if get_python_doc_path() is not None:
+#            pydoc_act = create_action(self, _("Python documentation"),
+#                              icon=get_icon('python.png'),
+#                              triggered=lambda:
+#                              programs.start_file(get_python_doc_path()))
+#            self.help_menu_actions += [None, pydoc_act]
+#        # Qt assistant link
+#        qta_act = create_program_action(self, _("Qt Assistant"),
+#                                        'qtassistant.png', "assistant")
+#        if qta_act:
+#            self.help_menu_actions.append(qta_act)
+#        # Windows-only: documentation located in sys.prefix/Doc
+#        def add_doc_action(text, path):
+#            """Add doc action to help menu"""
+#            ext = osp.splitext(path)[1]
+#            if ext:
+#                icon = get_icon(ext[1:]+".png")
+#            else:
+#                icon = get_std_icon("DirIcon")
+#            path = file_uri(path)
+#            action = create_action(self, text, icon=icon,
+#                   triggered=lambda path=path: programs.start_file(path))
+#            self.help_menu_actions.append(action)
+#        if os.name == 'nt':
+#            sysdocpth = osp.join(sys.prefix, 'Doc')
+#            for docfn in os.listdir(sysdocpth):
+#                pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
+#                match = re.match(pt, docfn)
+#                if match is not None:
+#                    pname = match.groups()[0]
+#                    if pname not in ('Python', ):
+#                        add_doc_action(pname, osp.join(sysdocpth, docfn))
 
         # Online documentation
         web_resources = QMenu(_("Web Resources"))

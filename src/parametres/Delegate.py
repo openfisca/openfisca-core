@@ -83,8 +83,12 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         
-        from src.countries.france import CURRENCY
-        currency = CURRENCY
+        
+        from src.gui.config import CONF
+        from src.lib.utils import of_import
+        country = CONF.get('parameters', 'country')
+        currency = of_import('', 'CURRENCY', country)
+
         year = "an"  # TODO: localization
         years = "ans"
         
