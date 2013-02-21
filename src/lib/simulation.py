@@ -551,7 +551,7 @@ class SurveySimulation(Simulation):
                 input_varlist = input_varlist.union( set(inputs.col_names).intersection(varlist))
  
             if varlist is not None:
-                output_varlist = set(model.col_names).intersection(varlist)
+                output_varlist = set(model.col_names).intersection(varlist)    
             if all_output_vars:
                 output_varlist = set(model.col_names)
             

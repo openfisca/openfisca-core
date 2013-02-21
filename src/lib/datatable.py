@@ -208,14 +208,15 @@ class DataTable(object):
         # Initialize default weights
         self.set_value(WEIGHT_INI, self.get_value(WEIGHT),self.index['ind'])
         
-        print self.table.get_dtype_counts()
-        
-        for col in self.table.columns:
-            if col not in self.description.col_names:
-                print 'removing : ',  col
-                del self.table[col]
-        
-        print self.table.get_dtype_counts()
+#        # TODO: activate for debug
+#        print self.table.get_dtype_counts()
+#        
+#        for col in self.table.columns:
+#            if col not in self.description.col_names:
+#                print 'removing : ',  col
+#                del self.table[col]
+#        
+#        print self.table.get_dtype_counts()
 
     def get_value(self, varname, index = None, opt = None, sum_ = False):
         '''
