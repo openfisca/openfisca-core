@@ -1,12 +1,8 @@
 Traceback (most recent call last):
-  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1846, in main
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1797, in main
     mainwindow = run_spyder(app, options)
-  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1762, in run_spyder
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 1713, in run_spyder
     main.setup()
-  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 633, in setup
-    self.composition = CompositionWidget(self.scenario_simulation, self)
-  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/countries/tunisia/widgets/Composition.py", line 66, in __init__
-    self.set_scenario(simulation_scenario)
-  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/countries/tunisia/widgets/Composition.py", line 120, in set_scenario
-    year = datesim.year
-AttributeError: 'unicode' object has no attribute 'year'
+  File "/home/benjello/Aptana Studio 3 Workspace/openfisca/src/of_test.py", line 723, in setup
+    print IMG_PATH
+NameError: global name 'IMG_PATH' is not defined

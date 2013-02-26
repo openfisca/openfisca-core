@@ -114,7 +114,7 @@ from src.gui.utils.qthelpers import (create_action, add_actions, get_std_icon,
 from src.gui.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
 
-from src.gui.guiconfig import get_icon, get_image_path, get_shortcut
+from src.gui.config import get_icon, get_image_path, get_shortcut
 from src.gui.config import CONF, EDIT_EXT
 from src.otherplugins import get_openfiscaplugins_mods
 from src.gui.utils.iofuncs import load_session, save_session, reset_session
@@ -208,20 +208,7 @@ class MainWindow(QMainWindow):
     """
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     openfisca_path = get_conf_path('.path')
-    BOOKMARKS = (
-         ('OpenfFisca',
-          "http://www.openfsca.fr",
-          _("Openfisca"), "OpenFisca22.png"),
-        ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html",
-          _("PyQt4 Reference Guide"), "qt.png"),
-         ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html",
-          _("PyQt4 API Reference"), "qt.png"),
-        ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
-          _("Matplotlib documentation"),
-          "matplotlib.png"),
-                 )
+
            
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -550,14 +537,14 @@ class MainWindow(QMainWindow):
         self.register_shortcut(prefs_action, "_", "Preferences",
                                "Ctrl+Alt+Shift+P")
 
-        update_modules_action = create_action(self,
-                                    _("Update module names list"),
-                                    None, 'reload.png',
-                                    triggered=module_completion.reset,
-                                    tip=_("Refresh list of module names "
-                                          "available in PYTHONPATH"))
+#        update_modules_action = create_action(self,
+#                                    _("Update module names list"),
+#                                    None, 'reload.png',
+#                                    triggered=module_completion.reset,
+#                                    tip=_("Refresh list of module names "
+#                                          "available in PYTHONPATH"))
         self.tools_menu_actions = [prefs_action,]
-        self.tools_menu_actions += [update_modules_action, None]
+#        self.tools_menu_actions += [update_modules_action, None]
         self.main_toolbar_actions += [prefs_action,]
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
@@ -573,34 +560,6 @@ class MainWindow(QMainWindow):
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
 
-        # Qt-related tools
-        additact = [None]
-        for name in ("designer-qt4", "designer"):
-            qtdact = create_program_action(self, _("Qt Designer"),
-                                           'qtdesigner.png', name)
-            if qtdact:
-                break
-        for name in ("linguist-qt4", "linguist"):
-            qtlact = create_program_action(self, _("Qt Linguist"),
-                                           'qtlinguist.png', "linguist")
-            if qtlact:
-                break
-        args = ['-no-opengl'] if os.name == 'nt' else []
-        qteact = create_python_script_action(self,
-                               _("Qt examples"), 'qt.png', "PyQt4",
-                               osp.join("examples", "demos",
-                                        "qtdemo", "qtdemo"), args)
-        for act in (qtdact, qtlact, qteact):
-            if act:
-                additact.append(act)
-        if len(additact) > 1:
-            self.external_tools_menu_actions += additact
-
-        # ViTables
-        vitables_act = create_program_action(self, _("ViTables"),
-                                             'vitables.png', "vitables")
-        if vitables_act:
-            self.external_tools_menu_actions += [None, vitables_act]
                     
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -656,13 +615,6 @@ class MainWindow(QMainWindow):
         if CONF.get('survey', 'enable') is True:
             #try:
             self.register_survey_widgets(True)
-#            except:
-#                pass
-        # Online help widget
-        if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
-            self.set_splash(_("Loading online help..."))
-            self.onlinehelp = OnlineHelp(self)
-            self.onlinehelp.register_plugin()
                            
         # ? menu
         about_action = create_action(self,
@@ -679,10 +631,10 @@ class MainWindow(QMainWindow):
         doc_path = get_module_data_path('src', relpath="doc",
                                         attr_name='DOCPATH')
         # * Trying to find the chm doc
-        openfisca_doc = osp.join(doc_path, "Spyderdoc.chm")
+        openfisca_doc = osp.join(doc_path, "OpensiscaDoc.chm")
         if not osp.isfile(openfisca_doc):
             openfisca_doc = osp.join(doc_path, os.pardir, os.pardir,
-                                  "Spyderdoc.chm")
+                                  "OpensiscaDoc.chm")
         # * Trying to find the html doc
         if not osp.isfile(openfisca_doc):
             openfisca_doc = osp.join(doc_path, "index.html")
@@ -695,46 +647,8 @@ class MainWindow(QMainWindow):
                            icon=get_std_icon('DialogHelpButton'))
         self.help_menu_actions = [about_action, report_action, doc_action]
         
-#        # Python documentation
-#        if get_python_doc_path() is not None:
-#            pydoc_act = create_action(self, _("Python documentation"),
-#                              icon=get_icon('python.png'),
-#                              triggered=lambda:
-#                              programs.start_file(get_python_doc_path()))
-#            self.help_menu_actions += [None, pydoc_act]
-#        # Qt assistant link
-#        qta_act = create_program_action(self, _("Qt Assistant"),
-#                                        'qtassistant.png', "assistant")
-#        if qta_act:
-#            self.help_menu_actions.append(qta_act)
-#        # Windows-only: documentation located in sys.prefix/Doc
-#        def add_doc_action(text, path):
-#            """Add doc action to help menu"""
-#            ext = osp.splitext(path)[1]
-#            if ext:
-#                icon = get_icon(ext[1:]+".png")
-#            else:
-#                icon = get_std_icon("DirIcon")
-#            path = file_uri(path)
-#            action = create_action(self, text, icon=icon,
-#                   triggered=lambda path=path: programs.start_file(path))
-#            self.help_menu_actions.append(action)
-#        if os.name == 'nt':
-#            sysdocpth = osp.join(sys.prefix, 'Doc')
-#            for docfn in os.listdir(sysdocpth):
-#                pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
-#                match = re.match(pt, docfn)
-#                if match is not None:
-#                    pname = match.groups()[0]
-#                    if pname not in ('Python', ):
-#                        add_doc_action(pname, osp.join(sysdocpth, docfn))
 
-        # Online documentation
-        web_resources = QMenu(_("Web Resources"))
-        web_resources.setIcon(get_icon("browser.png"))
-        add_actions(web_resources,
-                    create_module_bookmark_actions(self, self.BOOKMARKS))
-        self.help_menu_actions.append(web_resources)
+        print self.help_menu_actions
         
         # Status bar widgets
         self.mem_status = MemoryStatus(self, status)
@@ -783,13 +697,6 @@ class MainWindow(QMainWindow):
                                      reset_layout_action, quick_layout_menu,
                                      None, self.close_dockwidget_action))
             
-        # Adding external tools action to "Tools" menu
-        external_tools_act = create_action(self, _("External Tools"),
-                                           icon="ext_tools.png")
-        external_tools_act.setMenu(self.external_tools_menu)
-        self.tools_menu_actions.append(external_tools_act)
-        self.main_toolbar_actions.append(external_tools_act)
-            
         # Filling out menu/toolbar entries:
         add_actions(self.file_menu, self.file_menu_actions)
 
@@ -797,8 +704,7 @@ class MainWindow(QMainWindow):
 #            add_actions(self.interact_menu, self.interact_menu_actions)
 
         add_actions(self.tools_menu, self.tools_menu_actions)
-        add_actions(self.external_tools_menu,
-                    self.external_tools_menu_actions)
+
         add_actions(self.help_menu, self.help_menu_actions)
         
         add_actions(self.main_toolbar, self.main_toolbar_actions)
@@ -1348,7 +1254,7 @@ class MainWindow(QMainWindow):
           u''' <b>openFisca</b><sup>beta</sup> v %s
               <p> %s
               <p> Copyright &copy; 2011 Clément Schaff, Mahdi Ben Jelloul
-              Tout droit réservé
+              <p> Tous droits réservés
               <p> License GPL version 3 ou supérieure
               <p> Python %s - Qt %s - PyQt %s on %s'''
               % (__version__, __project_url__, platform.python_version(),
@@ -1359,46 +1265,8 @@ class MainWindow(QMainWindow):
 #                 src.gui.qt.API_NAME,
 #                 src.gui.qt.__version__,
 #                 platform.system()) )
-
+            
 #            """<b>%s %s</b> %s
-#            <br>Scientific PYthon Development EnviRonment
-#            <p>Copyright &copy; 2009-2012 Pierre Raybaut
-#            <br>Licensed under the terms of the MIT License
-#            <p>Created by Pierre Raybaut
-#            <br>Developed and maintained by the 
-#            <a href="%s/people/list">Spyder Development Team</a>
-#            <br>Many thanks to all the Spyder beta-testers and regular users.
-#            <p>Source code editor: Python code real-time analysis is powered by 
-#            %spyflakes %s%s (&copy; 2005 
-#            <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
-#            introspection features (completion, go-to-definition, ...) are 
-#            powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
-#            <br>Most of the icons are coming from the %sCrystal Project%s 
-#            (&copy; 2006-2007 Everaldo Coelho)
-#            <p>Spyder's community:
-#            <ul><li>Bug reports and feature requests: 
-#            <a href="%s">Google Code</a>
-#            </li><li>Discussions around the project: 
-#            <a href="%s">Google Group</a>
-#            </li></ul>
-#            <p>This project is part of 
-#            <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
-#            <p>Python %s, Qt %s, %s %s on %s"""
-#            % ("OpenFisca", __version__, 0, __project_url__,
-#                 "<span style=\'color: #444444\'><b>",
-#                 pyflakes_version,
-#                 "</b></span>",
-#                 "<span style=\'color: #444444\'><b>",
-#                 rope_version,
-#                 "</b></span>",
-#                 "<span style=\'color: #444444\'><b>",
-#                 "</b></span>",
-#                 __project_url__, __forum_url__,
-#                 platform.python_version(),
-#                 src.gui.qt.QtCore.__version__,
-#                 src.gui.qt.API_NAME,
-#                 src.gui.qt.__version__,
-#                 platform.system()) )
 
     def report_issue(self):
         pass
@@ -1516,20 +1384,20 @@ class MainWindow(QMainWindow):
             programs.start_file(fname)
 
     #---- PYTHONPATH management, etc.
-    def get_spyder_pythonpath(self):
+    def get_openfisca_pythonpath(self):
         """Return Openfisca PYTHONPATH"""
         return self.path+self.project_path
         
     def add_path_to_sys_path(self):
         """Add Openfisca path to sys.path"""
-        for path in reversed(self.get_spyder_pythonpath()):
+        for path in reversed(self.get_openfisca_pythonpath()):
             sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
 
         """Remove Openfisca path from sys.path"""
         sys_path = sys.path
-        while sys_path[1] in self.get_spyder_pythonpath():
+        while sys_path[1] in self.get_openfisca_pythonpath():
             sys_path.pop(1)
         
     def path_manager_callback(self):
