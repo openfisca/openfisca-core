@@ -119,9 +119,9 @@ class DataTable(object):
                 dct.update({person: temp}) 
     
     def propagate_to_members(self, unit , col):
-        '''
+        """
         Set the variable of all unit member to the value of the (head of) unit
-        '''
+        """
         index = self.index[unit]
         value = self.get_value(col, index)
         try:

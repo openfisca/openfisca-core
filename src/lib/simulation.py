@@ -467,7 +467,6 @@ class SurveySimulation(Simulation):
         """
         Consistency check of survey input data
         """
-        
         check_consistency = of_import('utils', 'check_consistency', self.country)
         check_consistency(self.survey)
 
@@ -494,7 +493,7 @@ class SurveySimulation(Simulation):
         self._build_dicts(option = 'output_only')
 
 
-    def aggregated_by_entity(self, entity = None, varlist = None, all_output_vars = True, all_input_vars = False):
+    def aggregated_by_entity(self, entity = None, varlist = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
         Generates aggregates at entity level
         
@@ -516,9 +515,7 @@ class SurveySimulation(Simulation):
         out_tables[0], out_tables[1]: DataFrame
                           
         """
-
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
-            
         
         if self.outputs is None:
             raise Exception('self.outputs should not be None')
@@ -558,7 +555,7 @@ class SurveySimulation(Simulation):
             varnames = output_varlist.union(input_varlist)
             for varname in varnames:
                 if varname in model.col_names:
-                    if model.description.get_col(varname)._unit != entity:
+                    if (model.description.get_col(varname)._unit != entity) or (force_sum == True):
                         val = model.get_value(varname, idx, opt = people, sum_ = True)    
                     else:
                         val = model.get_value(varname, idx)
