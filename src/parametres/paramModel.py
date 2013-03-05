@@ -21,8 +21,11 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QColor
-from PyQt4.QtCore import QAbstractItemModel, Qt, QVariant, QModelIndex
+
+from src.gui.qt.QtGui import QColor
+from src.gui.qt.QtCore import QAbstractItemModel, Qt, QModelIndex
+from src.gui.qt.compat import to_qvariant
+
 
 class PrestationModel(QAbstractItemModel):
     def __init__(self, root, parent=None):
@@ -47,7 +50,9 @@ class PrestationModel(QAbstractItemModel):
         node = self.getNode(index)
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            return QVariant(node.data(index.column()))
+
+            return to_qvariant(node.data(index.column()))
+
         if role == Qt.ToolTipRole:
             return node.code
         # warning this role is deprecated, use foregroundrole instead

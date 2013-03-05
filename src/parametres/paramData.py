@@ -23,9 +23,12 @@ This file is part of openFisca.
     
 from xml.etree.ElementTree import ElementTree, SubElement, Element
 from xml.dom import minidom
-from src.core.utils import Bareme
+from src.gui.qt.compat import from_qvariant
+from src.gui.config import CONF
 from datetime import datetime
-from src.Config import CONF
+
+from src.lib.utils import Bareme
+
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
@@ -315,7 +318,9 @@ class CodeNode(Node):
     def setData(self, column, value):
         super(CodeNode, self).setData(column, value)        
         if   column is 1: pass
-        elif column is 2: self.value = value.toPyObject()
+
+        elif column is 2: self.value = from_qvariant(value)
+
 
 class BaremeNode(Node):
     

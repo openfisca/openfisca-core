@@ -1,0 +1,1366 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2013-02-21 22:37+CET\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: src/countries/france/widgets/Composition.py:412
+#: src/countries/tunisia/widgets/Composition.py:387
+msgid "Open a test case"
+msgstr "Ouvrir un cas type"
+
+#: src/countries/france/widgets/Composition.py:437
+#: src/countries/tunisia/widgets/Composition.py:412
+msgid "Save a test case"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:448
+#: src/countries/tunisia/widgets/Composition.py:423
+msgid "Computing test case ..."
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:463
+#: src/countries/tunisia/widgets/Composition.py:438
+msgid "Test case results are updated"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:526
+#: src/countries/tunisia/widgets/Composition.py:501
+#: src/plugins/scenario/__init__.py:12
+msgid "Composer"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:546
+#: src/countries/tunisia/widgets/Composition.py:520
+msgid "&Open..."
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:547
+#: src/countries/france/widgets/Composition.py:550
+#: src/countries/tunisia/widgets/Composition.py:521
+#: src/countries/tunisia/widgets/Composition.py:524
+msgid "Open composition file"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:551
+#: src/countries/tunisia/widgets/Composition.py:525
+msgid "&Save"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:552
+#: src/countries/france/widgets/Composition.py:555
+#: src/countries/tunisia/widgets/Composition.py:526
+#: src/countries/tunisia/widgets/Composition.py:529
+msgid "Save current composition"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:560
+#: src/countries/france/widgets/Composition.py:566
+#: src/countries/tunisia/widgets/Composition.py:534
+#: src/countries/tunisia/widgets/Composition.py:540
+#: src/plugins/survey/survey_explorer.py:405
+msgid "Compute test case"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:568
+#: src/countries/tunisia/widgets/Composition.py:542
+msgid "Varying revenues"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:571
+#: src/countries/tunisia/widgets/Composition.py:545
+msgid "Single test case"
+msgstr ""
+
+#: src/countries/france/widgets/Composition.py:575
+#: src/countries/tunisia/widgets/Composition.py:549
+#: src/plugins/scenario/__init__.py:68
+#: src/plugins/survey/survey_explorer.py:75
+#: src/plugins/survey/survey_explorer.py:407
+msgid "Reform mode"
+msgstr ""
+
+#: src/gui/config.py:49
+msgid "Python files"
+msgstr ""
+
+#: src/gui/config.py:50
+msgid "Cython/Pyrex files"
+msgstr ""
+
+#: src/gui/config.py:51
+msgid "C files"
+msgstr ""
+
+#: src/gui/config.py:52
+msgid "C++ files"
+msgstr ""
+
+#: src/gui/config.py:53
+msgid "OpenCL files"
+msgstr ""
+
+#: src/gui/config.py:54
+msgid "Fortran files"
+msgstr ""
+
+#: src/gui/config.py:55
+msgid "Patch and diff files"
+msgstr ""
+
+#: src/gui/config.py:56
+msgid "Batch files"
+msgstr ""
+
+#: src/gui/config.py:57 src/gui/utils/iofuncs.py:337
+msgid "Text files"
+msgstr ""
+
+#: src/gui/config.py:58
+msgid "reStructured Text files"
+msgstr ""
+
+#: src/gui/config.py:59
+msgid "gettext files"
+msgstr ""
+
+#: src/gui/config.py:60
+msgid "Web page files"
+msgstr ""
+
+#: src/gui/config.py:61
+msgid "Configuration files"
+msgstr ""
+
+#: src/gui/config.py:63
+msgid "Composiiton"
+msgstr ""
+
+#: src/gui/config.py:70
+msgid "All files"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:140
+msgid "Index"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:142
+#: src/plugins/general/shortcuts.py:177
+msgid "Name"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:145
+msgid "Tuple"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:148
+msgid "List"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:151
+msgid "Dictionary"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:153
+#: src/plugins/general/shortcuts.py:185
+msgid "Key"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:157
+msgid "Object"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:159
+msgid "Attribute"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:160
+msgid "elements"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:282
+msgid "Size"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:282
+msgid "Type"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:282
+msgid "Value"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:356
+#: src/gui/spyder_widgets/dicteditor.py:490
+msgid "Edit item"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:357
+msgid "<b>Unable to retrieve data.</b><br><br>Error message:<br>%s"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:491
+msgid "<b>Unable to assign data to item.</b><br><br>Error message:<br>%s"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:553
+msgid "Resize rows to contents"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:555
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2020 src/of_test.py:480
+msgid "Paste"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:558
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2017 src/of_test.py:477
+msgid "Copy"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:561
+msgid "Edit"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:564
+#: src/gui/spyder_widgets/dicteditor.py:890
+#: src/gui/spyder_widgets/dicteditor.py:906
+msgid "Plot"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:568
+msgid "Histogram"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:572
+msgid "Show image"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:576
+#: src/gui/spyder_widgets/dicteditor.py:913
+msgid "Save array"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:580
+#: src/gui/spyder_widgets/dicteditor.py:854
+#: src/gui/spyder_widgets/dicteditor.py:862
+msgid "Insert"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:583
+#: src/gui/spyder_widgets/dicteditor.py:807
+msgid "Remove"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:586
+msgid "Truncate values"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:590
+msgid "Show arrays min/max"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:595
+msgid "Show collection contents"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:599
+msgid "Always edit in-place"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:606
+#: src/gui/spyder_widgets/dicteditor.py:824
+msgid "Rename"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:609
+msgid "Duplicate"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:805
+msgid "Do you want to remove selected item?"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:806
+msgid "Do you want to remove all selected items?"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:824
+#: src/gui/spyder_widgets/dicteditor.py:854
+msgid "Key:"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:862
+msgid "Value:"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:878
+msgid "Import error"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:879
+msgid "Please install <b>matplotlib</b> or <b>guiqwt</b>."
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:891
+msgid "<b>Unable to plot data.</b><br><br>Error message:<br>%s"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:907
+msgid "<b>Unable to show image.</b><br><br>Error message:<br>%s"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:919 src/gui/utils/iofuncs.py:334
+msgid "NumPy arrays"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:929
+msgid "<b>Unable to save array</b><br><br>Error message:<br>%s"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:946
+msgid "Clipboard contents"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:960
+msgid "Import from clipboard"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:962
+msgid "Empty clipboard"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:963
+msgid "Nothing to be imported from clipboard."
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:1246
+msgid "Edit data in the remote process"
+msgstr ""
+
+#: src/gui/spyder_widgets/dicteditor.py:1247
+msgid ""
+"Editors are opened in the remote process for NumPy arrays, PIL images, lists, tuples and dictionaries.\n"
+"This avoids transfering large amount of data between the remote process and Spyder (through the socket)."
+msgstr ""
+
+#: src/gui/spyder_widgets/pydocgui.py:86
+msgid "Module or package:"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:236
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2449
+msgid "Editor"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:239
+msgid "Go to line:"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:246
+#: src/plugins/general/configdialog.py:735
+msgid "Current line:"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:248
+msgid "Line count:"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:1176
+msgid "Breakpoint"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:1177
+msgid "Condition:"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:1570
+msgid "Code analysis"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:1624
+msgid "To do"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2008 src/of_test.py:474
+msgid "Undo"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2011 src/of_test.py:476
+msgid "Redo"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2014 src/of_test.py:479
+msgid "Cut"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2023 src/of_test.py:482
+msgid "Delete"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2027 src/of_test.py:485
+msgid "Select All"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2032
+msgid "Comment"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2032
+msgid "Uncomment"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/codeeditor.py:2035
+msgid "Go to definition"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/mixins.py:549
+msgid "Arguments"
+msgstr ""
+
+#: src/gui/spyder_widgets/sourcecode/mixins.py:554
+msgid "Documentation"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:82
+msgid "Memory:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:83
+msgid "Memory usage status: requires the `psutil` (>=v0.3) library on non-Windows platforms"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:95
+msgid "CPU:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:96
+msgid "CPU usage status: requires the `psutil` (>=v0.3) library"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:118
+msgid "Permissions:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:132
+msgid "End-of-lines:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:146
+msgid "Encoding:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:159
+msgid "Line:"
+msgstr ""
+
+#: src/gui/spyder_widgets/status.py:163
+msgid "Column:"
+msgstr ""
+
+#: src/gui/utils/environ.py:94 src/gui/utils/environ.py:107
+#: src/of_test.py:1074 src/of_test.py:1094
+msgid "Warning"
+msgstr ""
+
+#: src/gui/utils/environ.py:95
+msgid "Module <b>pywin32 was not found</b>.<br>Please restart this Windows <i>session</i> (not the computer) for changes to take effect."
+msgstr ""
+
+#: src/gui/utils/environ.py:108
+msgid "If you accept changes, this will modify the current user environment variables directly <b>in Windows registry</b>. Use it with precautions, at your own risks.<br><br>Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like <i>Python(x,y) Home</i> for example)"
+msgstr ""
+
+#: src/gui/utils/inspector/sphinxify.py:170
+#: src/gui/utils/inspector/sphinxify.py:180
+msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:321
+msgid "Supported files"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:332
+msgid "Spyder data files"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:335
+msgid "Matlab files"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:336
+msgid "CSV text files"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:338
+msgid "JPEG images"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:339
+msgid "PNG images"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:340
+msgid "GIF images"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:341
+msgid "TIFF images"
+msgstr ""
+
+#: src/gui/utils/iofuncs.py:360 src/gui/utils/iofuncs.py:367
+msgid "<b>Unsupported file type '%s'</b>"
+msgstr ""
+
+#: src/gui/utils/vcs.py:67
+msgid "For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
+msgstr ""
+
+#: src/of_test.py:214
+msgid "Openfisca"
+msgstr ""
+
+#: src/of_test.py:217
+msgid "PyQt4 Reference Guide"
+msgstr ""
+
+#: src/of_test.py:220
+msgid "PyQt4 API Reference"
+msgstr ""
+
+#: src/of_test.py:222
+msgid "Matplotlib documentation"
+msgstr ""
+
+#: src/of_test.py:255
+msgid "Reload last session"
+msgstr ""
+
+#: src/of_test.py:259
+msgid "Load session..."
+msgstr ""
+
+#: src/of_test.py:262
+msgid "Load Openfisca session"
+msgstr ""
+
+#: src/of_test.py:264
+msgid "Save session and quit..."
+msgstr ""
+
+#: src/of_test.py:267
+msgid "Save current session and quit application"
+msgstr ""
+
+#: src/of_test.py:356
+msgid "Initializing..."
+msgstr ""
+
+#: src/of_test.py:436
+msgid "Close current dockwidget"
+msgstr ""
+
+#: src/of_test.py:442
+msgid "&Find text"
+msgstr ""
+
+#: src/of_test.py:448
+msgid "Find &next"
+msgstr ""
+
+#: src/of_test.py:454
+msgid "Find &previous"
+msgstr ""
+
+#: src/of_test.py:459
+msgid "&Replace text"
+msgstr ""
+
+#: src/of_test.py:508
+msgid "Fullscreen mode"
+msgstr ""
+
+#: src/of_test.py:516
+msgid "Main toolbar"
+msgstr ""
+
+#: src/of_test.py:520
+msgid "&File"
+msgstr ""
+
+#: src/of_test.py:523
+msgid "File toolbar"
+msgstr ""
+
+#: src/of_test.py:527
+msgid "&Run"
+msgstr ""
+
+#: src/of_test.py:528
+msgid "Test case toolbar"
+msgstr ""
+
+#: src/of_test.py:532
+msgid "&Tools"
+msgstr ""
+
+#: src/of_test.py:535
+msgid "&View"
+msgstr ""
+
+#: src/of_test.py:543
+msgid "Welcome to Openfisca!"
+msgstr ""
+
+#: src/of_test.py:547
+msgid "Pre&ferences"
+msgstr ""
+
+#: src/of_test.py:554
+msgid "Update module names list"
+msgstr ""
+
+#: src/of_test.py:557
+msgid "Refresh list of module names available in PYTHONPATH"
+msgstr ""
+
+#: src/of_test.py:564
+msgid "Current user environment variables..."
+msgstr ""
+
+#: src/of_test.py:566
+msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
+msgstr ""
+
+#: src/of_test.py:573 src/of_test.py:788
+msgid "External Tools"
+msgstr ""
+
+#: src/of_test.py:579
+msgid "Qt Designer"
+msgstr ""
+
+#: src/of_test.py:584
+msgid "Qt Linguist"
+msgstr ""
+
+#: src/of_test.py:590
+msgid "Qt examples"
+msgstr ""
+
+#: src/of_test.py:600
+msgid "ViTables"
+msgstr ""
+
+#: src/of_test.py:606
+msgid "&Quit"
+msgstr ""
+
+#: src/of_test.py:607
+msgid "Quit"
+msgstr ""
+
+#: src/of_test.py:623
+msgid "Loading Parameters..."
+msgstr ""
+
+#: src/of_test.py:632
+msgid "Loading Test case composer ..."
+msgstr ""
+
+#: src/of_test.py:638
+msgid "Loading ScenarioGraph..."
+msgstr ""
+
+#: src/of_test.py:644
+msgid "Loading ScenarioTable..."
+msgstr ""
+
+#: src/of_test.py:652
+msgid "Loading SurveyExplorer..."
+msgstr ""
+
+#: src/of_test.py:663
+msgid "Loading online help..."
+msgstr ""
+
+#: src/of_test.py:669
+msgid "About %s..."
+msgstr ""
+
+#: src/of_test.py:673
+msgid "Report issue..."
+msgstr ""
+
+#: src/of_test.py:695
+msgid "Spyder documentation"
+msgstr ""
+
+#: src/of_test.py:701
+msgid "Python documentation"
+msgstr ""
+
+#: src/of_test.py:707
+msgid "Qt Assistant"
+msgstr ""
+
+#: src/of_test.py:734
+msgid "Web Resources"
+msgstr ""
+
+#: src/of_test.py:755
+msgid "Windows and toolbars"
+msgstr ""
+
+#: src/of_test.py:759
+msgid "Reset window layout"
+msgstr ""
+
+#: src/of_test.py:761
+msgid "Custom window layouts"
+msgstr ""
+
+#: src/of_test.py:767
+msgid "Switch to/from layout %d"
+msgstr ""
+
+#: src/of_test.py:773
+msgid "Set layout %d"
+msgstr ""
+
+#: src/of_test.py:862
+msgid "Loading calibration widget ..."
+msgstr ""
+
+#: src/of_test.py:868
+msgid "Loading aggregates widget ..."
+msgstr ""
+
+#: src/of_test.py:875
+msgid "Loading distribution widget ..."
+msgstr ""
+
+#: src/of_test.py:882
+msgid "Loading inequality widget ..."
+msgstr ""
+
+#: src/of_test.py:887
+msgid "Survey toolbar"
+msgstr ""
+
+#: src/of_test.py:1075
+msgid ""
+"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+"Do you want to continue?"
+msgstr ""
+
+#: src/of_test.py:1095
+msgid "Quick switch layout #%d has not yet been defined."
+msgstr ""
+
+#: src/of_test.py:1270
+msgid "Maximize current plugin"
+msgstr ""
+
+#: src/of_test.py:1271
+msgid "Maximize current plugin to fit the whole application window"
+msgstr ""
+
+#: src/of_test.py:1275
+msgid "Restore current plugin"
+msgstr ""
+
+#: src/of_test.py:1276
+msgid "Restore current plugin to its original size and position within the application window"
+msgstr ""
+
+#: src/of_test.py:1347
+msgid "About %s"
+msgstr ""
+
+#: src/of_test.py:1663
+msgid "Open session"
+msgstr ""
+
+#: src/of_test.py:1664
+msgid "Openfisca sessions"
+msgstr ""
+
+#: src/of_test.py:1674
+msgid "Save session"
+msgstr ""
+
+#: src/of_test.py:1675
+msgid "openFisca sessions"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:45
+msgid "Legislatives parameters"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:49
+msgid "Legislation"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:54
+msgid "Country: "
+msgstr ""
+
+#: src/plugins/general/Parametres.py:60
+msgid "Legislation date"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:143
+msgid "Save a reform"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:156
+msgid "Open a reform"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:166
+msgid "Error"
+msgstr ""
+
+#: src/plugins/general/Parametres.py:166
+msgid "Unable to read the following file : "
+msgstr ""
+
+#: src/plugins/general/configdialog.py:132
+msgid "Preferences"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:460
+msgid "Invalid directory path"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:463
+#: src/plugins/general/configdialog.py:479 src/widgets/pathmanager.py:218
+msgid "Select directory"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:491
+msgid "Invalid file path"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:494
+#: src/plugins/general/configdialog.py:512
+msgid "Select file"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:511
+msgid "All files (*)"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:575
+msgid "Bold"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:578
+msgid "Italic"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:616
+msgid "Font: "
+msgstr ""
+
+#: src/plugins/general/configdialog.py:620
+msgid "Size: "
+msgstr ""
+
+#: src/plugins/general/configdialog.py:629
+msgid "Font style"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:673
+msgid "General"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:679
+msgid "Interface"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:682
+msgid "Qt windows style"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:686
+msgid "Vertical dockwidget title bars"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:688
+msgid "Vertical dockwidget tabs"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:690
+msgid "Animated toolbars and dockwidgets"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:692
+msgid "Custom dockwidget margin:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:723
+msgid "Syntax coloring"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:734
+msgid "Background:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:736
+msgid "Occurence:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:737
+msgid "Link:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:738
+msgid "Side areas:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:739
+msgid "Matched parentheses:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:740
+msgid "Unmatched parentheses:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:741
+msgid "Normal text:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:742
+msgid "Keyword:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:743
+msgid "Builtin:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:744
+msgid "Definition:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:745
+msgid "Comment:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:746
+msgid "String:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:747
+msgid "Number:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:748
+msgid "Instance:"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:754
+msgid "Color scheme"
+msgstr ""
+
+#: src/plugins/general/configdialog.py:776
+#: src/plugins/general/shortcuts.py:343
+msgid "Reset to default values"
+msgstr ""
+
+#: src/plugins/general/onlinehelp.py:66
+msgid "Online help"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:175
+msgid "Context"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:179
+msgid "Mod1"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:181
+msgid "Mod2"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:183
+msgid "Mod3"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:318
+msgid "Conflicts"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:319
+msgid "The following conflicts have been detected:"
+msgstr ""
+
+#: src/plugins/general/shortcuts.py:331
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:16
+msgid "Axis"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:36
+msgid "Legend"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:40
+msgid "upper right"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:41
+msgid "upper left"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:42
+msgid "lower left"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:43
+msgid "lower right"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:44
+msgid "right"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:45
+msgid "center left"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:46
+msgid "center right"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:47
+msgid "lower center"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:48
+msgid "upper center"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:49
+msgid "center"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:50
+msgid "Legend location"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:60 src/plugins/survey/aggregates.py:375
+#: src/widgets/Calibration_old.py:435
+msgid "Export"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:63 src/plugins/survey/aggregates.py:379
+#: src/widgets/Calibration_old.py:439
+msgid "Table export format"
+msgstr ""
+
+#: src/plugins/scenario/__init__.py:67
+#: src/plugins/survey/survey_explorer.py:74
+msgid "Reform"
+msgstr ""
+
+#: src/plugins/scenario/graph.py:380
+msgid "Test case graphic"
+msgstr ""
+
+#: src/plugins/scenario/table.py:46 src/plugins/scenario/table.py:47
+msgid "Table"
+msgstr ""
+
+#: src/plugins/scenario/table.py:138 src/plugins/survey/aggregates.py:550
+msgid "Save table"
+msgstr ""
+
+#: src/plugins/scenario/table.py:165
+msgid "Computed on %s at %s"
+msgstr ""
+
+#: src/plugins/scenario/table.py:166
+msgid "Socio-fiscal legislation of date %s"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:413 src/plugins/survey/Calibration.py:480
+#: src/plugins/survey/Calibration.py:481 src/plugins/survey/Calibration.py:978
+#: src/widgets/Calibration_old.py:402
+msgid "Calibration"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:417 src/widgets/Calibration_old.py:406
+msgid "Calibration data"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:419 src/widgets/Calibration_old.py:408
+msgid "Location of calibration data for microsimulation"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:421
+msgid "Calibration syst\303\251matique"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:425
+#: src/plugins/survey/survey_explorer.py:53 src/widgets/Calibration_old.py:414
+msgid "The following file"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:427 src/widgets/Calibration_old.py:416
+msgid "Calibration data file for micrsosimulation"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:845
+msgid "Starting calibration"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:848
+msgid "Microsimulation data calibrated"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:952
+msgid "Setting calibrated weights ..."
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:954
+msgid "Calibration weights set"
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:1022 src/widgets/Calibration_old.py:1048
+msgid "Refreshing calibration table ..."
+msgstr ""
+
+#: src/plugins/survey/Calibration.py:1023 src/widgets/Calibration_old.py:1050
+msgid "Calibration table updated"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:371
+msgid "Aggregates"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:376 src/widgets/Calibration_old.py:436
+msgid "Export directory"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:385
+msgid "Columns"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:386
+msgid "Display expenses"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:388
+msgid "Display beneficiaries"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:390
+msgid "Display actual values"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:392
+msgid "Display differences"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:394
+msgid "Display relative differences"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:396
+msgid "Display absolute differences"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:398
+msgid "Display default values"
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:627
+msgid "Refreshing aggregates table ..."
+msgstr ""
+
+#: src/plugins/survey/aggregates.py:683
+msgid "Aggregates table updated"
+msgstr ""
+
+#: src/plugins/survey/distribution.py:265
+#: src/plugins/survey/distribution.py:268
+msgid "Distribution"
+msgstr ""
+
+#: src/plugins/survey/distribution.py:273
+msgid "Index variables: "
+msgstr ""
+
+#: src/plugins/survey/distribution.py:279
+msgid "Column variables: "
+msgstr ""
+
+#: src/plugins/survey/distribution.py:476
+msgid "Refreshing distribution table ..."
+msgstr ""
+
+#: src/plugins/survey/distribution.py:485
+msgid "Distribution table refreshed"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:51 src/plugins/survey/inequality.py:225
+msgid "Inequality"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:55 src/plugins/survey/inequality.py:87
+msgid "Lorenz curve"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:88
+msgid "Population"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:89
+msgid "Variable"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:192
+msgid "Gini index"
+msgstr ""
+
+#: src/plugins/survey/inequality.py:255
+msgid "Refreshing inequality widget ..."
+msgstr ""
+
+#: src/plugins/survey/inequality.py:259
+msgid "Inequality widget refreshed"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:37
+#: src/plugins/survey/survey_explorer.py:106
+msgid "Survey data explorer"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:44
+msgid "Survey data"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:46
+msgid "Location of survey data for microsimulation"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:48 src/widgets/Calibration_old.py:410
+msgid "Test case only"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:55
+msgid "Survey data file for micrsosimulation"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:111
+msgid "Add a variable"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:112
+msgid "Remove a variable"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:114
+msgid "Choose a table"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:289
+msgid "Updating survey explorer table"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:292
+#: src/plugins/survey/survey_explorer.py:309
+msgid "Survey explorer table updated"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:326
+msgid "Ongoing microsimulation ..."
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:331
+msgid "Microsimulation results are updated"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:367
+msgid "Survey Data Explorer"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:399
+msgid "Compute aggregates"
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:430
+msgid "Refreshing survey explorer dataframe ..."
+msgstr ""
+
+#: src/plugins/survey/survey_explorer.py:442
+msgid "Survey explorer dataframe updated"
+msgstr ""
+
+#: src/widgets/pathmanager.py:45
+msgid "PYTHONPATH manager"
+msgstr ""
+
+#: src/widgets/pathmanager.py:84
+msgid "Move to top"
+msgstr ""
+
+#: src/widgets/pathmanager.py:90
+msgid "Move up"
+msgstr ""
+
+#: src/widgets/pathmanager.py:96
+msgid "Move down"
+msgstr ""
+
+#: src/widgets/pathmanager.py:102
+msgid "Move to bottom"
+msgstr ""
+
+#: src/widgets/pathmanager.py:113 src/widgets/pathmanager.py:225
+msgid "Add path"
+msgstr ""
+
+#: src/widgets/pathmanager.py:118 src/widgets/pathmanager.py:209
+msgid "Remove path"
+msgstr ""
+
+#: src/widgets/pathmanager.py:128
+msgid "Synchronize..."
+msgstr ""
+
+#: src/widgets/pathmanager.py:130
+msgid "Synchronize Spyder's path list with PYTHONPATH environment variable"
+msgstr ""
+
+#: src/widgets/pathmanager.py:141
+msgid "Synchronize"
+msgstr ""
+
+#: src/widgets/pathmanager.py:142
+msgid "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment variable for current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br>Do you want to clear contents of PYTHONPATH before adding Spyder's path list?"
+msgstr ""
+
+#: src/widgets/pathmanager.py:210
+msgid "Do you really want to remove selected path?"
+msgstr ""
+
+#: src/widgets/pathmanager.py:226
+msgid "This directory is already included in Spyder path list.<br>Do you want to move it to the top of the list?"
+msgstr ""
+
