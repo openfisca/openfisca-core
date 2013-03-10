@@ -304,8 +304,8 @@ class ScenarioSimulation(Simulation):
         input_table : TODO: complete
         """
         P_default = self.P_default     
-        P         = self.P         
-                
+        P         = self.P  
+        
         output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
@@ -615,6 +615,8 @@ class SurveySimulation(Simulation):
         """
         List the variables present in survey and output
         """
+        if self.survey is None:
+            return
         try:
             return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
         except:

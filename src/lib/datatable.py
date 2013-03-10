@@ -56,8 +56,7 @@ class DataTable(object):
             raise Exception('InputTable: country should be provided')
         else:
             self.country = country
-        
-            
+                    
         self.survey_year = None
         
         # Build the description attribute        
