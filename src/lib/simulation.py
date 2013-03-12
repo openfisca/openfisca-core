@@ -25,7 +25,7 @@ __all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
 class Simulation(object):
     """
     A simulation object contains all parameters to compute a simulation from a 
-    test-case household (scenario) or a survey-like data 
+    test-case household (scenario) or a survey-like dataset 
     
     See also
     --------
@@ -122,7 +122,7 @@ class Simulation(object):
         self.disabled_prestations = disabled_prestations
               
     def compute(self):
-        NotImplementedError          
+        NotImplementedError
         
     def _preproc(self, input_table):
         """
@@ -134,7 +134,7 @@ class Simulation(object):
         input_table : TODO: complete
         """
         P_default = self.P_default     
-        P         = self.P                 
+        P         = self.P                
         output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
