@@ -76,13 +76,13 @@ class DataTable(object):
             self.scenario = scenario
             scenario.populate_datatable(self)
         
-    def gen_index(self, units):
+    def gen_index(self, entities):
         '''
-        Genrates indexex for the relevant units
+        Genrates indexex for the relevant entities
         '''
         
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
-                                  'idxUnit':np.arange(self._nrows)},
+                                  'idxUnit':np.arange(self._nrows)}, # Units stand for entities
                       'nb': self._nrows},
                       'noi': {}}
         dct = self.index['noi']
@@ -94,39 +94,39 @@ class DataTable(object):
             temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
             dct.update({noi: temp}) 
 
-        for unit in units:
-            enum = self.description.get_col('qui'+unit).enum
+        for entity in entities:
+            enum = self.description.get_col('qui'+entity).enum
             try:
-                idx = getattr(self.table, 'id'+unit).values
-                qui = getattr(self.table, 'qui'+unit).values
-                enum = self.description.get_col('qui'+unit).enum
+                idx = getattr(self.table, 'id'+entity).values
+                qui = getattr(self.table, 'qui'+entity).values
+                enum = self.description.get_col('qui'+entity).enum
             except:
-                raise Exception('DataTable needs columns %s and %s to build index with unit %s' %
-                          ('id' + unit, 'qui' + unit, unit))
+                raise Exception('DataTable needs columns %s and %s to build index with entity %s' %
+                          ('id' + entity, 'qui' + entity, entity))
 
-            self.index[unit] = {}
-            dct = self.index[unit]
+            self.index[entity] = {}
+            dct = self.index[entity]
             idxlist = np.unique(idx)
             dct['nb'] = len(idxlist)
 
             for full, person in enum:
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
 #                if (person == 0) and (dct['nb'] != len(idxIndi)):
-#                    raise Exception('Invalid index for %s: There is %i %s and %i %s' %(unit, dct['nb'], unit, len(idxIndi), full))
+#                    raise Exception('Invalid index for %s: There is %i %s and %i %s' %(entity, dct['nb'], entity, len(idxIndi), full))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
     
-    def propagate_to_members(self, unit , col):
+    def propagate_to_members(self, entity , col):
         """
-        Set the variable of all unit member to the value of the (head of) unit
+        Set the variable of all entity member to the value of the (head of) entity
         """
-        index = self.index[unit]
+        index = self.index[entity]
         value = self.get_value(col, index)
         try:
-            enum = self.description.get_col('qui'+unit).enum
+            enum = self.description.get_col('qui'+entity).enum
         except:
-            enum = self._inputs.description.get_col('qui'+unit).enum
+            enum = self._inputs.description.get_col('qui'+entity).enum
         
         for member in enum:
             self.set_value(col, value, index, opt = member[1])
@@ -226,7 +226,7 @@ class DataTable(object):
         index : dict
              dict of the coordinates of each person in the array
             - if index is none, returns the whole column (every person)
-            - if index is not none, return an array of length len(unit)
+            - if index is not none, return an array of length len(entity)
         opt : dict
              dict with the id of the person for which you want the value
             - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men')
@@ -410,7 +410,7 @@ class SystemSf(DataTable):
         if not col._enabled:
             return
         
-        idx = self.index[col._unit]
+        idx = self.index[col._entity]
 
         required = set(col.inputs)
         funcArgs = {}

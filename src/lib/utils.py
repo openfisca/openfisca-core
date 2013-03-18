@@ -52,7 +52,7 @@ class Enum(object):
         for val in self._vars:
             yield val
 
-def handle_output_xml(doc, tree, model, unit = 'men'):
+def handle_output_xml(doc, tree, model, entity = 'men'):
     if doc.childNodes:
         for element in doc.childNodes:
             if element.nodeType is not element.TEXT_NODE:
@@ -70,12 +70,12 @@ def handle_output_xml(doc, tree, model, unit = 'men'):
                 else: typv = 0
                 child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
                 tree.addChild(child)
-                handle_output_xml(element, child, model, unit)
+                handle_output_xml(element, child, model, entity)
     else:
 
-        idx = model.index[unit]
+        idx = model.index[entity]
         inputs = model._inputs
-        enum = inputs.description.get_col('qui'+unit).enum
+        enum = inputs.description.get_col('qui'+entity).enum
         people = [x[1] for x in enum]
         if tree.code in model.col_names:
             model.calculate(tree.code)
