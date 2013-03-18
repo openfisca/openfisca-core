@@ -237,17 +237,17 @@ class ScenarioSimulation(Simulation):
         """
         self.alternative_scenario = scenario
         
-    def set_marginal_alternative_scenario(self, unit = None, id_in_unit = None, variable = None, value = None):
+    def set_marginal_alternative_scenario(self, entity = None, id_in_entity = None, variable = None, value = None):
         """
         Modifies scenario by changing the setting value of the variable of the individual with 
-        position 'id' if necessary in unit named 'unit' 
+        position 'id' if necessary in entity named 'entity' 
         """
         self.alternative_scenario = self.scenario.copy()
         scenario = self.alternative_scenario
-        if unit is not None:
-            alt_unit = getattr(scenario, unit)
-            if id_in_unit is not None:
-                alt_unit[id_in_unit][variable] = value
+        if entity is not None:
+            alt_entity = getattr(scenario, entity)
+            if id_in_entity is not None:
+                alt_entity[id_in_entity][variable] = value
 
     def compute(self, difference = True):
         """
@@ -555,7 +555,7 @@ class SurveySimulation(Simulation):
             varnames = output_varlist.union(input_varlist)
             for varname in varnames:
                 if varname in model.col_names:
-                    if (model.description.get_col(varname)._unit != entity) or (force_sum == True):
+                    if (model.description.get_col(varname)._entity != entity) or (force_sum == True):
                         val = model.get_value(varname, idx, opt = people, sum_ = True)    
                     else:
                         val = model.get_value(varname, idx)
