@@ -898,7 +898,7 @@ def of_import(module = None, classname = None, country = None):
         module_str = "." + module
     
     if classname is None or country is None:
-        raise Exception("clasanme or country needed")
+        raise Exception("classname or country needed")
     
     _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
 

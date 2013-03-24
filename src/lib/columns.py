@@ -35,6 +35,12 @@ class Column(object):
         Column.count += 1
         self._default = default
         self._dtype = float
+        
+    def reset_count(self):
+        """
+        Reset the count of column to zero
+        """
+        Column.count = 0
        
 class IntCol(Column):
     '''

@@ -54,6 +54,10 @@ class Simulation(object):
                 self.datesim = datetime.strptime(date_str ,"%Y-%m-%d").date()
                 remaining.pop(key)
                 
+            elif key == "datesim":
+                self.datesim = datetime.strptime(val ,"%Y-%m-%d").date()
+                remaining.pop(key)
+                
             elif key in ['country', 'param_file', 'totaux_file']:
                 if hasattr(self, key):
                     setattr(self, key, val)
@@ -73,7 +77,11 @@ class Simulation(object):
                 self.totaux_file = os.path.join(SRC_PATH, 'countries', self.country, 'totaux.xml')
 
         # Sets required country specific classes
-        if self.country is not None:            
+        if self.country is not None:
+            try:
+                del self.InputTable          
+            except:
+                pass
             self.InputTable = of_import('model.data', 'InputTable', country=self.country)
             self.ModelSF = of_import('model.model', 'ModelSF', country=self.country)        
 
