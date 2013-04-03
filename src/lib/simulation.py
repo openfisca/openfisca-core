@@ -7,7 +7,7 @@
 # (see openfisca/__init__.py for details)
 
 
-from datetime import datetime
+import datetime as dt
 import gc
 import os
 from src.lib.datatable import DataTable, SystemSf
@@ -51,11 +51,14 @@ class Simulation(object):
         for key, val in kwargs.iteritems():
             if key == "year":
                 date_str = str(val)+ '-01-01'
-                self.datesim = datetime.strptime(date_str ,"%Y-%m-%d").date()
+                self.datesim = dt.datetime.strptime(date_str ,"%Y-%m-%d").date()
                 remaining.pop(key)
                 
             elif key == "datesim":
-                self.datesim = datetime.strptime(val ,"%Y-%m-%d").date()
+                if isinstance(val, dt.date):
+                    self.datesim = val                    
+                else:
+                    self.datesim = dt.datetime.strptime(val ,"%Y-%m-%d").date()
                 remaining.pop(key)
                 
             elif key in ['country', 'param_file', 'totaux_file']:
@@ -143,11 +146,11 @@ class Simulation(object):
         """
         P_default = self.P_default     
         P         = self.P                
-        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = self.datesim, country = self.country)
+            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = P.datesim, country = self.country)
             output_default.set_inputs(input_table, country = self.country)
         else:
             output_default = output
@@ -218,7 +221,7 @@ class ScenarioSimulation(Simulation):
         '''
         Creates a description dataframe of the ScenarioSimulation
         '''
-        now = datetime.now()
+        now = dt.datetime.now()
         descr =  [u'OpenFisca', 
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % str(self.datesim)]
@@ -314,10 +317,10 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default     
         P         = self.P  
         
-        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
-        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output_alter.set_inputs(input_table_alter, country = self.country)
     
         output.disable(self.disabled_prestations)
