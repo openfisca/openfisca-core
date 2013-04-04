@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1612, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1605, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1528, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1521, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 534, in setup
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 554, in setup
     self.register_test_case_widgets(country)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 690, in register_test_case_widgets
-    self.composition.register_plugin()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 600, in register_plugin
-    qobject.close()
-AttributeError: 'QAction' object has no attribute 'close'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 689, in register_test_case_widgets
+    self.scenario_simulation.set_config(country=country, datesim=datesim)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 210, in set_config
+    self.scenario.year = self.datesim.year
+AttributeError: 'NoneType' object has no attribute 'year'
