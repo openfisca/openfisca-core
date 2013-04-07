@@ -15,12 +15,13 @@ Les variables nécessaires au calcul de l'ensemble des prestations, ainsi que le
 se rapportent, sont répertoriées dans la classe suivante:
 
 .. automodule:: src.countries.france.model.data
-   :members: 
+   :members:
    :private-members:
-
+   :show-inheritance:
+   
 dont voici l'intégralité du code:
 
-.. literalinclude:: ../src/countries/france/model/data.py  
+.. literalinclude:: ../../../src/countries/france/model/data.py  
 
 
 Les impôts et les prestations disponibles sont rassemblées dans différents modules.
@@ -42,6 +43,7 @@ L'impôt sur le revenu
 .. automodule:: src.countries.france.model.irpp_charges_deductibles
    :members: 
    :private-members:
+   
    
 .. automodule:: src.countries.france.model.irpp_reductions_impots
    :members: 
@@ -98,3 +100,19 @@ D'autres caractéristiques sont également disponibles.
 .. automodule:: src.countries.france.model.calage
    :members: 
    :private-members:
+   
+   
+.. _france_warning:
+    
+Avertissement
+-------------
+
+OpenFisca calcule le montant de l'impôt sur le revenu et des prestations, 
+pour l'année indiquée, à partir des informations que vous avez saisies.
+Ces montants sont donnés à titre indicatif et pourront être différents quand ils
+seront calculés par l'administration ou la Caf au moment de l'étude de votre dossier.
+Les résultats fournis ne sauraient engager l'administration ou votre Caf sur le montant
+définitif de l'impôt à acquitter ou des prestations versées. En effet, votre situation 
+familiale et/ou vos ressources ou celles de l’un des membres de votre famille peuvent
+changer ou ne pas avoir été prises en compte lors de la simulation et certaines hypothèses 
+simplificatrices ont été effectuées.

@@ -29,19 +29,18 @@ l’ensemble du système socio-fiscal français et son évolution et
 permettra de calculer l’impact de réformes sur le budget de l’État.
 Des informations sont disponibles sur le site http://www.openfisca.fr
 
-
 Contents:
 
 .. toctree::
-	:maxdepth: 1
+   :maxdepth: 2
    	
-   	whatsnew
-	install
-	overview
-	testcase
-	survey
-	france
-	contributing
+   whatsnew
+   install
+   overview
+   testcase
+   survey
+   france
+   contributing
 
 Indices and tables
 ==================

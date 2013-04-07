@@ -16,12 +16,9 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0,'C:/Users/Utilisateur/My Documents/Aptana Studio 3 Workspace/openfisca')
 sys.path.insert(0, os.path.abspath('sphinxext'))
 
-sys.path.extend([
-    os.path.join(os.path.dirname(__file__),
-                  '../src')
-])
 
 
 
@@ -59,7 +56,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The encoding of source files.
-#source_encoding = 'utf-8-sig'
+source_encoding = 'utf-8-sig'
 
 # The master toctree document.
 master_doc = 'index'
@@ -112,7 +109,7 @@ exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+modindex_common_prefix = ['src' 'src.countries', 'src.countries.france', 'src.lib']
 
 
 # -- Options for HTML output ---------------------------------------------------
@@ -148,7 +145,7 @@ html_theme = 'agogo'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -283,5 +280,7 @@ extlinks = {'issue': ('https://github.com/openfisca/openfisca/issues/%s',
                       'wiki ')}
 
 ## Added by MBJ from sphinx doc
-#autodoc_default_flags =  ['members', 'undoc-members', 'inherited']
+#autodoc_default_flags =  ['members', 'undoc-members', 'inherited-members']
 
+# To avoid annoying warnings (http://stackoverflow.com/questions/12206334/sphinx-autosummary-toctree-contains-reference-to-nonexisting-document-warnings)
+numpydoc_show_class_members = False

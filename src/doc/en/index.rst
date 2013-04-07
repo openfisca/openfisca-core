@@ -16,32 +16,38 @@ OpenFisca: versatile microsimulation software
 **Q&A Support:** contact@openfisca.fr
 
 
-Qu’est-ce qu’ OpenFisca (beta) ?
---------------------------------
 
-OpenFisca (beta) est un logiciel libre de simulation du système
-socio-fiscal français. Il permet de visualiser simplement un grand
-nombre de prestations sociales et d’impôts payés, par les ménages, et
-de simuler l’impact de réformes sur le budget des ménages. Il s’agit
-d’un outil à vocation pédagogique pour aider les citoyens à mieux
-comprendre le système socio-fiscal.  À terme, OpenFisca intégrera
-l’ensemble du système socio-fiscal français et son évolution et
-permettra de calculer l’impact de réformes sur le budget de l’État.
-Des informations sont disponibles sur le site http://www.openfisca.fr
+What is OpenFisca ?
+-------------------
+
+OpenFisca (beta) is a versatile microsimulation free software.
+It includes a framework to microsiumalte any socio-fiscal system.
+The graphical user interface allows the user to compute and display
+all these taxes and benefits for any type of household. 
+The impact of any modification in the legislation can also be computed 
+and displayed.
+When plugged on a survey, OpenFisca can also compute the budgetary consequences 
+of a reform and its distributionnal impact.
+The current version implements a large set of taxes, social benefits
+and housing provision for France for the last 10 years.
+
+..
+   Informations are available on www.openfisca.fr
 
 
 Contents:
 
 .. toctree::
-	:maxdepth: 1
+   :maxdepth: 2
    	
-   	whatsnew
-	install
-	overview
-	testcase
-	survey
-	france
-	contributing
+   whatsnew
+   install
+   overview
+   testcase
+   survey
+   france
+   users
+   contributing
 
 Indices and tables
 ==================

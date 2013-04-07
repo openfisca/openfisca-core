@@ -98,7 +98,6 @@ class Simulation(object):
         
         Parameters
         ----------
-        
         param : a socio-fiscal parameter object to be used in the microsimulation. 
                 By default, the method uses the one provided by the attribute param_file
         param_default : a socio-fiscal parameter object to be used 
@@ -126,7 +125,6 @@ class Simulation(object):
         
         Parameters
         ----------
-        
         disabled_prestations : list of strings, default None
                                names of the prestations to be disabled
         """
@@ -160,8 +158,10 @@ class Simulation(object):
 
         return output, output_default
 
-
     def clear(self):
+        """
+        Clear the outputs table 
+        """
         NotImplementedError
   
 class ScenarioSimulation(Simulation):
@@ -267,9 +267,7 @@ class ScenarioSimulation(Simulation):
         Parameters
         ----------
         difference : boolean, default True
-                When in reform mode, compute the difference between actual and default  
-        
-        
+                     When in reform mode, compute the difference between actual and default  
         Returns
         -------
         data, data_default : Computed data and possibly data_default according to totaux_file
@@ -309,7 +307,7 @@ class ScenarioSimulation(Simulation):
         input_table when an alternative scenario is present
         
         Parameters
-        ---------
+        ----------
         
         input_table_alter : TODO: complete
         input_table : TODO: complete
@@ -458,7 +456,6 @@ class SurveySimulation(Simulation):
         
         Parameters
         ----------
-        
         inflators : dict or DataFrame 
                     keys or a variable column should contain the variables to 
                     inflate and values of the value column the value of the inflator
@@ -510,7 +507,6 @@ class SurveySimulation(Simulation):
         
         Parameters
         ----------
-        
         entity : string, default None 
                  one of the entities which list can be found in countries.country.__init__.py
                  when None the first entity of ENTITIES_INDEX is used
@@ -520,11 +516,9 @@ class SurveySimulation(Simulation):
                           If True select all output variables
         all_output_vars : boolean, default False
                           If True select all input variables
-                          
         Returns
         -------
-        out_tables[0], out_tables[1]: DataFrame
-                          
+        out_tables[0], out_tables[1] : DataFrame                  
         """
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
         
