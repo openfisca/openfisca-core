@@ -32,7 +32,8 @@ Des informations sont disponibles sur le site http://www.openfisca.fr
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 3
    	
    whatsnew
    install
@@ -40,6 +41,7 @@ Contents:
    testcase
    survey
    france
+   users
    contributing
 
 Indices and tables
