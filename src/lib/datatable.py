@@ -189,9 +189,17 @@ class DataTable(object):
             
         if missing_col:
             message = "%i input variables missing\n" % len(missing_col)
+            messagef = ""
+            messageb = ""
+            missing_col.sort()
             for var in missing_col:
-                message += '  - '+ var + '\n'
-            print Warning(message)
+                if var[0] == 'f':
+                    messagef += '  - '+ var +'\n'
+                elif var[0] == 'b':
+                    messageb += '  - '+ var +'\n'
+                else:
+                    message += '  - '+ var +'\n'
+            print Warning(message + messagef + messageb)
         
         for var in INDEX:
             if ('id' + var) in missing_col:
