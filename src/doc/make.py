@@ -21,6 +21,8 @@ os.environ['PYTHONPATH'] = '..'
 
 SPHINX_BUILD = 'sphinxbuild'
 
+LANGUAGES = ['en', 'fr']
+
 #def upload_dev():
 #    'push a copy to the pydata dev directory'
 #    if os.system('cd build/html; rsync -avz . pandas@pandas.pydata.org'
@@ -81,9 +83,10 @@ def clean():
 
 def html():
     check_build()
-    if os.system('sphinx-build -P -b html -d _build/doctrees '
-                 '. _build/html'):
-        raise SystemExit("Building HTML failed.")
+    for lang in LANGUAGES:
+        command = 'sphinx-build -P -c . -b html -d _build/%s/doctrees ./%s _build/%s/html' %(lang, lang, lang)
+        if os.system(command):
+            raise SystemExit("Building HTML failed.")
 
 def latex():
     check_build()
@@ -105,15 +108,19 @@ def latex():
         print('latex build has not been tested on windows')
 
 def check_build():
-    build_dirs = [
-        '_build', '_build/doctrees', '_build/html',
-        '_build/latex', '_build/plots', '_build/_static',
-        '_build/_templates']
-    for d in build_dirs:
-        try:
-            os.mkdir(d)
-        except OSError:
-            pass
+    
+    for lang in LANGUAGES:
+        build = "_build/%s" % lang
+        build_dirs = [build]
+        dirs = [ 'doctrees', 'html', 'latex', 'plots', '_static', '_templates']
+        for d in dirs:
+            build_dirs.append(build+'/'+d) 
+        
+        for d in build_dirs:
+            try:
+                os.mkdir(d)
+            except OSError:
+                pass
 
 def all():
     # clean()
