@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from src.lib.columns import Column
+from src.lib.columns import Column, Prestation
 
 class MetaModelDescription(type):
     """
@@ -32,6 +32,9 @@ class MetaModelDescription(type):
     created in the same order as these attributes were written
     """
     def __new__(cls, name, bases, dct):
+
+        Column.count = 0
+        Prestation.count = 0
         columns = {}
         super_new = super(MetaModelDescription, cls).__new__
         parents = [b for b in bases if isinstance(b, MetaModelDescription)]
@@ -39,6 +42,9 @@ class MetaModelDescription(type):
             # If this isn't a subclass of ModelDescription, don't do anything special.
             return super_new(cls, name, bases, dct)
         
+
+#        fake_column = Column()
+#        fake_column.reset_count()
         for attrname, col in dct.items():
             if isinstance(col, Column):
                 col.name = attrname
@@ -95,7 +101,22 @@ class ModelDescription(object):
     def to_string(self, debug=False, indent=None, align=False):
         """
         Return readable string representation of the data set
-        If debug is True, add more details on data items
+        
+        Parameters
+        ----------
+        
+        debug : bool, default False
+                If true, show more details
+        
+        indent :  default None
+        
+        align : bool, default False 
+
+        Returns
+        -------
+        txt : str
+              Representation of the data set
+
         """
         if indent is None:
             indent = "\n    "

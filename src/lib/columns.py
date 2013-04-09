@@ -35,15 +35,21 @@ class Column(object):
         Column.count += 1
         self._default = default
         self._dtype = float
+        
+    def reset_count(self):
+        """
+        Reset the count of column to zero
+        """
+        Column.count = 0
        
 class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, label = None, default = 0, unit= 'ind', start = None, end = None, val_type = None):
+    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
         super(IntCol, self).__init__(label, default)
         self._dtype = np.int32
-        self.unit = unit
+        self.entity = entity
         self.start = start
         self.end = end
         self.val_type = val_type
@@ -52,7 +58,7 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    def __init__(self, enum=None, label = None, default = 0, unit= 'ind', start = None, end = None):
+    def __init__(self, enum=None, label = None, default = 0, entity= 'ind', start = None, end = None):
         super(EnumCol, self).__init__(label, default)
         self._dtype = np.int16
         if isinstance(enum, Enum):
@@ -64,10 +70,10 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False, unit= 'ind', start = None, end = None):
+    def __init__(self, label = None, default = False, entity= 'ind', start = None, end = None):
         super(BoolCol, self).__init__(label, default)
         self._dtype = np.bool
-        self.unit = unit
+        self.entity = entity
         self.start = start
         self.end = end
         
@@ -78,7 +84,7 @@ class FloatCol(Column):
     def __init__(self, label = None, default = 0, start = None, end = None, val_type = None):
         super(FloatCol, self).__init__(label, default)
         self._dtype = np.float32
-#        self.unit = unit
+#        self.entity = entity
         self.start = start
         self.end = end
         self.val_type = val_type
@@ -109,7 +115,7 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     '''
     count = 0
-    def __init__(self, func, unit= 'ind', label = None, start = None, end = None, val_type = None):
+    def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None):
         super(Prestation, self).__init__(label)
 
         self._order = Prestation.count
@@ -119,7 +125,7 @@ class Prestation(Column):
         self._isCalculated = False
         self._option = {}
         self._func = func
-        self._unit  = unit
+        self._entity  = entity
         self._start = start
         self._end = end
         self._val_type = val_type
@@ -164,25 +170,25 @@ class BoolPresta(Prestation, BoolCol):
     '''
     A Prestation inheriting from BoolCol
     '''
-    def __init__(self, func, unit = 'ind', label = None, start = None, end = None):
-        BoolCol.__init__(self, label = label, unit = unit, start = start, end = end)
-        Prestation.__init__(self, func, unit, label, start, end)
+    def __init__(self, func, entity = 'ind', label = None, start = None, end = None):
+        BoolCol.__init__(self, label = label, entity = entity, start = start, end = end)
+        Prestation.__init__(self, func, entity, label, start, end)
 
 class IntPresta(Prestation, IntCol):
     '''
     A Prestation inheriting from IntCol
     '''
-    def __init__(self, func, unit = 'ind', label = None, start = None, end = None, val_type = None):
-        IntCol.__init__(self, label = label, unit = unit,  start = start, end = end, val_type = val_type)
-        Prestation.__init__(self, func, unit, label, start, end, val_type)
+    def __init__(self, func, entity = 'ind', label = None, start = None, end = None, val_type = None):
+        IntCol.__init__(self, label = label, entity = entity,  start = start, end = end, val_type = val_type)
+        Prestation.__init__(self, func, entity, label, start, end, val_type)
 
 class EnumPresta(Prestation, EnumCol):
     '''
     A Prestation inheriting from EnumCol
     '''
-    def __init__(self, func, unit = 'ind', label = None, enum = None, start = None, end = None):
-        EnumCol.__init__(self, enum = enum, label = label, unit = unit,  start = start, end = end)
-        Prestation.__init__(self, func, unit, label, start, end)
+    def __init__(self, func, entity = 'ind', label = None, enum = None, start = None, end = None):
+        EnumCol.__init__(self, enum = enum, label = label, entity = entity,  start = start, end = end)
+        Prestation.__init__(self, func, entity, label, start, end)
 
 
 #    def dep_resolve(self, resolved=set(), unresolved=set()):

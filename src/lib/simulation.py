@@ -7,7 +7,7 @@
 # (see openfisca/__init__.py for details)
 
 
-from datetime import datetime
+import datetime as dt
 import gc
 import os
 from src.lib.datatable import DataTable, SystemSf
@@ -25,7 +25,7 @@ __all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
 class Simulation(object):
     """
     A simulation object contains all parameters to compute a simulation from a 
-    test-case household (scenario) or a survey-like data 
+    test-case household (scenario) or a survey-like dataset 
     
     See also
     --------
@@ -51,7 +51,14 @@ class Simulation(object):
         for key, val in kwargs.iteritems():
             if key == "year":
                 date_str = str(val)+ '-01-01'
-                self.datesim = datetime.strptime(date_str ,"%Y-%m-%d").date()
+                self.datesim = dt.datetime.strptime(date_str ,"%Y-%m-%d").date()
+                remaining.pop(key)
+                
+            elif key == "datesim":
+                if isinstance(val, dt.date):
+                    self.datesim = val                    
+                else:
+                    self.datesim = dt.datetime.strptime(val ,"%Y-%m-%d").date()
                 remaining.pop(key)
                 
             elif key in ['country', 'param_file', 'totaux_file']:
@@ -73,7 +80,11 @@ class Simulation(object):
                 self.totaux_file = os.path.join(SRC_PATH, 'countries', self.country, 'totaux.xml')
 
         # Sets required country specific classes
-        if self.country is not None:            
+        if self.country is not None:
+            try:
+                del self.InputTable          
+            except:
+                pass
             self.InputTable = of_import('model.data', 'InputTable', country=self.country)
             self.ModelSF = of_import('model.model', 'ModelSF', country=self.country)        
 
@@ -87,7 +98,6 @@ class Simulation(object):
         
         Parameters
         ----------
-        
         param : a socio-fiscal parameter object to be used in the microsimulation. 
                 By default, the method uses the one provided by the attribute param_file
         param_default : a socio-fiscal parameter object to be used 
@@ -115,14 +125,13 @@ class Simulation(object):
         
         Parameters
         ----------
-        
         disabled_prestations : list of strings, default None
                                names of the prestations to be disabled
         """
         self.disabled_prestations = disabled_prestations
               
     def compute(self):
-        NotImplementedError          
+        NotImplementedError
         
     def _preproc(self, input_table):
         """
@@ -134,12 +143,12 @@ class Simulation(object):
         input_table : TODO: complete
         """
         P_default = self.P_default     
-        P         = self.P                 
-        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        P         = self.P                
+        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = self.datesim, country = self.country)
+            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = P.datesim, country = self.country)
             output_default.set_inputs(input_table, country = self.country)
         else:
             output_default = output
@@ -149,8 +158,10 @@ class Simulation(object):
 
         return output, output_default
 
-
     def clear(self):
+        """
+        Clear the outputs table 
+        """
         NotImplementedError
   
 class ScenarioSimulation(Simulation):
@@ -210,7 +221,7 @@ class ScenarioSimulation(Simulation):
         '''
         Creates a description dataframe of the ScenarioSimulation
         '''
-        now = datetime.now()
+        now = dt.datetime.now()
         descr =  [u'OpenFisca', 
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % str(self.datesim)]
@@ -237,17 +248,17 @@ class ScenarioSimulation(Simulation):
         """
         self.alternative_scenario = scenario
         
-    def set_marginal_alternative_scenario(self, unit = None, id_in_unit = None, variable = None, value = None):
+    def set_marginal_alternative_scenario(self, entity = None, id_in_entity = None, variable = None, value = None):
         """
         Modifies scenario by changing the setting value of the variable of the individual with 
-        position 'id' if necessary in unit named 'unit' 
+        position 'id' if necessary in entity named 'entity' 
         """
         self.alternative_scenario = self.scenario.copy()
         scenario = self.alternative_scenario
-        if unit is not None:
-            alt_unit = getattr(scenario, unit)
-            if id_in_unit is not None:
-                alt_unit[id_in_unit][variable] = value
+        if entity is not None:
+            alt_entity = getattr(scenario, entity)
+            if id_in_entity is not None:
+                alt_entity[id_in_entity][variable] = value
 
     def compute(self, difference = True):
         """
@@ -256,9 +267,7 @@ class ScenarioSimulation(Simulation):
         Parameters
         ----------
         difference : boolean, default True
-                When in reform mode, compute the difference between actual and default  
-        
-        
+                     When in reform mode, compute the difference between actual and default  
         Returns
         -------
         data, data_default : Computed data and possibly data_default according to totaux_file
@@ -298,7 +307,7 @@ class ScenarioSimulation(Simulation):
         input_table when an alternative scenario is present
         
         Parameters
-        ---------
+        ----------
         
         input_table_alter : TODO: complete
         input_table : TODO: complete
@@ -306,10 +315,10 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default     
         P         = self.P  
         
-        output = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
-        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = self.datesim, country = self.country)
+        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
         output_alter.set_inputs(input_table_alter, country = self.country)
     
         output.disable(self.disabled_prestations)
@@ -447,7 +456,6 @@ class SurveySimulation(Simulation):
         
         Parameters
         ----------
-        
         inflators : dict or DataFrame 
                     keys or a variable column should contain the variables to 
                     inflate and values of the value column the value of the inflator
@@ -499,7 +507,6 @@ class SurveySimulation(Simulation):
         
         Parameters
         ----------
-        
         entity : string, default None 
                  one of the entities which list can be found in countries.country.__init__.py
                  when None the first entity of ENTITIES_INDEX is used
@@ -509,11 +516,9 @@ class SurveySimulation(Simulation):
                           If True select all output variables
         all_output_vars : boolean, default False
                           If True select all input variables
-                          
         Returns
         -------
-        out_tables[0], out_tables[1]: DataFrame
-                          
+        out_tables[0], out_tables[1] : DataFrame                  
         """
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
         
@@ -555,7 +560,7 @@ class SurveySimulation(Simulation):
             varnames = output_varlist.union(input_varlist)
             for varname in varnames:
                 if varname in model.col_names:
-                    if (model.description.get_col(varname)._unit != entity) or (force_sum == True):
+                    if (model.description.get_col(varname)._entity != entity) or (force_sum == True):
                         val = model.get_value(varname, idx, opt = people, sum_ = True)    
                     else:
                         val = model.get_value(varname, idx)

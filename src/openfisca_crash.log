@@ -1,16 +1,12 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openfisca.pyw", line 1716, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1605, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openfisca.pyw", line 1632, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1521, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openfisca.pyw", line 617, in setup
-    self.register_survey_widgets(True)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openfisca.pyw", line 784, in register_survey_widgets
-    self.distribution.register_plugin()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 501, in register_plugin
-    self.set_openfisca_pivot_table(dist)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 373, in set_openfisca_pivot_table
-    self.vars = self.openfisca_pivot_table.vars
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 78, in vars
-    return set(self.simulation.var_list)
-TypeError: 'NoneType' object is not iterable
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 554, in setup
+    self.register_test_case_widgets(country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 689, in register_test_case_widgets
+    self.scenario_simulation.set_config(country=country, datesim=datesim)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 210, in set_config
+    self.scenario.year = self.datesim.year
+AttributeError: 'NoneType' object has no attribute 'year'

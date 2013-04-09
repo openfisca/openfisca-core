@@ -1,13 +1,11 @@
-.. _contributing
+.. _contributing:
 
-*************************
-Contributing to OpenFisca
-*************************
+***************************************
+Participer au développement d'OpenFisca
+***************************************
 
-More information on https://github.com/openfisca/openfisca/wiki/Developer's-guide
-
-Comment contribuer à OpenFisca (beta) ?
----------------------------------------
+Comment contribuer au développement d'OpenFisca (beta) ?
+--------------------------------------------------------
 OpenFisca (beta) est un projet en cours de développement sous licence
 GPLv3 ou supérieure. Le code source est librement accessible et
 modifiable. Certains pans de la législation ne sont pas encore
@@ -20,6 +18,7 @@ Nous invitons les utilisateurs à nous transmettre leur remarques, les
 imprécisions ou erreurs identifiées, ainsi que les éventuelles
 propositions d’amélioration. Si vous voulez participer plus activement
 à l’évolution du programme, vous pouvez télécharger le code source sur
-GitHub (https://github.com/openfisca/openfisca) et/ou nous contacter à
-contact@openfisca.fr.
+`GitHub <https://github.com/openfisca/openfisca>`_ et/ou nous `contacter <contact@openfisca.fr>`_.
 
+
+Plus d'informations sont fournies par le `guide du développeur <https://github.com/openfisca/openfisca/wiki/Developer's-guide>`_
