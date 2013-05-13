@@ -480,7 +480,7 @@ class SurveySimulation(Simulation):
 
     def compute(self):
         """
-        Computes output_data from scenario
+        Computes output_data
         """            
         # Clear outputs
         self.clear()
@@ -501,7 +501,7 @@ class SurveySimulation(Simulation):
         self._build_dicts(option = 'output_only')
 
 
-    def aggregated_by_entity(self, entity = None, varlist = None, all_output_vars = True, all_input_vars = False, force_sum = False):
+    def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
         Generates aggregates at entity level
         
@@ -510,7 +510,7 @@ class SurveySimulation(Simulation):
         entity : string, default None 
                  one of the entities which list can be found in countries.country.__init__.py
                  when None the first entity of ENTITIES_INDEX is used
-        varlist : list
+        variables : list
                  variables to aggregate
         all_output_vars : boolean, default True
                           If True select all output variables
@@ -546,31 +546,35 @@ class SurveySimulation(Simulation):
             except:
                 people = None
 
-            input_varlist = set([WEIGHT])
+            input_variables = set([WEIGHT])
             if all_input_vars:           
-                input_varlist = input_varlist.union(set(inputs.col_names))
-            if varlist is not None:
-                input_varlist = input_varlist.union( set(inputs.col_names).intersection(varlist))
+                input_variables = input_variables.union(set(inputs.col_names))
+            if variables is not None:
+                input_variables = input_variables.union( set(inputs.col_names).intersection(variables))
  
-            if varlist is not None:
-                output_varlist = set(model.col_names).intersection(varlist)    
+            if variables is not None:
+                output_variables = set(model.col_names).intersection(variables)    
             if all_output_vars:
-                output_varlist = set(model.col_names)
+                output_variables = set(model.col_names)
             
-            varnames = output_varlist.union(input_varlist)
+            varnames = output_variables.union(input_variables)
             for varname in varnames:
                 if varname in model.col_names:
-                    if (model.description.get_col(varname)._entity != entity) or (force_sum == True):
+                    col = model.description.get_col(varname)
+                    condition = (col._entity != entity) or (force_sum == True)
+                    from src.lib.columns import EnumCol, EnumPresta
+                    type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta)) 
+                    if condition and type_col_condition:
                         val = model.get_value(varname, idx, opt = people, sum_ = True)    
                     else:
                         val = model.get_value(varname, idx)
+                
                 elif varname in inputs.col_names:
                     val = inputs.get_value(varname, idx)
                 else:
                     raise Exception('%s was not find in model nor in inputs' % varname)
                 
                 out_dct[varname] = val      
-            # TODO: should take care the variables that shouldn't be summed automatically
             
             out_tables.append(DataFrame(out_dct))
         
