@@ -32,8 +32,6 @@ from src.lib.description import ModelDescription, Description
 class DataTable(object):
     """
     Construct a SystemSf object is a set of Prestation objects
-        * title [string]
-        * comment [string]: text shown on the top of the first data item
     """
     def __init__(self, model_description, survey_data = None, scenario = None, datesim = None, country = None):
         super(DataTable, self).__init__()
