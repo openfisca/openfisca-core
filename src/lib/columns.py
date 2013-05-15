@@ -101,10 +101,10 @@ class DateCol(Column):
         self._dtype = np.datetime64
 
 class Prestation(Column):
-    '''
+    """
     Prestation is a wraper around a function which takes some arguments and return a single array. 
     _P is a reserved kwargs intended to pass a tree of parametres to the function
-    '''
+    """
     count = 0
     def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None):
         super(Prestation, self).__init__(label, entity=entity, start=start, end=end, val_type=val_type)
