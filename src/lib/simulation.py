@@ -139,8 +139,14 @@ class Simulation(object):
         
         Parameters
         ----------
+                
+        input_table : DataTable
+
+        Returns
+        -------
         
-        input_table : TODO: complete
+        output, output_default : SystemSf
+                                 DataTable of the output variable of the socio-fiscal model
         """
         P_default = self.P_default     
         P         = self.P                
@@ -290,7 +296,7 @@ class ScenarioSimulation(Simulation):
         if self.reforme or alter:
             output_default.reset()
             output_default.disable(self.disabled_prestations)
-            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take out gen_output_data form core.utils
+            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take gen_output_data out of core.utils
             if difference:
                 data.difference(data_default)            
         else:
@@ -541,12 +547,17 @@ class SurveySimulation(Simulation):
             idx = model.index[entity]
             try:
                 enum = inputs.description.get_col('qui'+entity).enum
-                people = [x[1] for x in enum]
-                
+                people = [x[1] for x in enum]        
             except:
                 people = None
-
-            input_variables = set([WEIGHT])
+            
+            # TODO: too franco-centric. Change this !!  
+            if entity is "ind":
+                entity_id = "noi"
+            else:
+                entity_id = "id"+entity
+            
+            input_variables = set([WEIGHT, entity_id] )
             if all_input_vars:           
                 input_variables = input_variables.union(set(inputs.col_names))
             if variables is not None:
@@ -658,8 +669,10 @@ class SurveySimulation(Simulation):
         '''
         if self.survey.description.has_col(varname):
             return self.survey.description.get_col(varname)
-        elif self.outputs.description.has_col(varname):
-            return self.outputs.description.get_col(varname)
+        
+        if self.outputs is not None:
+            if self.outputs.description.has_col(varname):
+                return self.outputs.description.get_col(varname)
         else:
             print "Variable %s is absent from both inputs and outputs" % varname
             return None

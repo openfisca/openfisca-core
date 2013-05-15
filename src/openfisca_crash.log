@@ -1,38 +1,32 @@
 Traceback (most recent call last):
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 1600, in main
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1600, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 1516, in run_spyder
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1516, in run_spyder
     main.setup()
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 656, in setup
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 656, in setup
     self.setup_layout(default=False)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 935, in setup_layout
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 935, in setup_layout
     self.composition.compute()
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\countries\france\widgets\Composition.py", line 463, in compute
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\widgets\Composition.py", line 463, in compute
     self.simulation.compute()
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\simulation.py", line 288, in compute
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 288, in compute
     data = gen_output_data(output, filename = self.totaux_file)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 100, in gen_output_data
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 100, in gen_output_data
     handle_output_xml(_doc, tree, model)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 73, in handle_output_xml
     handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 73, in handle_output_xml
     handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 73, in handle_output_xml
     handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 73, in handle_output_xml
     handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
-    handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 73, in handle_output_xml
-    handle_output_xml(element, child, model, entity)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\utils.py", line 81, in handle_output_xml
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 81, in handle_output_xml
     model.calculate(tree.code)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\datatable.py", line 436, in calculate
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\datatable.py", line 434, in calculate
     self.calculate(parentname)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\lib\datatable.py", line 453, in calculate
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\datatable.py", line 451, in calculate
     self.set_value(varname, col._func(**funcArgs), idx)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\countries\france\model\cotsoc.py", line 406, in _alleg_fillon
-    taux_fillon = taux_exo_fillon(sal_h_b, P)
-  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\countries\france\model\cotsoc.py", line 600, in taux_exo_fillon
-    seuil = P.exo_fillon.seuil
-AttributeError: 'Tree2Object' object has no attribute 'exo_fillon'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\countries\france\model\pfam.py", line 141, in _af_majo
+    print "nbenf_maj2", nbenf_maj2
+IOError: [Errno 9] Bad file descriptor

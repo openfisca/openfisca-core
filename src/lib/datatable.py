@@ -131,9 +131,9 @@ class DataTable(object):
 
 
     def populate_from_survey_data(self, fname, year = None):
-        '''
+        """
         Populates a DataTable from survey data
-        '''
+        """
 
         if self.country is None:
             raise Exception('DataTable: country key word variable must be set') 
@@ -386,7 +386,7 @@ class SystemSf(DataTable):
         
 
     def calculate(self, varname = None):
-        '''
+        """
         Solver: finds dependencies and calculate accordingly all needed variables 
         
         Parameters
@@ -395,7 +395,7 @@ class SystemSf(DataTable):
         varname : string, default None
                   By default calculate all otherwise, calculate only one variable
         
-        '''
+        """
         if varname is None:
             for col in self.description.columns.itervalues():
                 try:
