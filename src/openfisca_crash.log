@@ -3,12 +3,14 @@ Traceback (most recent call last):
     mainwindow = run_spyder(app, options)
   File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1515, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 552, in setup
-    self.register_survey_widgets(country)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 725, in register_survey_widgets
-    self.survey_explorer.load_data()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\survey_explorer.py", line 182, in load_data
-    self.update_view(fill_default=True)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\survey_explorer.py", line 319, in update_view
-    new_col = cols - set(self.view_data)
-TypeError: unsupported operand type(s) for -: 'list' and 'set'
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 549, in setup
+    self.register_test_case_widgets(country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 684, in register_test_case_widgets
+    self.scenario_simulation.set_config(country=country, datesim=datesim)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 208, in set_config
+    specific_kwargs = self._set_config(**kwargs)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 80, in _set_config
+    default_decomp_file = of_import("decompostions", "DEFAULT_DECOMP_FILE", self.country)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 875, in of_import
+    _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
+ImportError: No module named decompostions
