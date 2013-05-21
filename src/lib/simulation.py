@@ -17,7 +17,7 @@ from src import SRC_PATH
 
 from pandas import DataFrame
 
-from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds
+from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
 
 
 __all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
@@ -38,7 +38,7 @@ class Simulation(object):
         self.datesim = None
         self.P = None
         self.P_default = None
-        self.totaux_file = None
+        self.decomp_file = None
         self.param_file = None
         self.disabled_prestations = None
         
@@ -61,7 +61,7 @@ class Simulation(object):
                     self.datesim = dt.datetime.strptime(val ,"%Y-%m-%d").date()
                 remaining.pop(key)
                 
-            elif key in ['country', 'param_file', 'totaux_file']:
+            elif key in ['country', 'param_file', 'decomp_file']:
                 if hasattr(self, key):
                     setattr(self, key, val)
                     remaining.pop(key)
@@ -74,11 +74,15 @@ class Simulation(object):
         if self.param_file is None:
             if self.country is not None:
                 self.param_file = os.path.join(SRC_PATH, 'countries', self.country, 'param', 'param.xml')
+  
+        if self.country is not None:              
+            if self.decomp_file is None:
+                default_decomp_file = of_import("decompositions", "DEFAULT_DECOMP_FILE", self.country)
+                self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', default_decomp_file)
+            else:
+                if not os.path.exists(self.decomp_file):
+                    self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', self.decomp_file)
                 
-        if self.totaux_file is None:
-            if self.country is not None:
-                self.totaux_file = os.path.join(SRC_PATH, 'countries', self.country, 'totaux.xml')
-
         # Sets required country specific classes
         if self.country is not None:
             try:
@@ -197,7 +201,7 @@ class ScenarioSimulation(Simulation):
         scenario : a scenario (by default, None selects Scenario())
         country  : a string containing the name of the country
         param_file : the socio-fiscal parameters file
-        totaux_file : the totaux file
+        decomp_file : the decomp file
         xaxis : the revenue category along which revenue varies
         maxrev : the maximal value of the revenue
         same_rev_couple : divide the revenue equally between the two partners
@@ -222,6 +226,18 @@ class ScenarioSimulation(Simulation):
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
+
+    def get_varying_revenues(self, var):
+        """
+        List the potential varying revenues
+        """
+        build_axes = of_import('utils','build_axes', country = self.country)
+        axes = build_axes(self.country)
+        for axe in axes:
+            if axe.col_name == var:
+                rev = axe.typ_tot_default
+                return rev
+        raise Exception("No revenue for variable %s" %(var) )
 
     def create_description(self):
         '''
@@ -276,7 +292,7 @@ class ScenarioSimulation(Simulation):
                      When in reform mode, compute the difference between actual and default  
         Returns
         -------
-        data, data_default : Computed data and possibly data_default according to totaux_file
+        data, data_default : Computed data and possibly data_default according to decomp_file
         
         """
         
@@ -291,12 +307,12 @@ class ScenarioSimulation(Simulation):
             input_table_alter = DataTable(self.InputTable, scenario = self.alternative_scenario, datesim = self.datesim, country = self.country)
             output, output_default = self.preproc_alter_scenario(input_table_alter, input_table)
             
-        data = gen_output_data(output, filename = self.totaux_file)
+        data = gen_output_data(output, filename = self.decomp_file)
         
         if self.reforme or alter:
             output_default.reset()
             output_default.disable(self.disabled_prestations)
-            data_default = gen_output_data(output_default, filename = self.totaux_file) # TODO: take gen_output_data out of core.utils
+            data_default = gen_output_data(output_default, filename = self.decomp_file) # TODO: take gen_output_data out of core.utils
             if difference:
                 data.difference(data_default)            
         else:
@@ -344,11 +360,11 @@ class ScenarioSimulation(Simulation):
                   If True compute the default results
         index_by_code : boolean, default False
                   Index the row by the code instead of name of the different element
-                  of totaux_file  
+                  of decomp_file  
         
         Returns
         -------
-        df : A DataFrame with computed data according to totaux_file
+        df : A DataFrame with computed data according to decomp_file
         """
         if self.data is None:
             data, data_default = self.compute(difference = difference)        
@@ -402,6 +418,16 @@ class ScenarioSimulation(Simulation):
         if graph_xaxis is None:
             graph_xaxis = 'sal'
         drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
+        
+    def draw_waterfall(self, ax):
+        """
+        Draws a waterfall on matplotlib.axes.Axes object ax
+        """
+        data, data_default = self.compute()
+        del data_default
+        data.setLeavesVisible()
+        drawWaterfall(data, ax)
+        
         
         
 
