@@ -89,13 +89,12 @@ def handle_output_xml(doc, tree, model, entity = 'men'):
             
 def gen_output_data(model, filename = None):
     '''
-    Generates output data according to filename or totaux.xml
+    Generates output data according to a decomposition xml filename
     '''
     if filename is None:
-        raise Exception('gen_output_data:  filename should be provided')
+        raise Exception('gen_output_data:  xml decompositon filename should be provided')
 
-    totals_fname = filename
-    _doc = minidom.parse(totals_fname)
+    _doc = minidom.parse(filename)
     tree = OutNode('root', 'root')
     handle_output_xml(_doc, tree, model)
     return tree
@@ -874,7 +873,6 @@ def of_import(module = None, classname = None, country = None):
     
     _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
 
-    
     return getattr(_temp, classname, None)
 
 
