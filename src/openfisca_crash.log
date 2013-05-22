@@ -1,16 +1,24 @@
 Traceback (most recent call last):
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1599, in main
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 1599, in main
     mainwindow = run_spyder(app, options)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 1515, in run_spyder
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 1515, in run_spyder
     main.setup()
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 549, in setup
-    self.register_test_case_widgets(country)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\openFisca.pyw", line 684, in register_test_case_widgets
-    self.scenario_simulation.set_config(country=country, datesim=datesim)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 208, in set_config
-    specific_kwargs = self._set_config(**kwargs)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\simulation.py", line 80, in _set_config
-    default_decomp_file = of_import("decompostions", "DEFAULT_DECOMP_FILE", self.country)
-  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\lib\utils.py", line 875, in of_import
-    _temp = __import__('src.countries.' + country + module_str, globals = globals(), locals = locals(), fromlist = [classname], level=-1)
-ImportError: No module named decompostions
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\openFisca.pyw", line 545, in setup
+    self.parameters = ParamWidget(self)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\plugins\general\Parametres.py", line 95, in __init__
+    self.initialize()
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\plugins\general\Parametres.py", line 117, in initialize
+    self._reader = XmlReader(self._file, self._date)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\parametres\paramData.py", line 56, in __init__
+    self.handleNodeList(self._doc.childNodes, self.tree)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\parametres\paramData.py", line 92, in handleNodeList
+    self.handleNodeList(element.childNodes, node)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\parametres\paramData.py", line 92, in handleNodeList
+    self.handleNodeList(element.childNodes, node)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\parametres\paramData.py", line 85, in handleNodeList
+    val = self.handleValues(element, self._date)
+  File "C:\Users\Laurence Bouvard\Desktop\openfisca_apt\openfiscaLOLO\src\parametres\paramData.py", line 98, in handleValues
+    fin   = datetime.strptime(val.getAttribute('fin'),"%Y-%m-%d").date()
+  File "C:\Python27\lib\_strptime.py", line 325, in _strptime
+    (data_string, format))
+ValueError: time data '' does not match format '%Y-%m-%d'
