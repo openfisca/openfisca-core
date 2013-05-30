@@ -94,10 +94,14 @@ class XmlReader(object):
     def handleValues(self, element, date):
         # TODO gérer les assiettes en mettan l'assiette à 1 si elle n'existe pas
         for val in element.getElementsByTagName("VALUE"):
-            deb = datetime.strptime(val.getAttribute('deb'),"%Y-%m-%d").date()
-            fin   = datetime.strptime(val.getAttribute('fin'),"%Y-%m-%d").date()
-            if deb <= date <= fin:
-                return float(val.getAttribute('valeur'))
+            try:
+                deb = datetime.strptime(val.getAttribute('deb'),"%Y-%m-%d").date()
+                fin   = datetime.strptime(val.getAttribute('fin'),"%Y-%m-%d").date()
+                if deb <= date <= fin:
+                    return float(val.getAttribute('valeur'))
+            except Exception, e:
+                code = element.getAttribute('code')
+                raise Exception("Problem error when dealing with %s : \n %s" %(code,e))
         return None
 
 class Node(object):
