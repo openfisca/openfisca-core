@@ -448,5 +448,9 @@ class SystemSf(DataTable):
         provided = set(funcArgs.keys())        
         if provided != required:
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
-        self.set_value(varname, col._func(**funcArgs), idx)
+        try:
+            self.set_value(varname, col._func(**funcArgs), idx)
+        except:
+            print varname
+            self.set_value(varname, col._func(**funcArgs), idx)
         col._isCalculated = True
