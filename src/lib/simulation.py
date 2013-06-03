@@ -42,6 +42,11 @@ class Simulation(object):
         self.param_file = None
         self.disabled_prestations = None
         
+        self.label2var = dict()
+        self.var2label = dict()
+        self.var2enum = dict()
+        
+        
     def _set_config(self, **kwargs):
         """
         Sets some general Simulation attributes 
@@ -165,8 +170,25 @@ class Simulation(object):
     
         output.disable(self.disabled_prestations)
         output_default.disable(self.disabled_prestations)
+        self._build_dicts(input_table, output)
 
         return output, output_default
+    
+    def _build_dicts(self, input_table, output_table):
+        """
+        Builds dictionaries from description
+        """
+        try:
+            descriptions = [input_table.description, output_table.description]
+        except:
+            descriptions = [input_table.description]
+        
+        for description in descriptions:
+            l2v, v2l, v2e = description.builds_dicts()
+            self.label2var.update(l2v)
+            self.var2label.update(v2l)
+            self.var2enum.update(v2e)
+    
 
     def clear(self):
         """
@@ -428,9 +450,7 @@ class ScenarioSimulation(Simulation):
         data.setLeavesVisible()
         drawWaterfall(data, ax)
         
-        
-        
-
+    
 class SurveySimulation(Simulation):
     """
     A Simulation class tailored to deal with survey data
