@@ -278,8 +278,12 @@ class DataTable(object):
                 idx = index[person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
-            if sum_ is False:
-                return out
+            if sum_ is False:       
+                if len(opt) == 1:
+                    return out[opt[0]]
+                else:
+                    return out
+
             else:
                 sumout = 0
                 for val in out.itervalues():
