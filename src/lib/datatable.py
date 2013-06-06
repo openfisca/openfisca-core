@@ -26,7 +26,7 @@ import numpy as np
 from pandas import DataFrame, Series, read_csv, HDFStore
 from src.lib.utils import of_import
 from src.lib.description import ModelDescription, Description
-
+import pdb
 
 
 class DataTable(object):
@@ -560,9 +560,18 @@ class DataTable(object):
                 temp = np.ones(nb, dtype = dtyp)*dflt
                 idx_to = self.index[dent][entity]              
                 tab = self.table3[dent][varname] # same as var but in pandas
+                if isinstance(tab[0],bool):
+                    print "Warning: try to sum the boolean %s. How ugly is that? " %varname
+                    #Note that we have isol = True (isol) iff there is at least one isol
+                    tab = tab.astype('int')
                 by_idx =  tab.groupby(idx_to)  
                 idx_to_unique = np.unique(idx_to)
-                temp[idx_to_unique] = by_idx.aggregate(np.sum)
+                try:
+                    temp[idx_to_unique] = by_idx.aggregate(np.sum)
+                except:
+                    #TODO: always do the convertion but bette to be explicit
+                    values = by_idx.aggregate(np.sum).astype('bool')
+                    temp[idx_to_unique] = values
                 return temp
 
             
@@ -783,4 +792,5 @@ class SystemSf(DataTable):
             print varname
             self.set_value(varname, col._func(**funcArgs), entity)
             
+
         col._isCalculated = True
