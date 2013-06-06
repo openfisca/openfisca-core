@@ -170,11 +170,11 @@ class Simulation(object):
     
         output.disable(self.disabled_prestations)
         output_default.disable(self.disabled_prestations)
-        self._build_dicts(input_table, output)
+        self._build_dicts2(input_table, output)
 
         return output, output_default
     
-    def _build_dicts(self, input_table, output_table):
+    def _build_dicts2(self, input_table, output_table):
         """
         Builds dictionaries from description
         """
