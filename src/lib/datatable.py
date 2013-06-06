@@ -33,7 +33,8 @@ class DataTable(object):
     """
     Construct a SystemSf object is a set of Prestation objects
     """
-    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None, country = None):
+    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
+                  country = None, print_missing=True):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -44,6 +45,7 @@ class DataTable(object):
         self.table = DataFrame()
         self.index = {}
         self._nrows = 0
+        self.print_missing=print_missing
         
         if datesim is None:
             raise Exception('InputTable: datesim should be provided')
@@ -197,7 +199,8 @@ class DataTable(object):
                     messageb += '  - '+ var +'\n'
                 else:
                     message += '  - '+ var +'\n'
-            print Warning(message + messagef + messageb)
+            if self.print_missing==True:
+                print Warning(message + messagef + messageb)
         
         for var in INDEX:
             if ('id' + var) in missing_col:
