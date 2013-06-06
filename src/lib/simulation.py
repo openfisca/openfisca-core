@@ -480,7 +480,8 @@ class SurveySimulation(Simulation):
             if hasattr(self, key):
                 setattr(self, key, val)
   
-    def set_survey(self, filename = None, datesim = None, country = None, print_missing=True):
+    def set_survey(self, filename = None, datesim = None, country = None,
+                   subset=None, print_missing=True):
         """
         Set survey input data
         """
@@ -494,12 +495,15 @@ class SurveySimulation(Simulation):
         elif country is not None:
             country = country
             
+        self._subset = subset
+        
         if filename is None:
             if country is not None:
                 filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
         
         self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim,
-                                 country = country, print_missing=print_missing)
+                                 country = country,
+                                 subset=subset, print_missing=print_missing)
 
         self._build_dicts(option = 'input_only')
 

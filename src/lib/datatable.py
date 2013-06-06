@@ -34,7 +34,7 @@ class DataTable(object):
     Construct a SystemSf object is a set of Prestation objects
     """
     def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
-                  country = None, print_missing=True):
+                  country = None, subset=None, print_missing=True):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -42,6 +42,7 @@ class DataTable(object):
         self.scenario = None
         self._isPopulated = False
         self.col_names = []
+        self._subset = subset
         self.table = DataFrame()
         self.index = {}
         self._nrows = 0
@@ -173,7 +174,11 @@ class DataTable(object):
 
             if yr in available_years:
                 self.survey_year = yr
+            idx_subset = None
             self.table = store[str(base_name)] # only valid for frame 
+            if self._subset is not None: 
+                idx_subset = self.table['idmen'].isin(self._subset)
+                self.table = self.table[idx_subset ]                    
             store.close()
             
         self._nrows = self.table.shape[0]
