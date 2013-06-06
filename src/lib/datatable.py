@@ -118,19 +118,27 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
     
-    def propagate_to_members(self, entity , col):
+    def propagate_to_members(self, varname, entity):
         """
         Set the variable of all entity member to the value of the (head of) entity
         """
-        index = self.index[entity]
-        value = self.get_value(col, index)
+        col = self.description.get_col(varname)
+        from_ent = col.entity
+        value = self.get_value(varname)
         try:
-            enum = self.description.get_col('qui'+entity).enum
+            enum = self.description.get_col('qui'+from_ent).enum
         except:
-            enum = self._inputs.description.get_col('qui'+entity).enum
+            enum = self._inputs.description.get_col('qui'+from_ent).enum
         
+        head = self.index[from_ent][0]['idxIndi']
         for member in enum:
-            self.set_value(col, value, index, opt = member[1])
+            value_member = value[head] 
+            select_unit = self.index[from_ent][member[1]]['idxUnit']
+            value_member = value_member[select_unit]
+            if varname != 'wprm':
+                import pdb
+                pdb.set_trace()
+                self.set_value(varname, value_member, from_ent, opt = member[1])
 
 
     def populate_from_survey_data(self, fname, year = None):
