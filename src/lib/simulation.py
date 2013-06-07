@@ -41,6 +41,7 @@ class Simulation(object):
         self.decomp_file = None
         self.param_file = None
         self.disabled_prestations = None
+        self._num_table = 1
         
         self.label2var = dict()
         self.var2label = dict()
@@ -158,23 +159,23 @@ class Simulation(object):
                                  DataTable of the output variable of the socio-fiscal model
         """
         P_default = self.P_default     
-        P         = self.P                
-        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
+        P         = self.P           
+        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
         output.set_inputs(input_table, country = self.country)
-                
+                                
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = P.datesim, country = self.country)
+            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
             output_default.set_inputs(input_table, country = self.country)
         else:
             output_default = output
     
         output.disable(self.disabled_prestations)
         output_default.disable(self.disabled_prestations)
-        self._build_dicts(input_table, output)
+        self._build_dicts2(input_table, output)
 
         return output, output_default
     
-    def _build_dicts(self, input_table, output_table):
+    def _build_dicts2(self, input_table, output_table):
         """
         Builds dictionaries from description
         """
@@ -480,7 +481,8 @@ class SurveySimulation(Simulation):
             if hasattr(self, key):
                 setattr(self, key, val)
   
-    def set_survey(self, filename = None, datesim = None, country = None):
+    def set_survey(self, filename = None, datesim = None, country = None, num_table = 1,
+                   subset=None, print_missing=True):
         """
         Set survey input data
         """
@@ -493,15 +495,31 @@ class SurveySimulation(Simulation):
             country = self.country        
         elif country is not None:
             country = country
+        
+        if self._num_table not in [1,3] :
+            raise Exception("OpenFisca can be run with 1 or 3 tables only, "
+                            " please, choose between both.") 
+        else:
+            self._num_table = num_table  
+        
+        self._subset = subset
             
         if filename is None:
             if country is not None:
-                filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
-        
-        self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim, country = country)
+                if self._num_table == 1 :
+                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
+                else :
+                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey3.h5')
+                               
+        self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim,
+                                 country = country , num_table = self._num_table, 
+                                 subset=subset, print_missing=print_missing)
 
+            
         self._build_dicts(option = 'input_only')
-
+        
+       
+        
     def inflate_survey(self, inflators):
         """
         Inflate some variable of the survey data
@@ -590,13 +608,16 @@ class SurveySimulation(Simulation):
         for model in models:
             out_dct = {}
             inputs = model._inputs
-            idx = model.index[entity]
-            try:
-                enum = inputs.description.get_col('qui'+entity).enum
-                people = [x[1] for x in enum]        
-            except:
-                people = None
-            
+#           WAS idx = model.index[entity] 
+            idx = entity
+            people = None
+            if self._num_table == 1:
+                try:
+                    enum = inputs.description.get_col('qui'+entity).enum
+                    people = [x[1] for x in enum]         
+                except:
+                    people = None
+ 
             # TODO: too franco-centric. Change this !!  
             if entity is "ind":
                 entity_id = "noi"
@@ -608,9 +629,9 @@ class SurveySimulation(Simulation):
                 input_variables = input_variables.union(set(inputs.col_names))
             if variables is not None:
                 input_variables = input_variables.union( set(inputs.col_names).intersection(variables))
- 
-            if variables is not None:
                 output_variables = set(model.col_names).intersection(variables)    
+
+
             if all_output_vars:
                 output_variables = set(model.col_names)
             
@@ -622,9 +643,9 @@ class SurveySimulation(Simulation):
                     from src.lib.columns import EnumCol, EnumPresta
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta)) 
                     if condition and type_col_condition:
-                        val = model.get_value(varname, idx, opt = people, sum_ = True)    
+                        val = model.get_value(varname, entity=idx, opt = people, sum_ = True)    
                     else:
-                        val = model.get_value(varname, idx)
+                        val = model.get_value(varname, entity=idx)
                 
                 elif varname in inputs.col_names:
                     val = inputs.get_value(varname, idx)
