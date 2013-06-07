@@ -83,7 +83,6 @@ class FloatCol(Column):
     def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
         super(FloatCol, self).__init__(label, default, entity, start, end, val_type)
         self._dtype = np.float32
-
         
 class AgesCol(IntCol):
     '''
@@ -120,6 +119,7 @@ class Prestation(Column):
         self._start = start
         self._end = end
         self._val_type = val_type
+        self.entity  = entity
         
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
         self._children  = set() # prestations immidiately affected by current prestation 
