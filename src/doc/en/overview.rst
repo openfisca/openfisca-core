@@ -12,9 +12,10 @@ Package overview
  * Taxes and transfers of any kind of test case household can be simulated
  * If survey microdata is provided, the microsimulation can deal with an entire population  
  * A graphical interface to interact with the library
- * Legislative reforms can be explored at for test case or the whole survey population
+ * Legislative reforms can be explored for test case or the whole population when survey data is provided
  * A large part of France socio-fiscal system is available since 2002
- * There is some ongoing work on Tunisian system
+ * There is some ongoing work on a Tunisian system
+
 
 
 Getting Support
