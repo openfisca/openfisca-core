@@ -175,10 +175,14 @@ class ValueColumnDelegate(QStyledItemDelegate):
             value.marToMoy()
             self.baremeDialog = BaremeDialog(value, self._parent, unit = unit)
             self.connect(editor, SIGNAL('clicked()'), self.runBaremeDialog)
+            self.connect(self.baremeDialog, SIGNAL('accepted()'), self.accepted)
             self.runBaremeDialog()
         else:
             editor = QStyledItemDelegate.createEditor(self, parent, option, index)
         return editor
+
+    def accepted(self):
+        self._parent.changed() # To send the signal to the parameter widget
 
     def setEditorData(self, editor, index):
         node = index.internalPointer()
@@ -272,6 +276,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.setupUi(self)
         self._bareme = bareme
         self._bareme.unit = unit
+        
         
         self._marModel = MarModel(self._bareme, self)
         self.marView.setModel(self._marModel)
