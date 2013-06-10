@@ -83,10 +83,12 @@ class DataTable(object):
         elif scenario is not None:
             self.scenario = scenario
             scenario.populate_datatable(self)
+#         else:
+#             raise Exception("survey_data or a scenario must be provided")
         
     def gen_index(self, entities):
         '''
-        Genrates indexex for the relevant entities
+        Generates indexex for the relevant entities
         '''
         
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
@@ -578,6 +580,17 @@ class DataTable(object):
     def set_value(self, varname, value, entity = None, opt = None):
         '''
         Sets the value of varname using index and opt
+        
+        Parameters
+        ----------
+        varname: string,
+                  variable to set
+        value: TODO: fill 
+                  value assigned to varname
+        entity: string, default None and if None entity is set to "ind"
+                the specified entity 
+        opt: int
+             position in the netity
         '''
         if entity is None:
             entity = "ind"
