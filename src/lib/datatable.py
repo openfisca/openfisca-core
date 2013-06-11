@@ -55,12 +55,12 @@ class DataTable(object):
         self.print_missing=print_missing
         
         if datesim is None:
-            raise Exception('InputTable: datesim should be provided')
+            raise Exception('InputDescription: datesim should be provided')
         else:
             self.datesim = datesim 
             
         if country is None:
-            raise Exception('InputTable: country should be provided')
+            raise Exception('InputDescription: country should be provided')
         else:
             self.country = country
                     
@@ -75,7 +75,7 @@ class DataTable(object):
             raise Exception("model_description should be an ModelDescription inherited class")
 
         self.col_names = self.description.col_names
-
+#### MOVE 'dat in some method
         if (survey_data is not None) and (scenario is not None):
             raise Exception("should provide either survey_data or scenario but not both")
         elif survey_data is not None:
