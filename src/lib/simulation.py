@@ -46,6 +46,8 @@ class Simulation(object):
         self.label2var = dict()
         self.var2label = dict()
         self.var2enum = dict()
+#         self.input_table #La DF qui contient les données input
+#         self.output_table #La DF qui contient les données output pour la GUI
         
         
     def _set_config(self, **kwargs):
@@ -140,8 +142,6 @@ class Simulation(object):
         """
         self.disabled_prestations = disabled_prestations
               
-    def compute(self):
-        NotImplementedError
         
     def _preproc(self, input_table):
         """
@@ -196,7 +196,53 @@ class Simulation(object):
         Clear the output_table 
         """
         NotImplementedError
-  
+
+
+    def _compute(self, input_table, **kwargs):
+        """
+        Computes output_data for the ScenarioSimulation
+        
+        Parameters
+        ----------
+        difference : boolean, default True
+                     When in reform mode, compute the difference between actual and default  
+        Returns
+        -------
+        data, data_default : Computed data and possibly data_default according to decomp_file
+        
+        """
+
+        # Clear outputs
+        self.clear()
+        output, output_default = self._preproc(input_table)
+        
+        
+        for key, val in kwargs.iteritems():
+            setattr(output, key, val) 
+            setattr(output_default, key, val) 
+            
+        data = output.calculate()
+        print "_compute"
+        print data
+        if self.reforme:
+            print "enter réforme"
+            output_default.reset()
+            output_default.disable(self.disabled_prestations)
+            data_default = output_default.calculate()
+            print data_default
+        else:
+            output_default = output_default
+            data_default = data
+            
+        self.output_table, self.output_table_default = output, output_default
+        #self._build_dicts(option = 'output_only')
+        
+        self.data = data
+        self.data_default = data_default
+        return data, data_default
+        gc.collect()
+
+
 class ScenarioSimulation(Simulation):
     """
     A Simulation class tailored to deal with scenarios
@@ -305,7 +351,7 @@ class ScenarioSimulation(Simulation):
             if id_in_entity is not None:
                 alt_entity[id_in_entity][variable] = value
 
-    def compute(self, difference = True):
+    def initialize_input_table(self):
         """
         Computes output_data for the ScenarioSimulation
         
@@ -322,29 +368,45 @@ class ScenarioSimulation(Simulation):
         alter = self.alternative_scenario is not None
         if self.reforme and alter:
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
-
+        #####TODO: à factoriser 
         input_table = DataTable(self.InputDescription, scenario = self.scenario, datesim = self.datesim, country = self.country)
-        if not alter:
-            output, output_default = self._preproc(input_table)
-        else:
-            input_table_alter = DataTable(self.InputDescription, scenario = self.alternative_scenario, datesim = self.datesim, country = self.country)
-            output, output_default = self.preproc_alter_scenario(input_table_alter, input_table)
-            
-        data = gen_output_data(output, filename = self.decomp_file)
+        self.input_table = input_table
+        #####
+#         if not alter:
+#             output, output_default = self._preproc(input_table)
+        if alter:
+            input_table_alter = DataTable(self.InputDescription, scenario = self.alternative_scenario, 
+                                          datesim = self.datesim, country = self.country)
+            self.input_table_alter = input_table_alter 
+
+
+    def compute(self, difference=True):
+        print "entering compute"
+        alter = (self.alternative_scenario is not None)
+        print "alter: ", alter 
+        self.initialize_input_table()
+
+        if self.reforme and alter:
+            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
         
         if self.reforme or alter:
+            pass
+        if not alter:
+            print "ok"
+            data, data_default = self._compute(self.input_table, decomp_file=self.decomp_file)
+            print data
+            print data_default
+        else:            
+            output, output_default = self._preproc(self.input_table)
             output_default.reset()
             output_default.disable(self.disabled_prestations)
             data_default = gen_output_data(output_default, filename = self.decomp_file) # TODO: take gen_output_data out of core.utils
-            if difference:
-                data.difference(data_default)            
-        else:
-            data_default = data
-
-        self.data = data
-        self.data_default = data_default
+        
+        if difference and self.reforme:
+            data.difference(data_default)  
+        
+        self.data, self.data_default = data, data_default
         return data, data_default
-
         
     def preproc_alter_scenario(self, input_table_alter, input_table):
         """
@@ -390,7 +452,10 @@ class ScenarioSimulation(Simulation):
         df : A DataFrame with computed data according to decomp_file
         """
         if self.data is None:
-            data, data_default = self.compute(difference = difference)        
+            print "coucou"
+            data, data_default = self.compute(difference) #self.compute(difference = difference)        
+            print data
+            print data_default
         else:
             data = self.data
             data_default = self.data_default
@@ -420,7 +485,7 @@ class ScenarioSimulation(Simulation):
         """
         reforme = self.reforme 
         alter = (self.alternative_scenario is not None)
-        data, data_default = self.compute()
+        data, data_default = self._compute()
         data.setLeavesVisible()
         data_default.setLeavesVisible()
         if graph_xaxis is None:
@@ -548,28 +613,32 @@ class SurveySimulation(Simulation):
         check_consistency = of_import('utils', 'check_consistency', self.country)
         check_consistency(self.survey)
 
-    def compute(self):
+    def initialize_input_table(self):
         """
-        Computes output_data
+        Computes output_data for surveys
         """            
         # Clear outputs
         self.clear()
         gc.collect()
-                
-        input_table = self.survey
-        output, output_default = self._preproc(input_table)
-        
-        output.calculate()
-        if self.reforme:
-            output_default.reset()
-            output_default.disable(self.disabled_prestations)
-            output_default.calculate()
-        else:
-            output_default = output
-        
-        self.output_table, self.output_table_default = output, output_default
-        self._build_dicts(option = 'output_only')
 
+        self.input_table = self.survey
+        return self.input_table
+#         output, output_default = self._preproc(input_table)
+#         output.calculate() #Note : calculate est une méthode de SystèmeSF
+#         if self.reforme:
+#             output_default.reset()
+#             output_default.disable(self.disabled_prestations)
+#             output_default.calculate()
+#         else:
+#             output_default = output
+#         
+#         self.output_table, self.output_table_default = output, output_default
+#         self._build_dicts(option = 'output_only')
+
+    def compute(self):
+#         print 'entering survey compute'
+        self.initialize_input_table()
+        self._compute(self.input_table)
 
     def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
@@ -678,6 +747,7 @@ class SurveySimulation(Simulation):
         """
         self.output_table = None
         self.output_table_default = None
+        gc.collect()
         
     @property
     def input_var_list(self):
