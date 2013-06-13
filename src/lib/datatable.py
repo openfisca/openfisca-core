@@ -77,16 +77,23 @@ class DataTable(object):
             raise Exception("model_description should be an ModelDescription inherited class")
 
         self.col_names = self.description.col_names
-#### MOVE 'dat in some method initialize_from_survey & initialize_from_test_case
-        if (survey_data is not None) and (scenario is not None):
-            raise Exception("should provide either survey_data or scenario but not both")
-        elif survey_data is not None:
-            self.populate_from_survey_data(survey_data)
-        elif scenario is not None:
-            self.scenario = scenario
-            scenario.populate_datatable(self)
-#         else:
-#             raise Exception("survey_data or a scenario must be provided")
+        
+        
+    def load_data_from_test_case(self, test_case):
+        print "population using scenario"
+        self.test_case = test_case
+        test_case.populate_datatable(self)
+        
+
+    def load_data_from_survey(self, survey_data,
+                              num_table = 1,
+                              subset=None, 
+                              print_missing=True):
+        self.survey_data = survey_data
+        self.populate_from_survey_data(survey_data)
+        
+
+# #             raise Exception("survey_data or a scenario must be provided")
         
     def gen_index(self, entities):
         '''
@@ -735,6 +742,8 @@ class SystemSf(DataTable):
         
         
     def calculate(self, varname = None):
+        print "in calculate"
+        print self.test_case
         if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
             self.survey_calculate(varname=varname)
             return None

@@ -143,7 +143,7 @@ class Simulation(object):
         self.disabled_prestations = disabled_prestations
               
         
-    def _preproc(self, input_table):
+    def _preproc(self):
         """
         Prepare the output values according to the OutputDescription definitions/Reform status/input_table
         
@@ -159,8 +159,11 @@ class Simulation(object):
                                  DataTable of the output variable of the socio-fiscal model
         """
         P_default = self.P_default     
-        P         = self.P           
+        P         = self.P
+        input_table = self.input_table
+        
         output = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+        print output
         output.set_inputs(input_table, country = self.country)
                                 
         if self.reforme:
@@ -195,10 +198,15 @@ class Simulation(object):
         """
         Clear the output_table 
         """
-        NotImplementedError
+        self.output_table = None
+        self.output_table_default = None
+        gc.collect()
+        
+    def _initialize_input_table(self):
+        self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
+                                    country=self.country)
 
-
-    def _compute(self, input_table, **kwargs):
+    def _compute(self, **kwargs):
         """
         Computes output_data for the ScenarioSimulation
         
@@ -214,8 +222,7 @@ class Simulation(object):
 
         # Clear outputs
         self.clear()
-        output, output_default = self._preproc(input_table)
-        
+        output, output_default = self._preproc()
         
         for key, val in kwargs.iteritems():
             setattr(output, key, val) 
@@ -295,6 +302,8 @@ class ScenarioSimulation(Simulation):
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
+        
+        self.initialize_input_table()
 
     def get_varying_revenues(self, var):
         """
@@ -363,28 +372,31 @@ class ScenarioSimulation(Simulation):
         -------
         data, data_default : Computed data and possibly data_default according to decomp_file
         
-        """
+        """        
+        self._initialize_input_table()
         
-        alter = self.alternative_scenario is not None
-        if self.reforme and alter:
-            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
-        #####TODO: à factoriser 
-        input_table = DataTable(self.InputDescription, scenario = self.scenario, datesim = self.datesim, country = self.country)
-        self.input_table = input_table
-        #####
-#         if not alter:
-#             output, output_default = self._preproc(input_table)
-        if alter:
-            input_table_alter = DataTable(self.InputDescription, scenario = self.alternative_scenario, 
-                                          datesim = self.datesim, country = self.country)
-            self.input_table_alter = input_table_alter 
+        
+
 
 
     def compute(self, difference=True):
         print "entering compute"
         alter = (self.alternative_scenario is not None)
         print "alter: ", alter 
-        self.initialize_input_table()
+        self.input_table.load_data_from_test_case(self.scenario)
+
+        alter = self.alternative_scenario is not None
+        if self.reforme and alter:
+            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
+
+        if alter:
+#        TODO: clean this
+# #             input_table_alter = DataTable(self.InputDescription, scenario = self.alternative_scenario, 
+# #                                           datesim = self.datesim, country = self.country)
+# #             self.input_table_alter = input_table_alter 
+#             self.input_table_alter = self._initialize_input_table(data=self.alternative_scenario, test_case=True)
+            pass
+
 
         if self.reforme and alter:
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
@@ -393,7 +405,7 @@ class ScenarioSimulation(Simulation):
             pass
         if not alter:
             print "ok"
-            data, data_default = self._compute(self.input_table, decomp_file=self.decomp_file)
+            data, data_default = self._compute(decomp_file=self.decomp_file)
             print data
             print data_default
         else:            
@@ -528,7 +540,11 @@ class SurveySimulation(Simulation):
         self.descr = None
         self.output_table = None
         self.output_table_default = None
-  
+        self._num_table = 1  
+        self._subset = None
+        self.print_missing = True
+        self.survey_filename = None
+
         self.label2var = dict()
         self.var2label = dict()
         self.var2enum  = dict() 
@@ -545,46 +561,20 @@ class SurveySimulation(Simulation):
         for key, val in specific_kwargs.iteritems():        
             if hasattr(self, key):
                 setattr(self, key, val)
-  
-    def set_survey(self, filename = None, datesim = None, country = None, num_table = 1,
-                   subset=None, print_missing=True):
-        """
-        Set survey input data
-        """
-        if self.datesim is not None:
-            datesim = self.datesim        
-        elif datesim is not None:
-            datesim = datesim 
-            
-        if self.country is not None:
-            country = self.country        
-        elif country is not None:
-            country = country
-        
+                
+                
+        if self.survey_filename is None:
+            if self.country is not None:
+                if self._num_table == 1 :
+                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey.h5')
+                else :
+                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
+                                                   
+        self.survey_filename = filename
         if self._num_table not in [1,3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.") 
-        else:
-            self._num_table = num_table  
-        
-        self._subset = subset
-            
-        if filename is None:
-            if country is not None:
-                if self._num_table == 1 :
-                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
-                else :
-                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey3.h5')
-                               
-        self.survey = DataTable(self.InputDescription, survey_data = filename, datesim = datesim,
-                                 country = country , num_table = self._num_table, 
-                                 subset=subset, print_missing=print_missing)
-
-            
-        self._build_dicts(option = 'input_only')
-        
-       
-        
+                
     def inflate_survey(self, inflators):
         """
         Inflate some variable of the survey data
@@ -604,8 +594,7 @@ class SurveySimulation(Simulation):
         if isinstance(inflators, dict):
             for varname, inflator in inflators.iteritems():
                 self.survey.inflate(varname, inflator)
-                
-                
+                               
     def check_survey(self):
         """
         Consistency check of survey input data
@@ -617,28 +606,25 @@ class SurveySimulation(Simulation):
         """
         Computes output_data for surveys
         """            
-        # Clear outputs
-        self.clear()
-        gc.collect()
-
-        self.input_table = self.survey
+        # Clear outputs <- DO we really need this ? JS
+#         self.clear()
+#         gc.collect()
+#         self.input_table = self.survey
+#         return self.input_table
+        #Nouvelle typo
+        self._initialize_input_table()
+#        self._build_dicts(option = 'input_only')
         return self.input_table
-#         output, output_default = self._preproc(input_table)
-#         output.calculate() #Note : calculate est une méthode de SystèmeSF
-#         if self.reforme:
-#             output_default.reset()
-#             output_default.disable(self.disabled_prestations)
-#             output_default.calculate()
-#         else:
-#             output_default = output
-#         
-#         self.output_table, self.output_table_default = output, output_default
-#         self._build_dicts(option = 'output_only')
+
 
     def compute(self):
-#         print 'entering survey compute'
+        print 'entering survey compute'
         self.initialize_input_table()
-        self._compute(self.input_table)
+        self.input_table.load_data_from_survey(self.survey_filename,  
+                                               num_table = 1,
+                                               subset=None, 
+                                               print_missing=True)
+        self._compute()
 
     def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
@@ -785,13 +771,13 @@ class SurveySimulation(Simulation):
         """
         try:
             if option is 'input_only':
-                descriptions = [self.survey.description]
+                descriptions = [self.input_table.description]
             elif option is 'output_only': 
                 descriptions = [self.output_table.description]
             else:
-                descriptions = [self.survey.description, self.output_table.description] 
+                descriptions = [self.input_table.description, self.output_table.description] 
         except:
-            descriptions = [self.survey.description]
+            descriptions = [self.input_table.description]
         
         for description in descriptions:
             l2v, v2l, v2e = description.builds_dicts()
