@@ -39,7 +39,9 @@ class DataTable(object):
 
         # Init instance attribute
         self.description = None
-        self.scenario = None
+        self.test_case = scenario
+        self.decomp_file = None
+        self.survey_data = survey_data
         self._isPopulated = False
         self.col_names = []
         self._num_table = num_table
@@ -55,12 +57,12 @@ class DataTable(object):
         self.print_missing=print_missing
         
         if datesim is None:
-            raise Exception('InputTable: datesim should be provided')
+            raise Exception('InputDescription: datesim should be provided')
         else:
             self.datesim = datesim 
             
         if country is None:
-            raise Exception('InputTable: country should be provided')
+            raise Exception('InputDescription: country should be provided')
         else:
             self.country = country
                     
@@ -75,16 +77,23 @@ class DataTable(object):
             raise Exception("model_description should be an ModelDescription inherited class")
 
         self.col_names = self.description.col_names
+        
+        
+    def load_data_from_test_case(self, test_case):
+        print "population using scenario"
+        self.test_case = test_case
+        test_case.populate_datatable(self)
+        
 
-        if (survey_data is not None) and (scenario is not None):
-            raise Exception("should provide either survey_data or scenario but not both")
-        elif survey_data is not None:
-            self.populate_from_survey_data(survey_data)
-        elif scenario is not None:
-            self.scenario = scenario
-            scenario.populate_datatable(self)
-#         else:
-#             raise Exception("survey_data or a scenario must be provided")
+    def load_data_from_survey(self, survey_data,
+                              num_table = 1,
+                              subset=None, 
+                              print_missing=True):
+        self.survey_data = survey_data
+        self.populate_from_survey_data(survey_data)
+        
+
+# #             raise Exception("survey_data or a scenario must be provided")
         
     def gen_index(self, entities):
         '''
@@ -699,7 +708,9 @@ class SystemSf(DataTable):
         self._inputs = inputs
         self.index = inputs.index
         self._nrows = inputs._nrows
-
+        
+        self.survey_data = self._inputs.survey_data
+        self.test_case = self._inputs.test_case
         # initialize the pandas DataFrame to store data
         
         if self._num_table == 1:
@@ -729,8 +740,26 @@ class SystemSf(DataTable):
         if preproc_inputs is not None:
             preproc_inputs(self._inputs)
         
-
+        
     def calculate(self, varname = None):
+        print "in calculate"
+        print self.test_case
+        if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
+            self.survey_calculate(varname=varname)
+            return None
+        elif self.test_case is not None:
+            return self.test_case_calculate()
+        else:
+            raise Exception("survey_data or test_case attribute should not be None")
+    
+    def test_case_calculate(self):
+        if self.decomp_file is None:
+            raise Exception("A  decomposition xml file should be provided as attribute decomp_file")
+        from src.lib.utils import gen_output_data
+        data = gen_output_data(self, filename = self.decomp_file)
+        return data
+
+    def survey_calculate(self, varname = None):
         '''
         Solver: finds dependencies and calculate accordingly all needed variables 
         
@@ -742,11 +771,10 @@ class SystemSf(DataTable):
         
         '''
         WEIGHT = of_import(None, 'WEIGHT', self.country)
-         
         if varname is None:
             for col in self.description.columns.itervalues():
 #                try:
-                self.calculate(col.name)
+                self.survey_calculate(varname = col.name)
 #                except Exception as e:
 #                    print e
 #                    print col.name
@@ -781,7 +809,7 @@ class SystemSf(DataTable):
             parentname = var.name
             if parentname in funcArgs and parentname != WEIGHT :
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
-            self.calculate(parentname)
+            self.survey_calculate(varname = parentname)
             if parentname in col._option:
                 funcArgs[parentname] = self.get_value(parentname, entity, col._option[parentname])
             else:
@@ -807,3 +835,4 @@ class SystemSf(DataTable):
             
 
         col._isCalculated = True
+        

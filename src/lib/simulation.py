@@ -46,6 +46,8 @@ class Simulation(object):
         self.label2var = dict()
         self.var2label = dict()
         self.var2enum = dict()
+#         self.input_table #La DF qui contient les données input
+#         self.output_table #La DF qui contient les données output pour la GUI
         
         
     def _set_config(self, **kwargs):
@@ -92,11 +94,11 @@ class Simulation(object):
         # Sets required country specific classes
         if self.country is not None:
             try:
-                del self.InputTable          
+                del self.InputDescription          
             except:
                 pass
-            self.InputTable = of_import('model.data', 'InputTable', country=self.country)
-            self.ModelSF = of_import('model.model', 'ModelSF', country=self.country)        
+            self.InputDescription = of_import('model.data', 'InputDescription', country=self.country)
+            self.OutputDescription = of_import('model.model', 'OutputDescription', country=self.country)        
 
         # TODO: insert definition of fam foy , QUIMEN QUIFOY etc etc here !
 
@@ -140,12 +142,10 @@ class Simulation(object):
         """
         self.disabled_prestations = disabled_prestations
               
-    def compute(self):
-        NotImplementedError
         
-    def _preproc(self, input_table):
+    def _preproc(self):
         """
-        Prepare the output values according to the ModelSF definitions/Reform status/input_table
+        Prepare the output values according to the OutputDescription definitions/Reform status/input_table
         
         Parameters
         ----------
@@ -159,12 +159,15 @@ class Simulation(object):
                                  DataTable of the output variable of the socio-fiscal model
         """
         P_default = self.P_default     
-        P         = self.P           
-        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+        P         = self.P
+        input_table = self.input_table
+        
+        output = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+        print output
         output.set_inputs(input_table, country = self.country)
                                 
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+            output_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
             output_default.set_inputs(input_table, country = self.country)
         else:
             output_default = output
@@ -193,10 +196,60 @@ class Simulation(object):
 
     def clear(self):
         """
-        Clear the outputs table 
+        Clear the output_table 
         """
-        NotImplementedError
-  
+        self.output_table = None
+        self.output_table_default = None
+        gc.collect()
+        
+    def _initialize_input_table(self):
+        self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
+                                    country=self.country)
+
+    def _compute(self, **kwargs):
+        """
+        Computes output_data for the ScenarioSimulation
+        
+        Parameters
+        ----------
+        difference : boolean, default True
+                     When in reform mode, compute the difference between actual and default  
+        Returns
+        -------
+        data, data_default : Computed data and possibly data_default according to decomp_file
+        
+        """
+
+        # Clear outputs
+        self.clear()
+        output, output_default = self._preproc()
+        
+        for key, val in kwargs.iteritems():
+            setattr(output, key, val) 
+            setattr(output_default, key, val) 
+            
+        data = output.calculate()
+        print "_compute"
+        print data
+        if self.reforme:
+            print "enter réforme"
+            output_default.reset()
+            output_default.disable(self.disabled_prestations)
+            data_default = output_default.calculate()
+            print data_default
+        else:
+            output_default = output_default
+            data_default = data
+            
+        self.output_table, self.output_table_default = output, output_default
+        #self._build_dicts(option = 'output_only')
+        
+        self.data = data
+        self.data_default = data_default
+        return data, data_default
+        gc.collect()
+
+
 class ScenarioSimulation(Simulation):
     """
     A Simulation class tailored to deal with scenarios
@@ -249,6 +302,8 @@ class ScenarioSimulation(Simulation):
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
+        
+        self.initialize_input_table()
 
     def get_varying_revenues(self, var):
         """
@@ -305,7 +360,7 @@ class ScenarioSimulation(Simulation):
             if id_in_entity is not None:
                 alt_entity[id_in_entity][variable] = value
 
-    def compute(self, difference = True):
+    def initialize_input_table(self):
         """
         Computes output_data for the ScenarioSimulation
         
@@ -317,38 +372,57 @@ class ScenarioSimulation(Simulation):
         -------
         data, data_default : Computed data and possibly data_default according to decomp_file
         
-        """
+        """        
+        self._initialize_input_table()
         
+        
+
+
+
+    def compute(self, difference=True):
+        print "entering compute"
+        alter = (self.alternative_scenario is not None)
+        print "alter: ", alter 
+        self.input_table.load_data_from_test_case(self.scenario)
+
         alter = self.alternative_scenario is not None
         if self.reforme and alter:
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
 
-        input_table = DataTable(self.InputTable, scenario = self.scenario, datesim = self.datesim, country = self.country)
-        if not alter:
-            output, output_default = self._preproc(input_table)
-        else:
-            input_table_alter = DataTable(self.InputTable, scenario = self.alternative_scenario, datesim = self.datesim, country = self.country)
-            output, output_default = self.preproc_alter_scenario(input_table_alter, input_table)
-            
-        data = gen_output_data(output, filename = self.decomp_file)
+        if alter:
+#        TODO: clean this
+# #             input_table_alter = DataTable(self.InputDescription, scenario = self.alternative_scenario, 
+# #                                           datesim = self.datesim, country = self.country)
+# #             self.input_table_alter = input_table_alter 
+#             self.input_table_alter = self._initialize_input_table(data=self.alternative_scenario, test_case=True)
+            pass
+
+
+        if self.reforme and alter:
+            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
         
         if self.reforme or alter:
+            pass
+        if not alter:
+            print "ok"
+            data, data_default = self._compute(decomp_file=self.decomp_file)
+            print data
+            print data_default
+        else:            
+            output, output_default = self._preproc(self.input_table)
             output_default.reset()
             output_default.disable(self.disabled_prestations)
             data_default = gen_output_data(output_default, filename = self.decomp_file) # TODO: take gen_output_data out of core.utils
-            if difference:
-                data.difference(data_default)            
-        else:
-            data_default = data
-
-        self.data = data
-        self.data_default = data_default
+        
+        if difference and self.reforme:
+            data.difference(data_default)  
+        
+        self.data, self.data_default = data, data_default
         return data, data_default
-
         
     def preproc_alter_scenario(self, input_table_alter, input_table):
         """
-        Prepare the output values according to the ModelSF definitions and 
+        Prepare the output values according to the OutputDescription definitions and 
         input_table when an alternative scenario is present
         
         Parameters
@@ -360,10 +434,10 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default     
         P         = self.P  
         
-        output = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
+        output = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country)
         output.set_inputs(input_table, country = self.country)
                 
-        output_alter = SystemSf(self.ModelSF, P, P_default, datesim = P.datesim, country = self.country)
+        output_alter = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country)
         output_alter.set_inputs(input_table_alter, country = self.country)
     
         output.disable(self.disabled_prestations)
@@ -390,7 +464,10 @@ class ScenarioSimulation(Simulation):
         df : A DataFrame with computed data according to decomp_file
         """
         if self.data is None:
-            data, data_default = self.compute(difference = difference)        
+            print "coucou"
+            data, data_default = self.compute(difference) #self.compute(difference = difference)        
+            print data
+            print data_default
         else:
             data = self.data
             data_default = self.data_default
@@ -420,7 +497,7 @@ class ScenarioSimulation(Simulation):
         """
         reforme = self.reforme 
         alter = (self.alternative_scenario is not None)
-        data, data_default = self.compute()
+        data, data_default = self._compute()
         data.setLeavesVisible()
         data_default.setLeavesVisible()
         if graph_xaxis is None:
@@ -461,9 +538,13 @@ class SurveySimulation(Simulation):
         
         self.survey = None
         self.descr = None
-        self.outputs = None
-        self.outputs_default = None
-  
+        self.output_table = None
+        self.output_table_default = None
+        self._num_table = 1  
+        self._subset = None
+        self.print_missing = True
+        self.survey_filename = None
+
         self.label2var = dict()
         self.var2label = dict()
         self.var2enum  = dict() 
@@ -480,46 +561,20 @@ class SurveySimulation(Simulation):
         for key, val in specific_kwargs.iteritems():        
             if hasattr(self, key):
                 setattr(self, key, val)
-  
-    def set_survey(self, filename = None, datesim = None, country = None, num_table = 1,
-                   subset=None, print_missing=True):
-        """
-        Set survey input data
-        """
-        if self.datesim is not None:
-            datesim = self.datesim        
-        elif datesim is not None:
-            datesim = datesim 
-            
-        if self.country is not None:
-            country = self.country        
-        elif country is not None:
-            country = country
-        
+                
+                
+        if self.survey_filename is None:
+            if self.country is not None:
+                if self._num_table == 1 :
+                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey.h5')
+                else :
+                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
+                                                   
+        self.survey_filename = filename
         if self._num_table not in [1,3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.") 
-        else:
-            self._num_table = num_table  
-        
-        self._subset = subset
-            
-        if filename is None:
-            if country is not None:
-                if self._num_table == 1 :
-                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
-                else :
-                    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey3.h5')
-                               
-        self.survey = DataTable(self.InputTable, survey_data = filename, datesim = datesim,
-                                 country = country , num_table = self._num_table, 
-                                 subset=subset, print_missing=print_missing)
-
-            
-        self._build_dicts(option = 'input_only')
-        
-       
-        
+                
     def inflate_survey(self, inflators):
         """
         Inflate some variable of the survey data
@@ -539,8 +594,7 @@ class SurveySimulation(Simulation):
         if isinstance(inflators, dict):
             for varname, inflator in inflators.iteritems():
                 self.survey.inflate(varname, inflator)
-                
-                
+                               
     def check_survey(self):
         """
         Consistency check of survey input data
@@ -548,28 +602,29 @@ class SurveySimulation(Simulation):
         check_consistency = of_import('utils', 'check_consistency', self.country)
         check_consistency(self.survey)
 
-    def compute(self):
+    def initialize_input_table(self):
         """
-        Computes output_data
+        Computes output_data for surveys
         """            
-        # Clear outputs
-        self.clear()
-        gc.collect()
-                
-        input_table = self.survey
-        output, output_default = self._preproc(input_table)
-        
-        output.calculate()
-        if self.reforme:
-            output_default.reset()
-            output_default.disable(self.disabled_prestations)
-            output_default.calculate()
-        else:
-            output_default = output
-        
-        self.outputs, self.outputs_default = output, output_default
-        self._build_dicts(option = 'output_only')
+        # Clear outputs <- DO we really need this ? JS
+#         self.clear()
+#         gc.collect()
+#         self.input_table = self.survey
+#         return self.input_table
+        #Nouvelle typo
+        self._initialize_input_table()
+#        self._build_dicts(option = 'input_only')
+        return self.input_table
 
+
+    def compute(self):
+        print 'entering survey compute'
+        self.initialize_input_table()
+        self.input_table.load_data_from_survey(self.survey_filename,  
+                                               num_table = 1,
+                                               subset=None, 
+                                               print_missing=True)
+        self._compute()
 
     def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
@@ -592,16 +647,16 @@ class SurveySimulation(Simulation):
         """
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
         
-        if self.outputs is None:
-            raise Exception('self.outputs should not be None')
+        if self.output_table is None:
+            raise Exception('self.output_table should not be None')
   
         if entity is None:
             ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', self.country) # import ENTITIES_INDEX from country.__init__.py
             entity = ENTITIES_INDEX[0]
             
-        models = [self.outputs]
+        models = [self.output_table]
         if self.reforme is True:
-            models.append(self.outputs_default) 
+            models.append(self.output_table_default) 
         
         out_tables = []
         
@@ -676,8 +731,9 @@ class SurveySimulation(Simulation):
         """
         Clear the outputs table 
         """
-        self.survey_outputs = None
-        self.survey_outputs_default = None
+        self.output_table = None
+        self.output_table_default = None
+        gc.collect()
         
     @property
     def input_var_list(self):
@@ -695,7 +751,7 @@ class SurveySimulation(Simulation):
         """
         List of output survey variables
         """
-        return self.outputs.description.col_names
+        return self.output_table.description.col_names
         
     @property
     def var_list(self):
@@ -705,7 +761,7 @@ class SurveySimulation(Simulation):
         if self.survey is None:
             return
         try:
-            return list(set(self.survey.description.col_names).union(set(self.outputs.description.col_names)))
+            return list(set(self.survey.description.col_names).union(set(self.output_table.description.col_names)))
         except:
             return list(set(self.survey.description.col_names))
 
@@ -715,13 +771,13 @@ class SurveySimulation(Simulation):
         """
         try:
             if option is 'input_only':
-                descriptions = [self.survey.description]
+                descriptions = [self.input_table.description]
             elif option is 'output_only': 
-                descriptions = [self.outputs.description]
+                descriptions = [self.output_table.description]
             else:
-                descriptions = [self.survey.description, self.outputs.description] 
+                descriptions = [self.input_table.description, self.output_table.description] 
         except:
-            descriptions = [self.survey.description]
+            descriptions = [self.input_table.description]
         
         for description in descriptions:
             l2v, v2l, v2e = description.builds_dicts()
@@ -732,14 +788,14 @@ class SurveySimulation(Simulation):
 
     def get_col(self, varname):
         '''
-        Looks for a column in inputs description, then in outputs description
+        Looks for a column in inputs description, then in output_table description
         '''
         if self.survey.description.has_col(varname):
             return self.survey.description.get_col(varname)
         
-        if self.outputs is not None:
-            if self.outputs.description.has_col(varname):
-                return self.outputs.description.get_col(varname)
+        if self.output_table is not None:
+            if self.output_table.description.has_col(varname):
+                return self.output_table.description.get_col(varname)
         else:
-            print "Variable %s is absent from both inputs and outputs" % varname
+            print "Variable %s is absent from both inputs and output_table" % varname
             return None
