@@ -26,6 +26,9 @@ import numpy as np
 from pandas import DataFrame, Series, read_csv, HDFStore
 from src.lib.utils import of_import
 from src.lib.description import ModelDescription, Description
+from src.lib.utils import gen_output_data
+
+
 import pdb
 
 
@@ -46,12 +49,10 @@ class DataTable(object):
         self.col_names = []
         self._num_table = num_table
         self._subset = subset
-        if num_table == 1:
-            self.table = DataFrame()
-            self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }            
-        else: 
-            self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }
-            self.table  = DataFrame()
+
+        self.table = DataFrame()
+        self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }            
+
         self.index = {}
         self._nrows = 0
         self.print_missing=print_missing
@@ -80,7 +81,6 @@ class DataTable(object):
         
         
     def load_data_from_test_case(self, test_case):
-        print "population using scenario"
         self.test_case = test_case
         test_case.populate_datatable(self)
         
@@ -92,8 +92,6 @@ class DataTable(object):
         self.survey_data = survey_data
         self.populate_from_survey_data(survey_data)
         
-
-# #             raise Exception("survey_data or a scenario must be provided")
         
     def gen_index(self, entities):
         '''
@@ -753,7 +751,7 @@ class SystemSf(DataTable):
     def test_case_calculate(self):
         if self.decomp_file is None:
             raise Exception("A  decomposition xml file should be provided as attribute decomp_file")
-        from src.lib.utils import gen_output_data
+
         data = gen_output_data(self, filename = self.decomp_file)
         return data
 
@@ -788,8 +786,6 @@ class SystemSf(DataTable):
         
         if not col._enabled:
             return
-        
-#        idx = self.index[col._entity]
 
         entity = col._entity
         if entity is None:
