@@ -73,7 +73,7 @@ def handle_output_xml(doc, tree, model, entity = 'men'):
                 handle_output_xml(element, child, model, entity)
     else:
 
-        idx = model.index[entity]
+        idx = entity
         inputs = model._inputs
         enum = inputs.description.get_col('qui'+entity).enum
         people = [x[1] for x in enum]

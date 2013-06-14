@@ -23,17 +23,18 @@ This file is part of openFisca.
 
 from __future__ import division
 import numpy as np
-from pandas import DataFrame, read_csv, HDFStore
+from pandas import DataFrame, Series, read_csv, HDFStore
 from src.lib.utils import of_import
 from src.lib.description import ModelDescription, Description
-
+import pdb
 
 
 class DataTable(object):
     """
     Construct a SystemSf object is a set of Prestation objects
     """
-    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None, country = None):
+    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
+                  country = None, num_table = 1, subset=None, print_missing=True):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -41,9 +42,17 @@ class DataTable(object):
         self.scenario = None
         self._isPopulated = False
         self.col_names = []
-        self.table = DataFrame()
+        self._num_table = num_table
+        self._subset = subset
+        if num_table == 1:
+            self.table = DataFrame()
+            self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }            
+        else: 
+            self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }
+            self.table  = DataFrame()
         self.index = {}
         self._nrows = 0
+        self.print_missing=print_missing
         
         if datesim is None:
             raise Exception('InputTable: datesim should be provided')
@@ -55,6 +64,7 @@ class DataTable(object):
         else:
             self.country = country
                     
+        self.list_entities = ['ind']+of_import(None, 'ENTITIES_INDEX', self.country)
         self.survey_year = None
         
         # Build the description attribute        
@@ -73,31 +83,30 @@ class DataTable(object):
         elif scenario is not None:
             self.scenario = scenario
             scenario.populate_datatable(self)
+#         else:
+#             raise Exception("survey_data or a scenario must be provided")
         
     def gen_index(self, entities):
         '''
-        Genrates indexex for the relevant entities
+        Generates indexex for the relevant entities
         '''
         
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows), 
                                   'idxUnit':np.arange(self._nrows)}, # Units stand for entities
-                      'nb': self._nrows},
-                      'noi': {}}
-        dct = self.index['noi']
-        nois = self.table.noi.values
-        listnoi = np.unique(nois)
-        for noi in listnoi:
-            idxIndi = np.sort(np.squeeze((np.argwhere(nois == noi))))
-            idxUnit = np.searchsorted(listnoi, nois[idxIndi])
-            temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
-            dct.update({noi: temp}) 
+                      'nb': self._nrows}}
 
         for entity in entities:
             enum = self.description.get_col('qui'+entity).enum
             try:
-                idx = getattr(self.table, 'id'+entity).values
-                qui = getattr(self.table, 'qui'+entity).values
+                if self._num_table == 1:
+                    idx = getattr(self.table, 'id'+entity).values
+                    qui = getattr(self.table, 'qui'+entity).values
+                elif self._num_table == 3:
+                    idx = getattr(self.table3['ind'], 'id'+entity).values
+                    qui = getattr(self.table3['ind'], 'qui'+entity).values
+                    
                 enum = self.description.get_col('qui'+entity).enum
+                    
             except:
                 raise Exception('DataTable needs columns %s and %s to build index with entity %s' %
                           ('id' + entity, 'qui' + entity, entity))
@@ -105,6 +114,18 @@ class DataTable(object):
             self.index[entity] = {}
             dct = self.index[entity]
             idxlist = np.unique(idx)
+            
+            if self._num_table == 3:
+                if len(idxlist) != len(self.table3[entity]):
+                    print "Warning: list of ident is not consistent for %s" %entity
+                    print self.survey_year, len(idxlist), len(self.table3[entity])
+                    idxent = self.table3[entity]['id'+entity]
+                    diff1 = set(idxlist).symmetric_difference(idxent)
+                    print diff1
+                    pdb.set_trace()
+                # Generates index for the entity of each individual
+                self.index['ind'][entity] = np.searchsorted(idxlist, idx)
+                        
             dct['nb'] = len(idxlist)
 
             for full, person in enum:
@@ -114,27 +135,70 @@ class DataTable(object):
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
-    
-    def propagate_to_members(self, entity , col):
-        """
-        Set the variable of all entity member to the value of the (head of) entity
-        """
-        index = self.index[entity]
-        value = self.get_value(col, index)
-        try:
-            enum = self.description.get_col('qui'+entity).enum
-        except:
-            enum = self._inputs.description.get_col('qui'+entity).enum
+                
+        if self._num_table == 3:
+        # add index of men for intermediate entities     
+        #TODO: make it generel with level of entity  
+            for entity in entities: 
+                for super_entity in entities :  
+                    if super_entity != entity:
+                        head = self.index[entity][0]['idxIndi']
+                        self.index[entity][super_entity] = self.index['ind'][super_entity][head]
+                
+                
         
-        for member in enum:
-            self.set_value(col, value, index, opt = member[1])
+    def propagate_to_members(self, varname, entity):
+        """
+        if entity is 'ind': Set the variable of all individual to the value of the (head of) entity
+        else              : Set the varible of all entity to the value of the enclosing entity of varname
+        """
+        col = self.description.get_col(varname)
+        from_ent = col.entity
+        value = self.get_value(varname)
+        if self._num_table == 1:
+            try:
+                enum = self.description.get_col('qui'+from_ent).enum
+            except:
+                enum = self._inputs.description.get_col('qui'+from_ent).enum
+            head = self.index[from_ent][0]['idxIndi']
+            for member in enum:      
+                value_member = value[head] 
+                select_unit = self.index[from_ent][member[1]]['idxUnit']
+                value_member = value_member[select_unit]
+                if varname != 'wprm':
+                    self.set_value(varname, value_member, from_ent, opt = member[1])
+                                
+        elif self._num_table == 3:  
+            # Should be useless
+            return self._get_value3(varname, entity = entity, opt = range(10))
+            
+#             from_ent = col.entity
+#             idx_to = self.index[entity]
+#             if entity == 'ind':
+#                 if from_ent == 'ind':
+#                     raise Exception('Why propagate %s which is already an "ind" entity ' % (varname))
+#                 else:
+#                     idx_to = idx_to[from_ent]
+#                     return value[idx_to]
+#             else: 
+#                 if from_ent != 'men':
+#                     raise Exception('Impossible to propagate %s which is not a "men" entity to %s'
+#                     'because there is no inclusion between fam and foy' % (varname, entity))
+#                 else:
+#                     # select head of entity and look for their from_ent number
+#                     head = idx_to[0]['idxIndi']
+#                     idx_from = self.index['ind'][from_ent][head]
+#                     return value[idx_from]
+
+            
 
 
     def populate_from_survey_data(self, fname, year = None):
-        """
+        '''
         Populates a DataTable from survey data
-        """
-
+        '''
+        
+        list_entities = self.list_entities 
         if self.country is None:
             raise Exception('DataTable: country key word variable must be set') 
                
@@ -143,14 +207,23 @@ class DataTable(object):
         WEIGHT = of_import(None, 'WEIGHT', self.country)
         WEIGHT_INI = of_import(None, 'WEIGHT_INI', self.country)
         
-        
         if fname[-4:] == '.csv':
-            with open(fname) as survey_data_file:
-                self.table = read_csv(survey_data_file)
+            #TODO: implement it for _num_table==3 (or remove)
+            if self._num_table == 1 : 
+                with open(fname) as survey_data_file:
+                    self.table = read_csv(survey_data_file)
+            else : 
+                raise Exception('For now, use three csv table is not allowed'
+                                'although there is no major difficulty. Please,'
+                                'feel free to code it')    
 
         elif fname[-3:] == '.h5':
             store = HDFStore(fname)
-            available_years = sorted([int(x[-4:]) for x in  store.keys()])
+            if self._num_table == 1 : 
+                available_years = sorted([int(x[-4:]) for x in  store.keys()])
+            elif self._num_table == 3 : 
+                available_years = (sorted([int(x[-8:-4]) for x in  store.keys()]))
+            # note+ we have a repetition here in available_years but it doesn't matter
             
             if year is None:
                 if self.datesim is not None:
@@ -171,20 +244,55 @@ class DataTable(object):
 
             if yr in available_years:
                 self.survey_year = yr
-            self.table = store[str(base_name)] # only valid for frame 
+            
+            
+            idx_subset = None
+            if self._num_table == 1 : 
+                self.table = store[str(base_name)] # only valid for frame               
+                if self._subset is not None: 
+                    idx_subset = self.table['idmen'].isin(self._subset)
+                    self.table = self.table[idx_subset ] 
+                      
+            elif self._num_table == 3 : 
+                for entity in self.list_entities:
+                    self.table3[entity] = store[str(base_name)+'/'+ entity]
+                    if self._subset is not None: 
+                        idx_subset = self.table3[entity]['idmen'].isin(self._subset)
+                        self.table3[entity] = self.table3[entity][idx_subset] 
             store.close()
             
-        self._nrows = self.table.shape[0]
         missing_col = []
-        for col in self.description.columns.itervalues():
-            if not col.name in self.table:
-                missing_col.append(col.name)
-                self.table[col.name] = col._default
-            try:   
-                self.table[col.name] = self.table[col.name].astype(col._dtype)
-            except:
-                raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
+        var_entity ={}
+        if self._num_table == 1 : 
+            self._nrows = self.table.shape[0]
             
+            for col in self.description.columns.itervalues():
+                if not col.name in self.table:
+                    missing_col.append(col.name)
+                    self.table[col.name] = col._default
+                try:   
+                    self.table[col.name] = self.table[col.name].astype(col._dtype)
+                except:
+                    raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
+                        
+        elif self._num_table == 3 : 
+            self._nrows = self.table3['ind'].shape[0]            
+            for ent in list_entities:
+                var_entity[ent] = [x for x in self.description.columns.itervalues() if x.entity == ent]
+                for col in var_entity[ent]:
+                    if not col.name in self.table3[ent]:
+                        missing_col.append(col.name)
+                        self.table3[ent][col.name] = col._default
+                    try:   
+                        self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
+                    except:
+                        raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name) 
+                if ent == 'foy':
+                    self.table3[ent] = self.table3[ent].to_sparse(fill_value=0)       
+                 
+            
+
+
         if missing_col:
             message = "%i input variables missing\n" % len(missing_col)
             messagef = ""
@@ -197,8 +305,9 @@ class DataTable(object):
                     messageb += '  - '+ var +'\n'
                 else:
                     message += '  - '+ var +'\n'
-            print Warning(message + messagef + messageb)
-        
+            if self.print_missing==True:
+                print Warning(message + messagef + messageb)
+            
         for var in INDEX:
             if ('id' + var) in missing_col:
                 raise Exception('Survey data needs variable %s' % ('id' + var))
@@ -211,7 +320,7 @@ class DataTable(object):
         self._isPopulated = True
         
         # Initialize default weights
-        self.set_value(WEIGHT_INI, self.get_value(WEIGHT),self.index['ind'])
+#        self.set_value(WEIGHT_INI, self.get_value(WEIGHT), 'ind')
         
 #        # TODO: activate for debug
 #        print self.table.get_dtype_counts()
@@ -222,20 +331,25 @@ class DataTable(object):
 #                del self.table[col]
 #        
 #        print self.table.get_dtype_counts()
-
-    def get_value(self, varname, index = None, opt = None, sum_ = False):
+        
+            
+    def get_value(self, varname, entity = None, opt = None, sum_ = False):
+        if self._num_table == 1:
+            return self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
+        if self._num_table == 3:       
+            return self._get_value3(varname, entity = entity, opt = opt, sum_ = sum_)
+            
+    def _get_value1(self, varname, entity = None, opt = None, sum_ = False):
         '''
         Read the value in an array
         
         Parameters
         ----------
-        index : dict
-             dict of the coordinates of each person in the array
-            - if index is none, returns the whole column (every person)
-            - if index is not none, return an array of length len(entity)
+        entity : str, default None
+                 if "ind" or None return every individual, else return individuals belongig to the entity
         opt : dict
              dict with the id of the person for which you want the value
-            - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men')
+            - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men' in the "france" case)
             - if opt is not None, return a dict with key 'person' and values for this person
         
         Returns
@@ -246,51 +360,260 @@ class DataTable(object):
         col = self.description.get_col(varname)
         dflt = col._default
         dtyp = col._dtype
+        ent = col.entity 
         var = np.array(self.table[varname].values, dtype = col._dtype)
-        if index is None:
-            return var
-        nb = index['nb']
+        
+        if entity is None:
+            entity = "ind"
+        
+        if entity =="ind":
+            if varname != 'ppe_coef':
+            # should be : if ent == 'ind':
+                return var
+            else: 
+                print ("The %s entity variable %s, is called to set an individual variable" 
+                               % (col.entity,varname) ) 
+
+                # ce aui suit est copie sur propagate_to_members
+                value = self.get_value(varname, ent)
+                try:
+                    enum = self.description.get_col('qui'+ent).enum
+                except:
+                    enum = self._inputs.description.get_col('qui'+ent).enum        
+                for member in enum:
+                    qui = member[1]
+                    idx = self.index[ent][qui]
+                    var[idx['idxIndi']] = value[idx['idxUnit']]
+                return var
+                
+        nb = self.index[entity]['nb']
         if opt is None:
             temp = np.ones(nb, dtype = dtyp)*dflt
-            idx = index[0]
+            idx = self.index[entity][0]
             temp[idx['idxUnit']] = var[idx['idxIndi']]
             return temp
         else:
             out = {}
             for person in opt:
                 temp = np.ones(nb, dtype = dtyp)*dflt
-                idx = index[person]
+                idx = self.index[entity][person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
             if sum_ is False:
-                return out
+                if len(opt) == 1:
+                    return out[opt[0]]
+                else:
+                    return out
             else:
                 sumout = 0
                 for val in out.itervalues():
                     sumout += val
                 return sumout
+                        
+    def _get_value3(self, varname, entity=None, opt = None, sum_ = False):
+        '''
+        Read the value in an array and return it in an appropriate format
+        
+        There is thre different case. 
+            1 - you just want to read the variable and use it at the same entity level
+            2 - you want to propagate a variable of a big entity to one ore many members
+            3 - you want to read variable for a small entity in a bigger one. In that case you may want: 
+                a) select data of particular individual (VOUS and CONJ for example)
+                    in that case a dictonnary is return iff more than one person is given
+                b) sum values of given individuals 
+        Note: an entity is said bigger than an other one every unit contains people of the same unit of the smaller one
+                   
+        Parameters
+        ----------
+        entity : str, default None
+                format of the output. The returned array size is always the entity size.  
+                - if None, output entity is the input one : entity of varname
+#                 - if "ind" or None return every individual, else return individuals belonging to the entity
+#                 - if entity not the natural value for varname, sum over all members of entity who are 
+#                  qui+'col.entity'==0
+                 
+        opt : dict
+             dict with the id of the person for which you want the value in entity
+               - In case 2, it allows to propagate value from the big entity to only selected 
+                 individual (in general). Works only if entity='ind'
+                  - if None, go to head of entity, even if am not happy with that, #
+                    according to me, it should be more explicit
+               - In case 3,   
+                    - if opt is None, returns the value for the person 0 (i.e. 'vous' for 'foy', 'chef' for 'fam', 'pref' for 'men' in the "france" case)
+                    - if length opt is one, returns the value for that person
+                    - if opt is not None and its length is more than one, return a dict with key 'person' and values for this person in each entity
+        
+        sum_ : bool
+            Works only in case 3, but is the only case you may need it
+               - If True, then default opt is all.
+               - sum over people in opt
+        
+        Returns
+        -------
+        sumout: array
+        
+        '''
+        # caracteristics of varname
+        col = self.description.get_col(varname)
+        dflt = col._default
+        dtyp = col._dtype
+        dent = col.entity
+        var = np.array(self.table3[dent][varname].values, dtype = col._dtype)
+        
+        case = 0
+        #TODO: Have a level of entites in the model description
+        # for example, in France case, ind = 0, fam and foy =1 and men = 2, ind< fam,foy<men
+        # you can check than if entity is fam or foy and dent the other one then case still zero.
+        if entity is None or entity == dent:
+            case = 1
+        elif entity=='ind' or dent=='men': # level entity < level dent
+            case = 2
+        elif entity=='men' or dent=='ind': # level entity > level dent
+            case = 3 
+        if case == 0 and opt is None:
+            try:
+                #TODO, suppress the try when opt is set everywhere in the model
+                raise Exception("As fam and foy are not one in the other all the time "
+                "you can't use %s at a %s level. Select a person to look at." %(varname,entity))
+            except:
+                case = 2
+        if opt is not None and case==1: 
+            if varname[:2] != 'id':
+                print varname, dent, entity
+                raise Exception("opt doesn't mean anything here %s" % varname) 
+            else: 
+                opt = None  
+        if opt is not None and case==2 and entity is not 'ind':
+            raise Exception("opt doesn't mean anything here : % s. there is no person in %s "
+            "so opt is inconsistant " % (varname, entity))                
+        if sum_ == True and case != 3:
+            #TDOD: look why sometime it's sum_ is True here 
+            #raise Exception("Impossible to sum here %s over entity %s" % (varname, entity))   
+            sum_ = False                      
+        if case == 3 and dent !='ind' and opt is None :
+            sum_ = True
+        if case == 3 and opt is None: 
+            opt = [0]
+        if varname == 'wprm' and entity == 'ind':
+            opt = range(0,10)     
+                
+        if case == 1 : 
+            idx = self.index[dent][0]['idxUnit'] # here dent = entity
+            return var[idx]
+        
+        elif case == 2 :  
+            nb = self.index[entity]['nb'] 
+            temp = np.ones(nb, dtype = dtyp)*dflt    
+            # we have a direct index from ind to entity
+            if opt is None :
+                if entity != 'ind': 
+                    idx = self.index[dent][entity]
+                    temp[idx] = var
+                    #TODO: add a paramater to propagate to member or make it the default option ond put opt = 0 otherwise
+                    if varname in ['so','zone_apl','loyer','wprm']:
+                        idx_from = self.index[entity][dent]
+                        temp = var[idx_from]                    
+                    return temp
+                #TODO: add opt everywhere and remove that if else
+                else:
+                    head = self.index[dent][0]
+                    temp[head['idxIndi']] =  var
+                    return temp                         
+            else: 
+                #here if opt is not None, we know we are dealing with entity = 'ind'
+                for person in opt: 
+                    idx_person = self.index[dent][person]
+                    temp[idx_person['idxIndi']] = var[idx_person['idxUnit']]
+                return temp 
+            
+        elif case == 3 :   
+            # Note: Here opt should not be None
+            # Note: Here, entity = men or 
+            out = {}
+            nb = self.index[entity]['nb'] 
+            if dent == 'ind':               
+                for person in opt:
+                    if sum_ is False:
+                        temp = np.ones(nb, dtype = dtyp)*dflt
+                    else : 
+                        temp = np.zeros(nb, dtype = dtyp)
+                    idx = self.index[entity][person]                      
+                    temp[idx['idxUnit']] = var[idx['idxIndi']]
+                    out[person] = temp  
 
-    def set_value(self, varname, value, index, opt = None):
+                if sum_ is False:
+                    if len(opt) == 1:
+                        return out[opt[0]]
+                    else:
+                        return out
+                else:
+                    sumout = 0
+                    for val in out.itervalues():
+                        sumout += val
+                    return sumout    
+                
+            else:
+                # from foy or fam to men
+                # Here we assume that sum_ is True
+                if sum_ is False:
+                    print varname
+                    pdb.set_trace()
+                    raise Exception("Cannot do anything but a sum from intermediate entity to the biggest one")
+                temp = np.ones(nb, dtype = dtyp)*dflt
+                idx_to = self.index[dent][entity]              
+                tab = self.table3[dent][varname] # same as var but in pandas
+                if isinstance(tab[0],bool):
+                    print "Warning: try to sum the boolean %s. How ugly is that? " %varname
+                    #Note that we have isol = True (isol) iff there is at least one isol
+                    tab = tab.astype('int')
+                by_idx =  tab.groupby(idx_to)  
+                idx_to_unique = np.unique(idx_to)
+                try:
+                    temp[idx_to_unique] = by_idx.aggregate(np.sum)
+                except:
+                    #TODO: always do the convertion but bette to be explicit
+                    values = by_idx.aggregate(np.sum).astype('bool')
+                    temp[idx_to_unique] = values
+                return temp
+
+            
+    def set_value(self, varname, value, entity = None, opt = None):
         '''
         Sets the value of varname using index and opt
-        '''
-        if opt is None:
-            idx = index[0]
-        else:
-            idx = index[opt]
-
-        # this command should work on later pandas version...
-        # self.table.ix[idx['idxIndi'], [varname]] = value
-
-        # for now, we're doing it manually
-        col = self.description.get_col(varname)
-        values = self.table[varname].values
         
+        Parameters
+        ----------
+        varname: string,
+                  variable to set
+        value: TODO: fill 
+                  value assigned to varname
+        entity: string, default None and if None entity is set to "ind"
+                the specified entity 
+        opt: int
+             position in the netity
+        '''
+        if entity is None:
+            entity = "ind"
+
+        if opt is None:
+            idx = self.index[entity][0]
+        else:
+            idx = self.index[entity][opt]
+        col = self.description.get_col(varname)
         dtyp = col._dtype
-        temp = np.array(value, dtype = dtyp)
-        var = np.array(values, dtype = dtyp)
-        var[idx['idxIndi']] =  temp[idx['idxUnit']]
-        self.table[varname] = var
+        if self._num_table == 1:
+            values = Series(value[idx['idxUnit']], dtype = dtyp)
+            self.table[varname][idx['idxIndi'].tolist()] = values #tolist because sometime len(idx['idxIndi']) == 1
+        if self._num_table == 3:          
+            if entity=='ind' : 
+                self.table3[entity].ix[idx['idxIndi'], [varname]] = value
+            else:
+                self.table3[entity].ix[idx['idxUnit'], [varname]] = value     
+    
+
+    # TODO: 
+    def to_pytables(self, fname): 
+        NotImplementedError   
 
     def to_csv(self, fname):
         self.table.to_csv(fname)
@@ -303,8 +626,8 @@ class DataTable(object):
 
 
 class SystemSf(DataTable):
-    def __init__(self, model_description, param, defaultParam = None, datesim = None, country = None):
-        DataTable.__init__(self, model_description, datesim = datesim, country = country)
+    def __init__(self, model_description, param, defaultParam = None, datesim = None, country = None, num_table = 1):
+        DataTable.__init__(self, model_description, datesim = datesim, country = country, num_table = num_table)
         self._primitives = set()
         self._param = param
         self._default_param = defaultParam
@@ -355,7 +678,16 @@ class SystemSf(DataTable):
                     self._primitives.add(input_varname)
         
     def set_inputs(self, inputs, country = None):
-        ''' sets the input DataTable '''
+        """ 
+        Set the input DataTable
+        
+        Parameters
+        ----------
+        inputs : DataTable, required
+                 The input variable datatable
+        country: str, default None
+                 The country of the simulation. this information is used to preprocess the inputs                
+        """
         if not isinstance(inputs, DataTable):
             raise TypeError('inputs must be a DataTable')
         # check if all primitives are provided by the inputs
@@ -369,13 +701,26 @@ class SystemSf(DataTable):
         self._nrows = inputs._nrows
 
         # initialize the pandas DataFrame to store data
-        dct = {}
-        for col in self.description.columns.itervalues():
-            dflt = col._default
-            dtyp = col._dtype
-            dct[col.name] = np.ones(self._nrows, dtyp)*dflt
         
-        self.table = DataFrame(dct)
+        if self._num_table == 1:
+            dct = {}
+            for col in self.description.columns.itervalues():
+                dflt = col._default
+                dtyp = col._dtype
+                dct[col.name] = np.ones(self._nrows, dtyp)*dflt
+            self.table = DataFrame(dct)
+            
+        if self._num_table == 3: 
+            self.table3 = {}      
+            temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {} } 
+            for col in self.description.columns.itervalues():
+                dflt = col._default
+                dtyp = col._dtype
+                size = self.index[col.entity]['nb']
+                temp_dct[col.entity][col.name] = np.ones(size, dtyp)*dflt
+            for entity in self.list_entities:
+                self.table3[entity] = DataFrame(temp_dct[entity])                  
+        
         
         # Preprocess the input data according to country specification
         if country is None:
@@ -386,7 +731,7 @@ class SystemSf(DataTable):
         
 
     def calculate(self, varname = None):
-        """
+        '''
         Solver: finds dependencies and calculate accordingly all needed variables 
         
         Parameters
@@ -395,14 +740,16 @@ class SystemSf(DataTable):
         varname : string, default None
                   By default calculate all otherwise, calculate only one variable
         
-        """
+        '''
+        WEIGHT = of_import(None, 'WEIGHT', self.country)
+         
         if varname is None:
             for col in self.description.columns.itervalues():
-                try:
-                    self.calculate(col.name)
-                except Exception as e:
-                    print e
-                    print col.name
+#                try:
+                self.calculate(col.name)
+#                except Exception as e:
+#                    print e
+#                    print col.name
             return # Will calculate all and exit
 
         col = self.description.get_col(varname)
@@ -416,27 +763,30 @@ class SystemSf(DataTable):
         if not col._enabled:
             return
         
-        idx = self.index[col._entity]
+#        idx = self.index[col._entity]
 
+        entity = col._entity
+        if entity is None:
+            entity = "ind"
         required = set(col.inputs)
         funcArgs = {}
         for var in required:
             if var in self._inputs.col_names:
                 if var in col._option: 
-                    funcArgs[var] = self._inputs.get_value(var, idx, col._option[var])
+                    funcArgs[var] = self._inputs.get_value(var, entity, col._option[var])
                 else:
-                    funcArgs[var] = self._inputs.get_value(var, idx)
+                    funcArgs[var] = self._inputs.get_value(var, entity)
         
         for var in col._parents:
             parentname = var.name
-            if parentname in funcArgs:
+            if parentname in funcArgs and parentname != WEIGHT :
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.calculate(parentname)
             if parentname in col._option:
-                funcArgs[parentname] = self.get_value(parentname, idx, col._option[parentname])
+                funcArgs[parentname] = self.get_value(parentname, entity, col._option[parentname])
             else:
-                funcArgs[parentname] = self.get_value(parentname, idx)
-        
+                funcArgs[parentname] = self.get_value(parentname, entity)
+
         if col._needParam:
             funcArgs['_P'] = self._param
             required.add('_P')
@@ -448,9 +798,12 @@ class SystemSf(DataTable):
         provided = set(funcArgs.keys())        
         if provided != required:
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
-        try:
-            self.set_value(varname, col._func(**funcArgs), idx)
-        except:
+              
+        try: 
+            self.set_value(varname, col._func(**funcArgs), entity)
+        except: 
             print varname
-            self.set_value(varname, col._func(**funcArgs), idx)
+            self.set_value(varname, col._func(**funcArgs), entity)
+            
+
         col._isCalculated = True
