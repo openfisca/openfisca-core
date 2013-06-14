@@ -742,8 +742,6 @@ class SystemSf(DataTable):
         
         
     def calculate(self, varname = None):
-        print "in calculate"
-        print self.test_case
         if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
             self.survey_calculate(varname=varname)
             return None

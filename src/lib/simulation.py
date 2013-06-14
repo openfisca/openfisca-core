@@ -38,7 +38,6 @@ class Simulation(object):
         self.datesim = None
         self.P = None
         self.P_default = None
-        self.decomp_file = None
         self.param_file = None
         self.disabled_prestations = None
         self._num_table = 1
@@ -82,15 +81,7 @@ class Simulation(object):
         if self.param_file is None:
             if self.country is not None:
                 self.param_file = os.path.join(SRC_PATH, 'countries', self.country, 'param', 'param.xml')
-  
-        if self.country is not None:              
-            if self.decomp_file is None:
-                default_decomp_file = of_import("decompositions", "DEFAULT_DECOMP_FILE", self.country)
-                self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', default_decomp_file)
-            else:
-                if not os.path.exists(self.decomp_file):
-                    self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', self.decomp_file)
-                
+                  
         # Sets required country specific classes
         if self.country is not None:
             try:
@@ -163,7 +154,6 @@ class Simulation(object):
         input_table = self.input_table
         
         output = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
-        print output
         output.set_inputs(input_table, country = self.country)
                                 
         if self.reforme:
@@ -229,14 +219,10 @@ class Simulation(object):
             setattr(output_default, key, val) 
             
         data = output.calculate()
-        print "_compute"
-        print data
         if self.reforme:
-            print "enter réforme"
             output_default.reset()
             output_default.disable(self.disabled_prestations)
             data_default = output_default.calculate()
-            print data_default
         else:
             output_default = output_default
             data_default = data
@@ -246,8 +232,9 @@ class Simulation(object):
         
         self.data = data
         self.data_default = data_default
-        return data, data_default
         gc.collect()
+        return data, data_default
+
 
 
 class ScenarioSimulation(Simulation):
@@ -260,6 +247,8 @@ class ScenarioSimulation(Simulation):
         self.Scenario = None
         self.scenario = None
         self.alternative_scenario = None
+        self.decomp_file = None
+        
         self.nmen = None
         self.xaxis = None
         self.maxrev = None
@@ -302,6 +291,14 @@ class ScenarioSimulation(Simulation):
         self.scenario.maxrev = self.maxrev
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
+        
+        if self.country is not None:              
+            if self.decomp_file is None:
+                default_decomp_file = of_import("decompositions", "DEFAULT_DECOMP_FILE", self.country)
+                self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', default_decomp_file)
+            else:
+                if not os.path.exists(self.decomp_file):
+                    self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', self.decomp_file)
         
         self.initialize_input_table()
 
@@ -362,27 +359,12 @@ class ScenarioSimulation(Simulation):
 
     def initialize_input_table(self):
         """
-        Computes output_data for the ScenarioSimulation
-        
-        Parameters
-        ----------
-        difference : boolean, default True
-                     When in reform mode, compute the difference between actual and default  
-        Returns
-        -------
-        data, data_default : Computed data and possibly data_default according to decomp_file
-        
+        Initializee the input table of the ScenarioSimulation
         """        
         self._initialize_input_table()
-        
-        
-
-
 
     def compute(self, difference=True):
-        print "entering compute"
         alter = (self.alternative_scenario is not None)
-        print "alter: ", alter 
         self.input_table.load_data_from_test_case(self.scenario)
 
         alter = self.alternative_scenario is not None
@@ -404,10 +386,7 @@ class ScenarioSimulation(Simulation):
         if self.reforme or alter:
             pass
         if not alter:
-            print "ok"
             data, data_default = self._compute(decomp_file=self.decomp_file)
-            print data
-            print data_default
         else:            
             output, output_default = self._preproc(self.input_table)
             output_default.reset()
@@ -464,10 +443,7 @@ class ScenarioSimulation(Simulation):
         df : A DataFrame with computed data according to decomp_file
         """
         if self.data is None:
-            print "coucou"
             data, data_default = self.compute(difference) #self.compute(difference = difference)        
-            print data
-            print data_default
         else:
             data = self.data
             data_default = self.data_default
@@ -536,7 +512,7 @@ class SurveySimulation(Simulation):
     def __init__(self):
         super(SurveySimulation, self).__init__()
         
-        self.survey = None
+        self.input_table = None
         self.descr = None
         self.output_table = None
         self.output_table_default = None
@@ -554,6 +530,11 @@ class SurveySimulation(Simulation):
         """
         Configures the SurveySimulation
         
+        Parameters
+        ----------
+        TODO:
+        survey_filename
+        _num_table
         """
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
@@ -570,7 +551,8 @@ class SurveySimulation(Simulation):
                 else :
                     filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
                                                    
-        self.survey_filename = filename
+            self.survey_filename = filename
+        
         if self._num_table not in [1,3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.") 
@@ -590,10 +572,10 @@ class SurveySimulation(Simulation):
             for varname in inflators['variable']:
                 inflators.set_index('variable')
                 inflator = inflators.get_value(varname, 'value')
-                self.survey.inflate(varname, inflator)
+                self.input_table.inflate(varname, inflator)
         if isinstance(inflators, dict):
             for varname, inflator in inflators.iteritems():
-                self.survey.inflate(varname, inflator)
+                self.input_table.inflate(varname, inflator)
                                
     def check_survey(self):
         """
@@ -618,7 +600,7 @@ class SurveySimulation(Simulation):
 
 
     def compute(self):
-        print 'entering survey compute'
+
         self.initialize_input_table()
         self.input_table.load_data_from_survey(self.survey_filename,  
                                                num_table = 1,
@@ -758,12 +740,12 @@ class SurveySimulation(Simulation):
         """
         List the variables present in survey and output
         """
-        if self.survey is None:
+        if self.input_table is None:
             return
         try:
-            return list(set(self.survey.description.col_names).union(set(self.output_table.description.col_names)))
+            return list(set(self.input_table.description.col_names).union(set(self.output_table.description.col_names)))
         except:
-            return list(set(self.survey.description.col_names))
+            return list(set(self.input_table.description.col_names))
 
     def _build_dicts(self, option = None):
         """
@@ -790,8 +772,8 @@ class SurveySimulation(Simulation):
         '''
         Looks for a column in inputs description, then in output_table description
         '''
-        if self.survey.description.has_col(varname):
-            return self.survey.description.get_col(varname)
+        if self.input_table.description.has_col(varname):
+            return self.input_table.description.get_col(varname)
         
         if self.output_table is not None:
             if self.output_table.description.has_col(varname):
