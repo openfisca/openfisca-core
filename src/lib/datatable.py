@@ -278,6 +278,8 @@ class DataTable(object):
                     missing_col.append(col.name)
                     self.table[col.name] = col._default
                 try:   
+                    if self.table[col.name].isnull().any():
+                        self.table[col.name].fillna(col._default, inplace=True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
                 except:
                     raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
