@@ -168,12 +168,12 @@ class Simulation(object):
         output_table.disable(self.disabled_prestations)
         output_table_default.disable(self.disabled_prestations)
         self._build_dicts()
-        return output_table, output_table_default
+        self.output_table, self.output_table_default = output_table, output_table_default
         
 
     def _compute(self, **kwargs):
         """
-        Computes output_data for the ScenarioSimulation
+        Computes output_data for the Simulation
         
         Parameters
         ----------
@@ -185,29 +185,30 @@ class Simulation(object):
         
         """
         # Clear outputs
-        self.clear()
-        output, output_table_default = self._preproc()
+        #self.clear()
+        print "entering _compute"
+        self._preproc()
+        output_table, output_table_default = self.output_table, self.output_table_default
         
         for key, val in kwargs.iteritems():
-            setattr(output, key, val) 
+            print key
+            print val
+            setattr(output_table, key, val) 
             setattr(output_table_default, key, val) 
             
-        data = output.calculate()
+        data = output_table.calculate()
         if self.reforme:
             output_table_default.reset()
             output_table_default.disable(self.disabled_prestations)
             data_default = output_table_default.calculate()
         else:
-            output_table_default = output
+            output_table_default = output_table
             data_default = data
-            
-        self.output_table, self.output_table_default = output, output_table_default
-                
-        self.data = data
-        self.data_default = data_default
+        
+
+        self.data, self.data_default = data, data_default
         self._build_dicts(option = 'output_only')
         gc.collect()
-        return data, data_default
 
 
     def clear(self):
@@ -414,10 +415,12 @@ class ScenarioSimulation(Simulation):
         """        
         self._initialize_input_table()
 
-    def compute(self, difference=True):
+    def compute(self, difference=False):
         """
         """
         self.input_table.load_data_from_test_case(self.scenario)
+        self._preproc()
+        
         alter = self.alternative_scenario is not None
         if self.reforme and alter:
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'") 
@@ -429,20 +432,19 @@ class ScenarioSimulation(Simulation):
         if self.reforme and alter:
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
         
-        data, data_default = self._compute(decomp_file=self.decomp_file)
+        self._compute(decomp_file=self.decomp_file)
         if alter:
             output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim, country = self.country, num_table = self._num_table)
             output_table.set_inputs(input_table_alter, country = self.country)
             output_table.decomp_file = self.decomp_file
             output_table.disable(self.disabled_prestations)
-            data = output_table.calculate()
+            self.data = output_table.calculate()
+            self.output_table = output_table
             
-        if difference:
-            data.difference(data_default)  
+        if difference or self.reforme:
+            self.data.difference(self.data_default)  
         
-        self.output_table = output_table
-        self.data, self.data_default = data, data_default
-        return data, data_default
+        return self.data, self.data_default
         
     def preproc_alter_scenario(self, input_table_alter):
         """
@@ -469,7 +471,7 @@ class ScenarioSimulation(Simulation):
     
         return output_alter, self.output_table
 
-    def get_results_dataframe(self, default = False, difference = True, index_by_code = False, ):
+    def get_results_dataframe(self, default = False, difference = False, index_by_code = False, ):
         """
         Formats data into a dataframe
         
@@ -478,7 +480,7 @@ class ScenarioSimulation(Simulation):
         default : boolean, default False
                   If True compute the default results
         difference :  boolean, default True
-                  If True compute the default results
+                      If True compute the difference between actual and default results
         index_by_code : boolean, default False
                   Index the row by the code instead of name of the different element
                   of decomp_file  
@@ -488,10 +490,10 @@ class ScenarioSimulation(Simulation):
         df : A DataFrame with computed data according to decomp_file
         """
         if self.data is None:
-            data, data_default = self.compute(difference = difference)        
-        else:
-            data = self.data
-            data_default = self.data_default
+            self.compute(difference = difference)        
+        
+        data = self.data
+        data_default = self.data_default
             
         data_dict = dict()
         index = []
@@ -537,7 +539,9 @@ class ScenarioSimulation(Simulation):
         Draws a bareme on matplotlib.axes.Axes object ax
         """
         reforme = self.reforme or (self.alternative_scenario is not None)
-        data, data_default = self.compute()
+        self.compute()
+        data, data_default = self.data, self.data_default
+        
         data.setLeavesVisible()
         data_default.setLeavesVisible()
         if graph_xaxis is None:
@@ -597,7 +601,7 @@ class SurveySimulation(Simulation):
             if self.country is not None:
                 if self._num_table == 1 :
                     filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey.h5')
-                else :
+                else:
                     filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
                                                    
             self.survey_filename = filename
