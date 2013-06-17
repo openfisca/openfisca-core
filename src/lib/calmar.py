@@ -10,7 +10,10 @@ from __future__ import division
 
 
 from numpy import exp, ones, zeros, unique, array, dot, float64
-from scipy.optimize import fsolve
+try:
+    from scipy.optimize import fsolve
+except:
+    pass
 
 def linear(u):
     return 1+u
