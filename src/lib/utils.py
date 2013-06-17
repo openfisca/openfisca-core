@@ -78,7 +78,7 @@ def handle_output_xml(doc, tree, model, entity = 'men'):
         enum = inputs.description.get_col('qui'+entity).enum
         people = [x[1] for x in enum]
         if tree.code in model.col_names:
-            model.calculate(tree.code)
+            model.calculate(varname=tree.code)
             val = model.get_value(tree.code, idx, opt = people, sum_ = True)
         elif tree.code in inputs.col_names:
             val = inputs.get_value(tree.code, idx, opt = people, sum_ = True)
