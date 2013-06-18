@@ -264,7 +264,11 @@ class Simulation(object):
         -------
         survey.description.col_names : List of input survey variables 
         """
-        return self.input_table.description.col_names
+        try:
+            return self.input_table.description.col_names
+        except:
+            self._initialize_input_table()
+            return self.input_table.description.col_names
         
     @property
     def output_var_list(self):
