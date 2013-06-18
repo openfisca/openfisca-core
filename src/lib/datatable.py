@@ -31,6 +31,15 @@ from src.lib.utils import gen_output_data
 
 import pdb
 
+def _survey_subset(table, subset):
+    '''
+    Select a subset for the given table, selection only on idmen so far
+    '''       
+    if subset is not None: 
+        idx_subset = table['idmen'].isin(subset)
+        return table[idx_subset ] 
+    else:
+        return table
 
 class DataTable(object):
     """
@@ -196,8 +205,7 @@ class DataTable(object):
 #                     head = idx_to[0]['idxIndi']
 #                     idx_from = self.index['ind'][from_ent][head]
 #                     return value[idx_from]
-
-            
+         
 
 
     def populate_from_survey_data(self, fname, year = None):
@@ -214,60 +222,69 @@ class DataTable(object):
         WEIGHT = of_import(None, 'WEIGHT', self.country)
         WEIGHT_INI = of_import(None, 'WEIGHT_INI', self.country)
         
-        if fname[-4:] == '.csv':
-            #TODO: implement it for _num_table==3 (or remove)
-            if self.num_table == 1 : 
-                with open(fname) as survey_data_file:
-                    self.table = read_csv(survey_data_file)
-            else : 
-                raise Exception('For now, use three csv table is not allowed'
-                                'although there is no major difficulty. Please,'
-                                'feel free to code it')    
-
-        elif fname[-3:] == '.h5':
-            store = HDFStore(fname)
-            if self.num_table == 1 : 
-                available_years = sorted([int(x[-4:]) for x in  store.keys()])
-            elif self.num_table == 3 : 
-                available_years = (sorted([int(x[-8:-4]) for x in  store.keys()]))
-            # note+ we have a repetition here in available_years but it doesn't matter
-            
-            if year is None:
-                if self.datesim is not None:
-                    year_ds  = self.datesim.year
+        if isinstance(fname,str):
+            if fname[-4:] == '.csv':
+                #TODO: implement it for _num_table==3 (or remove)
+                if self.num_table == 1 : 
+                    with open(fname) as survey_data_file:
+                        self.table = read_csv(survey_data_file)
+                else : 
+                    raise Exception('For now, use three csv table is not allowed'
+                                    'although there is no major difficulty. Please,'
+                                    'feel free to code it')    
+    
+            elif fname[-3:] == '.h5':
+                store = HDFStore(fname)
+                if self.num_table == 1 : 
+                    available_years = sorted([int(x[-4:]) for x in  store.keys()])
+                elif self.num_table == 3 : 
+                    available_years = (sorted([int(x[-8:-4]) for x in  store.keys()]))
+                # note+ we have a repetition here in available_years but it doesn't matter
+                
+                if year is None:
+                    if self.datesim is not None:
+                        year_ds  = self.datesim.year
+                    else:
+                        raise Exception('self.datesim or year should be defined') 
                 else:
-                    raise Exception('self.datesim or year should be defined') 
-            else:
-                year_ds = year
-           
-            yr = year_ds+0 # to avoid pointers problem
-            while yr not in available_years and yr > available_years[0]:
-                yr = yr - 1
-            base_name = 'survey_'+ str(yr)
-            if year_ds != yr:
-                print 'Survey data for year %s not found. Using year %s' %(str(year_ds), str(yr))
-            else:
-                print 'Survey data for year %s found' %str(year_ds)
+                    year_ds = year
+               
+                yr = year_ds+0 # to avoid pointers problem
+                while yr not in available_years and yr > available_years[0]:
+                    yr = yr - 1
+                base_name = 'survey_'+ str(yr)
+                if year_ds != yr:
+                    print 'Survey data for year %s not found. Using year %s' %(str(year_ds), str(yr))
+                else:
+                    print 'Survey data for year %s found' %str(year_ds)
+    
+                if yr in available_years:
+                    self.survey_year = yr
+                
+                
+                if self.num_table == 1 : 
+                    self.table = _survey_subset(store[str(base_name)], self.subset)  
+                          
+                elif self.num_table == 3 : 
+                    for entity in self.list_entities:
+                        self.table3[entity] = _survey_subset(store[str(base_name)+'/'+ entity], self.subset) 
+                store.close()
+            
+        else:
+            if self.num_table == 1: 
+                if not isinstance(fname,DataFrame):
+                    raise Exception("When num_table=1, the object given as survey data must be a pandas DataFrame")
+                else: 
+                    self.table = _survey_subset(fname,self.subset)
+            elif self.num_table == 3:
+                try:
+                    for entity in list_entities:
+                        assert isinstance(fname[entity],DataFrame)
+                        self.table3[entity] = _survey_subset(fname[entity], self.subset)
+                except: 
+                    raise Exception("When num_table=3, the object given as survey data"
+                                    " must be a dictionary of pandas DataFrame with each entity in keys")
 
-            if yr in available_years:
-                self.survey_year = yr
-            
-            
-            idx_subset = None
-            if self.num_table == 1 : 
-                self.table = store[str(base_name)] # only valid for frame               
-                if self.subset is not None: 
-                    idx_subset = self.table['idmen'].isin(self.subset)
-                    self.table = self.table[idx_subset ] 
-                      
-            elif self.num_table == 3 : 
-                for entity in self.list_entities:
-                    self.table3[entity] = store[str(base_name)+'/'+ entity]
-                    if self.subset is not None: 
-                        idx_subset = self.table3[entity]['idmen'].isin(self.subset)
-                        self.table3[entity] = self.table3[entity][idx_subset] 
-            store.close()
-            
         missing_col = []
         var_entity ={}
         if self.num_table == 1 : 
