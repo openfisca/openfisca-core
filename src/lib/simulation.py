@@ -41,7 +41,7 @@ class Simulation(object):
         self.P, self.P_default = None, None
         self.param_file = None
         self.disabled_prestations = None
-        self._num_table = 1
+        self.num_table = 1
         
         self.label2var = dict()
         self.var2label = dict()
@@ -123,7 +123,8 @@ class Simulation(object):
     
     def _initialize_input_table(self):
         self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
-                                    country=self.country)
+                                    country=self.country, num_table = self.num_table, 
+                                    subset=self.subset, print_missing=self.print_missing)
 
 
     def disable_prestations(self, disabled_prestations = None):
@@ -156,11 +157,11 @@ class Simulation(object):
         P, P_default = self.P, self.P_default
         input_table = self.input_table
         
-        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self.num_table)
         output_table.set_inputs(input_table, country = self.country)
                                 
         if self.reforme:
-            output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self._num_table)
+            output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self.num_table)
             output_table_default.set_inputs(input_table, country = self.country)
         else:
             output_table_default = output_table
@@ -438,7 +439,7 @@ class ScenarioSimulation(Simulation):
         
         self._compute(decomp_file=self.decomp_file)
         if alter:
-            output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim, country = self.country, num_table = self._num_table)
+            output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim, country = self.country, num_table = self.num_table)
             output_table.set_inputs(input_table_alter, country = self.country)
             output_table.decomp_file = self.decomp_file
             output_table.disable(self.disabled_prestations)
@@ -573,8 +574,8 @@ class SurveySimulation(Simulation):
         self.descr = None
         self.output_table = None
         self.output_table_default = None
-        self._num_table = 1  
-        self._subset = None
+        self.num_table = 1  
+        self.subset = None
         self.print_missing = True
         self.survey_filename = None
 
@@ -591,7 +592,7 @@ class SurveySimulation(Simulation):
         ----------
         TODO:
         survey_filename
-        _num_table
+        num_table
         """
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
@@ -599,18 +600,17 @@ class SurveySimulation(Simulation):
         for key, val in specific_kwargs.iteritems():        
             if hasattr(self, key):
                 setattr(self, key, val)
-                
-                
+     
         if self.survey_filename is None:
             if self.country is not None:
-                if self._num_table == 1 :
+                if self.num_table == 1 :
                     filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey.h5')
                 else:
                     filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
                                                    
             self.survey_filename = filename
         
-        if self._num_table not in [1,3] :
+        if self.num_table not in [1,3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.") 
                 
@@ -657,9 +657,9 @@ class SurveySimulation(Simulation):
         self.initialize_input_table()
         if len(self.input_table.table)==0:
             self.input_table.load_data_from_survey(self.survey_filename,  
-                                               num_table = 1,
-                                               subset=None, 
-                                               print_missing=True)
+                                               num_table = self.num_table,
+                                               subset=self.subset, 
+                                               print_missing=self.print_missing)
         self._compute()
 
     def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
@@ -702,7 +702,7 @@ class SurveySimulation(Simulation):
 #           WAS idx = model.index[entity] 
             idx = entity
             people = None
-            if self._num_table == 1:
+            if self.num_table == 1:
                 try:
                     enum = inputs.description.get_col('qui'+entity).enum
                     people = [x[1] for x in enum]         

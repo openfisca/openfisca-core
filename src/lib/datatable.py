@@ -47,8 +47,8 @@ class DataTable(object):
         self.survey_data = survey_data
         self._isPopulated = False
         self.col_names = []
-        self._num_table = num_table
-        self._subset = subset
+        self.num_table = num_table
+        self.subset = subset
 
         self.table = DataFrame()
         self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }            
@@ -105,10 +105,10 @@ class DataTable(object):
         for entity in entities:
             enum = self.description.get_col('qui'+entity).enum
             try:
-                if self._num_table == 1:
+                if self.num_table == 1:
                     idx = getattr(self.table, 'id'+entity).values
                     qui = getattr(self.table, 'qui'+entity).values
-                elif self._num_table == 3:
+                elif self.num_table == 3:
                     idx = getattr(self.table3['ind'], 'id'+entity).values
                     qui = getattr(self.table3['ind'], 'qui'+entity).values
                     
@@ -122,7 +122,7 @@ class DataTable(object):
             dct = self.index[entity]
             idxlist = np.unique(idx)
             
-            if self._num_table == 3:
+            if self.num_table == 3:
                 if len(idxlist) != len(self.table3[entity]):
                     print "Warning: list of ident is not consistent for %s" %entity
                     print self.survey_year, len(idxlist), len(self.table3[entity])
@@ -143,7 +143,7 @@ class DataTable(object):
                 temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
                 dct.update({person: temp}) 
                 
-        if self._num_table == 3:
+        if self.num_table == 3:
         # add index of men for intermediate entities     
         #TODO: make it generel with level of entity  
             for entity in entities: 
@@ -162,7 +162,7 @@ class DataTable(object):
         col = self.description.get_col(varname)
         from_ent = col.entity
         value = self.get_value(varname)
-        if self._num_table == 1:
+        if self.num_table == 1:
             try:
                 enum = self.description.get_col('qui'+from_ent).enum
             except:
@@ -175,7 +175,7 @@ class DataTable(object):
                 if varname != 'wprm':
                     self.set_value(varname, value_member, from_ent, opt = member[1])
                                 
-        elif self._num_table == 3:  
+        elif self.num_table == 3:  
             # Should be useless
             return self._get_value3(varname, entity = entity, opt = range(10))
             
@@ -216,7 +216,7 @@ class DataTable(object):
         
         if fname[-4:] == '.csv':
             #TODO: implement it for _num_table==3 (or remove)
-            if self._num_table == 1 : 
+            if self.num_table == 1 : 
                 with open(fname) as survey_data_file:
                     self.table = read_csv(survey_data_file)
             else : 
@@ -226,9 +226,9 @@ class DataTable(object):
 
         elif fname[-3:] == '.h5':
             store = HDFStore(fname)
-            if self._num_table == 1 : 
+            if self.num_table == 1 : 
                 available_years = sorted([int(x[-4:]) for x in  store.keys()])
-            elif self._num_table == 3 : 
+            elif self.num_table == 3 : 
                 available_years = (sorted([int(x[-8:-4]) for x in  store.keys()]))
             # note+ we have a repetition here in available_years but it doesn't matter
             
@@ -254,23 +254,23 @@ class DataTable(object):
             
             
             idx_subset = None
-            if self._num_table == 1 : 
+            if self.num_table == 1 : 
                 self.table = store[str(base_name)] # only valid for frame               
-                if self._subset is not None: 
-                    idx_subset = self.table['idmen'].isin(self._subset)
+                if self.subset is not None: 
+                    idx_subset = self.table['idmen'].isin(self.subset)
                     self.table = self.table[idx_subset ] 
                       
-            elif self._num_table == 3 : 
+            elif self.num_table == 3 : 
                 for entity in self.list_entities:
                     self.table3[entity] = store[str(base_name)+'/'+ entity]
-                    if self._subset is not None: 
-                        idx_subset = self.table3[entity]['idmen'].isin(self._subset)
+                    if self.subset is not None: 
+                        idx_subset = self.table3[entity]['idmen'].isin(self.subset)
                         self.table3[entity] = self.table3[entity][idx_subset] 
             store.close()
             
         missing_col = []
         var_entity ={}
-        if self._num_table == 1 : 
+        if self.num_table == 1 : 
             self._nrows = self.table.shape[0]
             
             for col in self.description.columns.itervalues():
@@ -284,7 +284,7 @@ class DataTable(object):
                 except:
                     raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
                         
-        elif self._num_table == 3 : 
+        elif self.num_table == 3 : 
             self._nrows = self.table3['ind'].shape[0]            
             for ent in list_entities:
                 var_entity[ent] = [x for x in self.description.columns.itervalues() if x.entity == ent]
@@ -343,9 +343,9 @@ class DataTable(object):
         
             
     def get_value(self, varname, entity = None, opt = None, sum_ = False):
-        if self._num_table == 1:
+        if self.num_table == 1:
             return self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
-        if self._num_table == 3:       
+        if self.num_table == 3:       
             return self._get_value3(varname, entity = entity, opt = opt, sum_ = sum_)
             
     def _get_value1(self, varname, entity = None, opt = None, sum_ = False):
@@ -610,10 +610,10 @@ class DataTable(object):
             idx = self.index[entity][opt]
         col = self.description.get_col(varname)
         dtyp = col._dtype
-        if self._num_table == 1:
+        if self.num_table == 1:
             values = Series(value[idx['idxUnit']], dtype = dtyp)
             self.table[varname][idx['idxIndi'].tolist()] = values #tolist because sometime len(idx['idxIndi']) == 1
-        if self._num_table == 3:          
+        if self.num_table == 3:          
             if entity=='ind' : 
                 self.table3[entity].ix[idx['idxIndi'], [varname]] = value
             else:
@@ -713,7 +713,7 @@ class SystemSf(DataTable):
         self.test_case = self._inputs.test_case
         # initialize the pandas DataFrame to store data
         
-        if self._num_table == 1:
+        if self.num_table == 1:
             dct = {}
             for col in self.description.columns.itervalues():
                 dflt = col._default
@@ -721,7 +721,7 @@ class SystemSf(DataTable):
                 dct[col.name] = np.ones(self._nrows, dtyp)*dflt
             self.table = DataFrame(dct)
             
-        if self._num_table == 3: 
+        if self.num_table == 3: 
             self.table3 = {}      
             temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {} } 
             for col in self.description.columns.itervalues():
