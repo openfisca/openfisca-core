@@ -50,9 +50,8 @@ class Simulation(object):
         self.num_table = 1
         self.subset = None
         self.print_missing = True
-
-
-        
+        self.chunk = 1
+                
     def _set_config(self, **kwargs):
         """
         Sets some general Simulation attributes 
@@ -129,7 +128,8 @@ class Simulation(object):
     def _initialize_input_table(self):
         self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
                                     country=self.country, num_table = self.num_table, 
-                                    subset=self.subset, print_missing=self.print_missing)
+                                    subset=self.subset,
+                                    print_missing=self.print_missing)
 
 
     def disable_prestations(self, disabled_prestations = None):
@@ -599,7 +599,7 @@ class SurveySimulation(Simulation):
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
 
-        for key, val in specific_kwargs.iteritems():        
+        for key, val in specific_kwargs.iteritems():      
             if hasattr(self, key):
                 setattr(self, key, val)
      
@@ -615,6 +615,9 @@ class SurveySimulation(Simulation):
         if self.num_table not in [1,3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.") 
+    
+        if not isinstance(self.chunk, int):
+            raise Exception("Chunk number must be an integer")
                 
     def inflate_survey(self, inflators):
         """
@@ -660,9 +663,35 @@ class SurveySimulation(Simulation):
         if len(self.input_table.table)==0:
             self.input_table.load_data_from_survey(self.survey_filename,  
                                                num_table = self.num_table,
-                                               subset=self.subset, 
+                                               subset=self.subset,
                                                print_missing=self.print_missing)
-        self._compute()
+            
+        if self.chunk == 1:     
+            self._compute()
+        # Note: subset has already be applied
+        else: 
+            num = self.num_table
+            #TODO: replace 'idmen' by something not france-specific : the biggest entity
+            if num == 1:
+                list_men = self.input_table.table['idmen'].unique()
+            if num == 3:
+                list_men = self.input_table.table3['ind']['idmen'].unique()
+            
+            len_tot = len(list_men)
+            len_chunk = int(len_tot/self.chunk)+1
+            men_select = {}
+            for chunk in range(0, self.chunk):
+                start= chunk * len_chunk
+                end = (chunk + 1)* len_chunk
+                men_select[chunk] = list_men[start:end]
+            
+            import pdb
+            pdb.set_trace()
+            
+            for chunk in range(self.chunk):
+                print chunk
+            
+
 
     def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
         """
