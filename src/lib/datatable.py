@@ -440,7 +440,7 @@ class DataTable(object):
         '''
         Read the value in an array and return it in an appropriate format
         
-        There is thre different case. 
+        There are three different cases. 
             1 - you just want to read the variable and use it at the same entity level
             2 - you want to propagate a variable of a big entity to one ore many members
             3 - you want to read variable for a small entity in a bigger one. In that case you may want: 
