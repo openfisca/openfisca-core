@@ -47,6 +47,11 @@ class Simulation(object):
         self.var2label = dict()
         self.var2enum = dict()
 
+        self.num_table = 1
+        self.subset = None
+        self.print_missing = True
+
+
         
     def _set_config(self, **kwargs):
         """
@@ -574,9 +579,6 @@ class SurveySimulation(Simulation):
         self.descr = None
         self.output_table = None
         self.output_table_default = None
-        self.num_table = 1  
-        self.subset = None
-        self.print_missing = True
         self.survey_filename = None
 
         self.label2var = dict()
