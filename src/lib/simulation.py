@@ -679,14 +679,27 @@ class SurveySimulation(Simulation):
             
             len_tot = len(list_men)
             len_chunk = int(len_tot/self.chunk)+1
+            
             men_select = {}
+            simu_chunk = {}
+            
+            print(len(self.input_table.table3['men']))
+            
             for chunk in range(0, self.chunk):
                 start= chunk * len_chunk
                 end = (chunk + 1)* len_chunk
                 men_select[chunk] = list_men[start:end]
             
-            import pdb
-            pdb.set_trace()
+                subsimu = SurveySimulation()
+                subsimu.__dict__ = self.__dict__
+                subsimu.subset = list_men[start:end]
+                subsimu.chunk = 1                
+                subsimu.compute()
+                simu_chunk[chunk] = subsimu
+                
+                print(len(self.input_table.table3['men']))
+                import pdb
+                pdb.set_trace()
             
             for chunk in range(self.chunk):
                 print chunk
