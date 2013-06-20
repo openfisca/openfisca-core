@@ -294,10 +294,19 @@ class DataTable(object):
                 if not col.name in self.table:
                     missing_col.append(col.name)
                     self.table[col.name] = col._default
-                try:   
+                try:  
+#                     print len(self.table[col.name])
                     if self.table[col.name].isnull().any():
+                        # print 'présence de NaN dans %s' %(col.name)
+                        if col.name == "age":
+                            print "first"
+                            print self.table[col.name].value_counts().sort_index()
                         self.table[col.name].fillna(col._default, inplace=True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
+                    if col.name == "age":
+                        print "second"
+                        print self.table[col.name].value_counts().sort_index()
+                    
                 except:
                     raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
                         
