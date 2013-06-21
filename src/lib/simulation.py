@@ -755,6 +755,9 @@ class SurveySimulation(Simulation):
         gc.collect()
         
     def save_output_table(self, name, filename):
+        """
+        TODO:
+        """
         from src import SRC_PATH
         from pandas import HDFStore
         ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data')
@@ -762,13 +765,17 @@ class SurveySimulation(Simulation):
         store.put(name, self.output_table)
         store.close()
         
-if __name__ == "__main__":
-    year = 2006
-    sim = SurveySimulation()
-    sim._set_config(year=year)
-    sim.set_param()
-    sim.compute()
-    sim.save_output_table('testundeux', 'fichiertestundeux')
+#===============================================================================
+# if __name__ == "__main__":
+#     year = 2006
+#     sim = SurveySimulation()
+#     sim._set_config(year=year)
+#     
+#     sim.filename = os.path.join(SRC_PATH, 'countries', 'france', 'data', 'fichiertest.h5')
+#     sim.set_param()
+#     sim.compute()
+#     sim.save_output_table('testundeux', 'fichiertestundeux')
+#===============================================================================
         
 
 
