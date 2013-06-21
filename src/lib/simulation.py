@@ -47,7 +47,6 @@ class Simulation(object):
         self.var2label = dict()
         self.var2enum = dict()
 
-        self.num_table = 1
         self.subset = None
         self.print_missing = True
 
@@ -574,17 +573,9 @@ class SurveySimulation(Simulation):
     """
     def __init__(self):
         super(SurveySimulation, self).__init__()
-        
-        self.input_table = None
         self.descr = None
-        self.output_table = None
-        self.output_table_default = None
         self.survey_filename = None
-
-        self.label2var = dict()
-        self.var2label = dict()
-        self.var2enum  = dict() 
-
+    
     
     def set_config(self, **kwargs):
         """
@@ -762,6 +753,22 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
+        
+    def save_output_table(self, name, filename):
+        from src import SRC_PATH
+        from pandas import HDFStore
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data')
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        store.put(name, self.output_table)
+        store.close()
+        
+if __name__ == "__main__":
+    year = 2006
+    sim = SurveySimulation()
+    sim._set_config(year=year)
+    sim.set_param()
+    sim.compute()
+    sim.save_output_table('testundeux', 'fichiertestundeux')
         
 
 
