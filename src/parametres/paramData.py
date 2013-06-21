@@ -21,7 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
     
-from xml.etree.ElementTree import ElementTree, SubElement, Element
+from xml.etree.ElementTree import ElementTree, SubElement, Element, Comment
 from xml.dom import minidom
 from src.gui.qt.compat import from_qvariant
 from src.gui.config import CONF
@@ -59,7 +59,7 @@ class XmlReader(object):
 
     def handleNodeList(self, nodeList, parent):
         for element in nodeList:
-            if element.nodeType is not element.TEXT_NODE:
+            if element.nodeType is not element.TEXT_NODE and element.nodeType is not element.COMMENT_NODE:
                 if element.tagName == "BAREME":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
