@@ -41,7 +41,6 @@ class Simulation(object):
         self.P, self.P_default = None, None
         self.param_file = None
         self.disabled_prestations = None
-        self.num_table = 1
         
         self.label2var = dict()
         self.var2label = dict()
@@ -580,10 +579,6 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         self.survey_filename = None
-
-        self.label2var = dict()
-        self.var2label = dict()
-        self.var2enum  = dict() 
 
     
     def set_config(self, **kwargs):
