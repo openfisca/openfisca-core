@@ -14,6 +14,7 @@ from src.lib.datatable import DataTable, SystemSf
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.lib.utils import gen_output_data, of_import
 from src import SRC_PATH
+from pandas import HDFStore
 
 from pandas import DataFrame
 
@@ -756,13 +757,17 @@ class SurveySimulation(Simulation):
         
     def save_output_table(self, name, filename):
         """
-        TODO:
+        Saves the output dataframe under default directory in an HDF store.
+        
+        Parameters
+        ----------
+        name : the name of the table inside the store
+        filename : the name of the .h5 file where the table is stored. Created if not existant.
         """
-        from src import SRC_PATH
-        from pandas import HDFStore
-        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data')
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
         store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
-        store.put(name, self.output_table)
+        store.put(name, self.output_table.table)
+        #store.put('col_'+ name, self.output_table.description.columns ) marche pas, erreur de type
         store.close()
         
 #===============================================================================
