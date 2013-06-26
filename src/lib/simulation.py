@@ -692,6 +692,11 @@ class SurveySimulation(Simulation):
                     self.output_table = self.output_table + simu_chunk.output_table
                 else: 
                     self.output_table = simu_chunk.output_table
+                    
+            # as set_imput didn't run, we do it now        
+            self.output_table.index = self.input_table.index
+            self.output_table._inputs = self.input_table
+            self.output_table._nrows = self.input_table._nrows       
 
 
 
