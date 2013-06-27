@@ -139,6 +139,8 @@ class DataTable(object):
                     diff1 = set(idxlist).symmetric_difference(idxent)
                     print diff1
                     pdb.set_trace()
+                    if len(idxlist) > len(self.table3[entity]):
+                        idxlist = idxent
                 # Generates index for the entity of each individual
                 self.index['ind'][entity] = np.searchsorted(idxlist, idx)
                         
@@ -673,6 +675,29 @@ class SystemSf(DataTable):
             
         self.reset()
         self.build()
+
+    def __add__(self,other):
+        """
+        Addition of two SystemSf.
+        Add their output_table, iff it's the same simulation and only the survey differ
+        """   
+        if not isinstance(other,SystemSf):
+            raise Exception("Can only add a SystemSf to a SystemSF")
+        
+        
+        assert(self.num_table == other.num_table)
+        
+        if self.num_table==1:
+            self.table = self.table.append(other.table, verify_integrity=True)
+        
+        if self.num_table==3: 
+            assert(self.list_entities == other.list_entities)
+            for ent in self.list_entities:
+                self.table3[ent] = self.table3[ent].append(other.table3[ent])
+        return self
+        
+        
+        
 
     def get_primitives(self):
         """
