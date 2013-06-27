@@ -194,10 +194,10 @@ class Simulation(object):
         print "entering _compute"
         self._preproc()
         output_table, output_table_default = self.output_table, self.output_table_default
-        
+
         for key, val in kwargs.iteritems():
-            print key
-            print val
+#             print key
+#             print val
             setattr(output_table, key, val) 
             setattr(output_table_default, key, val) 
             

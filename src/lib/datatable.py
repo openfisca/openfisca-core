@@ -296,10 +296,19 @@ class DataTable(object):
                 if not col.name in self.table:
                     missing_col.append(col.name)
                     self.table[col.name] = col._default
-                try:   
+                try:  
+#                     print len(self.table[col.name])
                     if self.table[col.name].isnull().any():
+                        # print 'présence de NaN dans %s' %(col.name)
+                        if col.name == "age":
+                            print "first"
+                            print self.table[col.name].value_counts().sort_index()
                         self.table[col.name].fillna(col._default, inplace=True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
+                    if col.name == "age":
+                        print "second"
+                        print self.table[col.name].value_counts().sort_index()
+                    
                 except:
                     raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
                         
@@ -442,7 +451,7 @@ class DataTable(object):
         '''
         Read the value in an array and return it in an appropriate format
         
-        There is thre different case. 
+        There are three different cases. 
             1 - you just want to read the variable and use it at the same entity level
             2 - you want to propagate a variable of a big entity to one ore many members
             3 - you want to read variable for a small entity in a bigger one. In that case you may want: 
