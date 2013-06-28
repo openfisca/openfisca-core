@@ -296,7 +296,7 @@ class DataTable(object):
                 if not col.name in self.table:
                     missing_col.append(col.name)
                     self.table[col.name] = col._default
-                try:   
+                try:  
                     if self.table[col.name].isnull().any():
                         self.table[col.name].fillna(col._default, inplace=True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
@@ -442,7 +442,7 @@ class DataTable(object):
         '''
         Read the value in an array and return it in an appropriate format
         
-        There is thre different case. 
+        There are three different cases. 
             1 - you just want to read the variable and use it at the same entity level
             2 - you want to propagate a variable of a big entity to one ore many members
             3 - you want to read variable for a small entity in a bigger one. In that case you may want: 
