@@ -14,6 +14,7 @@ from src.lib.datatable import DataTable, SystemSf
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.lib.utils import gen_output_data, of_import
 from src import SRC_PATH
+from pandas import HDFStore
 
 from pandas import DataFrame
 
@@ -41,12 +42,12 @@ class Simulation(object):
         self.P, self.P_default = None, None
         self.param_file = None
         self.disabled_prestations = None
+        self.num_table = 1
         
         self.label2var = dict()
         self.var2label = dict()
         self.var2enum = dict()
 
-        self.num_table = 1
         self.subset = None
         self.print_missing = True
         self.chunk = 1
@@ -194,7 +195,7 @@ class Simulation(object):
 
         self._preproc()
         output_table, output_table_default = self.output_table, self.output_table_default
-
+        
         for key, val in kwargs.iteritems():
             setattr(output_table, key, val) 
             setattr(output_table_default, key, val) 
@@ -571,13 +572,9 @@ class SurveySimulation(Simulation):
     """
     def __init__(self):
         super(SurveySimulation, self).__init__()
-        
-        self.input_table = None
         self.descr = None
-        self.output_table = None
-        self.output_table_default = None
         self.survey_filename = None
-
+    
     
     def set_config(self, **kwargs):
         """
@@ -796,6 +793,33 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
+        
+    def save_output_table(self, name, filename):
+        """
+        Saves the output dataframe under default directory in an HDF store.
+        
+        Parameters
+        ----------
+        name : the name of the table inside the store
+        filename : the name of the .h5 file where the table is stored. Created if not existant.
+        """
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        store.put(name, self.output_table.table)
+        #store.put('col_'+ name, self.output_table.description.columns ) marche pas, erreur de type
+        store.close()
+        
+#===============================================================================
+# if __name__ == "__main__":
+#     year = 2006
+#     sim = SurveySimulation()
+#     sim._set_config(year=year)
+#     
+#     sim.filename = os.path.join(SRC_PATH, 'countries', 'france', 'data', 'fichiertest.h5')
+#     sim.set_param()
+#     sim.compute()
+#     sim.save_output_table('testundeux', 'fichiertestundeux')
+#===============================================================================
         
 
 
