@@ -361,9 +361,17 @@ class DataTable(object):
 #        print self.table.get_dtype_counts()
         
             
-    def get_value(self, varname, entity = None, opt = None, sum_ = False):
+    def get_value(self, varname, entity = None, opt = None, sum_ = False, as_dataframe = False):
         if self.num_table == 1:
-            return self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
+            value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
+            if as_dataframe:
+                index_varname = "id" + entity # TODO: this is dirty
+                if sum_ is True:
+                    index_value = self._get_value1(index_varname, entity = entity, opt = None, sum_ = None)
+                return DataFrame( {index_varname: index_value,  varname: value }) 
+            else:
+                return value    
+        
         if self.num_table == 3:       
             return self._get_value3(varname, entity = entity, opt = opt, sum_ = sum_)
             
