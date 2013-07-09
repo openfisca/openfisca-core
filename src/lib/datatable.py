@@ -840,6 +840,8 @@ class SystemSf(DataTable):
         if entity is None:
             entity = "ind"
         required = set(col.inputs)
+
+        
         func_args = {}
         for var in required:
             if var in self._inputs.col_names:
