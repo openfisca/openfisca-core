@@ -223,8 +223,8 @@ class DataTable(object):
         INDEX = of_import(None, 'ENTITIES_INDEX', self.country)
         WEIGHT = of_import(None, 'WEIGHT', self.country)
         WEIGHT_INI = of_import(None, 'WEIGHT_INI', self.country)
-        
-        if isinstance(fname,str):
+
+        if isinstance(fname, str) or isinstance(fname, unicode):
             if fname[-4:] == '.csv':
                 #TODO: implement it for _num_table==3 (or remove)
                 if self.num_table == 1 : 
