@@ -115,7 +115,6 @@ class Prestation(Column):
         self._isCalculated = False
         self._option = {}
         self._func = func
-        self._entity  = entity
         self._start = start
         self._end = end
         self._val_type = val_type

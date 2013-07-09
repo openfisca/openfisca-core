@@ -763,7 +763,7 @@ class SurveySimulation(Simulation):
             for varname in varnames:
                 if varname in model.col_names:
                     col = model.description.get_col(varname)
-                    condition = (col._entity != entity) or (force_sum == True)
+                    condition = (col.entity != entity) or (force_sum == True)
                     from src.lib.columns import EnumCol, EnumPresta
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta)) 
                     if condition and type_col_condition:

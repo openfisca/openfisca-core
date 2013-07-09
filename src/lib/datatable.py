@@ -839,7 +839,7 @@ class SystemSf(DataTable):
         if not col._enabled:
             return
 
-        entity = col._entity
+        entity = col.entity
         if entity is None:
             entity = "ind"
         required = set(col.inputs)
