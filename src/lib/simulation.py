@@ -789,7 +789,7 @@ class SurveySimulation(Simulation):
         """
         return self.aggregated_by_entity(entity = entity, variables = variables,
                                          all_output_vars = False,
-                                         all_input_vars = False, force_sum = False)[]
+                                         all_input_vars = False, force_sum = False)[0]
         
 
     def clear(self):
