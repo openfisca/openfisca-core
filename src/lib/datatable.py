@@ -694,9 +694,6 @@ class SystemSf(DataTable):
             for ent in self.list_entities:
                 self.table3[ent] = self.table3[ent].append(other.table3[ent])
         return self
-        
-        
-        
 
     def get_primitives(self):
         """
@@ -821,11 +818,11 @@ class SystemSf(DataTable):
         WEIGHT = of_import(None, 'WEIGHT', self.country)
         if varname is None:
             for col in self.description.columns.itervalues():
-#                try:
-                self.survey_calculate(varname = col.name)
-#                except Exception as e:
-#                    print e
-#                    print col.name
+                try:
+                    self.survey_calculate(varname = col.name)
+                except Exception as e:
+                    print e
+                    print col.name
             return # Will calculate all and exit
 
         col = self.description.get_col(varname)
@@ -843,41 +840,43 @@ class SystemSf(DataTable):
         if entity is None:
             entity = "ind"
         required = set(col.inputs)
-        funcArgs = {}
+
+        
+        func_args = {}
         for var in required:
             if var in self._inputs.col_names:
                 if var in col._option: 
-                    funcArgs[var] = self._inputs.get_value(var, entity, col._option[var])
+                    func_args[var] = self._inputs.get_value(var, entity, col._option[var])
                 else:
-                    funcArgs[var] = self._inputs.get_value(var, entity)
+                    func_args[var] = self._inputs.get_value(var, entity)
         
         for var in col._parents:
             parentname = var.name
-            if parentname in funcArgs and parentname != WEIGHT :
+            if parentname in func_args and parentname != WEIGHT :
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.survey_calculate(varname = parentname)
             if parentname in col._option:
-                funcArgs[parentname] = self.get_value(parentname, entity, col._option[parentname])
+                func_args[parentname] = self.get_value(parentname, entity, col._option[parentname])
             else:
-                funcArgs[parentname] = self.get_value(parentname, entity)
+                func_args[parentname] = self.get_value(parentname, entity)
 
         if col._needParam:
-            funcArgs['_P'] = self._param
+            func_args['_P'] = self._param
             required.add('_P')
             
         if col._needDefaultParam:
-            funcArgs['_defaultP'] = self._default_param
+            func_args['_defaultP'] = self._default_param
             required.add('_defaultP')
         
-        provided = set(funcArgs.keys())        
+        provided = set(func_args.keys())        
         if provided != required:
             raise Exception('%s missing: %s needs %s but only %s were provided' % (str(list(required - provided)), self._name, str(list(required)), str(list(provided))))
               
         try: 
-            self.set_value(varname, col._func(**funcArgs), entity)
+            self.set_value(varname, col._func(**func_args), entity)
         except: 
             print varname
-            self.set_value(varname, col._func(**funcArgs), entity)
+            self.set_value(varname, col._func(**func_args), entity)
             
 
         col._isCalculated = True

@@ -27,7 +27,7 @@ from src.lib.utils import Enum
 
 class Column(object):
     count = 0
-    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
+    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None, freq = 'year'):
         super(Column, self).__init__()
         self.name = None
         self.label = label
@@ -35,12 +35,14 @@ class Column(object):
         self.start = start
         self.end = end
         self.val_type = val_type
+        self.freq = freq
+        
         self._order = Column.count
         Column.count += 1
         self._default = default
 
         self._dtype = float
-
+         
         
     def reset_count(self):
         """
@@ -52,16 +54,16 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
-        super(IntCol, self).__init__(label, default, entity, start, end, val_type)
+    def __init__(self, **kwargs):
+        super(IntCol, self).__init__(**kwargs)
         self._dtype = np.int32
         
 class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    def __init__(self, enum = None, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
-        super(EnumCol, self).__init__(label, default, entity, start, end, val_type)
+    def __init__(self, enum = None, **kwargs):
+        super(EnumCol, self).__init__(**kwargs)
         self._dtype = np.int16
         if isinstance(enum, Enum):
             self.enum = enum
@@ -72,31 +74,31 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, label = None, default = False, entity= 'ind', start = None, end = None, val_type = None):
-        super(BoolCol, self).__init__(label, default, entity, start, end, val_type)
+    def __init__(self, default = False, **kwargs):
+        super(BoolCol, self).__init__(default=default, **kwargs)
         self._dtype = np.bool
 
 class FloatCol(Column):
     '''
     A column of float 32
     '''
-    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None):
-        super(FloatCol, self).__init__(label, default, entity, start, end, val_type)
+    def __init__(self, **kwargs):
+        super(FloatCol, self).__init__(**kwargs)
         self._dtype = np.float32
         
 class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    def __init__(self, label=None, default=-9999, entity='ind', start = None, end = None, val_type = None):
-        super(AgesCol, self).__init__(label, default, entity, start, end, val_type)
+    def __init__(self, default=-9999, **kwargs):
+        super(AgesCol, self).__init__(default=default, **kwargs)
         
 class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    def __init__(self, label=None, default=0, entity="ind", start=None, end=None):
-        super(DateCol, self).__init__(label, default, entity, start, end, val_type="date")
+    def __init__(self, val_type="date", **kwargs):
+        super(DateCol, self).__init__(val_type=val_type, **kwargs)
         self._dtype = np.datetime64
 
 class Prestation(Column):
@@ -105,9 +107,11 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
     count = 0
-    def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None):
-        super(Prestation, self).__init__(label, entity=entity, start=start, end=end, val_type=val_type)
-
+    def __init__(self, func=None, entity= 'ind', label = None, start = None, end = None, val_type = None):
+        super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type)
+        if func is None:
+            raise Exception('a function to compute the prestation should be provided')
+        
         self._order = Prestation.count
         Prestation.count += 1
         
@@ -145,6 +149,20 @@ class Prestation(Column):
             for var in self._option:
                 if var not in self.inputs:
                     raise Exception('%s in option but not in function args' % var)
+                
+        # check if a frequency dict is passed to the function
+        self._has_freq = '_freq' in self.inputs
+        if self._has_freq:
+            self.inputs.remove('_freq')
+            if self._hasOption:
+                self._freq = func.func_defaults[1]
+            else:
+                self._freq = func.func_defaults[0]
+                
+            for var in self._freq:
+                if var not in self.inputs:
+                    raise Exception('%s in option but not in function args' % var)
+                
     
     def set_enabled(self):
         self._enabled = True
@@ -160,25 +178,25 @@ class BoolPresta(Prestation, BoolCol):
     '''
     A Prestation inheriting from BoolCol
     '''
-    def __init__(self, func, entity = 'ind', label = None, start = None, end = None):
-        BoolCol.__init__(self, label = label, entity = entity, start = start, end = end)
-        Prestation.__init__(self, func, entity, label, start, end)
+    def __init__(self, func, **kwargs):
+        BoolCol.__init__(self, **kwargs)
+        Prestation.__init__(self, func=func, **kwargs)
 
 class IntPresta(Prestation, IntCol):
     '''
     A Prestation inheriting from IntCol
     '''
-    def __init__(self, func, entity = 'ind', label = None, start = None, end = None, val_type = None):
-        IntCol.__init__(self, label = label, entity = entity,  start = start, end = end, val_type = val_type)
-        Prestation.__init__(self, func, entity, label, start, end, val_type)
+    def __init__(self, func, **kwargs):
+        IntCol.__init__(self, **kwargs)
+        Prestation.__init__(self, func, **kwargs)
 
 class EnumPresta(Prestation, EnumCol):
     '''
     A Prestation inheriting from EnumCol
     '''
-    def __init__(self, func, entity = 'ind', label = None, enum = None, start = None, end = None):
-        EnumCol.__init__(self, enum = enum, label = label, entity = entity,  start = start, end = end)
-        Prestation.__init__(self, func, entity, label, start, end)
+    def __init__(self, func, enum = None, **kwargs):
+        EnumCol.__init__(self, enum = enum, **kwargs)
+        Prestation.__init__(self, func, **kwargs)
 
 
 #    def dep_resolve(self, resolved=set(), unresolved=set()):
