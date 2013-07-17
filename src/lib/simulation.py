@@ -244,7 +244,7 @@ class Simulation(object):
             self.var2label.update(v2l)
             self.var2enum.update(v2e)
 
-    def get_col(self, varname):
+    def get_col(self, varname, as_dataframe=False):
         '''
         Looks for a column in inputs description, then in output_table description
         '''
@@ -257,7 +257,6 @@ class Simulation(object):
         else:
             print "Variable %s is absent from both inputs and output_table" % varname
             return None
-
 
     @property
     def input_var_list(self):
@@ -693,9 +692,8 @@ class SurveySimulation(Simulation):
             self.output_table._inputs = self.input_table
             self.output_table._nrows = self.input_table._nrows       
 
-
-
-    def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
+    def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True,
+                              all_input_vars = False, force_sum = False):
         """
         Generates aggregates at entity level
         
@@ -712,7 +710,7 @@ class SurveySimulation(Simulation):
                           If True select all input variables
         Returns
         -------
-        out_tables[0], out_tables[1] : DataFrame                  
+        out_tables[0], out_tables[1] : tuple of DataFrame                  
         """
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
         
@@ -732,7 +730,6 @@ class SurveySimulation(Simulation):
         for model in models:
             out_dct = {}
             inputs = model._inputs
-#           WAS idx = model.index[entity] 
             idx = entity
             people = None
             if self.num_table == 1:
@@ -781,9 +778,18 @@ class SurveySimulation(Simulation):
             out_tables.append(DataFrame(out_dct))
         
         if self.reforme is False:
-                out_tables.append(None)
+            out_tables.append(None)
                 
         return out_tables[0], out_tables[1]
+        
+
+    def get_variables_dataframe(self, variables=None, entity="ind"):
+        """
+        Get variables 
+        """
+        return self.aggregated_by_entity(entity = entity, variables = variables,
+                                         all_output_vars = False,
+                                         all_input_vars = False, force_sum = False)[0]
         
 
     def clear(self):
