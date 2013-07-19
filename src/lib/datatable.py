@@ -311,10 +311,19 @@ class DataTable(object):
                     if not col.name in self.table3[ent]:
                         missing_col.append(col.name)
                         self.table3[ent][col.name] = col._default
-                    try:   
+                    #try:
+                    if True:
+                        print self.table3[ent][col.name]
+                        print col.name
+                        if self.table3[ent][col.name].isnull().any():
+                            self.table3[ent][col.name].fillna(col._default, inplace=True)
                         self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
-                    except:
-                        raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name) 
+#                     except:
+#                         print self.table3[ent].columns
+#                         print col.name
+#                         
+#                         print ent
+#                         raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name) 
                 if ent == 'foy':
                     self.table3[ent] = self.table3[ent].to_sparse(fill_value=0)       
                  
@@ -498,7 +507,8 @@ class DataTable(object):
         
         case = 0
         #TODO: Have a level of entites in the model description
-        # for example, in France case, ind = 0, fam and foy =1 and men = 2, ind< fam,foy<men
+        # for example, in France case, ind = 0, fam and foy =1 and men = 2, ind< fam,foy<men <- JS: Quid des gens 
+        # qui ont quitté le domicile familial mais qui déclarent avec leur parents ?
         # you can check than if entity is fam or foy and dent the other one then case still zero.
         if entity is None or entity == dent:
             case = 1
@@ -508,7 +518,7 @@ class DataTable(object):
             case = 3 
         if case == 0 and opt is None:
             try:
-                #TODO, suppress the try when opt is set everywhere in the model
+                #TODO: suppress the try when opt is set everywhere in the model
                 raise Exception("As fam and foy are not one in the other all the time "
                 "you can't use %s at a %s level. Select a person to look at." %(varname,entity))
             except:
@@ -523,7 +533,7 @@ class DataTable(object):
             raise Exception("opt doesn't mean anything here : % s. there is no person in %s "
             "so opt is inconsistant " % (varname, entity))                
         if sum_ == True and case != 3:
-            #TDOD: look why sometime it's sum_ is True here 
+            #TODO: look why sometime it's sum_ is True here 
             #raise Exception("Impossible to sum here %s over entity %s" % (varname, entity))   
             sum_ = False                      
         if case == 3 and dent !='ind' and opt is None :
@@ -583,10 +593,10 @@ class DataTable(object):
                     else:
                         return out
                 else:
-                    sumout = 0
+                    sum_out = 0
                     for val in out.itervalues():
-                        sumout += val
-                    return sumout    
+                        sum_out += val
+                    return sum_out    
                 
             else:
                 # from foy or fam to men
@@ -607,7 +617,7 @@ class DataTable(object):
                 try:
                     temp[idx_to_unique] = by_idx.aggregate(np.sum)
                 except:
-                    #TODO: always do the convertion but bette to be explicit
+                    #TODO: always do the convertion but better to be explicit
                     values = by_idx.aggregate(np.sum).astype('bool')
                     temp[idx_to_unique] = values
                 return temp

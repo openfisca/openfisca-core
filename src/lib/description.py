@@ -159,6 +159,7 @@ class Description(object):
             self.columns[col.name] = col
             self._col_names.add(col.name)
             
+            
     @property
     def col_names(self):
         return self._col_names

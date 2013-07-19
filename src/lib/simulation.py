@@ -15,9 +15,11 @@ from src.parametres.paramData import XmlReader, Tree2Object
 from src.lib.utils import gen_output_data, of_import
 from src import SRC_PATH
 from pandas import HDFStore
-
+import numpy as np
+import pandas as pd
 from pandas import DataFrame
-
+from src.lib.description import Description
+import pickle
 from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
 
 
@@ -51,6 +53,7 @@ class Simulation(object):
         self.subset = None
         self.print_missing = True
         self.chunk = 1
+        
                 
     def _set_config(self, **kwargs):
         """
@@ -244,7 +247,7 @@ class Simulation(object):
             self.var2label.update(v2l)
             self.var2enum.update(v2e)
 
-    def get_col(self, varname):
+    def get_col(self, varname, as_dataframe=False):
         '''
         Looks for a column in inputs description, then in output_table description
         '''
@@ -257,7 +260,6 @@ class Simulation(object):
         else:
             print "Variable %s is absent from both inputs and output_table" % varname
             return None
-
 
     @property
     def input_var_list(self):
@@ -305,7 +307,69 @@ class Simulation(object):
                          u'Système socio-fiscal au %s' % str(self.datesim)]
         # TODO: add other parameters
         return DataFrame(descr)
+    
+    def save_content(self, name, filename):
+        """
+        Saves content from the simulation in an HDF store.
+        
+        Parameters
+        ----------
+        name : the base name of the content inside the store.
+        We save output_table, input_table, and their descriptions.
+        filename : the name of the .h5 file where the table is stored. Created if not existant.
+        """
+        
+        # Store the tables
+        print 'Saving content for simulation under name %s' %name
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        print 'Putting output_table in...'
+        store.put(name + '_output_table', self.output_table.table)
+        print 'Putting input_table in...'
+        store.put(name + '_input_table', self.input_table.table)
+        
+        # Store the 'column' content of the table
+        col_names = pd.Series(self.input_table.description.columns.keys())
+        columns = pd.Series(self.input_table.description.columns.values())
+        df_input = DataFrame({'col_names' : col_names, 'columns' : columns})
+        print 'Putting columns for input_table in...'
+        print len(df_input)
+        store.put(name+'_it_cols', df_input)
+        col_names = pd.Series(self.output_table.description.columns.keys())
+        columns = pd.Series(self.output_table.description.columns.values())
+        df_output = DataFrame({'col_names' : col_names, 'columns' : columns})
+        print len(df_output)
+        print 'Putting columns for output_table in...'
+        store.put(name+'_ot_cols', df_output)
+        
+        del df_input, df_output 
+        gc.collect()
+        
+        # Store all attributes from simulation (hopefully it works )
+        # TODO
+        
+        store.close()
+        
+    def load_content(self, name, filename):
+        """
+        Loads content from an HDF store and replace simulation attributes with content.
+        
+        Parameters
+        ----------
+        name : the base name of the content inside the store.
+        We load an output_table, an input_table, and their descriptions.
+        filename : the name of the .h5 file where the table is stored. Created if not existant.
+        """
+        
+        print 'Loading content for simulation under name %s' %name
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        self.output_table = store[name + '_output_table']
+        self.input_table = store[name + '_input_table']
+        self.output_table.description = Description(store[name + '_ot_cols']['columns'])
+        self.input_table.description = Description(store[name + '_it_cols']['columns'])
 
+        # TODO : Get all attributes and replace them
 
 class ScenarioSimulation(Simulation):
     """
@@ -564,8 +628,8 @@ class ScenarioSimulation(Simulation):
         del data_default
         data.setLeavesVisible()
         drawWaterfall(data, ax)
+     
         
-    
 class SurveySimulation(Simulation):
     """
     A Simulation class tailored to deal with survey data
@@ -693,9 +757,8 @@ class SurveySimulation(Simulation):
             self.output_table._inputs = self.input_table
             self.output_table._nrows = self.input_table._nrows       
 
-
-
-    def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True, all_input_vars = False, force_sum = False):
+    def aggregated_by_entity(self, entity = None, variables = None, all_output_vars = True,
+                              all_input_vars = False, force_sum = False):
         """
         Generates aggregates at entity level
         
@@ -712,7 +775,7 @@ class SurveySimulation(Simulation):
                           If True select all input variables
         Returns
         -------
-        out_tables[0], out_tables[1] : DataFrame                  
+        out_tables[0], out_tables[1] : tuple of DataFrame                  
         """
         WEIGHT = of_import(None, 'WEIGHT', self.country) # import WEIGHT from country.__init__.py
         
@@ -732,7 +795,6 @@ class SurveySimulation(Simulation):
         for model in models:
             out_dct = {}
             inputs = model._inputs
-#           WAS idx = model.index[entity] 
             idx = entity
             people = None
             if self.num_table == 1:
@@ -781,9 +843,18 @@ class SurveySimulation(Simulation):
             out_tables.append(DataFrame(out_dct))
         
         if self.reforme is False:
-                out_tables.append(None)
+            out_tables.append(None)
                 
         return out_tables[0], out_tables[1]
+        
+
+    def get_variables_dataframe(self, variables=None, entity="ind"):
+        """
+        Get variables 
+        """
+        return self.aggregated_by_entity(entity = entity, variables = variables,
+                                         all_output_vars = False,
+                                         all_input_vars = False, force_sum = False)[0]
         
 
     def clear(self):
@@ -793,33 +864,30 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
-        
-    def save_output_table(self, name, filename):
-        """
-        Saves the output dataframe under default directory in an HDF store.
-        
-        Parameters
-        ----------
-        name : the name of the table inside the store
-        filename : the name of the .h5 file where the table is stored. Created if not existant.
-        """
-        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
-        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
-        store.put(name, self.output_table.table)
-        #store.put('col_'+ name, self.output_table.description.columns ) marche pas, erreur de type
-        store.close()
-        
-#===============================================================================
-# if __name__ == "__main__":
-#     year = 2006
-#     sim = SurveySimulation()
-#     sim._set_config(year=year)
-#     
-#     sim.filename = os.path.join(SRC_PATH, 'countries', 'france', 'data', 'fichiertest.h5')
-#     sim.set_param()
-#     sim.compute()
-#     sim.save_output_table('testundeux', 'fichiertestundeux')
-#===============================================================================
-        
-
-
+           
+if __name__ == "__main__":
+#     yr = 2006
+#     country = 'france'
+#     simulation = SurveySimulation()
+#     survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+#     simulation.set_config(year=yr, country=country, 
+#                           survey_filename=survey_filename)
+#     simulation.set_param()
+#     simulation.compute()
+#     simulation.set_param()
+#     simulation.compute()
+#     simulation.save_content('testundeux', 'fichiertestundeux')
+#     assert simulation.input_table is None
+    simulation = Simulation()
+    simulation.load_content('testundeux', 'fichiertestundeux')
+    assert simulation.input_table is not None
+    assert simulation.input_table.description is not None
+    for col in simulation.input_table.description.columns:
+        print col
+#      
+    ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+    store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'fichiertestundeux'+'.h5'))
+#     del store['testundeux_ot_cols']
+#     del store['testundeux_it_cols']
+#     print store['testundeux_it_cols'].columns
+    print store
