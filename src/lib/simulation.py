@@ -871,24 +871,3 @@ class SurveySimulation(Simulation):
         self.output_table_default = None
         gc.collect()
            
-if __name__ == "__main__":    
-    
-    # Code pour tester save_content
-    yr = 2006
-    country = 'france'
-    simulation = SurveySimulation()
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-    simulation.set_config(year=yr, country=country, 
-                          survey_filename=survey_filename)
-    simulation.set_param()
-    simulation.compute()
-    print simulation.__dict__.keys()
-            
-    print simulation.output_table.__dict__.keys()
-#     sim_saved = pickle.dumps(simulation.output_table)
-    print 'done'
-    simulation.save_content('testundeux', 'fichiertestundeux')
-
-#     a = load_content('testundeux', 'fichiertestundeux')
-#     print a.output_table.description.columns
-#     print a.input_table.table['idfoy'][0:50]
