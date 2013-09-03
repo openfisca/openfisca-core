@@ -810,9 +810,10 @@ def kakwani(values, ineq_axis, weights = None):
     return simps( (LCy - PLCy), LCx)
         
 
-from src.widgets.matplotlibwidget import MatplotlibWidget
+
 
 def test():
+    from src.widgets.matplotlibwidget import MatplotlibWidget
     import sys
     from src.gui.qt.QtGui import QMainWindow, QApplication
     
