@@ -36,7 +36,7 @@ def default_frequency_converter(from_ = None, to_= None):
     if (from_ == "year") and (to_ == "trim"):
         return lambda x: x/4
 
-    if (from_ == "rim") and (to_ == "year"):
+    if (from_ == "trim") and (to_ == "year"):
         return lambda x: x*4
 
     if (from_ == "year") and (to_ == "month"):
@@ -132,8 +132,7 @@ class Prestation(Column):
     count = 0
 
     def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None, freq="year"):
-        super(Prestation, self).__init__(label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
-
+        super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
 
         if func is None:
             raise Exception('a function to compute the prestation should be provided')
@@ -144,6 +143,7 @@ class Prestation(Column):
         # initialize attribute
         self._isCalculated = False
         self._option = {}
+        self._freq = {}
         self._func = func
         self._entity  = entity
         self._start = start
