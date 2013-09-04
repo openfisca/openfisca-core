@@ -370,7 +370,7 @@ class DataTable(object):
 #        print self.table.get_dtype_counts()
         
             
-    def get_value(self, varname, entity = None, opt = None, sum_ = False, as_dataframe = False):
+    def get_value(self, varname, entity = None, opt = None, sum_ = False, as_dataframe = False, freqs = None):
         if self.num_table == 1:
             value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
             if as_dataframe:
@@ -865,10 +865,22 @@ class SystemSf(DataTable):
             if parentname in func_args and parentname != WEIGHT :
                 raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
             self.survey_calculate(varname = parentname)
+            opt, freq = None, None
+
             if parentname in col._option:
-                func_args[parentname] = self.get_value(parentname, entity, col._option[parentname])
+                opt = col._option[parentname]
+            
+            if parentname in col._freq:
+                freq = col._freq[parentname]
+                if freq[-1:] == "s": # to return dict with all months or trims
+                    freqs = freq
+                    func_args[parentname] = self.get_value(parentname, entity, opt=opt, freqs=freqs)
+                else:
+#                    print "coucou freq"
+                    converter = var._frequency_converter(to_ = freq, from_= var.freq)
+                    func_args[parentname] = converter(self.get_value(parentname, entity, opt=opt))
             else:
-                func_args[parentname] = self.get_value(parentname, entity)
+                func_args[parentname] = self.get_value(parentname, entity, opt=opt)
 
         if col._needParam:
             func_args['_P'] = self._param

@@ -25,9 +25,32 @@ from __future__ import division
 import numpy as np
 from src.lib.utils import Enum
 
+
+def default_frequency_converter(from_ = None, to_= None):
+    """
+    Default function to convert Columns between different frequencies 
+    """
+    if (from_ is None) and (to_ is None):
+        return lambda x: x
+
+    if (from_ == "year") and (to_ == "trim"):
+        return lambda x: x/4
+
+    if (from_ == "trim") and (to_ == "year"):
+        return lambda x: x*4
+
+    if (from_ == "year") and (to_ == "month"):
+        return lambda x: x/12 
+
+    if (from_ == "month") and (to_ == "year"):
+        return lambda x: 12*x
+ 
+
+
 class Column(object):
     count = 0
     def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None, freq = 'year'):
+
         super(Column, self).__init__()
         self.name = None
         self.label = label
@@ -36,13 +59,13 @@ class Column(object):
         self.end = end
         self.val_type = val_type
         self.freq = freq
-        
+
         self._order = Column.count
         Column.count += 1
         self._default = default
-
         self._dtype = float
-         
+        self._frequency_converter = default_frequency_converter
+
         
     def reset_count(self):
         """
@@ -107,8 +130,10 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
     count = 0
-    def __init__(self, func=None, entity= 'ind', label = None, start = None, end = None, val_type = None):
-        super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type)
+
+    def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None, freq="year"):
+        super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
+
         if func is None:
             raise Exception('a function to compute the prestation should be provided')
         
@@ -118,13 +143,14 @@ class Prestation(Column):
         # initialize attribute
         self._isCalculated = False
         self._option = {}
+        self._freq = {}
         self._func = func
         self._entity  = entity
         self._start = start
         self._end = end
         self._val_type = val_type
         self.entity  = entity
-        
+
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
         self._children  = set() # prestations immidiately affected by current prestation 
         self._parents = set() # prestations that current prestations depends on  
