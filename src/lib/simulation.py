@@ -49,8 +49,9 @@ class Simulation(object):
         self.var2enum = dict()
 
         self.subset = None
-        self.print_missing = True
         self.chunk = 1
+        
+        self.verbose = False  # verbosity parameter for debugging
                 
     def _set_config(self, **kwargs):
         """
@@ -129,7 +130,7 @@ class Simulation(object):
         self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
                                     country=self.country, num_table = self.num_table, 
                                     subset=self.subset,
-                                    print_missing=self.print_missing)
+                                    print_missing=self.verbose)
 
 
     def disable_prestations(self, disabled_prestations = None):
@@ -653,7 +654,7 @@ class SurveySimulation(Simulation):
             self.input_table.load_data_from_survey(self.survey_filename,  
                                                num_table = self.num_table,
                                                subset=self.subset,
-                                               print_missing=self.print_missing)
+                                               print_missing=self.verbose)
             
         if self.chunk == 1:     
             self._compute()
