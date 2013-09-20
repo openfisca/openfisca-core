@@ -159,6 +159,7 @@ class Description(object):
             self.columns[col.name] = col
             self._col_names.add(col.name)
             
+            
     @property
     def col_names(self):
         return self._col_names
@@ -191,5 +192,6 @@ class Description(object):
             else:
                     label2var[var] = var
                     var2label[var] = var
-        
+        var2label['wprm'] = 'Effectif'
+        label2var['Effectif'] = 'wprm'
         return label2var, var2label, var2enum
