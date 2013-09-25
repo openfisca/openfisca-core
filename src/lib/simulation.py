@@ -816,9 +816,10 @@ class SurveySimulation(Simulation):
                     people = [x[1] for x in enum]         
                 except:
                     people = None
- 
+            
+            
             # TODO: too franco-centric. Change this !!  
-            if entity is "ind":
+            if entity == "ind":
                 entity_id = "noi"
             else:
                 entity_id = "id"+entity
@@ -849,7 +850,7 @@ class SurveySimulation(Simulation):
                 elif varname in inputs.col_names:
                     val = inputs.get_value(varname, idx)
                 else:
-                    raise Exception('%s was not find in model nor in inputs' % varname)
+                    raise Exception('%s was not found in model nor in inputs' % varname)
                 
                 out_dct[varname] = val      
             
