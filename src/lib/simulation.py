@@ -15,11 +15,13 @@ from src.parametres.paramData import XmlReader, Tree2Object
 from src.lib.utils import gen_output_data, of_import
 from src import SRC_PATH
 from pandas import HDFStore
-
+import numpy as np
+import pandas as pd
 from pandas import DataFrame
-
+from src.lib.description import Description
+import pickle
+import sys
 from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
-
 
 __all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
 
@@ -49,8 +51,19 @@ class Simulation(object):
         self.var2enum = dict()
 
         self.subset = None
-        self.print_missing = True
         self.chunk = 1
+
+        
+        self.verbose = False  # verbosity parameter for debugging
+    
+    def __getstate__(self):
+        def should_pickle(v):
+            return v not in ['P_default', 'P']
+        return dict((k, v) for (k, v) in self.__dict__.iteritems() if should_pickle(k))
+    
+    def getdict(self):
+        return self.__dict__
+        
                 
     def _set_config(self, **kwargs):
         """
@@ -129,7 +142,7 @@ class Simulation(object):
         self.input_table = DataTable(self.InputDescription, datesim=self.datesim, 
                                     country=self.country, num_table = self.num_table, 
                                     subset=self.subset,
-                                    print_missing=self.print_missing)
+                                    print_missing=self.verbose)
 
 
     def disable_prestations(self, disabled_prestations = None):
@@ -304,7 +317,72 @@ class Simulation(object):
                          u'Système socio-fiscal au %s' % str(self.datesim)]
         # TODO: add other parameters
         return DataFrame(descr)
+    
+    def save_content(self, name, filename):
+        """
+        Saves content from the simulation in an HDF store.
+        We save output_table, input_table, and the default output_table dataframes, 
+        along with the other attributes using pickle.
+        TODO : we don't save attributes P, P_default for simulation 
+                neither _param, _default_param for datatables.
+        WARNING : Be careful when committing, you may have created a .pk data file.
+        
+        Parameters
+        ----------
+        name : the base name of the content inside the store.
 
+        filename : the name of the .h5 file where the table is stored. Created if not existant.
+        """
+        
+        sys.setrecursionlimit(32000)
+        # Store the tables
+        if self.verbose:
+            print 'Saving content for simulation under name %s' %name
+        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        if self.verbose:
+            print 'Putting output_table in...'
+        store.put(name + '_output_table', self.output_table.table)
+        if self.verbose:
+            print 'Putting input_table in...'
+        store.put(name + '_input_table', self.input_table.table)
+        if self.verbose:
+            print 'Putting output_table_default in...'
+        store.put(name + '_output_table_default', self.output_table_default.table)
+        
+        store.close()
+        
+        # Store all attributes from simulation
+        with open(filename + '.pk', 'wb') as output:
+            if self.verbose:
+                print 'Storing attributes for simulation ( including sub-attributes )'
+            pickle.dump(self, output)
+
+def load_content(name, filename):
+    """
+    Loads dataframes from an HDF store 
+    and simulation attributes from a pk file.
+    See save_content function.
+    
+    WARNING : Be careful when committing, you may have created a .pk data file.
+    
+    Parameters
+    ----------
+    name : the base name of the content inside the store.
+    We load an output_table, an input_table, and the default output_table.
+    filename : the name of the .h5 file where the table is stored. Created if not existant.
+    """
+    
+    print 'Loading content for simulation from file %s' %filename
+    with open(filename + '.pk', 'rb') as input:
+        simu = pickle.load(input)
+        
+    ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+    store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+    simu.output_table.table = store[name + '_output_table']
+    simu.input_table.table = store[name + '_input_table']
+    simu.output_table_default.table = store[name + '_output_table_default']
+    return simu
 
 class ScenarioSimulation(Simulation):
     """
@@ -563,8 +641,8 @@ class ScenarioSimulation(Simulation):
         del data_default
         data.setLeavesVisible()
         drawWaterfall(data, ax)
+     
         
-    
 class SurveySimulation(Simulation):
     """
     A Simulation class tailored to deal with survey data
@@ -653,7 +731,7 @@ class SurveySimulation(Simulation):
             self.input_table.load_data_from_survey(self.survey_filename,  
                                                num_table = self.num_table,
                                                subset=self.subset,
-                                               print_missing=self.print_missing)
+                                               print_missing=self.verbose)
             
         if self.chunk == 1:     
             self._compute()
@@ -738,9 +816,10 @@ class SurveySimulation(Simulation):
                     people = [x[1] for x in enum]         
                 except:
                     people = None
- 
+            
+            
             # TODO: too franco-centric. Change this !!  
-            if entity is "ind":
+            if entity == "ind":
                 entity_id = "noi"
             else:
                 entity_id = "id"+entity
@@ -760,7 +839,7 @@ class SurveySimulation(Simulation):
             for varname in varnames:
                 if varname in model.col_names:
                     col = model.description.get_col(varname)
-                    condition = (col._entity != entity) or (force_sum == True)
+                    condition = (col.entity != entity) or (force_sum == True)
                     from src.lib.columns import EnumCol, EnumPresta
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta)) 
                     if condition and type_col_condition:
@@ -771,7 +850,7 @@ class SurveySimulation(Simulation):
                 elif varname in inputs.col_names:
                     val = inputs.get_value(varname, idx)
                 else:
-                    raise Exception('%s was not find in model nor in inputs' % varname)
+                    raise Exception('%s was not found in model nor in inputs' % varname)
                 
                 out_dct[varname] = val      
             
@@ -799,33 +878,4 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
-        
-    def save_output_table(self, name, filename):
-        """
-        Saves the output dataframe under default directory in an HDF store.
-        
-        Parameters
-        ----------
-        name : the name of the table inside the store
-        filename : the name of the .h5 file where the table is stored. Created if not existant.
-        """
-        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
-        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
-        store.put(name, self.output_table.table)
-        #store.put('col_'+ name, self.output_table.description.columns ) marche pas, erreur de type
-        store.close()
-        
-#===============================================================================
-# if __name__ == "__main__":
-#     year = 2006
-#     sim = SurveySimulation()
-#     sim._set_config(year=year)
-#     
-#     sim.filename = os.path.join(SRC_PATH, 'countries', 'france', 'data', 'fichiertest.h5')
-#     sim.set_param()
-#     sim.compute()
-#     sim.save_output_table('testundeux', 'fichiertestundeux')
-#===============================================================================
-        
-
-
+           

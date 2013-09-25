@@ -87,7 +87,19 @@ class DataTable(object):
             raise Exception("model_description should be an ModelDescription inherited class")
 
         self.col_names = self.description.col_names
-        
+
+    '''
+    The 2 following functions are created to tell pickle what to do when pickling and unpickling.
+    '''
+    def __getstate__(self):
+        def should_pickle(k):
+            return k not in ['table', 'table3', '_param', '_default_param' ]
+        return dict((k, v) for (k, v) in self.__dict__.iteritems() if should_pickle(k))
+    
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.table = None
+        self.table3 = None
         
     def load_data_from_test_case(self, test_case):
         self.test_case = test_case
@@ -846,7 +858,7 @@ class SystemSf(DataTable):
         if not col._enabled:
             return
 
-        entity = col._entity
+        entity = col.entity
         if entity is None:
             entity = "ind"
         required = set(col.inputs)
