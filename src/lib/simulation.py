@@ -696,6 +696,13 @@ class SurveySimulation(Simulation):
                     keys or a variable column should contain the variables to 
                     inflate and values of the value column the value of the inflator
         """
+
+        if self.input_table is None:
+            self.initialize_input_table()
+            self.input_table.load_data_from_survey(self.survey_filename,  
+                                               num_table = self.num_table,
+                                               subset=self.subset,
+                                               print_missing=self.verbose)
         
         if isinstance(inflators, DataFrame):
             for varname in inflators['variable']:
@@ -726,8 +733,9 @@ class SurveySimulation(Simulation):
         """
         Computes the output_table for a survey based simulation
         """
-        self.initialize_input_table()
-        if len(self.input_table.table)==0:
+        self.clear()
+        if self.input_table is None:
+            self.initialize_input_table()
             self.input_table.load_data_from_survey(self.survey_filename,  
                                                num_table = self.num_table,
                                                subset=self.subset,
