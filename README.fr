@@ -25,5 +25,5 @@ Nous invitons les utilisateurs à nous transmettre leur remarques, les
 imprécisions ou erreurs identifiées, ainsi que les éventuelles
 propositions d’amélioration. Si vous voulez participer plus activement
 à l’évolution du programme, vous pouvez télécharger le code source sur
-GitHub (https://github.com/benjello/openfisca) et/ou nous contacter à
+GitHub (https://github.com/openfisca/openfisca) et/ou nous contacter à
 contact@openfisca.fr.

@@ -20,6 +20,6 @@ OpenFisca (beta) is a FLOSS project wich code is distributed
 under the GPL licence version 3 or later (see license.txt). 
 The source code is freely available and still undergoes heavy development.
 Feel free to join the OpenFisca developpment team on GitHub 
-(https://github.com/benjello/openfisca) or to contact us at
+(https://github.com/openfisca/openfisca) or to contact us at
 contact@openfisca.fr.
 
