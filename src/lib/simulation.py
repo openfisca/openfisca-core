@@ -556,7 +556,7 @@ class ScenarioSimulation(Simulation):
     
         return output_alter, self.output_table
 
-    def get_results_dataframe(self, default = False, difference = False, index_by_code = False, ):
+    def get_results_dataframe(self, default = False, difference = False, index_by_code = False):
         """
         Formats data into a dataframe
         

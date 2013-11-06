@@ -427,11 +427,12 @@ class DataTable(object):
             if varname != 'ppe_coef':
             # should be : if ent == 'ind':
                 return var
-            else: 
-                print ("The %s entity variable %s, is called to set an individual variable" 
-                               % (col.entity,varname) ) 
+            else:
+                # TODO: FIX THIS 
+                #print ("The %s entity variable %s, is called to set an individual variable" 
+                #               % (col.entity,varname) ) 
 
-                # ce aui suit est copie sur propagate_to_members
+                # ce qui suit est copie sur propagate_to_members
                 value = self.get_value(varname, ent)
                 try:
                     enum = self.description.get_col('qui'+ent).enum
