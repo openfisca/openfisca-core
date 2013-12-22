@@ -64,7 +64,7 @@ class DataTable(object):
 
         self.index = {}
         self._nrows = 0
-        self.print_missing=print_missing
+        self.print_missing = print_missing
         
         if datesim is None:
             raise Exception('InputDescription: datesim should be provided')
@@ -324,12 +324,9 @@ class DataTable(object):
                         missing_col.append(col.name)
                         self.table3[ent][col.name] = col._default
                     #try:
-                    if True:
-                        print self.table3[ent][col.name]
-                        print col.name
-                        if self.table3[ent][col.name].isnull().any():
-                            self.table3[ent][col.name].fillna(col._default, inplace=True)
-                        self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
+                    if self.table3[ent][col.name].isnull().any():
+                        self.table3[ent][col.name].fillna(col._default, inplace=True)
+                    self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
 #                     except:
 #                         print self.table3[ent].columns
 #                         print col.name
@@ -354,9 +351,9 @@ class DataTable(object):
                     messageb += '  - '+ var +'\n'
                 else:
                     message += '  - '+ var +'\n'
-            if self.print_missing==True:
+            if self.print_missing:
                 print Warning(message + messagef + messageb)
-            
+
         for var in INDEX:
             if ('id' + var) in missing_col:
                 raise Exception('Survey data needs variable %s' % ('id' + var))
