@@ -47,7 +47,7 @@ doc_lines = __doc__.split('\n')
 
 
 setup(
-    name = 'OpenFisca-Core',
+    name = 'openfisca-core',
     version = '0.2dev',
 
     author = 'OpenFisca Team',
@@ -60,7 +60,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca_core.mo']),
+        ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
         ],
     install_requires = [
         "Babel >= 0.9.4",
