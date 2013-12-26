@@ -23,8 +23,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-__version__ = "0.1.4"
-#__project_url__ = "http://www.openfisca.fr/"
-#__forum_url__  = "http://github.com/openfisca/openfisca/issues?state=open"
-
-#DATAPATH = LOCALEPATH = DOCPATH = ''
+__version__ = '0.1.4'
