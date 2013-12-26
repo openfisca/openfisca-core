@@ -1,4 +1,4 @@
-.. currentmodule:: src.lib.simulation
+.. currentmodule:: openfisca_core.simulations
 
 .. _testcase:
 
@@ -21,6 +21,6 @@ Classe dédiee aux cas type
 --------------------------
 
 
-.. autoclass:: src.lib.simulation.ScenarioSimulation
+.. autoclass:: openfisca_core.simulations.ScenarioSimulation
    :members:
    :inherited-members:

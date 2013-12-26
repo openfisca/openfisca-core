@@ -1,34 +1,38 @@
-# -*- coding:utf-8 -*-
-# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# -*- coding: utf-8 -*-
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
-This file is part of openFisca.
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013 OpenFisca Team
+# https://github.com/openfisca/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from __future__ import division
+
 import numpy as np
-from src.lib.utils import Enum
+
+from .utils import Enum
 
 
 def default_frequency_converter(from_ = None, to_= None):
     """
-    Default function to convert Columns between different frequencies 
+    Default function to convert Columns between different frequencies
     """
     if (from_ is None) and (to_ is None):
         return lambda x: x
@@ -40,11 +44,11 @@ def default_frequency_converter(from_ = None, to_= None):
         return lambda x: x*4
 
     if (from_ == "year") and (to_ == "month"):
-        return lambda x: x/12 
+        return lambda x: x/12
 
     if (from_ == "month") and (to_ == "year"):
         return lambda x: 12*x
- 
+
 
 
 class Column(object):
@@ -66,13 +70,13 @@ class Column(object):
         self._dtype = float
         self._frequency_converter = default_frequency_converter
 
-        
+
     def reset_count(self):
         """
         Reset the count of column to zero
         """
         Column.count = 0
-       
+
 class IntCol(Column):
     '''
     A column of integer
@@ -80,7 +84,7 @@ class IntCol(Column):
     def __init__(self, **kwargs):
         super(IntCol, self).__init__(**kwargs)
         self._dtype = np.int32
-        
+
 class EnumCol(IntCol):
     '''
     A column of integer with an enum
@@ -91,8 +95,8 @@ class EnumCol(IntCol):
         if isinstance(enum, Enum):
             self.enum = enum
         else:
-            self.enum = None            
-            
+            self.enum = None
+
 class BoolCol(Column):
     '''
     A column of boolean
@@ -108,14 +112,14 @@ class FloatCol(Column):
     def __init__(self, **kwargs):
         super(FloatCol, self).__init__(**kwargs)
         self._dtype = np.float32
-        
+
 class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
     def __init__(self, default=-9999, **kwargs):
         super(AgesCol, self).__init__(default=default, **kwargs)
-        
+
 class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
@@ -126,7 +130,7 @@ class DateCol(Column):
 
 class Prestation(Column):
     """
-    Prestation is a wraper around a function which takes some arguments and return a single array. 
+    Prestation is a wraper around a function which takes some arguments and return a single array.
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
     count = 0
@@ -136,10 +140,10 @@ class Prestation(Column):
 
         if func is None:
             raise Exception('a function to compute the prestation should be provided')
-        
+
         self._order = Prestation.count
         Prestation.count += 1
-        
+
         # initialize attribute
         self._isCalculated = False
         self._option = {}
@@ -151,22 +155,22 @@ class Prestation(Column):
         self.entity  = entity
 
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
-        self._children  = set() # prestations immidiately affected by current prestation 
-        self._parents = set() # prestations that current prestations depends on  
-           
-        # by default enable all the prestations 
+        self._children  = set() # prestations immidiately affected by current prestation
+        self._parents = set() # prestations that current prestations depends on
+
+        # by default enable all the prestations
         self._enabled    = True
-       
+
         # check if the function func needs parameter tree _P
         self._needParam = '_P' in self.inputs
         if self._needParam:
             self.inputs.remove('_P')
-            
+
         # check if the function func needs default parameter tree _P
         self._needDefaultParam = '_defaultP' in self.inputs
         if self._needDefaultParam:
             self.inputs.remove('_defaultP')
-                
+
         # check if an option dict is passed to the function
         self._hasOption = '_option' in self.inputs
         if self._hasOption:
@@ -175,7 +179,7 @@ class Prestation(Column):
             for var in self._option:
                 if var not in self.inputs:
                     raise Exception('%s in option but not in function args' % var)
-                
+
         # check if a frequency dict is passed to the function
         self._has_freq = '_freq' in self.inputs
         if self._has_freq:
@@ -184,15 +188,15 @@ class Prestation(Column):
                 self._freq = func.func_defaults[1]
             else:
                 self._freq = func.func_defaults[0]
-                
+
             for var in self._freq:
                 if var not in self.inputs:
                     raise Exception('%s in option but not in function args' % var)
-                
-    
+
+
     def set_enabled(self):
         self._enabled = True
- 
+
     def set_disabled(self):
         self._enabled = False
 
@@ -237,6 +241,6 @@ class EnumPresta(Prestation, EnumCol):
 #                if edge in unresolved:
 #                    raise Exception('Circular reference detected: %s -> %s' % (self._name, edge._name))
 #                edge.dep_resolve(resolved, unresolved)
-#        
+#
 #        resolved.add(self)
 #        unresolved.remove(self)

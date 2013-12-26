@@ -1,4 +1,4 @@
-.. currentmodule:: src.lib.simulation
+.. currentmodule:: openfisca_core.simulations
 .. _survey:
 
 
@@ -7,6 +7,6 @@
 Microsimulation à partir de données d'enquête
 *********************************************	
 
-.. autoclass:: src.lib.simulation.SurveySimulation
+.. autoclass:: openfisca_core.simulations.SurveySimulation
    :members:
    :inherited-members:

@@ -1,33 +1,37 @@
-# -*- coding:utf-8 -*-
-# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# -*- coding: utf-8 -*-
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
-This file is part of openFisca.
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013 OpenFisca Team
+# https://github.com/openfisca/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from __future__ import division
-from src.lib.columns import Column, Prestation
+
+from .columns import Column, EnumCol, Prestation
+
 
 class MetaModelDescription(type):
     """
     DataTable metaclass
-    
+
     Create class attribute `columns`: list of the ModelDescription class attributes,
     created in the same order as these attributes were written
     """
@@ -41,7 +45,7 @@ class MetaModelDescription(type):
         if not parents:
             # If this isn't a subclass of ModelDescription, don't do anything special.
             return super_new(cls, name, bases, dct)
-        
+
 
 #        fake_column = Column()
 #        fake_column.reset_count()
@@ -59,10 +63,10 @@ class MetaModelDescription(type):
         for i in range(max(col_numbers)):
             if not i in col_numbers:
                 raise Exception("The column before %s in class %s is defined twice"% (columns_list[i].name, name))
-        
+
         dct["columns"] = columns_list
         return super_new(cls, name, bases, dct)
-        
+
 class ModelDescription(object):
     __metaclass__ = MetaModelDescription
 
@@ -93,7 +97,7 @@ class ModelDescription(object):
     def get_title(self):
         """ Return data set title """
         return self.__title
-    
+
     def get_comment(self):
         """ Return data set comment """
         return self.__comment
@@ -101,16 +105,16 @@ class ModelDescription(object):
     def to_string(self, debug=False, indent=None, align=False):
         """
         Return readable string representation of the data set
-        
+
         Parameters
         ----------
-        
+
         debug : bool, default False
                 If true, show more details
-        
+
         indent :  default None
-        
-        align : bool, default False 
+
+        align : bool, default False
 
         Returns
         -------
@@ -139,12 +143,12 @@ class ModelDescription(object):
                 label = column.get_prop_value("display", self, "label")
             if length:
                 label = label.ljust(length)
-                
+
             txt += indent+label+": "
             if debug:
                 txt += column.__class__.__name__
         return txt
-    
+
     def __str__(self):
         return self.to_string(debug=True)
 
@@ -158,8 +162,8 @@ class Description(object):
         for col in columns:
             self.columns[col.name] = col
             self._col_names.add(col.name)
-            
-            
+
+
     @property
     def col_names(self):
         return self._col_names
@@ -169,8 +173,8 @@ class Description(object):
 
     def has_col(self, col_name):
         return self.columns.has_key(col_name)
-    
-    
+
+
     def builds_dicts(self):
         '''
         Builds dicts label2var, var2label, var2enum
@@ -178,17 +182,16 @@ class Description(object):
         label2var = {}
         var2label = {}
         var2enum = {}
-        from src.lib.columns import EnumCol
         for var in self.col_names:
             varcol  = self.get_col(var)
             if isinstance(varcol, EnumCol):
                 var2enum[var] = varcol.enum
             else:
                 var2enum[var] = None
-                    
+
             if varcol.label:
                     label2var[varcol.label] = var
-                    var2label[var]          = varcol.label        
+                    var2label[var]          = varcol.label
             else:
                     label2var[var] = var
                     var2label[var] = var

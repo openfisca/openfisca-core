@@ -35,8 +35,6 @@ from setuptools import setup, find_packages
 
 classifiers = """\
 Development Status :: 2 - Pre-Alpha
-Environment :: Web Environment
-Intended Audience :: Information Technology
 License :: OSI Approved :: GNU Affero General Public License v3
 Operating System :: POSIX
 Programming Language :: Python
@@ -47,7 +45,7 @@ doc_lines = __doc__.split('\n')
 
 
 setup(
-    name = 'openfisca-core',
+    name = 'OpenFisca-Core',
     version = '0.2dev',
 
     author = 'OpenFisca Team',

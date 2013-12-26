@@ -1,4 +1,4 @@
-.. currentmodule:: src.lib.simulation
+.. currentmodule:: openfisca_core.simulations
 .. _testcase:
 
 *********
