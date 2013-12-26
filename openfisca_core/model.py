@@ -23,19 +23,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Inited by country-specific package (cf function init_country())
-# Note: These variables below are not inited to None, to ensure that execution will fail when they are used before
-# OpenFisca country is properly inited.
-#
-# DATA_DIR
-# DECOMP_DIR
-# DEFAULT_DECOMP_FILE
-# ENTITIES_INDEX
-# InputDescription
-# OutputDescription
-# PARAM_FILE
-# REFORMS_DIR
-# Scenario
-# WEIGHT
-# WEIGHT_INI
-# XAXIS_PROPERTIES
+# The model variables are created by each country-specific package (cf function init_country())
+# Note: The variables below are not inited (to None) here, to ensure that execution will fail when they are used before
+# OpenFisca country-specific package is properly inited.
+__all__ = [
+    'AGGREGATES_DEFAULT_VARS',
+    'CURRENCY',
+    'DATA_DIR',
+    'DATA_SOURCES_DIR',
+    'DECOMP_DIR',
+    'DEFAULT_DECOMP_FILE',
+    'ENTITIES_INDEX',
+    'FILTERING_VARS',
+    'InputDescription',
+    'OutputDescription',
+    'PARAM_FILE',
+    'REFORMS_DIR',
+    'REV_TYP',
+    'REVENUES_CATEGORIES',
+    'Scenario',
+    'WEIGHT',
+    'WEIGHT_INI',
+    'XAXIS_PROPERTIES',
+    ]
