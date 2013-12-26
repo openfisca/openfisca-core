@@ -34,17 +34,20 @@ import pandas as pd
 from pandas import DataFrame
 from pandas import HDFStore
 
-from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
+#from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
 
-from . import axestools, model, SRC_PATH
+from . import axestools, model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable, SystemSf
 from .descriptions import Description
 from .parameters import XmlReader, Tree2Object
-from .utils import gen_output_data, of_import
+from .utils import gen_output_data
 
 
 __all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
+
+
+check_consistency = None  # Set to a function by country-specific package
 
 
 class Simulation(object):
@@ -118,7 +121,7 @@ class Simulation(object):
 
         if self.param_file is None:
             if self.country is not None:
-                self.param_file = os.path.join(SRC_PATH, 'countries', self.country, 'param', 'param.xml')
+                self.param_file = model.PARAM_FILE
 
         # Sets required country specific classes
         if self.country is not None:
@@ -127,8 +130,8 @@ class Simulation(object):
                 del self.OutputDescription
             except:
                 pass
-            self.InputDescription = of_import('model.data', 'InputDescription', country=self.country)
-            self.OutputDescription = of_import('model.model', 'OutputDescription', country=self.country)
+            self.InputDescription = model.InputDescription
+            self.OutputDescription = model.OutputDescription
 
         return remaining
 
@@ -360,7 +363,7 @@ class Simulation(object):
         # Store the tables
         if self.verbose:
             print 'Saving content for simulation under name %s' %name
-        ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+        ERF_HDF5_DATA_DIR = os.path.join(model.DATA_DIR, 'erf')
         store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
         if self.verbose:
             print 'Putting output_table in...'
@@ -399,7 +402,7 @@ def load_content(name, filename):
     with open(filename + '.pk', 'rb') as input:
         simu = pickle.load(input)
 
-    ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data','erf')
+    ERF_HDF5_DATA_DIR = os.path.join(model.DATA_DIR, 'erf')
     store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
     simu.output_table.table = store[name + '_output_table']
     simu.input_table.table = store[name + '_input_table']
@@ -443,7 +446,7 @@ class ScenarioSimulation(Simulation):
         """
 
         specific_kwargs = self._set_config(**kwargs)
-        self.Scenario = of_import('utils', 'Scenario', country = self.country)
+        self.Scenario = model.Scenario
         if self.scenario is None:
             try:
                 self.scenario = kwargs['scenario']
@@ -463,11 +466,9 @@ class ScenarioSimulation(Simulation):
 
         if self.country is not None:
             if self.decomp_file is None:
-                default_decomp_file = of_import("decompositions", "DEFAULT_DECOMP_FILE", self.country)
-                self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', default_decomp_file)
-            else:
-                if not os.path.exists(self.decomp_file):
-                    self.decomp_file = os.path.join(SRC_PATH, 'countries', self.country, 'decompositions', self.decomp_file)
+                self.decomp_file = os.path.join(model.DECOMP_DIR, model.DEFAULT_DECOMP_FILE)
+            elif not os.path.exists(self.decomp_file):
+                self.decomp_file = os.path.join(model.DECOMP_DIR, self.decomp_file)
 
         self.initialize_input_table()
 
@@ -620,48 +621,48 @@ class ScenarioSimulation(Simulation):
         df = df.reindex(index)
         return df
 
-    def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
-        """
-        Draws a bareme on matplotlib.axes.Axes
-        """
-        reforme = self.reforme
-        alter = (self.alternative_scenario is not None)
+#    def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
+#        """
+#        Draws a bareme on matplotlib.axes.Axes
+#        """
+#        reforme = self.reforme
+#        alter = (self.alternative_scenario is not None)
 
-        self.compute()
-        data = self.data
-        data_default = self.data_default
+#        self.compute()
+#        data = self.data
+#        data_default = self.data_default
 
-        data.setLeavesVisible()
-        data_default.setLeavesVisible()
-        if graph_xaxis is None:
-            graph_xaxis = 'sal'
-        if not alter:
-            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
-        else:
-            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
+#        data.setLeavesVisible()
+#        data_default.setLeavesVisible()
+#        if graph_xaxis is None:
+#            graph_xaxis = 'sal'
+#        if not alter:
+#            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
+#        else:
+#            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
 
-    def draw_taux(self, ax, graph_xaxis = None, legend = True):
-        """
-        Draws a bareme on matplotlib.axes.Axes object ax
-        """
-        reforme = self.reforme or (self.alternative_scenario is not None)
-        self.compute()
-        data, data_default = self.data, self.data_default
+#    def draw_taux(self, ax, graph_xaxis = None, legend = True):
+#        """
+#        Draws a bareme on matplotlib.axes.Axes object ax
+#        """
+#        reforme = self.reforme or (self.alternative_scenario is not None)
+#        self.compute()
+#        data, data_default = self.data, self.data_default
 
-        data.setLeavesVisible()
-        data_default.setLeavesVisible()
-        if graph_xaxis is None:
-            graph_xaxis = 'sal'
-        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
+#        data.setLeavesVisible()
+#        data_default.setLeavesVisible()
+#        if graph_xaxis is None:
+#            graph_xaxis = 'sal'
+#        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
 
-    def draw_waterfall(self, ax):
-        """
-        Draws a waterfall on matplotlib.axes.Axes object ax
-        """
-        data, data_default = self.compute()
-        del data_default
-        data.setLeavesVisible()
-        drawWaterfall(data, ax)
+#    def draw_waterfall(self, ax):
+#        """
+#        Draws a waterfall on matplotlib.axes.Axes object ax
+#        """
+#        data, data_default = self.compute()
+#        del data_default
+#        data.setLeavesVisible()
+#        drawWaterfall(data, ax)
 
 
 class SurveySimulation(Simulation):
@@ -694,9 +695,9 @@ class SurveySimulation(Simulation):
         if self.survey_filename is None:
             if self.country is not None:
                 if self.num_table == 1 :
-                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey.h5')
+                    filename = os.path.join(model.DATA_DIR, 'survey.h5')
                 else:
-                    filename = os.path.join(SRC_PATH, 'countries', self.country, 'data', 'survey3.h5')
+                    filename = os.path.join(model.DATA_DIR, 'survey3.h5')
 
             self.survey_filename = filename
 
@@ -738,7 +739,6 @@ class SurveySimulation(Simulation):
         """
         Consistency check of survey input data
         """
-        check_consistency = of_import('utils', 'check_consistency', self.country)
         check_consistency(self.input_table)
 
     def initialize_input_table(self):

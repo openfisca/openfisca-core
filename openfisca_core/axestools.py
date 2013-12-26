@@ -23,8 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .descriptions import Description
-from .model import InputDescription, XAXIS_PROPERTIES
+from . import descriptions, model
 
 
 class Xaxis(object):
@@ -41,12 +40,13 @@ class Xaxis(object):
 
     def set(self, col_name, name = None, typ_tot = None, typt_tot_default = None):
         """Set Xaxis attributes."""
-        self.name = XAXIS_PROPERTIES[col_name]['name']
-        self.typ_tot = XAXIS_PROPERTIES[col_name]['typ_tot']
-        self.typ_tot_default = XAXIS_PROPERTIES[col_name]['typ_tot_default']
+        properties = model.XAXIS_PROPERTIES[col_name]
+        self.name = properties['name']
+        self.typ_tot = properties['typ_tot']
+        self.typ_tot_default = properties['typ_tot_default']
 
     def set_label(self):
-        description = Description(InputDescription().columns)
+        description = descriptions.Description(model.InputDescription().columns)
         label2var, var2label, var2enum = description.builds_dicts()
         self.label = var2label[self.col_name]
 
@@ -54,5 +54,5 @@ class Xaxis(object):
 def build_axes():
     return [
         Xaxis(col_name)
-        for col_name in XAXIS_PROPERTIES
+        for col_name in model.XAXIS_PROPERTIES
         ]
