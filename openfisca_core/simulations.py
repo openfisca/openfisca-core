@@ -31,8 +31,7 @@ import sys
 
 import numpy as np
 import pandas as pd
-from pandas import DataFrame
-from pandas import HDFStore
+from pandas import DataFrame, HDFStore
 
 #from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
 
@@ -44,7 +43,7 @@ from .parameters import XmlReader, Tree2Object
 from .utils import gen_output_data
 
 
-__all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation' ]
+__all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation']
 
 
 check_consistency = None  # Set to a function by country-specific package
@@ -59,36 +58,35 @@ class Simulation(object):
     --------
     ScenarioSimulation, SurveySimulation
     """
+    chunk = 1
+    country = None  # String denoting the country
+    datesim = None
+    disabled_prestations = None
+    input_table = None
+    label2var = None
+    num_table = 1
+    output_table = None
+    output_table_default = None
+    P = None
+    P_default = None
+    param_file = None
+    reforme = False  # Boolean signaling reform mode
+    subset = None
+    var2enum = None
+    var2label = None
+    verbose = False
+
     def __init__(self):
         super(Simulation, self).__init__()
-        self.reforme = False   # Boolean signaling reform mode
-        self.country = None    # String denoting the country
-        self.datesim = None
-        self.input_table = None
-        self.output_table, self.output_table_default = None, None
-        self.P, self.P_default = None, None
-        self.param_file = None
-        self.disabled_prestations = None
-        self.num_table = 1
 
-        self.label2var = dict()
-        self.var2label = dict()
-        self.var2enum = dict()
-
-        self.subset = None
-        self.chunk = 1
-
-
-        self.verbose = False  # verbosity parameter for debugging
+        self.label2var = {}
+        self.var2label = {}
+        self.var2enum = {}
 
     def __getstate__(self):
         def should_pickle(v):
             return v not in ['P_default', 'P']
         return dict((k, v) for (k, v) in self.__dict__.iteritems() if should_pickle(k))
-
-    def getdict(self):
-        return self.__dict__
-
 
     def _set_config(self, **kwargs):
         """
@@ -162,13 +160,11 @@ class Simulation(object):
         else:
             self.P = param
 
-
     def _initialize_input_table(self):
         self.input_table = DataTable(self.InputDescription, datesim=self.datesim,
                                     country=self.country, num_table = self.num_table,
                                     subset=self.subset,
                                     print_missing=self.verbose)
-
 
     def disable_prestations(self, disabled_prestations = None):
         """
@@ -180,7 +176,6 @@ class Simulation(object):
                                names of the prestations to be disabled
         """
         self.disabled_prestations = disabled_prestations
-
 
     def _preproc(self):
         """
@@ -200,11 +195,13 @@ class Simulation(object):
         P, P_default = self.P, self.P_default
         input_table = self.input_table
 
-        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country, num_table = self.num_table)
+        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country,
+            num_table = self.num_table)
         output_table.set_inputs(input_table, country = self.country)
 
         if self.reforme:
-            output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim, country = self.country, num_table = self.num_table)
+            output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim,
+                country = self.country, num_table = self.num_table)
             output_table_default.set_inputs(input_table, country = self.country)
         else:
             output_table_default = output_table
@@ -213,7 +210,6 @@ class Simulation(object):
         output_table_default.disable(self.disabled_prestations)
         self._build_dicts()
         self.output_table, self.output_table_default = output_table, output_table_default
-
 
     def _compute(self, **kwargs):
         """
@@ -247,11 +243,9 @@ class Simulation(object):
             output_table_default = output_table
             data_default = data
 
-
         self.data, self.data_default = data, data_default
         self._build_dicts(option = 'output_only')
         gc.collect()
-
 
     def clear(self):
         """
@@ -260,7 +254,6 @@ class Simulation(object):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
-
 
     def _build_dicts(self, option = None):
         """
@@ -318,7 +311,6 @@ class Simulation(object):
         """
         if self.output_table is not None:
             return self.output_table.description.col_names
-
 
     @property
     def var_list(self):
@@ -383,51 +375,22 @@ class Simulation(object):
                 print 'Storing attributes for simulation ( including sub-attributes )'
             pickle.dump(self, output)
 
-def load_content(name, filename):
-    """
-    Loads dataframes from an HDF store
-    and simulation attributes from a pk file.
-    See save_content function.
-
-    WARNING : Be careful when committing, you may have created a .pk data file.
-
-    Parameters
-    ----------
-    name : the base name of the content inside the store.
-    We load an output_table, an input_table, and the default output_table.
-    filename : the name of the .h5 file where the table is stored. Created if not existant.
-    """
-
-    print 'Loading content for simulation from file %s' %filename
-    with open(filename + '.pk', 'rb') as input:
-        simu = pickle.load(input)
-
-    ERF_HDF5_DATA_DIR = os.path.join(model.DATA_DIR, 'erf')
-    store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
-    simu.output_table.table = store[name + '_output_table']
-    simu.input_table.table = store[name + '_input_table']
-    simu.output_table_default.table = store[name + '_output_table_default']
-    return simu
 
 class ScenarioSimulation(Simulation):
     """
     A Simulation class tailored to deal with scenarios
     """
-
-    def __init__(self):
-        super(ScenarioSimulation, self).__init__()
-        self.Scenario = None
-        self.scenario = None
-        self.alternative_scenario = None
-        self.decomp_file = None
-
-        self.nmen = None
-        self.xaxis = None
-        self.maxrev = None
-        self.mode = None
-        self.same_rev_couple = False
-        self.data = None
-        self.data_default = None
+    alternative_scenario = None
+    data = None
+    data_default = None
+    decomp_file = None
+    maxrev = None
+    mode = None
+    nmen = None
+    same_rev_couple = False
+    Scenario = None
+    scenario = None
+    xaxis = None
 
     def set_config(self, **kwargs):
         """
@@ -483,8 +446,6 @@ class ScenarioSimulation(Simulation):
                 return rev
         raise Exception("No revenue for variable %s" %(var) )
 
-
-
     def reset_scenario(self):
         """
         Reset scenario and alternative_scenario to their default values
@@ -492,7 +453,6 @@ class ScenarioSimulation(Simulation):
         if self.Scenario is not None:
             self.scenario = self.Scenario()
         self.alternative_scenario = None
-
 
     def set_alternative_scenario(self, scenario):
         """
@@ -669,11 +629,8 @@ class SurveySimulation(Simulation):
     """
     A Simulation class tailored to deal with survey data
     """
-    def __init__(self):
-        super(SurveySimulation, self).__init__()
-        self.descr = None
-        self.survey_filename = None
-
+    descr = None
+    survey_filename = None
 
     def set_config(self, **kwargs):
         """
@@ -749,7 +706,6 @@ class SurveySimulation(Simulation):
         self._initialize_input_table()
         self._build_dicts(option = 'input_only')
 
-
     def compute(self):
         """
         Computes the output_table for a survey based simulation
@@ -775,7 +731,6 @@ class SurveySimulation(Simulation):
 
             len_tot = len(list_men)
             len_chunk = int(len_tot/self.chunk)+1
-
 
             for chunk in range(0, self.chunk):
                 start= chunk * len_chunk
@@ -845,7 +800,6 @@ class SurveySimulation(Simulation):
                 except:
                     people = None
 
-
             # TODO: too franco-centric. Change this !!
             if entity == "ind":
                 entity_id = "noi"
@@ -858,7 +812,6 @@ class SurveySimulation(Simulation):
             if variables is not None:
                 input_variables = input_variables.union( set(inputs.col_names).intersection(variables))
                 output_variables = set(model.col_names).intersection(variables)
-
 
             if all_output_vars:
                 output_variables = set(model.col_names)
@@ -888,7 +841,6 @@ class SurveySimulation(Simulation):
 
         return out_tables[0], out_tables[1]
 
-
     def get_variables_dataframe(self, variables=None, entity="ind"):
         """
         Get variables
@@ -897,7 +849,6 @@ class SurveySimulation(Simulation):
                                          all_output_vars = False,
                                          all_input_vars = False, force_sum = False)[0]
 
-
     def clear(self):
         """
         Clear the outputs table
@@ -905,4 +856,3 @@ class SurveySimulation(Simulation):
         self.output_table = None
         self.output_table_default = None
         gc.collect()
-           
