@@ -782,15 +782,15 @@ class SurveySimulation(Simulation):
         if entity is None:
             entity = model.ENTITIES_INDEX[0]
 
-        models = [self.output_table]
+        tax_benefit_systems = [self.output_table]
         if self.reforme is True:
-            models.append(self.output_table_default)
+            tax_benefit_systems.append(self.output_table_default)
 
         out_tables = []
 
-        for model in models:
+        for tax_benefit_system in tax_benefit_systems:
             out_dct = {}
-            inputs = model._inputs
+            inputs = tax_benefit_system._inputs
             idx = entity
             people = None
             if self.num_table == 1:
@@ -811,26 +811,26 @@ class SurveySimulation(Simulation):
                 input_variables = input_variables.union(set(inputs.col_names))
             if variables is not None:
                 input_variables = input_variables.union( set(inputs.col_names).intersection(variables))
-                output_variables = set(model.col_names).intersection(variables)
+                output_variables = set(tax_benefit_system.col_names).intersection(variables)
 
             if all_output_vars:
-                output_variables = set(model.col_names)
+                output_variables = set(tax_benefit_system.col_names)
 
             varnames = output_variables.union(input_variables)
             for varname in varnames:
-                if varname in model.col_names:
-                    col = model.description.get_col(varname)
+                if varname in tax_benefit_system.col_names:
+                    col = tax_benefit_system.description.get_col(varname)
                     condition = (col.entity != entity) or (force_sum == True)
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta))
                     if condition and type_col_condition:
-                        val = model.get_value(varname, entity=idx, opt = people, sum_ = True)
+                        val = tax_benefit_system.get_value(varname, entity=idx, opt = people, sum_ = True)
                     else:
-                        val = model.get_value(varname, entity=idx)
+                        val = tax_benefit_system.get_value(varname, entity=idx)
 
                 elif varname in inputs.col_names:
                     val = inputs.get_value(varname, idx)
                 else:
-                    raise Exception('%s was not found in model nor in inputs' % varname)
+                    raise Exception('%s was not found in tax-benefit system nor in inputs' % varname)
 
                 out_dct[varname] = val
 
