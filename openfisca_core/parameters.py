@@ -292,12 +292,11 @@ class CodeNode(Node):
                                attrib = {'code': self.code,
                                          'description': self.description})
 
-            date = str(CONF.get('simulation', 'datesim'))
             SubElement(child,
                        tag = 'VALUE',
                        attrib = {'valeur': '%f' % self.value,
-                                 'deb': date,
-                                 'fin': date})
+                                 'deb': datesim,
+                                 'fin': datesim})
 
     def load(self, other):
         self.value = other.value
@@ -345,12 +344,9 @@ class BaremeNode(Node):
                                attrib = {'code': self.code,
                                          'description': self.description})
 
-
-
             bareme = self.value
             S = bareme.seuils
             T = bareme.taux
-            date = str(CONF.get('simulation', 'datesim'))
 
             for i in range(self.value._nb):
                 tranche = SubElement(child,
@@ -364,8 +360,8 @@ class BaremeNode(Node):
                 SubElement(seuil,
                            tag = 'VALUE',
                            attrib = {'valeur': '%f' % S[i],
-                                     'deb': date,
-                                     'fin': date})
+                                     'deb': datesim,
+                                     'fin': datesim})
 
                 taux = SubElement(tranche,
                                      tag = 'TAUX')
@@ -373,8 +369,8 @@ class BaremeNode(Node):
                 SubElement(taux,
                            tag = 'VALUE',
                            attrib = {'valeur': '%f' % T[i],
-                                     'deb': date,
-                                     'fin': date})
+                                     'deb': datesim,
+                                     'fin': datesim})
 
     def load(self, other):
         self.value = other.value
