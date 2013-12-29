@@ -43,7 +43,7 @@ from .parameters import XmlReader, Tree2Object
 from .utils import gen_output_data
 
 
-__all__ = ['Simulation', 'ScenarioSimulation', 'SurveySimulation']
+__all__ = ['ScenarioSimulation', 'Simulation', 'SurveySimulation']
 
 
 check_consistency = None  # Set to a function by country-specific package
