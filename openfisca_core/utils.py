@@ -49,6 +49,9 @@ class Enum(object):
     def __iter__(self):
         return self.itervars()
 
+    def __len__(self):
+        return self._count
+
     def itervars(self):
         for key, val in self._vars.iteritems():
             yield (val, key)

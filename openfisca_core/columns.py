@@ -25,8 +25,10 @@
 
 from __future__ import division
 
+from biryani1 import strings
 import numpy as np
 
+from . import conv
 from .utils import Enum
 
 
@@ -50,13 +52,16 @@ def default_frequency_converter(from_ = None, to_= None):
         return lambda x: 12*x
 
 
+# Base Column
+
 
 class Column(object):
     count = 0
-    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None, freq = 'year'):
+    name = None
 
+    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None,
+            freq = 'year'):
         super(Column, self).__init__()
-        self.name = None
         self.label = label
         self.entity = entity
         self.start = start
@@ -70,32 +75,15 @@ class Column(object):
         self._dtype = float
         self._frequency_converter = default_frequency_converter
 
-
     def reset_count(self):
         """
         Reset the count of column to zero
         """
         Column.count = 0
 
-class IntCol(Column):
-    '''
-    A column of integer
-    '''
-    def __init__(self, **kwargs):
-        super(IntCol, self).__init__(**kwargs)
-        self._dtype = np.int32
 
-class EnumCol(IntCol):
-    '''
-    A column of integer with an enum
-    '''
-    def __init__(self, enum = None, **kwargs):
-        super(EnumCol, self).__init__(**kwargs)
-        self._dtype = np.int16
-        if isinstance(enum, Enum):
-            self.enum = enum
-        else:
-            self.enum = None
+# Level-1 Columns
+
 
 class BoolCol(Column):
     '''
@@ -105,20 +93,14 @@ class BoolCol(Column):
         super(BoolCol, self).__init__(default=default, **kwargs)
         self._dtype = np.bool
 
-class FloatCol(Column):
-    '''
-    A column of float 32
-    '''
-    def __init__(self, **kwargs):
-        super(FloatCol, self).__init__(**kwargs)
-        self._dtype = np.float32
+    @property
+    def json_to_python(self):
+        return conv.pipe(
+            conv.test_isinstance(int, bool),
+            conv.anything_to_bool,
+            conv.default(self._default),
+            )
 
-class AgesCol(IntCol):
-    '''
-    A column of Int to store ages of people
-    '''
-    def __init__(self, default=-9999, **kwargs):
-        super(AgesCol, self).__init__(default=default, **kwargs)
 
 class DateCol(Column):
     '''
@@ -127,6 +109,121 @@ class DateCol(Column):
     def __init__(self, val_type="date", **kwargs):
         super(DateCol, self).__init__(val_type=val_type, **kwargs)
         self._dtype = np.datetime64
+
+    @property
+    def json_to_python(self):
+        return conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.iso8601_input_to_date,
+            conv.default(self._default),
+            )
+
+
+class FloatCol(Column):
+    '''
+    A column of float 32
+    '''
+    def __init__(self, **kwargs):
+        super(FloatCol, self).__init__(**kwargs)
+        self._dtype = np.float32
+
+    @property
+    def json_to_python(self):
+        return conv.pipe(
+            conv.test_isinstance(float, int),
+            conv.anything_to_float,
+            conv.default(self._default),
+            )
+
+
+class IntCol(Column):
+    '''
+    A column of integer
+    '''
+    def __init__(self, **kwargs):
+        super(IntCol, self).__init__(**kwargs)
+        self._dtype = np.int32
+
+    @property
+    def json_to_python(self):
+        return conv.pipe(
+            conv.test_isinstance(int),
+            conv.default(self._default),
+            )
+
+
+# Level-2 Columns
+
+
+class AgesCol(IntCol):
+    '''
+    A column of Int to store ages of people
+    '''
+    def __init__(self, default=-9999, **kwargs):
+        super(AgesCol, self).__init__(default=default, **kwargs)
+
+    @property
+    def json_to_python(self):
+        return conv.pipe(
+            super(AgesCol, self).json_to_python,
+            conv.first_match(
+                conv.test_greater_or_equal(0),
+                conv.test_equals(-9999),
+                ),
+            )
+
+
+class EnumCol(IntCol):
+    '''
+    A column of integer with an enum
+    '''
+    index_by_slug = None
+
+    def __init__(self, enum = None, **kwargs):
+        super(EnumCol, self).__init__(**kwargs)
+        self._dtype = np.int16
+        if isinstance(enum, Enum):
+            self.enum = enum
+        else:
+            self.enum = None
+
+    @property
+    def json_to_python(self):
+        enum = self.enum
+        if enum is None:
+            return super(EnumCol, self).json_to_python
+        # This converters accepts either an item number or an item name.
+        index_by_slug = self.index_by_slug
+        if index_by_slug is None:
+            self.index_by_slug = index_by_slug = dict(
+                (strings.slugify(name), index)
+                for index, name in sorted(enum._vars.iteritems() if enum is not None else ())
+                )
+        return conv.pipe(
+            conv.condition(
+                conv.test_isinstance(basestring),
+                conv.pipe(
+                    # Convert item name to its index.
+                    conv.input_to_slug,
+                    conv.test_in(index_by_slug),
+                    conv.function(lambda slug: index_by_slug[slug]),
+                    ),
+                conv.pipe(
+                    # Verify that item index belongs to enumeration.
+                    conv.test_isinstance(int),
+                    conv.test_in(enum._vars),
+                    ),
+                ),
+            conv.default(
+                self._default
+                if self._default is not None and self._default in enum._nums
+                else min(enum._vars.iterkeys())
+                ),
+            )
+
+
+# Base Prestation
+
 
 class Prestation(Column):
     """
@@ -204,6 +301,10 @@ class Prestation(Column):
         self._children.add(prestation)
         prestation._parents.add(self)
 
+
+# Level-1 Prestations
+
+
 class BoolPresta(Prestation, BoolCol):
     '''
     A Prestation inheriting from BoolCol
@@ -212,13 +313,6 @@ class BoolPresta(Prestation, BoolCol):
         BoolCol.__init__(self, **kwargs)
         Prestation.__init__(self, func=func, **kwargs)
 
-class IntPresta(Prestation, IntCol):
-    '''
-    A Prestation inheriting from IntCol
-    '''
-    def __init__(self, func, **kwargs):
-        IntCol.__init__(self, **kwargs)
-        Prestation.__init__(self, func, **kwargs)
 
 class EnumPresta(Prestation, EnumCol):
     '''
@@ -226,6 +320,15 @@ class EnumPresta(Prestation, EnumCol):
     '''
     def __init__(self, func, enum = None, **kwargs):
         EnumCol.__init__(self, enum = enum, **kwargs)
+        Prestation.__init__(self, func, **kwargs)
+
+
+class IntPresta(Prestation, IntCol):
+    '''
+    A Prestation inheriting from IntCol
+    '''
+    def __init__(self, func, **kwargs):
+        IntCol.__init__(self, **kwargs)
         Prestation.__init__(self, func, **kwargs)
 
 

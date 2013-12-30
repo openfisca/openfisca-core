@@ -62,6 +62,7 @@ setup(
         ],
     install_requires = [
         "Babel >= 0.9.4",
+        'Biryani1 >= 0.9dev',
         "numpy",
         "pandas",
         ],
