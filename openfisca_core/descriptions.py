@@ -41,11 +41,9 @@ class MetaModelDescription(type):
         Prestation.count = 0
         columns = {}
         super_new = super(MetaModelDescription, cls).__new__
-        parents = [b for b in bases if isinstance(b, MetaModelDescription)]
-        if not parents:
+        if not any(isinstance(base_class, MetaModelDescription) for base_class in bases):
             # If this isn't a subclass of ModelDescription, don't do anything special.
             return super_new(cls, name, bases, dct)
-
 
 #        fake_column = Column()
 #        fake_column.reset_count()

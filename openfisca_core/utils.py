@@ -60,6 +60,7 @@ class Enum(object):
         for val in self._vars:
             yield val
 
+
 def handle_output_xml(doc, tree, model, entity = 'men'):
     if doc.childNodes:
         for element in doc.childNodes:
