@@ -37,7 +37,7 @@ from pandas import DataFrame, HDFStore
 
 from . import model
 from .columns import EnumCol, EnumPresta
-from .datatables import DataTable, SystemSf
+from .datatables import DataTable, TaxBenefitSystem
 from .parameters import XmlReader, Tree2Object
 from .utils import gen_output_data
 
@@ -173,17 +173,18 @@ class Simulation(object):
         Returns
         -------
 
-        output, output_table_default : SystemSf
+        output, output_table_default : TaxBenefitSystem
                                  DataTable of the output variable of the socio-fiscal model
         """
         P, P_default = self.P, self.P_default
         input_table = self.input_table
 
-        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, num_table = self.num_table)
+        output_table = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim,
+            num_table = self.num_table)
         output_table.set_inputs(input_table)
 
         if self.reforme:
-            output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim,
+            output_table_default = TaxBenefitSystem(self.OutputDescription, P_default, P_default, datesim = P.datesim,
                 num_table = self.num_table)
             output_table_default.set_inputs(input_table)
         else:
@@ -480,7 +481,7 @@ class ScenarioSimulation(Simulation):
 
         self._compute(decomp_file=self.decomp_file)
         if alter:
-            output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim,
+            output_table = TaxBenefitSystem(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim,
                 num_table = self.num_table)
             output_table.set_inputs(input_table_alter)
             output_table.decomp_file = self.decomp_file
@@ -507,10 +508,10 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default
         P         = self.P
 
-        self.output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim)
+        self.output_table = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim)
         self.output_table.set_inputs(self.input_table)
 
-        output_alter = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim)
+        output_alter = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim)
         output_alter.set_inputs(input_table_alter)
 
         self.output_table.disable(self.disabled_prestations)

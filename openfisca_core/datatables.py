@@ -49,7 +49,7 @@ def _survey_subset(table, subset):
 
 class DataTable(object):
     """
-    Construct a SystemSf object is a set of Prestation objects
+    Construct a TaxBenefitSystem object is a set of Prestation objects
     """
     def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
                   num_table = 1, subset=None, print_missing=True):
@@ -670,7 +670,7 @@ class DataTable(object):
         self.table[varname] = inflator*self.table[varname]
 
 
-class SystemSf(DataTable):
+class TaxBenefitSystem(DataTable):
     def __init__(self, model_description, param, defaultParam = None, datesim = None, num_table = 1):
         DataTable.__init__(self, model_description, datesim = datesim, num_table = num_table)
         self._primitives = set()
@@ -686,11 +686,11 @@ class SystemSf(DataTable):
 
     def __add__(self,other):
         """
-        Addition of two SystemSf.
+        Addition of two TaxBenefitSystem.
         Add their output_table, iff it's the same simulation and only the survey differ
         """
-        if not isinstance(other,SystemSf):
-            raise Exception("Can only add a SystemSf to a SystemSF")
+        if not isinstance(other,TaxBenefitSystem):
+            raise Exception("Can only add a TaxBenefitSystem to a SystemSF")
 
 
         assert(self.num_table == other.num_table)
