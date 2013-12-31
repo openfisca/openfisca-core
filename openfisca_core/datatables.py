@@ -25,11 +25,16 @@
 
 from __future__ import division
 
+import logging
+
 import numpy as np
 from pandas import DataFrame, HDFStore, read_csv, Series
 
 from . import model
 from .descriptions import Description, ModelDescription
+
+
+log = logging.getLogger(__name__)
 
 
 def _survey_subset(table, subset):
@@ -131,10 +136,10 @@ class DataTable(object):
                     qui = getattr(self.table3['ind'], 'qui'+entity).values
 
                 enum = self.description.get_col('qui'+entity).enum
-
             except:
-                raise Exception('DataTable needs columns %s and %s to build index with entity %s' %
-                          ('id' + entity, 'qui' + entity, entity))
+                log.error('DataTable needs columns %s and %s to build index with entity %s' % ('id' + entity,
+                    'qui' + entity, entity))
+                raise
 
             self.index[entity] = {}
             dct = self.index[entity]
@@ -287,8 +292,9 @@ class DataTable(object):
                         assert isinstance(fname[entity],DataFrame)
                         self.table3[entity] = _survey_subset(fname[entity], self.subset)
                 except:
-                    raise Exception("When num_table=3, the object given as survey data"
-                                    " must be a dictionary of pandas DataFrame with each entity in keys")
+                    log.error("When num_table=3, the object given as survey data"
+                        " must be a dictionary of pandas DataFrame with each entity in keys")
+                    raise
 
         missing_col = []
         var_entity ={}
@@ -304,7 +310,8 @@ class DataTable(object):
                         self.table[col.name].fillna(col._default, inplace=True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
                 except:
-                    raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
+                    log.error("Impossible de lire la variable suivante issue des données d'enquête :\n%s\n" % col.name)
+                    raise
 
         elif self.num_table == 3 :
             self._nrows = self.table3['ind'].shape[0]
@@ -314,16 +321,9 @@ class DataTable(object):
                     if not col.name in self.table3[ent]:
                         missing_col.append(col.name)
                         self.table3[ent][col.name] = col._default
-                    #try:
                     if self.table3[ent][col.name].isnull().any():
                         self.table3[ent][col.name].fillna(col._default, inplace=True)
                     self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
-#                     except:
-#                         print self.table3[ent].columns
-#                         print col.name
-#
-#                         print ent
-#                         raise Exception("Impossible de lire la variable suivante issue des données d'enquête :\n %s \n  " %col.name)
                 if ent == 'foy':
                     self.table3[ent] = self.table3[ent].to_sparse(fill_value=0)
 
@@ -514,12 +514,7 @@ class DataTable(object):
         elif entity=='men' or dent=='ind': # level entity > level dent
             case = 3
         if case == 0 and opt is None:
-            try:
-                #TODO: suppress the try when opt is set everywhere in the model
-                raise Exception("As fam and foy are not one in the other all the time "
-                "you can't use %s at a %s level. Select a person to look at." %(varname,entity))
-            except:
-                case = 2
+            case = 2
         if opt is not None and case==1:
             if varname[:2] != 'id':
                 print varname, dent, entity

@@ -418,7 +418,7 @@ class TaxBenefitSystem(DataTable):
             self.set_value(varname, col._func(**func_args), entity)
         except:
             print varname
-            self.set_value(varname, col._func(**func_args), entity)
+            raise
 
         col._isCalculated = True
 

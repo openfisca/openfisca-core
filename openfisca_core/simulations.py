@@ -392,10 +392,7 @@ class ScenarioSimulation(Simulation):
         specific_kwargs = self._set_config(**kwargs)
         self.Scenario = model.Scenario
         if self.scenario is None:
-            try:
-                self.scenario = kwargs['scenario']
-            except:
-                self.scenario = self.Scenario()
+            self.scenario = kwargs.get('scenario') or self.Scenario()
 
         self.scenario.year = self.datesim.year
 
