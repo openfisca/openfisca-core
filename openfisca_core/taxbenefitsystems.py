@@ -207,27 +207,6 @@ class TaxBenefitSystem(DataTable):
                 self.table3[ent] = self.table3[ent].append(other.table3[ent])
         return self
 
-    def get_primitives(self):
-        """
-        Return socio-fiscal system primitives, ie variable needed as inputs
-        """
-        return self._primitives
-
-    def reset(self):
-        """
-        Sets all columns as not calculated
-        """
-        for col in self.description.columns.itervalues():
-            col._isCalculated = False
-
-    def disable(self, disabled_prestations):
-        """
-        Sets some column as calculated so they are cot evaluated and keep their default value
-        """
-        if disabled_prestations is not None:
-            for colname in disabled_prestations:
-                self.description.columns[colname]._isCalculated = True
-
     def build(self):
         # Build the closest dependencies
         for col in self.description.columns.itervalues():
@@ -244,6 +223,69 @@ class TaxBenefitSystem(DataTable):
                     input_col.add_child(col)
                 else:
                     self._primitives.add(input_varname)
+
+    def calculate(self, varname = None):
+        if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
+            self.survey_calculate(varname=varname)
+            return None
+        elif self.test_case is not None:
+            return self.test_case_calculate()
+        else:
+            raise Exception("survey_data or test_case attribute should not be None")
+
+    def disable(self, disabled_prestations):
+        """
+        Sets some column as calculated so they are cot evaluated and keep their default value
+        """
+        if disabled_prestations is not None:
+            for colname in disabled_prestations:
+                self.description.columns[colname]._isCalculated = True
+
+    def generate_output_tree(self, doc, output_tree, entity = 'men'):
+        if doc.childNodes:
+            for element in doc.childNodes:
+                if element.nodeType is not element.TEXT_NODE:
+                    code = element.getAttribute('code')
+                    desc = element.getAttribute('desc')
+                    cols = element.getAttribute('color')
+                    short = element.getAttribute('shortname')
+                    typv = element.getAttribute('typevar')
+                    if cols is not '':
+                        a = cols.rsplit(',')
+                        col = (float(a[0]), float(a[1]), float(a[2]))
+                    else: col = (0,0,0)
+                    if typv is not '':
+                        typv = int(typv)
+                    else: typv = 0
+                    child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
+                    output_tree.addChild(child)
+                    self.generate_output_tree(element, child, entity)
+        else:
+            idx = entity
+            inputs = self._inputs
+            enum = inputs.description.get_col('qui'+entity).enum
+            people = [x[1] for x in enum]
+            if output_tree.code in self.col_names:
+                self.calculate(varname=output_tree.code)
+                val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
+            elif output_tree.code in inputs.col_names:
+                val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
+            else:
+                raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
+            output_tree.vals = val
+
+    def get_primitives(self):
+        """
+        Return socio-fiscal system primitives, ie variable needed as inputs
+        """
+        return self._primitives
+
+    def reset(self):
+        """
+        Sets all columns as not calculated
+        """
+        for col in self.description.columns.itervalues():
+            col._isCalculated = False
 
     def set_inputs(self, inputs):
         """
@@ -292,56 +334,6 @@ class TaxBenefitSystem(DataTable):
         # Preprocess the input data according to country specification
         if preproc_inputs is not None:
             preproc_inputs(self._inputs)
-
-    def calculate(self, varname = None):
-        if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
-            self.survey_calculate(varname=varname)
-            return None
-        elif self.test_case is not None:
-            return self.test_case_calculate()
-        else:
-            raise Exception("survey_data or test_case attribute should not be None")
-
-    def generate_output_tree(self, doc, output_tree, entity = 'men'):
-        if doc.childNodes:
-            for element in doc.childNodes:
-                if element.nodeType is not element.TEXT_NODE:
-                    code = element.getAttribute('code')
-                    desc = element.getAttribute('desc')
-                    cols = element.getAttribute('color')
-                    short = element.getAttribute('shortname')
-                    typv = element.getAttribute('typevar')
-                    if cols is not '':
-                        a = cols.rsplit(',')
-                        col = (float(a[0]), float(a[1]), float(a[2]))
-                    else: col = (0,0,0)
-                    if typv is not '':
-                        typv = int(typv)
-                    else: typv = 0
-                    child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
-                    output_tree.addChild(child)
-                    self.generate_output_tree(element, child, entity)
-        else:
-            idx = entity
-            inputs = self._inputs
-            enum = inputs.description.get_col('qui'+entity).enum
-            people = [x[1] for x in enum]
-            if output_tree.code in self.col_names:
-                self.calculate(varname=output_tree.code)
-                val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
-            elif output_tree.code in inputs.col_names:
-                val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
-            else:
-                raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
-            output_tree.vals = val
-
-    def test_case_calculate(self):
-        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
-
-        _doc = minidom.parse(self.decomp_file)
-        output_tree = OutNode('root', 'root')
-        self.generate_output_tree(_doc, output_tree)
-        return output_tree
 
     def survey_calculate(self, varname = None):
         '''
@@ -429,3 +421,11 @@ class TaxBenefitSystem(DataTable):
             self.set_value(varname, col._func(**func_args), entity)
 
         col._isCalculated = True
+
+    def test_case_calculate(self):
+        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
+
+        _doc = minidom.parse(self.decomp_file)
+        output_tree = OutNode('root', 'root')
+        self.generate_output_tree(_doc, output_tree)
+        return output_tree
