@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import division
+import collections
 
 from .columns import Column, EnumCol, Prestation
 
@@ -62,8 +62,13 @@ class MetaModelDescription(type):
             if not i in col_numbers:
                 raise Exception("The column before %s in class %s is defined twice"% (columns_list[i].name, name))
 
-        dct["columns"] = columns_list
+        dct["columns"] = columns_list  # TODO: To remove, once column_by_name is used everywhere.
+        dct['column_by_name'] = collections.OrderedDict(
+            (column.name, column)
+            for column in columns_list
+            )
         return super_new(cls, name, bases, dct)
+
 
 class ModelDescription(object):
     __metaclass__ = MetaModelDescription
@@ -149,7 +154,6 @@ class ModelDescription(object):
 
     def __str__(self):
         return self.to_string(debug=True)
-
 
 
 class Description(object):

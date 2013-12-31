@@ -5,7 +5,7 @@
 # By: OpenFisca Team <contact@openfisca.fr>
 #
 # Copyright (C) 2011, 2012, 2013 OpenFisca Team
-# https://github.com/openfisca/openfisca
+# https://github.com/openfisca
 #
 # This file is part of OpenFisca.
 #
@@ -23,26 +23,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# The model variables are created by each country-specific package (cf function init_country())
-# Note: The variables below are not inited (to None) here, to ensure that execution will fail when they are used before
-# OpenFisca country-specific package is properly inited.
-__all__ = [
-    'AGGREGATES_DEFAULT_VARS',
-    'CURRENCY',
-    'DATA_DIR',
-    'DATA_SOURCES_DIR',
-    'DECOMP_DIR',
-    'DEFAULT_DECOMP_FILE',
-    'ENTITIES_INDEX',
-    'FILTERING_VARS',
-    'InputDescription',
-    'OutputDescription',
-    'PARAM_FILE',
-    'REFORMS_DIR',
-    'REV_TYP',
-    'REVENUES_CATEGORIES',
-    'Scenario',
-    'WEIGHT',
-    'WEIGHT_INI',
-    'x_axes',
-    ]
+class XAxis(object):
+    col_name = None
+    label = None
+    name = None
+    typ_tot = None
+    typ_tot_default = None
+
+    def __init__(self, col_name = None, label = None, name = None, typ_tot = None, typ_tot_default = None):
+        assert col_name is not None
+        self.col_name = col_name
+        assert name is not None
+        self.label = label or name
+        self.name = name
+        assert typ_tot is not None
+        self.typ_tot = typ_tot
+        assert typ_tot_default is not None
+        self.typ_tot_default = typ_tot_default

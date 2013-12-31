@@ -35,7 +35,7 @@ from pandas import DataFrame, HDFStore
 
 #from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
 
-from . import axestools, model
+from . import model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable, SystemSf
 from .descriptions import Description
@@ -421,12 +421,10 @@ class ScenarioSimulation(Simulation):
         """
         List the potential varying revenues
         """
-        axes = axestools.build_axes()
-        for axe in axes:
-            if axe.col_name == var:
-                rev = axe.typ_tot_default
-                return rev
-        raise Exception("No revenue for variable %s" %(var) )
+        x_axis = model.x_axes.get(var)
+        if x_axis is None:
+            raise Exception("No revenue for variable %s" %(var))
+        return x_axis.typ_tot_default
 
     def reset_scenario(self):
         """
