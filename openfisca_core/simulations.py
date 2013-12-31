@@ -38,7 +38,6 @@ from pandas import DataFrame, HDFStore
 from . import model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable, SystemSf
-from .descriptions import Description
 from .parameters import XmlReader, Tree2Object
 from .utils import gen_output_data
 

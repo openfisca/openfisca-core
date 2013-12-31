@@ -25,13 +25,11 @@
 
 from __future__ import division
 
-import pdb
-
 import numpy as np
-from pandas import DataFrame, Series, read_csv, HDFStore
+from pandas import DataFrame, HDFStore, read_csv, Series
 
 from . import model
-from .descriptions import ModelDescription, Description
+from .descriptions import Description, ModelDescription
 from .utils import gen_output_data
 
 
@@ -152,8 +150,6 @@ class DataTable(object):
                     print self.survey_year, len(idxlist), len(self.table3[entity])
                     idxent = self.table3[entity]['id'+entity]
                     diff1 = set(idxlist).symmetric_difference(idxent)
-                    print diff1
-                    pdb.set_trace()
                     if len(idxlist) > len(self.table3[entity]):
                         idxlist = idxent
                 # Generates index for the entity of each individual
@@ -607,8 +603,6 @@ class DataTable(object):
                 # from foy or fam to men
                 # Here we assume that sum_ is True
                 if sum_ is False:
-                    print varname
-                    pdb.set_trace()
                     raise Exception("Cannot do anything but a sum from intermediate entity to the biggest one")
                 temp = np.ones(nb, dtype = dtyp)*dflt
                 idx_to = self.index[dent][entity]
