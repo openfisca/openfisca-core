@@ -374,7 +374,7 @@ class ScenarioSimulation(Simulation):
     same_rev_couple = False
     Scenario = None
     scenario = None
-    xaxis = None
+    x_axis = None
 
     def set_config(self, **kwargs):
         """
@@ -385,7 +385,7 @@ class ScenarioSimulation(Simulation):
         scenario : a scenario (by default, None selects Scenario())
         param_file : the socio-fiscal parameters file
         decomp_file : the decomp file
-        xaxis : the revenue category along which revenue varies
+        x_axis : the revenue category along which revenue varies
         maxrev : the maximal value of the revenue
         same_rev_couple : divide the revenue equally between the two partners
         mode : 'bareme' or 'castype' TODO: change this
@@ -407,7 +407,7 @@ class ScenarioSimulation(Simulation):
 
         self.scenario.nmen   = self.nmen
         self.scenario.maxrev = self.maxrev
-        self.scenario.xaxis  = self.xaxis
+        self.scenario.x_axis  = self.x_axis
         self.scenario.same_rev_couple  = self.same_rev_couple
 
         if self.decomp_file is None:
@@ -562,7 +562,7 @@ class ScenarioSimulation(Simulation):
         df = df.reindex(index)
         return df
 
-#    def draw_bareme(self, ax, graph_xaxis = None, legend = False, position = 1):
+#    def draw_bareme(self, ax, graph_x_axis = None, legend = False, position = 1):
 #        """
 #        Draws a bareme on matplotlib.axes.Axes
 #        """
@@ -575,14 +575,14 @@ class ScenarioSimulation(Simulation):
 
 #        data.setLeavesVisible()
 #        data_default.setLeavesVisible()
-#        if graph_xaxis is None:
-#            graph_xaxis = 'sal'
+#        if graph_x_axis is None:
+#            graph_x_axis = 'sal'
 #        if not alter:
-#            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend)
+#            drawBareme(data, ax, graph_x_axis, reforme, data_default, legend)
 #        else:
-#            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, position = position)
+#            drawBaremeCompareHouseholds(data, ax, graph_x_axis, data_default, legend, position = position)
 
-#    def draw_taux(self, ax, graph_xaxis = None, legend = True):
+#    def draw_taux(self, ax, graph_x_axis = None, legend = True):
 #        """
 #        Draws a bareme on matplotlib.axes.Axes object ax
 #        """
@@ -592,9 +592,9 @@ class ScenarioSimulation(Simulation):
 
 #        data.setLeavesVisible()
 #        data_default.setLeavesVisible()
-#        if graph_xaxis is None:
-#            graph_xaxis = 'sal'
-#        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend)
+#        if graph_x_axis is None:
+#            graph_x_axis = 'sal'
+#        drawTaux(data, ax, graph_x_axis, reforme, data_default, legend = legend)
 
 #    def draw_waterfall(self, ax):
 #        """
