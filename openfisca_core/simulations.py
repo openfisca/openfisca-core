@@ -33,8 +33,6 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, HDFStore
 
-#from src.plugins.scenario.graph import drawTaux, drawBareme, drawBaremeCompareHouseholds, drawWaterfall
-
 from . import model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable, TaxBenefitSystem
@@ -561,49 +559,6 @@ class ScenarioSimulation(Simulation):
         df = DataFrame(data_dict).T
         df = df.reindex(index)
         return df
-
-#    def draw_bareme(self, ax, graph_x_axis = None, legend = False, position = 1):
-#        """
-#        Draws a bareme on matplotlib.axes.Axes
-#        """
-#        reforme = self.reforme
-#        alter = (self.alternative_scenario is not None)
-
-#        self.compute()
-#        data = self.data
-#        data_default = self.data_default
-
-#        data.setLeavesVisible()
-#        data_default.setLeavesVisible()
-#        if graph_x_axis is None:
-#            graph_x_axis = 'sal'
-#        if not alter:
-#            drawBareme(data, ax, graph_x_axis, reforme, data_default, legend)
-#        else:
-#            drawBaremeCompareHouseholds(data, ax, graph_x_axis, data_default, legend, position = position)
-
-#    def draw_taux(self, ax, graph_x_axis = None, legend = True):
-#        """
-#        Draws a bareme on matplotlib.axes.Axes object ax
-#        """
-#        reforme = self.reforme or (self.alternative_scenario is not None)
-#        self.compute()
-#        data, data_default = self.data, self.data_default
-
-#        data.setLeavesVisible()
-#        data_default.setLeavesVisible()
-#        if graph_x_axis is None:
-#            graph_x_axis = 'sal'
-#        drawTaux(data, ax, graph_x_axis, reforme, data_default, legend = legend)
-
-#    def draw_waterfall(self, ax):
-#        """
-#        Draws a waterfall on matplotlib.axes.Axes object ax
-#        """
-#        data, data_default = self.compute()
-#        del data_default
-#        data.setLeavesVisible()
-#        drawWaterfall(data, ax)
 
 
 class SurveySimulation(Simulation):
