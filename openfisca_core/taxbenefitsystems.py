@@ -302,7 +302,7 @@ class TaxBenefitSystem(DataTable):
         else:
             raise Exception("survey_data or test_case attribute should not be None")
 
-    def handle_output_xml(self, doc, tree, entity = 'men'):
+    def generate_output_tree(self, doc, output_tree, entity = 'men'):
         if doc.childNodes:
             for element in doc.childNodes:
                 if element.nodeType is not element.TEXT_NODE:
@@ -319,28 +319,28 @@ class TaxBenefitSystem(DataTable):
                         typv = int(typv)
                     else: typv = 0
                     child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
-                    tree.addChild(child)
-                    self.handle_output_xml(element, child, entity)
+                    output_tree.addChild(child)
+                    self.generate_output_tree(element, child, entity)
         else:
             idx = entity
             inputs = self._inputs
             enum = inputs.description.get_col('qui'+entity).enum
             people = [x[1] for x in enum]
-            if tree.code in self.col_names:
-                self.calculate(varname=tree.code)
-                val = self.get_value(tree.code, idx, opt = people, sum_ = True)
-            elif tree.code in inputs.col_names:
-                val = inputs.get_value(tree.code, idx, opt = people, sum_ = True)
+            if output_tree.code in self.col_names:
+                self.calculate(varname=output_tree.code)
+                val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
+            elif output_tree.code in inputs.col_names:
+                val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
             else:
-                raise Exception('%s was not found in tax-benefit system nor in inputs' % tree.code)
-            tree.vals = val
+                raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
+            output_tree.vals = val
 
     def test_case_calculate(self):
         assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
 
         _doc = minidom.parse(self.decomp_file)
         output_tree = OutNode('root', 'root')
-        self.handle_output_xml(_doc, output_tree)
+        self.generate_output_tree(_doc, output_tree)
         return output_tree
 
     def survey_calculate(self, varname = None):
