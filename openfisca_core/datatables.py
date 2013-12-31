@@ -42,7 +42,7 @@ def _survey_subset(table, subset):
     '''
     if subset is not None:
         idx_subset = table['idmen'].isin(subset)
-        return table[idx_subset ]
+        return table[idx_subset]
     else:
         return table
 
@@ -66,7 +66,7 @@ class DataTable(object):
         self.subset = subset
 
         self.table = DataFrame()
-        self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame() }
+        self.table3 = {'ind' : DataFrame(), 'foy' : DataFrame(), 'men' : DataFrame()}
 
         self.index = {}
         self._nrows = 0
@@ -94,7 +94,7 @@ class DataTable(object):
     '''
     def __getstate__(self):
         def should_pickle(k):
-            return k not in ['table', 'table3', '_param', '_default_param' ]
+            return k not in ['table', 'table3', '_param', '_default_param']
         return dict((k, v) for (k, v) in self.__dict__.iteritems() if should_pickle(k))
 
     def __setstate__(self, d):
@@ -377,7 +377,7 @@ class DataTable(object):
                 index_varname = "id" + entity # TODO: this is dirty
                 if sum_ is True:
                     index_value = self._get_value1(index_varname, entity = entity, opt = None, sum_ = None)
-                return DataFrame( {index_varname: index_value,  varname: value })
+                return DataFrame({index_varname: index_value,  varname: value})
             else:
                 return value
 
@@ -418,7 +418,7 @@ class DataTable(object):
             else:
                 # TODO: FIX THIS
                 #print ("The %s entity variable %s, is called to set an individual variable"
-                #               % (col.entity,varname) )
+                #               % (col.entity,varname))
 
                 # ce qui suit est copie sur propagate_to_members
                 value = self.get_value(varname, ent)
@@ -777,7 +777,7 @@ class TaxBenefitSystem(DataTable):
 
         if self.num_table == 3:
             self.table3 = {}
-            temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {} }
+            temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {}}
             for col in self.description.columns.itervalues():
                 dflt = col._default
                 dtyp = col._dtype

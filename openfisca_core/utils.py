@@ -330,7 +330,7 @@ class Bareme(object):
                 self.combineTranche(taux, seuilInf, seuilSup)
             self.combineTranche(bareme.taux[-1],bareme.seuils[-1])  # Pour traiter le dernier seuil
 
-    def combineTranche(self, taux, seuilInf=0, seuilSup=False ):
+    def combineTranche(self, taux, seuilInf=0, seuilSup=False):
         # Insertion de seuilInf et SeuilSup sans modfifer les taux
         if not seuilInf in self.seuils:
             index = bisect_right(self.seuils, seuilInf)-1
@@ -644,7 +644,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         for i in range(0, len(quantiles)-1):
             lower = quantiles[i]
             upper = quantiles[i+1]
-            ret[ np.logical_and(a>=lower, a<upper) ] = labels[i]
+            ret[np.logical_and(a>=lower, a<upper)] = labels[i]
 
         #make sure upper and lower indices are marked
         ret[a<=quantiles[0]] = labels[0]
@@ -669,7 +669,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         # Formula from stats.stackexchange.com post.
         s_vals = [0.0]
         for ii in range(1,N):
-            s_vals.append( ii*tmp_weights[ii] + (N-1)*cu_weights[ii-1])
+            s_vals.append(ii*tmp_weights[ii] + (N-1)*cu_weights[ii-1])
         s_vals = np.asarray(s_vals)
 
         # Normalized s_vals for comapring with the breakpoint.
@@ -704,7 +704,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
                 v = tmp_a[i_low]
             else:
                 # Interpolate as in the method 1 method, but using the s_vals instead.
-                v = tmp_a[i_low] + (( (brk*s_vals[-1])-s_vals[i_low])/(s_vals[i_high]-s_vals[i_low]))*(tmp_a[i_high]-tmp_a[i_low])
+                v = tmp_a[i_low] + (((brk*s_vals[-1])-s_vals[i_low])/(s_vals[i_high]-s_vals[i_low]))*(tmp_a[i_high]-tmp_a[i_low])
             quantiles.append(v)
 
         # Now that the weighted breakpoints are set, just categorize
@@ -712,7 +712,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
         for i in range(0, len(quantiles)-1):
             lower = quantiles[i]
             upper = quantiles[i+1]
-            ret[ np.logical_and( a >= lower, a < upper ) ] = labels[i]
+            ret[np.logical_and(a >= lower, a < upper)] = labels[i]
 
         #make sure upper and lower indices are marked
         ret[a<=quantiles[0]] = labels[0]
@@ -749,7 +749,7 @@ def gini(values, weights = None, bin_size = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame( {'x': values, 'w':weights} )
+    df = DataFrame({'x': values, 'w':weights})
     df = df.sort_index(by='x')
     x = df['x']
     w = df['w']
@@ -757,8 +757,8 @@ def gini(values, weights = None, bin_size = None):
 
     cdf = cumsum(wx)-0.5*wx
     numerator = (w*cdf).sum()
-    denominator = ( (wx).sum() )*( w.sum() )
-    gini = 1 - 2*( numerator/denominator)
+    denominator = ((wx).sum())*(w.sum())
+    gini = 1 - 2*(numerator/denominator)
 
     return gini
 
@@ -770,11 +770,11 @@ def lorenz(values, weights = None):
     if weights is None:
         weights = ones(len(values))
 
-    df = DataFrame( {'v': values, 'w':weights} )
-    df = df.sort_index( by = 'v')
+    df = DataFrame({'v': values, 'w':weights})
+    df = df.sort_index(by = 'v')
     x = cumsum(df['w'])
     x = x/float(x[-1:])
-    y = cumsum( df['v']*df['w'] )
+    y = cumsum(df['v']*df['w'])
     y = y/float(y[-1:])
 
     return x, y
@@ -786,11 +786,11 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     '''
     if weights is None:
         weights = ones(len(values))
-    df = DataFrame( {'v': values, 'a': ineq_axis, 'w':weights} )
-    df = df.sort_index( by = 'a')
+    df = DataFrame({'v': values, 'a': ineq_axis, 'w':weights})
+    df = df.sort_index(by = 'a')
     x = cumsum(df['w'])
     x = x/float(x[-1:])
-    y = cumsum( df['v']*df['w'] )
+    y = cumsum(df['v']*df['w'])
     y = y/float(y[-1:])
 
     return x, y
@@ -816,4 +816,4 @@ def kakwani(values, ineq_axis, weights = None):
 
     from scipy.integrate import simps
 
-    return simps( (LCy - PLCy), LCx)
+    return simps((LCy - PLCy), LCx)

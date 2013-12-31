@@ -356,7 +356,7 @@ class Simulation(object):
         # Store all attributes from simulation
         with open(filename + '.pk', 'wb') as output:
             if self.verbose:
-                print 'Storing attributes for simulation ( including sub-attributes )'
+                print 'Storing attributes for simulation (including sub-attributes)'
             pickle.dump(self, output)
 
 
@@ -722,7 +722,7 @@ class SurveySimulation(Simulation):
                 subsimu.chunk = 1
                 subsimu.compute()
                 simu_chunk = subsimu
-                print("compute chunk %d / %d" %(chunk +1 ,self.chunk) )
+                print("compute chunk %d / %d" %(chunk +1 ,self.chunk))
 
                 if self.output_table is not None:
                     self.output_table = self.output_table + simu_chunk.output_table
@@ -786,11 +786,11 @@ class SurveySimulation(Simulation):
             else:
                 entity_id = "id"+entity
 
-            input_variables = set([WEIGHT, entity_id] )
+            input_variables = set([WEIGHT, entity_id])
             if all_input_vars:
                 input_variables = input_variables.union(set(inputs.col_names))
             if variables is not None:
-                input_variables = input_variables.union( set(inputs.col_names).intersection(variables))
+                input_variables = input_variables.union(set(inputs.col_names).intersection(variables))
                 output_variables = set(tax_benefit_system.col_names).intersection(variables)
 
             if all_output_vars:

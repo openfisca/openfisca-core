@@ -52,8 +52,8 @@ def logit(u,low,up):
 
 def logit_prime(u,low,up):
     a=(up-low)/((1-low)*(up-1))
-    return ( (a*up*(1-low)*exp(a*u))*(up-1+(1-low)*exp(a*u))-
-              (low*(up-1)+up*(1-low)*exp(a*u))*(1-low)*a*exp(a*u) )/(up-1+(1-low)*exp(a*u))**2
+    return ((a*up*(1-low)*exp(a*u))*(up-1+(1-low)*exp(a*u))-
+              (low*(up-1)+up*(1-low)*exp(a*u))*(1-low)*a*exp(a*u))/(up-1+(1-low)*exp(a*u))**2
 
 def build_dummies_dict(data):
     '''
@@ -187,7 +187,7 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
 
     # Résolution des équations du premier ordre
     constraint = lambda l: dot(d*F(dot(x, l)), x) - xmargins
-    constraint_prime = lambda l: dot(d*( x.T*F_prime( dot(x, l))), x )
+    constraint_prime = lambda l: dot(d*(x.T*F_prime(dot(x, l))), x)
     ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
     essai, ier = 0, 2
@@ -198,12 +198,12 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
 
     err_max = 1
     conv = 1
-    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-6 and conv < 1e-8 )):
+    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-6 and conv < 1e-8)):
         lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
         lambda0 = 1*lambdasol
         essai += 1
 
-        pondfin = d*F( dot(x, lambdasol))
+        pondfin = d*F(dot(x, lambdasol))
         rel_error ={}
         for var, val in margins_new.iteritems():
             rel_error[var] =  abs((data[var]*pondfin).sum() - margins_dict[var])/margins_dict[var]
