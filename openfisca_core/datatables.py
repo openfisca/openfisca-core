@@ -54,7 +54,7 @@ class DataTable(object):
     Construct a SystemSf object is a set of Prestation objects
     """
     def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
-                  country = None, num_table = 1, subset=None, print_missing=True):
+                  num_table = 1, subset=None, print_missing=True):
         super(DataTable, self).__init__()
 
         # Init instance attribute
@@ -78,11 +78,6 @@ class DataTable(object):
             raise Exception('InputDescription: datesim should be provided')
         else:
             self.datesim = datesim
-
-        if country is None:
-            raise Exception('InputDescription: country should be provided')
-        else:
-            self.country = country
 
         self.list_entities = ['ind'] + model.ENTITIES_INDEX
         self.survey_year = None
@@ -234,8 +229,6 @@ class DataTable(object):
         '''
 
         list_entities = self.list_entities
-        if self.country is None:
-            raise Exception('DataTable: country key word variable must be set')
 
         # imports country specific variables from country.__init__.py
         INDEX = model.ENTITIES_INDEX
@@ -684,8 +677,8 @@ class DataTable(object):
 
 
 class SystemSf(DataTable):
-    def __init__(self, model_description, param, defaultParam = None, datesim = None, country = None, num_table = 1):
-        DataTable.__init__(self, model_description, datesim = datesim, country = country, num_table = num_table)
+    def __init__(self, model_description, param, defaultParam = None, datesim = None, num_table = 1):
+        DataTable.__init__(self, model_description, datesim = datesim, num_table = num_table)
         self._primitives = set()
         self._param = param
         self._default_param = defaultParam
@@ -755,7 +748,7 @@ class SystemSf(DataTable):
                 else:
                     self._primitives.add(input_varname)
 
-    def set_inputs(self, inputs, country = None):
+    def set_inputs(self, inputs):
         """
         Set the input DataTable
 
@@ -763,8 +756,6 @@ class SystemSf(DataTable):
         ----------
         inputs : DataTable, required
                  The input variable datatable
-        country: str, default None
-                 The country of the simulation. this information is used to preprocess the inputs
         """
         if not isinstance(inputs, DataTable):
             raise TypeError('inputs must be a DataTable')

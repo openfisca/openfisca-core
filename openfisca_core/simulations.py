@@ -59,7 +59,6 @@ class Simulation(object):
     ScenarioSimulation, SurveySimulation
     """
     chunk = 1
-    country = None  # String denoting the country
     datesim = None
     disabled_prestations = None
     input_table = None
@@ -107,29 +106,17 @@ class Simulation(object):
                     self.datesim = dt.datetime.strptime(val ,"%Y-%m-%d").date()
                 remaining.pop(key)
 
-            elif key in ['country', 'param_file', 'decomp_file']:
+            elif key in ['param_file', 'decomp_file']:
                 if hasattr(self, key):
                     setattr(self, key, val)
                     remaining.pop(key)
 
-        if self.country is None:
-            self.country = 'france'
-            if "country" in remaining:
-                remaining.pop('country')
-
         if self.param_file is None:
-            if self.country is not None:
-                self.param_file = model.PARAM_FILE
+            self.param_file = model.PARAM_FILE
 
         # Sets required country specific classes
-        if self.country is not None:
-            try:
-                del self.InputDescription
-                del self.OutputDescription
-            except:
-                pass
-            self.InputDescription = model.InputDescription
-            self.OutputDescription = model.OutputDescription
+        self.InputDescription = model.InputDescription
+        self.OutputDescription = model.OutputDescription
 
         return remaining
 
@@ -161,10 +148,8 @@ class Simulation(object):
             self.P = param
 
     def _initialize_input_table(self):
-        self.input_table = DataTable(self.InputDescription, datesim=self.datesim,
-                                    country=self.country, num_table = self.num_table,
-                                    subset=self.subset,
-                                    print_missing=self.verbose)
+        self.input_table = DataTable(self.InputDescription, datesim=self.datesim, num_table = self.num_table,
+            subset=self.subset, print_missing=self.verbose)
 
     def disable_prestations(self, disabled_prestations = None):
         """
@@ -195,14 +180,13 @@ class Simulation(object):
         P, P_default = self.P, self.P_default
         input_table = self.input_table
 
-        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country,
-            num_table = self.num_table)
-        output_table.set_inputs(input_table, country = self.country)
+        output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, num_table = self.num_table)
+        output_table.set_inputs(input_table)
 
         if self.reforme:
             output_table_default = SystemSf(self.OutputDescription, P_default, P_default, datesim = P.datesim,
-                country = self.country, num_table = self.num_table)
-            output_table_default.set_inputs(input_table, country = self.country)
+                num_table = self.num_table)
+            output_table_default.set_inputs(input_table)
         else:
             output_table_default = output_table
 
@@ -399,7 +383,6 @@ class ScenarioSimulation(Simulation):
         Parameters
         ----------
         scenario : a scenario (by default, None selects Scenario())
-        country  : a string containing the name of the country
         param_file : the socio-fiscal parameters file
         decomp_file : the decomp file
         xaxis : the revenue category along which revenue varies
@@ -427,11 +410,10 @@ class ScenarioSimulation(Simulation):
         self.scenario.xaxis  = self.xaxis
         self.scenario.same_rev_couple  = self.same_rev_couple
 
-        if self.country is not None:
-            if self.decomp_file is None:
-                self.decomp_file = os.path.join(model.DECOMP_DIR, model.DEFAULT_DECOMP_FILE)
-            elif not os.path.exists(self.decomp_file):
-                self.decomp_file = os.path.join(model.DECOMP_DIR, self.decomp_file)
+        if self.decomp_file is None:
+            self.decomp_file = os.path.join(model.DECOMP_DIR, model.DEFAULT_DECOMP_FILE)
+        elif not os.path.exists(self.decomp_file):
+            self.decomp_file = os.path.join(model.DECOMP_DIR, self.decomp_file)
 
         self.initialize_input_table()
 
@@ -493,7 +475,7 @@ class ScenarioSimulation(Simulation):
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
 
         if alter:
-            input_table_alter = DataTable(self.InputDescription, datesim = self.datesim, country = self.country)
+            input_table_alter = DataTable(self.InputDescription, datesim = self.datesim)
             input_table_alter.load_data_from_test_case(self.alternative_scenario)
 
         if self.reforme and alter:
@@ -501,8 +483,9 @@ class ScenarioSimulation(Simulation):
 
         self._compute(decomp_file=self.decomp_file)
         if alter:
-            output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim, country = self.country, num_table = self.num_table)
-            output_table.set_inputs(input_table_alter, country = self.country)
+            output_table = SystemSf(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim,
+                num_table = self.num_table)
+            output_table.set_inputs(input_table_alter)
             output_table.decomp_file = self.decomp_file
             output_table.disable(self.disabled_prestations)
             self.data = output_table.calculate()
@@ -527,11 +510,11 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default
         P         = self.P
 
-        self.output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country)
-        self.output_table.set_inputs(self.input_table, country = self.country)
+        self.output_table = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim)
+        self.output_table.set_inputs(self.input_table)
 
-        output_alter = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim, country = self.country)
-        output_alter.set_inputs(input_table_alter, country = self.country)
+        output_alter = SystemSf(self.OutputDescription, P, P_default, datesim = P.datesim)
+        output_alter.set_inputs(input_table_alter)
 
         self.output_table.disable(self.disabled_prestations)
         output_alter.disable(self.disabled_prestations)
@@ -597,9 +580,9 @@ class ScenarioSimulation(Simulation):
 #        if graph_xaxis is None:
 #            graph_xaxis = 'sal'
 #        if not alter:
-#            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend, country = self.country)
+#            drawBareme(data, ax, graph_xaxis, reforme, data_default, legend)
 #        else:
-#            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, country = self.country, position = position)
+#            drawBaremeCompareHouseholds(data, ax, graph_xaxis, data_default, legend, position = position)
 
 #    def draw_taux(self, ax, graph_xaxis = None, legend = True):
 #        """
@@ -613,7 +596,7 @@ class ScenarioSimulation(Simulation):
 #        data_default.setLeavesVisible()
 #        if graph_xaxis is None:
 #            graph_xaxis = 'sal'
-#        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend, country = self.country)
+#        drawTaux(data, ax, graph_xaxis, reforme, data_default, legend = legend)
 
 #    def draw_waterfall(self, ax):
 #        """
@@ -650,11 +633,10 @@ class SurveySimulation(Simulation):
                 setattr(self, key, val)
 
         if self.survey_filename is None:
-            if self.country is not None:
-                if self.num_table == 1 :
-                    filename = os.path.join(model.DATA_DIR, 'survey.h5')
-                else:
-                    filename = os.path.join(model.DATA_DIR, 'survey3.h5')
+            if self.num_table == 1 :
+                filename = os.path.join(model.DATA_DIR, 'survey.h5')
+            else:
+                filename = os.path.join(model.DATA_DIR, 'survey3.h5')
 
             self.survey_filename = filename
 
