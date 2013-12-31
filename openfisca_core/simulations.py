@@ -474,9 +474,6 @@ class ScenarioSimulation(Simulation):
             input_table_alter = DataTable(self.InputDescription, datesim = self.datesim)
             input_table_alter.load_data_from_test_case(self.alternative_scenario)
 
-        if self.reforme and alter:
-            raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
-
         self._compute(decomp_file=self.decomp_file)
         if alter:
             output_table = TaxBenefitSystem(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim,
