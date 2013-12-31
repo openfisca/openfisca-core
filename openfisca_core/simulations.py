@@ -35,9 +35,9 @@ from pandas import DataFrame, HDFStore
 
 from . import model
 from .columns import EnumCol, EnumPresta
-from .datatables import DataTable, TaxBenefitSystem
+from .datatables import DataTable
 from .parameters import XmlReader, Tree2Object
-from .utils import gen_output_data
+from .taxbenefitsystems import TaxBenefitSystem
 
 
 __all__ = ['ScenarioSimulation', 'Simulation', 'SurveySimulation']
