@@ -894,4 +894,3 @@ class TaxBenefitSystem(DataTable):
 
 
         col._isCalculated = True
-        

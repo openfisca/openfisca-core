@@ -108,14 +108,14 @@ def latex():
         print('latex build has not been tested on windows')
 
 def check_build():
-    
+
     for lang in LANGUAGES:
         build = "_build/%s" % lang
         build_dirs = [build]
         dirs = [ 'doctrees', 'html', 'latex', 'plots', '_static', '_templates']
         for d in dirs:
-            build_dirs.append(build+'/'+d) 
-        
+            build_dirs.append(build+'/'+d)
+
         for d in build_dirs:
             try:
                 os.mkdir(d)

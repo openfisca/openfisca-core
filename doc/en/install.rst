@@ -5,9 +5,9 @@ Installation
 ************
 
 You have the option to install an `official release
-<https://github.com/openfisca/openfisca/downloads>`__ 
+<https://github.com/openfisca/openfisca/downloads>`__
 or to build the `development version
-<http://github.com/pydata/pandas>`__. 
+<http://github.com/pydata/pandas>`__.
 
 
 Python version support
@@ -35,8 +35,8 @@ Dependencies
   * `python-dateutil <http://labix.org/python-dateutil>`__ 1.5
 
   * `matplotlib <http://matplotlib.sourceforge.net/>`__: for plotting
-  
-  
+
+
 
 TODO: complete this list
 
@@ -46,8 +46,8 @@ TODO: complete this list
   * `openpyxl <http://packages.python.org/openpyxl/>`__, `xlrd/xlwt <http://www.python-excel.org/>`__
      * openpyxl version 1.6.1 or higher
      * Needed for Excel I/O
-  
-  
+
+
 .. note::
 
    Without the optional dependencies, many useful features will not
