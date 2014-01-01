@@ -434,7 +434,7 @@ class TaxBenefitSystem(DataTable):
     def test_case_calculate(self):
         assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
 
-        _doc = minidom.parse(self.decomp_file)
+        decomp_doc = minidom.parse(self.decomp_file)
         output_tree = OutNode('root', 'root')
-        self.generate_output_tree(_doc, output_tree)
+        self.generate_output_tree(decomp_doc, output_tree)
         return output_tree
