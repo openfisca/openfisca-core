@@ -105,12 +105,10 @@ class OutNode(object):
         yield '\n'
 
     def partiallychecked(self):
-        if self.children:
-            a = True
-            for child in self.children:
-                a = a and (child.partiallychecked() or child.visible)
-            return a
-        return False
+        return self.children and all(
+            child.visible or child.partiallychecked()
+            for child in self.children
+            )
 
     def row(self):
         if self.parent is not None:
