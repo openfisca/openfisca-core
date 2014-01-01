@@ -23,6 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
 from xml.dom import minidom
 
 import numpy as np
@@ -39,16 +40,24 @@ preproc_inputs = None  # Set to a function by some country-specific extensions l
 
 
 class OutNode(object):
+    _vals = None
+    children = None
+    code = None
+    color = None
+    desc = None
+    parent = None
+    shortname = None
+    typevar = None
+    visible = 0
+
     def __init__(self, code, desc, shortname = '', vals = 0, color = (0, 0, 0), typevar = 0, parent = None):
         self.parent = parent
         self.children = []
         self.code = code
         self.desc = desc
         self.color = color
-        self.visible = 0
         self.typevar = typevar
         self._vals = vals
-        self._taille = 0
         self.shortname = shortname or code
 
     def __getitem__(self, key):
@@ -153,7 +162,6 @@ class OutNode(object):
     def vals_set(self, vals):
         dif = vals - self._vals
         self._vals = vals
-        self._taille = len(vals)
         if self.parent:
             self.parent.vals = self.parent.vals + dif
 
