@@ -103,15 +103,15 @@ class OutNode(object):
             child.hideAll()
 
     def iter_repr_fragments(self, tab_level = 0):
-        yield '\t' *  tab_level
-        yield '|------'
+        yield '  ' * tab_level
         yield self.code
+        yield ': '
+        yield str(self.vals)
         yield '\n'
         child_tab_level = tab_level + 1
         for child in self.children:
             for fragment in child.iter_repr_fragments(child_tab_level):
                 yield fragment
-        yield '\n'
 
     def partiallychecked(self):
         return self.children and all(
