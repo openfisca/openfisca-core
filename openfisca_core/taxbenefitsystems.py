@@ -49,10 +49,7 @@ class OutNode(object):
         self.typevar = typevar
         self._vals = vals
         self._taille = 0
-        if shortname:
-            self.shortname = shortname
-        else:
-            self.shortname = code
+        self.shortname = shortname or code
 
     def __getitem__(self, key):
         if self.code == key:
@@ -63,7 +60,10 @@ class OutNode(object):
                 return val
 
     def __iter__(self):
-        return self.inorder()
+        for child in self.children:
+            for descendant in child:
+                yield descendant
+        yield self
 
     def __repr__(self):
         return ''.join(self.iter_repr_fragments())
@@ -92,12 +92,6 @@ class OutNode(object):
             self.visible = 0
         for child in self.children:
             child.hideAll()
-
-    def inorder(self):
-        for child in self.children:
-            for x in child.inorder():
-                yield x
-        yield self
 
     def iter_repr_fragments(self, tab_level = 0):
         yield '\t' *  tab_level
