@@ -66,7 +66,7 @@ class OutNode(object):
         return self.inorder()
 
     def __repr__(self):
-        return self.log()
+        return ''.join(self.iter_repr_fragments())
 
     def addChild(self, child):
         self.children.append(child)
@@ -99,22 +99,16 @@ class OutNode(object):
                 yield x
         yield self
 
-    def log(self, tabLevel=-1):
-        output = ""
-        tabLevel += 1
-
-        for i in range(tabLevel):
-            output += "\t"
-
-        output += "|------" + self.code + "\n"
-
+    def iter_repr_fragments(self, tab_level = 0):
+        yield '\t' *  tab_level
+        yield '|------'
+        yield self.code
+        yield '\n'
+        child_tab_level = tab_level + 1
         for child in self.children:
-            output += child.log(tabLevel)
-
-        tabLevel -= 1
-        output += "\n"
-
-        return output
+            for fragment in child.iter_repr_fragments(child_tab_level):
+                yield fragment
+        yield '\n'
 
     def partiallychecked(self):
         if self.children:
