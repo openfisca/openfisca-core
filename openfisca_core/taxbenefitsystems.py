@@ -156,6 +156,21 @@ class OutNode(object):
             if changeParent:
                 self.parent.setVisible(changeSelf = False)
 
+    def to_json(self):
+        json = collections.OrderedDict((
+            ('name', self.shortname),
+            ('description', self.desc),
+            ('type', self.typevar),
+            ('values', self.vals.tolist()),
+            ('color', [int(color_item) for color_item in self.color]),
+            ))
+        if self.children:
+            json['children'] = collections.OrderedDict(
+                (child.code, child.to_json())
+                for child in self.children
+                )
+        return json
+
     def vals_get(self):
         return self._vals
 
