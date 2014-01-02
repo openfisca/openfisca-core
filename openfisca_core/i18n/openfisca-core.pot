@@ -1,5 +1,5 @@
 # Translations template for openfisca-core.
-# Copyright (C) 2013 OpenFisca Team
+# Copyright (C) 2013, 2014 OpenFisca Team
 # This file is distributed under the same license as the openfisca-core project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
 #
