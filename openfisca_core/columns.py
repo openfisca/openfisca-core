@@ -5,7 +5,7 @@
 # By: OpenFisca Team <contact@openfisca.fr>
 #
 # Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
-# https://github.com/openfisca/openfisca
+# https://github.com/openfisca
 #
 # This file is part of OpenFisca.
 #

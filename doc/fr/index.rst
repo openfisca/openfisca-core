@@ -9,7 +9,7 @@ OpenFisca: versatile microsimulation software
 
 **Date**: |today| **Version**: |version|
 
-**Source Repository:** http://github.com/openfisca/openfisca
+**Source Repository:** http://github.com/openfisca
 
 **Issues & Ideas:** https://github.com/openfisca/openfisca/issues
 
