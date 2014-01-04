@@ -55,7 +55,7 @@ class Simulation(object):
     --------
     ScenarioSimulation, SurveySimulation
     """
-    chunk = 1
+    chunks_count = 1
     datesim = None
     disabled_prestations = None
     input_table = None
@@ -591,8 +591,8 @@ class SurveySimulation(Simulation):
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.")
 
-        if not isinstance(self.chunk, int):
-            raise Exception("Chunk number must be an integer")
+        if not isinstance(self.chunks_count, int):
+            raise Exception("Chunks count must be an integer")
 
     def inflate_survey(self, inflators):
         """
@@ -647,7 +647,7 @@ class SurveySimulation(Simulation):
                                                subset=self.subset,
                                                print_missing=self.verbose)
 
-        if self.chunk == 1:
+        if self.chunks_count == 1:
             self._compute()
         # Note: subset has already be applied
         else:
@@ -659,19 +659,19 @@ class SurveySimulation(Simulation):
                 list_men = self.input_table.table3['ind']['idmen'].unique()
 
             len_tot = len(list_men)
-            len_chunk = int(len_tot/self.chunk)+1
+            chunk_length = int(len_tot / self.chunks_count) + 1
 
-            for chunk in range(0, self.chunk):
-                start= chunk * len_chunk
-                end = (chunk + 1)* len_chunk
+            for chunk_index in range(0, self.chunks_count):
+                start= chunk_index * chunk_length
+                end = (chunk_index + 1) * chunk_length
 
                 subsimu = SurveySimulation()
                 subsimu.__dict__ = self.__dict__.copy()
                 subsimu.subset = list_men[start:end]
-                subsimu.chunk = 1
+                subsimu.chunks_count = 1
                 subsimu.compute()
                 simu_chunk = subsimu
-                print("compute chunk %d / %d" %(chunk +1 ,self.chunk))
+                print("compute chunk %d / %d" %(chunk_index + 1, self.chunks_count))
 
                 if self.output_table is not None:
                     self.output_table = self.output_table + simu_chunk.output_table
