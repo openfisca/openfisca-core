@@ -257,7 +257,7 @@ class Simulation(object):
             self.var2label.update(v2l)
             self.var2enum.update(v2e)
 
-    def get_col(self, varname, as_dataframe=False):
+    def get_col(self, varname):
         '''
         Looks for a column in inputs description, then in output_table description
         '''

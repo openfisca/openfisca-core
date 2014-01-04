@@ -366,7 +366,7 @@ class DataTable(object):
 #
 #        print self.table.get_dtype_counts()
 
-    def get_value(self, varname, entity = None, opt = None, sum_ = False, as_dataframe = False, freqs = None):
+    def get_value(self, varname, entity = None, opt = None, sum_ = False, freqs = None):
         if self.num_table == 1:
             value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
             if as_dataframe:
