@@ -259,17 +259,14 @@ class Simulation(object):
 
     def get_col(self, varname):
         '''
-        Looks for a column in inputs description, then in output_table description
+        Look for a column in input_table description, then in output_table description
         '''
         if self.input_table.description.has_col(varname):
             return self.input_table.description.get_col(varname)
-
-        if self.output_table is not None:
-            if self.output_table.description.has_col(varname):
-                return self.output_table.description.get_col(varname)
-        else:
-            print "Variable %s is absent from both inputs and output_table" % varname
-            return None
+        if self.output_table is not None and self.output_table.description.has_col(varname):
+            return self.output_table.description.get_col(varname)
+        print "Variable %s is absent from both input_table and output_table" % varname
+        return None
 
     @property
     def input_var_list(self):
