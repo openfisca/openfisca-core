@@ -1,14 +1,14 @@
-# Translations template for openfisca-core.
-# Copyright (C) 2013, 2014 OpenFisca Team
-# This file is distributed under the same license as the openfisca-core project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
+# Translations template for OpenFisca-Core.
+# Copyright (C) 2014 OpenFisca Team
+# This file is distributed under the same license as the OpenFisca-Core project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: openfisca-core 0.2dev\n"
+"Project-Id-Version: OpenFisca-Core 0.2dev\n"
 "Report-Msgid-Bugs-To: contact@openfisca.fr\n"
-"POT-Creation-Date: 2013-12-25 11:15+0100\n"
+"POT-Creation-Date: 2014-01-03 11:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
