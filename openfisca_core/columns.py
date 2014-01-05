@@ -56,30 +56,28 @@ def default_frequency_converter(from_ = None, to_= None):
 
 
 class Column(object):
-    count = 0
+    _default = 0
+    _dtype = float
+    _frequency_converter = default_frequency_converter
+    end = None
+    entity = None
+    freq = None
+    label = None
     name = None
+    start = None
+    val_type = None
 
-    def __init__(self, label = None, default = 0, entity= 'ind', start = None, end = None, val_type = None,
+    def __init__(self, label = None, default = None, entity= 'ind', start = None, end = None, val_type = None,
             freq = 'year'):
-        super(Column, self).__init__()
-        self.label = label
-        self.entity = entity
-        self.start = start
+        if default is not None and default != self._default:
+            self._default = default
         self.end = end
-        self.val_type = val_type
+        self.entity = entity
         self.freq = freq
-
-        self._order = Column.count
-        Column.count += 1
-        self._default = default
-        self._dtype = float
-        self._frequency_converter = default_frequency_converter
-
-    def reset_count(self):
-        """
-        Reset the count of column to zero
-        """
-        Column.count = 0
+        self.label = label
+        self.start = start
+        if val_type is not None and val_type != self.val_type:
+            self.val_type = val_type
 
 
 # Level-1 Columns
@@ -89,9 +87,8 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    def __init__(self, default = False, **kwargs):
-        super(BoolCol, self).__init__(default=default, **kwargs)
-        self._dtype = np.bool
+    _default = False
+    _dtype = float
 
     @property
     def json_to_python(self):
@@ -106,9 +103,8 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    def __init__(self, val_type="date", **kwargs):
-        super(DateCol, self).__init__(val_type=val_type, **kwargs)
-        self._dtype = np.datetime64
+    _dtype = np.datetime64
+    val_type = 'date'
 
     @property
     def json_to_python(self):
@@ -123,9 +119,7 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    def __init__(self, **kwargs):
-        super(FloatCol, self).__init__(**kwargs)
-        self._dtype = np.float32
+    _dtype = np.float32
 
     @property
     def json_to_python(self):
@@ -140,9 +134,7 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    def __init__(self, **kwargs):
-        super(IntCol, self).__init__(**kwargs)
-        self._dtype = np.int32
+    _dtype = np.int32
 
     @property
     def json_to_python(self):
@@ -159,8 +151,7 @@ class AgesCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    def __init__(self, default=-9999, **kwargs):
-        super(AgesCol, self).__init__(default=default, **kwargs)
+    _default = -9999
 
     @property
     def json_to_python(self):
@@ -177,15 +168,14 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
+    _dtype = np.int16
+    enum = None
     index_by_slug = None
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)
-        self._dtype = np.int16
         if isinstance(enum, Enum):
             self.enum = enum
-        else:
-            self.enum = None
 
     @property
     def json_to_python(self):
@@ -230,16 +220,10 @@ class Prestation(Column):
     Prestation is a wraper around a function which takes some arguments and return a single array.
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
-    count = 0
-
     def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None, freq="year"):
         super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
 
-        if func is None:
-            raise Exception('a function to compute the prestation should be provided')
-
-        self._order = Prestation.count
-        Prestation.count += 1
+        assert func is not None, 'A function to compute the prestation should be provided'
 
         # initialize attribute
         self._isCalculated = False
@@ -289,7 +273,6 @@ class Prestation(Column):
             for var in self._freq:
                 if var not in self.inputs:
                     raise Exception('%s in option but not in function args' % var)
-
 
     def set_enabled(self):
         self._enabled = True

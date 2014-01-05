@@ -25,13 +25,13 @@
 
 from __future__ import division
 
+import collections
 import logging
 
 import numpy as np
 from pandas import DataFrame, HDFStore, read_csv, Series
 
 from . import model
-from .descriptions import Description, ModelDescription
 
 
 log = logging.getLogger(__name__)
@@ -49,20 +49,16 @@ def _survey_subset(table, subset):
 
 
 class DataTable(object):
-    """
-    Construct a TaxBenefitSystem object is a set of Prestation objects
-    """
-    def __init__(self, model_description, survey_data = None, scenario = None, datesim = None,
-                  num_table = 1, subset=None, print_missing=True):
-        super(DataTable, self).__init__()
+    column_by_name = None
 
-        # Init instance attribute
-        self.description = None
+    def __init__(self, column_by_name, survey_data = None, scenario = None, datesim = None, num_table = 1, subset=None,
+            print_missing=True):
+        assert isinstance(column_by_name, collections.OrderedDict)
+        self.column_by_name = column_by_name
         self.test_case = scenario
         self.decomp_file = None
         self.survey_data = survey_data
         self._isPopulated = False
-        self.col_names = []
         self.num_table = num_table
         self.subset = subset
 
@@ -73,26 +69,14 @@ class DataTable(object):
         self._nrows = 0
         self.print_missing = print_missing
 
-        if datesim is None:
-            raise Exception('InputDescription: datesim should be provided')
-        else:
-            self.datesim = datesim
+        assert datesim is not None
+        self.datesim = datesim
 
         self.list_entities = ['ind'] + model.ENTITIES_INDEX
         self.survey_year = None
 
-        # Build the description attribute
-        if type(model_description) == type(ModelDescription):
-            descr = model_description()
-            self.description = Description(descr.columns)
-        else:
-            raise Exception("model_description should be an ModelDescription inherited class")
+    # The 2 following functions are created to tell pickle what to do when pickling and unpickling.
 
-        self.col_names = self.description.col_names
-
-    '''
-    The 2 following functions are created to tell pickle what to do when pickling and unpickling.
-    '''
     def __getstate__(self):
         def should_pickle(k):
             return k not in ['table', 'table3', '_param', '_default_param']
@@ -126,7 +110,7 @@ class DataTable(object):
                       'nb': self._nrows}}
 
         for entity in entities:
-            enum = self.description.get_col('qui'+entity).enum
+            enum = self.column_by_name.get('qui'+entity).enum
             try:
                 if self.num_table == 1:
                     idx = getattr(self.table, 'id'+entity).values
@@ -135,7 +119,7 @@ class DataTable(object):
                     idx = getattr(self.table3['ind'], 'id'+entity).values
                     qui = getattr(self.table3['ind'], 'qui'+entity).values
 
-                enum = self.description.get_col('qui'+entity).enum
+                enum = self.column_by_name.get('qui'+entity).enum
             except:
                 log.error('DataTable needs columns %s and %s to build index with entity %s' % ('id' + entity,
                     'qui' + entity, entity))
@@ -180,14 +164,14 @@ class DataTable(object):
         if entity is 'ind': Set the variable of all individual to the value of the (head of) entity
         else              : Set the varible of all entity to the value of the enclosing entity of varname
         """
-        col = self.description.get_col(varname)
+        col = self.column_by_name.get(varname)
         from_ent = col.entity
         value = self.get_value(varname)
         if self.num_table == 1:
             try:
-                enum = self.description.get_col('qui'+from_ent).enum
+                enum = self.column_by_name.get('qui'+from_ent).enum
             except:
-                enum = self._inputs.description.get_col('qui'+from_ent).enum
+                enum = self._inputs.column_by_name.get('qui'+from_ent).enum
             head = self.index[from_ent][0]['idxIndi']
             for member in enum:
                 value_member = value[head]
@@ -301,8 +285,8 @@ class DataTable(object):
         if self.num_table == 1 :
             self._nrows = self.table.shape[0]
 
-            for col in self.description.columns.itervalues():
-                if not col.name in self.table:
+            for col in self.column_by_name.itervalues():
+                if col.name not in self.table:
                     missing_col.append(col.name)
                     self.table[col.name] = col._default
                 try:
@@ -316,7 +300,7 @@ class DataTable(object):
         elif self.num_table == 3 :
             self._nrows = self.table3['ind'].shape[0]
             for ent in list_entities:
-                var_entity[ent] = [x for x in self.description.columns.itervalues() if x.entity == ent]
+                var_entity[ent] = [x for x in self.column_by_name.itervalues() if x.entity == ent]
                 for col in var_entity[ent]:
                     if not col.name in self.table3[ent]:
                         missing_col.append(col.name)
@@ -360,7 +344,7 @@ class DataTable(object):
 #        print self.table.get_dtype_counts()
 #
 #        for col in self.table.columns:
-#            if col not in self.description.col_names:
+#            if col not in self.column_by_name:
 #                print 'removing : ',  col
 #                del self.table[col]
 #
@@ -398,7 +382,7 @@ class DataTable(object):
         sumout: array
 
         '''
-        col = self.description.get_col(varname)
+        col = self.column_by_name.get(varname)
         dflt = col._default
         dtyp = col._dtype
         ent = col.entity
@@ -419,9 +403,9 @@ class DataTable(object):
                 # ce qui suit est copie sur propagate_to_members
                 value = self.get_value(varname, ent)
                 try:
-                    enum = self.description.get_col('qui'+ent).enum
+                    enum = self.column_by_name.get('qui'+ent).enum
                 except:
-                    enum = self._inputs.description.get_col('qui'+ent).enum
+                    enum = self._inputs.column_by_name.get('qui'+ent).enum
                 for member in enum:
                     qui = member[1]
                     idx = self.index[ent][qui]
@@ -496,14 +480,14 @@ class DataTable(object):
 
         '''
         # caracteristics of varname
-        col = self.description.get_col(varname)
+        col = self.column_by_name.get(varname)
         dflt = col._default
         dtyp = col._dtype
         dent = col.entity
         var = np.array(self.table3[dent][varname].values, dtype = col._dtype)
 
         case = 0
-        #TODO: Have a level of entites in the model description
+        #TODO: Have a level of entities in the model description
         # for example, in France case, ind = 0, fam and foy =1 and men = 2, ind< fam,foy<men <- JS: Quid des gens
         # qui ont quitté le domicile familial mais qui déclarent avec leur parents ?
         # you can check than if entity is fam or foy and dent the other one then case still zero.
@@ -635,7 +619,7 @@ class DataTable(object):
             idx = self.index[entity][0]
         else:
             idx = self.index[entity][opt]
-        col = self.description.get_col(varname)
+        col = self.column_by_name.get(varname)
         dtyp = col._dtype
         if self.num_table == 1:
             values = Series(value[idx['idxUnit']], dtype = dtyp)

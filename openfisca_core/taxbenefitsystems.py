@@ -184,8 +184,8 @@ class OutNode(object):
 
 
 class TaxBenefitSystem(DataTable):
-    def __init__(self, model_description, param, defaultParam = None, datesim = None, num_table = 1):
-        super(TaxBenefitSystem, self).__init__(model_description, datesim = datesim, num_table = num_table)
+    def __init__(self, column_by_name, param, defaultParam = None, datesim = None, num_table = 1):
+        super(TaxBenefitSystem, self).__init__(column_by_name, datesim = datesim, num_table = num_table)
         self._primitives = set()
         self._param = param
         self._default_param = defaultParam
@@ -218,7 +218,7 @@ class TaxBenefitSystem(DataTable):
 
     def build(self):
         # Build the closest dependencies
-        for col in self.description.columns.itervalues():
+        for col in self.column_by_name.itervalues():
             # Disable column if necessary
             col.set_enabled()
             if col._start:
@@ -227,8 +227,8 @@ class TaxBenefitSystem(DataTable):
                 if col._end < self.datesim: col.set_disabled()
 
             for input_varname in col.inputs:
-                if input_varname in self.description.col_names:
-                    input_col = self.description.get_col(input_varname)
+                if input_varname in self.column_by_name:
+                    input_col = self.column_by_name.get(input_varname)
                     input_col.add_child(col)
                 else:
                     self._primitives.add(input_varname)
@@ -248,7 +248,7 @@ class TaxBenefitSystem(DataTable):
         """
         if disabled_prestations is not None:
             for colname in disabled_prestations:
-                self.description.columns[colname]._isCalculated = True
+                self.column_by_name[colname]._isCalculated = True
 
     def generate_output_tree(self, doc, output_tree, entity = 'men'):
         if doc.childNodes:
@@ -272,12 +272,12 @@ class TaxBenefitSystem(DataTable):
         else:
             idx = entity
             inputs = self._inputs
-            enum = inputs.description.get_col('qui'+entity).enum
+            enum = inputs.column_by_name.get('qui'+entity).enum
             people = [x[1] for x in enum]
-            if output_tree.code in self.col_names:
+            if output_tree.code in self.column_by_name:
                 self.calculate(varname=output_tree.code)
                 val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
-            elif output_tree.code in inputs.col_names:
+            elif output_tree.code in inputs.column_by_name:
                 val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
             else:
                 raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
@@ -293,7 +293,7 @@ class TaxBenefitSystem(DataTable):
         """
         Sets all columns as not calculated
         """
-        for col in self.description.columns.itervalues():
+        for col in self.column_by_name.itervalues():
             col._isCalculated = False
 
     def set_inputs(self, inputs):
@@ -309,7 +309,7 @@ class TaxBenefitSystem(DataTable):
             raise TypeError('inputs must be a DataTable')
         # check if all primitives are provided by the inputs
 #        for prim in self._primitives:
-#            if not prim in inputs.col_names:
+#            if not prim in inputs.column_by_name:
 #                raise Exception('%s is a required input and was not found in inputs' % prim)
 
         # store inputs and indexes and nrows
@@ -323,7 +323,7 @@ class TaxBenefitSystem(DataTable):
 
         if self.num_table == 1:
             dct = {}
-            for col in self.description.columns.itervalues():
+            for col in self.column_by_name.itervalues():
                 dflt = col._default
                 dtyp = col._dtype
                 dct[col.name] = np.ones(self._nrows, dtyp)*dflt
@@ -332,7 +332,7 @@ class TaxBenefitSystem(DataTable):
         if self.num_table == 3:
             self.table3 = {}
             temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {}}
-            for col in self.description.columns.itervalues():
+            for col in self.column_by_name.itervalues():
                 dflt = col._default
                 dtyp = col._dtype
                 size = self.index[col.entity]['nb']
@@ -357,7 +357,7 @@ class TaxBenefitSystem(DataTable):
         '''
         WEIGHT = model.WEIGHT
         if varname is None:
-            for col in self.description.columns.itervalues():
+            for col in self.column_by_name.itervalues():
                 try:
                     self.survey_calculate(varname = col.name)
                 except Exception as e:
@@ -365,10 +365,11 @@ class TaxBenefitSystem(DataTable):
                     print col.name
             return # Will calculate all and exit
 
-        col = self.description.get_col(varname)
+        col = self.column_by_name.get(varname)
 
-        if not self._primitives <= self._inputs.col_names:
-            raise Exception('%s are not set, use set_inputs before calling calculate. Primitives needed: %s, Inputs: %s' % (self._primitives - self._inputs.col_names, self._primitives, self._inputs.col_names))
+        columns_name = set(self._inputs.column_by_name)
+        assert self._primitives <= columns_name, '%s are not set, use set_inputs before calling calculate.' \
+            ' Primitives needed: %s, Inputs: %s' % (self._primitives - columns_name, self._primitives, columns_name)
 
         if col._isCalculated:
             return
@@ -383,7 +384,7 @@ class TaxBenefitSystem(DataTable):
 
         func_args = {}
         for var in required:
-            if var in self._inputs.col_names:
+            if var in self._inputs.column_by_name:
                 if var in col._option:
                     func_args[var] = self._inputs.get_value(var, entity, col._option[var])
                 else:

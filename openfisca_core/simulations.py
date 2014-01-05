@@ -23,8 +23,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
 import datetime as dt
 import gc
+import itertools
 import os
 import pickle
 import sys
@@ -56,28 +58,26 @@ class Simulation(object):
     ScenarioSimulation, SurveySimulation
     """
     chunks_count = 1
+    column_by_name = None
     datesim = None
     disabled_prestations = None
     input_table = None
-    label2var = None
+    io_column_by_label = None
+    io_column_by_name = None
     num_table = 1
     output_table = None
     output_table_default = None
     P = None
     P_default = None
     param_file = None
+    prestation_by_name = None
     reforme = False  # Boolean signaling reform mode
     subset = None
-    var2enum = None
-    var2label = None
     verbose = False
 
     def __init__(self):
-        super(Simulation, self).__init__()
-
-        self.label2var = {}
-        self.var2label = {}
-        self.var2enum = {}
+        self.io_column_by_label = collections.OrderedDict()
+        self.io_column_by_name = collections.OrderedDict()
 
     def __getstate__(self):
         def should_pickle(v):
@@ -112,8 +112,8 @@ class Simulation(object):
             self.param_file = model.PARAM_FILE
 
         # Sets required country specific classes
-        self.InputDescription = model.InputDescription
-        self.OutputDescription = model.OutputDescription
+        self.column_by_name = model.column_by_name
+        self.prestation_by_name = model.prestation_by_name
 
         return remaining
 
@@ -145,7 +145,7 @@ class Simulation(object):
             self.P = param
 
     def _initialize_input_table(self):
-        self.input_table = DataTable(self.InputDescription, datesim=self.datesim, num_table = self.num_table,
+        self.input_table = DataTable(self.column_by_name, datesim=self.datesim, num_table = self.num_table,
             subset=self.subset, print_missing=self.verbose)
 
     def disable_prestations(self, disabled_prestations = None):
@@ -161,7 +161,7 @@ class Simulation(object):
 
     def _preproc(self):
         """
-        Prepare the output values according to the OutputDescription definitions/Reform status/input_table
+        Prepare the output values according to the prestation_by_name definitions/Reform status/input_table
 
         Parameters
         ----------
@@ -177,12 +177,12 @@ class Simulation(object):
         P, P_default = self.P, self.P_default
         input_table = self.input_table
 
-        output_table = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim,
+        output_table = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim,
             num_table = self.num_table)
         output_table.set_inputs(input_table)
 
         if self.reforme:
-            output_table_default = TaxBenefitSystem(self.OutputDescription, P_default, P_default, datesim = P.datesim,
+            output_table_default = TaxBenefitSystem(self.prestation_by_name, P_default, P_default, datesim = P.datesim,
                 num_table = self.num_table)
             output_table_default.set_inputs(input_table)
         else:
@@ -190,7 +190,18 @@ class Simulation(object):
 
         output_table.disable(self.disabled_prestations)
         output_table_default.disable(self.disabled_prestations)
-        self._build_dicts()
+
+        io_column_by_label = self.io_column_by_label
+        io_column_by_name = self.io_column_by_name
+        io_column_by_label.clear()
+        io_column_by_name.clear()
+        for column_name, column in itertools.chain(
+                input_table.column_by_name.iteritems(),
+                output_table.column_by_name.iteritems(),
+                ):
+            io_column_by_label[column.label] = column
+            io_column_by_name[column_name] = column
+
         self.output_table, self.output_table_default = output_table, output_table_default
 
     def _compute(self, **kwargs):
@@ -226,7 +237,13 @@ class Simulation(object):
             data_default = data
 
         self.data, self.data_default = data, data_default
-        self._build_dicts(option = 'output_only')
+
+        io_column_by_label = self.io_column_by_label
+        io_column_by_name = self.io_column_by_name
+        for column_name, column in output_table.column_by_name.iteritems():
+            io_column_by_label[column.label] = column
+            io_column_by_name[column_name] = column
+
         gc.collect()
 
     def clear(self):
@@ -237,34 +254,14 @@ class Simulation(object):
         self.output_table_default = None
         gc.collect()
 
-    def _build_dicts(self, option = None):
-        """
-        Builds dictionaries from description
-        """
-        try:
-            if option is 'input_only':
-                descriptions = [self.input_table.description]
-            elif option is 'output_only':
-                descriptions = [self.output_table.description]
-            else:
-                descriptions = [self.input_table.description, self.output_table.description]
-        except:
-            descriptions = [self.input_table.description]
-
-        for description in descriptions:
-            l2v, v2l, v2e = description.builds_dicts()
-            self.label2var.update(l2v)
-            self.var2label.update(v2l)
-            self.var2enum.update(v2e)
-
     def get_col(self, varname):
         '''
-        Look for a column in input_table description, then in output_table description
+        Look for a column in input_table column_by_name, then in output_table column_by_name.
         '''
-        if self.input_table.description.has_col(varname):
-            return self.input_table.description.get_col(varname)
-        if self.output_table is not None and self.output_table.description.has_col(varname):
-            return self.output_table.description.get_col(varname)
+        if varname in self.input_table.column_by_name:
+            return self.input_table.column_by_name[varname]
+        if self.output_table is not None and varname in self.output_table.column_by_name:
+            return self.output_table.column_by_name[varname]
         print "Variable %s is absent from both input_table and output_table" % varname
         return None
 
@@ -272,16 +269,10 @@ class Simulation(object):
     def input_var_list(self):
         """
         List of input survey variables
-
-        Returns
-        -------
-        survey.description.col_names : List of input survey variables
         """
-        try:
-            return self.input_table.description.col_names
-        except:
+        if self.input_table is None:
             self._initialize_input_table()
-            return self.input_table.description.col_names
+        return self.input_table.column_by_name.keys()
 
     @property
     def output_var_list(self):
@@ -289,7 +280,7 @@ class Simulation(object):
         List of output survey variables
         """
         if self.output_table is not None:
-            return self.output_table.description.col_names
+            return self.output_table.column_by_name.keys()
 
     @property
     def var_list(self):
@@ -297,11 +288,11 @@ class Simulation(object):
         List the variables present in survey and output
         """
         if self.input_table is None:
-            return
-        try:
-            return list(set(self.input_table.description.col_names).union(set(self.output_table.description.col_names)))
-        except:
-            return list(set(self.input_table.description.col_names))
+            return None
+        columns_name = set(self.input_table.column_by_name)
+        if self.output_table is not None:
+            columns_name.update(self.output_table.column_by_name)
+        return list(columns_name)
 
     def create_description(self):
         '''
@@ -465,12 +456,12 @@ class ScenarioSimulation(Simulation):
             raise Exception("ScenarioSimulation: 'self.reforme' cannot be 'True' when 'self.alternative_scenario' is not 'None'")
 
         if alter:
-            input_table_alter = DataTable(self.InputDescription, datesim = self.datesim)
+            input_table_alter = DataTable(self.column_by_name, datesim = self.datesim)
             input_table_alter.load_data_from_test_case(self.alternative_scenario)
 
         self._compute(decomp_file=self.decomp_file)
         if alter:
-            output_table = TaxBenefitSystem(self.OutputDescription, self.P, self.P_default, datesim = self.P.datesim,
+            output_table = TaxBenefitSystem(self.prestation_by_name, self.P, self.P_default, datesim = self.P.datesim,
                 num_table = self.num_table)
             output_table.set_inputs(input_table_alter)
             output_table.decomp_file = self.decomp_file
@@ -485,7 +476,7 @@ class ScenarioSimulation(Simulation):
 
     def preproc_alter_scenario(self, input_table_alter):
         """
-        Prepare the output values according to the OutputDescription definitions and
+        Prepare the output values according to the prestation_by_name definitions and
         input_table when an alternative scenario is present
 
         Parameters
@@ -497,10 +488,10 @@ class ScenarioSimulation(Simulation):
         P_default = self.P_default
         P         = self.P
 
-        self.output_table = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim)
+        self.output_table = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim)
         self.output_table.set_inputs(self.input_table)
 
-        output_alter = TaxBenefitSystem(self.OutputDescription, P, P_default, datesim = P.datesim)
+        output_alter = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim)
         output_alter.set_inputs(input_table_alter)
 
         self.output_table.disable(self.disabled_prestations)
@@ -630,7 +621,14 @@ class SurveySimulation(Simulation):
         """
         self.clear()
         self._initialize_input_table()
-        self._build_dicts(option = 'input_only')
+
+        io_column_by_label = self.io_column_by_label
+        io_column_by_name = self.io_column_by_name
+        io_column_by_label.clear()
+        io_column_by_name.clear()
+        for column_name, column in self.input_table.column_by_name.iteritems():
+            io_column_by_label[column.label] = column
+            io_column_by_name[column_name] = column
 
     def compute(self):
         """
@@ -721,7 +719,7 @@ class SurveySimulation(Simulation):
             people = None
             if self.num_table == 1:
                 try:
-                    enum = inputs.description.get_col('qui'+entity).enum
+                    enum = inputs.column_by_name.get('qui'+entity).enum
                     people = [x[1] for x in enum]
                 except:
                     people = None
@@ -734,18 +732,17 @@ class SurveySimulation(Simulation):
 
             input_variables = set([WEIGHT, entity_id])
             if all_input_vars:
-                input_variables = input_variables.union(set(inputs.col_names))
+                input_variables = input_variables.union(set(inputs.column_by_name))
             if variables is not None:
-                input_variables = input_variables.union(set(inputs.col_names).intersection(variables))
-                output_variables = set(tax_benefit_system.col_names).intersection(variables)
-
+                input_variables = input_variables.union(set(inputs.column_by_name).intersection(variables))
+                output_variables = set(tax_benefit_system.column_by_name).intersection(variables)
             if all_output_vars:
-                output_variables = set(tax_benefit_system.col_names)
+                output_variables = set(tax_benefit_system.column_by_name)
 
             varnames = output_variables.union(input_variables)
             for varname in varnames:
-                if varname in tax_benefit_system.col_names:
-                    col = tax_benefit_system.description.get_col(varname)
+                if varname in tax_benefit_system.column_by_name:
+                    col = tax_benefit_system.column_by_name.get(varname)
                     condition = (col.entity != entity) or (force_sum == True)
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta))
                     if condition and type_col_condition:
@@ -753,7 +750,7 @@ class SurveySimulation(Simulation):
                     else:
                         val = tax_benefit_system.get_value(varname, entity=idx)
 
-                elif varname in inputs.col_names:
+                elif varname in inputs.column_by_name:
                     val = inputs.get_value(varname, idx)
                 else:
                     raise Exception('%s was not found in tax-benefit system nor in inputs' % varname)
@@ -774,11 +771,3 @@ class SurveySimulation(Simulation):
         return self.aggregated_by_entity(entity = entity, variables = variables,
                                          all_output_vars = False,
                                          all_input_vars = False, force_sum = False)[0]
-
-    def clear(self):
-        """
-        Clear the outputs table
-        """
-        self.output_table = None
-        self.output_table_default = None
-        gc.collect()

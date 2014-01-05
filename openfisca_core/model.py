@@ -28,6 +28,7 @@
 # OpenFisca country-specific package is properly inited.
 __all__ = [
     'AGGREGATES_DEFAULT_VARS',
+    'column_by_name',
     'CURRENCY',
     'DATA_DIR',
     'DATA_SOURCES_DIR',
@@ -35,9 +36,8 @@ __all__ = [
     'DEFAULT_DECOMP_FILE',
     'ENTITIES_INDEX',
     'FILTERING_VARS',
-    'InputDescription',
-    'OutputDescription',
     'PARAM_FILE',
+    'prestation_by_name',
     'REFORMS_DIR',
     'REV_TYP',
     'REVENUES_CATEGORIES',
