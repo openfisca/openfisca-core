@@ -88,7 +88,7 @@ class BoolCol(Column):
     A column of boolean
     '''
     _default = False
-    _dtype = float
+    _dtype = np.bool
 
     @property
     def json_to_python(self):
