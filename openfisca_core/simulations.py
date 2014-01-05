@@ -31,8 +31,6 @@ import os
 import pickle
 import sys
 
-import numpy as np
-import pandas as pd
 from pandas import DataFrame, HDFStore
 
 from . import model

@@ -134,7 +134,7 @@ class DataTable(object):
                     print "Warning: list of ident is not consistent for %s" %entity
                     print self.survey_year, len(idxlist), len(self.table3[entity])
                     idxent = self.table3[entity]['id'+entity]
-                    diff1 = set(idxlist).symmetric_difference(idxent)
+                    # diff1 = set(idxlist).symmetric_difference(idxent)
                     if len(idxlist) > len(self.table3[entity]):
                         idxlist = idxent
                 # Generates index for the entity of each individual
@@ -208,13 +208,8 @@ class DataTable(object):
         '''
         Populates a DataTable from survey data
         '''
-
-        list_entities = self.list_entities
-
-        # imports country specific variables from country.__init__.py
         INDEX = model.ENTITIES_INDEX
-        WEIGHT = model.WEIGHT
-        WEIGHT_INI = model.WEIGHT_INI
+        list_entities = self.list_entities
 
         if isinstance(fname, str) or isinstance(fname, unicode):
             if fname[-4:] == '.csv':
@@ -338,7 +333,7 @@ class DataTable(object):
         self._isPopulated = True
 
         # Initialize default weights
-#        self.set_value(WEIGHT_INI, self.get_value(WEIGHT), 'ind')
+#        self.set_value(model.WEIGHT_INI, self.get_value(model.WEIGHT), 'ind')
 
 #        # TODO: activate for debug
 #        print self.table.get_dtype_counts()
@@ -353,13 +348,13 @@ class DataTable(object):
     def get_value(self, varname, entity = None, opt = None, sum_ = False, freqs = None):
         if self.num_table == 1:
             value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
-            if as_dataframe:
-                index_varname = "id" + entity # TODO: this is dirty
-                if sum_ is True:
-                    index_value = self._get_value1(index_varname, entity = entity, opt = None, sum_ = None)
-                return DataFrame({index_varname: index_value,  varname: value})
-            else:
-                return value
+#            if as_dataframe:
+#                index_varname = "id" + entity # TODO: this is dirty
+#                if sum_ is True:
+#                    index_value = self._get_value1(index_varname, entity = entity, opt = None, sum_ = None)
+#                return DataFrame({index_varname: index_value,  varname: value})
+#            else:
+            return value
 
         if self.num_table == 3:
             return self._get_value3(varname, entity = entity, opt = opt, sum_ = sum_)

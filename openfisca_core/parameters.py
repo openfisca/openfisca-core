@@ -25,7 +25,7 @@
 
 from datetime import datetime
 from xml.dom import minidom
-from xml.etree.ElementTree import ElementTree, SubElement, Element, Comment
+from xml.etree.ElementTree import Element, ElementTree, SubElement
 
 from .utils import Bareme
 

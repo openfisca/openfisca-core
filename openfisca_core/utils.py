@@ -536,7 +536,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
 
 
-from numpy import cumsum, ones, random
+from numpy import cumsum, ones
 
 
 def gini(values, weights = None, bin_size = None):
