@@ -55,7 +55,6 @@ class XmlReader(object):
             self._date = date
         self.handleNodeList(self._doc.childNodes, self.tree)
         self.tree = self.tree.child(0)
-        self.param = Tree2Object(self.tree)
 
     def handleNodeList(self, nodeList, parent):
         for element in nodeList:
