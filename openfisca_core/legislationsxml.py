@@ -570,15 +570,15 @@ def validate_values_xml_json_date(values_xml_json, state = None):
             errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
 
     sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'], reverse = True)
-    next_value_xml_json = sorted_values_xml_json[0]
-    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
-        next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
-            + datetime.timedelta(days = 1)).isoformat()
-        if next_date_str < next_value_xml_json['deb']:
-            errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
-        elif next_date_str > next_value_xml_json['deb']:
-            errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
-        next_value_xml_json = value_xml_json
+#    next_value_xml_json = sorted_values_xml_json[0]
+#    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
+#        next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+#            + datetime.timedelta(days = 1)).isoformat()
+#        if next_date_str < next_value_xml_json['deb']:
+#            errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
+#        elif next_date_str > next_value_xml_json['deb']:
+#            errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
+#        next_value_xml_json = value_xml_json
 
     return sorted_values_xml_json, errors or None
 
