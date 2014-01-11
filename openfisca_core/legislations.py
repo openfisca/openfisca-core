@@ -384,7 +384,7 @@ def validate_value_json(value, state = None):
     return validated_value, errors
 
 
-def validate_values_json_date(values_xml_json, state = None):
+def validate_values_json_date(values_json, state = None):
     if not values_json:
         return values_json, None
     if state is None:
