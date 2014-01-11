@@ -34,7 +34,7 @@ from biryani1.states import default_state, State
 
 def add_ancestor_to_state(state, ancestor):
     if state is None:
-        state = conv.default_state
+        state = default_state
     if getattr(state, 'ancestors', None) is None:
         state.ancestors = []
     state.ancestors.append(ancestor)
