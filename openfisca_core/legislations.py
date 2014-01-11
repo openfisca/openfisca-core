@@ -42,6 +42,74 @@ units = [
     ]
 
 
+def generate_dated_json_value(values_json, date_str):
+    for value_json in values_json:
+        if value_json['from'] <= date_str <= value_json['to']:
+            return value_json['value']
+    return None
+
+
+def generate_dated_node_json(node_json, date_str):
+    dated_node_json = collections.OrderedDict()
+    for key, value in node_json.iteritems():
+        if key == 'nodes':
+            dated_node_json[key] = [
+                generate_dated_node_json(item, date_str)
+                for item in value
+                ]
+        elif key == 'parameters':
+            dated_node_json[key] = [
+                generate_dated_parameter_json(item, date_str)
+                for item in value
+                ]
+        elif key == 'scales':
+            dated_node_json[key] = [
+                generate_dated_scale_json(item, date_str)
+                for item in value
+                ]
+        else:
+            dated_node_json[key] = value
+    return dated_node_json
+
+
+def generate_dated_parameter_json(parameter_json, date_str):
+    dated_parameter_json = collections.OrderedDict()
+    for key, value in parameter_json.iteritems():
+        if key == 'parameters':
+            dated_parameter_json[key] = [
+                generate_dated_parameter_json(item, date_str)
+                for item in value
+                ]
+        elif key == 'values':
+            dated_parameter_json['value'] = generate_dated_json_value(value, date_str)
+        else:
+            dated_parameter_json[key] = value
+    return dated_parameter_json
+
+
+def generate_dated_scale_json(scale_json, date_str):
+    dated_scale_json = collections.OrderedDict()
+    for key, value in scale_json.iteritems():
+        if key == 'slices':
+            dated_scale_json[key] = [
+                generate_dated_slice_json(item, date_str)
+                for item in value
+                ]
+        else:
+            dated_scale_json[key] = value
+    return dated_scale_json
+
+
+def generate_dated_slice_json(slice_json, date_str):
+    dated_slice_json = collections.OrderedDict()
+    for key, value in slice_json.iteritems():
+        if key in ('base', 'rate', 'threshold'):
+            dated_slice_json[key] = generate_dated_json_value(value, date_str)
+        else:
+            dated_slice_json[key] = value
+    return dated_slice_json
+
+
 def validate_node_json(node, state = None):
     if node is None:
         return None, None
