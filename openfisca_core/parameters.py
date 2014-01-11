@@ -37,9 +37,9 @@ class Tree2Object(object):
         for a, b in self.__dict__.iteritems():
             if b.typeInfo == 'CODE' or b.typeInfo == 'BAREME':
                 if defaut:
-                    setattr(self,a, b.default)
+                    setattr(self, a, b.default)
                 else:
-                    setattr(self,a, b.value)
+                    setattr(self, a, b.value)
             else:
                 setattr(self,a, Tree2Object(b, defaut))
 
@@ -102,6 +102,7 @@ class XmlReader(object):
                 code = element.getAttribute('code')
                 raise Exception("Problem error when dealing with %s : \n %s" %(code,e))
         return None
+
 
 class Node(object):
     def __init__(self, code, description = '', parent=None):
@@ -275,6 +276,7 @@ class Node(object):
     def setData(self, column, value):
         if column is 0: pass
 
+
 class CodeNode(Node):
     def __init__(self, code, description, value, parent, valueFormat = 'none', valueType = 'none'):
         super(CodeNode, self).__init__(code, description, parent)
@@ -323,7 +325,6 @@ class CodeNode(Node):
 
 
 class BaremeNode(Node):
-
     def __init__(self, code, description, value, parent, valueType = 'none'):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
@@ -334,7 +335,6 @@ class BaremeNode(Node):
         self.default.marToMoy()
         self.typeInfo = 'BAREME'
         self.valueType  = valueType
-
 
     def _recurseXml(self, parent, datesim):
         if self.isDirty():
