@@ -27,7 +27,9 @@
 
 
 import collections
+import datetime
 import logging
+import itertools
 
 from . import conv
 
@@ -556,6 +558,31 @@ def validate_value_xml_json(value, state = None):
     return validated_value, errors
 
 
+def validate_values_xml_json_date(values_xml_json, state = None):
+    if not values_xml_json:
+        return values_xml_json, None
+    if state is None:
+        state = conv.default_state
+
+    errors = {}
+    for index, value_xml_json in enumerate(values_xml_json):
+        if value_xml_json['deb'] > value_xml_json['fin']:
+            errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
+
+    sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'], reverse = True)
+    next_value_xml_json = sorted_values_xml_json[0]
+    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
+        next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            + datetime.timedelta(days = 1)).isoformat()
+        if next_date_str < next_value_xml_json['deb']:
+            errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
+        elif next_date_str > next_value_xml_json['deb']:
+            errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
+        next_value_xml_json = value_xml_json
+
+    return sorted_values_xml_json, errors or None
+
+
 validate_values_holder_xml_json = conv.struct(
     dict(
         VALUE = conv.pipe(
@@ -564,6 +591,7 @@ validate_values_holder_xml_json = conv.struct(
                 validate_value_xml_json,
                 drop_none_items = True,
                 ),
+            validate_values_xml_json_date,
             conv.empty_to_none,
             conv.not_none,
             ),

@@ -27,6 +27,8 @@
 
 
 import collections
+import datetime
+import itertools
 
 from . import conv
 
@@ -314,11 +316,37 @@ def validate_value_json(value, state = None):
     return validated_value, errors
 
 
+def validate_values_json_date(values_xml_json, state = None):
+    if not values_json:
+        return values_json, None
+    if state is None:
+        state = conv.default_state
+
+    errors = {}
+    for index, value_json in enumerate(values_json):
+        if value_json['from'] > value_json['to']:
+            errors[index] = dict(to = state._(u"Last date must be greater than first date"))
+
+    sorted_values_json = sorted(values_json, key = lambda value_json: value_json['from'], reverse = True)
+    next_value_json = sorted_values_json[0]
+    for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
+        next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            + datetime.timedelta(days = 1)).isoformat()
+        if next_date_str < next_value_json['from']:
+            errors.setdefault(index, {})['from'] = state._(u"Dates of values are not consecutive")
+        elif next_date_str > next_value_json['from']:
+            errors.setdefault(index, {})['from'] = state._(u"Dates of values overlap")
+        next_value_json = value_json
+
+    return sorted_values_json, errors or None
+
+
 validate_values_holder_json = conv.pipe(
     conv.test_isinstance(list),
     conv.uniform_sequence(
         validate_value_json,
         drop_none_items = True,
         ),
+    validate_values_json_date,
     conv.empty_to_none,
     )
