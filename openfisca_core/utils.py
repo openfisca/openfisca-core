@@ -26,26 +26,83 @@
 from __future__ import division
 
 import numpy as np
+from numpy import cumsum, ones
 from pandas import DataFrame
 
 
-############################################################################
-## Helper functions for stats
-############################################################################
-# from http://pastebin.com/KTLip9ee
+def gini(values, weights = None, bin_size = None):
+    '''
+    Gini coefficient (normalized to 1)
+    Using fastgini formula :
+
+
+                      i=N      j=i
+                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
+                      i=1      j=1
+          G = 1 - 2* ----------------------------------
+                           i=N             i=N
+                           SUM W_i*X_i  *  SUM W_i
+                           i=1             i=1
+
+
+        where observations are sorted in ascending order of X.
+
+    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
+    '''
+    if weights is None:
+        weights = ones(len(values))
+
+    df = DataFrame({'x': values, 'w':weights})
+    df = df.sort_index(by='x')
+    x = df['x']
+    w = df['w']
+    wx = w*x
+
+    cdf = cumsum(wx)-0.5*wx
+    numerator = (w*cdf).sum()
+    denominator = ((wx).sum())*(w.sum())
+    gini = 1 - 2*(numerator/denominator)
+
+    return gini
+
+
+def kakwani(values, ineq_axis, weights = None):
+    '''
+    Computes the Kakwani index
+    '''
+    from scipy.integrate import simps
+
+    if weights is None:
+        weights = ones(len(values))
+
+#    sign = -1
+#    if tax == True:
+#        sign = -1
+#    else:
+#        sign = 1
+
+    PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
+    LCx, LCy = lorenz(ineq_axis, weights)
+
+    del PLCx
+
+    return simps((LCy - PLCy), LCx)
+
+
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
-# a is an input array of values.
-# weights is an input array of weights, so weights[i] goes with a[i]
-# labels are the names you want to give to the xtiles
-# method refers to which weighted algorithm.
-#      1 for wikipedia, 2 for the stackexchange post.
+# from http://pastebin.com/KTLip9ee
+    # a is an input array of values.
+    # weights is an input array of weights, so weights[i] goes with a[i]
+    # labels are the names you want to give to the xtiles
+    # method refers to which weighted algorithm.
+    #      1 for wikipedia, 2 for the stackexchange post.
 
-# The code outputs an array the same shape as 'a', but with
-# labels[i] inserted into spot j if a[j] falls in x-tile i.
-# The number of xtiles requested is inferred from the length of 'labels'.
+    # The code outputs an array the same shape as 'a', but with
+    # labels[i] inserted into spot j if a[j] falls in x-tile i.
+    # The number of xtiles requested is inferred from the length of 'labels'.
 
 
-# First method, "vanilla" weights from Wikipedia article.
+    # First method, "vanilla" weights from Wikipedia article.
     if method == 1:
 
         # Sort the values and apply the same sort to the weights.
@@ -183,45 +240,6 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
 
 
-from numpy import cumsum, ones
-
-
-def gini(values, weights = None, bin_size = None):
-    '''
-    Gini coefficient (normalized to 1)
-    Using fastgini formula :
-
-
-                      i=N      j=i
-                      SUM W_i*(SUM W_j*X_j - W_i*X_i/2)
-                      i=1      j=1
-          G = 1 - 2* ----------------------------------
-                           i=N             i=N
-                           SUM W_i*X_i  *  SUM W_i
-                           i=1             i=1
-
-
-        where observations are sorted in ascending order of X.
-
-    From http://fmwww.bc.edu/RePec/bocode/f/fastgini.html
-    '''
-    if weights is None:
-        weights = ones(len(values))
-
-    df = DataFrame({'x': values, 'w':weights})
-    df = df.sort_index(by='x')
-    x = df['x']
-    w = df['w']
-    wx = w*x
-
-    cdf = cumsum(wx)-0.5*wx
-    numerator = (w*cdf).sum()
-    denominator = ((wx).sum())*(w.sum())
-    gini = 1 - 2*(numerator/denominator)
-
-    return gini
-
-
 def lorenz(values, weights = None):
     '''
     Computes Lorenz Curve coordinates
@@ -253,26 +271,3 @@ def pseudo_lorenz(values, ineq_axis, weights = None):
     y = y/float(y[-1:])
 
     return x, y
-
-
-def kakwani(values, ineq_axis, weights = None):
-    '''
-    Computes the Kakwani index
-    '''
-    if weights is None:
-        weights = ones(len(values))
-
-#    sign = -1
-#    if tax == True:
-#        sign = -1
-#    else:
-#        sign = 1
-
-    PLCx, PLCy = pseudo_lorenz(values, ineq_axis, weights)
-    LCx, LCy = lorenz(ineq_axis, weights)
-
-    del PLCx
-
-    from scipy.integrate import simps
-
-    return simps((LCy - PLCy), LCx)
