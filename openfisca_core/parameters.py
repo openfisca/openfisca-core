@@ -27,7 +27,7 @@ from datetime import datetime
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
-from .utils import Bareme
+from .baremes import Bareme
 
 
 class Tree2Object(object):
