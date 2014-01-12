@@ -29,16 +29,6 @@ import numpy as np
 from pandas import DataFrame
 
 
-def lower_and_underscore(string):
-    r = str()
-    for l in string:
-        if l.isupper():
-            r += "_" + l.lower()
-        else:
-            r += l
-    return r
-
-
 ############################################################################
 ## Helper functions for stats
 ############################################################################
