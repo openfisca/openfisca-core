@@ -35,7 +35,7 @@ class Tree2Object(object):
         for child in node._children:
             setattr(self, child.code, child)
         for a, b in self.__dict__.iteritems():
-            if b.typeInfo == 'CODE' or b.typeInfo == 'BAREME':
+            if b.type_info == 'CODE' or b.type_info == 'BAREME':
                 if defaut:
                     setattr(self, a, b.default)
                 else:
@@ -63,9 +63,9 @@ class XmlReader(object):
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
                     option = element.getAttribute('option')
-                    valueType   = element.getAttribute('type')
-                    tranches = Bareme(code)
-                    tranches.setOption(option)
+                    value_type   = element.getAttribute('type')
+                    bareme = Bareme(code)
+                    bareme.setOption(option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
                         seuil = self.handleValues(tranche.getElementsByTagName("SEUIL")[0], self._date)
                         assi = tranche.getElementsByTagName("ASSIETTE")
@@ -73,17 +73,17 @@ class XmlReader(object):
                         else: assiette = 1
                         taux  = self.handleValues(tranche.getElementsByTagName("TAUX")[0], self._date)
                         if not seuil is None and not taux is None:
-                            tranches.addTranche(seuil, taux*assiette)
-                    tranches.marToMoy()
-                    node = BaremeNode(code, desc, tranches, parent, valueType)
+                            bareme.addTranche(seuil, taux*assiette)
+                    bareme.marToMoy()
+                    node = BaremeNode(code, desc, bareme, parent, value_type)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
-                    valueFormat = element.getAttribute('format')
-                    valueType   = element.getAttribute('type')
+                    value_format = element.getAttribute('format')
+                    value_type   = element.getAttribute('type')
                     val = self.handleValues(element, self._date)
                     if not val is None:
-                        node = CodeNode(code, desc, float(val), parent, valueFormat, valueType)
+                        node = CodeNode(code, desc, float(val), parent, value_format, value_type)
                 else:
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -112,9 +112,9 @@ class Node(object):
 
         self.code = code
         self.description = description
-        self.valueFormat = 'none'
-        self.valueType = 'none'
-        self.typeInfo = 'NODE'
+        self.value_format = 'none'
+        self.value_type = 'none'
+        self.type_info = 'NODE'
 
         if parent is not None:
             parent.addChild(self)
@@ -150,7 +150,7 @@ class Node(object):
 
     def asXml(self, fileName, datesim):
         doc = ElementTree()
-        root = Element(tag = self.typeInfo,
+        root = Element(tag = self.type_info,
                        attrib={'datesim': datesim})
 
         for i in self._children:
@@ -162,7 +162,7 @@ class Node(object):
     def _recurseXml(self, parent, datesim):
         if self.isDirty():
             child = SubElement(parent,
-                               tag = self.typeInfo,
+                               tag = self.type_info,
                                attrib = {'code': self.code,
                                          'description': self.description})
 
@@ -184,12 +184,12 @@ class Node(object):
     code = property(getCode, setCode)
 
     def getType(self):
-        return self._typeInfo
+        return self._type_info
 
     def setType(self, value):
-        self._typeInfo = value
+        self._type_info = value
 
-    typeInfo = property(getType, setType)
+    type_info = property(getType, setType)
 
     def getDescription(self):
         return self._description
@@ -204,10 +204,10 @@ class Node(object):
 
     def setValueFormat(self, value):
         if not value in ('none', 'integer', 'percent'):
-            return Exception("Unknowned %s valueFormat: valueFormat can be 'none', 'integer', 'percent'" % value)
+            return Exception("Unknowned %s value_format: value_format can be 'none', 'integer', 'percent'" % value)
         self._format = value
 
-    valueFormat = property(getValueFormat, setValueFormat)
+    value_format = property(getValueFormat, setValueFormat)
 
     def getValueType(self):
         return self._type
@@ -215,10 +215,10 @@ class Node(object):
     def setValueType(self, value):
         type_list = ('none', 'monetary', 'age', 'hours', 'days', 'years')
         if not value in type_list:
-            return Exception("Unknowned %s valueType: valueType can be 'none', 'monetary', 'age', 'hours', 'days', 'years'" % value)
+            return Exception("Unknowned %s value_type: value_type can be 'none', 'monetary', 'age', 'hours', 'days', 'years'" % value)
         self._type = value
 
-    valueType = property(getValueType, setValueType)
+    value_type = property(getValueType, setValueType)
 
 
     def getValue(self):
@@ -278,18 +278,18 @@ class Node(object):
 
 
 class CodeNode(Node):
-    def __init__(self, code, description, value, parent, valueFormat = 'none', valueType = 'none'):
+    def __init__(self, code, description, value, parent, value_format = 'none', value_type = 'none'):
         super(CodeNode, self).__init__(code, description, parent)
         self.value = value
         self.default = value
-        self.typeInfo = 'CODE'
-        self.valueFormat = valueFormat
-        self.valueType   = valueType
+        self.type_info = 'CODE'
+        self.value_format = value_format
+        self.value_type   = value_type
 
     def _recurseXml(self, parent, datesim):
         if self.isDirty():
             child = SubElement(parent,
-                               tag = self.typeInfo,
+                               tag = self.type_info,
                                attrib = {'code': self.code,
                                          'description': self.description})
 
@@ -325,7 +325,7 @@ class CodeNode(Node):
 
 
 class BaremeNode(Node):
-    def __init__(self, code, description, value, parent, valueType = 'none'):
+    def __init__(self, code, description, value, parent, value_type = 'none'):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
@@ -333,13 +333,13 @@ class BaremeNode(Node):
         for s , t in value._tranches:
             self.default.addTranche(s, t)
         self.default.marToMoy()
-        self.typeInfo = 'BAREME'
-        self.valueType  = valueType
+        self.type_info = 'BAREME'
+        self.value_type  = value_type
 
     def _recurseXml(self, parent, datesim):
         if self.isDirty():
             child = SubElement(parent,
-                               tag = self.typeInfo,
+                               tag = self.type_info,
                                attrib = {'code': self.code,
                                          'description': self.description})
 
