@@ -1,4 +1,4 @@
-.. currentmodule:: src.countries.france
+.. currentmodule:: openfisca_france
 .. _france:
 
 ****************************
@@ -11,7 +11,7 @@ Paramètres généraux
 Les entités du modèle socio-fiscal français sont l'individu, le foyer fiscal, la famille (le foyer social) et
 le ménage.
 
-Le modèle socio-fiscal français est décrit dans le paquet :mod:`src.countries.france`.
+Le modèle socio-fiscal français est décrit dans le paquet :mod:`openfisca_france`.
 
 .. literalinclude:: ../../../src/countries/france/__init__.py
 
@@ -22,7 +22,7 @@ Description du modèle socio-fiscal
 Les variables nécessaires au calcul de l'ensemble des prestations, ainsi que les entitées auxquelles elles
 se rapportent, sont répertoriées dans la classe suivante:
 
-.. automodule:: src.countries.france.model.data
+.. automodule:: openfisca_france.model.data
    :members:
    :private-members:
    :show-inheritance:
@@ -39,7 +39,7 @@ Les cotisations sociales
 
 Les cotisations sociales
 
-.. automodule:: src.countries.france.model.cotsoc
+.. automodule:: openfisca_france.model.cotsoc
    :members:
    :private-members:
 
@@ -48,34 +48,34 @@ L'impôt sur le revenu
 
 L'IRPP.
 
-.. automodule:: src.countries.france.model.irpp
+.. automodule:: openfisca_france.model.irpp
    :members:
    :private-members:
 
 
 Les charges déductibles.
 
-.. automodule:: src.countries.france.model.irpp_charges_deductibles
+.. automodule:: openfisca_france.model.irpp_charges_deductibles
    :members:
    :private-members:
 
 
 Les réductions d'impôts.
 
-.. automodule:: src.countries.france.model.irpp_reductions_impots
+.. automodule:: openfisca_france.model.irpp_reductions_impots
    :members:
    :private-members:
 
 Les crédits d'impôts
 
-.. automodule:: src.countries.france.model.irpp_credits_impots
+.. automodule:: openfisca_france.model.irpp_credits_impots
    :members:
    :private-members:
 
 L'impôt de solidarité sur la fortune et le bouclier fiscal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.countries.france.model.isf
+.. automodule:: openfisca_france.model.isf
    :members:
    :private-members:
 
@@ -83,14 +83,14 @@ L'impôt de solidarité sur la fortune et le bouclier fiscal
 Les minimas sociaux
 ~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.countries.france.model.mini
+.. automodule:: openfisca_france.model.mini
    :members:
    :private-members:
 
 Les allocations familiales
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.countries.france.model.pfam
+.. automodule:: openfisca_france.model.pfam
    :members:
    :private-members:
 
@@ -98,25 +98,25 @@ Les allocations familiales
 Les allocations logement
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.countries.france.model.lgtm
+.. automodule:: openfisca_france.model.lgtm
    :members:
    :private-members:
 
 La taxe d'habitation
 ~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: src.countries.france.model.th
+.. automodule:: openfisca_france.model.th
    :members:
    :private-members:
 
 
 D'autres caractéristiques sont également disponibles.
 
-.. automodule:: src.countries.france.model.common
+.. automodule:: openfisca_france.model.common
    :members:
    :private-members:
 
-.. automodule:: src.countries.france.model.calage
+.. automodule:: openfisca_france.model.calage
    :members:
    :private-members:
 
