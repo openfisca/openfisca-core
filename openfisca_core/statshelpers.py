@@ -89,6 +89,23 @@ def kakwani(values, ineq_axis, weights = None):
     return simps((LCy - PLCy), LCx)
 
 
+def lorenz(values, weights = None):
+    '''
+    Computes Lorenz Curve coordinates
+    '''
+    if weights is None:
+        weights = ones(len(values))
+
+    df = DataFrame({'v': values, 'w':weights})
+    df = df.sort_index(by = 'v')
+    x = cumsum(df['w'])
+    x = x/float(x[-1:])
+    y = cumsum(df['v']*df['w'])
+    y = y/float(y[-1:])
+
+    return x, y
+
+
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
 # from http://pastebin.com/KTLip9ee
     # a is an input array of values.
@@ -238,23 +255,6 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret, quantiles
         else:
             return ret
-
-
-def lorenz(values, weights = None):
-    '''
-    Computes Lorenz Curve coordinates
-    '''
-    if weights is None:
-        weights = ones(len(values))
-
-    df = DataFrame({'v': values, 'w':weights})
-    df = df.sort_index(by = 'v')
-    x = cumsum(df['w'])
-    x = x/float(x[-1:])
-    y = cumsum(df['v']*df['w'])
-    y = y/float(y[-1:])
-
-    return x, y
 
 
 def pseudo_lorenz(values, ineq_axis, weights = None):
