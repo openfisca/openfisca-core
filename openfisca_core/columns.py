@@ -29,7 +29,7 @@ from biryani1 import strings
 import numpy as np
 
 from . import conv
-from .utils import Enum
+from .enumerations import Enum
 
 
 def default_frequency_converter(from_ = None, to_= None):
