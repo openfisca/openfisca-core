@@ -112,8 +112,8 @@ class Node(object):
 
         self.code = code
         self.description = description
-        self.value_format = 'none'
-        self.value_type = 'none'
+        self.value_format = None
+        self.value_type = None
         self.type_info = 'NODE'
 
         if parent is not None:
@@ -203,8 +203,8 @@ class Node(object):
         return self._format
 
     def setValueFormat(self, value):
-        if not value in ('none', 'integer', 'percent'):
-            return Exception("Unknowned %s value_format: value_format can be 'none', 'integer', 'percent'" % value)
+        if not value in (None, 'integer', 'percent'):
+            return Exception("Unknowned %s value_format: value_format can be None, 'integer', 'percent'" % value)
         self._format = value
 
     value_format = property(getValueFormat, setValueFormat)
@@ -213,9 +213,9 @@ class Node(object):
         return self._type
 
     def setValueType(self, value):
-        type_list = ('none', 'monetary', 'age', 'hours', 'days', 'years')
+        type_list = (None, 'monetary', 'age', 'hours', 'days', 'years')
         if not value in type_list:
-            return Exception("Unknowned %s value_type: value_type can be 'none', 'monetary', 'age', 'hours', 'days', 'years'" % value)
+            return Exception("Unknowned %s value_type: value_type can be None, 'monetary', 'age', 'hours', 'days', 'years'" % value)
         self._type = value
 
     value_type = property(getValueType, setValueType)
@@ -278,13 +278,13 @@ class Node(object):
 
 
 class CodeNode(Node):
-    def __init__(self, code, description, value, parent, value_format = 'none', value_type = 'none'):
+    def __init__(self, code, description, value, parent, value_format = None, value_type = None):
         super(CodeNode, self).__init__(code, description, parent)
         self.value = value
         self.default = value
         self.type_info = 'CODE'
         self.value_format = value_format
-        self.value_type   = value_type
+        self.value_type = value_type
 
     def _recurseXml(self, parent, datesim):
         if self.isDirty():
@@ -325,7 +325,7 @@ class CodeNode(Node):
 
 
 class BaremeNode(Node):
-    def __init__(self, code, description, value, parent, value_type = 'none'):
+    def __init__(self, code, description, value, parent, value_type = None):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
