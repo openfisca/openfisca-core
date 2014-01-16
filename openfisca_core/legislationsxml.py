@@ -62,6 +62,34 @@ xml_json_formats = (
     )
 
 
+def make_validate_values_xml_json_dates(require_consecutive_dates = False):
+    def validate_values_xml_json_dates(values_xml_json, state = None):
+        if not values_xml_json:
+            return values_xml_json, None
+        if state is None:
+            state = conv.default_state
+
+        errors = {}
+        for index, value_xml_json in enumerate(values_xml_json):
+            if value_xml_json['deb'] > value_xml_json['fin']:
+                errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
+
+        sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'], reverse = True)
+        next_value_xml_json = sorted_values_xml_json[0]
+        for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+                + datetime.timedelta(days = 1)).isoformat()
+            if require_consecutive_dates and next_date_str < next_value_xml_json['deb']:
+                errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
+            elif next_date_str > next_value_xml_json['deb']:
+                errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
+            next_value_xml_json = value_xml_json
+
+        return sorted_values_xml_json, errors or None
+
+    return validate_values_xml_json_dates
+
+
 def translate_xml_element_to_json_item(xml_element):
     json_element = collections.OrderedDict()
     text = xml_element.text
@@ -340,6 +368,7 @@ def validate_parameter_xml_json(parameter, state = None):
                         validate_value_xml_json,
                         drop_none_items = True,
                         ),
+                    make_validate_values_xml_json_dates(require_consecutive_dates = True),
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -384,6 +413,7 @@ def validate_scale_xml_json(scale, state = None):
                         validate_slice_xml_json,
                         drop_none_items = True,
                         ),
+                    validate_slices_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -469,6 +499,42 @@ def validate_slice_xml_json(slice, state = None):
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
+
+
+def validate_slices_xml_json_dates(slices, state = None):
+    if not slices:
+        return slices, None
+    if state is None:
+        state = conv.default_state
+    errors = {}
+    previous_slice = slices[0]
+    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        for key in ('ASSIETTE', 'SEUIL', 'TAUX'):
+            valid_segments = []
+            values_holder_xml_json = previous_slice.get(key)
+            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+            for value_xml_json in values_xml_json:
+                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+                if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                    valid_segments[-1] = (from_date, valid_segments[-1][1])
+                else:
+                    valid_segments.append((from_date, to_date))
+
+            values_holder_xml_json = slice.get(key)
+            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+            for value_index, value_xml_json in enumerate(values_xml_json):
+                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+                for valid_segment in valid_segments:
+                    if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
+                        break
+                else:
+                    errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(0, {}).setdefault('VALUE',
+                        {}).setdefault(value_index, {})['deb'] = state._(
+                        u"Dates don't belong to valid dates of previous slice")
+        previous_slice = slice
+    return slices, errors or None
 
 
 def validate_value_xml_json(value, state = None):
@@ -558,31 +624,6 @@ def validate_value_xml_json(value, state = None):
     return validated_value, errors
 
 
-def validate_values_xml_json_date(values_xml_json, state = None):
-    if not values_xml_json:
-        return values_xml_json, None
-    if state is None:
-        state = conv.default_state
-
-    errors = {}
-    for index, value_xml_json in enumerate(values_xml_json):
-        if value_xml_json['deb'] > value_xml_json['fin']:
-            errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
-
-    sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'], reverse = True)
-    next_value_xml_json = sorted_values_xml_json[0]
-    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
-        next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
-            + datetime.timedelta(days = 1)).isoformat()
-        if next_date_str < next_value_xml_json['deb']:
-            errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
-        elif next_date_str > next_value_xml_json['deb']:
-            errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
-        next_value_xml_json = value_xml_json
-
-    return sorted_values_xml_json, errors or None
-
-
 validate_values_holder_xml_json = conv.struct(
     dict(
         VALUE = conv.pipe(
@@ -591,7 +632,7 @@ validate_values_holder_xml_json = conv.struct(
                 validate_value_xml_json,
                 drop_none_items = True,
                 ),
-            validate_values_xml_json_date,
+            make_validate_values_xml_json_dates(require_consecutive_dates = False),
             conv.empty_to_none,
             conv.not_none,
             ),

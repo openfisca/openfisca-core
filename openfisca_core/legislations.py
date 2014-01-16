@@ -110,6 +110,34 @@ def generate_dated_slice_json(slice_json, date_str):
     return dated_slice_json
 
 
+def make_validate_values_json_dates(require_consecutive_dates = False):
+    def validate_values_json_dates(values_json, state = None):
+        if not values_json:
+            return values_json, None
+        if state is None:
+            state = conv.default_state
+
+        errors = {}
+        for index, value_json in enumerate(values_json):
+            if value_json['from'] > value_json['to']:
+                errors[index] = dict(to = state._(u"Last date must be greater than first date"))
+
+        sorted_values_json = sorted(values_json, key = lambda value_json: value_json['from'], reverse = True)
+        next_value_json = sorted_values_json[0]
+        for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+                + datetime.timedelta(days = 1)).isoformat()
+            if require_consecutive_dates and next_date_str < next_value_json['from']:
+                errors.setdefault(index, {})['from'] = state._(u"Dates of values are not consecutive")
+            elif next_date_str > next_value_json['from']:
+                errors.setdefault(index, {})['from'] = state._(u"Dates of values overlap")
+            next_value_json = value_json
+
+        return sorted_values_json, errors or None
+
+    return validate_values_json_dates
+
+
 def validate_node_json(node, state = None):
     if node is None:
         return None, None
@@ -221,6 +249,7 @@ def validate_parameter_json(parameter, state = None):
                         validate_value_json,
                         drop_none_items = True,
                         ),
+                    make_validate_values_json_dates(require_consecutive_dates = True),
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -269,6 +298,7 @@ def validate_scale_json(scale, state = None):
                         validate_slice_json,
                         drop_none_items = True,
                         ),
+                    validate_slices_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -318,6 +348,36 @@ def validate_slice_json(slice, state = None):
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
+
+
+def validate_slices_json_dates(slices, state = None):
+    if not slices:
+        return slices, None
+    if state is None:
+        state = conv.default_state
+    errors = {}
+    previous_slice = slices[0]
+    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        for key in ('base', 'rate', 'threshold'):
+            valid_segments = []
+            for value_json in (previous_slice.get(key) or []):
+                from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+                if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                    valid_segments[-1] = (from_date, valid_segments[-1][1])
+                else:
+                    valid_segments.append((from_date, to_date))
+            for value_index, value_json in enumerate(slice.get(key) or []):
+                from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+                for valid_segment in valid_segments:
+                    if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
+                        break
+                else:
+                    errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(value_index,
+                        {})['from'] = state._(u"Dates don't belong to valid dates of previous slice")
+        previous_slice = slice
+    return slices, errors or None
 
 
 def validate_value_json(value, state = None):
@@ -384,37 +444,12 @@ def validate_value_json(value, state = None):
     return validated_value, errors
 
 
-def validate_values_json_date(values_json, state = None):
-    if not values_json:
-        return values_json, None
-    if state is None:
-        state = conv.default_state
-
-    errors = {}
-    for index, value_json in enumerate(values_json):
-        if value_json['from'] > value_json['to']:
-            errors[index] = dict(to = state._(u"Last date must be greater than first date"))
-
-    sorted_values_json = sorted(values_json, key = lambda value_json: value_json['from'], reverse = True)
-    next_value_json = sorted_values_json[0]
-    for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
-        next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
-            + datetime.timedelta(days = 1)).isoformat()
-        if next_date_str < next_value_json['from']:
-            errors.setdefault(index, {})['from'] = state._(u"Dates of values are not consecutive")
-        elif next_date_str > next_value_json['from']:
-            errors.setdefault(index, {})['from'] = state._(u"Dates of values overlap")
-        next_value_json = value_json
-
-    return sorted_values_json, errors or None
-
-
 validate_values_holder_json = conv.pipe(
     conv.test_isinstance(list),
     conv.uniform_sequence(
         validate_value_json,
         drop_none_items = True,
         ),
-    validate_values_json_date,
+    make_validate_values_json_dates(require_consecutive_dates = False),
     conv.empty_to_none,
     )
