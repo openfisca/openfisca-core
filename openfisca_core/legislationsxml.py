@@ -109,40 +109,47 @@ def translate_xml_element_to_json_item(xml_element):
     return xml_element.tag, json_element
 
 
-def transform_node_xml_json_to_json(node_xml_json):
+def transform_node_xml_json_to_json(node_xml_json, root = True):
     comments = []
     node_json = collections.OrderedDict()
+    if root:
+        node_json['@context'] = u'http://openfisca.fr/contexts/legislation.jsonld'
+    node_json['@type'] = 'Node'
+    child_json_by_code = {}
     for key, value in node_xml_json.iteritems():
         if key == 'BAREME':
-            node_json['scales'] = [
-                transform_scale_xml_json_to_json(item)
-                for item in value
-                ]
+            for child_xml_json in value:
+                child_code, child_json = transform_scale_xml_json_to_json(child_xml_json)
+                child_json_by_code[child_code] = child_json
         elif key == 'CODE':
-            node_json['parameters'] = [
-                transform_parameter_xml_json_to_json(item)
-                for item in value
-                ]
+            for child_xml_json in value:
+                child_code, child_json = transform_parameter_xml_json_to_json(child_xml_json)
+                child_json_by_code[child_code] = child_json
+        elif key == 'code':
+            pass
         elif key == 'NODE':
-            node_json['nodes'] = [
-                transform_node_xml_json_to_json(item)
-                for item in value
-                ]
+            for child_xml_json in value:
+                child_code, child_json = transform_node_xml_json_to_json(child_xml_json, root = False)
+                child_json_by_code[child_code] = child_json
         elif key in ('tail', 'text'):
             comments.append(value)
         else:
             node_json[key] = value
+    node_json['children'] = collections.OrderedDict(sorted(child_json_by_code.iteritems()))
     if comments:
         node_json['comment'] = u'\n\n'.join(comments)
-    return node_json
+    return node_xml_json['code'], node_json
 
 
 def transform_parameter_xml_json_to_json(parameter_xml_json):
     comments = []
     parameter_json = collections.OrderedDict()
+    parameter_json['@type'] = 'Parameter'
     xml_json_value_to_json_transformer = float
     for key, value in parameter_xml_json.iteritems():
-        if key == 'format':
+        if key in ('code', 'taille'):
+            pass
+        elif key == 'format':
             parameter_json[key] = dict(
                 bool = u'boolean',
                 percent = u'rate',
@@ -151,15 +158,8 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                 xml_json_value_to_json_transformer = lambda xml_json_value: bool(int(xml_json_value))
             elif value == 'integer':
                 xml_json_value_to_json_transformer = int
-        elif key == 'CODE':
-            parameter_json['parameters'] = [
-                transform_parameter_xml_json_to_json(item)
-                for item in value
-                ]
         elif key in ('tail', 'text'):
             comments.append(value)
-        elif key == 'taille':
-            pass
         elif key == 'type':
             parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
         elif key == 'VALUE':
@@ -171,14 +171,17 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
             parameter_json[key] = value
     if comments:
         parameter_json['comment'] = u'\n\n'.join(comments)
-    return parameter_json
+    return parameter_xml_json['code'], parameter_json
 
 
 def transform_scale_xml_json_to_json(scale_xml_json):
     comments = []
     scale_json = collections.OrderedDict()
+    scale_json['@type'] = 'Scale'
     for key, value in scale_xml_json.iteritems():
-        if key in ('tail', 'text'):
+        if key == 'code':
+            pass
+        elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'TRANCHE':
             scale_json['slices'] = [
@@ -191,7 +194,7 @@ def transform_scale_xml_json_to_json(scale_xml_json):
             scale_json[key] = value
     if comments:
         scale_json['comment'] = u'\n\n'.join(comments)
-    return scale_json
+    return scale_xml_json['code'], scale_json
 
 
 def transform_slice_xml_json_to_json(slice_xml_json):
@@ -303,21 +306,31 @@ def validate_node_xml_json(node, state = None):
             ),
         )(node, state = state)
     if errors is None:
-        required_group_keys = ('BAREME', 'CODE', 'NODE')
+        children_groups_key = ('BAREME', 'CODE', 'NODE')
         if all(
                 validated_node.get(key) is None
-                for key in required_group_keys
+                for key in children_groups_key
                 ):
             error = state._(u"At least one of the following items must be present: {}").format(state._(u', ').join(
                 u'"{}"'.format(key)
-                for key in required_group_keys
+                for key in children_groups_key
                 ))
             errors = dict(
                 (key, error)
-                for key in required_group_keys
+                for key in children_groups_key
                 )
+        else:
+            errors = {}
+        children_code = set()
+        for key in children_groups_key:
+            for child_index, child in enumerate(validated_node.get(key) or []):
+                child_code = child['code']
+                if child_code in children_code:
+                    errors.setdefault(key, {}).setdefault(child_index, {})['code'] = state._(u"Duplicate value")
+                else:
+                    children_code.add(child_code)
     conv.remove_ancestor_from_state(state, node)
-    return validated_node, errors
+    return validated_node, errors or None
 
 
 def validate_parameter_xml_json(parameter, state = None):

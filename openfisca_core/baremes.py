@@ -263,36 +263,29 @@ class Bareme(object):
 
 
 class BaremeDict(dict):
-    '''
-    A dict of Bareme's
-    '''
-    def __init__(self, name = None, tree2object = None):
-
+    '''A tree of Baremes'''
+    def __init__(self, name = None, compact_node = None):
         super(BaremeDict, self).__init__()
 
-        if name is None:
-            raise Exception("BaremeDict instance needs a name to be created")
-        else:
-            self._name = name
+        assert name is not None, "BaremeDict instance needs a name to be created"
+        self._name = name
 
-        if tree2object is not None:
-            self.init_from_param(tree2object)
+        if compact_node is not None:
+            self.init_from_compact_node(compact_node)
 
-    def init_from_param(self, tree2object):
-        '''
-        Init a BaremeDict form a Tree2Object
-        '''
+    def init_from_compact_node(self, compact_node):
+        '''Initialize a BaremeDict from a CompactNode.'''
+        from .legislations import CompactNode
         from .parameters import Tree2Object
 
-        if isinstance(tree2object, Bareme):
-            self[tree2object._name] = tree2object
-        elif isinstance(tree2object, Tree2Object):
-            for key, bar in tree2object.__dict__.iteritems():
+        if isinstance(compact_node, Bareme):
+            self[compact_node._name] = compact_node
+        elif isinstance(compact_node, (CompactNode, Tree2Object)):
+            for key, bar in compact_node.__dict__.iteritems():
                 if isinstance(bar, Bareme):
                     self[key] = bar
-                elif isinstance(bar, Tree2Object):
-                    new = BaremeDict(key, bar)
-                    self[key] = new
+                elif isinstance(bar, (CompactNode, Tree2Object)):
+                    self[key] = BaremeDict(key, bar)
 
 
 def combineBaremes(bardict, name = None):

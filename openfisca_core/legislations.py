@@ -31,6 +31,7 @@ import datetime
 import itertools
 
 from . import conv
+from baremes import Bareme
 
 
 units = [
@@ -42,6 +43,39 @@ units = [
     ]
 
 
+class CompactNode(object):
+    datesim = None
+    # Other attributes coming from dated_node_json are not defined in class.
+
+    def __repr__(self):
+        return 'CompactNode({})'.format(repr(self.__dict__))
+
+
+def compact_dated_node_json(dated_node_json, code = None):
+    node_type = dated_node_json['@type']
+    if node_type == u'Node':
+        compact_node = CompactNode()
+        if code is None:
+            # Root node always contains a datesim.
+            compact_node.datesim = dated_node_json['datesim']
+        compact_node_dict = compact_node.__dict__
+        for key, value in dated_node_json['children'].iteritems():
+            compact_node_dict[key] = compact_dated_node_json(value, code = key)
+        return compact_node
+    if node_type == u'Parameter':
+        return dated_node_json.get('value')
+    assert node_type == u'Scale'
+    bareme = Bareme(name = code, option = dated_node_json.get('option'))
+    for dated_slice_json in dated_node_json['slices']:
+        base = dated_slice_json.get('base', 1)
+        rate = dated_slice_json.get('rate')
+        threshold = dated_slice_json.get('threshold')
+        if rate is not None and threshold is not None:
+            bareme.addTranche(threshold, rate * base)
+    bareme.marToMoy()
+    return bareme
+
+
 def generate_dated_json_value(values_json, date_str):
     for value_json in values_json:
         if value_json['from'] <= date_str <= value_json['to']:
@@ -49,62 +83,59 @@ def generate_dated_json_value(values_json, date_str):
     return None
 
 
-def generate_dated_node_json(node_json, date_str):
-    dated_node_json = collections.OrderedDict()
-    for key, value in node_json.iteritems():
-        if key == 'nodes':
-            dated_node_json[key] = [
-                generate_dated_node_json(item, date_str)
-                for item in value
-                ]
-        elif key == 'parameters':
-            dated_node_json[key] = [
-                generate_dated_parameter_json(item, date_str)
-                for item in value
-                ]
-        elif key == 'scales':
-            dated_node_json[key] = [
-                generate_dated_scale_json(item, date_str)
-                for item in value
-                ]
-        else:
-            dated_node_json[key] = value
+def generate_dated_legislation_json(node_json, date):
+    dated_node_json = generate_dated_node_json(node_json, date.isoformat())
+    dated_node_json['datesim'] = date
     return dated_node_json
 
 
-def generate_dated_parameter_json(parameter_json, date_str):
-    dated_parameter_json = collections.OrderedDict()
-    for key, value in parameter_json.iteritems():
-        if key == 'parameters':
-            dated_parameter_json[key] = [
-                generate_dated_parameter_json(item, date_str)
-                for item in value
+def generate_dated_node_json(node_json, date_str):
+    dated_node_json = collections.OrderedDict()
+    for key, value in node_json.iteritems():
+        if key == 'children':
+            # Occurs when @type == 'Node'.
+            dated_children_json = type(value)(
+                (child_code, dated_child_json)
+                for child_code, dated_child_json in (
+                    (child_code, generate_dated_node_json(child_json, date_str))
+                    for child_code, child_json in value.iteritems()
+                    )
+                if dated_child_json is not None
+                )
+            if not dated_children_json:
+                return None
+            dated_node_json[key] = dated_children_json
+        elif key == 'slices':
+            # Occurs when @type == 'Scale'.
+            dated_slices_json = [
+                dated_slice_json
+                for dated_slice_json in (
+                    generate_dated_slice_json(slice_json, date_str)
+                    for slice_json in value
+                    )
+                if dated_slice_json is not None
                 ]
+            if not dated_slices_json:
+                return None
+            dated_node_json[key] = dated_slices_json
         elif key == 'values':
-            dated_parameter_json['value'] = generate_dated_json_value(value, date_str)
+            # Occurs when @type == 'Parameter'.
+            dated_value = generate_dated_json_value(value, date_str)
+            if dated_value is None:
+                return None
+            dated_node_json['value'] = dated_value
         else:
-            dated_parameter_json[key] = value
-    return dated_parameter_json
-
-
-def generate_dated_scale_json(scale_json, date_str):
-    dated_scale_json = collections.OrderedDict()
-    for key, value in scale_json.iteritems():
-        if key == 'slices':
-            dated_scale_json[key] = [
-                generate_dated_slice_json(item, date_str)
-                for item in value
-                ]
-        else:
-            dated_scale_json[key] = value
-    return dated_scale_json
+            dated_node_json[key] = value
+    return dated_node_json
 
 
 def generate_dated_slice_json(slice_json, date_str):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
         if key in ('base', 'rate', 'threshold'):
-            dated_slice_json[key] = generate_dated_json_value(value, date_str)
+            dated_value = generate_dated_json_value(value, date_str)
+            if dated_value is not None:
+                dated_slice_json[key] = dated_value
         else:
             dated_slice_json[key] = value
     return dated_slice_json
@@ -142,181 +173,135 @@ def validate_node_json(node, state = None):
     if node is None:
         return None, None
     state = conv.add_ancestor_to_state(state, node)
-    validated_node, errors = conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct(
-            dict(
-                code = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    conv.not_none,
-                    ),
-                comment = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_text,
-                    ),
-                description = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    ),
-                nodes = conv.pipe(
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        validate_node_json,
-                        drop_none_items = True,
-                        ),
-                    conv.empty_to_none,
-                    ),
-                parameters = conv.pipe(
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        validate_parameter_json,
-                        drop_none_items = True,
-                        ),
-                    conv.empty_to_none,
-                    ),
-                scales = conv.pipe(
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        validate_scale_json,
-                        drop_none_items = True,
-                        ),
-                    conv.empty_to_none,
-                    ),
+
+    validated_node, error = conv.test_isinstance(dict)(node, state = state)
+    if error is not None:
+        conv.remove_ancestor_from_state(state, node)
+        return validated_node, error
+
+    validated_node, errors = conv.struct(
+        {
+            '@context': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.make_input_to_url(full = True),
+                conv.test_equals(u'http://openfisca.fr/contexts/legislation.jsonld'),
                 ),
-            constructor = collections.OrderedDict,
-            drop_none_values = 'missing',
-            keep_value_order = True,
-            ),
-        )(node, state = state)
-    if errors is None:
-        required_group_keys = ('nodes', 'parameters', 'scales')
-        if all(
-                validated_node.get(key) is None
-                for key in required_group_keys
-                ):
-            error = state._(u"At least one of the following items must be present: {}").format(state._(u', ').join(
-                u'"{}"'.format(key)
-                for key in required_group_keys
-                ))
-            errors = dict(
-                (key, error)
-                for key in required_group_keys
-                )
+            '@type': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_line,
+                conv.test_in((u'Node', u'Parameter', u'Scale')),
+                conv.not_none,
+                ),
+            'comment': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_text,
+                ),
+            'description': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_line,
+                ),
+            },
+        constructor = collections.OrderedDict,
+        default = conv.noop,
+        drop_none_values = 'missing',
+        keep_value_order = True,
+        )(validated_node, state = state)
+    if errors is not None:
+        conv.remove_ancestor_from_state(state, node)
+        return validated_node, errors
+
+    validated_node.pop('@context', None)  # Remove optional @context everywhere. It will be added to root node later.
+    node_converters = {
+        '@type': conv.noop,
+        'comment': conv.noop,
+        'description': conv.noop,
+        }
+    node_type = validated_node['@type']
+    if node_type == u'Node':
+        node_converters.update(dict(
+            children = conv.pipe(
+                conv.test_isinstance(dict),
+                conv.uniform_mapping(
+                    conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        conv.not_none,
+                        ),
+                    conv.pipe(
+                        validate_node_json,
+                        conv.not_none,
+                        ),
+                    ),
+                conv.empty_to_none,
+                conv.not_none,
+                ),
+            ))
+    elif node_type == u'Parameter':
+        node_converters.update(dict(
+            format = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in([
+                    'boolean',
+                    'float',
+                    'integer',
+                    'rate',
+                    ]),
+                ),
+            unit = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in(units),
+                ),
+            values = conv.pipe(
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    validate_value_json,
+                    drop_none_items = True,
+                    ),
+                make_validate_values_json_dates(require_consecutive_dates = True),
+                conv.empty_to_none,
+                conv.not_none,
+                ),
+            ))
+    else:
+        assert node_type == u'Scale'
+        node_converters.update(dict(
+            option = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in((
+                    'contrib',
+                    'noncontrib',
+                    )),
+                ),
+            slices = conv.pipe(
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    validate_slice_json,
+                    drop_none_items = True,
+                    ),
+                validate_slices_json_dates,
+                conv.empty_to_none,
+                conv.not_none,
+                ),
+            unit = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in((
+                    'currency',
+                    )),
+                ),
+            ))
+    validated_node, errors = conv.struct(
+        node_converters,
+        constructor = collections.OrderedDict,
+        drop_none_values = 'missing',
+        keep_value_order = True,
+        )(validated_node, state = state)
+
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors
-
-
-def validate_parameter_json(parameter, state = None):
-    if parameter is None:
-        return None, None
-    state = conv.add_ancestor_to_state(state, parameter)
-    validated_parameter, errors = conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct(
-            dict(
-                code = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    conv.not_none,
-                    ),
-                comment = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_text,
-                    ),
-                description = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    ),
-                format = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in([
-                        'boolean',
-                        'float',
-                        'integer',
-                        'rate',
-                        ]),
-                    ),
-                unit = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in(units),
-                    ),
-                values = conv.pipe(
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        validate_value_json,
-                        drop_none_items = True,
-                        ),
-                    make_validate_values_json_dates(require_consecutive_dates = True),
-                    conv.empty_to_none,
-                    conv.not_none,
-                    ),
-                ),
-            constructor = collections.OrderedDict,
-            drop_none_values = 'missing',
-            keep_value_order = True,
-            ),
-        )(parameter, state = state)
-    conv.remove_ancestor_from_state(state, parameter)
-    return validated_parameter, errors
-
-
-def validate_scale_json(scale, state = None):
-    if scale is None:
-        return None, None
-    state = conv.add_ancestor_to_state(state, scale)
-    validated_scale, errors = conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct(
-            dict(
-                code = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    conv.not_none,
-                    ),
-                comment = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_text,
-                    ),
-                description = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    ),
-                option = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in((
-                        'contrib',
-                        'noncontrib',
-                        )),
-                    ),
-                slices = conv.pipe(
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        validate_slice_json,
-                        drop_none_items = True,
-                        ),
-                    validate_slices_json_dates,
-                    conv.empty_to_none,
-                    conv.not_none,
-                    ),
-                unit = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in((
-                        'currency',
-                        )),
-                    ),
-                ),
-            constructor = collections.OrderedDict,
-            drop_none_values = 'missing',
-            keep_value_order = True,
-            ),
-        )(scale, state = state)
-    conv.remove_ancestor_from_state(state, scale)
-    return validated_scale, errors
 
 
 def validate_slice_json(slice, state = None):

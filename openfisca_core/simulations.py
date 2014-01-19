@@ -30,13 +30,13 @@ import itertools
 import os
 import pickle
 import sys
+from xml.etree import ElementTree
 
 from pandas import DataFrame, HDFStore
 
-from . import model
+from . import legislations, legislationsxml, model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable
-from .parameters import XmlReader, Tree2Object
 from .taxbenefitsystems import TaxBenefitSystem
 
 
@@ -127,18 +127,23 @@ class Simulation(object):
                 in the microsimulation to compute some gross quantities not available in the initial data.
                 parma_default is necessarily different from param when examining a reform
         """
-        reader = XmlReader(self.param_file, self.datesim)
-        rootNode = reader.tree
+        if param is None or param_default is None:
+            legislation_tree = ElementTree.parse(self.param_file)
+            legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+                state = conv.default_state)
+            legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
+                state = conv.default_state)
+            _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+            dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.datesim)
+            compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
 
         if param_default is None:
-            self.P_default = Tree2Object(rootNode, defaut=True)
-            self.P_default.datesim = self.datesim
+            self.P_default = compact_legislation
         else:
             self.P_default = param_default
 
         if param is None:
-            self.P = Tree2Object(rootNode, defaut=False)
-            self.P.datesim = self.datesim
+            self.P = compact_legislation
         else:
             self.P = param
 
