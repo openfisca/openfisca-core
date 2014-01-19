@@ -279,7 +279,7 @@ class DataTable(object):
         var_entity ={}
         if self.num_table == 1 :
             self._nrows = self.table.shape[0]
-
+            # Intialize to default value the missing variables
             for col in self.column_by_name.itervalues():
                 if col.name not in self.table:
                     missing_col.append(col.name)
@@ -291,6 +291,9 @@ class DataTable(object):
                 except:
                     log.error("Impossible de lire la variable suivante issue des données d'enquête :\n%s\n" % col.name)
                     raise
+            # Keeping only valid input variables
+            drop_variables = list(set(self.table.columns) - set(self.column_by_name.keys()))
+            self.table.drop(drop_variables, inplace=True, axis=1)
 
         elif self.num_table == 3 :
             self._nrows = self.table3['ind'].shape[0]

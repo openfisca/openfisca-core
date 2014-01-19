@@ -64,7 +64,7 @@ setup(
         "Babel >= 0.9.4",
         'Biryani1 >= 0.9dev',
         "numpy",
-        "pandas",
+        "pandas >= 0.13.0",
         ],
     message_extractors = {
         'openfisca_core': [
