@@ -608,7 +608,7 @@ class DataTable(object):
         entity: string, default None and if None entity is set to "ind"
                 the specified entity
         opt: int
-             position in the netity
+             position in the entity
         '''
         if entity is None:
             entity = "ind"
