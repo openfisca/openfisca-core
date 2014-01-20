@@ -34,7 +34,7 @@ from xml.etree import ElementTree
 
 from pandas import DataFrame, HDFStore
 
-from . import legislations, legislationsxml, model
+from . import conv, legislations, legislationsxml, model
 from .columns import EnumCol, EnumPresta
 from .datatables import DataTable
 from .taxbenefitsystems import TaxBenefitSystem
