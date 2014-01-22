@@ -233,7 +233,7 @@ class Prestation(Column):
         self._start = start
         self._end = end
         self._val_type = val_type
-        self.entity  = entity
+        self.entity  = entity # TODO: is this needed ?
 
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
         self._children  = set() # prestations immidiately affected by current prestation
@@ -283,6 +283,16 @@ class Prestation(Column):
     def add_child(self, prestation):
         self._children.add(prestation)
         prestation._parents.add(self)
+
+    def to_column(self):
+        col = Column(label=self.label, 
+                     entity=self.entity, 
+                     start=self.start,
+                     end=self.end,
+                     val_type=self.val_type,
+                     freq=self.freq)
+        col.name = self.name
+        return col
 
 
 # Level-1 Prestations
