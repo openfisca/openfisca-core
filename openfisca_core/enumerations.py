@@ -29,7 +29,7 @@ class Enum(object):
         self._nums = {}
         self._count = 0
         for var in varlist:
-            self._vars.update({self._count + start:var})
+            self._vars.update({self._count + start: var})
             self._nums.update({var: self._count + start})
             self._count += 1
 

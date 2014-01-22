@@ -102,7 +102,7 @@ class DataTable(object):
 
     def gen_index(self, entities):
         '''
-        Generates indexex for the relevant entities
+        Generates indexes for the relevant entities
         '''
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows),
@@ -622,7 +622,7 @@ class DataTable(object):
         if self.num_table == 1:
             values = Series(value[idx['idxUnit']], dtype = dtyp)
             self.table[varname][idx['idxIndi'].tolist()] = values #tolist because sometime len(idx['idxIndi']) == 1
-        if self.num_table == 3:
+        elif self.num_table == 3:
             if entity=='ind' :
                 self.table3[entity].ix[idx['idxIndi'], [varname]] = value
             else:

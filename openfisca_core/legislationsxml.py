@@ -74,7 +74,8 @@ def make_validate_values_xml_json_dates(require_consecutive_dates = False):
             if value_xml_json['deb'] > value_xml_json['fin']:
                 errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
 
-        sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'], reverse = True)
+        sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'],
+            reverse = True)
         next_value_xml_json = sorted_values_xml_json[0]
         for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
             next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
@@ -233,7 +234,7 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
         elif key == 'valeur':
             try:
                 value_json['value'] = xml_json_value_to_json_transformer(value)
-            except TypeError as exception:
+            except TypeError:
                 log.error(u'Invalid value: {}'.format(value))
                 raise
         else:
