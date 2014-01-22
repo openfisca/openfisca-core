@@ -341,6 +341,7 @@ def validate_slices_json_dates(slices, state = None):
     if state is None:
         state = conv.default_state
     errors = {}
+
     previous_slice = slices[0]
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
         for key in ('base', 'rate', 'threshold'):
@@ -362,6 +363,58 @@ def validate_slices_json_dates(slices, state = None):
                     errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(value_index,
                         {})['from'] = state._(u"Dates don't belong to valid dates of previous slice")
         previous_slice = slice
+    if errors:
+        return slices, errors
+
+    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        rate_segments = []
+        for value_json in (slice.get('rate') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                rate_segments[-1] = (from_date, rate_segments[-1][1])
+            else:
+                rate_segments.append((from_date, to_date))
+
+        threshold_segments = []
+        for value_json in (slice.get('threshold') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                threshold_segments[-1] = (from_date, threshold_segments[-1][1])
+            else:
+                threshold_segments.append((from_date, to_date))
+
+        for value_index, value_json in enumerate(slice.get('base') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            for rate_segment in rate_segments:
+                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('base', {}).setdefault(value_index,
+                    {})['from'] = state._(u"Dates don't belong to rate dates")
+
+        for value_index, value_json in enumerate(slice.get('rate') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            for threshold_segment in threshold_segments:
+                if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('rate', {}).setdefault(value_index,
+                    {})['from'] = state._(u"Dates don't belong to threshold dates")
+
+        for value_index, value_json in enumerate(slice.get('threshold') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            for rate_segment in rate_segments:
+                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
+                    {})['from'] = state._(u"Dates don't belong to rate dates")
+
     return slices, errors or None
 
 

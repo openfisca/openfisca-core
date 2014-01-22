@@ -520,6 +520,7 @@ def validate_slices_xml_json_dates(slices, state = None):
     if state is None:
         state = conv.default_state
     errors = {}
+
     previous_slice = slices[0]
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
         for key in ('ASSIETTE', 'SEUIL', 'TAUX'):
@@ -547,6 +548,68 @@ def validate_slices_xml_json_dates(slices, state = None):
                         {}).setdefault(value_index, {})['deb'] = state._(
                         u"Dates don't belong to valid dates of previous slice")
         previous_slice = slice
+    if errors:
+        return slices, errors
+
+    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        rate_segments = []
+        values_holder_xml_json = slice.get('TAUX')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                rate_segments[-1] = (from_date, rate_segments[-1][1])
+            else:
+                rate_segments.append((from_date, to_date))
+
+        threshold_segments = []
+        values_holder_xml_json = slice.get('SEUIL')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                threshold_segments[-1] = (from_date, threshold_segments[-1][1])
+            else:
+                threshold_segments.append((from_date, to_date))
+
+        values_holder_xml_json = slice.get('ASSIETTE')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            for rate_segment in rate_segments:
+                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('ASSIETTE', {}).setdefault(0, {}).setdefault('VALUE',
+                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
+
+        values_holder_xml_json = slice.get('TAUX')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            for threshold_segment in threshold_segments:
+                if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('TAUX', {}).setdefault(0, {}).setdefault('VALUE',
+                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to SEUIL dates")
+
+        values_holder_xml_json = slice.get('SEUIL')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            for rate_segment in rate_segments:
+                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
+                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
+
     return slices, errors or None
 
 
