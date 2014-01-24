@@ -630,7 +630,7 @@ class DataTable(object):
             values = Series(value[idx['idxUnit']], dtype = dtyp)
             self.table[varname][idx['idxIndi'].tolist()] = values #tolist because sometime len(idx['idxIndi']) == 1
         elif self.num_table == 3:
-            if entity=='ind' :
+            if entity=='ind':
                 self.table3[entity].ix[idx['idxIndi'], [varname]] = value
             else:
                 self.table3[entity].ix[idx['idxUnit'], [varname]] = value
