@@ -89,7 +89,14 @@ class DataTable(object):
 
     def load_data_from_test_case(self, test_case):
         self.test_case = test_case
-        test_case.populate_datatable(self)
+        if test_case.nmen == 1:
+            test_case.dummy_x_axis = True
+            test_case.nmen = 2
+            test_case.populate_datatable(self)
+            del test_case.dummy_x_axis
+            test_case.nmen = 1
+        else:
+            test_case.populate_datatable(self)
 
 
     def load_data_from_survey(self, survey_data,
