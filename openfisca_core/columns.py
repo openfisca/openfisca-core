@@ -285,8 +285,8 @@ class Prestation(Column):
         prestation._parents.add(self)
 
     def to_column(self):
-        col = Column(label=self.label, 
-                     entity=self.entity, 
+        col = Column(label=self.label,
+                     entity=self.entity,
                      start=self.start,
                      end=self.end,
                      val_type=self.val_type,
