@@ -25,6 +25,9 @@
 
 from __future__ import division
 
+import collections
+from datetime import date
+
 from biryani1 import strings
 import numpy as np
 
@@ -62,6 +65,7 @@ class Column(object):
     end = None
     entity = None
     freq = None
+    # json_type = None  # Defined in sub-classes
     label = None
     name = None
     start = None
@@ -79,6 +83,34 @@ class Column(object):
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
 
+    def to_json(self):
+        self_json = collections.OrderedDict((
+            ('@type', self.json_type),
+            ))
+        if self._default is not None:
+            self_json['default'] = self._default
+        end = self.end
+        if end is not None:
+            if isinstance(end, date):
+                end = end.isoformat()
+            self_json['end'] = end
+        if self.entity is not None:
+            self_json['entity'] = self.entity
+        if self.freq is not None:
+            self_json['freq'] = self.freq
+        if self.label is not None:
+            self_json['label'] = self.label
+        if self.name is not None:
+            self_json['name'] = self.name
+        start = self.start
+        if start is not None:
+            if isinstance(start, date):
+                start = start.isoformat()
+            self_json['start'] = start
+        if self.val_type is not None:
+            self_json['val_type'] = self.val_type
+        return self_json
+
 
 # Level-1 Columns
 
@@ -89,6 +121,7 @@ class BoolCol(Column):
     '''
     _default = False
     _dtype = np.bool
+    json_type = 'Boolean'
 
     @property
     def json_to_python(self):
@@ -104,6 +137,7 @@ class DateCol(Column):
     A column of Datetime 64 to store dates of people
     '''
     _dtype = np.datetime64
+    json_type = 'Date'
     val_type = 'date'
 
     @property
@@ -120,6 +154,7 @@ class FloatCol(Column):
     A column of float 32
     '''
     _dtype = np.float32
+    json_type = 'Float'
 
     @property
     def json_to_python(self):
@@ -135,6 +170,7 @@ class IntCol(Column):
     A column of integer
     '''
     _dtype = np.int32
+    json_type = 'Integer'
 
     @property
     def json_to_python(self):
@@ -171,6 +207,7 @@ class EnumCol(IntCol):
     _dtype = np.int16
     enum = None
     index_by_slug = None
+    json_type = 'Enumeration'
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)
@@ -220,6 +257,8 @@ class Prestation(Column):
     Prestation is a wraper around a function which takes some arguments and return a single array.
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
+    json_type = 'Float'
+
     def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None, freq="year"):
         super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
 
