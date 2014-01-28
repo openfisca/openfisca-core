@@ -248,6 +248,15 @@ class EnumCol(IntCol):
                 ),
             )
 
+    def to_json(self):
+        self_json = super(EnumCol, self).to_json()
+        if self.enum is not None:
+            self_json['labels'] = collections.OrderedDict(
+                (index, label)
+                for label, index in self.enum
+                )
+        return self_json
+
 
 # Base Prestation
 
