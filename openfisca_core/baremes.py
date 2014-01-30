@@ -91,7 +91,7 @@ class Bareme(object):
 
     def multTaux(self, factor):
         for i in range(self._nb):
-            self.setTaux(i,factor*self.taux[i])
+            self.setTaux(i, factor * self.taux[i])
 
     def multSeuils(self, factor):
         '''
@@ -99,39 +99,39 @@ class Bareme(object):
         '''
         b = Bareme(self._name, option = self._option, unit = self.unit)
         for i in range(self.nb):
-            b.addTranche(factor*self.seuils[i], self.taux[i])
+            b.addTranche(factor * self.seuils[i], self.taux[i])
         return b
 
     def addBareme(self, bareme):
-        if bareme.nb>0: # Pour ne pas avoir de problèmes avec les barèmes vides
+        if bareme.nb > 0:  # Pour ne pas avoir de problèmes avec les barèmes vides
             for seuilInf, seuilSup, taux  in zip(bareme.seuils[:-1], bareme.seuils[1:] , bareme.taux):
                 self.combineTranche(taux, seuilInf, seuilSup)
-            self.combineTranche(bareme.taux[-1],bareme.seuils[-1])  # Pour traiter le dernier seuil
+            self.combineTranche(bareme.taux[-1], bareme.seuils[-1])  # Pour traiter le dernier seuil
 
-    def combineTranche(self, taux, seuilInf=0, seuilSup=False):
+    def combineTranche(self, taux, seuilInf = 0, seuilSup = False):
         # Insertion de seuilInf et SeuilSup sans modfifer les taux
         if not seuilInf in self.seuils:
-            index = bisect_right(self.seuils, seuilInf)-1
+            index = bisect_right(self.seuils, seuilInf) - 1
             self.addTranche(seuilInf, self.taux[index])
 
         if seuilSup and not seuilSup in self.seuils:
-                index = bisect_right(self.seuils,seuilSup)-1
+                index = bisect_right(self.seuils, seuilSup) - 1
                 self.addTranche(seuilSup, self.taux[index])
 
         # On utilise addTranche pour ajouter les taux où il le faut
         i = self.seuils.index(seuilInf)
-        if seuilSup: j = self.seuils.index(seuilSup)-1
-        else: j = self._nb-1
+        if seuilSup: j = self.seuils.index(seuilSup) - 1
+        else: j = self._nb - 1
         while (i <= j):
             self.addTranche(self.seuils[i], taux)
-            i +=1
+            i += 1
 
     def addTranche(self, seuil, taux):
         if seuil in self.seuils:
             i = self.seuils.index(seuil)
             self.setTaux(i, self.taux[i] + taux)
         else:
-            self._tranches.append([seuil,taux])
+            self._tranches.append([seuil, taux])
             self._tranches.sort()
             self._nb = len(self._tranches)
 
@@ -144,7 +144,7 @@ class Bareme(object):
             i = self.seuilsM.index(seuil)
             self.setTauxM(i, self.tauxM[i] + taux)
         else:
-            self._tranchesM.append([seuil,taux])
+            self._tranchesM.append([seuil, taux])
 
     def marToMoy(self):
         self._tranchesM = []
@@ -156,8 +156,8 @@ class Bareme(object):
                     tprec = taux
                     k += 1
                     continue
-                I += tprec*(seuil - sprec)
-                self.addTrancheM(seuil, I/seuil)
+                I += tprec * (seuil - sprec)
+                self.addTrancheM(seuil, I / seuil)
                 sprec = seuil
                 tprec = taux
             self.addTrancheM('Infini', taux)
@@ -168,8 +168,8 @@ class Bareme(object):
         z = zip(self.seuilsM, self.tauxM)
         for seuil, taux in z:
             if not seuil == 'Infini':
-                I = taux*seuil
-                self.addTranche(sprev, (I-Iprev)/(seuil-sprev))
+                I = taux * seuil
+                self.addTranche(sprev, (I - Iprev) / (seuil - sprev))
                 sprev = seuil
                 Iprev = I
         self.addTranche(sprev, taux)
@@ -190,12 +190,12 @@ class Bareme(object):
         inverse = Bareme(self._name + "'")  # En fait 1/(1-taux_global)
         seuilImp, taux = 0, 0
         for seuil, taux in self:
-            if seuil==0: theta, tauxp = 0,0
+            if seuil == 0: theta, tauxp = 0, 0
             # On calcul le seuil de revenu imposable de la tranche considérée
-            seuilImp = (1-tauxp)*seuil + theta
-            inverse.addTranche(seuilImp, 1/(1-taux))
-            theta = (taux - tauxp)*seuil + theta
-            tauxp = taux # taux précédent
+            seuilImp = (1 - tauxp) * seuil + theta
+            inverse.addTranche(seuilImp, 1 / (1 - taux))
+            theta = (taux - tauxp) * seuil + theta
+            tauxp = taux  # taux précédent
         return inverse
 
     def __iter__(self):
@@ -228,27 +228,27 @@ class Bareme(object):
         if not self._linear_taux_moy:
             assi = np.tile(assiette, (k, 1)).T
             seui = np.tile(np.hstack((self.seuils, np.inf)), (n, 1))
-            a = max_(min_(assi, seui[:, 1:]) - seui[:,:-1], 0)
-            i = np.dot(self.taux,a.T)
+            a = max_(min_(assi, seui[:, 1:]) - seui[:, :-1], 0)
+            i = np.dot(self.taux, a.T)
             if getT:
-                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                t = np.squeeze(max_(np.dot((a > 0), np.ones((k, 1))) - 1, 0))
                 return i, t
             else:
                 return i
         else:
             if len(self.tauxM) == 1:
-                i = assiette*self.tauxM[0]
+                i = assiette * self.tauxM[0]
             else:
-                assi = np.tile(assiette, (k-1, 1)).T
+                assi = np.tile(assiette, (k - 1, 1)).T
                 seui = np.tile(np.hstack(self.seuils), (n, 1))
                 k = self.t_x().T
-                a = (assi >= seui[:,:-1])*(assi < seui[:, 1:])
+                a = (assi >= seui[:, :-1]) * (assi < seui[:, 1:])
                 A = np.dot(a, self.t_x().T)
                 B = np.dot(a, np.array(self.seuils[1:]))
                 C = np.dot(a, np.array(self.tauxM[:-1]))
-                i = assiette*(A*(assiette-B) + C) + max_(assiette - self.seuils[-1], 0)*self.tauxM[-1] + (assiette >= self.seuils[-1])*self.seuils[-1]*self.tauxM[-2]
+                i = assiette * (A * (assiette - B) + C) + max_(assiette - self.seuils[-1], 0) * self.tauxM[-1] + (assiette >= self.seuils[-1]) * self.seuils[-1] * self.tauxM[-2]
             if getT:
-                t = np.squeeze(max_(np.dot((a>0), np.ones((k, 1)))-1, 0))
+                t = np.squeeze(max_(np.dot((a > 0), np.ones((k, 1))) - 1, 0))
                 return i, t
             else:
                 return i
@@ -259,7 +259,7 @@ class Bareme(object):
         t.extend(self.tauxM[:-1])
         s = np.array(s)
         t = np.array(t)
-        return (t[1:]-t[:-1])/(s[1:]-s[:-1])
+        return (t[1:] - t[:-1]) / (s[1:] - s[:-1])
 
 
 class BaremeDict(dict):
@@ -287,6 +287,30 @@ class BaremeDict(dict):
                 elif isinstance(bar, (CompactNode, Tree2Object)):
                     self[key] = BaremeDict(key, bar)
 
+    def log(self, tabLevel = -1):
+        output = ""
+
+        tabLevel += 1
+        for i in range(tabLevel):
+             output += "\t"
+
+        output += "|------" + self._name + "\n"
+
+        for name, bar in self.iteritems():
+            if isinstance(bar, Bareme):
+                for i in range(tabLevel + 1):
+                    output += "\t"
+                output += "|------" + bar.__str__() + '\n'
+            else:
+                output += bar.log(tabLevel)
+
+        tabLevel -= 1
+        output += "\n"
+        return output
+
+    def __repr__(self):
+        return self.log()
+
 
 def combineBaremes(bardict, name = None):
     '''
@@ -295,7 +319,7 @@ def combineBaremes(bardict, name = None):
     if name is None:
         name = 'Combined ' + bardict._name
     baremeTot = Bareme(name = name)
-    baremeTot.addTranche(0,0)
+    baremeTot.addTranche(0, 0)
     for name, bar in bardict.iteritems():
         if isinstance(bar, Bareme):
             baremeTot.addBareme(bar)

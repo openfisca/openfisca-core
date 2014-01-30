@@ -51,8 +51,8 @@ def _survey_subset(table, subset):
 class DataTable(object):
     column_by_name = None
 
-    def __init__(self, column_by_name, survey_data = None, scenario = None, datesim = None, num_table = 1, subset=None,
-            print_missing=True):
+    def __init__(self, column_by_name, survey_data = None, scenario = None, datesim = None, num_table = 1, subset = None,
+            print_missing = True):
         assert isinstance(column_by_name, collections.OrderedDict)
         self.column_by_name = column_by_name
         self.test_case = scenario
@@ -101,8 +101,8 @@ class DataTable(object):
 
     def load_data_from_survey(self, survey_data,
                               num_table = 1,
-                              subset=None,
-                              print_missing=True):
+                              subset = None,
+                              print_missing = True):
         self.survey_data = survey_data
         self.populate_from_survey_data(survey_data)
 
@@ -113,20 +113,20 @@ class DataTable(object):
         '''
 
         self.index = {'ind': {0: {'idxIndi':np.arange(self._nrows),
-                                  'idxUnit':np.arange(self._nrows)}, # Units stand for entities
+                                  'idxUnit':np.arange(self._nrows)},  # Units stand for entities
                       'nb': self._nrows}}
 
         for entity in entities:
-            enum = self.column_by_name.get('qui'+entity).enum
+            enum = self.column_by_name.get('qui' + entity).enum
             try:
                 if self.num_table == 1:
-                    idx = getattr(self.table, 'id'+entity).values
-                    qui = getattr(self.table, 'qui'+entity).values
+                    idx = getattr(self.table, 'id' + entity).values
+                    qui = getattr(self.table, 'qui' + entity).values
                 elif self.num_table == 3:
-                    idx = getattr(self.table3['ind'], 'id'+entity).values
-                    qui = getattr(self.table3['ind'], 'qui'+entity).values
+                    idx = getattr(self.table3['ind'], 'id' + entity).values
+                    qui = getattr(self.table3['ind'], 'qui' + entity).values
 
-                enum = self.column_by_name.get('qui'+entity).enum
+                enum = self.column_by_name.get('qui' + entity).enum
             except:
                 log.error('DataTable needs columns %s and %s to build index with entity %s' % ('id' + entity,
                     'qui' + entity, entity))
@@ -138,9 +138,9 @@ class DataTable(object):
 
             if self.num_table == 3:
                 if len(idxlist) != len(self.table3[entity]):
-                    print "Warning: list of ident is not consistent for %s" %entity
+                    print "Warning: list of ident is not consistent for %s" % entity
                     print self.survey_year, len(idxlist), len(self.table3[entity])
-                    idxent = self.table3[entity]['id'+entity]
+                    idxent = self.table3[entity]['id' + entity]
                     # diff1 = set(idxlist).symmetric_difference(idxent)
                     if len(idxlist) > len(self.table3[entity]):
                         idxlist = idxent
@@ -159,7 +159,7 @@ class DataTable(object):
 
         if self.num_table == 3:
         # add index of men for intermediate entities
-        #TODO: make it generel with level of entity
+        # TODO: make it generel with level of entity
             for entity in entities:
                 for super_entity in entities :
                     if super_entity != entity:
@@ -176,9 +176,9 @@ class DataTable(object):
         value = self.get_value(varname)
         if self.num_table == 1:
             try:
-                enum = self.column_by_name.get('qui'+from_ent).enum
+                enum = self.column_by_name.get('qui' + from_ent).enum
             except:
-                enum = self._inputs.column_by_name.get('qui'+from_ent).enum
+                enum = self._inputs.column_by_name.get('qui' + from_ent).enum
             head = self.index[from_ent][0]['idxIndi']
             for member in enum:
                 value_member = value[head]
@@ -220,7 +220,7 @@ class DataTable(object):
 
         if isinstance(fname, str) or isinstance(fname, unicode):
             if fname[-4:] == '.csv':
-                #TODO: implement it for _num_table==3 (or remove)
+                # TODO: implement it for _num_table==3 (or remove)
                 if self.num_table == 1 :
                     with open(fname) as survey_data_file:
                         self.table = read_csv(survey_data_file)
@@ -239,20 +239,20 @@ class DataTable(object):
 
                 if year is None:
                     if self.datesim is not None:
-                        year_ds  = self.datesim.year
+                        year_ds = self.datesim.year
                     else:
                         raise Exception('self.datesim or year should be defined')
                 else:
                     year_ds = year
 
-                yr = year_ds+0 # to avoid pointers problem
+                yr = year_ds + 0  # to avoid pointers problem
                 while yr not in available_years and yr > available_years[0]:
                     yr = yr - 1
-                base_name = 'survey_'+ str(yr)
+                base_name = 'survey_' + str(yr)
                 if year_ds != yr:
-                    print 'Survey data for year %s not found. Using year %s' %(str(year_ds), str(yr))
+                    print 'Survey data for year %s not found. Using year %s' % (str(year_ds), str(yr))
                 else:
-                    print 'Survey data for year %s found' %str(year_ds)
+                    print 'Survey data for year %s found' % str(year_ds)
 
                 if yr in available_years:
                     self.survey_year = yr
@@ -263,19 +263,19 @@ class DataTable(object):
 
                 elif self.num_table == 3 :
                     for entity in self.list_entities:
-                        self.table3[entity] = _survey_subset(store[str(base_name)+'/'+ entity], self.subset)
+                        self.table3[entity] = _survey_subset(store[str(base_name) + '/' + entity], self.subset)
                 store.close()
 
         else:
             if self.num_table == 1:
-                if not isinstance(fname,DataFrame):
+                if not isinstance(fname, DataFrame):
                     raise Exception("When num_table=1, the object given as survey data must be a pandas DataFrame")
                 else:
-                    self.table = _survey_subset(fname,self.subset)
+                    self.table = _survey_subset(fname, self.subset)
             elif self.num_table == 3:
                 try:
                     for entity in list_entities:
-                        assert isinstance(fname[entity],DataFrame)
+                        assert isinstance(fname[entity], DataFrame)
                         self.table3[entity] = _survey_subset(fname[entity], self.subset)
                 except:
                     log.error("When num_table=3, the object given as survey data"
@@ -283,7 +283,7 @@ class DataTable(object):
                     raise
 
         missing_col = []
-        var_entity ={}
+        var_entity = {}
         if self.num_table == 1 :
             self._nrows = self.table.shape[0]
             # Intialize to default value the missing variables
@@ -293,14 +293,14 @@ class DataTable(object):
                     self.table[col.name] = col._default
                 try:
                     if self.table[col.name].isnull().any():
-                        self.table[col.name].fillna(col._default, inplace=True)
+                        self.table[col.name].fillna(col._default, inplace = True)
                     self.table[col.name] = self.table[col.name].astype(col._dtype)
                 except:
                     log.error("Impossible de lire la variable suivante issue des données d'enquête :\n%s\n" % col.name)
                     raise
             # Keeping only valid input variables
             drop_variables = list(set(self.table.columns) - set(self.column_by_name.keys()))
-            self.table.drop(drop_variables, inplace=True, axis=1)
+            self.table.drop(drop_variables, inplace = True, axis = 1)
 
         elif self.num_table == 3 :
             self._nrows = self.table3['ind'].shape[0]
@@ -311,10 +311,10 @@ class DataTable(object):
                         missing_col.append(col.name)
                         self.table3[ent][col.name] = col._default
                     if self.table3[ent][col.name].isnull().any():
-                        self.table3[ent][col.name].fillna(col._default, inplace=True)
+                        self.table3[ent][col.name].fillna(col._default, inplace = True)
                     self.table3[ent][col.name] = self.table3[ent][col.name].astype(col._dtype)
                 if ent == 'foy':
-                    self.table3[ent] = self.table3[ent].to_sparse(fill_value=0)
+                    self.table3[ent] = self.table3[ent].to_sparse(fill_value = 0)
 
         if missing_col:
             message = "%i input variables missing\n" % len(missing_col)
@@ -323,11 +323,11 @@ class DataTable(object):
             missing_col.sort()
             for var in missing_col:
                 if var[0] == 'f':
-                    messagef += '  - '+ var +'\n'
+                    messagef += '  - ' + var + '\n'
                 elif var[0] == 'b':
-                    messageb += '  - '+ var +'\n'
+                    messageb += '  - ' + var + '\n'
                 else:
-                    message += '  - '+ var +'\n'
+                    message += '  - ' + var + '\n'
             if self.print_missing:
                 print Warning(message + messagef + messageb)
 
@@ -357,6 +357,7 @@ class DataTable(object):
 
     def get_value(self, varname, entity = None, opt = None, sum_ = False, freqs = None):
         if self.num_table == 1:
+            print varname
             value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
 #            if as_dataframe:
 #                index_varname = "id" + entity # TODO: this is dirty
@@ -396,21 +397,21 @@ class DataTable(object):
         if entity is None:
             entity = "ind"
 
-        if entity =="ind":
+        if entity == "ind":
             if varname != 'ppe_coef':
             # should be : if ent == 'ind':
                 return var
             else:
                 # TODO: FIX THIS
-                #print ("The %s entity variable %s, is called to set an individual variable"
+                # print ("The %s entity variable %s, is called to set an individual variable"
                 #               % (col.entity,varname))
 
                 # ce qui suit est copie sur propagate_to_members
                 value = self.get_value(varname, ent)
                 try:
-                    enum = self.column_by_name.get('qui'+ent).enum
+                    enum = self.column_by_name.get('qui' + ent).enum
                 except:
-                    enum = self._inputs.column_by_name.get('qui'+ent).enum
+                    enum = self._inputs.column_by_name.get('qui' + ent).enum
                 for member in enum:
                     qui = member[1]
                     idx = self.index[ent][qui]
@@ -419,14 +420,14 @@ class DataTable(object):
 
         nb = self.index[entity]['nb']
         if opt is None:
-            temp = np.ones(nb, dtype = dtyp)*dflt
+            temp = np.ones(nb, dtype = dtyp) * dflt
             idx = self.index[entity][0]
             temp[idx['idxUnit']] = var[idx['idxIndi']]
             return temp
         else:
             out = {}
             for person in opt:
-                temp = np.ones(nb, dtype = dtyp)*dflt
+                temp = np.ones(nb, dtype = dtyp) * dflt
                 idx = self.index[entity][person]
                 temp[idx['idxUnit']] = var[idx['idxIndi']]
                 out[person] = temp
@@ -441,7 +442,7 @@ class DataTable(object):
                     sumout += val
                 return sumout
 
-    def _get_value3(self, varname, entity=None, opt = None, sum_ = False):
+    def _get_value3(self, varname, entity = None, opt = None, sum_ = False):
         '''
         Read the value in an array and return it in an appropriate format
 
@@ -492,62 +493,62 @@ class DataTable(object):
         var = np.array(self.table3[dent][varname].values, dtype = col._dtype)
 
         case = 0
-        #TODO: Have a level of entities in the model description
+        # TODO: Have a level of entities in the model description
         # for example, in France case, ind = 0, fam and foy =1 and men = 2, ind< fam,foy<men <- JS: Quid des gens
         # qui ont quitté le domicile familial mais qui déclarent avec leur parents ?
         # you can check than if entity is fam or foy and dent the other one then case still zero.
         if entity is None or entity == dent:
             case = 1
-        elif entity=='ind' or dent=='men': # level entity < level dent
+        elif entity == 'ind' or dent == 'men':  # level entity < level dent
             case = 2
-        elif entity=='men' or dent=='ind': # level entity > level dent
+        elif entity == 'men' or dent == 'ind':  # level entity > level dent
             case = 3
         if case == 0 and opt is None:
             case = 2
-        if opt is not None and case==1:
+        if opt is not None and case == 1:
             if varname[:2] != 'id':
                 print varname, dent, entity
                 raise Exception("opt doesn't mean anything here %s" % varname)
             else:
                 opt = None
-        if opt is not None and case==2 and entity is not 'ind':
+        if opt is not None and case == 2 and entity is not 'ind':
             raise Exception("opt doesn't mean anything here : % s. there is no person in %s "
             "so opt is inconsistant " % (varname, entity))
         if sum_ == True and case != 3:
-            #TODO: look why sometime it's sum_ is True here
-            #raise Exception("Impossible to sum here %s over entity %s" % (varname, entity))
+            # TODO: look why sometime it's sum_ is True here
+            # raise Exception("Impossible to sum here %s over entity %s" % (varname, entity))
             sum_ = False
-        if case == 3 and dent !='ind' and opt is None :
+        if case == 3 and dent != 'ind' and opt is None :
             sum_ = True
         if case == 3 and opt is None:
             opt = [0]
         if varname == 'wprm' and entity == 'ind':
-            opt = range(0,10)
+            opt = range(0, 10)
 
         if case == 1 :
-            idx = self.index[dent][0]['idxUnit'] # here dent = entity
+            idx = self.index[dent][0]['idxUnit']  # here dent = entity
             return var[idx]
 
         elif case == 2 :
             nb = self.index[entity]['nb']
-            temp = np.ones(nb, dtype = dtyp)*dflt
+            temp = np.ones(nb, dtype = dtyp) * dflt
             # we have a direct index from ind to entity
             if opt is None :
                 if entity != 'ind':
                     idx = self.index[dent][entity]
                     temp[idx] = var
-                    #TODO: add a paramater to propagate to member or make it the default option ond put opt = 0 otherwise
-                    if varname in ['so','zone_apl','loyer','wprm']:
+                    # TODO: add a paramater to propagate to member or make it the default option ond put opt = 0 otherwise
+                    if varname in ['so', 'zone_apl', 'loyer', 'wprm']:
                         idx_from = self.index[entity][dent]
                         temp = var[idx_from]
                     return temp
-                #TODO: add opt everywhere and remove that if else
+                # TODO: add opt everywhere and remove that if else
                 else:
                     head = self.index[dent][0]
-                    temp[head['idxIndi']] =  var
+                    temp[head['idxIndi']] = var
                     return temp
             else:
-                #here if opt is not None, we know we are dealing with entity = 'ind'
+                # here if opt is not None, we know we are dealing with entity = 'ind'
                 for person in opt:
                     idx_person = self.index[dent][person]
                     temp[idx_person['idxIndi']] = var[idx_person['idxUnit']]
@@ -561,7 +562,7 @@ class DataTable(object):
             if dent == 'ind':
                 for person in opt:
                     if sum_ is False:
-                        temp = np.ones(nb, dtype = dtyp)*dflt
+                        temp = np.ones(nb, dtype = dtyp) * dflt
                     else :
                         temp = np.zeros(nb, dtype = dtyp)
                     idx = self.index[entity][person]
@@ -584,19 +585,19 @@ class DataTable(object):
                 # Here we assume that sum_ is True
                 if sum_ is False:
                     raise Exception("Cannot do anything but a sum from intermediate entity to the biggest one")
-                temp = np.ones(nb, dtype = dtyp)*dflt
+                temp = np.ones(nb, dtype = dtyp) * dflt
                 idx_to = self.index[dent][entity]
-                tab = self.table3[dent][varname] # same as var but in pandas
-                if isinstance(tab[0],bool):
-                    print "Warning: try to sum the boolean %s. How ugly is that? " %varname
-                    #Note that we have isol = True (isol) iff there is at least one isol
+                tab = self.table3[dent][varname]  # same as var but in pandas
+                if isinstance(tab[0], bool):
+                    print "Warning: try to sum the boolean %s. How ugly is that? " % varname
+                    # Note that we have isol = True (isol) iff there is at least one isol
                     tab = tab.astype('int')
-                by_idx =  tab.groupby(idx_to)
+                by_idx = tab.groupby(idx_to)
                 idx_to_unique = np.unique(idx_to)
                 try:
                     temp[idx_to_unique] = by_idx.aggregate(np.sum)
                 except:
-                    #TODO: always do the convertion but better to be explicit
+                    # TODO: always do the convertion but better to be explicit
                     values = by_idx.aggregate(np.sum).astype('bool')
                     temp[idx_to_unique] = values
                 return temp
@@ -628,9 +629,9 @@ class DataTable(object):
         dtyp = col._dtype
         if self.num_table == 1:
             values = Series(value[idx['idxUnit']], dtype = dtyp)
-            self.table[varname][idx['idxIndi'].tolist()] = values #tolist because sometime len(idx['idxIndi']) == 1
+            self.table[varname][idx['idxIndi'].tolist()] = values  # tolist because sometime len(idx['idxIndi']) == 1
         elif self.num_table == 3:
-            if entity=='ind':
+            if entity == 'ind':
                 self.table3[entity].ix[idx['idxIndi'], [varname]] = value
             else:
                 self.table3[entity].ix[idx['idxUnit'], [varname]] = value
@@ -647,4 +648,4 @@ class DataTable(object):
         return self.table.__str__()
 
     def inflate(self, varname, inflator):
-        self.table[varname] = inflator*self.table[varname]
+        self.table[varname] = inflator * self.table[varname]
