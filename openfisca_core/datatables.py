@@ -58,7 +58,6 @@ class DataTable(object):
         self.test_case = scenario
         self.decomp_file = None
         self.survey_data = survey_data
-        self._isPopulated = False
         self.num_table = num_table
         self.subset = subset
 
@@ -338,9 +337,7 @@ class DataTable(object):
             if ('qui' + var) in missing_col:
                 raise Exception('Survey data needs variable %s' % ('qui' + var))
 
-
         self.gen_index(INDEX)
-        self._isPopulated = True
 
         # Initialize default weights
 #        self.set_value(model.WEIGHT_INI, self.get_value(model.WEIGHT), 'ind')
