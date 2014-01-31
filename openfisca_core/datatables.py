@@ -357,8 +357,10 @@ class DataTable(object):
 
     def get_value(self, varname, entity = None, opt = None, sum_ = False, freqs = None):
         if self.num_table == 1:
-            print varname
-            value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
+            try:
+                value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
+            except Exception, e:
+                raise Exception("Problem error when getting variable %s : \n %s" %(varname,e))
 #            if as_dataframe:
 #                index_varname = "id" + entity # TODO: this is dirty
 #                if sum_ is True:
