@@ -272,6 +272,7 @@ def validate_node_json(node, state = None):
                 conv.input_to_slug,
                 conv.test_in((
                     'contrib',
+                    'main-d-oeuvre',
                     'noncontrib',
                     )),
                 ),

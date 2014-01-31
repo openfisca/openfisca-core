@@ -418,6 +418,7 @@ def validate_scale_xml_json(scale, state = None):
                     conv.input_to_slug,
                     conv.test_in((
                         'contrib',
+                        'main-d-oeuvre',
                         'noncontrib',
                         )),
                     ),
