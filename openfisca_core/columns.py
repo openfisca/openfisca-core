@@ -35,7 +35,7 @@ from . import conv
 from .enumerations import Enum
 
 
-def default_frequency_converter(from_ = None, to_= None):
+def default_frequency_converter(from_ = None, to_ = None):
     """
     Default function to convert Columns between different frequencies
     """
@@ -43,16 +43,16 @@ def default_frequency_converter(from_ = None, to_= None):
         return lambda x: x
 
     if (from_ == "year") and (to_ == "trim"):
-        return lambda x: x/4
+        return lambda x: x / 4
 
     if (from_ == "trim") and (to_ == "year"):
-        return lambda x: x*4
+        return lambda x: x * 4
 
     if (from_ == "year") and (to_ == "month"):
-        return lambda x: x/12
+        return lambda x: x / 12
 
     if (from_ == "month") and (to_ == "year"):
-        return lambda x: 12*x
+        return lambda x: 12 * x
 
 
 # Base Column
@@ -67,21 +67,26 @@ class Column(object):
     freq = None
     # json_type = None  # Defined in sub-classes
     label = None
+    legislative_input = False
     name = None
     start = None
     val_type = None
 
-    def __init__(self, label = None, default = None, entity= 'ind', start = None, end = None, val_type = None,
-            freq = 'year'):
+
+    def __init__(self, label = None, default = None, entity = 'ind', start = None, end = None, val_type = None,
+            freq = 'year', legislative_input = True):
         if default is not None and default != self._default:
             self._default = default
         self.end = end
         self.entity = entity
         self.freq = freq
         self.label = label
+        if legislative_input:
+            self.legislative_input = True
         self.start = start
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
+
 
     def to_json(self):
         self_json = collections.OrderedDict((
@@ -268,8 +273,8 @@ class Prestation(Column):
     """
     json_type = 'Float'
 
-    def __init__(self, func, entity= 'ind', label = None, start = None, end = None, val_type = None, freq="year"):
-        super(Prestation, self).__init__(label=label, entity=entity, start=start, end=end, val_type=val_type, freq=freq)
+    def __init__(self, func, entity = 'ind', label = None, start = None, end = None, val_type = None, freq = "year"):
+        super(Prestation, self).__init__(label = label, entity = entity, start = start, end = end, val_type = val_type, freq = freq)
 
         assert func is not None, 'A function to compute the prestation should be provided'
 
@@ -281,14 +286,14 @@ class Prestation(Column):
         self._start = start
         self._end = end
         self._val_type = val_type
-        self.entity  = entity # TODO: is this needed ?
+        self.entity = entity  # TODO: is this needed ?
 
         self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
-        self._children  = set() # prestations immidiately affected by current prestation
-        self._parents = set() # prestations that current prestations depends on
+        self._children = set()  # prestations immidiately affected by current prestation
+        self._parents = set()  # prestations that current prestations depends on
 
         # by default enable all the prestations
-        self._enabled    = True
+        self._enabled = True
 
         # check if the function func needs parameter tree _P
         self._needParam = '_P' in self.inputs
@@ -333,12 +338,12 @@ class Prestation(Column):
         prestation._parents.add(self)
 
     def to_column(self):
-        col = Column(label=self.label,
-                     entity=self.entity,
-                     start=self.start,
-                     end=self.end,
-                     val_type=self.val_type,
-                     freq=self.freq)
+        col = Column(label = self.label,
+                     entity = self.entity,
+                     start = self.start,
+                     end = self.end,
+                     val_type = self.val_type,
+                     freq = self.freq)
         col.name = self.name
         return col
 
@@ -352,7 +357,7 @@ class BoolPresta(Prestation, BoolCol):
     '''
     def __init__(self, func, **kwargs):
         BoolCol.__init__(self, **kwargs)
-        Prestation.__init__(self, func=func, **kwargs)
+        Prestation.__init__(self, func = func, **kwargs)
 
 
 class EnumPresta(Prestation, EnumCol):

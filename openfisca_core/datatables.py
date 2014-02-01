@@ -357,7 +357,7 @@ class DataTable(object):
             try:
                 value = self._get_value1(varname, entity = entity, opt = opt, sum_ = sum_)
             except Exception, e:
-                raise Exception("Problem error when getting variable %s : \n %s" %(varname,e))
+                raise Exception("Problem error when getting variable %s : \n %s" % (varname, e))
 #            if as_dataframe:
 #                index_varname = "id" + entity # TODO: this is dirty
 #                if sum_ is True:
@@ -624,8 +624,13 @@ class DataTable(object):
             idx = self.index[entity][0]
         else:
             idx = self.index[entity][opt]
-        col = self.column_by_name.get(varname)
-        dtyp = col._dtype
+        try:
+            col = self.column_by_name.get(varname)
+            dtyp = col._dtype
+        except Exception as e:
+            print e
+            raise Exception('Error when getting column %s' % varname)
+
         if self.num_table == 1:
             values = Series(value[idx['idxUnit']], dtype = dtyp)
             self.table[varname][idx['idxIndi'].tolist()] = values  # tolist because sometime len(idx['idxIndi']) == 1
