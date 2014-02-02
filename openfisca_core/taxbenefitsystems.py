@@ -220,18 +220,17 @@ class TaxBenefitSystem(DataTable):
         # Build the closest dependencies
         for col in self.column_by_name.itervalues():
             # Disable column if necessary
-            col.set_enabled()
-            if col._start:
-                if col._start > self.datesim: col.set_disabled()
-            if col._end:
-                if col._end < self.datesim: col.set_disabled()
+            if col.start is not None and col.start > self.datesim or col.end is not None and col.end < self.datesim:
+                col.disabled = True
+            elif col.disabled:
+                del col.disabled
 
             for input_varname in col.inputs:
-                if input_varname in self.column_by_name:
-                    input_col = self.column_by_name.get(input_varname)
-                    input_col.add_child(col)
-                else:
+                input_col = self.column_by_name.get(input_varname)
+                if input_col is None:
                     self._primitives.add(input_varname)
+                else:
+                    input_col.add_child(col)
 
     def calculate(self):
         if self.survey_data is not None or self.decomp_file is None:
@@ -321,12 +320,10 @@ class TaxBenefitSystem(DataTable):
         return output_tree
 
     def disable(self, disabled_prestations):
-        """
-        Sets some column as calculated so they are cot evaluated and keep their default value
-        """
+        """Set some column as calculated so they are not evaluated and keep their default value."""
         if disabled_prestations is not None:
             for colname in disabled_prestations:
-                self.column_by_name[colname]._isCalculated = True
+                self.column_by_name[colname].calculated = True
 
     def generate_output_tree(self, doc, output_tree, entity = 'men'):
         if doc.childNodes:
@@ -372,7 +369,8 @@ class TaxBenefitSystem(DataTable):
         Sets all columns as not calculated
         """
         for col in self.column_by_name.itervalues():
-            col._isCalculated = False
+            if col.calculated:
+                del col.calculated
 
     def set_inputs(self, inputs):
         """

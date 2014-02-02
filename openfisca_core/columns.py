@@ -72,21 +72,22 @@ class Column(object):
     start = None
     val_type = None
 
-
-    def __init__(self, label = None, default = None, entity = 'ind', start = None, end = None, val_type = None,
-            freq = 'year', legislative_input = True):
+    def __init__(self, label = None, default = None, entity= None, start = None, end = None, val_type = None,
+            freq = None, legislative_input = True):
         if default is not None and default != self._default:
             self._default = default
-        self.end = end
-        self.entity = entity
-        self.freq = freq
-        self.label = label
+        if end is not None:
+            self.end = end
+        self.entity = entity or 'ind'
+        self.freq = freq or 'year'
+        if label is not None:
+            self.label = label
         if legislative_input:
             self.legislative_input = True
-        self.start = start
+        if start is not None:
+            self.start = start
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
-
 
     def to_json(self):
         self_json = collections.OrderedDict((
@@ -271,67 +272,60 @@ class Prestation(Column):
     Prestation is a wraper around a function which takes some arguments and return a single array.
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
+    _children = None
+    _freq = None  # Caution: Not the same as Column.freq
+    _func = None
+    _has_freq = False
+    _hasOption = False
+    _needDefaultParam = False
+    _needParam = False
+    _option = None
+    _parents = None
+    calculated = False
+    disabled = False
+    inputs = None
     json_type = 'Float'
 
-    def __init__(self, func, entity = 'ind', label = None, start = None, end = None, val_type = None, freq = "year"):
-        super(Prestation, self).__init__(label = label, entity = entity, start = start, end = end, val_type = val_type, freq = freq)
+    def __init__(self, func, entity = None, label = None, start = None, end = None, val_type = None, freq = None):
+        super(Prestation, self).__init__(label = label, entity = entity, start = start, end = end, val_type = val_type,
+            freq = freq)
 
-        assert func is not None, 'A function to compute the prestation should be provided'
-
-        # initialize attribute
-        self._isCalculated = False
-        self._option = {}
+        self._children  = set()  # prestations immediately affected by current prestation
         self._freq = {}
+        assert func is not None, 'A function to compute the prestation should be provided'
         self._func = func
-        self._start = start
-        self._end = end
-        self._val_type = val_type
-        self.entity = entity  # TODO: is this needed ?
-
-        self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
-        self._children = set()  # prestations immidiately affected by current prestation
+        self._option = {}
         self._parents = set()  # prestations that current prestations depends on
+        self.inputs = set(func.__code__.co_varnames[:func.__code__.co_argcount])
 
-        # by default enable all the prestations
-        self._enabled = True
-
-        # check if the function func needs parameter tree _P
-        self._needParam = '_P' in self.inputs
-        if self._needParam:
+        # Check if function func needs parameter tree _P.
+        if '_P' in self.inputs:
+            self._needParam = True
             self.inputs.remove('_P')
 
-        # check if the function func needs default parameter tree _P
-        self._needDefaultParam = '_defaultP' in self.inputs
-        if self._needDefaultParam:
+        # Check if function func needs default parameter tree _defaultP.
+        if '_defaultP' in self.inputs:
+            self._needDefaultParam = True
             self.inputs.remove('_defaultP')
 
-        # check if an option dict is passed to the function
-        self._hasOption = '_option' in self.inputs
-        if self._hasOption:
+        # Check if an option dict is passed to the function.
+        if '_option' in self.inputs:
+            self._hasOption = True
             self.inputs.remove('_option')
             self._option = func.func_defaults[0]
             for var in self._option:
-                if var not in self.inputs:
-                    raise Exception('%s in option but not in function args' % var)
+                assert var in self.inputs, '%s in option but not in function args' % var
 
-        # check if a frequency dict is passed to the function
-        self._has_freq = '_freq' in self.inputs
-        if self._has_freq:
+        # Check if a frequency dict is passed to the function.
+        if '_freq' in self.inputs:
+            self._has_freq = True
             self.inputs.remove('_freq')
             if self._hasOption:
                 self._freq = func.func_defaults[1]
             else:
                 self._freq = func.func_defaults[0]
-
             for var in self._freq:
-                if var not in self.inputs:
-                    raise Exception('%s in option but not in function args' % var)
-
-    def set_enabled(self):
-        self._enabled = True
-
-    def set_disabled(self):
-        self._enabled = False
+                assert var in self.inputs, '%s in freq but not in function args' % var
 
     def add_child(self, prestation):
         self._children.add(prestation)
