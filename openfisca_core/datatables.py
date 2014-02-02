@@ -88,15 +88,7 @@ class DataTable(object):
 
     def load_data_from_test_case(self, test_case):
         self.test_case = test_case
-#         if test_case.nmen == 1:
-#             test_case.dummy_x_axis = True
-#             test_case.nmen = 2
-#             test_case.populate_datatable(self)
-#             del test_case.dummy_x_axis
-#             test_case.nmen = 1
-#         else:
         test_case.populate_datatable(self)
-
 
     def load_data_from_survey(self, survey_data,
                               num_table = 1,
@@ -104,7 +96,6 @@ class DataTable(object):
                               print_missing = True):
         self.survey_data = survey_data
         self.populate_from_survey_data(survey_data)
-
 
     def gen_index(self, entities):
         '''
@@ -116,7 +107,6 @@ class DataTable(object):
                       'nb': self._nrows}}
 
         for entity in entities:
-            enum = self.column_by_name.get('qui' + entity).enum
             try:
                 if self.num_table == 1:
                     idx = getattr(self.table, 'id' + entity).values
@@ -124,15 +114,12 @@ class DataTable(object):
                 elif self.num_table == 3:
                     idx = getattr(self.table3['ind'], 'id' + entity).values
                     qui = getattr(self.table3['ind'], 'qui' + entity).values
-
-                enum = self.column_by_name.get('qui' + entity).enum
             except:
                 log.error('DataTable needs columns %s and %s to build index with entity %s' % ('id' + entity,
                     'qui' + entity, entity))
                 raise
 
-            self.index[entity] = {}
-            dct = self.index[entity]
+            self.index[entity] = dct = {}
             idxlist = np.unique(idx)
 
             if self.num_table == 3:
@@ -148,13 +135,12 @@ class DataTable(object):
 
             dct['nb'] = len(idxlist)
 
-            for full, person in enum:
+            for full, person in self.column_by_name.get('qui' + entity).enum:
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
 #                if (person == 0) and (dct['nb'] != len(idxIndi)):
 #                    raise Exception('Invalid index for %s: There is %i %s and %i %s' %(entity, dct['nb'], entity, len(idxIndi), full))
                 idxUnit = np.searchsorted(idxlist, idx[idxIndi])
-                temp = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
-                dct.update({person: temp})
+                dct[person] = {'idxIndi':idxIndi, 'idxUnit':idxUnit}
 
         if self.num_table == 3:
         # add index of men for intermediate entities
@@ -207,8 +193,6 @@ class DataTable(object):
 #                     head = idx_to[0]['idxIndi']
 #                     idx_from = self.index['ind'][from_ent][head]
 #                     return value[idx_from]
-
-
 
     def populate_from_survey_data(self, fname, year = None):
         '''
@@ -601,7 +585,6 @@ class DataTable(object):
                     temp[idx_to_unique] = values
                 return temp
 
-
     def set_value(self, varname, value, entity = None, opt = None):
         '''
         Sets the value of varname using index and opt
@@ -624,18 +607,14 @@ class DataTable(object):
             idx = self.index[entity][0]
         else:
             idx = self.index[entity][opt]
-        try:
-            col = self.column_by_name.get(varname)
-            dtyp = col._dtype
-        except Exception as e:
-            print e
-            raise Exception('Error when getting column %s' % varname)
+        col = self.column_by_name.get(varname)
+        assert col is not None, 'Error when getting column %s' % varname
 
         if self.num_table == 1:
             if isinstance(value, int):
-                values = Series(value, dtype = dtyp).values
+                values = Series(value, dtype = col._dtype).values
             else:
-                values = Series(value[idx['idxUnit'].tolist()], dtype = dtyp).values
+                values = Series(value[idx['idxUnit'].tolist()], dtype = col._dtype).values
 
             self.table[varname][idx['idxIndi'].tolist()] = values  # tolist because sometime len(idx['idxIndi']) == 1
         elif self.num_table == 3:
@@ -643,7 +622,6 @@ class DataTable(object):
                 self.table3[entity].ix[idx['idxIndi'], [varname]] = value
             else:
                 self.table3[entity].ix[idx['idxUnit'], [varname]] = value
-
 
     # TODO:
     def to_pytables(self, fname):
