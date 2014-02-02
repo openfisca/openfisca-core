@@ -233,14 +233,92 @@ class TaxBenefitSystem(DataTable):
                 else:
                     self._primitives.add(input_varname)
 
-    def calculate(self, varname = None):
-        if (self.survey_data is not None) or (self.decomp_file is None) or (varname is not None):
-            self.survey_calculate(varname=varname)
-            return None
+    def calculate(self):
+        if self.survey_data is not None or self.decomp_file is None:
+            return self.calculate_survey()
         elif self.test_case is not None:
-            return self.test_case_calculate()
+            return self.calculate_test_case()
         else:
             raise Exception("survey_data or test_case attribute should not be None")
+
+    def calculate_prestation(self, col):
+        if col.calculated or col.disabled:
+            return
+
+        columns_name = set(self._inputs.column_by_name)
+        assert self._primitives <= columns_name, '%s are not set, use set_inputs before calling calculate.' \
+            ' Primitives needed: %s, Inputs: %s' % (self._primitives - columns_name, self._primitives, columns_name)
+
+        entity = col.entity
+        assert entity is not None
+        required = set(col.inputs)
+
+        func_args = {}
+        for var in required:
+            if var in self._inputs.column_by_name:
+                if var in col._option:
+                    func_args[var] = self._inputs.get_value(var, entity, col._option[var])
+                else:
+                    func_args[var] = self._inputs.get_value(var, entity)
+
+        WEIGHT = model.WEIGHT
+        for parent_col in col._parents:
+            parent_name = parent_col.name
+            assert parent_name not in func_args or parent_name == WEIGHT, \
+                '%s provided twice: %s was found in primitives and in parents' %  (col.name, col.name)
+            self.calculate_prestation(parent_col)
+            opt, freq = None, None
+
+            if parent_name in col._option:
+                opt = col._option[parent_name]
+
+            if parent_name in col._freq:
+                freq = col._freq[parent_name]
+                if freq[-1:] == "s": # to return dict with all months or trims
+                    freqs = freq
+                    func_args[parent_name] = self.get_value(parent_name, entity, opt=opt, freqs=freqs)
+                else:
+                    converter = parent_col._frequency_converter(to_ = freq, from_= parent_col.freq)
+                    func_args[parent_name] = converter(self.get_value(parent_name, entity, opt=opt))
+            else:
+                func_args[parent_name] = self.get_value(parent_name, entity, opt=opt)
+
+        if col._needParam:
+            func_args['_P'] = self._param
+            required.add('_P')
+
+        if col._needDefaultParam:
+            func_args['_defaultP'] = self._default_param
+            required.add('_defaultP')
+
+        provided = set(func_args.keys())
+        assert provided == required, '%s missing: %s needs %s but only %s were provided' % (
+            str(list(required - provided)), self._name, str(list(required)), str(list(provided)))
+
+        try:
+            self.set_value(col.name, col._func(**func_args), entity)
+        except:
+            print col.name
+            raise
+
+        col.calculated = True
+
+    def calculate_survey(self):
+        for col in self.column_by_name.itervalues():
+            try:
+                self.calculate_prestation(col)
+            except Exception as e:
+                print e
+                print col.name
+        return None
+
+    def calculate_test_case(self):
+        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
+
+        decomp_doc = minidom.parse(self.decomp_file)
+        output_tree = OutNode('root', 'root')
+        self.generate_output_tree(decomp_doc, output_tree)
+        return output_tree
 
     def disable(self, disabled_prestations):
         """
@@ -275,7 +353,7 @@ class TaxBenefitSystem(DataTable):
             enum = inputs.column_by_name.get('qui'+entity).enum
             people = [x[1] for x in enum]
             if output_tree.code in self.column_by_name:
-                self.calculate(varname=output_tree.code)
+                self.calculate_prestation(self.column_by_name[output_tree.code])
                 val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
             elif output_tree.code in inputs.column_by_name:
                 val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
@@ -343,99 +421,3 @@ class TaxBenefitSystem(DataTable):
         # Preprocess the input data according to country specification
         if preproc_inputs is not None:
             preproc_inputs(self._inputs)
-
-    def survey_calculate(self, varname = None):
-        '''
-        Solver: finds dependencies and calculate accordingly all needed variables
-
-        Parameters
-        ----------
-
-        varname : string, default None
-                  By default calculate all otherwise, calculate only one variable
-
-        '''
-        WEIGHT = model.WEIGHT
-        if varname is None:
-            for col in self.column_by_name.itervalues():
-                try:
-                    self.survey_calculate(varname = col.name)
-                except Exception as e:
-                    print e
-                    print col.name
-            return # Will calculate all and exit
-
-        col = self.column_by_name.get(varname)
-
-        columns_name = set(self._inputs.column_by_name)
-        assert self._primitives <= columns_name, '%s are not set, use set_inputs before calling calculate.' \
-            ' Primitives needed: %s, Inputs: %s' % (self._primitives - columns_name, self._primitives, columns_name)
-
-        if col._isCalculated:
-            return
-
-        if not col._enabled:
-            return
-
-        entity = col.entity
-        if entity is None:
-            entity = "ind"
-        required = set(col.inputs)
-
-        func_args = {}
-        for var in required:
-            if var in self._inputs.column_by_name:
-                if var in col._option:
-                    func_args[var] = self._inputs.get_value(var, entity, col._option[var])
-                else:
-                    func_args[var] = self._inputs.get_value(var, entity)
-
-        for var in col._parents:
-            parentname = var.name
-            if parentname in func_args and parentname != WEIGHT :
-                raise Exception('%s provided twice: %s was found in primitives and in parents' %  (varname, varname))
-            self.survey_calculate(varname = parentname)
-            opt, freq = None, None
-
-            if parentname in col._option:
-                opt = col._option[parentname]
-
-            if parentname in col._freq:
-                freq = col._freq[parentname]
-                if freq[-1:] == "s": # to return dict with all months or trims
-                    freqs = freq
-                    func_args[parentname] = self.get_value(parentname, entity, opt=opt, freqs=freqs)
-                else:
-#                    print "coucou freq"
-                    converter = var._frequency_converter(to_ = freq, from_= var.freq)
-                    func_args[parentname] = converter(self.get_value(parentname, entity, opt=opt))
-            else:
-                func_args[parentname] = self.get_value(parentname, entity, opt=opt)
-
-        if col._needParam:
-            func_args['_P'] = self._param
-            required.add('_P')
-
-        if col._needDefaultParam:
-            func_args['_defaultP'] = self._default_param
-            required.add('_defaultP')
-
-        provided = set(func_args.keys())
-        assert provided == required, '%s missing: %s needs %s but only %s were provided' % (
-            str(list(required - provided)), self._name, str(list(required)), str(list(provided)))
-
-        try:
-            self.set_value(varname, col._func(**func_args), entity)
-        except:
-            print varname
-            raise
-
-        col._isCalculated = True
-
-    def test_case_calculate(self):
-        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
-
-        decomp_doc = minidom.parse(self.decomp_file)
-        output_tree = OutNode('root', 'root')
-        self.generate_output_tree(decomp_doc, output_tree)
-        return output_tree
