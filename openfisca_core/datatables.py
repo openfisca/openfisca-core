@@ -88,14 +88,14 @@ class DataTable(object):
 
     def load_data_from_test_case(self, test_case):
         self.test_case = test_case
-        if test_case.nmen == 1:
-            test_case.dummy_x_axis = True
-            test_case.nmen = 2
-            test_case.populate_datatable(self)
-            del test_case.dummy_x_axis
-            test_case.nmen = 1
-        else:
-            test_case.populate_datatable(self)
+#         if test_case.nmen == 1:
+#             test_case.dummy_x_axis = True
+#             test_case.nmen = 2
+#             test_case.populate_datatable(self)
+#             del test_case.dummy_x_axis
+#             test_case.nmen = 1
+#         else:
+        test_case.populate_datatable(self)
 
 
     def load_data_from_survey(self, survey_data,
@@ -632,7 +632,11 @@ class DataTable(object):
             raise Exception('Error when getting column %s' % varname)
 
         if self.num_table == 1:
-            values = Series(value[idx['idxUnit']], dtype = dtyp)
+            if isinstance(value, int):
+                values = Series(value, dtype = dtyp).values
+            else:
+                values = Series(value[idx['idxUnit'].tolist()], dtype = dtyp).values
+
             self.table[varname][idx['idxIndi'].tolist()] = values  # tolist because sometime len(idx['idxIndi']) == 1
         elif self.num_table == 3:
             if entity == 'ind':
