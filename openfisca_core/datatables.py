@@ -198,7 +198,6 @@ class DataTable(object):
         '''
         Populates a DataTable from survey data
         '''
-        INDEX = model.ENTITIES_INDEX
         list_entities = self.list_entities
 
         if isinstance(fname, str) or isinstance(fname, unicode):
@@ -314,14 +313,14 @@ class DataTable(object):
             if self.print_missing:
                 print Warning(message + messagef + messageb)
 
-        for var in INDEX:
+        for var in model.ENTITIES_INDEX:
             if ('id' + var) in missing_col:
                 raise Exception('Survey data needs variable %s' % ('id' + var))
 
             if ('qui' + var) in missing_col:
                 raise Exception('Survey data needs variable %s' % ('qui' + var))
 
-        self.gen_index(INDEX)
+        self.gen_index(model.ENTITIES_INDEX)
 
         # Initialize default weights
 #        self.set_value(model.WEIGHT_INI, self.get_value(model.WEIGHT), 'ind')
