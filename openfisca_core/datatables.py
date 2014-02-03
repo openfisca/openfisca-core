@@ -135,7 +135,7 @@ class DataTable(object):
 
             dct['nb'] = len(idxlist)
 
-            for full, person in self.column_by_name.get('qui' + entity).enum:
+            for full, person in self.column_by_name['qui' + entity].enum:
                 idxIndi = np.sort(np.squeeze((np.argwhere(qui == person))))
 #                if (person == 0) and (dct['nb'] != len(idxIndi)):
 #                    raise Exception('Invalid index for %s: There is %i %s and %i %s' %(entity, dct['nb'], entity, len(idxIndi), full))
