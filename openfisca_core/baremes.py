@@ -89,9 +89,18 @@ class Bareme(object):
         self._tranchesM[i][1] = value
 
 
-    def multTaux(self, factor):
-        for i in range(self._nb):
-            self.setTaux(i, factor * self.taux[i])
+    def multTaux(self, factor, inplace = True, new_name = None):
+        if inplace:
+            for i in range(self._nb):
+                self.setTaux(i, factor * self.taux[i])
+        else:
+            if new_name is None:
+                new_name = self._name
+            b = Bareme(new_name, option = self._option, unit = self.unit)
+            for i in range(self.nb):
+                b.addTranche(self.seuils[i], self.taux[i])
+            b.multTaux(factor, inplace = True)
+            return b
 
     def multSeuils(self, factor):
         '''
