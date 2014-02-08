@@ -26,6 +26,7 @@
 from __future__ import division
 
 from bisect import bisect_right
+import itertools
 
 import numpy as np
 from numpy import maximum as max_, minimum as min_
@@ -208,12 +209,7 @@ class Bareme(object):
         return inverse
 
     def __iter__(self):
-        self._seuilsIter = iter(self.seuils)
-        self._tauxIter = iter(self.taux)
-        return self
-
-    def next(self):
-        return self._seuilsIter.next(), self._tauxIter.next()
+        return itertools.izip(self.seuils, self.taux)
 
     def __str__(self):
         output = self._name + '\n'
