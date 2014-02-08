@@ -24,6 +24,7 @@
 
 
 import collections
+import copy
 import datetime as dt
 import gc
 import itertools
@@ -138,7 +139,7 @@ class Simulation(object):
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
 
         if param_default is None:
-            self.P_default = compact_legislation
+            self.P_default = copy.deepcopy(compact_legislation)
         else:
             self.P_default = param_default
 
