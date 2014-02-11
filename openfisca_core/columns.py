@@ -102,7 +102,7 @@ class Column(object):
             self_json['end'] = end
         if self.entity is not None:
             self_json['entity'] = self.entity
-        if self.freq is not None:
+        if self.freq != 'year':
             self_json['freq'] = self.freq
         if self.label is not None:
             self_json['label'] = self.label
