@@ -29,6 +29,7 @@
 __all__ = [
     'AGGREGATES_DEFAULT_VARS',
     'column_by_name',
+    'columns_name_tree_by_entity',
     'CURRENCY',
     'DATA_DIR',
     'DATA_SOURCES_DIR',
