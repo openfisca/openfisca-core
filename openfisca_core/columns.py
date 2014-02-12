@@ -233,18 +233,19 @@ class EnumCol(IntCol):
                 for index, name in sorted(enum._vars.iteritems() if enum is not None else ())
                 )
         return conv.pipe(
+            conv.test_isinstance((basestring, int)),
             conv.condition(
-                conv.test_isinstance(basestring),
+                conv.anything_to_int,
+                conv.pipe(
+                    # Verify that item index belongs to enumeration.
+                    conv.anything_to_int,
+                    conv.test_in(enum._vars),
+                    ),
                 conv.pipe(
                     # Convert item name to its index.
                     conv.input_to_slug,
                     conv.test_in(index_by_slug),
                     conv.function(lambda slug: index_by_slug[slug]),
-                    ),
-                conv.pipe(
-                    # Verify that item index belongs to enumeration.
-                    conv.test_isinstance(int),
-                    conv.test_in(enum._vars),
                     ),
                 ),
             conv.default(
