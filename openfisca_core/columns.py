@@ -224,13 +224,17 @@ class EnumCol(IntCol):
     def json_to_python(self):
         enum = self.enum
         if enum is None:
-            return super(EnumCol, self).json_to_python
+            return conv.pipe(
+                conv.test_isinstance((basestring, int)),
+                conv.anything_to_int,
+                conv.default(self._default),
+                )
         # This converters accepts either an item number or an item name.
         index_by_slug = self.index_by_slug
         if index_by_slug is None:
             self.index_by_slug = index_by_slug = dict(
                 (strings.slugify(name), index)
-                for index, name in sorted(enum._vars.iteritems() if enum is not None else ())
+                for index, name in sorted(enum._vars.iteritems())
                 )
         return conv.pipe(
             conv.test_isinstance((basestring, int)),
