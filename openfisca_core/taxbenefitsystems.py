@@ -79,7 +79,7 @@ class OutNode(object):
 
     def addChild(self, child):
         self.children.append(child)
-        if child.color == (0,0,0):
+        if child.color == (0, 0, 0):
             child.color = self.color
         child.setParent(self)
 
@@ -138,7 +138,7 @@ class OutNode(object):
     def setLeavesVisible(self):
         for child in self.children:
             child.setLeavesVisible()
-        if (self.children and (self.code !='revdisp')) or (self.code == 'nivvie'):
+        if (self.children and (self.code != 'revdisp')) or (self.code == 'nivvie'):
             self.visible = 0
         else:
             self.visible = 1
@@ -151,7 +151,7 @@ class OutNode(object):
             self.visible = 1
         if self.parent is not None:
             for sibling in self.parent.children:
-                if not (sibling.partiallychecked() or sibling.visible ==1):
+                if not (sibling.partiallychecked() or sibling.visible == 1):
                     sibling.visible = 1
             if changeParent:
                 self.parent.setVisible(changeSelf = False)
@@ -197,20 +197,20 @@ class TaxBenefitSystem(DataTable):
         self.reset()
         self.build()
 
-    def __add__(self,other):
+    def __add__(self, other):
         """
         Addition of two TaxBenefitSystem.
         Add their output_table, iff it's the same simulation and only the survey differ
         """
-        if not isinstance(other,TaxBenefitSystem):
+        if not isinstance(other, TaxBenefitSystem):
             raise Exception("Can only add a TaxBenefitSystem to a SystemSF")
 
         assert self.num_table == other.num_table
 
-        if self.num_table==1:
-            self.table = self.table.append(other.table, verify_integrity=True)
+        if self.num_table == 1:
+            self.table = self.table.append(other.table, verify_integrity = True)
 
-        if self.num_table==3:
+        if self.num_table == 3:
             assert(self.list_entities == other.list_entities)
             for ent in self.list_entities:
                 self.table3[ent] = self.table3[ent].append(other.table3[ent])
@@ -245,8 +245,8 @@ class TaxBenefitSystem(DataTable):
             return
 
         columns_name = set(self._inputs.column_by_name)
-        assert self._primitives <= columns_name, '%s are not set, use set_inputs before calling calculate.' \
-            ' Primitives needed: %s, Inputs: %s' % (self._primitives - columns_name, self._primitives, columns_name)
+        assert self._primitives <= columns_name, 'Calculating %s.\n %s are not set, use set_inputs before calling calculate.' \
+            '\n Primitives needed: %s,\n Inputs: %s' % (col.name, self._primitives - columns_name, self._primitives, columns_name)
 
         entity = col.entity
         assert entity is not None
@@ -264,7 +264,7 @@ class TaxBenefitSystem(DataTable):
         for parent_col in col._parents:
             parent_name = parent_col.name
             assert parent_name not in func_args or parent_name == WEIGHT, \
-                '%s provided twice: %s was found in primitives and in parents' %  (col.name, col.name)
+                '%s provided twice: %s was found in primitives and in parents' % (col.name, col.name)
             self.calculate_prestation(parent_col)
             opt, freq = None, None
 
@@ -273,14 +273,14 @@ class TaxBenefitSystem(DataTable):
 
             if parent_name in col._freq:
                 freq = col._freq[parent_name]
-                if freq[-1:] == "s": # to return dict with all months or trims
+                if freq[-1:] == "s":  # to return dict with all months or trims
                     freqs = freq
-                    func_args[parent_name] = self.get_value(parent_name, entity, opt=opt, freqs=freqs)
+                    func_args[parent_name] = self.get_value(parent_name, entity, opt = opt, freqs = freqs)
                 else:
-                    converter = parent_col._frequency_converter(to_ = freq, from_= parent_col.freq)
-                    func_args[parent_name] = converter(self.get_value(parent_name, entity, opt=opt))
+                    converter = parent_col._frequency_converter(to_ = freq, from_ = parent_col.freq)
+                    func_args[parent_name] = converter(self.get_value(parent_name, entity, opt = opt))
             else:
-                func_args[parent_name] = self.get_value(parent_name, entity, opt=opt)
+                func_args[parent_name] = self.get_value(parent_name, entity, opt = opt)
 
         if col._needParam:
             func_args['_P'] = self._param
@@ -337,17 +337,17 @@ class TaxBenefitSystem(DataTable):
                     if cols is not '':
                         a = cols.rsplit(',')
                         col = (float(a[0]), float(a[1]), float(a[2]))
-                    else: col = (0,0,0)
+                    else: col = (0, 0, 0)
                     if typv is not '':
                         typv = int(typv)
                     else: typv = 0
-                    child = OutNode(code, desc, color = col, typevar = typv, shortname=short)
+                    child = OutNode(code, desc, color = col, typevar = typv, shortname = short)
                     output_tree.addChild(child)
                     self.generate_output_tree(element, child, entity)
         else:
             idx = entity
             inputs = self._inputs
-            enum = inputs.column_by_name.get('qui'+entity).enum
+            enum = inputs.column_by_name.get('qui' + entity).enum
             people = [x[1] for x in enum]
             if output_tree.code in self.column_by_name:
                 self.calculate_prestation(self.column_by_name[output_tree.code])
@@ -402,7 +402,7 @@ class TaxBenefitSystem(DataTable):
             for col in self.column_by_name.itervalues():
                 dflt = col._default
                 dtyp = col._dtype
-                dct[col.name] = np.ones(self._nrows, dtyp)*dflt
+                dct[col.name] = np.ones(self._nrows, dtyp) * dflt
             self.table = DataFrame(dct)
 
         if self.num_table == 3:
@@ -412,7 +412,7 @@ class TaxBenefitSystem(DataTable):
                 dflt = col._default
                 dtyp = col._dtype
                 size = self.index[col.entity]['nb']
-                temp_dct[col.entity][col.name] = np.ones(size, dtyp)*dflt
+                temp_dct[col.entity][col.name] = np.ones(size, dtyp) * dflt
             for entity in self.list_entities:
                 self.table3[entity] = DataFrame(temp_dct[entity])
 
