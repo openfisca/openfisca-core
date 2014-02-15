@@ -70,10 +70,11 @@ class Column(object):
     legislative_input = False
     name = None
     start = None
+    survey_only = False
     val_type = None
 
     def __init__(self, label = None, default = None, entity= None, start = None, end = None, val_type = None,
-            freq = None, legislative_input = True):
+            freq = None, legislative_input = True, survey_only  = False):
         if default is not None and default != self._default:
             self._default = default
         if end is not None:
@@ -86,6 +87,8 @@ class Column(object):
             self.legislative_input = True
         if start is not None:
             self.start = start
+        if survey_only:
+            self.survey_only = True
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
 
