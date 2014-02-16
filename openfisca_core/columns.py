@@ -294,7 +294,8 @@ class Prestation(Column):
     inputs = None
     json_type = 'Float'
 
-    def __init__(self, func, entity = None, label = None, start = None, end = None, val_type = None, freq = None, survey_only = False):
+    def __init__(self, func, entity = None, label = None, start = None, end = None, val_type = None, freq = None,
+            survey_only = False):
         super(Prestation, self).__init__(label = label, entity = entity, start = start, end = end, val_type = val_type,
             freq = freq, survey_only = survey_only)
 
