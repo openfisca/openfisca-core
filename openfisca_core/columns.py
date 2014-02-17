@@ -257,7 +257,7 @@ class EnumCol(IntCol):
                 ),
             conv.default(
                 self._default
-                if self._default is not None and self._default in enum._nums
+                if self._default is not None and self._default in enum._vars
                 else min(enum._vars.iterkeys())
                 ),
             )
