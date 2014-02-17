@@ -356,6 +356,8 @@ class TaxBenefitSystem(DataTable):
                 val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
             else:
                 raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
+            # TODO: Detect NaN instead of replacing them.
+            np.nan_to_num(val)
             output_tree.vals = val
 
     def get_primitives(self):
