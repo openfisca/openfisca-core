@@ -4,5 +4,6 @@
 build/
 dist/
 *.egg-info
+*.mo
 *.pyc
 *~
