@@ -51,13 +51,16 @@ class CompactNode(object):
         return 'CompactNode({})'.format(repr(self.__dict__))
 
 
+# Functions
+
+
 def compact_dated_node_json(dated_node_json, code = None):
     node_type = dated_node_json['@type']
     if node_type == u'Node':
         compact_node = CompactNode()
         if code is None:
             # Root node always contains a datesim.
-            compact_node.datesim = dated_node_json['datesim']
+            compact_node.datesim = datetime.date(*(int(fragment) for fragment in dated_node_json['datesim'].split('-')))
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
             compact_node_dict[key] = compact_dated_node_json(value, code = key)
@@ -84,8 +87,10 @@ def generate_dated_json_value(values_json, date_str):
 
 
 def generate_dated_legislation_json(node_json, date):
-    dated_node_json = generate_dated_node_json(node_json, date.isoformat())
-    dated_node_json['datesim'] = date
+    date_str = date.isoformat()
+    dated_node_json = generate_dated_node_json(node_json, date_str)
+    dated_node_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
+    dated_node_json['datesim'] = date_str
     return dated_node_json
 
 
@@ -141,6 +146,9 @@ def generate_dated_slice_json(slice_json, date_str):
     return dated_slice_json
 
 
+# Level-1 Converters
+
+
 def make_validate_values_json_dates(require_consecutive_dates = False):
     def validate_values_json_dates(values_json, state = None):
         if not values_json:
@@ -167,6 +175,224 @@ def make_validate_values_json_dates(require_consecutive_dates = False):
         return sorted_values_json, errors or None
 
     return validate_values_json_dates
+
+
+def validate_dated_legislation_json(dated_legislation_json, state = None):
+    if dated_legislation_json is None:
+        return None, None
+    if state is None:
+        state = conv.default_state
+
+    dated_legislation_json, error = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                datesim = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            default = conv.noop,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(dated_legislation_json, state = state)
+    if error is not None:
+        return dated_legislation_json, error
+
+    datesim = dated_legislation_json.pop('datesim')
+    dated_legislation_json, error = validate_dated_node_json(dated_legislation_json, state = state)
+    dated_legislation_json['datesim'] = datesim
+    return dated_legislation_json, error
+
+
+def validate_dated_node_json(node, state = None):
+    if node is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, node)
+
+    validated_node, error = conv.test_isinstance(dict)(node, state = state)
+    if error is not None:
+        conv.remove_ancestor_from_state(state, node)
+        return validated_node, error
+
+    validated_node, errors = conv.struct(
+        {
+            '@context': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.make_input_to_url(full = True),
+                conv.test_equals(u'http://openfisca.fr/contexts/dated-legislation.jsonld'),
+                ),
+            '@type': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_line,
+                conv.test_in((u'Node', u'Parameter', u'Scale')),
+                conv.not_none,
+                ),
+            'comment': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_text,
+                ),
+            'description': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.cleanup_line,
+                ),
+            },
+        constructor = collections.OrderedDict,
+        default = conv.noop,
+        drop_none_values = 'missing',
+        keep_value_order = True,
+        )(validated_node, state = state)
+    if errors is not None:
+        conv.remove_ancestor_from_state(state, node)
+        return validated_node, errors
+
+    validated_node.pop('@context', None)  # Remove optional @context everywhere. It will be added to root node later.
+    node_converters = {
+        '@type': conv.noop,
+        'comment': conv.noop,
+        'description': conv.noop,
+        }
+    node_type = validated_node['@type']
+    if node_type == u'Node':
+        node_converters.update(dict(
+            children = conv.pipe(
+                conv.test_isinstance(dict),
+                conv.uniform_mapping(
+                    conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        conv.not_none,
+                        ),
+                    conv.pipe(
+                        validate_dated_node_json,
+                        conv.not_none,
+                        ),
+                    ),
+                conv.empty_to_none,
+                conv.not_none,
+                ),
+            ))
+    elif node_type == u'Parameter':
+        node_converters.update(dict(
+            format = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in([
+                    'boolean',
+                    'float',
+                    'integer',
+                    'rate',
+                    ]),
+                ),
+            unit = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in(units),
+                ),
+            value = conv.pipe(
+                validate_dated_value_json,
+                conv.not_none,
+                ),
+            ))
+    else:
+        assert node_type == u'Scale'
+        node_converters.update(dict(
+            option = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in((
+                    'contrib',
+                    'main-d-oeuvre',
+                    'noncontrib',
+                    )),
+                ),
+            slices = conv.pipe(
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    validate_dated_slice_json,
+                    drop_none_items = True,
+                    ),
+                conv.empty_to_none,
+                conv.not_none,
+                ),
+            unit = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in((
+                    'currency',
+                    )),
+                ),
+            ))
+    validated_node, errors = conv.struct(
+        node_converters,
+        constructor = collections.OrderedDict,
+        drop_none_values = 'missing',
+        keep_value_order = True,
+        )(validated_node, state = state)
+
+    conv.remove_ancestor_from_state(state, node)
+    return validated_node, errors
+
+
+def validate_dated_slice_json(slice, state = None):
+    if slice is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, slice)
+    validated_slice, errors = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                base = validate_dated_value_json,
+                comment = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                rate = validate_dated_value_json,
+                threshold = validate_dated_value_json,
+                ),
+            constructor = collections.OrderedDict,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(slice, state = state)
+    conv.remove_ancestor_from_state(state, slice)
+    return validated_slice, errors
+
+
+def validate_dated_value_json(value, state = None):
+    if value is None:
+        return None, None
+    container = state.ancestors[-1]
+    value_converter = dict(
+        boolean = conv.condition(
+            conv.test_isinstance(int),
+            conv.test_in((0, 1)),
+            conv.test_isinstance(bool),
+            ),
+        float = conv.condition(
+            conv.test_isinstance(int),
+            conv.anything_to_float,
+            conv.test_isinstance(float),
+            ),
+        integer = conv.condition(
+            conv.test_isinstance(float),
+            conv.pipe(
+                conv.test(lambda number: round(number) == number),
+                conv.function(int),
+                ),
+            conv.test_isinstance(int),
+            ),
+        rate = conv.condition(
+            conv.test_isinstance(int),
+            conv.anything_to_float,
+            conv.test_isinstance(float),
+            ),
+        )[container.get('format') or 'float']  # Only parameters have a "format".
+    return value_converter(value, state = state or conv.default_state)
 
 
 def validate_node_json(node, state = None):
@@ -491,4 +717,17 @@ validate_values_holder_json = conv.pipe(
         ),
     make_validate_values_json_dates(require_consecutive_dates = False),
     conv.empty_to_none,
+    )
+
+
+# Level-2 Converters
+
+
+validate_any_legislation_json = conv.pipe(
+    conv.test_isinstance(dict),
+    conv.condition(
+        conv.test(lambda legislation_json: 'datesim' in legislation_json),
+        validate_dated_legislation_json,
+        validate_node_json,
+        ),
     )
