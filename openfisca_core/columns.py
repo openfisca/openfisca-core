@@ -72,9 +72,11 @@ class Column(object):
     start = None
     survey_only = False
     val_type = None
+    cerfa_field = None
+    info = None
 
     def __init__(self, label = None, default = None, entity = None, start = None, end = None, val_type = None,
-            freq = None, legislative_input = True, survey_only = False):
+            freq = None, legislative_input = True, survey_only = False, cerfa_field = None, info = None):
         if default is not None and default != self._default:
             self._default = default
         if end is not None:
@@ -91,6 +93,10 @@ class Column(object):
             self.survey_only = True
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
+        if cerfa_field is not None:
+            self.cerfa_field = cerfa_field
+        if info is not None:
+            self.info = info
 
     def to_json(self):
         self_json = collections.OrderedDict((
