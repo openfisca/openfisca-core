@@ -65,7 +65,7 @@ setup(
         'Biryani1[datetimeconv] >= 0.9dev',
         'numpy',
         'pandas >= 0.13',
-        'tables >= 2.4',
+        'tables',
         ],
     message_extractors = {
         'openfisca_core': [
