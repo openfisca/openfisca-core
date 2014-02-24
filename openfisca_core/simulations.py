@@ -132,7 +132,7 @@ class Simulation(object):
             legislation_tree = ElementTree.parse(self.param_file)
             legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
                 state = conv.default_state)
-            legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
+            legislation_xml_json, _ = legislationsxml.validate_legislation_xml_json(legislation_xml_json,
                 state = conv.default_state)
             _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
             dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.datesim)

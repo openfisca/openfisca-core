@@ -128,6 +128,10 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
                 child_json_by_code[child_code] = child_json
         elif key == 'code':
             pass
+        elif key == 'deb':
+            node_json['from'] = value
+        elif key == 'fin':
+            node_json['to'] = value
         elif key == 'NODE':
             for child_xml_json in value:
                 child_code, child_json = transform_node_xml_json_to_json(child_xml_json, root = False)
@@ -249,6 +253,46 @@ def transform_values_holder_xml_json_to_json(values_holder_xml_json):
         transform_value_xml_json_to_json(item, float)
         for item in values_holder_xml_json['VALUE']
         ]
+
+
+def validate_legislation_xml_json(legislation, state = None):
+    if legislation is None:
+        return None, None
+    if state is None:
+        state = conv.default_state
+
+    legislation, error = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                deb = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                fin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            default = conv.noop,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(legislation, state = state)
+    if error is not None:
+        return legislation, error
+
+    deb = legislation.pop('deb')
+    fin = legislation.pop('fin')
+    legislation, error = validate_node_xml_json(legislation, state = state)
+    legislation['deb'] = deb
+    legislation['fin'] = fin
+    return legislation, error
 
 
 def validate_node_xml_json(node, state = None):

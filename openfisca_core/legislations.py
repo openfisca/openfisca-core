@@ -79,22 +79,45 @@ def compact_dated_node_json(dated_node_json, code = None):
     return bareme
 
 
-def generate_dated_json_value(values_json, date_str):
+def generate_dated_json_value(values_json, date_str, from_str, to_str):
+    max_to_str = None
+    max_value = None
+    min_from_str = None
+    min_value = None
     for value_json in values_json:
-        if value_json['from'] <= date_str <= value_json['to']:
+        value_from_str = value_json['from']
+        value_to_str = value_json['to']
+        if value_from_str <= date_str <= value_to_str:
             return value_json['value']
+        if max_to_str is None or value_to_str > max_to_str:
+            max_to_str = value_to_str
+            max_value = value_json['value']
+        if min_from_str is None or value_from_str < min_from_str:
+            min_from_str = value_from_str
+            min_value = value_json['value']
+    if date_str > to_str:
+        # The requested date is after the end of the legislation. Use the value of the last period, when this
+        # period ends the same day or after the legislation.
+        if max_to_str is not None and max_to_str >= to_str:
+            return max_value
+    elif date_str < from_str:
+        # The requested date is before the beginning of the legislation. Use the value of the first period, when this
+        # period begins the same day or before the legislation.
+        if min_from_str is not None and min_from_str <= from_str:
+            return min_value
     return None
 
 
-def generate_dated_legislation_json(node_json, date):
+def generate_dated_legislation_json(legislation_json, date):
     date_str = date.isoformat()
-    dated_node_json = generate_dated_node_json(node_json, date_str)
-    dated_node_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
-    dated_node_json['datesim'] = date_str
-    return dated_node_json
+    dated_legislation_json = generate_dated_node_json(legislation_json, date_str, legislation_json['from'],
+        legislation_json['to'])
+    dated_legislation_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
+    dated_legislation_json['datesim'] = date_str
+    return dated_legislation_json
 
 
-def generate_dated_node_json(node_json, date_str):
+def generate_dated_node_json(node_json, date_str, from_str, to_str):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
@@ -102,7 +125,7 @@ def generate_dated_node_json(node_json, date_str):
             dated_children_json = type(value)(
                 (child_code, dated_child_json)
                 for child_code, dated_child_json in (
-                    (child_code, generate_dated_node_json(child_json, date_str))
+                    (child_code, generate_dated_node_json(child_json, date_str, from_str, to_str))
                     for child_code, child_json in value.iteritems()
                     )
                 if dated_child_json is not None
@@ -110,12 +133,14 @@ def generate_dated_node_json(node_json, date_str):
             if not dated_children_json:
                 return None
             dated_node_json[key] = dated_children_json
+        elif key in ('from', 'to'):
+            pass
         elif key == 'slices':
             # Occurs when @type == 'Scale'.
             dated_slices_json = [
                 dated_slice_json
                 for dated_slice_json in (
-                    generate_dated_slice_json(slice_json, date_str)
+                    generate_dated_slice_json(slice_json, date_str, from_str, to_str)
                     for slice_json in value
                     )
                 if dated_slice_json is not None
@@ -125,7 +150,7 @@ def generate_dated_node_json(node_json, date_str):
             dated_node_json[key] = dated_slices_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, date_str)
+            dated_value = generate_dated_json_value(value, date_str, from_str, to_str)
             if dated_value is None:
                 return None
             dated_node_json['value'] = dated_value
@@ -134,11 +159,11 @@ def generate_dated_node_json(node_json, date_str):
     return dated_node_json
 
 
-def generate_dated_slice_json(slice_json, date_str):
+def generate_dated_slice_json(slice_json, date_str, from_str, to_str):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
         if key in ('base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, date_str)
+            dated_value = generate_dated_json_value(value, date_str, from_str, to_str)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
         else:
@@ -393,6 +418,46 @@ def validate_dated_value_json(value, state = None):
             ),
         )[container.get('format') or 'float']  # Only parameters have a "format".
     return value_converter(value, state = state or conv.default_state)
+
+
+def validate_legislation_json(legislation, state = None):
+    if legislation is None:
+        return None, None
+    if state is None:
+        state = conv.default_state
+
+    legislation, error = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            {
+                'from': conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                'to': conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                },
+            constructor = collections.OrderedDict,
+            default = conv.noop,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(legislation, state = state)
+    if error is not None:
+        return legislation, error
+
+    saved_from = legislation.pop('from')
+    saved_to = legislation.pop('to')
+    legislation, error = validate_node_json(legislation, state = state)
+    legislation['from'] = saved_from
+    legislation['to'] = saved_to
+    return legislation, error
 
 
 def validate_node_json(node, state = None):
@@ -728,6 +793,6 @@ validate_any_legislation_json = conv.pipe(
     conv.condition(
         conv.test(lambda legislation_json: 'datesim' in legislation_json),
         validate_dated_legislation_json,
-        validate_node_json,
+        validate_legislation_json,
         ),
     )
