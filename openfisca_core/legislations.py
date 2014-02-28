@@ -371,13 +371,22 @@ def validate_dated_slice_json(slice, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                base = validate_dated_value_json,
+                base = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_greater_or_equal(0),
+                    ),
                 comment = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
-                rate = validate_dated_value_json,
-                threshold = validate_dated_value_json,
+                rate = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_between(0, 1),
+                    ),
+                threshold = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_greater_or_equal(0),
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
