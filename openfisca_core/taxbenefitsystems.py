@@ -345,15 +345,14 @@ class TaxBenefitSystem(DataTable):
                     output_tree.addChild(child)
                     self.generate_output_tree(element, child, entity)
         else:
-            idx = entity
             inputs = self._inputs
             enum = inputs.column_by_name.get('qui' + entity).enum
             people = [x[1] for x in enum]
             if output_tree.code in self.column_by_name:
                 self.calculate_prestation(self.column_by_name[output_tree.code])
-                val = self.get_value(output_tree.code, idx, opt = people, sum_ = True)
+                val = self.get_value(output_tree.code, entity, opt = people, sum_ = True)
             elif output_tree.code in inputs.column_by_name:
-                val = inputs.get_value(output_tree.code, idx, opt = people, sum_ = True)
+                val = inputs.get_value(output_tree.code, entity, opt = people, sum_ = True)
             else:
                 raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
             # TODO: Detect NaN instead of replacing them.
