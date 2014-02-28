@@ -62,9 +62,11 @@ class Column(object):
     _default = 0
     _dtype = float
     _frequency_converter = default_frequency_converter
+    cerfa_field = None
     end = None
     entity = None
     freq = None
+    info = None
     # json_type = None  # Defined in sub-classes
     label = None
     legislative_input = False
@@ -72,17 +74,19 @@ class Column(object):
     start = None
     survey_only = False
     val_type = None
-    cerfa_field = None
-    info = None
 
-    def __init__(self, label = None, default = None, entity = None, start = None, end = None, val_type = None,
-            freq = None, legislative_input = True, survey_only = False, cerfa_field = None, info = None):
+    def __init__(self, label = None, cerfa_field = None, default = None, end = None, entity = None, freq = None,
+            info = None, legislative_input = True, start = None, survey_only = False, val_type = None):
+        if cerfa_field is not None:
+            self.cerfa_field = cerfa_field
         if default is not None and default != self._default:
             self._default = default
         if end is not None:
             self.end = end
         self.entity = entity or 'ind'
         self.freq = freq or 'year'
+        if info is not None:
+            self.info = info
         if label is not None:
             self.label = label
         if legislative_input:
@@ -93,15 +97,13 @@ class Column(object):
             self.survey_only = True
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
-        if cerfa_field is not None:
-            self.cerfa_field = cerfa_field
-        if info is not None:
-            self.info = info
 
     def to_json(self):
         self_json = collections.OrderedDict((
             ('@type', self.json_type),
             ))
+        if self.cerfa_field is not None:
+            self_json['cerfa_field'] = self.cerfa_field
         if self._default is not None:
             self_json['default'] = self._default
         end = self.end
@@ -113,6 +115,8 @@ class Column(object):
             self_json['entity'] = self.entity
         if self.freq != 'year':
             self_json['freq'] = self.freq
+        if self.info is not None:
+            self_json['info'] = self.info
         if self.label is not None:
             self_json['label'] = self.label
         if self.name is not None:
@@ -300,10 +304,10 @@ class Prestation(Column):
     inputs = None
     json_type = 'Float'
 
-    def __init__(self, func, entity = None, label = None, start = None, end = None, val_type = None, freq = None,
-            survey_only = False):
-        super(Prestation, self).__init__(label = label, entity = entity, start = start, end = end, val_type = val_type,
-            freq = freq, survey_only = survey_only)
+    def __init__(self, func, entity = None, end = None, freq = None, label = None, start = None, survey_only = False,
+            val_type = None):
+        super(Prestation, self).__init__(entity = entity, end = end, freq = freq, label = label, start = start,
+            survey_only = survey_only, val_type = val_type)
 
         self._children = set()  # prestations immediately affected by current prestation
         self._freq = {}
