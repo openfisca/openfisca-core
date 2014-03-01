@@ -91,15 +91,15 @@ class Simulation(object):
 
         for key, val in kwargs.iteritems():
             if key == "year":
-                date_str = str(val)+ '-01-01'
-                self.datesim = dt.datetime.strptime(date_str ,"%Y-%m-%d").date()
+                date_str = str(val) + '-01-01'
+                self.datesim = dt.datetime.strptime(date_str , "%Y-%m-%d").date()
                 remaining.pop(key)
 
             elif key == "datesim":
                 if isinstance(val, dt.date):
                     self.datesim = val
                 else:
-                    self.datesim = dt.datetime.strptime(val ,"%Y-%m-%d").date()
+                    self.datesim = dt.datetime.strptime(val , "%Y-%m-%d").date()
                 remaining.pop(key)
 
             elif key in ['param_file', 'decomp_file']:
@@ -116,7 +116,7 @@ class Simulation(object):
 
         return remaining
 
-    def set_param(self, param=None, param_default=None):
+    def set_param(self, param = None, param_default = None):
         """
         Set the parameters of the simulation
 
@@ -149,8 +149,8 @@ class Simulation(object):
             self.P = param
 
     def _initialize_input_table(self):
-        self.input_table = DataTable(self.column_by_name, datesim=self.datesim, num_table = self.num_table,
-            subset=self.subset, print_missing=self.verbose)
+        self.input_table = DataTable(self.column_by_name, datesim = self.datesim, num_table = self.num_table,
+            subset = self.subset, print_missing = self.verbose)
 
     def disable_prestations(self, disabled_prestations = None):
         """
@@ -222,7 +222,7 @@ class Simulation(object):
 
         """
         # Clear outputs
-        #self.clear()
+        # self.clear()
 
         self._preproc()
         output_table, output_table_default = self.output_table, self.output_table_default
@@ -303,7 +303,7 @@ class Simulation(object):
         Creates a description dataframe of the ScenarioSimulation
         '''
         now = dt.datetime.now()
-        descr =  [u'OpenFisca',
+        descr = [u'OpenFisca',
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % str(self.datesim)]
         # TODO: add other parameters
@@ -328,9 +328,9 @@ class Simulation(object):
         sys.setrecursionlimit(32000)
         # Store the tables
         if self.verbose:
-            print 'Saving content for simulation under name %s' %name
+            print 'Saving content for simulation under name %s' % name
         ERF_HDF5_DATA_DIR = os.path.join(model.DATA_DIR, 'erf')
-        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),filename+'.h5'))
+        store = HDFStore(os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR), filename + '.h5'))
         if self.verbose:
             print 'Putting output_table in...'
         store.put(name + '_output_table', self.output_table.table)
@@ -392,10 +392,10 @@ class ScenarioSimulation(Simulation):
             if hasattr(self, key):
                 setattr(self, key, val)
 
-        self.scenario.nmen   = self.nmen
+        self.scenario.nmen = self.nmen
         self.scenario.maxrev = self.maxrev
-        self.scenario.x_axis  = self.x_axis
-        self.scenario.same_rev_couple  = self.same_rev_couple
+        self.scenario.x_axis = self.x_axis
+        self.scenario.same_rev_couple = self.same_rev_couple
 
         if self.decomp_file is None:
             self.decomp_file = os.path.join(model.DECOMP_DIR, model.DEFAULT_DECOMP_FILE)
@@ -410,7 +410,7 @@ class ScenarioSimulation(Simulation):
         """
         x_axis = model.x_axes.get(var)
         if x_axis is None:
-            raise Exception("No revenue for variable %s" %(var))
+            raise Exception("No revenue for variable %s" % (var))
         return x_axis.typ_tot_default
 
     def reset_scenario(self):
@@ -449,7 +449,7 @@ class ScenarioSimulation(Simulation):
         """
         self._initialize_input_table()
 
-    def compute(self, difference=False):
+    def compute(self, difference = False):
         """
         """
         self.input_table.load_data_from_test_case(self.scenario)
@@ -463,7 +463,7 @@ class ScenarioSimulation(Simulation):
             input_table_alter = DataTable(self.column_by_name, datesim = self.datesim)
             input_table_alter.load_data_from_test_case(self.alternative_scenario)
 
-        self._compute(decomp_file=self.decomp_file)
+        self._compute(decomp_file = self.decomp_file)
         if alter:
             output_table = TaxBenefitSystem(self.prestation_by_name, self.P, self.P_default, datesim = self.P.datesim,
                 num_table = self.num_table)
@@ -490,7 +490,7 @@ class ScenarioSimulation(Simulation):
         input_table : TODO: complete
         """
         P_default = self.P_default
-        P         = self.P
+        P = self.P
 
         self.output_table = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim)
         self.output_table.set_inputs(self.input_table)
@@ -512,7 +512,7 @@ class ScenarioSimulation(Simulation):
         default : boolean, default False
                   If True compute the default results
         difference :  boolean, default True
-                      If True compute the difference between actual and default results
+                  If True compute the difference between actual and default results
         index_by_code : boolean, default False
                   Index the row by the code instead of name of the different element
                   of decomp_file
@@ -579,7 +579,7 @@ class SurveySimulation(Simulation):
 
             self.survey_filename = filename
 
-        if self.num_table not in [1,3] :
+        if self.num_table not in [1, 3] :
             raise Exception("OpenFisca can be run with 1 or 3 tables only, "
                             " please, choose between both.")
 
@@ -601,8 +601,8 @@ class SurveySimulation(Simulation):
             self.initialize_input_table()
             self.input_table.load_data_from_survey(self.survey_filename,
                                                num_table = self.num_table,
-                                               subset=self.subset,
-                                               print_missing=self.verbose)
+                                               subset = self.subset,
+                                               print_missing = self.verbose)
 
         if isinstance(inflators, DataFrame):
             for varname in inflators['variable']:
@@ -643,15 +643,15 @@ class SurveySimulation(Simulation):
             self.initialize_input_table()
             self.input_table.load_data_from_survey(self.survey_filename,
                                                num_table = self.num_table,
-                                               subset=self.subset,
-                                               print_missing=self.verbose)
+                                               subset = self.subset,
+                                               print_missing = self.verbose)
 
         if self.chunks_count == 1:
             self._compute()
         # Note: subset has already be applied
         else:
             num = self.num_table
-            #TODO: replace 'idmen' by something not france-specific : the biggest entity
+            # TODO: replace 'idmen' by something not france-specific : the biggest entity
             if num == 1:
                 list_men = self.input_table.table['idmen'].unique()
             if num == 3:
@@ -661,7 +661,7 @@ class SurveySimulation(Simulation):
             chunk_length = int(len_tot / self.chunks_count) + 1
 
             for chunk_index in range(0, self.chunks_count):
-                start= chunk_index * chunk_length
+                start = chunk_index * chunk_length
                 end = (chunk_index + 1) * chunk_length
 
                 subsimu = SurveySimulation()
@@ -670,7 +670,7 @@ class SurveySimulation(Simulation):
                 subsimu.chunks_count = 1
                 subsimu.compute()
                 simu_chunk = subsimu
-                print("compute chunk %d / %d" %(chunk_index + 1, self.chunks_count))
+                print("compute chunk %d / %d" % (chunk_index + 1, self.chunks_count))
 
                 if self.output_table is not None:
                     self.output_table = self.output_table + simu_chunk.output_table
@@ -723,7 +723,7 @@ class SurveySimulation(Simulation):
             people = None
             if self.num_table == 1:
                 try:
-                    enum = inputs.column_by_name.get('qui'+entity).enum
+                    enum = inputs.column_by_name.get('qui' + entity).enum
                     people = [x[1] for x in enum]
                 except:
                     people = None
@@ -732,7 +732,7 @@ class SurveySimulation(Simulation):
             if entity == "ind":
                 entity_id = "noi"
             else:
-                entity_id = "id"+entity
+                entity_id = "id" + entity
 
             input_variables = set([WEIGHT, entity_id])
             if all_input_vars:
@@ -750,9 +750,9 @@ class SurveySimulation(Simulation):
                     condition = (col.entity != entity) or (force_sum == True)
                     type_col_condition = not(isinstance(col, EnumCol) or isinstance(col, EnumPresta))
                     if condition and type_col_condition:
-                        val = tax_benefit_system.get_value(varname, entity=idx, opt = people, sum_ = True)
+                        val = tax_benefit_system.get_value(varname, entity = idx, opt = people, sum_ = True)
                     else:
-                        val = tax_benefit_system.get_value(varname, entity=idx)
+                        val = tax_benefit_system.get_value(varname, entity = idx)
 
                 elif varname in inputs.column_by_name:
                     val = inputs.get_value(varname, idx)
@@ -768,7 +768,7 @@ class SurveySimulation(Simulation):
 
         return out_tables[0], out_tables[1]
 
-    def get_variables_dataframe(self, variables=None, entity="ind"):
+    def get_variables_dataframe(self, variables = None, entity = "ind"):
         """
         Get variables
         """
