@@ -45,7 +45,7 @@ __all__ = ['ScenarioSimulation', 'Simulation', 'SurveySimulation']
 
 
 check_consistency = None  # Set to a function by country-specific package
-
+preprocess_legislation_parameters = None  # Set to a function by country-specific package
 
 class Simulation(object):
     """
@@ -179,8 +179,10 @@ class Simulation(object):
                                  DataTable of the output variable of the socio-fiscal model
         """
         P, P_default = self.P, self.P_default
-        input_table = self.input_table
+        if preprocess_legislation_parameters is not None:
+            preprocess_legislation_parameters([P, P_default])
 
+        input_table = self.input_table
         output_table = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim,
             num_table = self.num_table)
         output_table.set_inputs(input_table)
