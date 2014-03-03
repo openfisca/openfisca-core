@@ -455,7 +455,7 @@ class ScenarioSimulation(Simulation):
         """
         """
         self.input_table.load_data_from_test_case(self.scenario)
-        self._preproc()
+#        self._preproc()
 
         alter = self.alternative_scenario is not None
         if self.reforme and alter:
