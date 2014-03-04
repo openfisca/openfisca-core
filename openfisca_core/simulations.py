@@ -148,6 +148,10 @@ class Simulation(object):
         else:
             self.P = param
 
+        if preprocess_legislation_parameters is not None:
+            preprocess_legislation_parameters([self.P, self.P_default])
+
+
     def _initialize_input_table(self):
         self.input_table = DataTable(self.column_by_name, datesim = self.datesim, num_table = self.num_table,
             subset = self.subset, print_missing = self.verbose)
@@ -179,8 +183,6 @@ class Simulation(object):
                                  DataTable of the output variable of the socio-fiscal model
         """
         P, P_default = self.P, self.P_default
-        if preprocess_legislation_parameters is not None:
-            preprocess_legislation_parameters([P, P_default])
 
         input_table = self.input_table
         output_table = TaxBenefitSystem(self.prestation_by_name, P, P_default, datesim = P.datesim,
