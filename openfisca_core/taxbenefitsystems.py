@@ -24,399 +24,319 @@
 
 
 import collections
-from xml.dom import minidom
+import xml.etree.ElementTree
+import weakref
+#from xml.dom import minidom
 
 import numpy as np
 from pandas import DataFrame
 
-from . import model
-from .datatables import DataTable
+#from . import conv, decompositions, legislations, legislationsxml
+from . import conv, legislations, legislationsxml
+#from .datatables import DataTable
 
 
-__all__ = ['TaxBenefitSystem']
+__all__ = ['AbstractTaxBenefitSystem']
 
 
-preproc_inputs = None  # Set to a function by some country-specific extensions like OpenFisca-France
+class AbstractTaxBenefitSystem(object):
+    AGGREGATES_DEFAULT_VARS = None
+    check_consistency = None
+    column_by_name = None
+    columns_name_tree_by_entity = None
+    compact_legislation_by_date_str_cache = None
+    CURRENCY = None
+    DATA_DIR = None
+    DATA_SOURCES_DIR = None
+    DECOMP_DIR = None
+    DEFAULT_DECOMP_FILE = None
+    entities = None  # class attribute
+    ENTITIES_INDEX = None  # class attribute
+    FILTERING_VARS = None
+    json_to_attributes = staticmethod(conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct({}),
+        ))
+    legislation_json = None
+    PARAM_FILE = None  # class attribute
+    prestation_by_name = None
+    REFORMS_DIR = None
+    REV_TYP = None
+    REVENUES_CATEGORIES = None
+    Scenario = None
+    WEIGHT = None
+    WEIGHT_INI = None
+    x_axes = None
+
+    def __init__(self):
+        # Merge prestation_by_name into column_by_name, because it is no more used.
+        # TODO: To delete once prestation_by_name is no more used.
+        self.column_by_name.update(self.prestation_by_name)
+        self.prestation_by_name = None
+
+        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
+
+        legislation_tree = xml.etree.ElementTree.parse(self.PARAM_FILE)
+        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot())
+        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json)
+        _, self.legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+
+    def get_compact_legislation(self, date):
+        date_str = date.isoformat()
+        compact_legislation = self.compact_legislation_by_date_str_cache.get(date_str)
+        if compact_legislation is None:
+            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, date)
+            compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+            if self.preprocess_legislation_parameters is not None:
+                self.preprocess_legislation_parameters(compact_legislation)
+            self.compact_legislation_by_date_str_cache[date_str] = compact_legislation
+        return compact_legislation
+
+    @classmethod
+    def json_to_instance(cls, value, state = None):
+        attributes, error = conv.pipe(
+            cls.json_to_attributes,
+            conv.default({}),
+            )(value, state = state or conv.default_state)
+        if error is not None:
+            return attributes, error
+        return cls(**attributes), None
 
 
-class OutNode(object):
-    _vals = None
-    children = None
-    code = None
-    color = None
-    desc = None
-    parent = None
-    shortname = None
-    typevar = None
-    visible = 0
+#class TaxBenefitSystem(DataTable):
+#    def __init__(self, column_by_name, param, defaultParam = None, datesim = None, num_table = 1):
+#        super(TaxBenefitSystem, self).__init__(column_by_name, datesim = datesim, num_table = num_table)
+#        self._primitives = set()
+#        self._param = param
+#        self._default_param = defaultParam
+#        self._inputs = None
+#        self.index = None
+#        if datesim is not None:
+#            self.datesim = datesim
 
-    def __init__(self, code, desc, shortname = '', vals = 0, color = (0, 0, 0), typevar = 0, parent = None):
-        self.parent = parent
-        self.children = []
-        self.code = code
-        self.desc = desc
-        self.color = color
-        self.typevar = typevar
-        self._vals = vals
-        self.shortname = shortname or code
+#        self.reset()
+#        self.build()
 
-    def __getitem__(self, key):
-        if self.code == key:
-            return self
-        for child in self.children:
-            val = child[key]
-            if val is not None:
-                return val
+#    def __add__(self, other):
+#        """
+#        Addition of two TaxBenefitSystem.
+#        Add their output_table, iff it's the same simulation and only the survey differ
+#        """
+#        if not isinstance(other, TaxBenefitSystem):
+#            raise Exception("Can only add a TaxBenefitSystem to a SystemSF")
 
-    def __iter__(self):
-        for child in self.children:
-            for descendant in child:
-                yield descendant
-        yield self
+#        assert self.num_table == other.num_table
 
-    def __repr__(self):
-        return ''.join(self.iter_repr_fragments())
+#        if self.num_table == 1:
+#            self.table = self.table.append(other.table, verify_integrity = True)
 
-    def addChild(self, child):
-        self.children.append(child)
-        if child.color == (0, 0, 0):
-            child.color = self.color
-        child.setParent(self)
+#        if self.num_table == 3:
+#            assert(self.list_entities == other.list_entities)
+#            for ent in self.list_entities:
+#                self.table3[ent] = self.table3[ent].append(other.table3[ent])
+#        return self
 
-    def child(self, row):
-        return(self.children[row])
+#    def build(self):
+#        # Build the closest dependencies
+#        for col in self.column_by_name.itervalues():
+#            # Disable column if necessary
+#            if col.start is not None and col.start > self.datesim or col.end is not None and col.end < self.datesim:
+#                col.disabled = True
+#            elif col.disabled:
+#                del col.disabled
 
-    def childCount(self):
-        return len(self.children)
+#            for input_varname in col.inputs:
+#                input_col = self.column_by_name.get(input_varname)
+#                if input_col is None:
+#                    self._primitives.add(input_varname)
+#                else:
+#                    input_col.add_child(col)
 
-    def difference(self, other):
-        self.vals -= other.vals
-        for child in self.children:
-            child.difference(other[child.code])
+#    def calculate(self):
+#        if self.survey_data is not None or self.decomp_file is None:
+#            return self.calculate_survey()
+#        elif self.test_case is not None:
+#            return self.calculate_test_case()
+#        else:
+#            raise Exception("survey_data or test_case attribute should not be None")
 
-    def hideAll(self):
-        if self.code == 'revdisp':
-            self.visible = 1
-        else:
-            self.visible = 0
-        for child in self.children:
-            child.hideAll()
+#    def calculate_prestation(self, col):
+#        if col.calculated or col.disabled:
+#            return
 
-    def iter_repr_fragments(self, tab_level = 0):
-        yield '  ' * tab_level
-        yield self.code
-        yield ': '
-        yield str(self.vals)
-        yield '\n'
-        child_tab_level = tab_level + 1
-        for child in self.children:
-            for fragment in child.iter_repr_fragments(child_tab_level):
-                yield fragment
+#        columns_name = set(self._inputs.column_by_name)
+#        assert self._primitives <= columns_name, 'Calculating %s.\n %s are not set, use set_inputs before calling calculate.' \
+#            '\n Primitives needed: %s,\n Inputs: %s' % (col.name, self._primitives - columns_name, self._primitives, columns_name)
 
-    def partiallychecked(self):
-        return self.children and all(
-            child.visible or child.partiallychecked()
-            for child in self.children
-            )
+#        entity = col.entity
+#        assert entity is not None
+#        required = set(col.inputs)
 
-    def row(self):
-        if self.parent is not None:
-            return self.parent.children.index(self)
+#        func_args = {}
+#        for var in required:
+#            if var in self._inputs.column_by_name:
+#                if var in col._option:
+#                    func_args[var] = self._inputs.get_value(var, entity, col._option[var])
+#                else:
+#                    func_args[var] = self._inputs.get_value(var, entity)
 
-    def setHidden(self, changeParent = True):
-        # les siblings doivent être dans le même
-        if self.partiallychecked():
-            self.visible = 0
-            return
-        for sibling in self.parent.children:
-            sibling.visible = 0
-            for child in sibling.children:
-                child.setHidden(False)
-        if changeParent:
-            self.parent.visible = 1
+#        WEIGHT = self.WEIGHT
+#        for parent_col in col._parents:
+#            parent_name = parent_col.name
+#            assert parent_name not in func_args or parent_name == WEIGHT, \
+#                '%s provided twice: %s was found in primitives and in parents' % (col.name, col.name)
+#            self.calculate_prestation(parent_col)
+#            opt, freq = None, None
 
-    def setLeavesVisible(self):
-        for child in self.children:
-            child.setLeavesVisible()
-        if (self.children and (self.code != 'revdisp')) or (self.code == 'nivvie'):
-            self.visible = 0
-        else:
-            self.visible = 1
+#            if parent_name in col._option:
+#                opt = col._option[parent_name]
 
-    def setParent(self, parent):
-        self.parent = parent
+#            if parent_name in col._freq:
+#                freq = col._freq[parent_name]
+#                if freq[-1:] == "s":  # to return dict with all months or trims
+#                    freqs = freq
+#                    func_args[parent_name] = self.get_value(parent_name, entity, opt = opt, freqs = freqs)
+#                else:
+#                    converter = parent_col._frequency_converter(to_ = freq, from_ = parent_col.freq)
+#                    func_args[parent_name] = converter(self.get_value(parent_name, entity, opt = opt))
+#            else:
+#                func_args[parent_name] = self.get_value(parent_name, entity, opt = opt)
 
-    def setVisible(self, changeSelf = True, changeParent = True):
-        if changeSelf:
-            self.visible = 1
-        if self.parent is not None:
-            for sibling in self.parent.children:
-                if not (sibling.partiallychecked() or sibling.visible == 1):
-                    sibling.visible = 1
-            if changeParent:
-                self.parent.setVisible(changeSelf = False)
+#        if col._needParam:
+#            func_args['_P'] = self._param
+#            required.add('_P')
 
-    def to_json(self):
-        json = collections.OrderedDict((
-            ('name', self.shortname),
-            ('description', self.desc),
-            ('type', self.typevar),
-            ('values', self.vals.tolist()),
-            ('color', [int(color_item) for color_item in self.color]),
-            ))
-        if self.children:
-            json['children'] = collections.OrderedDict(
-                (child.code, child.to_json())
-                for child in self.children
-                )
-        return json
+#        if col._needDefaultParam:
+#            func_args['_defaultP'] = self._default_param
+#            required.add('_defaultP')
 
-    def vals_get(self):
-        return self._vals
+#        provided = set(func_args.keys())
+#        assert provided == required, '%s missing: %s needs %s but only %s were provided' % (
+#            str(list(required - provided)), self._name, str(list(required)), str(list(provided)))
 
-    def vals_set(self, vals):
-        dif = vals - self._vals
-        self._vals = vals
-        if self.parent:
-            self.parent.vals = self.parent.vals + dif
+#        try:
+#            self.set_value(col.name, col._func(**func_args), entity)
+#        except:
+#            print col.name
+#            raise
 
-    vals = property(vals_get, vals_set)
+#        col.calculated = True
 
+#    def calculate_survey(self):
+#        for col in self.column_by_name.itervalues():
+#            try:
+#                self.calculate_prestation(col)
+#            except Exception as e:
+#                print e
+#                print col.name
+#        return None
 
-class TaxBenefitSystem(DataTable):
-    def __init__(self, column_by_name, param, defaultParam = None, datesim = None, num_table = 1):
-        super(TaxBenefitSystem, self).__init__(column_by_name, datesim = datesim, num_table = num_table)
-        self._primitives = set()
-        self._param = param
-        self._default_param = defaultParam
-        self._inputs = None
-        self.index = None
-        if datesim is not None:
-            self.datesim = datesim
+#    def calculate_test_case(self):
+#        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
 
-        self.reset()
-        self.build()
+#        decomp_doc = minidom.parse(self.decomp_file)
+#        output_tree = decompositions.OutNode('root', 'root')
+#        self.generate_output_tree(decomp_doc, output_tree)
+#        return output_tree
 
-    def __add__(self, other):
-        """
-        Addition of two TaxBenefitSystem.
-        Add their output_table, iff it's the same simulation and only the survey differ
-        """
-        if not isinstance(other, TaxBenefitSystem):
-            raise Exception("Can only add a TaxBenefitSystem to a SystemSF")
+#    def disable(self, disabled_prestations):
+#        """Set some column as calculated so they are not evaluated and keep their default value."""
+#        if disabled_prestations is not None:
+#            for colname in disabled_prestations:
+#                self.column_by_name[colname].calculated = True
 
-        assert self.num_table == other.num_table
+#    def generate_output_tree(self, doc, output_tree, entity = 'men'):
+#        if doc.childNodes:
+#            for element in doc.childNodes:
+#                if element.nodeType is not element.TEXT_NODE:
+#                    code = element.getAttribute('code')
+#                    desc = element.getAttribute('desc')
+#                    cols = element.getAttribute('color')
+#                    short = element.getAttribute('shortname')
+#                    typv = element.getAttribute('typevar')
+#                    if cols is not '':
+#                        a = cols.rsplit(',')
+#                        col = (float(a[0]), float(a[1]), float(a[2]))
+#                    else: col = (0, 0, 0)
+#                    if typv is not '':
+#                        typv = int(typv)
+#                    else: typv = 0
+#                    child = decompositions.OutNode(code, desc, color = col, typevar = typv, shortname = short)
+#                    output_tree.addChild(child)
+#                    self.generate_output_tree(element, child, entity)
+#        else:
+#            inputs = self._inputs
+#            enum = inputs.column_by_name.get('qui' + entity).enum
+#            people = [x[1] for x in enum]
+#            if output_tree.code in self.column_by_name:
+#                self.calculate_prestation(self.column_by_name[output_tree.code])
+#                val = self.get_value(output_tree.code, entity, opt = people, sum_ = True)
+#            elif output_tree.code in inputs.column_by_name:
+#                val = inputs.get_value(output_tree.code, entity, opt = people, sum_ = True)
+#            else:
+#                raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
+#            # TODO: Detect NaN instead of replacing them.
+#            np.nan_to_num(val)
+#            output_tree.vals = val
 
-        if self.num_table == 1:
-            self.table = self.table.append(other.table, verify_integrity = True)
+#    def get_primitives(self):
+#        """
+#        Return socio-fiscal system primitives, ie variable needed as inputs
+#        """
+#        return self._primitives
 
-        if self.num_table == 3:
-            assert(self.list_entities == other.list_entities)
-            for ent in self.list_entities:
-                self.table3[ent] = self.table3[ent].append(other.table3[ent])
-        return self
+#    def reset(self):
+#        """
+#        Sets all columns as not calculated
+#        """
+#        for col in self.column_by_name.itervalues():
+#            if col.calculated:
+#                del col.calculated
 
-    def build(self):
-        # Build the closest dependencies
-        for col in self.column_by_name.itervalues():
-            # Disable column if necessary
-            if col.start is not None and col.start > self.datesim or col.end is not None and col.end < self.datesim:
-                col.disabled = True
-            elif col.disabled:
-                del col.disabled
+#    def set_inputs(self, inputs):
+#        """
+#        Set the input DataTable
 
-            for input_varname in col.inputs:
-                input_col = self.column_by_name.get(input_varname)
-                if input_col is None:
-                    self._primitives.add(input_varname)
-                else:
-                    input_col.add_child(col)
+#        Parameters
+#        ----------
+#        inputs : DataTable, required
+#                 The input variable datatable
+#        """
+#        if not isinstance(inputs, DataTable):
+#            raise TypeError('inputs must be a DataTable')
+#        # check if all primitives are provided by the inputs
+##        for prim in self._primitives:
+##            if not prim in inputs.column_by_name:
+##                raise Exception('%s is a required input and was not found in inputs' % prim)
 
-    def calculate(self):
-        if self.survey_data is not None or self.decomp_file is None:
-            return self.calculate_survey()
-        elif self.test_case is not None:
-            return self.calculate_test_case()
-        else:
-            raise Exception("survey_data or test_case attribute should not be None")
+#        # store inputs and indexes and nrows
+#        self._inputs = inputs
+#        self.index = inputs.index
+#        self._nrows = inputs._nrows
 
-    def calculate_prestation(self, col):
-        if col.calculated or col.disabled:
-            return
+#        self.survey_data = self._inputs.survey_data
+#        self.test_case = self._inputs.test_case
+#        # initialize the pandas DataFrame to store data
 
-        columns_name = set(self._inputs.column_by_name)
-        assert self._primitives <= columns_name, 'Calculating %s.\n %s are not set, use set_inputs before calling calculate.' \
-            '\n Primitives needed: %s,\n Inputs: %s' % (col.name, self._primitives - columns_name, self._primitives, columns_name)
+#        if self.num_table == 1:
+#            dct = {}
+#            for col in self.column_by_name.itervalues():
+#                dflt = col._default
+#                dtyp = col._dtype
+#                dct[col.name] = np.ones(self._nrows, dtyp) * dflt
+#            self.table = DataFrame(dct)
 
-        entity = col.entity
-        assert entity is not None
-        required = set(col.inputs)
+#        if self.num_table == 3:
+#            self.table3 = {}
+#            temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {}}
+#            for col in self.column_by_name.itervalues():
+#                dflt = col._default
+#                dtyp = col._dtype
+#                size = self.index[col.entity]['nb']
+#                temp_dct[col.entity][col.name] = np.ones(size, dtyp) * dflt
+#            for entity in self.list_entities:
+#                self.table3[entity] = DataFrame(temp_dct[entity])
 
-        func_args = {}
-        for var in required:
-            if var in self._inputs.column_by_name:
-                if var in col._option:
-                    func_args[var] = self._inputs.get_value(var, entity, col._option[var])
-                else:
-                    func_args[var] = self._inputs.get_value(var, entity)
-
-        WEIGHT = model.WEIGHT
-        for parent_col in col._parents:
-            parent_name = parent_col.name
-            assert parent_name not in func_args or parent_name == WEIGHT, \
-                '%s provided twice: %s was found in primitives and in parents' % (col.name, col.name)
-            self.calculate_prestation(parent_col)
-            opt, freq = None, None
-
-            if parent_name in col._option:
-                opt = col._option[parent_name]
-
-            if parent_name in col._freq:
-                freq = col._freq[parent_name]
-                if freq[-1:] == "s":  # to return dict with all months or trims
-                    freqs = freq
-                    func_args[parent_name] = self.get_value(parent_name, entity, opt = opt, freqs = freqs)
-                else:
-                    converter = parent_col._frequency_converter(to_ = freq, from_ = parent_col.freq)
-                    func_args[parent_name] = converter(self.get_value(parent_name, entity, opt = opt))
-            else:
-                func_args[parent_name] = self.get_value(parent_name, entity, opt = opt)
-
-        if col._needParam:
-            func_args['_P'] = self._param
-            required.add('_P')
-
-        if col._needDefaultParam:
-            func_args['_defaultP'] = self._default_param
-            required.add('_defaultP')
-
-        provided = set(func_args.keys())
-        assert provided == required, '%s missing: %s needs %s but only %s were provided' % (
-            str(list(required - provided)), self._name, str(list(required)), str(list(provided)))
-
-        try:
-            self.set_value(col.name, col._func(**func_args), entity)
-        except:
-            print col.name
-            raise
-
-        col.calculated = True
-
-    def calculate_survey(self):
-        for col in self.column_by_name.itervalues():
-            try:
-                self.calculate_prestation(col)
-            except Exception as e:
-                print e
-                print col.name
-        return None
-
-    def calculate_test_case(self):
-        assert self.decomp_file is not None, "A decomposition XML file should be provided as attribute decomp_file"
-
-        decomp_doc = minidom.parse(self.decomp_file)
-        output_tree = OutNode('root', 'root')
-        self.generate_output_tree(decomp_doc, output_tree)
-        return output_tree
-
-    def disable(self, disabled_prestations):
-        """Set some column as calculated so they are not evaluated and keep their default value."""
-        if disabled_prestations is not None:
-            for colname in disabled_prestations:
-                self.column_by_name[colname].calculated = True
-
-    def generate_output_tree(self, doc, output_tree, entity = 'men'):
-        if doc.childNodes:
-            for element in doc.childNodes:
-                if element.nodeType is not element.TEXT_NODE:
-                    code = element.getAttribute('code')
-                    desc = element.getAttribute('desc')
-                    cols = element.getAttribute('color')
-                    short = element.getAttribute('shortname')
-                    typv = element.getAttribute('typevar')
-                    if cols is not '':
-                        a = cols.rsplit(',')
-                        col = (float(a[0]), float(a[1]), float(a[2]))
-                    else: col = (0, 0, 0)
-                    if typv is not '':
-                        typv = int(typv)
-                    else: typv = 0
-                    child = OutNode(code, desc, color = col, typevar = typv, shortname = short)
-                    output_tree.addChild(child)
-                    self.generate_output_tree(element, child, entity)
-        else:
-            inputs = self._inputs
-            enum = inputs.column_by_name.get('qui' + entity).enum
-            people = [x[1] for x in enum]
-            if output_tree.code in self.column_by_name:
-                self.calculate_prestation(self.column_by_name[output_tree.code])
-                val = self.get_value(output_tree.code, entity, opt = people, sum_ = True)
-            elif output_tree.code in inputs.column_by_name:
-                val = inputs.get_value(output_tree.code, entity, opt = people, sum_ = True)
-            else:
-                raise Exception('%s was not found in tax-benefit system nor in inputs' % output_tree.code)
-            # TODO: Detect NaN instead of replacing them.
-            np.nan_to_num(val)
-            output_tree.vals = val
-
-    def get_primitives(self):
-        """
-        Return socio-fiscal system primitives, ie variable needed as inputs
-        """
-        return self._primitives
-
-    def reset(self):
-        """
-        Sets all columns as not calculated
-        """
-        for col in self.column_by_name.itervalues():
-            if col.calculated:
-                del col.calculated
-
-    def set_inputs(self, inputs):
-        """
-        Set the input DataTable
-
-        Parameters
-        ----------
-        inputs : DataTable, required
-                 The input variable datatable
-        """
-        if not isinstance(inputs, DataTable):
-            raise TypeError('inputs must be a DataTable')
-        # check if all primitives are provided by the inputs
-#        for prim in self._primitives:
-#            if not prim in inputs.column_by_name:
-#                raise Exception('%s is a required input and was not found in inputs' % prim)
-
-        # store inputs and indexes and nrows
-        self._inputs = inputs
-        self.index = inputs.index
-        self._nrows = inputs._nrows
-
-        self.survey_data = self._inputs.survey_data
-        self.test_case = self._inputs.test_case
-        # initialize the pandas DataFrame to store data
-
-        if self.num_table == 1:
-            dct = {}
-            for col in self.column_by_name.itervalues():
-                dflt = col._default
-                dtyp = col._dtype
-                dct[col.name] = np.ones(self._nrows, dtyp) * dflt
-            self.table = DataFrame(dct)
-
-        if self.num_table == 3:
-            self.table3 = {}
-            temp_dct = {'ind' : {}, 'foy' : {}, 'men' : {}, 'fam' : {}}
-            for col in self.column_by_name.itervalues():
-                dflt = col._default
-                dtyp = col._dtype
-                size = self.index[col.entity]['nb']
-                temp_dct[col.entity][col.name] = np.ones(size, dtyp) * dflt
-            for entity in self.list_entities:
-                self.table3[entity] = DataFrame(temp_dct[entity])
-
-        # Preprocess the input data according to country specification
-        if preproc_inputs is not None:
-            preproc_inputs(self._inputs)
+#        # Preprocess the input data according to country specification
+#        if self.preproc_inputs is not None:
+#            self.preproc_inputs(self._inputs)

@@ -31,8 +31,6 @@ import logging
 import numpy as np
 from pandas import DataFrame, HDFStore, read_csv, Series
 
-from . import model
-
 
 log = logging.getLogger(__name__)
 

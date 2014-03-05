@@ -29,7 +29,13 @@
 from biryani1.baseconv import *
 from biryani1.datetimeconv import *
 from biryani1.jsonconv import *
-from biryani1.states import default_state, State
+from biryani1.states import State
+
+
+class State(State):
+    TaxBenefitSystem = None
+
+default_state = State()
 
 
 def add_ancestor_to_state(state, ancestor):

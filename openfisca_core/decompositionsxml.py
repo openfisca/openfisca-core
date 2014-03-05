@@ -1,0 +1,173 @@
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+"""Handle decompositions in XML format (and convert then to JSON)."""
+
+
+import collections
+
+from . import conv
+
+
+N_ = lambda message: message
+
+
+def transform_node_xml_json_to_json(node_xml_json, root = True):
+    comments = []
+    node_json = collections.OrderedDict()
+    if root:
+        node_json['@context'] = u'http://openfisca.fr/contexts/decomposition.jsonld'
+    node_json['@type'] = 'Node'
+    children_json = []
+    for key, value in node_xml_json.iteritems():
+        if key == 'color':
+            node_json['color'] = [
+                int(color)
+                for color in value.split(u',')
+                ]
+        elif key == 'desc':
+            node_json['name'] = value
+        elif key == 'shortname':
+            node_json['short_name'] = value
+        elif key == 'NODE':
+            for child_xml_json in value:
+                children_json.append(transform_node_xml_json_to_json(child_xml_json, root = False))
+        elif key in ('tail', 'text'):
+            comments.append(value)
+        elif key == 'typevar':
+            node_json['type'] = value
+        else:
+            node_json[key] = value
+    if children_json:
+        node_json['children'] = children_json
+    if comments:
+        node_json['comment'] = u'\n\n'.join(comments)
+    return node_json
+
+
+def translate_xml_element_to_json_item(xml_element):
+    json_element = collections.OrderedDict()
+    text = xml_element.text
+    if text is not None:
+        text = text.strip().strip('#').strip() or None
+        if text is not None:
+            json_element['text'] = text
+    json_element.update(xml_element.attrib)
+    for xml_child in xml_element:
+        json_child_key, json_child = translate_xml_element_to_json_item(xml_child)
+        json_element.setdefault(json_child_key, []).append(json_child)
+    tail = xml_element.tail
+    if tail is not None:
+        tail = tail.strip().strip('#').strip() or None
+        if tail is not None:
+            json_element['tail'] = tail
+    return xml_element.tag, json_element
+
+
+def make_validate_node_xml_json(tax_benefit_system):
+    def validate_node_xml_json(node, state = None):
+        validated_node, errors = conv.pipe(
+            conv.test_isinstance(dict),
+            conv.struct(
+                dict(
+                    code = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        conv.not_none,
+                        ),
+                    color = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.function(lambda colors: colors.split(u',')),
+                        conv.uniform_sequence(
+                            conv.pipe(
+                                conv.input_to_int,
+                                conv.test_between(0, 255),
+                                conv.not_none,
+                                ),
+                            ),
+                        conv.test(lambda colors: len(colors) == 3, error = N_(u'Wrong number of colors in triplet.')),
+                        conv.function(lambda colors: u','.join(unicode(color) for color in colors)),
+                        ),
+                    desc = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        conv.not_none,
+                        ),
+                    NODE = conv.pipe(
+                        conv.test_isinstance(list),
+                        conv.uniform_sequence(
+                            validate_node_xml_json,
+                            drop_none_items = True,
+                            ),
+                        conv.empty_to_none,
+                        ),
+                    shortname = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        conv.not_none,
+                        ),
+                    tail = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_text,
+                        ),
+                    text = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_text,
+                        ),
+                    typevar = conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.input_to_int,
+                        conv.test_equals(2),
+                        ),
+                    ),
+                constructor = collections.OrderedDict,
+                drop_none_values = 'missing',
+                keep_value_order = True,
+                ),
+            )(node, state = state or conv.default_state)
+        if errors is not None:
+            return validated_node, errors
+
+        if not validated_node.get('NODE'):
+            validated_node, errors = conv.struct(
+                dict(
+                    code = conv.test_in(tax_benefit_system.column_by_name),
+                    ),
+                default = conv.noop,
+                )(validated_node, state = state)
+        return validated_node, errors
+
+    return validate_node_xml_json
+
+
+def xml_decomposition_to_json(xml_element, state = None):
+    if xml_element is None:
+        return None, None
+    json_key, json_element = translate_xml_element_to_json_item(xml_element)
+    if json_key != 'NODE':
+        if state is None:
+            state = conv.default_state
+        return json_element, state._(u'Invalid root element in XML: "{}" instead of "NODE"').format(xml_element.tag)
+    return json_element, None
