@@ -24,18 +24,13 @@
 
 
 import collections
-
 import xml.etree.ElementTree
 import weakref
-#from xml.dom import minidom
-import logging
 
 import numpy as np
 from pandas import DataFrame
 
-#from . import conv, decompositions, legislations, legislationsxml
 from . import conv, legislations, legislationsxml
-#from .datatables import DataTable
 
 
 __all__ = ['AbstractTaxBenefitSystem']
