@@ -95,6 +95,11 @@ class AbstractTaxBenefitSystem(object):
             return attributes, error
         return cls(**attributes), None
 
+    def new_scenario(self):
+        scenario = self.Scenario()
+        scenario.tax_benefit_system = self
+        return scenario
+
 
 #class TaxBenefitSystem(DataTable):
 #    def __init__(self, column_by_name, param, defaultParam = None, datesim = None, num_table = 1):
