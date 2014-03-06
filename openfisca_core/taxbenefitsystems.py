@@ -24,9 +24,11 @@
 
 
 import collections
+
 import xml.etree.ElementTree
 import weakref
 #from xml.dom import minidom
+import logging
 
 import numpy as np
 from pandas import DataFrame

@@ -89,7 +89,6 @@ class Bareme(object):
     def setTauxM(self, i, value):
         self._tranchesM[i][1] = value
 
-
     def multTaux(self, factor, inplace = True, new_name = None):
         if inplace:
             for i in range(self._nb):
