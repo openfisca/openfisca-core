@@ -27,9 +27,6 @@ import collections
 import xml.etree.ElementTree
 import weakref
 
-import numpy as np
-from pandas import DataFrame
-
 from . import conv, legislations, legislationsxml
 
 
