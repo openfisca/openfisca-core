@@ -58,8 +58,15 @@ class Simulation(object):
             for column_name in entity.column_by_name.iterkeys()
             )
 
-    def get_holder_by_name(self, column_name, default = UnboundLocalError):
+    def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]
         if default is UnboundLocalError:
             return entity.holder_by_name[column_name]
         return entity.holder_by_name.get(column_name, default)
+
+    def get_or_new_holder(self, column_name):
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.holder_by_name.get(column_name)
+        if holder is None:
+            holder = entity.new_holder(column_name)
+        return holder

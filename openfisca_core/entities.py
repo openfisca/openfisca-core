@@ -39,10 +39,7 @@ class AbstractEntity(object):
             self.simulation = simulation
 
     def compute(self, column_name, requested_columns_name):
-        holder = self.holder_by_name.get(column_name)
-        if holder is None:
-            holder = self.new_holder(column_name)
-        return holder.compute(requested_columns_name)
+        return self.get_or_new_holder(column_name).compute(requested_columns_name)
 
     def copy_for_simulation(self, simulation):
         new = self.__class__(simulation = simulation)
@@ -53,6 +50,12 @@ class AbstractEntity(object):
             for name, holder in self.holder_by_name.iteritems()
             )
         return new
+
+    def get_or_new_holder(self, column_name):
+        holder = self.holder_by_name.get(column_name)
+        if holder is None:
+            holder = self.new_holder(column_name)
+        return holder
 
     def new_holder(self, column_name):
         column = self.column_by_name[column_name]
