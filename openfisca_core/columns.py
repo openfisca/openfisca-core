@@ -149,7 +149,7 @@ class FloatCol(Column):
     @property
     def json_to_python(self):
         return conv.pipe(
-            conv.test_isinstance(float, int),
+            conv.test_isinstance((float, int)),
             conv.anything_to_float,
             )
 
