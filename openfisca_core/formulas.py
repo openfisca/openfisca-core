@@ -97,7 +97,12 @@ class SimpleFormula(Formula):
                     argument_extract.fill(parameter_column._default)
                     entity_index_array = individus.holder_by_name['id' + entity.symbol].array
                     boolean_filter = individus.holder_by_name['qui' + entity.symbol].array == individual_role
-                    argument_extract[entity_index_array[boolean_filter]] = argument[boolean_filter]
+                    try:
+                        argument_extract[entity_index_array[boolean_filter]] = argument[boolean_filter]
+                    except:
+                        log.error(u'An error occurred while transforming column {} for role {} in function {}'.format(
+                            parameter, individual_role, column.name))
+                        raise
                     argument_extract_by_individual_role[individual_role] = argument_extract
                 if len(individual_roles) == 1:
                     argument = argument_extract_by_individual_role[individual_roles[0]]
