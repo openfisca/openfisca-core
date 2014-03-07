@@ -23,7 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
+
 import numpy as np
+
+
+log = logging.getLogger(__name__)
 
 
 class Formula(object):
@@ -83,7 +88,7 @@ class SimpleFormula(Formula):
             argument = simulation.compute(parameter, requested_columns_name = requested_columns_name)
             individual_roles = individual_roles_by_parameter.get(parameter)
             if individual_roles is not None:
-                # TODO Remove this and _option and replace with a call to function convert_column_from_entity_to_individu in formula function.
+                # TODO Remove this and _option and replace with a call to function transform_column_from_entity_to_individu in formula function.
                 assert entity.symbol != 'ind', str((column.name, parameter, entity.symbol))
                 argument_extract_by_individual_role = {}
                 parameter_column = tax_benefit_system.column_by_name[parameter]
@@ -111,6 +116,15 @@ class SimpleFormula(Formula):
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
-        holder.array = self.calculate(**arguments)
+        try:
+            array = self.calculate(**arguments)
+        except:
+            log.error(u'An error occurred while calling function {}({})'.format(column.name, arguments))
+            raise
+        assert array is not None, u"Function {}({}) doesn't return a numpy array, but: {}".format(
+            column.name, arguments, array).encode('utf-8')
+        if array.dtype != column._dtype:
+            array = array.astype(column._dtype)
+        holder.array = array
         requested_columns_name.remove(holder.column.name)
-        return holder.array
+        return array
