@@ -29,6 +29,7 @@ class Simulation(object):
     default_compact_legislation = None
     entities = None
     entity_by_column_name = None
+    entity_by_key_singular = None
     tax_benefit_system = None
 
     def __init__(self, compact_legislation = None, date = None, tax_benefit_system = None):
@@ -56,6 +57,10 @@ class Simulation(object):
             (column_name, entity)
             for entity in self.entities.itervalues()
             for column_name in entity.column_by_name.iterkeys()
+            )
+        self.entity_by_key_singular = dict(
+            (entity.key_singular, entity)
+            for entity in self.entities.itervalues()
             )
 
     def get_holder(self, column_name, default = UnboundLocalError):

@@ -31,7 +31,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 
-class Formula(object):
+class AbstractFormula(object):
     holder = None
 
     def __init__(self, holder = None):
@@ -39,14 +39,15 @@ class Formula(object):
         self.holder = holder
 
 
-class SimpleFormula(Formula):
+class AbstractSimpleFormula(AbstractFormula):
     individual_roles_by_parameter = None  # TODO Remove this and _option and replace with a call to function convert_column_from_entity_to_person in formula function.
     parameters = None
     requires_default_legislation = False
     requires_legislation = False
+    requires_self = False
 
     def __init__(self, holder = None):
-        super(SimpleFormula, self).__init__(holder = holder)
+        super(AbstractSimpleFormula, self).__init__(holder = holder)
 
         function = self.calculate
         code = function.__code__
@@ -66,6 +67,10 @@ class SimpleFormula(Formula):
             for parameter in self.individual_roles_by_parameter:
                 assert parameter in parameters, \
                     'Parameter {} in individual_roles_by_parameter but not in function parameters'.format(parameter)
+        # Check whether function uses self (aka formula).
+        if 'self' in parameters:
+            self.requires_self = True
+            parameters.remove('self')
 
     def __call__(self, requested_columns_name):
         holder = self.holder
@@ -100,8 +105,9 @@ class SimpleFormula(Formula):
                     try:
                         argument_extract[entity_index_array[boolean_filter]] = argument[boolean_filter]
                     except:
-                        log.error(u'An error occurred while transforming column {} for role {} in function {}'.format(
-                            parameter, individual_role, column.name))
+                        log.error(
+                            u'An error occurred while transforming column {} for role {}[{}] in function {}'.format(
+                            parameter, entity.key_singular, individual_role, column.name))
                         raise
                     argument_extract_by_individual_role[individual_role] = argument_extract
                 if len(individual_roles) == 1:
@@ -116,6 +122,9 @@ class SimpleFormula(Formula):
         if self.requires_legislation:
             required_parameters.add('_P')
             arguments['_P'] = simulation.compact_legislation
+        if self.requires_self:
+            required_parameters.add('self')
+            arguments['self'] = self
 
         provided_parameters = set(arguments.keys())
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
@@ -124,12 +133,24 @@ class SimpleFormula(Formula):
         try:
             array = self.calculate(**arguments)
         except:
-            log.error(u'An error occurred while calling function {}({})'.format(column.name, arguments))
+            log.error(u'An error occurred while calling function {}({})'.format(column.name,
+                get_arguments_str(arguments)))
             raise
-        assert array is not None, u"Function {}({}) doesn't return a numpy array, but: {}".format(
-            column.name, arguments, array).encode('utf-8')
+        assert isinstance(array, np.ndarray), u"Function {}({}) doesn't return a numpy array, but: {}".format(
+            column.name, get_arguments_str(arguments), array).encode('utf-8')
+        assert array.size == entity.count, \
+            u"Function {}({}) returns an array of size {}, but size {} is expected for {}".format(
+            column.name, get_arguments_str(arguments), array.size, entity.count, entity.key_singular).encode('utf-8')
         if array.dtype != column._dtype:
             array = array.astype(column._dtype)
         holder.array = array
         requested_columns_name.remove(holder.column.name)
         return array
+
+
+def get_arguments_str(arguments):
+    return u', '.join(
+        u'{} = {}'.format(unicode(key), unicode(value))
+        for key, value in arguments.iteritems()
+        if key not in ('_defaultP', '_P')
+        )

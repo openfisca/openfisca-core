@@ -30,6 +30,9 @@ class AbstractEntity(object):
     column_by_name = None  # Class attribute. Must be overridden by subclasses.
     count = None
     holder_by_name = None
+    key_plural = None
+    key_singular = None
+    roles_count = None  # Not used for individus
     simulation = None
     symbol = None  # Class attribute. Must be overridden by subclasses.
 
