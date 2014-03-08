@@ -63,3 +63,10 @@ class Holder(object):
         new = self.__class__(column = self.column, entity = entity)
         new.array = self.array
         return new
+
+    def new_test_case_array(self):
+        array = self.array
+        if array is None:
+            return None
+        entity = self.entity
+        return array.reshape([entity.simulation.steps_count, entity.step_size]).sum(1)
