@@ -44,12 +44,10 @@ class Simulation(object):
             else tax_benefit_system.get_compact_legislation(date)
         self.default_compact_legislation = tax_benefit_system.get_compact_legislation(date)
 
+    def calculate(self, column_name, requested_columns_name = None):
+        return self.compute(column_name, requested_columns_name = requested_columns_name).array
+
     def compute(self, column_name, requested_columns_name = None):
-        if requested_columns_name is None:
-            requested_columns_name = set()
-        else:
-            assert column_name not in requested_columns_name, 'Infinite loop. Missing values for columns: {}'.format(
-                u', '.join(sorted(requested_columns_name)).encode('utf-8'))
         return self.entity_by_column_name[column_name].compute(column_name, requested_columns_name)
 
     def set_entities(self, entities):

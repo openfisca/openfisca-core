@@ -72,7 +72,13 @@ class AbstractSimpleFormula(AbstractFormula):
             self.requires_self = True
             parameters.remove('self')
 
-    def __call__(self, requested_columns_name):
+    def __call__(self, requested_columns_name = None):
+        if requested_columns_name is None:
+            requested_columns_name = set()
+        else:
+            assert column_name not in requested_columns_name, 'Infinite loop. Missing values for columns: {}'.format(
+                u', '.join(sorted(requested_columns_name)).encode('utf-8'))
+
         holder = self.holder
         column = holder.column
         entity = holder.entity
@@ -90,7 +96,8 @@ class AbstractSimpleFormula(AbstractFormula):
         arguments = {}
         individual_roles_by_parameter = self.individual_roles_by_parameter or {}
         for parameter in self.parameters:
-            argument = simulation.compute(parameter, requested_columns_name = requested_columns_name)
+            argument_holder = simulation.compute(parameter, requested_columns_name = requested_columns_name)
+            argument = argument_holder.array
             individual_roles = individual_roles_by_parameter.get(parameter)
             if individual_roles is not None:
                 # TODO Remove this and _option and replace with a call to function transform_column_from_entity_to_individu in formula function.
