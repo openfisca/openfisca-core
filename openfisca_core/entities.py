@@ -33,6 +33,7 @@ class AbstractEntity(object):
     key_plural = None
     key_singular = None
     roles_count = None  # Not used for individus
+    step_size = None
     simulation = None
     symbol = None  # Class attribute. Must be overridden by subclasses.
 

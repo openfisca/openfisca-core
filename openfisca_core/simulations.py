@@ -30,6 +30,7 @@ class Simulation(object):
     entities = None
     entity_by_column_name = None
     entity_by_key_singular = None
+    steps_count = None
     tax_benefit_system = None
 
     def __init__(self, compact_legislation = None, date = None, tax_benefit_system = None):
