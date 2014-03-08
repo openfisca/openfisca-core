@@ -50,13 +50,13 @@ class Holder(object):
             if self.array is None:
                 self.array = np.empty(self.entity.count, dtype = column._dtype)
                 self.array.fill(column._default)
-            return self.array
+            return self
         formula = self.formula
         if formula is None:
             if self.array is None:
                 self.array = np.empty(self.entity.count, dtype = column._dtype)
                 self.array.fill(column._default)
-            return self.array
+            return self
         return formula(requested_columns_name = requested_columns_name)
 
     def copy_for_entity(self, entity):

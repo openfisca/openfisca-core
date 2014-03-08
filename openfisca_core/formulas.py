@@ -73,12 +73,6 @@ class AbstractSimpleFormula(AbstractFormula):
             parameters.remove('self')
 
     def __call__(self, requested_columns_name = None):
-        if requested_columns_name is None:
-            requested_columns_name = set()
-        else:
-            assert column_name not in requested_columns_name, 'Infinite loop. Missing values for columns: {}'.format(
-                u', '.join(sorted(requested_columns_name)).encode('utf-8'))
-
         holder = self.holder
         column = holder.column
         entity = holder.entity
@@ -86,17 +80,25 @@ class AbstractSimpleFormula(AbstractFormula):
         individus = simulation.entities['individus']
         tax_benefit_system = simulation.tax_benefit_system
 
+        if requested_columns_name is None:
+            requested_columns_name = set()
+        else:
+            assert column.name not in requested_columns_name, 'Infinite loop. Missing values for columns: {}'.format(
+                u', '.join(sorted(requested_columns_name)).encode('utf-8'))
+
         if holder.array is not None:
-            return holder.array
+            return holder
 #        if holder.disabled:
-#            return holder.array
+#            return holder
 
         requested_columns_name.add(holder.column.name)
         required_parameters = set(self.parameters)
         arguments = {}
+        arguments_holder = []
         individual_roles_by_parameter = self.individual_roles_by_parameter or {}
         for parameter in self.parameters:
             argument_holder = simulation.compute(parameter, requested_columns_name = requested_columns_name)
+            arguments_holder.append(argument_holder)
             argument = argument_holder.array
             individual_roles = individual_roles_by_parameter.get(parameter)
             if individual_roles is not None:
@@ -137,27 +139,33 @@ class AbstractSimpleFormula(AbstractFormula):
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
+        if simulation.debug:
+            log.info(u'--> {}.{}({})'.format(entity.key_plural, column.name,
+                get_arguments_str(arguments_holder)))
         try:
             array = self.calculate(**arguments)
         except:
-            log.error(u'An error occurred while calling function {}({})'.format(column.name,
-                get_arguments_str(arguments)))
+            log.error(u'An error occurred while calling function {}.{}({})'.format(entity.key_plural, column.name,
+                get_arguments_str(arguments_holder)))
             raise
-        assert isinstance(array, np.ndarray), u"Function {}({}) doesn't return a numpy array, but: {}".format(
-            column.name, get_arguments_str(arguments), array).encode('utf-8')
+        assert isinstance(array, np.ndarray), u"Function {}.{}({}) doesn't return a numpy array, but: {}".format(
+            entity.key_plural, column.name, get_arguments_str(arguments_holder), array).encode('utf-8')
         assert array.size == entity.count, \
-            u"Function {}({}) returns an array of size {}, but size {} is expected for {}".format(
-            column.name, get_arguments_str(arguments), array.size, entity.count, entity.key_singular).encode('utf-8')
+            u"Function {}.{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
+            column.name, get_arguments_str(arguments_holder), array.size, entity.count,entity.key_singular).encode(
+            'utf-8')
         if array.dtype != column._dtype:
             array = array.astype(column._dtype)
+        if simulation.debug:
+            log.info(u'<-- {}.{}: {}'.format(entity.key_plural, column.name, array))
         holder.array = array
         requested_columns_name.remove(holder.column.name)
-        return array
+        return holder
 
 
-def get_arguments_str(arguments):
+def get_arguments_str(arguments_holder):
     return u', '.join(
-        u'{} = {}'.format(unicode(key), unicode(value))
-        for key, value in arguments.iteritems()
-        if key not in ('_defaultP', '_P')
+        u'{} = {}.{}'.format(argument_holder.column.name, argument_holder.entity.key_plural,
+            unicode(argument_holder.array))
+        for argument_holder in arguments_holder
         )

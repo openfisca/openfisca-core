@@ -26,6 +26,7 @@
 class Simulation(object):
     compact_legislation = None
     date = None
+    debug = False
     default_compact_legislation = None
     entities = None
     entity_by_column_name = None
@@ -33,9 +34,11 @@ class Simulation(object):
     steps_count = None
     tax_benefit_system = None
 
-    def __init__(self, compact_legislation = None, date = None, tax_benefit_system = None):
+    def __init__(self, compact_legislation = None, date = None, debug = False, tax_benefit_system = None):
         assert date is not None
         self.date = date
+        if debug:
+            self.debug = True
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
 
