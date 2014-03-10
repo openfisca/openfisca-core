@@ -31,6 +31,7 @@ class Simulation(object):
     entities = None
     entity_by_column_name = None
     entity_by_key_singular = None
+    persons = None
     steps_count = None
     tax_benefit_system = None
 
@@ -64,6 +65,10 @@ class Simulation(object):
             (entity.key_singular, entity)
             for entity in self.entities.itervalues()
             )
+        for entity in self.entities.itervalues():
+            if entity.is_persons_entity:
+                self.persons = entity
+                break
 
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]

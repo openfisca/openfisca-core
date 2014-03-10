@@ -27,6 +27,8 @@ import logging
 
 import numpy as np
 
+from . import holders
+
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +42,6 @@ class AbstractFormula(object):
 
 
 class AbstractSimpleFormula(AbstractFormula):
-    individual_roles_by_parameter = None  # TODO Remove this and _option and replace with a call to function convert_column_from_entity_to_person in formula function.
     parameters = None
     requires_default_legislation = False
     requires_legislation = False
@@ -60,13 +61,6 @@ class AbstractSimpleFormula(AbstractFormula):
         if '_P' in parameters:
             self.requires_legislation = True
             parameters.remove('_P')
-        # Check whether individual roles are given to some parameters.
-        if '_option' in parameters:
-            parameters.remove('_option')
-            self.individual_roles_by_parameter = function.func_defaults[0]
-            for parameter in self.individual_roles_by_parameter:
-                assert parameter in parameters, \
-                    'Parameter {} in individual_roles_by_parameter but not in function parameters'.format(parameter)
         # Check whether function uses self (aka formula).
         if 'self' in parameters:
             self.requires_self = True
@@ -77,8 +71,6 @@ class AbstractSimpleFormula(AbstractFormula):
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        individus = simulation.entities['individus']
-        tax_benefit_system = simulation.tax_benefit_system
 
         if requested_columns_name is None:
             requested_columns_name = set()
@@ -95,35 +87,13 @@ class AbstractSimpleFormula(AbstractFormula):
         required_parameters = set(self.parameters)
         arguments = {}
         arguments_holder = []
-        individual_roles_by_parameter = self.individual_roles_by_parameter or {}
         for parameter in self.parameters:
-            argument_holder = simulation.compute(parameter, requested_columns_name = requested_columns_name)
+            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
+            argument_holder = simulation.compute(clean_parameter, requested_columns_name = requested_columns_name)
             arguments_holder.append(argument_holder)
-            argument = argument_holder.array
-            individual_roles = individual_roles_by_parameter.get(parameter)
-            if individual_roles is not None:
-                # TODO Remove this and _option and replace with a call to function transform_column_from_entity_to_individu in formula function.
-                assert entity.symbol != 'ind', str((column.name, parameter, entity.symbol))
-                argument_extract_by_individual_role = {}
-                parameter_column = tax_benefit_system.column_by_name[parameter]
-                for individual_role in individual_roles:
-                    argument_extract = np.empty(entity.count, dtype = parameter_column._dtype)
-                    argument_extract.fill(parameter_column._default)
-                    entity_index_array = individus.holder_by_name['id' + entity.symbol].array
-                    boolean_filter = individus.holder_by_name['qui' + entity.symbol].array == individual_role
-                    try:
-                        argument_extract[entity_index_array[boolean_filter]] = argument[boolean_filter]
-                    except:
-                        log.error(
-                            u'An error occurred while transforming column {} for role {}[{}] in function {}'.format(
-                            parameter, entity.key_singular, individual_role, column.name))
-                        raise
-                    argument_extract_by_individual_role[individual_role] = argument_extract
-                if len(individual_roles) == 1:
-                    argument = argument_extract_by_individual_role[individual_roles[0]]
-                else:
-                    argument = argument_extract_by_individual_role
-            arguments[parameter] = argument
+            # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
+            # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
+            arguments[parameter] = argument_holder if parameter.endswith('_holder') else argument_holder.array
 
         if self.requires_default_legislation:
             required_parameters.add('_defaultP')
@@ -140,32 +110,195 @@ class AbstractSimpleFormula(AbstractFormula):
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
         if simulation.debug:
-            log.info(u'--> {}.{}({})'.format(entity.key_plural, column.name,
+            log.info(u'--> {}@{}({})'.format(entity.key_plural, column.name,
                 get_arguments_str(arguments_holder)))
         try:
             array = self.calculate(**arguments)
         except:
-            log.error(u'An error occurred while calling function {}.{}({})'.format(entity.key_plural, column.name,
+            log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
                 get_arguments_str(arguments_holder)))
             raise
-        assert isinstance(array, np.ndarray), u"Function {}.{}({}) doesn't return a numpy array, but: {}".format(
+        assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
             entity.key_plural, column.name, get_arguments_str(arguments_holder), array).encode('utf-8')
         assert array.size == entity.count, \
-            u"Function {}.{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
+            u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
             column.name, get_arguments_str(arguments_holder), array.size, entity.count,entity.key_singular).encode(
             'utf-8')
         if array.dtype != column._dtype:
             array = array.astype(column._dtype)
         if simulation.debug:
-            log.info(u'<-- {}.{}: {}'.format(entity.key_plural, column.name, array))
+            log.info(u'<-- {}@{}: {}'.format(entity.key_plural, column.name, array))
         holder.array = array
         requested_columns_name.remove(holder.column.name)
         return holder
 
+    def any_by_roles(self, array_or_holder, entity = None, roles = None):
+        return self.sum_by_roles(array_or_holder, entity = entity, roles = roles)
+
+    def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
+        """Cast an entity array to a persons array, setting only cells of persons having the given role."""
+        assert isinstance(role, int)
+        return self.cast_from_entity_to_roles(array_or_holder, default = default, entity = entity, roles = [role])
+
+    def cast_from_entity_to_roles(self, array_or_holder, default = None, entity = None, roles = None):
+        """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
+
+        When no roles are given, it means "all the roles" => every cell is set.
+        """
+        holder = self.holder
+        target_entity = holder.entity
+        simulation = target_entity.simulation
+        persons = simulation.persons
+        if isinstance(array_or_holder, holders.Holder):
+            if entity is None:
+                entity = array_or_holder.entity
+            else:
+                assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+                entity = simulation.entity_by_key_singular[entity]
+                assert entity == array_or_holder.entity, u"""Holder entity "{}" and given entity "{}" don't match""" \
+                    .format(entity.key_plural, array_or_holder.entity.key_plural).encode('utf-8')
+            array = array_or_holder.array
+            if default is None:
+                default = array_or_holder.column._default
+        else:
+            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+            entity = simulation.entity_by_key_singular[entity]
+            array = array_or_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            assert array.size == entity.count, u"Expected an array of size {}. Got: {}".format(entity.count,
+                array.size)
+            if default is None:
+                default = 0
+        assert not entity.is_persons_entity
+        target_array = np.empty(persons.count, dtype = array.dtype)
+        target_array.fill(default)
+        entity_index_array = persons.holder_by_name['id' + entity.symbol].array
+        if roles is None:
+            roles = range(entity.roles_count)
+        for role in roles:
+            boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
+            try:
+                target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
+            except:
+                log.error(u'An error occurred while transforming array for role {}[{}] in function {}'.format(
+                    entity.key_singular, role, holder.column.name))
+                raise
+        return target_array
+
+    def filter_role(self, array_or_holder, default = None, entity = None, role = None):
+        """Convert a persons array to an entity array, copying only cells of persons having the given role."""
+        holder = self.holder
+        simulation = holder.entity.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+            entity = simulation.entity_by_key_singular[entity]
+        assert not entity.is_persons_entity
+        if isinstance(array_or_holder, holders.Holder):
+            assert array_or_holder.entity.is_persons_entity
+            array = array_or_holder.array
+            if default is None:
+                default = array_or_holder.column._default
+        else:
+            array = array_or_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+                array.size)
+            if default is None:
+                default = 0
+        entity_index_array = persons.holder_by_name['id' + entity.symbol].array
+        assert isinstance(role, int)
+        target_array = np.empty(entity.count, dtype = array.dtype)
+        target_array.fill(default)
+        boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
+        try:
+            target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
+        except:
+            log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                entity.key_singular, role, holder.column.name))
+            raise
+        return target_array
+
+    def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
+        """dispatch a persons array to several entity arrays (one for each role)."""
+        holder = self.holder
+        simulation = holder.entity.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+            entity = simulation.entity_by_key_singular[entity]
+        assert not entity.is_persons_entity
+        if isinstance(array_or_holder, holders.Holder):
+            assert array_or_holder.entity.is_persons_entity
+            array = array_or_holder.array
+            if default is None:
+                default = array_or_holder.column._default
+        else:
+            array = array_or_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+                array.size)
+            if default is None:
+                default = 0
+        entity_index_array = persons.holder_by_name['id' + entity.symbol].array
+        if roles is None:
+            # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
+            # roles = range(entity.roles_count)
+            roles = range(max(entity.roles_count, 11))
+        target_array_by_role = {}
+        for role in roles:
+            target_array_by_role[role] = target_array = np.empty(entity.count, dtype = array.dtype)
+            target_array.fill(default)
+            boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
+            try:
+                target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
+            except:
+                log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                    entity.key_singular, role, holder.column.name))
+                raise
+        return target_array_by_role
+
+    def sum_by_roles(self, array_or_holder, entity = None, roles = None):
+        holder = self.holder
+        target_entity = holder.entity
+        simulation = target_entity.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+            entity = simulation.entity_by_key_singular[entity]
+        assert not entity.is_persons_entity
+        if isinstance(array_or_holder, holders.Holder):
+            assert array_or_holder.entity.is_persons_entity
+            array = array_or_holder.array
+        else:
+            array = array_or_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+                array.size)
+        entity_index_array = persons.holder_by_name['id' + entity.symbol].array
+        if roles is None:
+            roles = range(entity.roles_count)
+        target_array = np.zeros(entity.count, dtype = array.dtype)
+        for role in roles:
+            # TODO Mettre les filtres en cache dans la simulation
+            boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
+            target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
+        return target_array
+
 
 def get_arguments_str(arguments_holder):
     return u', '.join(
-        u'{} = {}.{}'.format(argument_holder.column.name, argument_holder.entity.key_plural,
+        u'{} = {}@{}'.format(argument_holder.column.name, argument_holder.entity.key_plural,
             unicode(argument_holder.array))
         for argument_holder in arguments_holder
         )

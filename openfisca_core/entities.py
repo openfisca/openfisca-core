@@ -32,6 +32,7 @@ class AbstractEntity(object):
     holder_by_name = None
     key_plural = None
     key_singular = None
+    is_persons_entity = False
     roles_count = None  # Not used for individus
     step_size = None
     simulation = None
