@@ -32,7 +32,7 @@ class Simulation(object):
     entity_by_column_name = None
     entity_by_key_singular = None
     persons = None
-    steps_count = None
+    steps_count = 1
     tax_benefit_system = None
 
     def __init__(self, compact_legislation = None, date = None, debug = False, tax_benefit_system = None):
@@ -82,3 +82,7 @@ class Simulation(object):
         if holder is None:
             holder = entity.new_holder(column_name)
         return holder
+
+    def new_holder(self, column_name):
+        entity = self.entity_by_column_name[column_name]
+        return entity.new_holder(column_name)
