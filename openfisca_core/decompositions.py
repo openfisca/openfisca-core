@@ -28,12 +28,9 @@ import collections
 from . import conv
 
 
-N_ = lambda message: message
-
-
 def iter_decomposition_nodes(node_or_nodes, children_first = False):
     if isinstance(node_or_nodes, list):
-        for node in nodes:
+        for node in node_or_nodes:
             for sub_node in iter_decomposition_nodes(node, children_first = children_first):
                 yield sub_node
     else:
@@ -55,78 +52,55 @@ def make_validate_node_json(tax_benefit_system):
         if state is None:
             state = conv.default_state
         validated_node, errors = conv.pipe(
-            conv.test_isinstance(dict),
-            conv.struct(
-                {
-                    '@context': conv.pipe(
+            conv.condition(
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    validate_node_json,
+                    drop_none_items = True,
+                    ),
+                conv.pipe(
+                    conv.condition(
                         conv.test_isinstance(basestring),
-                        conv.make_input_to_url(full = True),
-                        conv.test_equals(u'http://openfisca.fr/contexts/decomposition.jsonld'),
+                        conv.function(lambda code: dict(code = code)),
+                        conv.test_isinstance(dict),
                         ),
-                    '@type': conv.pipe(
-                        conv.test_isinstance(basestring),
-                        conv.cleanup_line,
-                        conv.test_equals(u'Node'),
-                        conv.not_none,
-                        ),
-                    'children': conv.pipe(
-                        conv.test_isinstance(list),
-                        conv.uniform_sequence(
-                            validate_node_json,
-                            drop_none_items = True,
-                            ),
-                        conv.empty_to_none,
-                        ),
-                    'code': conv.pipe(
-                        conv.test_isinstance(basestring),
-                        conv.cleanup_line,
-                        conv.not_none,
-                        ),
-                    'color': conv.pipe(
-                        conv.test_isinstance(list),
-                        conv.uniform_sequence(
-                            conv.pipe(
-                                conv.test_isinstance(int),
-                                conv.test_between(0, 255),
-                                conv.not_none,
+                    conv.struct(
+                        dict(
+                            children = conv.pipe(
+                                conv.test_isinstance(list),
+                                conv.uniform_sequence(
+                                    validate_node_json,
+                                    drop_none_items = True,
+                                    ),
+                                conv.empty_to_none,
+                                ),
+                            code = conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.cleanup_line,
                                 ),
                             ),
-                        conv.test(lambda colors: len(colors) == 3, error = N_(u'Wrong number of colors in triplet.')),
+                        constructor = collections.OrderedDict,
+                        default = conv.noop,
+                        drop_none_values = 'missing',
+                        keep_value_order = True,
                         ),
-                    'comment': conv.pipe(
-                        conv.test_isinstance(basestring),
-                        conv.cleanup_text,
-                        ),
-                    'name': conv.pipe(
-                        conv.test_isinstance(basestring),
-                        conv.cleanup_line,
-                        ),
-                    'short_name': conv.pipe(
-                        conv.test_isinstance(basestring),
-                        conv.cleanup_line,
-                        ),
-                    'type': conv.pipe(
-                        conv.test_isinstance(int),
-                        conv.test_equals(2),
-                        ),
-                    },
-                constructor = collections.OrderedDict,
-                drop_none_values = 'missing',
-                keep_value_order = True,
+                    ),
                 ),
+            conv.empty_to_none,
             )(node, state = state)
-        if errors is not None:
+        if validated_node is None or errors is not None:
             return validated_node, errors
 
-        if not validated_node.get('children'):
+        if isinstance(validated_node, dict) and not validated_node.get('children'):
             validated_node, errors = conv.struct(
                 dict(
-                    code = conv.test_in(tax_benefit_system.column_by_name),
+                    code = conv.pipe(
+                        conv.test_in(tax_benefit_system.column_by_name),
+                        conv.not_none,
+                        ),
                     ),
                 default = conv.noop,
                 )(validated_node, state = state)
-
-        validated_node.pop('@context', None)  # Remove optional @context everywhere. It will be added to root node later.
         return validated_node, errors
 
     return validate_node_json
