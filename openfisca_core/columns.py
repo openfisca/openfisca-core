@@ -42,6 +42,7 @@ class Column(object):
     cerfa_field = None
     end = None
     entity = None
+    formula_constructor = None
     info = None
     # json_type = None  # Defined in sub-classes
     label = None
@@ -252,7 +253,6 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
     _func = None
-    formula_constructor = None
 
     def __init__(self, func, entity = None, end = None, label = None, start = None, survey_only = False,
             val_type = None):
