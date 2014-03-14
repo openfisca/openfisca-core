@@ -64,14 +64,18 @@ class AbstractTaxBenefitSystem(object):
     def __init__(self):
         # Merge prestation_by_name into column_by_name, because it is no more used.
         # TODO: To delete once prestation_by_name is no more used.
+        self.column_by_name = self.column_by_name.copy()
         self.column_by_name.update(self.prestation_by_name)
         self.prestation_by_name = None
 
         self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
 
         legislation_tree = xml.etree.ElementTree.parse(self.PARAM_FILE)
-        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot())
-        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json)
+        state = conv.State()
+        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+            state = state)
+        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json,
+            state = state)
         _, self.legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
 
     def get_compact_legislation(self, date):
