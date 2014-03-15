@@ -133,7 +133,7 @@ class AbstractSimpleFormula(AbstractFormula):
         return holder
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
-        return self.sum_by_roles(array_or_holder, entity = entity, roles = roles)
+        return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
 
     def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
         """Cast an entity array to a persons array, setting only cells of persons having the given role."""
@@ -265,7 +265,7 @@ class AbstractSimpleFormula(AbstractFormula):
                 raise
         return target_array_by_role
 
-    def sum_by_roles(self, array_or_holder, entity = None, roles = None):
+    def sum_by_entity(self, array_or_holder, entity = None, roles = None):
         holder = self.holder
         target_entity = holder.entity
         simulation = target_entity.simulation
