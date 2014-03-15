@@ -60,6 +60,25 @@ class Holder(object):
         new.array = self.array
         return new
 
+    def graph(self, edges, level, nodes, visited):
+        column = self.column
+        if self in visited:
+            return
+        visited.add(self)
+        nodes.append(dict(
+            id = column.name,
+            group = self.entity.key_plural,
+            label = column.name,
+            level = level,
+            title = column.label,
+            ))
+        date = self.entity.simulation.date
+        formula = self.formula
+        if formula is None or column.start is not None and column.start > date or column.end is not None \
+                and column.end < date:
+            return
+        formula.graph_parameters(edges, level, nodes, visited)
+
     def new_test_case_array(self):
         array = self.array
         if array is None:
