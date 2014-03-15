@@ -53,6 +53,7 @@ class AbstractTaxBenefitSystem(object):
         conv.struct({}),
         ))
     legislation_json = None
+    legislation_json_by_xml_file_path = {}  # class attribute
     PARAM_FILE = None  # class attribute
     prestation_by_name = None
     REFORMS_DIR = None
@@ -71,13 +72,18 @@ class AbstractTaxBenefitSystem(object):
 
         self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
 
-        legislation_tree = xml.etree.ElementTree.parse(self.PARAM_FILE)
-        state = conv.State()
-        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
-            state = state)
-        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json,
-            state = state)
-        _, self.legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+        legislation_xml_file_path = self.PARAM_FILE
+        legislation_json = self.legislation_json_by_xml_file_path.get(legislation_xml_file_path)
+        if legislation_json is None:
+            legislation_tree = xml.etree.ElementTree.parse(legislation_xml_file_path)
+            state = conv.State()
+            legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+                state = state)
+            legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json,
+                state = state)
+            _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+            self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
+        self.legislation_json = legislation_json
 
     def get_compact_legislation(self, date):
         date_str = date.isoformat()
