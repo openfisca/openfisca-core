@@ -28,13 +28,13 @@ from . import holders
 
 class AbstractEntity(object):
     column_by_name = None  # Class attribute. Must be overridden by subclasses.
-    count = None
+    count = 0
     holder_by_name = None
     key_plural = None
     key_singular = None
     is_persons_entity = False
     roles_count = None  # Not used for individus
-    step_size = None
+    step_size = 0
     simulation = None
     symbol = None  # Class attribute. Must be overridden by subclasses.
 

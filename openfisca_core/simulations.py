@@ -28,8 +28,8 @@ class Simulation(object):
     date = None
     debug = False
     default_compact_legislation = None
-    entities = None
     entity_by_column_name = None
+    entity_by_key_plural = None
     entity_by_key_singular = None
     persons = None
     steps_count = 1
@@ -48,27 +48,29 @@ class Simulation(object):
             else tax_benefit_system.get_compact_legislation(date)
         self.default_compact_legislation = tax_benefit_system.get_compact_legislation(date)
 
+        self.entity_by_key_plural = dict(
+            (key_plural, entity_class(simulation = self))
+            for key_plural, entity_class in tax_benefit_system.entity_class_by_key_plural.iteritems()
+            )
+        self.entity_by_column_name = dict(
+            (column_name, entity)
+            for entity in self.entity_by_key_plural.itervalues()
+            for column_name in entity.column_by_name.iterkeys()
+            )
+        self.entity_by_key_singular = dict(
+            (entity.key_singular, entity)
+            for entity in self.entity_by_key_plural.itervalues()
+            )
+        for entity in self.entity_by_key_plural.itervalues():
+            if entity.is_persons_entity:
+                self.persons = entity
+                break
+
     def calculate(self, column_name, requested_columns_name = None):
         return self.compute(column_name, requested_columns_name = requested_columns_name).array
 
     def compute(self, column_name, requested_columns_name = None):
         return self.entity_by_column_name[column_name].compute(column_name, requested_columns_name)
-
-    def set_entities(self, entities):
-        self.entities = entities
-        self.entity_by_column_name = dict(
-            (column_name, entity)
-            for entity in self.entities.itervalues()
-            for column_name in entity.column_by_name.iterkeys()
-            )
-        self.entity_by_key_singular = dict(
-            (entity.key_singular, entity)
-            for entity in self.entities.itervalues()
-            )
-        for entity in self.entities.itervalues():
-            if entity.is_persons_entity:
-                self.persons = entity
-                break
 
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]

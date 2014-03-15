@@ -46,6 +46,7 @@ class AbstractTaxBenefitSystem(object):
     DEFAULT_DECOMP_FILE = None
     entities = None  # class attribute
     ENTITIES_INDEX = None  # class attribute
+    entity_class_by_key_plural = None  # class attribute
     FILTERING_VARS = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
