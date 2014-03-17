@@ -66,9 +66,19 @@ class AbstractTaxBenefitSystem(object):
     def __init__(self):
         # Merge prestation_by_name into column_by_name, because it is no more used.
         # TODO: To delete once prestation_by_name is no more used.
-        self.column_by_name = self.column_by_name.copy()
-        self.column_by_name.update(self.prestation_by_name)
+        self.column_by_name = column_by_name = self.column_by_name.copy()
+        column_by_name.update(self.prestation_by_name)
         self.prestation_by_name = None
+
+        for column_name, column in column_by_name.iteritems():
+            formula_class = column.formula_constructor
+            if formula_class is not None:
+                for parameter in formula_class.parameters:
+                    clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
+                    parameter_column = column_by_name[clean_parameter]
+                    if parameter_column.consumers is None:
+                        parameter_column.consumers = set()
+                    parameter_column.consumers.add(column_name)
 
         self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
 

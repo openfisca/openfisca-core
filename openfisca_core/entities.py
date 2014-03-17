@@ -44,7 +44,9 @@ class AbstractEntity(object):
             self.simulation = simulation
 
     def compute(self, column_name, requested_columns_name = None):
-        return self.get_or_new_holder(column_name).compute(requested_columns_name = requested_columns_name)
+        holder = self.get_or_new_holder(column_name)
+        holder.calculate(requested_columns_name = requested_columns_name)
+        return holder
 
     def copy_for_simulation(self, simulation):
         new = self.__class__(simulation = simulation)

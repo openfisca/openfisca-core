@@ -41,6 +41,7 @@ class Column(object):
     _dtype = float
     _func = None
     cerfa_field = None
+    consumers = None  # list of prestation names using this column
     end = None
     entity = None
     formula_constructor = None

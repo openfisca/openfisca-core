@@ -44,29 +44,23 @@ class AbstractFormula(object):
 
 
 class AbstractSimpleFormula(AbstractFormula):
-    parameters = None
-    requires_default_legislation = False
-    requires_legislation = False
-    requires_self = False
+    holder_by_parameter = None
+    parameters = None  # class attribute
+    requires_default_legislation = False  # class attribute
+    requires_legislation = False  # class attribute
+    requires_self = False  # class attribute
 
     def __init__(self, holder = None):
         super(AbstractSimpleFormula, self).__init__(holder = holder)
 
-        function = self.calculate
-        code = function.__code__
-        self.parameters = parameters = list(code.co_varnames[:code.co_argcount])
-        # Check whether default legislation is used by function.
-        if '_defaultP' in parameters:
-            self.requires_default_legislation = True
-            parameters.remove('_defaultP')
-        # Check whether current legislation is used by function.
-        if '_P' in parameters:
-            self.requires_legislation = True
-            parameters.remove('_P')
-        # Check whether function uses self (aka formula).
-        if 'self' in parameters:
-            self.requires_self = True
-            parameters.remove('self')
+        holder = self.holder
+        column = holder.column
+        entity = holder.entity
+        simulation = entity.simulation
+        self.holder_by_parameter = holder_by_parameter = collections.OrderedDict()
+        for parameter in self.parameters:
+            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
+            holder_by_parameter[parameter] = parameter_holder = simulation.get_or_new_holder(clean_parameter)
 
     def __call__(self, requested_columns_name = None):
         holder = self.holder
@@ -81,21 +75,18 @@ class AbstractSimpleFormula(AbstractFormula):
                 u', '.join(sorted(requested_columns_name)).encode('utf-8'))
 
         if holder.array is not None:
-            return holder
+            return holder.array
 #        if holder.disabled:
-#            return holder
+#            return holder.array
 
         requested_columns_name.add(holder.column.name)
-        required_parameters = set(self.parameters)
+        required_parameters = set(self.holder_by_parameter.iterkeys())
         arguments = {}
-        arguments_holder = []
-        for parameter in self.parameters:
-            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            argument_holder = simulation.compute(clean_parameter, requested_columns_name = requested_columns_name)
-            arguments_holder.append(argument_holder)
+        for parameter, parameter_holder in self.holder_by_parameter.iteritems():
+            parameter_holder.calculate(requested_columns_name = requested_columns_name)
             # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
-            arguments[parameter] = argument_holder if parameter.endswith('_holder') else argument_holder.array
+            arguments[parameter] = parameter_holder if parameter.endswith('_holder') else parameter_holder.array
 
         if self.requires_default_legislation:
             required_parameters.add('_defaultP')
@@ -112,27 +103,25 @@ class AbstractSimpleFormula(AbstractFormula):
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
         if simulation.debug:
-            log.info(u'--> {}@{}({})'.format(entity.key_plural, column.name,
-                get_arguments_str(arguments_holder)))
+            log.info(u'--> {}@{}({})'.format(entity.key_plural, column.name, self.get_arguments_str()))
         try:
             array = self.calculate(**arguments)
         except:
             log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
-                get_arguments_str(arguments_holder)))
+                self.get_arguments_str()))
             raise
         assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-            entity.key_plural, column.name, get_arguments_str(arguments_holder), array).encode('utf-8')
+            entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
         assert array.size == entity.count, \
             u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
-            column.name, get_arguments_str(arguments_holder), array.size, entity.count,entity.key_singular).encode(
-            'utf-8')
+            column.name, self.get_arguments_str(), array.size, entity.count,entity.key_singular).encode('utf-8')
         if array.dtype != column._dtype:
             array = array.astype(column._dtype)
         if simulation.debug:
             log.info(u'<-- {}@{}: {}'.format(entity.key_plural, column.name, array))
         holder.array = array
         requested_columns_name.remove(holder.column.name)
-        return holder
+        return array
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
         return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
@@ -188,6 +177,24 @@ class AbstractSimpleFormula(AbstractFormula):
                 raise
         return target_array
 
+    @classmethod
+    def extract_parameters(cls):
+        function = cls.calculate
+        code = function.__code__
+        cls.parameters = parameters = list(code.co_varnames[:code.co_argcount])
+        # Check whether default legislation is used by function.
+        if '_defaultP' in parameters:
+            cls.requires_default_legislation = True
+            parameters.remove('_defaultP')
+        # Check whether current legislation is used by function.
+        if '_P' in parameters:
+            cls.requires_legislation = True
+            parameters.remove('_P')
+        # Check whether function uses self (aka formula).
+        if 'self' in parameters:
+            cls.requires_self = True
+            parameters.remove('self')
+
     def filter_role(self, array_or_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
         holder = self.holder
@@ -225,17 +232,22 @@ class AbstractSimpleFormula(AbstractFormula):
             raise
         return target_array
 
+    def get_arguments_str(self):
+        return u', '.join(
+            u'{} = {}@{}'.format(parameter, parameter_holder.entity.key_plural, unicode(parameter_holder.array))
+            for parameter, parameter_holder in self.holder_by_parameter.iteritems()
+            )
+
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        for parameter in self.parameters:
-            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            simulation.graph(clean_parameter, edges, nodes, visited)
+        for parameter_holder in self.holder_by_parameter.itervalues():
+            parameter_holder.graph(edges, nodes, visited)
             edges.append({
-                'from': clean_parameter,
+                'from': parameter_holder.column.name,
                 'to': column.name,
                 })
 
@@ -312,17 +324,11 @@ class AbstractSimpleFormula(AbstractFormula):
         return target_array
 
     def to_json(self):
-        holder = self.holder
-        entity = holder.entity
-        simulation = entity.simulation
-
         function = self.calculate
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         parameters_json = []
-        for parameter in self.parameters:
-            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            parameter_holder = simulation.get_or_new_holder(clean_parameter)
+        for parameter, parameter_holder in self.holder_by_parameter.iteritems():
             parameter_column = parameter_holder.column
             parameters_json.append(collections.OrderedDict((
                 ('entity', parameter_holder.entity.key_plural),
@@ -339,11 +345,3 @@ class AbstractSimpleFormula(AbstractFormula):
             ('parameters', parameters_json),
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
-
-
-def get_arguments_str(arguments_holder):
-    return u', '.join(
-        u'{} = {}@{}'.format(argument_holder.column.name, argument_holder.entity.key_plural,
-            unicode(argument_holder.array))
-        for argument_holder in arguments_holder
-        )

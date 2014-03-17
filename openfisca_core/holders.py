@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
+
 import numpy as np
 
 from . import columns
@@ -43,7 +45,7 @@ class Holder(object):
         if isinstance(column, columns.Prestation):
             self.formula = column.formula_constructor(holder = self)
 
-    def compute(self, requested_columns_name = None):
+    def calculate(self, requested_columns_name = None):
         column = self.column
         date = self.entity.simulation.date
         formula = self.formula
@@ -52,7 +54,7 @@ class Holder(object):
             if self.array is None:
                 self.array = np.empty(self.entity.count, dtype = column._dtype)
                 self.array.fill(column._default)
-            return self
+            return self.array
         return formula(requested_columns_name = requested_columns_name)
 
     def copy_for_entity(self, entity):
@@ -93,6 +95,19 @@ class Holder(object):
             formula_json = formula.to_json()
             formula_json.pop('@type', None)
             self_json.update(formula_json)
+
+        entity = self.entity
+        simulation = entity.simulation
+        self_json['consumers'] = consumers_json = []
+        for consumer in sorted(self.column.consumers):
+            consumer_holder = simulation.get_or_new_holder(consumer)
+            consumer_column = consumer_holder.column
+            consumers_json.append(collections.OrderedDict((
+                ('entity', consumer_holder.entity.key_plural),
+                ('label', consumer_column.label),
+                ('name', consumer_column.name),
+                )))
+
         if with_array and self.array is not None:
             self_json['array'] = self.array.tolist()
         return self_json
