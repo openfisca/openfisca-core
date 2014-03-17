@@ -84,3 +84,15 @@ class Holder(object):
             return None
         entity = self.entity
         return array.reshape([entity.simulation.steps_count, entity.step_size]).sum(1)
+
+    def to_json(self, with_array = False):
+        self_json = self.column.to_json()
+        self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
+        formula = self.formula
+        if formula is not None:
+            formula_json = formula.to_json()
+            formula_json.pop('@type', None)
+            self_json.update(formula_json)
+        if with_array and self.array is not None:
+            self_json['array'] = self.array.tolist()
+        return self_json

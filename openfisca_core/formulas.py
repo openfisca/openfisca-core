@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
+import inspect
 import logging
 
 import numpy as np
@@ -308,6 +310,35 @@ class AbstractSimpleFormula(AbstractFormula):
             boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
+
+    def to_json(self):
+        holder = self.holder
+        entity = holder.entity
+        simulation = entity.simulation
+
+        function = self.calculate
+        comments = inspect.getcomments(function)
+        doc = inspect.getdoc(function)
+        parameters_json = []
+        for parameter in self.parameters:
+            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
+            parameter_holder = simulation.get_or_new_holder(clean_parameter)
+            parameter_column = parameter_holder.column
+            parameters_json.append(collections.OrderedDict((
+                ('entity', parameter_holder.entity.key_plural),
+                ('label', parameter_column.label),
+                ('name', parameter_column.name),
+                )))
+        source_lines, line_number = inspect.getsourcelines(function)
+        return collections.OrderedDict((
+            ('@type', u'SimpleFormula'),
+            ('comments', comments.decode('utf-8') if comments is not None else None),
+            ('doc', doc.decode('utf-8') if doc is not None else None),
+            ('line_number', line_number),
+            ('module', inspect.getmodule(function).__name__),
+            ('parameters', parameters_json),
+            ('source', ''.join(source_lines).decode('utf-8')),
+            ))
 
 
 def get_arguments_str(arguments_holder):
