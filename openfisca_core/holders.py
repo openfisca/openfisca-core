@@ -60,7 +60,7 @@ class Holder(object):
         new.array = self.array
         return new
 
-    def graph(self, edges, level, nodes, visited):
+    def graph(self, edges, nodes, visited):
         column = self.column
         if self in visited:
             return
@@ -69,7 +69,6 @@ class Holder(object):
             id = column.name,
             group = self.entity.key_plural,
             label = column.name,
-            level = level,
             title = column.label,
             ))
         date = self.entity.simulation.date
@@ -77,7 +76,7 @@ class Holder(object):
         if formula is None or column.start is not None and column.start > date or column.end is not None \
                 and column.end < date:
             return
-        formula.graph_parameters(edges, level, nodes, visited)
+        formula.graph_parameters(edges, nodes, visited)
 
     def new_test_case_array(self):
         array = self.array

@@ -223,7 +223,7 @@ class AbstractSimpleFormula(AbstractFormula):
             raise
         return target_array
 
-    def graph_parameters(self, edges, level, nodes, visited):
+    def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
@@ -231,7 +231,7 @@ class AbstractSimpleFormula(AbstractFormula):
         simulation = entity.simulation
         for parameter in self.parameters:
             clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            simulation.graph(clean_parameter, edges, level + 1, nodes, visited)
+            simulation.graph(clean_parameter, edges, nodes, visited)
             edges.append({
                 'from': clean_parameter,
                 'to': column.name,

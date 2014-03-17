@@ -62,8 +62,8 @@ class AbstractEntity(object):
             holder = self.new_holder(column_name)
         return holder
 
-    def graph(self, column_name, edges, level, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, level, nodes, visited)
+    def graph(self, column_name, edges, nodes, visited):
+        self.get_or_new_holder(column_name).graph(edges, nodes, visited)
 
     def new_holder(self, column_name):
         column = self.column_by_name[column_name]

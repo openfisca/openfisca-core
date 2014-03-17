@@ -72,9 +72,6 @@ class Simulation(object):
     def compute(self, column_name, requested_columns_name = None):
         return self.entity_by_column_name[column_name].compute(column_name, requested_columns_name)
 
-    def graph(self, column_name, edges, level, nodes, visited):
-        self.entity_by_column_name[column_name].graph(column_name, edges, level, nodes, visited)
-
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]
         if default is UnboundLocalError:
@@ -87,6 +84,9 @@ class Simulation(object):
         if holder is None:
             holder = entity.new_holder(column_name)
         return holder
+
+    def graph(self, column_name, edges, nodes, visited):
+        self.entity_by_column_name[column_name].graph(column_name, edges, nodes, visited)
 
     def new_holder(self, column_name):
         entity = self.entity_by_column_name[column_name]
