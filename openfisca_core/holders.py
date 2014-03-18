@@ -99,7 +99,7 @@ class Holder(object):
         entity = self.entity
         simulation = entity.simulation
         self_json['consumers'] = consumers_json = []
-        for consumer in sorted(self.column.consumers):
+        for consumer in sorted(self.column.consumers or []):
             consumer_holder = simulation.get_or_new_holder(consumer)
             consumer_column = consumer_holder.column
             consumers_json.append(collections.OrderedDict((
