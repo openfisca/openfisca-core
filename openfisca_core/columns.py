@@ -102,6 +102,8 @@ class Column(object):
             if isinstance(start, datetime.date):
                 start = start.isoformat()
             self_json['start'] = start
+        if self.survey_only:
+            self_json['survey_only'] = self.survey_only
         if self.val_type is not None:
             self_json['val_type'] = self.val_type
         return self_json
