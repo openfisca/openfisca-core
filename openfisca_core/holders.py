@@ -42,7 +42,7 @@ class Holder(object):
         self.column = column
         assert entity is not None
         self.entity = entity
-        if isinstance(column, columns.Prestation):
+        if column.formula_constructor is not None:
             self.formula = column.formula_constructor(holder = self)
 
     def calculate(self, requested_columns_name = None):
