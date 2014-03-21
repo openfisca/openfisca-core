@@ -25,12 +25,17 @@
 
 import collections
 import datetime
+import re
 
 from biryani1 import strings
 import numpy as np
 
 from . import conv
 from .enumerations import Enum
+
+
+N_ = lambda message: message
+year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
 
 
 # Base Column
@@ -134,15 +139,31 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    _dtype = np.datetime64
+    _dtype = 'datetime64[D]'
     json_type = 'Date'
     val_type = 'date'
 
     @property
     def json_to_python(self):
         return conv.pipe(
-            conv.test_isinstance(basestring),
-            conv.iso8601_input_to_date,
+            conv.condition(
+                conv.test_isinstance(datetime.date),
+                conv.noop,
+                conv.condition(
+                    conv.test_isinstance(int),
+                    conv.pipe(
+                        conv.test_between(1870, 2099),
+                        conv.function(lambda year: datetime.date(year, 1, 1)),
+                        ),
+                    conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid year')),
+                        conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
+                        conv.iso8601_input_to_date,
+                        ),
+                    ),
+                ),
+            conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
             )
 
 
@@ -171,6 +192,15 @@ class IntCol(Column):
     @property
     def json_to_python(self):
         return conv.test_isinstance(int)
+
+
+class StrCol(Column):
+    _dtype = object
+    json_type = 'String'
+
+    @property
+    def json_to_python(self):
+        return conv.test_isinstance(basestring)
 
 
 # Level-2 Columns
