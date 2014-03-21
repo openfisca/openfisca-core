@@ -54,8 +54,8 @@ class Column(object):
     survey_only = False
     val_type = None
 
-    def __init__(self, label = None, cerfa_field = None, default = None, end = None, entity = None, info = None,
-            legislative_input = True, start = None, survey_only = False, val_type = None):
+    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
+            label = None, legislative_input = True, start = None, survey_only = False, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self._default:
@@ -63,6 +63,8 @@ class Column(object):
         if end is not None:
             self.end = end
         self.entity = entity or 'ind'
+        if function is not None:
+            self._func = function
         if info is not None:
             self.info = info
         if label is not None:
@@ -246,60 +248,3 @@ class EnumCol(IntCol):
                 for label, index in self.enum
                 )
         return self_json
-
-
-# Base Prestation
-
-
-class Prestation(Column):
-    """
-    Prestation is a wraper around a function which takes some arguments and return a single array.
-    _P is a reserved kwargs intended to pass a tree of parametres to the function
-    """
-
-    def __init__(self, func, cerfa_field = None, default = None, end = None, entity = None, label = None, start = None,
-            survey_only = False, val_type = None):
-        super(Prestation, self).__init__(cerfa_field = cerfa_field, default = default, entity = entity, end = end,
-            label = label, start = start, survey_only = survey_only, val_type = val_type)
-
-        assert func is not None, 'A function to compute the prestation should be provided'
-        self._func = func
-
-
-# Level-1 Prestations
-
-
-class BoolPresta(Prestation, BoolCol):
-    '''
-    A Prestation inheriting from BoolCol
-    '''
-    def __init__(self, func, **kwargs):
-        BoolCol.__init__(self, **kwargs)
-        Prestation.__init__(self, func = func, **kwargs)
-
-
-class EnumPresta(Prestation, EnumCol):
-    '''
-    A Prestation inheriting from EnumCol
-    '''
-    def __init__(self, func, enum = None, **kwargs):
-        EnumCol.__init__(self, enum = enum, **kwargs)
-        Prestation.__init__(self, func, **kwargs)
-
-
-class FloatPresta(Prestation, FloatCol):
-    '''
-    A Prestation inheriting from BoolCol
-    '''
-    def __init__(self, func, **kwargs):
-        FloatCol.__init__(self, **kwargs)
-        Prestation.__init__(self, func = func, **kwargs)
-
-
-class IntPresta(Prestation, IntCol):
-    '''
-    A Prestation inheriting from IntCol
-    '''
-    def __init__(self, func, **kwargs):
-        IntCol.__init__(self, **kwargs)
-        Prestation.__init__(self, func, **kwargs)
