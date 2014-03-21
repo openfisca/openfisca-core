@@ -53,14 +53,13 @@ class Column(object):
     info = None
     # json_type = None  # Defined in sub-classes
     label = None
-    legislative_input = False
     name = None
     start = None
     survey_only = False
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
-            label = None, legislative_input = True, start = None, survey_only = False, val_type = None):
+            label = None, start = None, survey_only = False, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self._default:
@@ -74,8 +73,6 @@ class Column(object):
             self.info = info
         if label is not None:
             self.label = label
-        if legislative_input:
-            self.legislative_input = True
         if start is not None:
             self.start = start
         if survey_only:
