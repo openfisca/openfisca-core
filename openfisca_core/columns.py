@@ -257,10 +257,10 @@ class Prestation(Column):
     _P is a reserved kwargs intended to pass a tree of parametres to the function
     """
 
-    def __init__(self, func, cerfa_field = None, end = None, entity = None, label = None, start = None,
+    def __init__(self, func, cerfa_field = None, default = None, end = None, entity = None, label = None, start = None,
             survey_only = False, val_type = None):
-        super(Prestation, self).__init__(cerfa_field = cerfa_field, entity = entity, end = end, label = label,
-            start = start, survey_only = survey_only, val_type = val_type)
+        super(Prestation, self).__init__(cerfa_field = cerfa_field, default = default, entity = entity, end = end,
+            label = label, start = start, survey_only = survey_only, val_type = val_type)
 
         assert func is not None, 'A function to compute the prestation should be provided'
         self._func = func
