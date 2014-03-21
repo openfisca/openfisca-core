@@ -206,7 +206,7 @@ class StrCol(Column):
 # Level-2 Columns
 
 
-class AgesCol(IntCol):
+class AgeCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
@@ -215,7 +215,7 @@ class AgesCol(IntCol):
     @property
     def json_to_python(self):
         return conv.pipe(
-            super(AgesCol, self).json_to_python,
+            super(AgeCol, self).json_to_python,
             conv.first_match(
                 conv.test_greater_or_equal(0),
                 conv.test_equals(-9999),
