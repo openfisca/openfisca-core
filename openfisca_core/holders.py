@@ -52,8 +52,8 @@ class Holder(object):
         if formula is None or column.start is not None and column.start > date or column.end is not None \
                 and column.end < date:
             if self.array is None:
-                self.array = np.empty(self.entity.count, dtype = column._dtype)
-                self.array.fill(column._default)
+                self.array = np.empty(self.entity.count, dtype = column.dtype)
+                self.array.fill(column.default)
             return self.array
         return formula.calculate(requested_columns_name = requested_columns_name)
 

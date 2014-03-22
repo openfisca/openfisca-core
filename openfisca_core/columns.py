@@ -42,14 +42,14 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]
 
 
 class Column(object):
-    _default = 0
-    _dtype = float
-    _func = None
     cerfa_field = None
     consumers = None  # list of prestation names using this column
+    default = 0
+    dtype = float
     end = None
     entity = None
     formula_constructor = None
+    function = None
     info = None
     # json_type = None  # Defined in sub-classes
     label = None
@@ -62,13 +62,13 @@ class Column(object):
             label = None, start = None, survey_only = False, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
-        if default is not None and default != self._default:
-            self._default = default
+        if default is not None and default != self.default:
+            self.default = default
         if end is not None:
             self.end = end
         self.entity = entity or 'ind'
         if function is not None:
-            self._func = function
+            self.function = function
         if info is not None:
             self.info = info
         if label is not None:
@@ -86,8 +86,8 @@ class Column(object):
             ))
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
-        if self._default is not None:
-            self_json['default'] = self._default
+        if self.default is not None:
+            self_json['default'] = self.default
         end = self.end
         if end is not None:
             if isinstance(end, datetime.date):
@@ -120,8 +120,8 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    _default = False
-    _dtype = np.bool
+    default = False
+    dtype = np.bool
     json_type = 'Boolean'
 
     @property
@@ -136,7 +136,7 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    _dtype = 'datetime64[D]'
+    dtype = 'datetime64[D]'
     json_type = 'Date'
     val_type = 'date'
 
@@ -168,7 +168,7 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    _dtype = np.float32
+    dtype = np.float32
     json_type = 'Float'
 
     @property
@@ -183,7 +183,7 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    _dtype = np.int32
+    dtype = np.int32
     json_type = 'Integer'
 
     @property
@@ -192,7 +192,7 @@ class IntCol(Column):
 
 
 class StrCol(Column):
-    _dtype = object
+    dtype = object
     json_type = 'String'
 
     @property
@@ -207,7 +207,7 @@ class AgeCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    _default = -9999
+    default = -9999
 
     @property
     def json_to_python(self):
@@ -224,7 +224,7 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    _dtype = np.int16
+    dtype = np.int16
     enum = None
     index_by_slug = None
     json_type = 'Enumeration'

@@ -118,8 +118,8 @@ class SimpleFormula(Formula):
         assert array.size == entity.count, \
             u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
             column.name, self.get_arguments_str(), array.size, entity.count,entity.key_singular).encode('utf-8')
-        if array.dtype != column._dtype:
-            array = array.astype(column._dtype)
+        if array.dtype != column.dtype:
+            array = array.astype(column.dtype)
         if simulation.debug:
             log.info(u'<-- {}@{}: {}'.format(entity.key_plural, column.name, array))
         holder.array = array
@@ -150,7 +150,7 @@ class SimpleFormula(Formula):
                     .format(entity.key_plural, array_or_holder.entity.key_plural).encode('utf-8')
             array = array_or_holder.array
             if default is None:
-                default = array_or_holder.column._default
+                default = array_or_holder.column.default
         else:
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
@@ -210,7 +210,7 @@ class SimpleFormula(Formula):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
             if default is None:
-                default = array_or_holder.column._default
+                default = array_or_holder.column.default
         else:
             array = array_or_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
@@ -266,7 +266,7 @@ class SimpleFormula(Formula):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
             if default is None:
-                default = array_or_holder.column._default
+                default = array_or_holder.column.default
         else:
             array = array_or_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
