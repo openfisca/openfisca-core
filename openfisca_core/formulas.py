@@ -54,7 +54,6 @@ class SimpleFormula(Formula):
     def __init__(self, holder = None):
         super(SimpleFormula, self).__init__(holder = holder)
 
-        holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
