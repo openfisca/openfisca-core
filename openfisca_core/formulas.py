@@ -35,7 +35,7 @@ from . import holders
 log = logging.getLogger(__name__)
 
 
-class AbstractFormula(object):
+class Formula(object):
     holder = None
 
     def __init__(self, holder = None):
@@ -43,7 +43,7 @@ class AbstractFormula(object):
         self.holder = holder
 
 
-class AbstractSimpleFormula(AbstractFormula):
+class SimpleFormula(Formula):
     holder_by_parameter = None
     parameters = None  # class attribute
     requires_default_legislation = False  # class attribute
@@ -51,7 +51,7 @@ class AbstractSimpleFormula(AbstractFormula):
     requires_self = False  # class attribute
 
     def __init__(self, holder = None):
-        super(AbstractSimpleFormula, self).__init__(holder = holder)
+        super(SimpleFormula, self).__init__(holder = holder)
 
         holder = self.holder
         column = holder.column
