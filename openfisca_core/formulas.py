@@ -44,6 +44,7 @@ class Formula(object):
 
 
 class SimpleFormula(Formula):
+    function = None  # Overridden by subclasses
     holder_by_parameter = None
     parameters = None  # class attribute
     requires_default_legislation = False  # class attribute
@@ -62,7 +63,10 @@ class SimpleFormula(Formula):
             clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
             holder_by_parameter[parameter] = parameter_holder = simulation.get_or_new_holder(clean_parameter)
 
-    def __call__(self, requested_columns_name = None):
+    def any_by_roles(self, array_or_holder, entity = None, roles = None):
+        return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
+
+    def calculate(self, requested_columns_name = None):
         holder = self.holder
         column = holder.column
         entity = holder.entity
@@ -105,7 +109,7 @@ class SimpleFormula(Formula):
         if simulation.debug:
             log.info(u'--> {}@{}({})'.format(entity.key_plural, column.name, self.get_arguments_str()))
         try:
-            array = self.calculate(**arguments)
+            array = self.function(**arguments)
         except:
             log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
                 self.get_arguments_str()))
@@ -122,9 +126,6 @@ class SimpleFormula(Formula):
         holder.array = array
         requested_columns_name.remove(holder.column.name)
         return array
-
-    def any_by_roles(self, array_or_holder, entity = None, roles = None):
-        return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
 
     def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
         """Cast an entity array to a persons array, setting only cells of persons having the given role."""
@@ -179,7 +180,7 @@ class SimpleFormula(Formula):
 
     @classmethod
     def extract_parameters(cls):
-        function = cls.calculate
+        function = cls.function
         code = function.__code__
         cls.parameters = parameters = list(code.co_varnames[:code.co_argcount])
         # Check whether default legislation is used by function.
@@ -324,7 +325,7 @@ class SimpleFormula(Formula):
         return target_array
 
     def to_json(self):
-        function = self.calculate
+        function = self.function
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         parameters_json = []

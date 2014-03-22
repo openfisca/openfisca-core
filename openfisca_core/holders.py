@@ -55,7 +55,7 @@ class Holder(object):
                 self.array = np.empty(self.entity.count, dtype = column._dtype)
                 self.array.fill(column._default)
             return self.array
-        return formula(requested_columns_name = requested_columns_name)
+        return formula.calculate(requested_columns_name = requested_columns_name)
 
     def copy_for_entity(self, entity):
         new = self.__class__(column = self.column, entity = entity)
