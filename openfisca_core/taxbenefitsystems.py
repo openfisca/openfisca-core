@@ -70,15 +70,10 @@ class AbstractTaxBenefitSystem(object):
         column_by_name.update(self.prestation_by_name)
         self.prestation_by_name = None
 
-        for column_name, column in column_by_name.iteritems():
+        for column in column_by_name.itervalues():
             formula_class = column.formula_constructor
             if formula_class is not None:
-                for parameter in formula_class.parameters:
-                    clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-                    parameter_column = column_by_name[clean_parameter]
-                    if parameter_column.consumers is None:
-                        parameter_column.consumers = set()
-                    parameter_column.consumers.add(column_name)
+                formula_class.set_dependencies(column, self)
 
         self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
 

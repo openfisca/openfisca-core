@@ -35,7 +35,7 @@ from . import holders
 log = logging.getLogger(__name__)
 
 
-class Formula(object):
+class AbstractFormula(object):
     holder = None
 
     def __init__(self, holder = None):
@@ -43,8 +43,61 @@ class Formula(object):
         self.holder = holder
 
 
-class SimpleFormula(Formula):
-    function = None  # Overridden by subclasses
+class AlternativeFormula(AbstractFormula):
+    alternative_formulas = None
+    alternative_formulas_constructor = None  # Class attribute. List of formulas sorted by descending preference
+
+    def __init__(self, holder = None):
+        super(AlternativeFormula, self).__init__(holder = holder)
+
+        self.alternative_formulas = [
+            alternative_formula_constructor(holder = holder)
+            for alternative_formula_constructor in self.alternative_formulas_constructor
+            ]
+
+    def calculate(self, lazy = False, requested_formulas = None):
+        if requested_formulas is None:
+            requested_formulas = set()
+        else:
+            assert self not in requested_formulas, 'Infinite loop. Missing values for columns: {}'.format(
+                u', '.join(sorted(
+                    requested_formula.holder.column.name
+                    for requested_formula in requested_formulas
+                    )).encode('utf-8'),
+                )
+
+        holder = self.holder
+        column = holder.column
+
+        if holder.array is not None:
+            return holder.array
+#        if holder.disabled:
+#            return holder.array
+
+        requested_formulas.add(self)
+        for alternative_formula in self.alternative_formulas:
+            array = alternative_formula.calculate(lazy = True, requested_formulas = requested_formulas)
+            if array is not None:
+                holder.array = array
+                requested_formulas.remove(self)
+                return array
+        if lazy:
+            requested_formulas.remove(self)
+            return None
+        # No alternative has an existing array => Calculate array using first alternative.
+        alternative_formula = self.alternative_formulas[0]
+        holder.array = array = alternative_formula.calculate(lazy = False, requested_formulas = requested_formulas)
+        requested_formulas.remove(self)
+        return array
+
+    @classmethod
+    def set_dependencies(cls, column, tax_benefit_system):
+        for alternative_formula_constructor in cls.alternative_formulas_constructor:
+            alternative_formula_constructor.set_dependencies(column, tax_benefit_system)
+
+
+class SimpleFormula(AbstractFormula):
+    function = None  # Class attribute. Overridden by subclasses
     holder_by_parameter = None
     parameters = None  # class attribute
     requires_default_legislation = False  # class attribute
@@ -65,28 +118,37 @@ class SimpleFormula(Formula):
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
         return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
 
-    def calculate(self, requested_columns_name = None):
+    def calculate(self, lazy = False, requested_formulas = None):
+        if requested_formulas is None:
+            requested_formulas = set()
+        else:
+            assert self not in requested_formulas, 'Infinite loop. Missing values for columns: {}'.format(
+                u', '.join(sorted(
+                    requested_formula.holder.column.name
+                    for requested_formula in requested_formulas
+                    )).encode('utf-8'),
+                )
+
         holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-
-        if requested_columns_name is None:
-            requested_columns_name = set()
-        else:
-            assert column.name not in requested_columns_name, 'Infinite loop. Missing values for columns: {}'.format(
-                u', '.join(sorted(requested_columns_name)).encode('utf-8'))
 
         if holder.array is not None:
             return holder.array
 #        if holder.disabled:
 #            return holder.array
 
-        requested_columns_name.add(holder.column.name)
+        requested_formulas.add(self)
         required_parameters = set(self.holder_by_parameter.iterkeys())
         arguments = {}
         for parameter, parameter_holder in self.holder_by_parameter.iteritems():
-            parameter_holder.calculate(requested_columns_name = requested_columns_name)
+            parameter_array = parameter_holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
+            if parameter_array is None:
+                # A parameter is missing in lazy mode, formula can not be calculated yet.
+                assert lazy
+                requested_formulas.remove(self)
+                return None
             # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
             arguments[parameter] = parameter_holder if parameter.endswith('_holder') else parameter_holder.array
@@ -123,7 +185,7 @@ class SimpleFormula(Formula):
         if simulation.debug:
             log.info(u'<-- {}@{}: {}'.format(entity.key_plural, column.name, array))
         holder.array = array
-        requested_columns_name.remove(holder.column.name)
+        requested_formulas.remove(self)
         return array
 
     def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
@@ -250,6 +312,15 @@ class SimpleFormula(Formula):
                 'from': parameter_holder.column.name,
                 'to': column.name,
                 })
+
+    @classmethod
+    def set_dependencies(cls, column, tax_benefit_system):
+        for parameter in cls.parameters:
+            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
+            parameter_column = tax_benefit_system.column_by_name[clean_parameter]
+            if parameter_column.consumers is None:
+                parameter_column.consumers = set()
+            parameter_column.consumers.add(column.name)
 
     def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""

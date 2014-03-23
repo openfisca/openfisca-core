@@ -66,11 +66,12 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, requested_columns_name = None):
-        return self.compute(column_name, requested_columns_name = requested_columns_name).array
+    def calculate(self, column_name, lazy = False, requested_formulas = None):
+        return self.compute(column_name, lazy = lazy, requested_formulas = requested_formulas).array
 
-    def compute(self, column_name, requested_columns_name = None):
-        return self.entity_by_column_name[column_name].compute(column_name, requested_columns_name)
+    def compute(self, column_name, lazy = False, requested_formulas = None):
+        return self.entity_by_column_name[column_name].compute(column_name, lazy = lazy,
+            requested_formulas = requested_formulas)
 
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]

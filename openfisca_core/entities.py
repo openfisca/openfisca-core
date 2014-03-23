@@ -43,9 +43,9 @@ class AbstractEntity(object):
         if simulation is not None:
             self.simulation = simulation
 
-    def compute(self, column_name, requested_columns_name = None):
+    def compute(self, column_name, lazy = False, requested_formulas = None):
         holder = self.get_or_new_holder(column_name)
-        holder.calculate(requested_columns_name = requested_columns_name)
+        holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
         return holder
 
     def copy_for_simulation(self, simulation):
@@ -70,4 +70,6 @@ class AbstractEntity(object):
     def new_holder(self, column_name):
         column = self.column_by_name[column_name]
         self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = self)
+        if column.formula_constructor is not None:
+            holder.formula = column.formula_constructor(holder = holder)
         return holder
