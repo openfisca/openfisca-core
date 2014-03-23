@@ -80,6 +80,9 @@ class Column(object):
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
 
+    def json_default(self):
+        return self.default
+
     def to_json(self):
         self_json = collections.OrderedDict((
             ('@type', self.json_type),
@@ -87,7 +90,7 @@ class Column(object):
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
         if self.default is not None:
-            self_json['default'] = self.default
+            self_json['default'] = self.json_default()
         end = self.end
         if end is not None:
             if isinstance(end, datetime.date):
@@ -139,6 +142,9 @@ class DateCol(Column):
     dtype = 'datetime64[D]'
     json_type = 'Date'
     val_type = 'date'
+
+    def json_default(self):
+        return unicode(np.array(self.default, self.dtype))  # 0 = 1970-01-01
 
     @property
     def json_to_python(self):

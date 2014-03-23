@@ -90,10 +90,7 @@ class Holder(object):
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
         if formula is not None:
-            formula_json = formula.to_json()
-            formula_json.pop('@type', None)
-            self_json.update(formula_json)
-
+            self_json['formula'] = formula.to_json()
         entity = self.entity
         simulation = entity.simulation
         self_json['consumers'] = consumers_json = []

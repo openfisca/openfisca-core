@@ -95,6 +95,15 @@ class AlternativeFormula(AbstractFormula):
         for alternative_formula_constructor in cls.alternative_formulas_constructor:
             alternative_formula_constructor.set_dependencies(column, tax_benefit_system)
 
+    def to_json(self):
+        return collections.OrderedDict((
+            ('@type', u'AlternativeFormula'),
+            ('alternative_formulas', [
+                alternative_formula.to_json()
+                for alternative_formula in self.alternative_formulas
+                ]),
+            ))
+
 
 class SimpleFormula(AbstractFormula):
     function = None  # Class attribute. Overridden by subclasses
