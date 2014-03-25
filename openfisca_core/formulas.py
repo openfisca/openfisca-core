@@ -56,18 +56,22 @@ class AlternativeFormula(AbstractFormula):
             ]
 
     def calculate(self, lazy = False, requested_formulas = None):
-        if requested_formulas is None:
-            requested_formulas = set()
-        else:
-            assert self not in requested_formulas, 'Infinite loop. Missing values for columns: {}'.format(
-                u', '.join(sorted(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    )).encode('utf-8'),
-                )
-
         holder = self.holder
         column = holder.column
+
+        if requested_formulas is None:
+            requested_formulas = set()
+        elif lazy:
+            if self in requested_formulas:
+                return holder.array
+        else:
+            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                column.name,
+                u', '.join(sorted(set(
+                    requested_formula.holder.column.name
+                    for requested_formula in requested_formulas
+                    ))).encode('utf-8'),
+                )
 
         if holder.array is not None:
             return holder.array
@@ -76,7 +80,8 @@ class AlternativeFormula(AbstractFormula):
 
         requested_formulas.add(self)
         for alternative_formula in self.alternative_formulas:
-            array = alternative_formula.calculate(lazy = True, requested_formulas = requested_formulas)
+            # Caution: Note that requested_formulas are copied below.
+            array = alternative_formula.calculate(lazy = True, requested_formulas = requested_formulas.copy())
             if array is not None:
                 holder.array = array
                 requested_formulas.remove(self)
@@ -85,6 +90,7 @@ class AlternativeFormula(AbstractFormula):
             requested_formulas.remove(self)
             return None
         # No alternative has an existing array => Calculate array using first alternative.
+        # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
         holder.array = array = alternative_formula.calculate(lazy = False, requested_formulas = requested_formulas)
         requested_formulas.remove(self)
@@ -128,18 +134,23 @@ class SimpleFormula(AbstractFormula):
         return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
 
     def calculate(self, lazy = False, requested_formulas = None):
-        if requested_formulas is None:
-            requested_formulas = set()
-        else:
-            assert self not in requested_formulas, 'Infinite loop. Missing values for columns: {}'.format(
-                u', '.join(sorted(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    )).encode('utf-8'),
-                )
-
         holder = self.holder
         column = holder.column
+
+        if requested_formulas is None:
+            requested_formulas = set()
+        elif lazy:
+            if self in requested_formulas:
+                return holder.array
+        else:
+            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                column.name,
+                u', '.join(sorted(set(
+                    requested_formula.holder.column.name
+                    for requested_formula in requested_formulas
+                    ))).encode('utf-8'),
+                )
+
         entity = holder.entity
         simulation = entity.simulation
 
