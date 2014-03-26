@@ -81,14 +81,7 @@ class Simulation(object):
 
     def get_or_new_holder(self, column_name):
         entity = self.entity_by_column_name[column_name]
-        holder = entity.holder_by_name.get(column_name)
-        if holder is None:
-            holder = entity.new_holder(column_name)
-        return holder
+        return entity.get_or_new_holder(column_name)
 
     def graph(self, column_name, edges, nodes, visited):
         self.entity_by_column_name[column_name].graph(column_name, edges, nodes, visited)
-
-    def new_holder(self, column_name):
-        entity = self.entity_by_column_name[column_name]
-        return entity.new_holder(column_name)

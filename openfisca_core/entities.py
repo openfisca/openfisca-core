@@ -61,15 +61,11 @@ class AbstractEntity(object):
     def get_or_new_holder(self, column_name):
         holder = self.holder_by_name.get(column_name)
         if holder is None:
-            holder = self.new_holder(column_name)
+            column = self.column_by_name[column_name]
+            self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = self)
+            if column.formula_constructor is not None:
+                holder.formula = column.formula_constructor(holder = holder)
         return holder
 
     def graph(self, column_name, edges, nodes, visited):
         self.get_or_new_holder(column_name).graph(edges, nodes, visited)
-
-    def new_holder(self, column_name):
-        column = self.column_by_name[column_name]
-        self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = self)
-        if column.formula_constructor is not None:
-            holder.formula = column.formula_constructor(holder = holder)
-        return holder
