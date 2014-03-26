@@ -96,6 +96,11 @@ class AlternativeFormula(AbstractFormula):
         requested_formulas.remove(self)
         return array
 
+    def graph_parameters(self, edges, nodes, visited):
+        """Recursively build a graph of formulas."""
+        for alternative_formula in self.alternative_formulas:
+            alternative_formula.graph_parameters(edges, nodes, visited)
+
     @classmethod
     def set_dependencies(cls, column, tax_benefit_system):
         for alternative_formula_constructor in cls.alternative_formulas_constructor:
