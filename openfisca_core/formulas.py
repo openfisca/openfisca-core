@@ -116,6 +116,86 @@ class AlternativeFormula(AbstractFormula):
             ))
 
 
+class DatedFormula(AbstractFormula):
+    dated_formulas = None
+    dated_formulas_class = None  # Class attribute. List of formulas sorted by descending preference
+
+    def __init__(self, holder = None):
+        super(DatedFormula, self).__init__(holder = holder)
+
+        self.dated_formulas = [
+            dict(
+                end = dated_formula_class['end'],
+                formula = dated_formula_class['formula_class'](holder = holder),
+                start = dated_formula_class['start'],
+                )
+            for dated_formula_class in self.dated_formulas_class
+            ]
+
+    def calculate(self, lazy = False, requested_formulas = None):
+        holder = self.holder
+        column = holder.column
+
+        if requested_formulas is None:
+            requested_formulas = set()
+        elif lazy:
+            if self in requested_formulas:
+                return holder.array
+        else:
+            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                column.name,
+                u', '.join(sorted(set(
+                    requested_formula.holder.column.name
+                    for requested_formula in requested_formulas
+                    ))).encode('utf-8'),
+                )
+
+        if holder.array is not None:
+            return holder.array
+#        if holder.disabled:
+#            return holder.array
+
+        entity = holder.entity
+        simulation = entity.simulation
+        datesim = simulation.compact_legislation.datesim
+        requested_formulas.add(self)
+        for dated_formula in self.dated_formulas:
+            if dated_formula['start'] <= datesim <= dated_formula['end']:
+                array = dated_formula['formula'].calculate(lazy = lazy, requested_formulas = requested_formulas)
+                if array is not None:
+                    holder.array = array
+                    requested_formulas.remove(self)
+                    return array
+
+        holder.array = np.empty(entity.count, dtype = column.dtype)
+        holder.array.fill(column.default)
+        requested_formulas.remove(self)
+        return holder.array
+
+    def graph_parameters(self, edges, nodes, visited):
+        """Recursively build a graph of formulas."""
+        for dated_formula in self.dated_formulas:
+            dated_formula['formula'].graph_parameters(edges, nodes, visited)
+
+    @classmethod
+    def set_dependencies(cls, column, tax_benefit_system):
+        for dated_formula_class in cls.dated_formulas_class:
+            dated_formula_class['formula_class'].set_dependencies(column, tax_benefit_system)
+
+    def to_json(self):
+        return collections.OrderedDict((
+            ('@type', u'DatedFormula'),
+            ('dated_formulas', [
+                dict(
+                    end = dated_formula['end'],
+                    formula = dated_formula['formula'].to_json(),
+                    start = dated_formula['start'],
+                    )
+                for dated_formula in self.dated_formulas
+                ]),
+            ))
+
+
 class SelectFormula(AbstractFormula):
     formula_by_main_variable = None
     formula_constructor_by_main_variable = None  # Class attribute. List of formulas sorted by descending preference
@@ -182,86 +262,6 @@ class SelectFormula(AbstractFormula):
                 (main_variable, formula.to_json())
                 for main_variable, formula in self.formula_by_main_variable.iteritems()
                 )),
-            ))
-
-
-class DatedFormula(AbstractFormula):
-    dated_formulas_informations = None
-    dated_formulas_class_informations = None  # Class attribute. List of formulas sorted by descending preference
-
-    def __init__(self, holder = None):
-        super(DatedFormula, self).__init__(holder = holder)
-
-        self.dated_formulas_informations = [
-            dict(
-                formula = dated_formula_class_informations['formula_class'](holder = holder),
-                start = dated_formula_class_informations['start'],
-                end = dated_formula_class_informations['end'],
-                )
-            for dated_formula_class_informations in self.dated_formulas_class_informations
-            ]
-
-    def calculate(self, lazy = False, requested_formulas = None):
-        holder = self.holder
-        column = holder.column
-
-        if requested_formulas is None:
-            requested_formulas = set()
-        elif lazy:
-            if self in requested_formulas:
-                return holder.array
-        else:
-            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
-                column.name,
-                u', '.join(sorted(set(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    ))).encode('utf-8'),
-                )
-
-        if holder.array is not None:
-            return holder.array
-#        if holder.disabled:
-#            return holder.array
-
-        entity = holder.entity
-        simulation = entity.simulation
-        datesim = simulation.compact_legislation.datesim
-        requested_formulas.add(self)
-        for dated_formula_informations in self.dated_formulas_informations:
-            if dated_formula_informations['start'] <= datesim <= dated_formula_informations['end']:
-                array = dated_formula_informations['formula'].calculate(lazy = lazy, requested_formulas = requested_formulas)
-                if array is not None:
-                    holder.array = array
-                    requested_formulas.remove(self)
-                    return array
-
-        holder.array = np.empty(entity.count, dtype = column.dtype)
-        holder.array.fill(column.default)
-        requested_formulas.remove(self)
-        return holder.array
-
-    def graph_parameters(self, edges, nodes, visited):
-        """Recursively build a graph of formulas."""
-        for dated_formula_informations in self.dated_formulas_informations:
-            dated_formula_informations['formula'].graph_parameters(edges, nodes, visited)
-
-    @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
-        for dated_formula_class_informations in cls.dated_formulas_class_informations:
-            dated_formula_class_informations['formula_class'].set_dependencies(column, tax_benefit_system)
-
-    def to_json(self):
-        return collections.OrderedDict((
-            ('@type', u'DatedFormula'),
-            ('dated_formulas_informations', [
-                dict(
-                    formula = dated_formula_informations['formula'].to_json(),
-                    start = dated_formula_informations['start'],
-                    end = dated_formula_informations['end'],
-                    )
-                for dated_formula_informations in self.dated_formulas_informations
-                ]),
             ))
 
 
