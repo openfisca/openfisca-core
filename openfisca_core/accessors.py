@@ -39,14 +39,16 @@ class Accessor(object):
             if parent is not None:
                 self.parent = parent
 
-    def __call__(self, legislation):
+    def __call__(self, legislation, default = UnboundLocalError):
         parent = self.parent
         if parent is not None:
-            legislation = parent(legislation)
+            legislation = parent(legislation, default = default)
         name = self.name
-        if name is None:
+        if name is None or legislation is default:
             return legislation
-        return getattr(legislation, self.name)
+        return getattr(legislation, self.name) \
+            if default is UnboundLocalError \
+            else getattr(legislation, self.name, default)
 
     def __getattribute__(self, name):
         if name.startswith('__') or name in ('iter_ancestors', 'name', 'parent'):
