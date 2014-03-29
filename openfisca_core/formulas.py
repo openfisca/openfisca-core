@@ -29,7 +29,7 @@ import logging
 
 import numpy as np
 
-from . import holders
+from . import accessors, holders
 
 
 log = logging.getLogger(__name__)
@@ -268,6 +268,7 @@ class SelectFormula(AbstractFormula):
 class SimpleFormula(AbstractFormula):
     function = None  # Class attribute. Overridden by subclasses
     holder_by_parameter = None
+    legislation_accessor_by_name = None
     parameters = None  # class attribute
     requires_default_legislation = False  # class attribute
     requires_legislation = False  # class attribute
@@ -314,7 +315,8 @@ class SimpleFormula(AbstractFormula):
 #            return holder.array
 
         requested_formulas.add(self)
-        required_parameters = set(self.holder_by_parameter.iterkeys())
+        required_parameters = set(self.holder_by_parameter.iterkeys()).union(
+            (self.legislation_accessor_by_name or {}).iterkeys())
         arguments = {}
         for parameter, parameter_holder in self.holder_by_parameter.iteritems():
             parameter_array = parameter_holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
@@ -336,6 +338,10 @@ class SimpleFormula(AbstractFormula):
         if self.requires_self:
             required_parameters.add('self')
             arguments['self'] = self
+        if self.legislation_accessor_by_name is not None:
+            for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
+                # TODO: Also handle simulation.default_compact_legislation
+                arguments[name] = legislation_accessor(simulation.compact_legislation)
 
         provided_parameters = set(arguments.keys())
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
@@ -417,7 +423,14 @@ class SimpleFormula(AbstractFormula):
     def extract_parameters(cls):
         function = cls.function
         code = function.__code__
-        cls.parameters = parameters = list(code.co_varnames[:code.co_argcount])
+        defaults = function.__defaults__ or ()
+        if defaults:
+            cls.legislation_accessor_by_name = {}
+            for name, default in zip(code.co_varnames[code.co_argcount - len(defaults):code.co_argcount], defaults):
+                assert isinstance(default, accessors.Accessor), 'Unexpected defaut parameter: {} = {}'.format(name,
+                    default)
+                cls.legislation_accessor_by_name[name] = default
+        cls.parameters = parameters = list(code.co_varnames[:code.co_argcount - len(defaults)])
         # Check whether default legislation is used by function.
         if '_defaultP' in parameters:
             cls.requires_default_legislation = True
