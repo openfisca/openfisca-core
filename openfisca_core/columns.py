@@ -130,7 +130,7 @@ class BoolCol(Column):
     @property
     def json_to_python(self):
         return conv.pipe(
-            conv.test_isinstance(int, bool),
+            conv.test_isinstance((int, bool)),
             conv.anything_to_bool,
             )
 
