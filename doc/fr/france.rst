@@ -124,13 +124,17 @@ D'autres caractéristiques sont également disponibles.
 Avertissement
 -------------
 
-OpenFisca calcule le montant de l'impôt sur le revenu et des prestations,
-pour l'année indiquée, à partir des informations que vous avez saisies.
-Ces montants sont donnés à titre indicatif et pourront être différents quand ils
-seront calculés par l'administration ou la Caf au moment de l'étude de votre dossier.
-Les résultats fournis ne sauraient engager l'administration ou votre Caf sur le montant
-définitif de l'impôt à acquitter ou des prestations versées. En effet, votre situation
-familiale et/ou vos ressources ou celles de l’un des membres de votre famille peuvent
-changer ou ne pas avoir été prises en compte lors de la simulation et certaines hypothèses
-simplificatrices ont été effectuées.
+OpenFisca calcule les cotisations et contribution sociales, le montant
+de l'impôt sur le revenu et des prestations sociales, pour l'année
+indiquée, à partir des informations que vous avez saisies.  Ces
+montants sont donnés à titre indicatif et pourront être différents
+de ceux calculés par l'administration ou la Caf au moment de
+l'étude de votre dossier.  Les résultats fournis ne sauraient engager
+l'administration, votre Caf ou plus généralement n'importe quel
+organisme préléveur ou verseur sur le montant définitif des impôts ou
+cotisattions à acquitter ou des prestations versées. En effet, votre
+situation familiale et/ou vos ressources ou celles de l’un des membres
+de votre famille peuvent changer ou ne pas avoir été prises en compte
+lors de la simulation et certaines hypothèses simplificatrices ont été
+effectuées.
    
