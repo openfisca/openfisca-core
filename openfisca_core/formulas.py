@@ -187,9 +187,9 @@ class DatedFormula(AbstractFormula):
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    end = dated_formula['end'],
+                    end = dated_formula['end'].isoformat(),
                     formula = dated_formula['formula'].to_json(),
-                    start = dated_formula['start'],
+                    start = dated_formula['start'].isoformat(),
                     )
                 for dated_formula in self.dated_formulas
                 ]),
