@@ -286,7 +286,34 @@ class SimpleFormula(AbstractFormula):
             holder_by_parameter[parameter] = parameter_holder = simulation.get_or_new_holder(clean_parameter)
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
-        return self.sum_by_entity(array_or_holder, entity = entity, roles = roles)
+        holder = self.holder
+        target_entity = holder.entity
+        simulation = target_entity.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
+            entity = simulation.entity_by_key_singular[entity]
+        assert not entity.is_persons_entity
+        if isinstance(array_or_holder, holders.Holder):
+            assert array_or_holder.entity.is_persons_entity
+            array = array_or_holder.array
+        else:
+            array = array_or_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+                array.size)
+        entity_index_array = persons.holder_by_name['id' + entity.symbol].array
+        if roles is None:
+            roles = range(entity.roles_count)
+        target_array = np.zeros(entity.count, dtype = np.bool)
+        for role in roles:
+            # TODO Mettre les filtres en cache dans la simulation
+            boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
+            target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
+        return target_array
 
     def calculate(self, lazy = False, requested_formulas = None):
         holder = self.holder
@@ -574,7 +601,7 @@ class SimpleFormula(AbstractFormula):
         entity_index_array = persons.holder_by_name['id' + entity.symbol].array
         if roles is None:
             roles = range(entity.roles_count)
-        target_array = np.zeros(entity.count, dtype = array.dtype)
+        target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
             # TODO Mettre les filtres en cache dans la simulation
             boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
