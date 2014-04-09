@@ -27,6 +27,7 @@ class Simulation(object):
     compact_legislation = None
     date = None
     debug = False
+    debug_all = False  # When False, log only formula calls with non-default parameters.
     default_compact_legislation = None
     entity_by_column_name = None
     entity_by_key_plural = None
@@ -35,11 +36,15 @@ class Simulation(object):
     steps_count = 1
     tax_benefit_system = None
 
-    def __init__(self, compact_legislation = None, date = None, debug = False, tax_benefit_system = None):
+    def __init__(self, compact_legislation = None, date = None, debug = False, debug_all = False,
+            tax_benefit_system = None):
         assert date is not None
         self.date = date
         if debug:
             self.debug = True
+        if debug_all:
+            assert debug
+            self.debug_all = True
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
 
