@@ -345,8 +345,8 @@ class SimpleFormula(AbstractFormula):
         required_parameters = set(self.holder_by_parameter.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
         arguments = {}
-        if simulation.debug and not simulation.debug_all:
-            log_call = False
+        if simulation.debug and not simulation.debug_all or simulation.trace:
+            has_only_default_arguments = True
         for parameter, parameter_holder in self.holder_by_parameter.iteritems():
             parameter_array = parameter_holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
             if parameter_array is None:
@@ -357,9 +357,9 @@ class SimpleFormula(AbstractFormula):
             # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
             arguments[parameter] = parameter_holder if parameter.endswith('_holder') else parameter_holder.array
-            if simulation.debug and not simulation.debug_all and not log_call \
+            if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
                     and np.any(parameter_array != parameter_holder.column.default):
-                log_call = True
+                has_only_default_arguments = False
 
         if self.requires_default_legislation:
             required_parameters.add('_defaultP')
@@ -392,9 +392,14 @@ class SimpleFormula(AbstractFormula):
             column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
         if array.dtype != column.dtype:
             array = array.astype(column.dtype)
-        if simulation.debug and (simulation.debug_all or log_call):
+        if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
             log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(), array))
         holder.array = array
+        if simulation.trace:
+            simulation.traceback.append(dict(
+                default_arguments = has_only_default_arguments,
+                holder = holder,
+                ))
         requested_formulas.remove(self)
         return array
 

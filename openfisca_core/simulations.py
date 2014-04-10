@@ -35,9 +35,11 @@ class Simulation(object):
     persons = None
     steps_count = 1
     tax_benefit_system = None
+    trace = False
+    traceback = None
 
     def __init__(self, compact_legislation = None, date = None, debug = False, debug_all = False,
-            tax_benefit_system = None):
+            tax_benefit_system = None, trace = False):
         assert date is not None
         self.date = date
         if debug:
@@ -47,6 +49,9 @@ class Simulation(object):
             self.debug_all = True
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
+        if trace:
+            self.trace = True
+            self.traceback = []
 
         self.compact_legislation = compact_legislation \
             if compact_legislation is not None \
