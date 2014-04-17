@@ -56,10 +56,11 @@ class Column(object):
     name = None
     start = None
     survey_only = False
+    url = None
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
-            label = None, start = None, survey_only = False, val_type = None):
+            label = None, start = None, survey_only = False, url = None, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self.default:
@@ -77,6 +78,8 @@ class Column(object):
             self.start = start
         if survey_only:
             self.survey_only = True
+        if url is not None:
+            self.url = url
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
 
@@ -111,6 +114,8 @@ class Column(object):
             self_json['start'] = start
         if self.survey_only:
             self_json['survey_only'] = self.survey_only
+        if self.url is not None:
+            self_json['url'] = self.url
         if self.val_type is not None:
             self_json['val_type'] = self.val_type
         return self_json
