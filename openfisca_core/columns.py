@@ -120,6 +120,10 @@ class Column(object):
             self_json['val_type'] = self.val_type
         return self_json
 
+    def transform_value_to_json(self, value):
+        # Convert a non-NumPy Python value to JSON.
+        return value
+
 
 # Level-1 Columns
 
@@ -173,6 +177,10 @@ class DateCol(Column):
                 ),
             conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
             )
+
+    def transform_value_to_json(self, value):
+        # Convert a non-NumPy Python value to JSON.
+        return value.isoformat() if value is not None else value
 
 
 class FloatCol(Column):
