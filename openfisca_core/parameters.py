@@ -27,8 +27,7 @@ from datetime import datetime
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
-from .baremes import Bareme
-
+from .taxscales import TaxScale
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
@@ -64,8 +63,8 @@ class XmlReader(object):
                     desc = element.getAttribute('description')
                     option = element.getAttribute('option')
                     value_type   = element.getAttribute('type')
-                    bareme = Bareme(code)
-                    bareme.setOption(option)
+                    tax_scale = TaxScale(code)
+                    tax_scale.setOption(option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
                         seuil = self.handleValues(tranche.getElementsByTagName("SEUIL")[0], self._date)
                         assi = tranche.getElementsByTagName("ASSIETTE")
@@ -73,9 +72,9 @@ class XmlReader(object):
                         else: assiette = 1
                         taux  = self.handleValues(tranche.getElementsByTagName("TAUX")[0], self._date)
                         if not seuil is None and not taux is None:
-                            bareme.addTranche(seuil, taux*assiette)
-                    bareme.marToMoy()
-                    node = BaremeNode(code, desc, bareme, parent, value_type)
+                            tax_scale.addTranche(seuil, taux*assiette)
+                    tax_scale.marToMoy()
+                    node = BaremeNode(code, desc, tax_scale, parent, value_type)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -314,8 +313,10 @@ class CodeNode(Node):
 
     def data(self, column):
         r = super(CodeNode, self).data(column)
-        if   column is 1: r = self.default
-        if   column is 2: r = self.value
+        if column is 1:
+            r = self.default
+        if column is 2:
+            r = self.value
         return r
 
     def setData(self, column, value):
@@ -329,7 +330,7 @@ class BaremeNode(Node):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
-        self.default = Bareme(value._name, option = value.option)
+        self.default = TaxScale(value._name, option = value.option)
         for s , t in value._tranches:
             self.default.addTranche(s, t)
         self.default.marToMoy()
@@ -343,9 +344,9 @@ class BaremeNode(Node):
                                attrib = {'code': self.code,
                                          'description': self.description})
 
-            bareme = self.value
-            S = bareme.seuils
-            T = bareme.taux
+            tax_scale = self.value
+            S = tax_scale.seuils
+            T = tax_scale.taux
 
             for i in range(self.value._nb):
                 tranche = SubElement(child,

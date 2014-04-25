@@ -31,8 +31,7 @@ import datetime
 import itertools
 
 from . import conv
-from baremes import Bareme
-
+from taxscales import TaxScale
 
 units = [
     u'currency',
@@ -68,15 +67,15 @@ def compact_dated_node_json(dated_node_json, code = None):
     if node_type == u'Parameter':
         return dated_node_json.get('value')
     assert node_type == u'Scale'
-    bareme = Bareme(name = code, option = dated_node_json.get('option'))
+    tax_scale = TaxScale(name = code, option = dated_node_json.get('option'))
     for dated_slice_json in dated_node_json['slices']:
         base = dated_slice_json.get('base', 1)
         rate = dated_slice_json.get('rate')
         threshold = dated_slice_json.get('threshold')
         if rate is not None and threshold is not None:
-            bareme.addTranche(threshold, rate * base)
-    bareme.marToMoy()
-    return bareme
+            tax_scale.addBracket(threshold, rate * base)
+    tax_scale.marToAvg()
+    return tax_scale
 
 
 def generate_dated_json_value(values_json, date_str, from_str, to_str):
