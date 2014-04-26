@@ -247,7 +247,6 @@ class TaxScale(object):
             i = np.dot(self.constant_amounts, a.T > 0)
             return i
         else:
-            print self
             return self.calculate(base, getT = getT)
 
     def calculate(self, base, getT = False):
