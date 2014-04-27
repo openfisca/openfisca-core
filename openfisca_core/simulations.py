@@ -23,6 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
+
+
 class Simulation(object):
     compact_legislation = None
     date = None
@@ -51,7 +54,7 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         if trace:
             self.trace = True
-            self.traceback = []
+            self.traceback = collections.OrderedDict()
 
         self.compact_legislation = compact_legislation \
             if compact_legislation is not None \

@@ -31,7 +31,7 @@ from . import columns
 
 
 class Holder(object):
-    array = None
+    _array = None
     column = None
     entity = None
     formula = None
@@ -42,6 +42,26 @@ class Holder(object):
         self.column = column
         assert entity is not None
         self.entity = entity
+
+    @property
+    def array(self):
+        return self._array
+
+    @array.deleter
+    def array(self):
+        simulation = self.entity.simulation
+        if simulation.trace:
+            simulation.traceback.pop(self.column.name, None)
+        del self._array
+
+    @array.setter
+    def array(self, array):
+        simulation = self.entity.simulation
+        if simulation.trace:
+            simulation.traceback[self.column.name] = dict(
+                holder = self,
+                )
+        self._array = array
 
     def calculate(self, lazy = False, requested_formulas = None):
         column = self.column

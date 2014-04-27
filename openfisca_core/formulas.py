@@ -396,9 +396,9 @@ class SimpleFormula(AbstractFormula):
             log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(), array))
         holder.array = array
         if simulation.trace:
-            simulation.traceback.append(dict(
+            simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
-                holder = holder,
+                is_computed = True,
                 ))
         requested_formulas.remove(self)
         return array
