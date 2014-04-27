@@ -58,9 +58,12 @@ class Holder(object):
     def array(self, array):
         simulation = self.entity.simulation
         if simulation.trace:
-            simulation.traceback[self.column.name] = dict(
-                holder = self,
-                )
+            name = self.column.name
+            step = simulation.traceback.get(name)
+            if step is None:
+                simulation.traceback[name] = dict(
+                    holder = self,
+                    )
         self._array = array
 
     def calculate(self, lazy = False, requested_formulas = None):
