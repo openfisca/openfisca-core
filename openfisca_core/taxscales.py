@@ -31,8 +31,10 @@ import itertools
 import numpy as np
 from numpy import maximum as max_, minimum as min_
 
+
 # Bracket = Tranche
 # TaxScale = Bareme
+
 
 class TaxScale(object):
     '''
@@ -62,7 +64,7 @@ class TaxScale(object):
     def option(self):
         return self._option
 
-    def setOption(self, option):
+    def set_option(self, option):
         self._option = option
 
     @property
@@ -81,98 +83,98 @@ class TaxScale(object):
     def constant_amounts(self):
         return [x[1] for x in self._bracketsConstantAmount]
 
-    def setThreshold(self, i, value):
+    def set_threshold(self, i, value):
         self._brackets[i][0] = value
         self._brackets.sort()
 
-    def setRate(self, i, value):
+    def set_rate(self, i, value):
         self._brackets[i][1] = value
 
-    def setAmount(self, i, value):
+    def set_amount(self, i, value):
         self._bracketsConstantAmount[i][1] = value
 
     @property
-    def thresholdsAvg(self):
+    def thresholds_average(self):
         return [x[0] for x in self._bracketsAvg]
 
     @property
-    def ratesAvg(self):
+    def rates_average(self):
         return [x[1] for x in self._bracketsAvg]
 
-    def setThresholdAvg(self, i, value):
+    def set_threshold_average(self, i, value):
         self._bracketsAvg[i][0] = value
         self._bracketsAvg.sort()
 
-    def setRateAvg(self, i, value):
+    def set_rate_average(self, i, value):
         self._bracketsAvg[i][1] = value
 
-    def multRates(self, factor, inplace = True, new_name = None):
+    def multiply_rates(self, factor, inplace = True, new_name = None):
         if inplace:
             for i in range(self._nb):
-                self.setRate(i, factor * self.rates[i])
+                self.set_rate(i, factor * self.rates[i])
         else:
             if new_name is None:
                 new_name = self._name
             b = TaxScale(new_name, option = self._option, unit = self.unit)
             for i in range(self.nb):
-                b.addBracket(self.thresholds[i], self.rates[i])
-            b.multRates(factor, inplace = True)
+                b.add_bracket(self.thresholds[i], self.rates[i])
+            b.multiply_rates(factor, inplace = True)
             return b
 
-    def multThresholds(self, factor):
+    def multiply_thresholds(self, factor):
         '''
         Returns a new instance of TaxScale with scaled thresholds and same rates
         '''
         b = TaxScale(self._name, option = self._option, unit = self.unit)
         for i in range(self.nb):
-            b.addBracket(factor * self.thresholds[i], self.rates[i])
+            b.add_bracket(factor * self.thresholds[i], self.rates[i])
         return b
 
-    def addTaxScale(self, tax_scale):
+    def add_tax_scale(self, tax_scale):
         if tax_scale.nb > 0:  # Pour ne pas avoir de problèmes avec les barèmes vides
             for thresholdInf, thresholdSup, rate  in zip(tax_scale.thresholds[:-1], tax_scale.thresholds[1:] , tax_scale.rates):
-                self.combineBracket(rate, thresholdInf, thresholdSup)
-            self.combineBracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
+                self.combine_bracket(rate, thresholdInf, thresholdSup)
+            self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def combineBracket(self, rate, thresholdInf = 0, thresholdSup = False):
+    def combine_bracket(self, rate, thresholdInf = 0, thresholdSup = False):
         # Insert thresholdInf and thresholdSup without modifying rates
         if not thresholdInf in self.thresholds:
             index = bisect_right(self.thresholds, thresholdInf) - 1
-            self.addBracket(thresholdInf, self.rates[index])
+            self.add_bracket(thresholdInf, self.rates[index])
 
         if thresholdSup and not thresholdSup in self.thresholds:
                 index = bisect_right(self.thresholds, thresholdSup) - 1
-                self.addBracket(thresholdSup, self.rates[index])
+                self.add_bracket(thresholdSup, self.rates[index])
 
-        # Use addBracket to add rates where they belongs
+        # Use add_bracket to add rates where they belongs
         i = self.thresholds.index(thresholdInf)
         if thresholdSup: j = self.thresholds.index(thresholdSup) - 1
         else: j = self._nb - 1
         while (i <= j):
-            self.addBracket(self.thresholds[i], rate)
+            self.add_bracket(self.thresholds[i], rate)
             i += 1
 
-    def addBracket(self, threshold, rate):
+    def add_bracket(self, threshold, rate):
         if threshold in self.thresholds:
             i = self.thresholds.index(threshold)
-            self.setRate(i, self.rates[i] + rate)
+            self.set_rate(i, self.rates[i] + rate)
         else:
             self._brackets.append([threshold, rate])
             self._brackets.sort()
             self._nb = len(self._brackets)
 
-    def rmvBracket(self):
+    def remove_bracket(self):
         self._brackets.pop()
         self._nb = len(self._brackets)
 
-    def addBracketAvg(self, threshold, rate):
-        if threshold in self.thresholdsAvg:
-            i = self.thresholdsAvg.index(threshold)
-            self.setRateAvg(i, self.ratesAvg[i] + rate)
+    def add_bracket_average(self, threshold, rate):
+        if threshold in self.thresholds_average:
+            i = self.thresholds_average.index(threshold)
+            self.set_rate_average(i, self.rates_average[i] + rate)
         else:
             self._bracketsAvg.append([threshold, rate])
 
-    def marToAvg(self):
+    def marginal_to_average(self):
         self._bracketsAvg = []
         I, k = 0, 0
         if self.nb > 0:
@@ -183,22 +185,22 @@ class TaxScale(object):
                     k += 1
                     continue
                 I += tprec * (threshold - sprec)
-                self.addBracketAvg(threshold, I / threshold)
+                self.add_bracket_average(threshold, I / threshold)
                 sprec = threshold
                 tprec = rate
-            self.addBracketAvg('Infini', rate)
+            self.add_bracket_average('Infini', rate)
 
-    def avgToMar(self):
+    def average_to_marginal(self):
         self._brackets = []
         Iprev, sprev = 0, 0
-        z = zip(self.thresholdsAvg, self.ratesAvg)
+        z = zip(self.thresholds_average, self.rates_average)
         for threshold, rate in z:
             if not threshold == 'Infini':
                 I = rate * threshold
-                self.addBracket(sprev, (I - Iprev) / (threshold - sprev))
+                self.add_bracket(sprev, (I - Iprev) / (threshold - sprev))
                 sprev = threshold
                 Iprev = I
-        self.addBracket(sprev, rate)
+        self.add_bracket(sprev, rate)
 
     def inverse(self):
         '''
@@ -219,7 +221,7 @@ class TaxScale(object):
             if threshold == 0: theta, rate_previous = 0, 0
             # On calcul le threshold de revenu imposable de la tranche considérée
             thresholdImp = (1 - rate_previous) * threshold + theta
-            inverse.addBracket(thresholdImp, 1 / (1 - rate))
+            inverse.add_bracket(thresholdImp, 1 / (1 - rate))
             theta = (rate - rate_previous) * threshold + theta
             rate_previous = rate  # previous rate
         return inverse
@@ -267,8 +269,8 @@ class TaxScale(object):
             else:
                 return i
         else:
-            if len(self.ratesAvg) == 1:
-                i = base * self.ratesAvg[0]
+            if len(self.rates_average) == 1:
+                i = base * self.rates_average[0]
             else:
                 assi = np.tile(base, (k - 1, 1)).T
                 seui = np.tile(np.hstack(self.thresholds), (n, 1))
@@ -276,8 +278,8 @@ class TaxScale(object):
                 a = (assi >= seui[:, :-1]) * (assi < seui[:, 1:])
                 A = np.dot(a, self.t_x().T)
                 B = np.dot(a, np.array(self.thresholds[1:]))
-                C = np.dot(a, np.array(self.ratesAvg[:-1]))
-                i = base * (A * (base - B) + C) + max_(base - self.thresholds[-1], 0) * self.ratesAvg[-1] + (base >= self.thresholds[-1]) * self.thresholds[-1] * self.ratesAvg[-2]
+                C = np.dot(a, np.array(self.rates_average[:-1]))
+                i = base * (A * (base - B) + C) + max_(base - self.thresholds[-1], 0) * self.rates_average[-1] + (base >= self.thresholds[-1]) * self.thresholds[-1] * self.rates_average[-2]
             if getT:
                 t = np.squeeze(max_(np.dot((a > 0), np.ones((k, 1))) - 1, 0))
                 return i, t
@@ -287,7 +289,7 @@ class TaxScale(object):
     def t_x(self):
         s = self.thresholds
         t = [0]
-        t.extend(self.ratesAvg[:-1])
+        t.extend(self.rates_average[:-1])
         s = np.array(s)
         t = np.array(t)
         return (t[1:] - t[:-1]) / (s[1:] - s[:-1])
@@ -343,37 +345,37 @@ class TaxScaleDict(dict):
         return self.log()
 
 
-def combineTaxScales(bardict, name = None):
+def combine_tax_scales(bardict, name = None):
     '''
     Combine all the TaxScales in the TaxScaleDict in a signle TaxScale
     '''
     if name is None:
         name = 'Combined ' + bardict._name
     tax_scaleTot = TaxScale(name = name)
-    tax_scaleTot.addBracket(0, 0)
+    tax_scaleTot.add_bracket(0, 0)
     for name, bar in bardict.iteritems():
         if isinstance(bar, TaxScale):
-            tax_scaleTot.addTaxScale(bar)
+            tax_scaleTot.add_tax_scale(bar)
         else:
-            combineTaxScales(bar, tax_scaleTot)
+            combine_tax_scales(bar, tax_scaleTot)
     return tax_scaleTot
 
 
-def scaleTaxScales(bar_dict, factor):
+def scale_tax_scales(bar_dict, factor):
     '''
     Scales all the TaxScale in the BarColl
     '''
     if isinstance(bar_dict, TaxScale):
-        return bar_dict.multThresholds(factor)
+        return bar_dict.multiply_thresholds(factor)
 
     if isinstance(bar_dict, TaxScaleDict):
         out = TaxScaleDict(name = bar_dict._name)
 
         for key, bar in bar_dict.iteritems():
             if isinstance(bar, TaxScale):
-                out[key] = bar.multThresholds(factor)
+                out[key] = bar.multiply_thresholds(factor)
             elif isinstance(bar, TaxScaleDict):
-                out[key] = scaleTaxScales(bar, factor)
+                out[key] = scale_tax_scales(bar, factor)
             else:
                 setattr(out, key, bar)
         return out

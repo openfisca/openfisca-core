@@ -73,8 +73,8 @@ def compact_dated_node_json(dated_node_json, code = None):
         rate = dated_slice_json.get('rate')
         threshold = dated_slice_json.get('threshold')
         if rate is not None and threshold is not None:
-            tax_scale.addBracket(threshold, rate * base)
-    tax_scale.marToAvg()
+            tax_scale.add_bracket(threshold, rate * base)
+    tax_scale.marginal_to_average()
     return tax_scale
 
 

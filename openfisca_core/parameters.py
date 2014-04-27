@@ -64,7 +64,7 @@ class XmlReader(object):
                     option = element.getAttribute('option')
                     value_type   = element.getAttribute('type')
                     tax_scale = TaxScale(code)
-                    tax_scale.setOption(option)
+                    tax_scale.set_option(option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
                         seuil = self.handleValues(tranche.getElementsByTagName("SEUIL")[0], self._date)
                         assi = tranche.getElementsByTagName("ASSIETTE")
