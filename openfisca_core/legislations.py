@@ -79,6 +79,7 @@ def compact_dated_node_json(dated_node_json, code = None):
             tax_scale.add_bracket(threshold, rate * base)
         if constant_amount is not None and threshold is not None:
             tax_scale.add_bracket_constant_amount(threshold, constant_amount)
+            tax_scale.constant_amount_option = True
     tax_scale.marginal_to_average()
     return tax_scale
 
