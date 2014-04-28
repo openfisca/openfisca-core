@@ -38,10 +38,11 @@ from . import conv
 #    ASSIETTE = 'base',  # "base" is singular, because a slice has only one base.
 #    BAREME = 'scales',
 #    CODE = 'parameters',
+#    MONTANT = 'constant_amount
 #    NODE = 'nodes',
 #    SEUIL= 'threshold',  # "threshold" is singular, because a slice has only one base.
 #    TAUX = 'rate',  # "rate" is singular, because a slice has only one base.
-#    TRANCHE = 'slices',
+#    TRANCHE = 'slices', # TODO: should be renamed to bracket
 #    VALUE = 'values',
 #    )
 
@@ -210,12 +211,15 @@ def transform_slice_xml_json_to_json(slice_xml_json):
             slice_json['base'] = transform_values_holder_xml_json_to_json(value[0])
         elif key == 'code':
             pass
+        elif key == 'MONTANT':
+            slice_json['constant_amount'] = transform_values_holder_xml_json_to_json(value[0])
         elif key == 'SEUIL':
             slice_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'TAUX':
             slice_json['rate'] = transform_values_holder_xml_json_to_json(value[0])
+
         else:
             slice_json[key] = value
     if comments:
@@ -522,6 +526,15 @@ def validate_slice_xml_json(slice, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                MONTANT = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    ),
                 SEUIL = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -544,7 +557,6 @@ def validate_slice_xml_json(slice, state = None):
                         ),
                     conv.empty_to_none,
                     conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
-                    conv.not_none,
                     ),
                 text = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -555,6 +567,8 @@ def validate_slice_xml_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
+        conv.test(lambda slice: bool(slice.get('MONTANT')) ^ bool(slice.get('TAUX')),
+            error = N_(u"Either MONTANT or TAUX must be provided")),
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
@@ -569,7 +583,7 @@ def validate_slices_xml_json_dates(slices, state = None):
 
     previous_slice = slices[0]
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
-        for key in ('ASSIETTE', 'SEUIL', 'TAUX'):
+        for key in ('ASSIETTE', 'MONTANT', 'SEUIL', 'TAUX'):
             valid_segments = []
             values_holder_xml_json = previous_slice.get(key)
             values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
@@ -608,6 +622,17 @@ def validate_slices_xml_json_dates(slices, state = None):
                 rate_segments[-1] = (from_date, rate_segments[-1][1])
             else:
                 rate_segments.append((from_date, to_date))
+
+        constant_amount_segments = []
+        values_holder_xml_json = slice.get('MONTANT')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            if constant_amount_segments and constant_amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                constant_amount_segments[-1] = (from_date, constant_amount_segments[-1][1])
+            else:
+                constant_amount_segments.append((from_date, to_date))
 
         threshold_segments = []
         values_holder_xml_json = slice.get('SEUIL')
@@ -653,9 +678,12 @@ def validate_slices_xml_json_dates(slices, state = None):
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
-                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
-
+                for constant_amount_segment in constant_amount_segments:
+                    if constant_amount_segment[0] <= from_date and to_date <= constant_amount_segment[1]:
+                        break
+                else:
+                    errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
+                        {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
     return slices, errors or None
 
 

@@ -33,6 +33,8 @@ import itertools
 from . import conv
 from taxscales import TaxScale
 
+
+N_ = lambda message: message
 units = [
     u'currency',
     u'day',
@@ -70,10 +72,13 @@ def compact_dated_node_json(dated_node_json, code = None):
     tax_scale = TaxScale(name = code, option = dated_node_json.get('option'))
     for dated_slice_json in dated_node_json['slices']:
         base = dated_slice_json.get('base', 1)
+        constant_amount = dated_slice_json.get('constant_amount')
         rate = dated_slice_json.get('rate')
         threshold = dated_slice_json.get('threshold')
         if rate is not None and threshold is not None:
             tax_scale.add_bracket(threshold, rate * base)
+        if constant_amount is not None and threshold is not None:
+            tax_scale.add_bracket_constant_amount(threshold, constant_amount)
     tax_scale.marginal_to_average()
     return tax_scale
 
@@ -161,7 +166,7 @@ def generate_dated_node_json(node_json, date_str, from_str, to_str):
 def generate_dated_slice_json(slice_json, date_str, from_str, to_str):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
-        if key in ('base', 'rate', 'threshold'):
+        if key in ('base', 'constant_amount', 'rate', 'threshold'):
             dated_value = generate_dated_json_value(value, date_str, from_str, to_str)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
@@ -374,6 +379,7 @@ def validate_dated_slice_json(slice, state = None):
                     validate_dated_value_json,
                     conv.test_greater_or_equal(0),
                     ),
+                constant_amount = validate_dated_value_json,
                 comment = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -613,14 +619,12 @@ def validate_slice_json(slice, state = None):
         conv.struct(
             dict(
                 base = validate_values_holder_json,
+                constant_amount = validate_values_holder_json,
                 comment = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
-                rate = conv.pipe(
-                    validate_values_holder_json,
-                    conv.not_none,
-                    ),
+                rate = validate_values_holder_json,
                 threshold = conv.pipe(
                     validate_values_holder_json,
                     conv.not_none,
@@ -630,6 +634,8 @@ def validate_slice_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
+        conv.test(lambda slice: bool(slice.get('constant_amount')) ^ bool(slice.get('rate')),
+            error = N_(u"Either constant_amount or rate must be provided")),
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
@@ -644,7 +650,7 @@ def validate_slices_json_dates(slices, state = None):
 
     previous_slice = slices[0]
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
-        for key in ('base', 'rate', 'threshold'):
+        for key in ('base', 'constant_amount', 'rate', 'threshold'):
             valid_segments = []
             for value_json in (previous_slice.get(key) or []):
                 from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
@@ -667,6 +673,15 @@ def validate_slices_json_dates(slices, state = None):
         return slices, errors
 
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        constant_amount_segments = []
+        for value_json in (slice.get('constant_amount') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            if constant_amount_segments and constant_amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                constant_amount_segments[-1] = (from_date, constant_amount_segments[-1][1])
+            else:
+                constant_amount_segments.append((from_date, to_date))
+
         rate_segments = []
         for value_json in (slice.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
@@ -695,6 +710,16 @@ def validate_slices_json_dates(slices, state = None):
                 errors.setdefault(slice_index, {}).setdefault('base', {}).setdefault(value_index,
                     {})['from'] = state._(u"Dates don't belong to rate dates")
 
+        for value_index, value_json in enumerate(slice.get('constant_amount') or []):
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            for threshold_segment in threshold_segments:
+                if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
+                    break
+            else:
+                errors.setdefault(slice_index, {}).setdefault('constant_amount', {}).setdefault(value_index,
+                    {})['from'] = state._(u"Dates don't belong to threshold dates")
+
         for value_index, value_json in enumerate(slice.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
@@ -708,12 +733,16 @@ def validate_slices_json_dates(slices, state = None):
         for value_index, value_json in enumerate(slice.get('threshold') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
-            for rate_segment in rate_segments:
-                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+            for constant_amount_segment in constant_amount_segments:
+                if constant_amount_segment[0] <= from_date and to_date <= constant_amount_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
-                    {})['from'] = state._(u"Dates don't belong to rate dates")
+                for rate_segment in rate_segments:
+                    if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                        break
+                else:
+                    errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
+                        {})['from'] = state._(u"Dates don't belong to rate or constant_amount dates")
 
     return slices, errors or None
 

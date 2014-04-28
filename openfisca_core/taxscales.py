@@ -40,18 +40,18 @@ class TaxScale(object):
     '''
     A TaxScale is an object which contains two sets of brackets:
      - brackets for taxation with marginal tax rates
-     - bracketsAvg for taxation at average tax rate
-     - bracketsConstantAmount for taxation at a constant amount for the whole bracket
+     - brackets_average_rate for taxation at average tax rate
+     - brackets_constant_amount for taxation at a constant amount for the whole bracket
     '''
 
-    def __init__(self, name = 'untitled TaxScale', option = None, unit = None, constant_amount = False):
+    def __init__(self, name = 'untitled TaxScale', option = None, unit = None, constant_amount_option = False):
         super(TaxScale, self).__init__()
         self._name = name
         self._brackets = []
         self._nb = 0
-        self._bracketsAvg = []
-        self.constant_amount = constant_amount
-        self._bracketsConstantAmount = []
+        self._brackets_average_rate = []
+        self.constant_amount_option = constant_amount_option
+        self._brackets_constant_amount = []
 
         # if _linear_avg_rate is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
         # set _linear_avg_rate to 'True' to compute the output with a linear interpolation on average tax rate
@@ -81,7 +81,7 @@ class TaxScale(object):
 
     @property
     def constant_amounts(self):
-        return [x[1] for x in self._bracketsConstantAmount]
+        return [x[1] for x in self._brackets_constant_amount]
 
     def set_threshold(self, i, value):
         self._brackets[i][0] = value
@@ -91,22 +91,33 @@ class TaxScale(object):
         self._brackets[i][1] = value
 
     def set_amount(self, i, value):
-        self._bracketsConstantAmount[i][1] = value
+        self._brackets_constant_amount[i][1] = value
 
     @property
     def thresholds_average(self):
-        return [x[0] for x in self._bracketsAvg]
+        return [x[0] for x in self._brackets_average_rate]
 
     @property
     def rates_average(self):
-        return [x[1] for x in self._bracketsAvg]
+        return [x[1] for x in self._brackets_average_rate]
 
     def set_threshold_average(self, i, value):
-        self._bracketsAvg[i][0] = value
-        self._bracketsAvg.sort()
+        self._brackets_average_rate[i][0] = value
+        self._brackets_average_rate.sort()
 
     def set_rate_average(self, i, value):
-        self._bracketsAvg[i][1] = value
+        self._brackets_average_rate[i][1] = value
+
+    @property
+    def thresholds_constant_amount(self):
+        return [x[0] for x in self._brackets_constant_amount]
+
+    @property
+    def constant_amounts(self):
+        return [x[1] for x in self._brackets_constant_amount]
+
+    def set_constant_amount(self, i, value):
+        self._brackets_constant_amount[i][1] = value
 
     def multiply_rates(self, factor, inplace = True, new_name = None):
         if inplace:
@@ -172,10 +183,17 @@ class TaxScale(object):
             i = self.thresholds_average.index(threshold)
             self.set_rate_average(i, self.rates_average[i] + rate)
         else:
-            self._bracketsAvg.append([threshold, rate])
+            self._brackets_average_rate.append([threshold, rate])
+
+    def add_bracket_constant_amount(self, threshold, amount):
+        if threshold in self.thresholds_constant_amount:
+            i = self.thresholds_constant_amount.index(threshold)
+            self.set_constant_amount(i, self.constant_amounts[i] + amount)
+        else:
+            self._brackets_constant_amount.append([threshold, amount])
 
     def marginal_to_average(self):
-        self._bracketsAvg = []
+        self._brackets_average_rate = []
         I, k = 0, 0
         if self.nb > 0:
             for threshold, rate in self:
@@ -242,7 +260,7 @@ class TaxScale(object):
         return output
 
     def calc(self, base, getT = False):
-        if self.constant_amount is True:
+        if self.constant_amount_option is True:
             assi = np.tile(base, (k, 1)).T
             seui = np.tile(np.hstack((self.thresholds, np.inf)), (n, 1))
             a = max_(min_(assi, seui[:, 1:]) - seui[:, :-1], 0)
