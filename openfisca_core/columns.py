@@ -211,6 +211,7 @@ class IntCol(Column):
 
 
 class StrCol(Column):
+    default = u''
     dtype = object
     json_type = 'String'
 
