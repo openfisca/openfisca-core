@@ -254,6 +254,9 @@ class EnumCol(IntCol):
         if isinstance(enum, Enum):
             self.enum = enum
 
+    def json_default(self):
+        return unicode(self.default) if self.default is not None else None
+
     @property
     def json_to_python(self):
         enum = self.enum
