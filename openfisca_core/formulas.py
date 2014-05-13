@@ -102,9 +102,9 @@ class AlternativeFormula(AbstractFormula):
             alternative_formula.graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
+    def set_dependencies(cls, column, column_by_name):
         for alternative_formula_constructor in cls.alternative_formulas_constructor:
-            alternative_formula_constructor.set_dependencies(column, tax_benefit_system)
+            alternative_formula_constructor.set_dependencies(column, column_by_name)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -178,9 +178,9 @@ class DatedFormula(AbstractFormula):
             dated_formula['formula'].graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
+    def set_dependencies(cls, column, column_by_name):
         for dated_formula_class in cls.dated_formulas_class:
-            dated_formula_class['formula_class'].set_dependencies(column, tax_benefit_system)
+            dated_formula_class['formula_class'].set_dependencies(column, column_by_name)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -251,9 +251,9 @@ class SelectFormula(AbstractFormula):
             formula.graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
+    def set_dependencies(cls, column, column_by_name):
         for formula_constructor in cls.formula_constructor_by_main_variable.itervalues():
-            formula_constructor.set_dependencies(column, tax_benefit_system)
+            formula_constructor.set_dependencies(column, column_by_name)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -536,10 +536,10 @@ class SimpleFormula(AbstractFormula):
                 })
 
     @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
+    def set_dependencies(cls, column, column_by_name):
         for parameter in cls.parameters:
             clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            parameter_column = tax_benefit_system.column_by_name[clean_parameter]
+            parameter_column = column_by_name[clean_parameter]
             if parameter_column.consumers is None:
                 parameter_column.consumers = set()
             parameter_column.consumers.add(column.name)

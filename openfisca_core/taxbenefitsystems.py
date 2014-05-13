@@ -73,7 +73,7 @@ class AbstractTaxBenefitSystem(object):
         for column in column_by_name.itervalues():
             formula_class = column.formula_constructor
             if formula_class is not None:
-                formula_class.set_dependencies(column, self)
+                formula_class.set_dependencies(column, column_by_name)
 
         self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
 
