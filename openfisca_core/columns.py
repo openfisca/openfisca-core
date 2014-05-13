@@ -251,8 +251,8 @@ class EnumCol(IntCol):
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)
-        if isinstance(enum, Enum):
-            self.enum = enum
+        assert isinstance(enum, Enum)
+        self.enum = enum
 
     def json_default(self):
         return unicode(self.default) if self.default is not None else None
