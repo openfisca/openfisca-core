@@ -118,7 +118,7 @@ class AlternativeFormula(AbstractFormula):
 
 class DatedFormula(AbstractFormula):
     dated_formulas = None # A list of dictionnary containing a formula jointly with a start date and an end date
-    dated_formulas_class = None  # Class attribute. 
+    dated_formulas_class = None  # Class attribute.
 
     def __init__(self, holder = None):
         super(DatedFormula, self).__init__(holder = holder)
