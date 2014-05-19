@@ -84,7 +84,7 @@ def compact_dated_node_json(dated_node_json, code = None):
     return tax_scale
 
 
-def generate_dated_json_value(values_json, date_str, from_str, to_str):
+def generate_dated_json_value(values_json, date_str, legislation_from_str, legislation_to_str):
     max_to_str = None
     max_value = None
     min_from_str = None
@@ -100,15 +100,15 @@ def generate_dated_json_value(values_json, date_str, from_str, to_str):
         if min_from_str is None or value_from_str < min_from_str:
             min_from_str = value_from_str
             min_value = value_json['value']
-    if date_str > to_str:
+    if date_str > legislation_to_str:
         # The requested date is after the end of the legislation. Use the value of the last period, when this
         # period ends the same day or after the legislation.
-        if max_to_str is not None and max_to_str >= to_str:
+        if max_to_str is not None and max_to_str >= legislation_to_str:
             return max_value
-    elif date_str < from_str:
+    elif date_str < legislation_from_str:
         # The requested date is before the beginning of the legislation. Use the value of the first period, when this
         # period begins the same day or before the legislation.
-        if min_from_str is not None and min_from_str <= from_str:
+        if min_from_str is not None and min_from_str <= legislation_from_str:
             return min_value
     return None
 
@@ -122,7 +122,7 @@ def generate_dated_legislation_json(legislation_json, date):
     return dated_legislation_json
 
 
-def generate_dated_node_json(node_json, date_str, from_str, to_str):
+def generate_dated_node_json(node_json, date_str, legislation_from_str, legislation_to_str):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
@@ -130,7 +130,8 @@ def generate_dated_node_json(node_json, date_str, from_str, to_str):
             dated_children_json = type(value)(
                 (child_code, dated_child_json)
                 for child_code, dated_child_json in (
-                    (child_code, generate_dated_node_json(child_json, date_str, from_str, to_str))
+                    (child_code, generate_dated_node_json(child_json, date_str, legislation_from_str,
+                        legislation_to_str))
                     for child_code, child_json in value.iteritems()
                     )
                 if dated_child_json is not None
@@ -145,7 +146,7 @@ def generate_dated_node_json(node_json, date_str, from_str, to_str):
             dated_slices_json = [
                 dated_slice_json
                 for dated_slice_json in (
-                    generate_dated_slice_json(slice_json, date_str, from_str, to_str)
+                    generate_dated_slice_json(slice_json, date_str, legislation_from_str, legislation_to_str)
                     for slice_json in value
                     )
                 if dated_slice_json is not None
@@ -155,7 +156,7 @@ def generate_dated_node_json(node_json, date_str, from_str, to_str):
             dated_node_json[key] = dated_slices_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, date_str, from_str, to_str)
+            dated_value = generate_dated_json_value(value, date_str, legislation_from_str, legislation_to_str)
             if dated_value is None:
                 return None
             dated_node_json['value'] = dated_value
@@ -164,11 +165,11 @@ def generate_dated_node_json(node_json, date_str, from_str, to_str):
     return dated_node_json
 
 
-def generate_dated_slice_json(slice_json, date_str, from_str, to_str):
+def generate_dated_slice_json(slice_json, date_str, legislation_from_str, legislation_to_str):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
         if key in ('base', 'constant_amount', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, date_str, from_str, to_str)
+            dated_value = generate_dated_json_value(value, date_str, legislation_from_str, legislation_to_str)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
         else:
