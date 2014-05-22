@@ -35,6 +35,23 @@ from . import accessors, holders
 log = logging.getLogger(__name__)
 
 
+# Exception
+
+class NaNCreationError(Exception):
+    def __init__(self, column_name, entity, index):
+        self.column_name = column_name
+        self.entity = entity
+        self.index = index
+
+    def __str__(self):
+        return repr("{} NaN value(s) are present in {} variable {}".format(
+            len(self.index),
+            self.entity.key_singular,
+            self.column_name,
+            ))
+
+# Formulas
+
 class AbstractFormula(object):
     holder = None
 
@@ -117,7 +134,7 @@ class AlternativeFormula(AbstractFormula):
 
 
 class DatedFormula(AbstractFormula):
-    dated_formulas = None # A list of dictionnary containing a formula jointly with a start date and an end date
+    dated_formulas = None  # A list of dictionnary containing a formula jointly with a start date and an end date
     dated_formulas_class = None  # Class attribute.
 
     def __init__(self, holder = None):
@@ -390,6 +407,13 @@ class SimpleFormula(AbstractFormula):
         assert array.size == entity.count, \
             u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
             column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
+
+        try:
+            if np.isnan(np.min(array)) and not simulation.debug:
+                raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
+        except TypeError:
+            pass
+
         if array.dtype != column.dtype:
             array = array.astype(column.dtype)
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
@@ -401,6 +425,7 @@ class SimpleFormula(AbstractFormula):
                 is_computed = True,
                 ))
         requested_formulas.remove(self)
+
         return array
 
     def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
