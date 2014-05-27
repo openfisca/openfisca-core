@@ -34,7 +34,6 @@ __all__ = ['AbstractTaxBenefitSystem']
 
 
 class AbstractTaxBenefitSystem(object):
-    AGGREGATES_DEFAULT_VARS = None
     check_consistency = None
     column_by_name = None
     columns_name_tree_by_entity = None

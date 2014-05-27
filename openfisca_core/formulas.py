@@ -636,7 +636,7 @@ class SimpleFormula(AbstractFormula):
             roles = range(entity.roles_count)
         target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
-            # TODO Mettre les filtres en cache dans la simulation
+            # TODO: Mettre les filtres en cache dans la simulation
             boolean_filter = persons.holder_by_name['qui' + entity.symbol].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
