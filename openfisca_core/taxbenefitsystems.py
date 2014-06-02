@@ -59,8 +59,6 @@ class AbstractTaxBenefitSystem(object):
     REV_TYP = None
     REVENUES_CATEGORIES = None
     Scenario = None
-    WEIGHT = None
-    WEIGHT_INI = None
 
     def __init__(self):
         # Merge prestation_by_name into column_by_name, because it is no more used.
