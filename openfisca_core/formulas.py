@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 
 # Exception
 
+
 class NaNCreationError(Exception):
     def __init__(self, column_name, entity, index):
         self.column_name = column_name
@@ -50,7 +51,9 @@ class NaNCreationError(Exception):
             self.column_name,
             ))
 
+
 # Formulas
+
 
 class AbstractFormula(object):
     holder = None
@@ -60,7 +63,18 @@ class AbstractFormula(object):
         self.holder = holder
 
 
-class AlternativeFormula(AbstractFormula):
+class AbstractGroupedFormula(AbstractFormula):
+    used_formula = None
+
+    @property
+    def real_formula(self):
+        used_formula = self.used_formula
+        if used_formula is None:
+            return None
+        return used_formula.real_formula
+
+
+class AlternativeFormula(AbstractGroupedFormula):
     alternative_formulas = None
     alternative_formulas_constructor = None  # Class attribute. List of formulas sorted by descending preference
 
@@ -100,6 +114,7 @@ class AlternativeFormula(AbstractFormula):
             # Caution: Note that requested_formulas are copied below.
             array = alternative_formula.calculate(lazy = True, requested_formulas = requested_formulas.copy())
             if array is not None:
+                self.used_formula = alternative_formula
                 holder.array = array
                 requested_formulas.remove(self)
                 return array
@@ -109,6 +124,7 @@ class AlternativeFormula(AbstractFormula):
         # No alternative has an existing array => Calculate array using first alternative.
         # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
+        self.used_formula = alternative_formula
         holder.array = array = alternative_formula.calculate(lazy = False, requested_formulas = requested_formulas)
         requested_formulas.remove(self)
         return array
@@ -133,9 +149,9 @@ class AlternativeFormula(AbstractFormula):
             ))
 
 
-class DatedFormula(AbstractFormula):
-    dated_formulas = None  # A list of dictionnary containing a formula jointly with a start date and an end date
-    dated_formulas_class = None  # Class attribute.
+class DatedFormula(AbstractGroupedFormula):
+    dated_formulas = None  # A list of dictionaries containing a formula jointly with a start date and an end date
+    dated_formulas_class = None  # Class attribute
 
     def __init__(self, holder = None):
         super(DatedFormula, self).__init__(holder = holder)
@@ -180,6 +196,7 @@ class DatedFormula(AbstractFormula):
             if dated_formula['start'] <= datesim <= dated_formula['end']:
                 array = dated_formula['formula'].calculate(lazy = lazy, requested_formulas = requested_formulas)
                 if array is not None:
+                    self.used_formula = dated_formula['formula']
                     holder.array = array
                     requested_formulas.remove(self)
                     return array
@@ -213,7 +230,7 @@ class DatedFormula(AbstractFormula):
             ))
 
 
-class SelectFormula(AbstractFormula):
+class SelectFormula(AbstractGroupedFormula):
     formula_by_main_variable = None
     formula_constructor_by_main_variable = None  # Class attribute. List of formulas sorted by descending preference
 
@@ -258,6 +275,7 @@ class SelectFormula(AbstractFormula):
                 break
         else:
             selected_formula = self.formula_by_main_variable.values()[0]
+        self.used_formula = selected_formula
         holder.array = array = selected_formula.calculate(lazy = lazy, requested_formulas = requested_formulas)
         requested_formulas.remove(self)
         return array
@@ -408,11 +426,12 @@ class SimpleFormula(AbstractFormula):
             u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
             column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
 
-        try:
-            if np.isnan(np.min(array)) and not simulation.debug:
-                raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
-        except TypeError:
-            pass
+        if not simulation.debug:
+            try:
+                if np.isnan(np.min(array)):
+                    raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
+            except TypeError:
+                pass
 
         if array.dtype != column.dtype:
             array = array.astype(column.dtype)
@@ -559,6 +578,10 @@ class SimpleFormula(AbstractFormula):
                 'from': parameter_holder.column.name,
                 'to': column.name,
                 })
+
+    @property
+    def real_formula(self):
+        return self
 
     @classmethod
     def set_dependencies(cls, column, column_by_name):
