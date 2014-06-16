@@ -72,8 +72,8 @@ class XmlReader(object):
                         else: assiette = 1
                         taux  = self.handleValues(tranche.getElementsByTagName("TAUX")[0], self._date)
                         if not seuil is None and not taux is None:
-                            tax_scale.addTranche(seuil, taux*assiette)
-                    tax_scale.marToMoy()
+                            tax_scale.add_bracket(seuil, taux*assiette)
+                    tax_scale.marginal_to_average()
                     node = BaremeNode(code, desc, tax_scale, parent, value_type)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
@@ -331,9 +331,9 @@ class BaremeNode(Node):
         self.value = value
         # create a copy of the default value by hand
         self.default = TaxScale(value._name, option = value.option)
-        for s , t in value._tranches:
-            self.default.addTranche(s, t)
-        self.default.marToMoy()
+        for s , t in value._brackets:
+            self.default.add_bracket(s, t)
+        self.default.marginal_to_average()
         self.type_info = 'BAREME'
         self.value_type  = value_type
 
@@ -387,6 +387,6 @@ class BaremeNode(Node):
         return True
 
     def isDirty(self):
-        if self.value._tranches == self.default._tranches:
+        if self.value._brackets == self.default._brackets:
             return False
         return True
