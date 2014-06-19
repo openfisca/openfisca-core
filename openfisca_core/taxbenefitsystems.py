@@ -23,7 +23,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import collections
 import xml.etree.ElementTree
 import weakref
 
@@ -38,15 +37,9 @@ class AbstractTaxBenefitSystem(object):
     column_by_name = None
     columns_name_tree_by_entity = None
     compact_legislation_by_date_str_cache = None
-    CURRENCY = None
-    DATA_DIR = None
-    DATA_SOURCES_DIR = None
-    DECOMP_DIR = None
-    DEFAULT_DECOMP_FILE = None
     entities = None  # class attribute
     ENTITIES_INDEX = None  # class attribute
     entity_class_by_key_plural = None  # class attribute
-    FILTERING_VARS = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -55,9 +48,6 @@ class AbstractTaxBenefitSystem(object):
     legislation_json_by_xml_file_path = {}  # class attribute
     PARAM_FILE = None  # class attribute
     prestation_by_name = None
-    REFORMS_DIR = None
-    REV_TYP = None
-    REVENUES_CATEGORIES = None
     Scenario = None
 
     def __init__(self):
@@ -79,13 +69,24 @@ class AbstractTaxBenefitSystem(object):
         if legislation_json is None:
             legislation_tree = xml.etree.ElementTree.parse(legislation_xml_file_path)
             state = conv.State()
-            legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
-                state = state)
-            legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(legislation_xml_json,
-                state = state)
+            legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
+                legislation_tree.getroot(),
+                state = state,
+                )
+            legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
+                legislation_xml_json,
+                state = state,
+                )
             _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
             self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
         self.legislation_json = legislation_json
+
+    def apply_reform(self, reform = None):
+        if reform.legislation_json_patch:
+            self.legislation_json = reform.legislation_json_patch.apply(
+                self.legislation_json
+                )
+            self.update_legislation()
 
     def get_compact_legislation(self, date):
         date_str = date.isoformat()
@@ -112,3 +113,6 @@ class AbstractTaxBenefitSystem(object):
         scenario = self.Scenario()
         scenario.tax_benefit_system = self
         return scenario
+
+    def update_legislation(self):
+        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()

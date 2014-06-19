@@ -83,8 +83,11 @@ class Simulation(object):
         return self.compute(column_name, lazy = lazy, requested_formulas = requested_formulas).array
 
     def compute(self, column_name, lazy = False, requested_formulas = None):
-        return self.entity_by_column_name[column_name].compute(column_name, lazy = lazy,
-            requested_formulas = requested_formulas)
+        return self.entity_by_column_name[column_name].compute(
+            column_name,
+            lazy = lazy,
+            requested_formulas = requested_formulas,
+            )
 
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]
