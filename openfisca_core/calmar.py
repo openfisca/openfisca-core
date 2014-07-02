@@ -25,6 +25,7 @@
 
 from __future__ import division
 
+import logging
 import operator
 
 from numpy import exp, ones, zeros, unique, array, dot, float64
@@ -34,26 +35,35 @@ except:
     pass
 
 
+log = logging.getLogger(__name__)
+
+
 def linear(u):
-    return 1+u
+    return 1 + u
+
 
 def linear_prime(u):
     return ones(u.shape, dtype = float)
 
+
 def raking_ratio(u):
     return exp(u)
+
 
 def raking_ratio_prime(u):
     return exp(u)
 
-def logit(u,low,up):
-    a=(up-low)/((1-low)*(up-1))
-    return (low*(up-1)+up*(1-low)*exp(a*u))/(up-1+(1-low)*exp(a*u))
 
-def logit_prime(u,low,up):
-    a=(up-low)/((1-low)*(up-1))
-    return ((a*up*(1-low)*exp(a*u))*(up-1+(1-low)*exp(a*u))-
-              (low*(up-1)+up*(1-low)*exp(a*u))*(1-low)*a*exp(a*u))/(up-1+(1-low)*exp(a*u))**2
+def logit(u, low, up):
+    a = (up - low) / ((1 - low) * (up - 1))
+    return (low * (up - 1) + up * (1 - low) * exp(a * u)) / (up - 1 + (1 - low) * exp(a * u))
+
+
+def logit_prime(u, low, up):
+    a = (up - low) / ((1 - low) * (up - 1))
+    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u)) -
+        (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) / (up - 1 + (1 - low) * exp(a * u)) ** 2
+
 
 def build_dummies_dict(data):
     '''
@@ -62,10 +72,11 @@ def build_dummies_dict(data):
     unique_val_list = unique(data)
     output = {}
     for val in unique_val_list:
-        output[val] = (data==val)
+        output[val] = (data == val)
     return output
 
-def calmar(data_in, margins, param = {}, pondini='wprm_init'):
+
+def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     '''
     Calibraters weights according to some margins
       - data_in is a dict containing individual data
@@ -73,8 +84,8 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
      margins is a dict containing for each var:
       - a scalar var numeric variables
       - a dict with categories key and population
-      - eventually a key named totalpop : total population. If absent initialized to actual total population
-     param is a dict containing the following keys
+      - eventually a key named total_population : total population. If absent initialized to actual total population
+     parameters is a dict containing the following keys
       - method : 'linear', 'raking ratio', 'logit'
       - lo     : lower bound on weights ratio  <1
       - up     : upper bound on weights ration >1
@@ -93,37 +104,37 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
         raise Exception("Calmar requires non empty dict of margins")
 
     # choice of method
-    if not 'method' in param:
-        param['method'] = 'linear'
+    if not 'method' in parameters:
+        parameters['method'] = 'linear'
 
-    if param['method'] == 'linear':
+    if parameters['method'] == 'linear':
         F = linear
         F_prime = linear_prime
-    elif param['method'] == 'raking ratio':
-        F =  raking_ratio
-        F_prime =  raking_ratio_prime
-    elif param['method'] == 'logit':
-        if not 'up' in param:
-            raise Exception("When method is 'logit', 'up' parameter is needed in param")
-        if not 'lo' in param:
-            raise Exception("When method is 'logit', 'lo' parameter is needed in param")
-        if param['up'] <= 1:
+    elif parameters['method'] == 'raking ratio':
+        F = raking_ratio
+        F_prime = raking_ratio_prime
+    elif parameters['method'] == 'logit':
+        if not 'up' in parameters:
+            raise Exception("When method is 'logit', 'up' parameter is needed in parameters")
+        if not 'lo' in parameters:
+            raise Exception("When method is 'logit', 'lo' parameter is needed in parameters")
+        if parameters['up'] <= 1:
             raise Exception("When method is 'logit', 'up' should be strictly greater than 1")
-        if param['lo'] >= 1:
+        if parameters['lo'] >= 1:
             raise Exception("When method is 'logit', 'lo' should be strictly less than 1")
-        F = lambda x: logit(x, param['lo'], param['up'])
-        F_prime = lambda x: logit_prime(x, param['lo'], param['up'])
+        F = lambda x: logit(x, parameters['lo'], parameters['up'])
+        F_prime = lambda x: logit_prime(x, parameters['lo'], parameters['up'])
 
     else:
         raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
     # construction observations matrix
-    if 'totalpop' in margins:
-        totalpop = margins.pop('totalpop')
+    if 'total_population' in margins:
+        total_population = margins.pop('total_population')
     else:
-        totalpop = data[pondini].sum()
+        total_population = data[pondini].sum()
 
-    if 'use_proportions' in param:
-        use_proportions = param['use_proportions']
+    if 'use_proportions' in parameters:
+        use_proportions = parameters['use_proportions']
     else:
         use_proportions = False
 
@@ -139,23 +150,27 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
             dummies_dict = build_dummies_dict(data[var])
             k, pop = 0, 0
             for cat, nb in val.iteritems():
-                cat_varname =  var + '_' + str(cat)
+                cat_varname = var + '_' + str(cat)
                 data[cat_varname] = dummies_dict[cat]
                 margins_new[cat_varname] = nb
-                if not margins_new_dict.has_key(var):
+                if var not in margins_new_dict:
                     margins_new_dict[var] = {}
                 margins_new_dict[var][cat] = nb
                 pop += nb
                 k += 1
                 nj += 1
             # Check total popualtion
-            if pop != totalpop:
+            if pop != total_population:
                 if use_proportions:
-                    print 'calmar: categorical variable %s is inconsistent with population; using proportions' % var
+                    log.info(
+                        'calmar: categorical variable {} is inconsistent with population; using proportions'.format(
+                            var
+                            )
+                        )
                     for cat, nb in val.iteritems():
-                        cat_varname =  var + '_' + str(cat)
-                        margins_new[cat_varname] = nb*totalpop/pop
-                        margins_new_dict[var][cat] = nb*totalpop/pop
+                        cat_varname = var + '_' + str(cat)
+                        margins_new[cat_varname] = nb * total_population / pop
+                        margins_new_dict[var][cat] = nb * total_population / pop
                 else:
                     raise Exception('calmar: categorical variable ', var, ' is inconsistent with population')
         else:
@@ -164,61 +179,63 @@ def calmar(data_in, margins, param = {}, pondini='wprm_init'):
             nj += 1
 
     # On conserve systematiquement la population
-    if  hasattr(data,'dummy_is_in_pop'):
+    if hasattr(data, 'dummy_is_in_pop'):
         raise Exception('dummy_is_in_pop is not a valid variable name')
 
     data['dummy_is_in_pop'] = ones(nk)
-    margins_new['dummy_is_in_pop'] = totalpop
+    margins_new['dummy_is_in_pop'] = total_population
 
     # paramètres de Lagrange initialisés à zéro
     lambda0 = zeros(nj)
 
     # initial weights
     d = data[pondini]
-    x = zeros((nk, nj)) # nb obs x nb constraints
+    x = zeros((nk, nj))  # nb obs x nb constraints
     xmargins = zeros(nj)
     margins_dict = {}
-    j=0
-    for var , val in margins_new.iteritems():
-        x[:,j] = data[var]
+    j = 0
+    for var, val in margins_new.iteritems():
+        x[:, j] = data[var]
         xmargins[j] = val
-        margins_dict[var] =val
+        margins_dict[var] = val
         j += 1
 
     # Résolution des équations du premier ordre
-    constraint = lambda l: dot(d*F(dot(x, l)), x) - xmargins
-    constraint_prime = lambda l: dot(d*(x.T*F_prime(dot(x, l))), x)
+    constraint = lambda l: dot(d * F(dot(x, l)), x) - xmargins
+    constraint_prime = lambda l: dot(d * (x.T * F_prime(dot(x, l))), x)
     ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
-    essai, ier = 0, 2
-    if 'xtol' in param:
-        xtol = param['xtol']
+    tries, ier = 0, 2
+    if 'xtol' in parameters:
+        xtol = parameters['xtol']
     else:
         xtol = 1.49012e-08
 
     err_max = 1
     conv = 1
-    while (ier==2 or ier==5 or ier==4) and not (essai >= 10 or (err_max < 1e-6 and conv < 1e-8)):
-        lambdasol, infodict, ier, mesg = fsolve(constraint, lambda0, fprime=constraint_prime, maxfev= 256, xtol=xtol, full_output=1)
-        lambda0 = 1*lambdasol
-        essai += 1
+    while (ier == 2 or ier == 5 or ier == 4) and not (tries >= 10 or (err_max < 1e-6 and conv < 1e-8)):
+        lambdasol, infodict, ier, mesg = fsolve(
+            constraint,
+            lambda0,
+            fprime = constraint_prime,
+            maxfev = 256,
+            xtol = xtol,
+            full_output = 1)
+        lambda0 = 1 * lambdasol
+        tries += 1
 
-        pondfin = d*F(dot(x, lambdasol))
-        rel_error ={}
+        pondfin = d * F(dot(x, lambdasol))
+        rel_error = {}
         for var, val in margins_new.iteritems():
-            rel_error[var] =  abs((data[var]*pondfin).sum() - margins_dict[var])/margins_dict[var]
-        sorted_err = sorted(rel_error.iteritems(), key=operator.itemgetter(1), reverse = True)
+            rel_error[var] = abs((data[var] * pondfin).sum() - margins_dict[var]) / margins_dict[var]
+        sorted_err = sorted(rel_error.iteritems(), key = operator.itemgetter(1), reverse = True)
 
         conv = abs(err_max - sorted_err[0][1])
         err_max = sorted_err[0][1]
 
-    if (ier==2 or ier==5 or ier==4):
-        print "calmar: stopped after ", essai, "tries"
-
-
+    if (ier == 2 or ier == 5 or ier == 4):
+        log.info("calmar: stopped after {} tries".format(tries))
     # rebuilding a weight vector with the same size of the initial one
-    pondfin_out = array(data_in[pondini], dtype=float64)
+    pondfin_out = array(data_in[pondini], dtype = float64)
     pondfin_out[is_weight_not_null] = pondfin
-
     return pondfin_out, lambdasol, margins_new_dict
-
