@@ -298,3 +298,21 @@ class EnumCol(IntCol):
                 for label, index in self.enum
                 )
         return self_json
+
+
+# Column couple builder
+
+
+def build_column_couple(name = None, column = None, entities = None):
+    assert isinstance(name, basestring), name
+    name = unicode(name)
+    if column.label is None:
+        column.label = name
+    assert column.name is None
+    column.name = name
+
+    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    assert name not in entity_column_by_name, name
+    entity_column_by_name[name] = column
+
+    return (name, column)
