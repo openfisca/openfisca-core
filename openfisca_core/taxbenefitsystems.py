@@ -81,23 +81,24 @@ class AbstractTaxBenefitSystem(object):
             self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
         self.legislation_json = legislation_json
 
-    def apply_reform(self, reform = None):
-        if reform.legislation_json_patch:
-            self.legislation_json = reform.legislation_json_patch.apply(
-                self.legislation_json
-                )
-            self.update_legislation()
-
     def get_compact_legislation(self, date):
         date_str = date.isoformat()
         compact_legislation = self.compact_legislation_by_date_str_cache.get(date_str)
         if compact_legislation is None:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, date)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-            if self.preprocess_legislation_parameters is not None:
-                self.preprocess_legislation_parameters(compact_legislation)
             self.compact_legislation_by_date_str_cache[date_str] = compact_legislation
         return compact_legislation
+
+    def get_reference_dated_legislation(self, date):
+        date_str = date.isoformat()
+        reference_dated_legislation = self.reference_legislation_by_date_str_cache.get(date_str)
+        if reference_dated_legislation is None:
+            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json, date)
+            self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
+        return reference_dated_legislation
+
+
 
     @classmethod
     def json_to_instance(cls, value, state = None):

@@ -23,12 +23,33 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-class Reform():
-    name = None
-    legislation_json_patch = None
+from openfisca_core import legislations
 
-    def __init__(self, name = None, legislation_json_patch = None):
-        if name is not None:
-            self.name = name
-        if legislation_json_patch is not None:
-            self.legislation_json_patch = legislation_json_patch
+
+class Reform():
+    compact_legislation = None
+    label = None
+    name = None
+    reference_dated_legislation_json = None
+    reform_dated_legislation_json = None
+
+    def __init__(self, label = None, name = None, reform_dated_legislation_json = None,
+                 reference_dated_legislation_json = None):
+        assert name is not None, "a name should be provided"
+        self.name = name
+        if label is not None:
+            self.label = label
+        else:
+            self.label = name
+        if reform_dated_legislation_json is not None:
+            self.reform_dated_legislation_json = reform_dated_legislation_json
+        if reference_dated_legislation_json is not None:
+            self.reference_dated_legislation_json = reference_dated_legislation_json
+
+    @property
+    def compact_legislation(self):
+        return legislations.compact_dated_node_json(self.reform_dated_legislation_json)
+
+    @property
+    def reference_compact_legislation(self):
+        return legislations.compact_dated_node_json(self.reference_dated_legislation_json)
