@@ -41,7 +41,7 @@ class AbstractScenario(object):
     reference_dated_legislation_json = None
     reforms = dict()
     tax_benefit_system = None
-    year = None
+    date = None
 
     def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
@@ -68,7 +68,7 @@ class AbstractScenario(object):
         simulation = simulations.Simulation(
             compact_legislation = compact_legislation,
             default_compact_legislation = default_compact_legislation,
-            date = datetime.date(self.year, 1, 1),
+            date = self.date,
             debug = debug,
             debug_all = debug_all,
             tax_benefit_system = self.tax_benefit_system,
