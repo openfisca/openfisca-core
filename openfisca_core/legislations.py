@@ -115,8 +115,10 @@ def generate_dated_json_value(values_json, date_str, legislation_from_str, legis
 
 def generate_dated_legislation_json(legislation_json, date):
     date_str = date.isoformat()
-    dated_legislation_json = generate_dated_node_json(legislation_json, date_str, legislation_json['from'],
-        legislation_json['to'])
+    dated_legislation_json = generate_dated_node_json(
+        legislation_json, date_str, legislation_json['from'],
+        legislation_json['to']
+        )
     dated_legislation_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
     dated_legislation_json['datesim'] = date_str
     return dated_legislation_json
@@ -130,8 +132,9 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
             dated_children_json = type(value)(
                 (child_code, dated_child_json)
                 for child_code, dated_child_json in (
-                    (child_code, generate_dated_node_json(child_json, date_str, legislation_from_str,
-                        legislation_to_str))
+                    (child_code,
+                     generate_dated_node_json(child_json, date_str, legislation_from_str, legislation_to_str)
+                     )
                     for child_code, child_json in value.iteritems()
                     )
                 if dated_child_json is not None
