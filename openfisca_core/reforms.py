@@ -27,16 +27,19 @@ from openfisca_core import legislations
 
 
 class Reform(object):
+    column_by_name = None
     compact_legislation = None
     label = None
     name = None
     reference_dated_legislation_json = None
     reform_dated_legislation_json = None
 
-    def __init__(self, label = None, name = None, reform_dated_legislation_json = None,
+    def __init__(self, column_by_name = None, label = None, name = None, reform_dated_legislation_json = None,
                  reference_dated_legislation_json = None):
         assert name is not None, u"a name should be provided"
         self.name = name
+        if column_by_name is not None:
+            self.column_by_name = column_by_name
         if label is not None:
             self.label = label
         else:
