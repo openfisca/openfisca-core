@@ -169,7 +169,7 @@ class DateCol(Column):
                         ),
                     conv.pipe(
                         conv.test_isinstance(basestring),
-                        conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid year')),
+                        conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
                         conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
                         conv.iso8601_input_to_date,
                         ),
