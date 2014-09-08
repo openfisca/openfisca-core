@@ -98,8 +98,6 @@ class AbstractTaxBenefitSystem(object):
             self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
         return reference_dated_legislation
 
-
-
     @classmethod
     def json_to_instance(cls, value, state = None):
         attributes, error = conv.pipe(
