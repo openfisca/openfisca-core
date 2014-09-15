@@ -407,7 +407,7 @@ class SimpleFormula(AbstractFormula):
             arguments['self'] = self
         if self.legislation_accessor_by_name is not None:
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
-                # TODO: Also handle simulation.default_compact_legislation
+                # TODO: Also handle simulation.default_compact_legislation.
                 arguments[name] = legislation_accessor(simulation.compact_legislation, default = None)
 
         provided_parameters = set(arguments.keys())
