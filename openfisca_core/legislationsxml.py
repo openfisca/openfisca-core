@@ -130,9 +130,9 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
         elif key == 'code':
             pass
         elif key == 'deb':
-            node_json['from'] = value
+            node_json['start'] = value
         elif key == 'fin':
-            node_json['to'] = value
+            node_json['stop'] = value
         elif key == 'NODE':
             for child_xml_json in value:
                 child_code, child_json = transform_node_xml_json_to_json(child_xml_json, root = False)
@@ -234,9 +234,9 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
         if key in ('code', 'format', 'type'):
             pass
         elif key == 'deb':
-            value_json['from'] = value
+            value_json['start'] = value
         elif key == 'fin':
-            value_json['to'] = value
+            value_json['stop'] = value
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'valeur':

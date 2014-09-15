@@ -90,8 +90,8 @@ def generate_dated_json_value(values_json, date_str, legislation_from_str, legis
     min_from_str = None
     min_value = None
     for value_json in values_json:
-        value_from_str = value_json['from']
-        value_to_str = value_json['to']
+        value_from_str = value_json['start']
+        value_to_str = value_json['stop']
         if value_from_str <= date_str <= value_to_str:
             return value_json['value']
         if max_to_str is None or value_to_str > max_to_str:
@@ -116,8 +116,8 @@ def generate_dated_json_value(values_json, date_str, legislation_from_str, legis
 def generate_dated_legislation_json(legislation_json, date):
     date_str = date.isoformat()
     dated_legislation_json = generate_dated_node_json(
-        legislation_json, date_str, legislation_json['from'],
-        legislation_json['to']
+        legislation_json, date_str, legislation_json['start'],
+        legislation_json['stop']
         )
     dated_legislation_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
     dated_legislation_json['datesim'] = date_str
@@ -142,7 +142,7 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
             if not dated_children_json:
                 return None
             dated_node_json[key] = dated_children_json
-        elif key in ('from', 'to'):
+        elif key in ('start', 'stop'):
             pass
         elif key == 'slices':
             # Occurs when @type == 'Scale'.
@@ -192,18 +192,18 @@ def make_validate_values_json_dates(require_consecutive_dates = False):
 
         errors = {}
         for index, value_json in enumerate(values_json):
-            if value_json['from'] > value_json['to']:
+            if value_json['start'] > value_json['stop']:
                 errors[index] = dict(to = state._(u"Last date must be greater than first date"))
 
-        sorted_values_json = sorted(values_json, key = lambda value_json: value_json['from'], reverse = True)
+        sorted_values_json = sorted(values_json, key = lambda value_json: value_json['start'], reverse = True)
         next_value_json = sorted_values_json[0]
         for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
                 + datetime.timedelta(days = 1)).isoformat()
-            if require_consecutive_dates and next_date_str < next_value_json['from']:
-                errors.setdefault(index, {})['from'] = state._(u"Dates of values are not consecutive")
-            elif next_date_str > next_value_json['from']:
-                errors.setdefault(index, {})['from'] = state._(u"Dates of values overlap")
+            if require_consecutive_dates and next_date_str < next_value_json['start']:
+                errors.setdefault(index, {})['start'] = state._(u"Dates of values are not consecutive")
+            elif next_date_str > next_value_json['start']:
+                errors.setdefault(index, {})['start'] = state._(u"Dates of values overlap")
             next_value_json = value_json
 
         return sorted_values_json, errors or None
@@ -449,13 +449,13 @@ def validate_legislation_json(legislation, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             {
-                'from': conv.pipe(
+                'start': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
-                'to': conv.pipe(
+                'stop': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
@@ -471,11 +471,11 @@ def validate_legislation_json(legislation, state = None):
     if error is not None:
         return legislation, error
 
-    saved_from = legislation.pop('from')
-    saved_to = legislation.pop('to')
+    saved_from = legislation.pop('start')
+    saved_to = legislation.pop('stop')
     legislation, error = validate_node_json(legislation, state = state)
-    legislation['from'] = saved_from
-    legislation['to'] = saved_to
+    legislation['start'] = saved_from
+    legislation['stop'] = saved_to
     return legislation, error
 
 
@@ -658,21 +658,21 @@ def validate_slices_json_dates(slices, state = None):
         for key in ('base', 'constant_amount', 'rate', 'threshold'):
             valid_segments = []
             for value_json in (previous_slice.get(key) or []):
-                from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-                to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+                from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
                 if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                     valid_segments[-1] = (from_date, valid_segments[-1][1])
                 else:
                     valid_segments.append((from_date, to_date))
             for value_index, value_json in enumerate(slice.get(key) or []):
-                from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-                to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+                from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+                to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
                 for valid_segment in valid_segments:
                     if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
                         break
                 else:
                     errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(value_index,
-                        {})['from'] = state._(u"Dates don't belong to valid dates of previous slice")
+                        {})['start'] = state._(u"Dates don't belong to valid dates of previous slice")
         previous_slice = slice
     if errors:
         return slices, errors
@@ -680,8 +680,8 @@ def validate_slices_json_dates(slices, state = None):
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
         constant_amount_segments = []
         for value_json in (slice.get('constant_amount') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if constant_amount_segments and constant_amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 constant_amount_segments[-1] = (from_date, constant_amount_segments[-1][1])
             else:
@@ -689,8 +689,8 @@ def validate_slices_json_dates(slices, state = None):
 
         rate_segments = []
         for value_json in (slice.get('rate') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 rate_segments[-1] = (from_date, rate_segments[-1][1])
             else:
@@ -698,46 +698,46 @@ def validate_slices_json_dates(slices, state = None):
 
         threshold_segments = []
         for value_json in (slice.get('threshold') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 threshold_segments[-1] = (from_date, threshold_segments[-1][1])
             else:
                 threshold_segments.append((from_date, to_date))
 
         for value_index, value_json in enumerate(slice.get('base') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for rate_segment in rate_segments:
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
                 errors.setdefault(slice_index, {}).setdefault('base', {}).setdefault(value_index,
-                    {})['from'] = state._(u"Dates don't belong to rate dates")
+                    {})['start'] = state._(u"Dates don't belong to rate dates")
 
         for value_index, value_json in enumerate(slice.get('constant_amount') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for threshold_segment in threshold_segments:
                 if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
                     break
             else:
                 errors.setdefault(slice_index, {}).setdefault('constant_amount', {}).setdefault(value_index,
-                    {})['from'] = state._(u"Dates don't belong to threshold dates")
+                    {})['start'] = state._(u"Dates don't belong to threshold dates")
 
         for value_index, value_json in enumerate(slice.get('rate') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for threshold_segment in threshold_segments:
                 if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
                     break
             else:
                 errors.setdefault(slice_index, {}).setdefault('rate', {}).setdefault(value_index,
-                    {})['from'] = state._(u"Dates don't belong to threshold dates")
+                    {})['start'] = state._(u"Dates don't belong to threshold dates")
 
         for value_index, value_json in enumerate(slice.get('threshold') or []):
-            from_date = datetime.date(*(int(fragment) for fragment in value_json['from'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['to'].split('-')))
+            from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for constant_amount_segment in constant_amount_segments:
                 if constant_amount_segment[0] <= from_date and to_date <= constant_amount_segment[1]:
                     break
@@ -747,7 +747,7 @@ def validate_slices_json_dates(slices, state = None):
                         break
                 else:
                     errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
-                        {})['from'] = state._(u"Dates don't belong to rate or constant_amount dates")
+                        {})['start'] = state._(u"Dates don't belong to rate or constant_amount dates")
 
     return slices, errors or None
 
@@ -790,13 +790,13 @@ def validate_value_json(value, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
-                u'from': conv.pipe(
+                u'start': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
-                u'to': conv.pipe(
+                u'stop': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
