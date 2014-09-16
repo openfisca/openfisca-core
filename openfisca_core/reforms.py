@@ -26,7 +26,7 @@
 from openfisca_core import legislations
 
 
-class Reform():
+class Reform(object):
     compact_legislation = None
     label = None
     name = None
