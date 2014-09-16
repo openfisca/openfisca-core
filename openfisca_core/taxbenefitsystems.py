@@ -90,13 +90,13 @@ class AbstractTaxBenefitSystem(object):
             self.compact_legislation_by_date_str_cache[date_str] = compact_legislation
         return compact_legislation
 
-    def get_reference_dated_legislation(self, date):
-        date_str = date.isoformat()
-        reference_dated_legislation = self.reference_legislation_by_date_str_cache.get(date_str)
-        if reference_dated_legislation is None:
-            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json, date)
-            self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
-        return reference_dated_legislation
+#    def get_reference_dated_legislation(self, date):
+#        date_str = date.isoformat()
+#        reference_dated_legislation = self.reference_legislation_by_date_str_cache.get(date_str)
+#        if reference_dated_legislation is None:
+#            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json, date)
+#            self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
+#        return reference_dated_legislation
 
     @classmethod
     def json_to_instance(cls, value, state = None):
