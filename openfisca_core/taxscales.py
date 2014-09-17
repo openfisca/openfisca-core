@@ -45,10 +45,8 @@ class TaxScale(object):
     '''
 
     def __init__(self, name = 'untitled TaxScale', option = None, unit = None, constant_amount_option = False):
-        super(TaxScale, self).__init__()
         self._name = name
         self._brackets = []
-        self._nb = 0
         self._brackets_average_rate = []
         self.constant_amount_option = constant_amount_option
         self._brackets_constant_amount = []
@@ -61,15 +59,15 @@ class TaxScale(object):
         self.unit = unit
 
     @property
+    def nb(self):
+        return len(self._brackets)
+
+    @property
     def option(self):
         return self._option
 
     def set_option(self, option):
         self._option = option
-
-    @property
-    def nb(self):
-        return self._nb
 
     @property
     def thresholds(self):
@@ -121,7 +119,7 @@ class TaxScale(object):
 
     def multiply_rates(self, factor, inplace = True, new_name = None):
         if inplace:
-            for i in range(self._nb):
+            for i in range(self.nb):
                 self.set_rate(i, factor * self.rates[i])
         else:
             if new_name is None:
@@ -159,9 +157,11 @@ class TaxScale(object):
 
         # Use add_bracket to add rates where they belongs
         i = self.thresholds.index(thresholdInf)
-        if thresholdSup: j = self.thresholds.index(thresholdSup) - 1
-        else: j = self._nb - 1
-        while (i <= j):
+        if thresholdSup:
+            j = self.thresholds.index(thresholdSup) - 1
+        else:
+            j = self.nb - 1
+        while i <= j:
             self.add_bracket(self.thresholds[i], rate)
             i += 1
 
@@ -172,11 +172,9 @@ class TaxScale(object):
         else:
             self._brackets.append([threshold, rate])
             self._brackets.sort()
-            self._nb = len(self._brackets)
 
     def remove_bracket(self):
         self._brackets.pop()
-        self._nb = len(self._brackets)
 
     def add_bracket_average(self, threshold, rate):
         if threshold in self.thresholds_average:
@@ -255,7 +253,7 @@ class TaxScale(object):
 
     def __str__(self):
         output = self._name + '\n'
-        for i in range(self._nb):
+        for i in range(self.nb):
             output += str(self.thresholds[i]) + '  ' + str(self.rates[i]) + '\n'
         return output
 

@@ -348,7 +348,7 @@ class BaremeNode(Node):
             S = tax_scale.seuils
             T = tax_scale.taux
 
-            for i in range(self.value._nb):
+            for i in range(self.value.nb):
                 tranche = SubElement(child,
                                      tag = 'TRANCHE',
                                      attrib = {'code': 'tranche%d' % i})
