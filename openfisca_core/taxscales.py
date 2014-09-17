@@ -115,6 +115,8 @@ class TaxScale(object):
 
     def calc(self, base, getT = False):
         if self.constant_amount_option is True:
+            k = self.nb
+            n = len(base)
             assi = np.tile(base, (k, 1)).T
             seui = np.tile(np.hstack((self.thresholds, np.inf)), (n, 1))
             a = max_(min_(assi, seui[:, 1:]) - seui[:, :-1], 0)
