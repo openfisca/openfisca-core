@@ -55,19 +55,12 @@ class TaxScale(object):
         # set _linear_avg_rate to 'True' to compute the output with a linear interpolation on average tax rate
         self._linear_avg_rate = False
 
-        self._option = option
+        self.option = option
         self.unit = unit
 
     @property
     def nb(self):
         return len(self._brackets)
-
-    @property
-    def option(self):
-        return self._option
-
-    def set_option(self, option):
-        self._option = option
 
     @property
     def thresholds(self):
@@ -124,7 +117,7 @@ class TaxScale(object):
         else:
             if new_name is None:
                 new_name = self._name
-            b = TaxScale(new_name, option = self._option, unit = self.unit)
+            b = TaxScale(new_name, option = self.option, unit = self.unit)
             for i in range(self.nb):
                 b.add_bracket(self.thresholds[i], self.rates[i])
             b.multiply_rates(factor, inplace = True)
@@ -134,7 +127,7 @@ class TaxScale(object):
         '''
         Returns a new instance of TaxScale with scaled thresholds and same rates
         '''
-        b = TaxScale(self._name, option = self._option, unit = self.unit)
+        b = TaxScale(self._name, option = self.option, unit = self.unit)
         for i in range(self.nb):
             b.add_bracket(factor * self.thresholds[i], self.rates[i])
         return b
