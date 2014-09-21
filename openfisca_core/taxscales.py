@@ -278,15 +278,14 @@ class TaxScalesTree(dict):
     def init_from_compact_node(self, compact_node):
         '''Initialize a TaxScalesTree from a CompactNode.'''
         from .legislations import CompactNode
-        from .parameters import Tree2Object
 
         if isinstance(compact_node, MarginalRateTaxScale):
             self[compact_node.name] = compact_node
-        elif isinstance(compact_node, (CompactNode, Tree2Object)):
+        elif isinstance(compact_node, CompactNode):
             for key, tax_scale in compact_node.__dict__.iteritems():
                 if isinstance(tax_scale, MarginalRateTaxScale):
                     self[key] = tax_scale
-                elif isinstance(tax_scale, (CompactNode, Tree2Object)):
+                elif isinstance(tax_scale, CompactNode):
                     self[key] = TaxScalesTree(key, tax_scale)
 
     def log(self, tab_level = -1):
