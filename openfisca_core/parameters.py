@@ -24,10 +24,12 @@
 
 
 from datetime import datetime
+import itertools
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
-from .taxscales import TaxScale
+from . import taxscales
+
 
 class Tree2Object(object):
     def __init__(self, node, defaut = False):
@@ -63,7 +65,7 @@ class XmlReader(object):
                     desc = element.getAttribute('description')
                     option = element.getAttribute('option')
                     value_type   = element.getAttribute('type')
-                    tax_scale = TaxScale(code, option = option)
+                    tax_scale = taxscales.MarginalRateTaxScale(code, option = option)
                     for tranche in element.getElementsByTagName("TRANCHE"):
                         seuil = self.handleValues(tranche.getElementsByTagName("SEUIL")[0], self._date)
                         assi = tranche.getElementsByTagName("ASSIETTE")
@@ -72,7 +74,6 @@ class XmlReader(object):
                         taux  = self.handleValues(tranche.getElementsByTagName("TAUX")[0], self._date)
                         if not seuil is None and not taux is None:
                             tax_scale.add_bracket(seuil, taux*assiette)
-                    tax_scale.marginal_to_average()
                     node = BaremeNode(code, desc, tax_scale, parent, value_type)
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
@@ -329,10 +330,9 @@ class BaremeNode(Node):
         super(BaremeNode, self).__init__(code, description, parent)
         self.value = value
         # create a copy of the default value by hand
-        self.default = TaxScale(value._name, option = value.option)
-        for s , t in value._brackets:
+        self.default = taxscales.MarginalRateTaxScale(value.name, option = value.option)
+        for s , t in itertools.izip(value.thresholds, value.rates):
             self.default.add_bracket(s, t)
-        self.default.marginal_to_average()
         self.type_info = 'BAREME'
         self.value_type  = value_type
 
@@ -344,10 +344,10 @@ class BaremeNode(Node):
                                          'description': self.description})
 
             tax_scale = self.value
-            S = tax_scale.seuils
-            T = tax_scale.taux
+            S = tax_scale.thresholds
+            T = tax_scale.rates
 
-            for i in range(self.value.nb):
+            for i in range(len(tax_scale.thresholds)):
                 tranche = SubElement(child,
                                      tag = 'TRANCHE',
                                      attrib = {'code': 'tranche%d' % i})
@@ -386,6 +386,5 @@ class BaremeNode(Node):
         return True
 
     def isDirty(self):
-        if self.value._brackets == self.default._brackets:
-            return False
-        return True
+        return self.value.thresholds != self.default.thresholds or self.value.rates != self.default.rates
+

@@ -30,9 +30,9 @@ import collections
 import datetime
 import itertools
 
-from . import conv
-from taxscales import TaxScale
+import numpy as np
 
+from . import conv, taxscales
 
 N_ = lambda message: message
 units = [
@@ -69,18 +69,31 @@ def compact_dated_node_json(dated_node_json, code = None):
     if node_type == u'Parameter':
         return dated_node_json.get('value')
     assert node_type == u'Scale'
-    tax_scale = TaxScale(name = code, option = dated_node_json.get('option'))
-    for dated_slice_json in dated_node_json['slices']:
-        base = dated_slice_json.get('base', 1)
-        constant_amount = dated_slice_json.get('constant_amount')
-        rate = dated_slice_json.get('rate')
-        threshold = dated_slice_json.get('threshold')
-        if rate is not None and threshold is not None:
-            tax_scale.add_bracket(threshold, rate * base)
-        if constant_amount is not None and threshold is not None:
-            tax_scale.add_bracket_constant_amount(threshold, constant_amount)
-            tax_scale.constant_amount_option = True
-    tax_scale.marginal_to_average()
+    if any('amount' in slice for slice in dated_node_json['slices']):
+        tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
+        for dated_slice_json in dated_node_json['slices']:
+            amount = dated_slice_json.get('amount')
+            if isinstance(amount, list):
+                amount = np.array(amount)
+            threshold = dated_slice_json.get('threshold')
+            if isinstance(threshold, list):
+                threshold = np.array(threshold)
+            if rate is not None and threshold is not None:
+                tax_scale.add_bracket(threshold, amount)
+    else:
+        tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
+        for dated_slice_json in dated_node_json['slices']:
+            base = dated_slice_json.get('base', 1)
+            if isinstance(base, list):
+                base = np.array(base)
+            rate = dated_slice_json.get('rate')
+            if isinstance(rate, list):
+                rate = np.array(rate)
+            threshold = dated_slice_json.get('threshold')
+            if isinstance(threshold, list):
+                threshold = np.array(threshold)
+            if rate is not None and threshold is not None:
+                tax_scale.add_bracket(threshold, rate * base)
     return tax_scale
 
 

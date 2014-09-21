@@ -38,7 +38,7 @@ from . import conv
 #    ASSIETTE = 'base',  # "base" is singular, because a slice has only one base.
 #    BAREME = 'scales',
 #    CODE = 'parameters',
-#    MONTANT = 'constant_amount
+#    MONTANT = 'amount',
 #    NODE = 'nodes',
 #    SEUIL= 'threshold',  # "threshold" is singular, because a slice has only one base.
 #    TAUX = 'rate',  # "rate" is singular, because a slice has only one base.
@@ -212,7 +212,7 @@ def transform_slice_xml_json_to_json(slice_xml_json):
         elif key == 'code':
             pass
         elif key == 'MONTANT':
-            slice_json['constant_amount'] = transform_values_holder_xml_json_to_json(value[0])
+            slice_json['amount'] = transform_values_holder_xml_json_to_json(value[0])
         elif key == 'SEUIL':
             slice_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
         elif key in ('tail', 'text'):
@@ -476,6 +476,7 @@ def validate_scale_xml_json(scale, state = None):
                         validate_slice_xml_json,
                         drop_none_items = True,
                         ),
+                    validate_slices_xml_json_types,
                     validate_slices_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
@@ -685,6 +686,29 @@ def validate_slices_xml_json_dates(slices, state = None):
                     errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
                         {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
     return slices, errors or None
+
+
+def validate_slices_xml_json_types(slices, state = None):
+    if not slices:
+        return slices, None
+
+    has_amount = any(
+        'MONTANT' in slice
+        for slice in slices
+        )
+    if has_amount:
+        if state is None:
+            state = conv.default_state
+        errors = {}
+        for slice_index, slice in enumerate(slices):
+            if 'ASSIETTE' in slice:
+                errors.setdefault(slice_index, {})['ASSIETTE'] = state._(
+                    u"A scale can't contain both MONTANT and ASSIETTE")
+            if 'TAUX' in slice:
+                errors.setdefault(slice_index, {})['TAUX'] = state._(u"A scale can't contain both MONTANT and TAUX")
+        if errors:
+            return slices, errors
+    return slices, None
 
 
 def validate_value_xml_json(value, state = None):
