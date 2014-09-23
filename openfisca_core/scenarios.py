@@ -37,9 +37,12 @@ N_ = lambda message: message
 class AbstractScenario(object):
     compact_legislation = None
     reference_dated_legislation_json = None
-    reforms = dict()
+    reforms = None
     tax_benefit_system = None
     date = None
+
+    def __init__(self):
+        self.reforms = {}
 
     def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
