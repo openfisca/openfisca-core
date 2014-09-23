@@ -23,10 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from copy import deepcopy
-import datetime
+import copy
 import logging
-
 
 from . import conv
 from . import simulations
@@ -52,7 +50,7 @@ class AbstractScenario(object):
 
     def add_reform(self, reform):
         if reform.reference_dated_legislation_json is None:
-            reform.reference_dated_legislation_json = deepcopy(self.reference_dated_legislation_json)
+            reform.reference_dated_legislation_json = copy.deepcopy(self.reference_dated_legislation_json)
         self.reforms.update({reform.name: reform})
 
     def add_reforms(self, reforms):
