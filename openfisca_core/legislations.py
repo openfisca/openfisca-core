@@ -78,7 +78,7 @@ def compact_dated_node_json(dated_node_json, code = None):
             threshold = dated_slice_json.get('threshold')
             if isinstance(threshold, list):
                 threshold = np.array(threshold)
-            if rate is not None and threshold is not None:
+            if amount is not None and threshold is not None:
                 tax_scale.add_bracket(threshold, amount)
     else:
         tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
