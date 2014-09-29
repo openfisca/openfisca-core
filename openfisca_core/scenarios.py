@@ -36,20 +36,13 @@ N_ = lambda message: message
 
 class AbstractScenario(object):
     compact_legislation = None
+    date = None
     reference_dated_legislation_json = None
     reforms = None
     tax_benefit_system = None
-    date = None
 
     def __init__(self):
         self.reforms = {}
-
-    def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
-        conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
-        return self
-
-    def make_json_or_python_to_attributes(self, cache_dir = None, repair = False):
-        raise NotImplementedError  # TODO migrate here all the non test_case or survey specific stuff
 
     def add_reform(self, reform):
         if reform.reference_dated_legislation_json is None:
@@ -60,8 +53,16 @@ class AbstractScenario(object):
         for reform in reforms:
             self.add_reform(reform)
 
-    def new_simulation(self, debug = False, debug_all = False, trace = False):
-        return self.new_general_simulation(debug = debug, debug_all = debug_all, reform = None, trace = trace)
+    def fill_simulation(self, simulation):
+        """Implemented in child classes."""
+        raise NotImplementedError
+
+    def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
+        conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
+        return self
+
+    def make_json_or_python_to_attributes(self, cache_dir = None, repair = False):
+        raise NotImplementedError  # TODO migrate here all the non test_case or survey specific stuff
 
     def new_general_simulation(self, debug = False, debug_all = False, reform = None, trace = False):
         compact_legislation = self.compact_legislation if reform is None else reform.compact_legislation
@@ -82,3 +83,6 @@ class AbstractScenario(object):
         if reform is None and len(self.reforms) == 1:
             reform = self.reforms.values()[0]
         return self.new_general_simulation(debug = debug, debug_all = debug_all, reform = reform, trace = trace)
+
+    def new_simulation(self, debug = False, debug_all = False, trace = False):
+        return self.new_general_simulation(debug = debug, debug_all = debug_all, reform = None, trace = trace)

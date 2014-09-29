@@ -35,7 +35,7 @@ class Reform(object):
 
     def __init__(self, label = None, name = None, reform_dated_legislation_json = None,
                  reference_dated_legislation_json = None):
-        assert name is not None, "a name should be provided"
+        assert name is not None, u"a name should be provided"
         self.name = name
         if label is not None:
             self.label = label

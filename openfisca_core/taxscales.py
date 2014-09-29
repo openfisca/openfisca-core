@@ -188,7 +188,7 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
 class MarginalRateTaxScale(AbstractRateTaxScale):
     def add_tax_scale(self, tax_scale):
         if tax_scale.thresholds > 0:  # Pour ne pas avoir de problèmes avec les barèmes vides
-            for threshold_low, threshold_high, rate  in itertools.izip(tax_scale.thresholds[:-1],
+            for threshold_low, threshold_high, rate in itertools.izip(tax_scale.thresholds[:-1],
                     tax_scale.thresholds[1:], tax_scale.rates):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
@@ -293,7 +293,7 @@ class TaxScalesTree(dict):
 
         tab_level += 1
         for i in range(tab_level):
-             output += "\t"
+            output += "\t"
 
         output += "|------" + self.name + "\n"
 
