@@ -67,17 +67,14 @@ class AbstractScenario(object):
     def new_general_simulation(self, debug = False, debug_all = False, reform = None, trace = False):
         compact_legislation = self.compact_legislation if reform is None else reform.compact_legislation
         default_compact_legislation = None if reform is None else reform.reference_compact_legislation
-
-        if reform is not None:
-            if reform.column_by_name is not None:
-                self.tax_benefit_system.colums.column_by_name.update(reform.column_by_name)
-
+        entity_class_by_key_plural = None if reform is None else reform.entity_class_by_key_plural
         simulation = simulations.Simulation(
             compact_legislation = compact_legislation,
             default_compact_legislation = default_compact_legislation,
             date = self.date,
             debug = debug,
             debug_all = debug_all,
+            entity_class_by_key_plural = entity_class_by_key_plural,
             tax_benefit_system = self.tax_benefit_system,
             trace = trace,
             )

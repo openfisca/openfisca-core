@@ -28,7 +28,6 @@ from openfisca_core import legislations
 
 class Reform(object):
     column_by_name = None
-    compact_legislation = None
     label = None
     name = None
     reference_dated_legislation_json = None
@@ -51,8 +50,10 @@ class Reform(object):
 
     @property
     def compact_legislation(self):
+        ## FIXME Could be slow, prefer storing python object as attribute, not JSON.
         return legislations.compact_dated_node_json(self.reform_dated_legislation_json)
 
     @property
     def reference_compact_legislation(self):
+        ## FIXME Could be slow, prefer storing python object as attribute, not JSON.
         return legislations.compact_dated_node_json(self.reference_dated_legislation_json)

@@ -42,7 +42,8 @@ class Simulation(object):
     traceback = None
 
     def __init__(self, compact_legislation = None, date = None, debug = False, debug_all = False,
-            default_compact_legislation = None, tax_benefit_system = None, trace = False):
+            default_compact_legislation = None, entity_class_by_key_plural = None, tax_benefit_system = None,
+            trace = False):
         assert date is not None
         self.date = date
         if debug:
@@ -68,9 +69,12 @@ class Simulation(object):
             tax_benefit_system.preprocess_legislation_parameters(self.compact_legislation)
             tax_benefit_system.preprocess_legislation_parameters(self.default_compact_legislation)
 
+        entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural \
+            if entity_class_by_key_plural is None \
+            else entity_class_by_key_plural
         self.entity_by_key_plural = dict(
             (key_plural, entity_class(simulation = self))
-            for key_plural, entity_class in tax_benefit_system.entity_class_by_key_plural.iteritems()
+            for key_plural, entity_class in entity_class_by_key_plural.iteritems()
             )
         self.entity_by_column_name = dict(
             (column_name, entity)
