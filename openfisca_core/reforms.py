@@ -57,3 +57,18 @@ class Reform(object):
                 self.reference_dated_legislation_json
                 )
         return self._reference_compact_legislation
+
+
+def clone_entity_classes(entity_class_by_symbol, symbols):
+    new_entity_class_by_symbol = {
+        symbol: clone_entity_class(entity_class) if symbol in symbols else entity_class
+        for symbol, entity_class in entity_class_by_symbol.iteritems()
+        }
+    return new_entity_class_by_symbol
+
+
+def clone_entity_class(entity_class):
+    class ReformEntity(entity_class):
+        pass
+    ReformEntity.column_by_name = entity_class.column_by_name.copy()
+    return ReformEntity
