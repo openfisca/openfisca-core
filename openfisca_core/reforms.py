@@ -27,33 +27,33 @@ from openfisca_core import legislations
 
 
 class Reform(object):
-    column_by_name = None
+    _compact_legislation = None
+    _reference_compact_legislation = None
+    dated_legislation_json = None
+    entity_class_by_key_plural = None
     label = None
     name = None
     reference_dated_legislation_json = None
-    reform_dated_legislation_json = None
 
-    def __init__(self, column_by_name = None, label = None, name = None, reform_dated_legislation_json = None,
+    def __init__(self, dated_legislation_json = None, entity_class_by_key_plural = None, label = None, name = None,
                  reference_dated_legislation_json = None):
         assert name is not None, u"a name should be provided"
+        self.dated_legislation_json = dated_legislation_json
+        self.entity_class_by_key_plural = entity_class_by_key_plural
+        self.label = label if label is not None else name
         self.name = name
-        if column_by_name is not None:
-            self.column_by_name = column_by_name
-        if label is not None:
-            self.label = label
-        else:
-            self.label = name
-        if reform_dated_legislation_json is not None:
-            self.reform_dated_legislation_json = reform_dated_legislation_json
-        if reference_dated_legislation_json is not None:
-            self.reference_dated_legislation_json = reference_dated_legislation_json
+        self.reference_dated_legislation_json = reference_dated_legislation_json
 
     @property
     def compact_legislation(self):
-        ## FIXME Could be slow, prefer storing python object as attribute, not JSON.
-        return legislations.compact_dated_node_json(self.reform_dated_legislation_json)
+        if self._compact_legislation is None:
+            self._compact_legislation = legislations.compact_dated_node_json(self.dated_legislation_json)
+        return self._compact_legislation
 
     @property
     def reference_compact_legislation(self):
-        ## FIXME Could be slow, prefer storing python object as attribute, not JSON.
-        return legislations.compact_dated_node_json(self.reference_dated_legislation_json)
+        if self._reference_compact_legislation is None:
+            self._reference_compact_legislation = legislations.compact_dated_node_json(
+                self.reference_dated_legislation_json
+                )
+        return self._reference_compact_legislation

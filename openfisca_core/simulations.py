@@ -31,18 +31,18 @@ class Simulation(object):
     date = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
-    default_compact_legislation = None
     entity_by_column_name = None
     entity_by_key_plural = None
     entity_by_key_singular = None
     persons = None
+    reference_compact_legislation = None
     steps_count = 1
     tax_benefit_system = None
     trace = False
     traceback = None
 
     def __init__(self, compact_legislation = None, date = None, debug = False, debug_all = False,
-            default_compact_legislation = None, entity_class_by_key_plural = None, tax_benefit_system = None,
+            reference_compact_legislation = None, entity_class_by_key_plural = None, tax_benefit_system = None,
             trace = False):
         assert date is not None
         self.date = date
@@ -61,13 +61,13 @@ class Simulation(object):
             if compact_legislation is not None \
             else tax_benefit_system.get_compact_legislation(date)
 
-        self.default_compact_legislation = default_compact_legislation \
-            if default_compact_legislation is not None \
+        self.reference_compact_legislation = reference_compact_legislation \
+            if reference_compact_legislation is not None \
             else tax_benefit_system.get_compact_legislation(date)
 
         if tax_benefit_system.preprocess_legislation_parameters is not None:
             tax_benefit_system.preprocess_legislation_parameters(self.compact_legislation)
-            tax_benefit_system.preprocess_legislation_parameters(self.default_compact_legislation)
+            tax_benefit_system.preprocess_legislation_parameters(self.reference_compact_legislation)
 
         entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural \
             if entity_class_by_key_plural is None \

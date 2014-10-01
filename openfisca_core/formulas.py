@@ -398,7 +398,7 @@ class SimpleFormula(AbstractFormula):
 
         if self.requires_default_legislation:
             required_parameters.add('_defaultP')
-            arguments['_defaultP'] = simulation.default_compact_legislation
+            arguments['_defaultP'] = simulation.reference_compact_legislation
         if self.requires_legislation:
             required_parameters.add('_P')
             arguments['_P'] = simulation.compact_legislation
@@ -407,7 +407,7 @@ class SimpleFormula(AbstractFormula):
             arguments['self'] = self
         if self.legislation_accessor_by_name is not None:
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
-                # TODO: Also handle simulation.default_compact_legislation.
+                # TODO: Also handle simulation.reference_compact_legislation.
                 arguments[name] = legislation_accessor(simulation.compact_legislation, default = None)
 
         provided_parameters = set(arguments.keys())
