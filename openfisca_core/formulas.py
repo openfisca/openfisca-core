@@ -691,7 +691,7 @@ class SimpleFormula(AbstractFormula):
 # Formulas couple builders
 
 
-def build_alternative_formula_couple(name = None, functions = None, column = None, entities = None):
+def build_alternative_formula_couple(name = None, functions = None, column = None, entity_class_by_symbol = None):
     assert isinstance(name, basestring), name
     name = unicode(name)
     assert isinstance(functions, list), functions
@@ -712,14 +712,14 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
     return (name, column)
 
 
-def build_dated_formula_couple(name = None, dated_functions = None, column = None, entities = None,
+def build_dated_formula_couple(name = None, dated_functions = None, column = None, entity_class_by_symbol = None,
                                replace = False):
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -752,7 +752,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
     if not replace:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
@@ -760,7 +760,8 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
     return (name, column)
 
 
-def build_select_formula_couple(name = None, main_variable_function_couples = None, column = None, entities = None):
+def build_select_formula_couple(name = None, main_variable_function_couples = None, column = None,
+                                entity_class_by_symbol = None):
     assert isinstance(name, basestring), name
     name = unicode(name)
     assert isinstance(main_variable_function_couples, list), main_variable_function_couples
@@ -781,14 +782,14 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
     return (name, column)
 
 
-def build_simple_formula_couple(name = None, column = None, entities = None, replace = False):
+def build_simple_formula_couple(name = None, column = None, entity_class_by_symbol = None, replace = False):
     assert isinstance(name, basestring), name
     name = unicode(name)
 
@@ -802,7 +803,7 @@ def build_simple_formula_couple(name = None, column = None, entities = None, rep
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
     if not replace:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
