@@ -27,32 +27,48 @@ from openfisca_core import legislations
 
 
 class Reform(object):
-    column_by_name = None
-    compact_legislation = None
+    _compact_legislation = None
+    _reference_compact_legislation = None
+    dated_legislation_json = None
+    entity_class_by_key_plural = None
     label = None
     name = None
     reference_dated_legislation_json = None
-    reform_dated_legislation_json = None
 
-    def __init__(self, column_by_name = None, label = None, name = None, reform_dated_legislation_json = None,
+    def __init__(self, dated_legislation_json = None, entity_class_by_key_plural = None, label = None, name = None,
                  reference_dated_legislation_json = None):
         assert name is not None, u"a name should be provided"
+        self.dated_legislation_json = dated_legislation_json
+        self.entity_class_by_key_plural = entity_class_by_key_plural
+        self.label = label if label is not None else name
         self.name = name
-        if column_by_name is not None:
-            self.column_by_name = column_by_name
-        if label is not None:
-            self.label = label
-        else:
-            self.label = name
-        if reform_dated_legislation_json is not None:
-            self.reform_dated_legislation_json = reform_dated_legislation_json
-        if reference_dated_legislation_json is not None:
-            self.reference_dated_legislation_json = reference_dated_legislation_json
+        self.reference_dated_legislation_json = reference_dated_legislation_json
 
     @property
     def compact_legislation(self):
-        return legislations.compact_dated_node_json(self.reform_dated_legislation_json)
+        if self._compact_legislation is None:
+            self._compact_legislation = legislations.compact_dated_node_json(self.dated_legislation_json)
+        return self._compact_legislation
 
     @property
     def reference_compact_legislation(self):
-        return legislations.compact_dated_node_json(self.reference_dated_legislation_json)
+        if self._reference_compact_legislation is None:
+            self._reference_compact_legislation = legislations.compact_dated_node_json(
+                self.reference_dated_legislation_json
+                )
+        return self._reference_compact_legislation
+
+
+def clone_entity_classes(entity_class_by_symbol, symbols):
+    new_entity_class_by_symbol = {
+        symbol: clone_entity_class(entity_class) if symbol in symbols else entity_class
+        for symbol, entity_class in entity_class_by_symbol.iteritems()
+        }
+    return new_entity_class_by_symbol
+
+
+def clone_entity_class(entity_class):
+    class ReformEntity(entity_class):
+        pass
+    ReformEntity.column_by_name = entity_class.column_by_name.copy()
+    return ReformEntity

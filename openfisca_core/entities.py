@@ -48,16 +48,6 @@ class AbstractEntity(object):
         holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
         return holder
 
-    def copy_for_simulation(self, simulation):
-        new = self.__class__(simulation = simulation)
-        new.column_by_name = self.column_by_name
-        new.count = self.count
-        new.holder_by_name.update(
-            (name, holder.copy_for_entity(new))
-            for name, holder in self.holder_by_name.iteritems()
-            )
-        return new
-
     def get_or_new_holder(self, column_name):
         holder = self.holder_by_name.get(column_name)
         if holder is None:
