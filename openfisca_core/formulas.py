@@ -719,11 +719,7 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
     return (name, column)
 
 
-<<<<<<< HEAD
-def build_dated_formula_couple(name = None, dated_functions = None, column = None, entities = None,
-=======
 def build_dated_formula_couple(name = None, dated_functions = None, column = None, entity_class_by_symbol = None,
->>>>>>> reform
                                replace = False):
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -756,11 +752,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
     assert column.name is None
     column.name = name
 
-<<<<<<< HEAD
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
-=======
     entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
->>>>>>> reform
     if not replace:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
