@@ -613,6 +613,17 @@ def validate_slices_xml_json_dates(slices, state = None):
         return slices, errors
 
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+        amount_segments = []
+        values_holder_xml_json = slice.get('MONTANT')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+            if amount_segments and amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                amount_segments[-1] = (from_date, amount_segments[-1][1])
+            else:
+                amount_segments.append((from_date, to_date))
+
         rate_segments = []
         values_holder_xml_json = slice.get('TAUX')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
@@ -623,17 +634,6 @@ def validate_slices_xml_json_dates(slices, state = None):
                 rate_segments[-1] = (from_date, rate_segments[-1][1])
             else:
                 rate_segments.append((from_date, to_date))
-
-        constant_amount_segments = []
-        values_holder_xml_json = slice.get('MONTANT')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_xml_json in values_xml_json:
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
-            if constant_amount_segments and constant_amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
-                constant_amount_segments[-1] = (from_date, constant_amount_segments[-1][1])
-            else:
-                constant_amount_segments.append((from_date, to_date))
 
         threshold_segments = []
         values_holder_xml_json = slice.get('SEUIL')
@@ -679,8 +679,8 @@ def validate_slices_xml_json_dates(slices, state = None):
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
-                for constant_amount_segment in constant_amount_segments:
-                    if constant_amount_segment[0] <= from_date and to_date <= constant_amount_segment[1]:
+                for amount_segment in amount_segments:
+                    if amount_segment[0] <= from_date and to_date <= amount_segment[1]:
                         break
                 else:
                     errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
