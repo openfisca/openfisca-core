@@ -263,6 +263,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
 class TaxScalesTree(dict):
     '''A tree of MarginalRateTaxScales'''
+    name = None
+
     def __init__(self, name = None, compact_node = None):
         super(TaxScalesTree, self).__init__()
 
@@ -279,31 +281,39 @@ class TaxScalesTree(dict):
         '''Initialize a TaxScalesTree from a CompactNode.'''
         from .legislations import CompactNode
 
-        if isinstance(compact_node, MarginalRateTaxScale):
+        if isinstance(compact_node, CompactNode):
+            for key, child in compact_node.__dict__.iteritems():
+                if isinstance(child, CompactNode):
+                    self[key] = TaxScalesTree(key, child)
+                elif isinstance(child, MarginalRateTaxScale):
+                    self[key] = child
+                elif isinstance(child, list) and all(
+                        isinstance(tax_scale, MarginalRateTaxScale)
+                        for tax_scale in child
+                        ):
+                    self[key] = child
+        elif isinstance(compact_node, list) and all(isinstance(item, MarginalRateTaxScale) for item in compact_node):
+            self[compact_node[0].name] = compact_node
+        elif isinstance(compact_node, MarginalRateTaxScale):
             self[compact_node.name] = compact_node
-        elif isinstance(compact_node, CompactNode):
-            for key, tax_scale in compact_node.__dict__.iteritems():
-                if isinstance(tax_scale, MarginalRateTaxScale):
-                    self[key] = tax_scale
-                elif isinstance(tax_scale, CompactNode):
-                    self[key] = TaxScalesTree(key, tax_scale)
 
     def log(self, tab_level = -1):
         output = ""
 
         tab_level += 1
-        for i in range(tab_level):
-            output += "\t"
-
+        output += "\t" * tab_level
         output += "|------" + self.name + "\n"
 
-        for name, tax_scale in self.iteritems():
-            if isinstance(tax_scale, MarginalRateTaxScale):
-                for i in range(tab_level + 1):
-                    output += "\t"
-                output += "|------" + tax_scale.__str__() + '\n'
+        for name, child in self.iteritems():
+            if isinstance(child, TaxScalesTree):
+                output += child.log(tab_level)
+            elif isinstance(child, list):
+                for tax_scale in child:
+                    output += "\t" * (tab_level + 1)
+                    output += "|------" + str(tax_scale) + '\n'
             else:
-                output += tax_scale.log(tab_level)
+                output += "\t" * (tab_level + 1)
+                output += "|------" + str(child) + '\n'
 
         tab_level -= 1
         output += "\n"
@@ -314,31 +324,38 @@ def combine_tax_scales(tax_scales_tree, name = None):
     '''Combine all the MarginalRateTaxScales in the TaxScalesTree into a single MarginalRateTaxScale'''
     if name is None:
         name = 'Combined ' + tax_scales_tree.name
-    combined_tax_scales = MarginalRateTaxScale(name = name)
-    combined_tax_scales.add_bracket(0, 0)
-    for name, tax_scale in tax_scales_tree.iteritems():
-        if isinstance(tax_scale, MarginalRateTaxScale):
-            combined_tax_scales.add_tax_scale(tax_scale)
+    combined_tax_scales = None
+    for name, child in tax_scales_tree.iteritems():
+        assert not isinstance(child, TaxScalesTree), child
+        if isinstance(child, list):
+            if combined_tax_scales is None:
+                combined_tax_scales = []
+                for tax_scale in child:
+                    combined_tax_scale = MarginalRateTaxScale(name = name)
+                    combined_tax_scale.add_bracket(0, 0)
+                    combined_tax_scales.append(combined_tax_scale)
+            for tax_scale, combined_tax_scale in itertools.izip(child, combined_tax_scales):
+                combined_tax_scale.add_tax_scale(tax_scale)
         else:
-            combine_tax_scales(tax_scale, combined_tax_scales)
+            if combined_tax_scales is None:
+                combined_tax_scales = MarginalRateTaxScale(name = name)
+                combined_tax_scales.add_bracket(0, 0)
+            combined_tax_scales.add_tax_scale(child)
     return combined_tax_scales
 
 
 def scale_tax_scales(tax_scales_tree, factor):
-    '''
-    Scales all the MarginalRateTaxScale in the BarColl
-    '''
-    if isinstance(tax_scales_tree, MarginalRateTaxScale):
-        return tax_scales_tree.multiply_thresholds(factor)
-
+    '''Scale all the MarginalRateTaxScales in the TaxScalesTree.'''
     if isinstance(tax_scales_tree, TaxScalesTree):
-        out = TaxScalesTree(name = tax_scales_tree.name)
-
-        for key, tax_scale in tax_scales_tree.iteritems():
-            if isinstance(tax_scale, MarginalRateTaxScale):
-                out[key] = tax_scale.multiply_thresholds(factor)
-            elif isinstance(tax_scale, TaxScalesTree):
-                out[key] = scale_tax_scales(tax_scale, factor)
-            else:
-                setattr(out, key, tax_scale)
-        return out
+        scaled_tax_scales_tree = TaxScalesTree(name = tax_scales_tree.name)
+        for key, child in tax_scales_tree.iteritems():
+            scaled_tax_scales_tree[key] = scale_tax_scales(child, factor)
+        return scaled_tax_scales_tree
+    if isinstance(tax_scales_tree, list):
+        assert isinstance(factor, list)
+        return [
+            tax_scale.multiply_thresholds(tax_scale_factor)
+            for tax_scale, tax_scale_factor in itertools.izip(tax_scales_tree, factor)
+            ]
+    assert isinstance(factor, (float, int))
+    return tax_scales_tree.multiply_thresholds(factor)

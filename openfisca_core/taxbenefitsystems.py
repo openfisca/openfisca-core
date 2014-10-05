@@ -26,7 +26,7 @@
 import xml.etree.ElementTree
 import weakref
 
-from . import conv, legislations, legislationsxml
+from . import conv, legislations, legislationsxml, periods
 
 
 __all__ = ['AbstractTaxBenefitSystem']
@@ -85,7 +85,8 @@ class AbstractTaxBenefitSystem(object):
         date_str = date.isoformat()
         compact_legislation = self.compact_legislation_by_date_str_cache.get(date_str)
         if compact_legislation is None:
-            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, date)
+            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json,
+                periods.period_from_date_str('year', date_str))
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
             self.compact_legislation_by_date_str_cache[date_str] = compact_legislation
         return compact_legislation
@@ -94,7 +95,8 @@ class AbstractTaxBenefitSystem(object):
 #        date_str = date.isoformat()
 #        reference_dated_legislation = self.reference_legislation_by_date_str_cache.get(date_str)
 #        if reference_dated_legislation is None:
-#            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json, date)
+#            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json,
+#                periods.period_from_date_str('year', date_str))
 #            self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
 #        return reference_dated_legislation
 

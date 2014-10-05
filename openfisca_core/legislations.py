@@ -29,11 +29,12 @@
 import collections
 import datetime
 import itertools
+import logging
 
-import numpy as np
+from . import conv, periods, taxscales
 
-from . import conv, taxscales
 
+log = logging.getLogger(__name__)
 N_ = lambda message: message
 units = [
     u'currency',
@@ -45,99 +46,234 @@ units = [
 
 
 class CompactNode(object):
-    datesim = None
-    # Other attributes coming from dated_node_json are not defined in class.
+    # Note: Attributes come from dated_node_json and are not defined in class.
 
     def __repr__(self):
-        return 'CompactNode({})'.format(repr(self.__dict__))
+        return '{}}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+
+class CompactRootNode(CompactNode):
+    _period_start_date = None
+    _period_start_date_str = None
+    _period_stop_date = None
+    _period_stop_date_str = None
+    period = None
+
+    @property
+    def date(self):
+        period_start = self.period_start
+        assert period_start == self.period_stop, \
+            'Property "period_date" is undefined for a period with several steps: {}'.format(self.period)
+        return period_start
+
+    @property
+    def date_str(self):
+        assert self.period_start == self.period_stop, \
+            'Property "period_date_str" is undefined for a period with several steps: {}'.format(self.period)
+        return self.period_start_str
+
+    @property
+    def period_start(self):
+        return periods.start(self.period)
+
+    @property
+    def period_start_date(self):
+        if self._period_start_date is None:
+            self._period_start_date = periods.start_date(self.period)
+        return self._period_start_date
+
+    @property
+    def period_start_date_str(self):
+        if self._period_start_date_str is None:
+            self._period_start_date_str = self.period_start_date.isoformat()
+        return self._period_start_date_str
+
+    @property
+    def period_stop(self):
+        return periods.stop(self.period)
+
+    @property
+    def period_stop_date(self):
+        if self._period_stop_date is None:
+            self._period_stop_date = periods.stop_date(self.period)
+        return self._period_stop_date
+
+    @property
+    def period_stop_date_str(self):
+        if self._period_stop_date_str is None:
+            self._period_stop_date_str = self.period_stop_date.isoformat()
+        return self._period_stop_date_str
+
+    @property
+    def period_unit(self):
+        return periods.unit(self.period)
 
 
 # Functions
 
 
-def compact_dated_node_json(dated_node_json, code = None):
+def compact_dated_node_json(dated_node_json, code = None, period = None):
     node_type = dated_node_json['@type']
     if node_type == u'Node':
-        compact_node = CompactNode()
         if code is None:
-            # Root node always contains a datesim.
-            compact_node.datesim = datetime.date(*(int(fragment) for fragment in dated_node_json['datesim'].split('-')))
+            # Root node
+            assert period is None, period
+            compact_node = CompactRootNode()
+            period_json = dated_node_json['period']
+            compact_node.period = period = periods.period_from_date_str(period_json['unit'], period_json['start'],
+                period_json['stop'])
+        else:
+            assert period is not None
+            compact_node = CompactNode()
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
-            compact_node_dict[key] = compact_dated_node_json(value, code = key)
+            compact_node_dict[key] = compact_dated_node_json(value, code = key, period = period)
         return compact_node
+    assert period is not None
     if node_type == u'Parameter':
         return dated_node_json.get('value')
     assert node_type == u'Scale'
+    period_start = periods.start(period)
+    period_stop = periods.stop(period)
     if any('amount' in slice for slice in dated_node_json['slices']):
-        tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
+        # AmountTaxScale
+        if period_start == period_stop:
+            tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
+            for dated_slice_json in dated_node_json['slices']:
+                amount = dated_slice_json.get('amount')
+                assert not isinstance(amount, list)
+                threshold = dated_slice_json.get('threshold')
+                assert not isinstance(threshold, list)
+                if amount is not None and threshold is not None:
+                    tax_scale.add_bracket(threshold, amount)
+            return tax_scale
+        tax_scales = [
+            taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
+            for step in periods.iter(period)
+            ]
         for dated_slice_json in dated_node_json['slices']:
-            amount = dated_slice_json.get('amount')
-            if isinstance(amount, list):
-                amount = np.array(amount)
-            threshold = dated_slice_json.get('threshold')
-            if isinstance(threshold, list):
-                threshold = np.array(threshold)
-            if amount is not None and threshold is not None:
-                tax_scale.add_bracket(threshold, amount)
-    else:
+            amounts = dated_slice_json.get('amount')
+            if amount is None:
+                continue
+            assert isinstance(amounts, list)
+            thresholds = dated_slice_json.get('threshold')
+            if thresholds is None:
+                continue
+            assert isinstance(thresholds, list)
+            for tax_scale, amount, threshold in itertools.izip(tax_scales, amounts, thresholds):
+                if amount is not None and threshold is not None:
+                    tax_scale.add_bracket(threshold, amount)
+        return tax_scales
+
+    # MarginalRateTaxScale
+    if period_start == period_stop:
         tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
         for dated_slice_json in dated_node_json['slices']:
             base = dated_slice_json.get('base', 1)
-            if isinstance(base, list):
-                base = np.array(base)
+            assert not isinstance(base, list)
             rate = dated_slice_json.get('rate')
-            if isinstance(rate, list):
-                rate = np.array(rate)
+            assert not isinstance(rate, list)
             threshold = dated_slice_json.get('threshold')
-            if isinstance(threshold, list):
-                threshold = np.array(threshold)
+            assert not isinstance(threshold, list)
             if rate is not None and threshold is not None:
                 tax_scale.add_bracket(threshold, rate * base)
-    return tax_scale
+        return tax_scale
+    tax_scales = [
+        taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
+        for step in periods.iter(period)
+        ]
+    default_bases = [
+        1
+        for step in periods.iter(period)
+        ]
+    for dated_slice_json in dated_node_json['slices']:
+        bases = dated_slice_json.get('base', default_bases)
+        assert isinstance(bases, list)
+        rates = dated_slice_json.get('rate')
+        if rates is None:
+            continue
+        assert isinstance(rates, list)
+        thresholds = dated_slice_json.get('threshold')
+        if thresholds is None:
+            continue
+        assert isinstance(thresholds, list)
+        for tax_scale, base, rate, threshold in itertools.izip(tax_scales, bases, rates, thresholds):
+            if rate is not None and threshold is not None:
+                tax_scale.add_bracket(threshold, rate * base)
+    return tax_scales
 
 
-def generate_dated_json_value(values_json, date_str, legislation_from_str, legislation_to_str):
-    max_to_str = None
+def generate_dated_json_value(values_json, legislation_start, legislation_stop, period):
+    max_stop = None
     max_value = None
-    min_from_str = None
+    min_start = None
     min_value = None
+    period_start = periods.start(period)
+    period_stop = periods.stop(period)
+    period_unit = periods.unit(period)
+    value_by_step = {}
     for value_json in values_json:
-        value_from_str = value_json['start']
-        value_to_str = value_json['stop']
-        if value_from_str <= date_str <= value_to_str:
-            return value_json['value']
-        if max_to_str is None or value_to_str > max_to_str:
-            max_to_str = value_to_str
+        value_start = periods.step_from_date_str(period_unit, value_json['start'])
+        value_stop = periods.step_from_date_str(period_unit, value_json['stop'])
+        if value_start <= period_stop and value_stop >= period_start:
+            for value_step in periods.iter_steps(period_unit, max(period_start, value_start),
+                    min(period_stop, value_stop)):
+                value_by_step[value_step] = value_json['value']
+        if max_stop is None or value_stop > max_stop:
+            max_stop = value_stop
             max_value = value_json['value']
-        if min_from_str is None or value_from_str < min_from_str:
-            min_from_str = value_from_str
+        if min_start is None or value_start < min_start:
+            min_start = value_start
             min_value = value_json['value']
-    if date_str > legislation_to_str:
-        # The requested date is after the end of the legislation. Use the value of the last period, when this
-        # period ends the same day or after the legislation.
-        if max_to_str is not None and max_to_str >= legislation_to_str:
-            return max_value
-    elif date_str < legislation_from_str:
-        # The requested date is before the beginning of the legislation. Use the value of the first period, when this
-        # period begins the same day or before the legislation.
-        if min_from_str is not None and min_from_str <= legislation_from_str:
-            return min_value
-    return None
+
+    if (not value_by_step or value_by_step[min(value_by_step)] > period_start) and period_start < legislation_start \
+            and min_start is not None and min_start <= legislation_start:
+        # The requested date interval starts before the beginning of the legislation. Use the value of the first period,
+        # when this period begins the same day or before the legislation.
+        if not value_by_step:
+            value_stop = period_stop
+        else:
+            value_stop = periods.previous_step(period_unit, min(value_by_step))
+        for value_step in periods.iter_steps(period_unit, period_start, value_stop):
+            value_by_step[value_step] = min_value
+
+    if (not value_by_step or value_by_step[max(value_by_step)] < period_stop) and period_stop > legislation_stop \
+            and max_stop is not None and max_stop >= legislation_stop:
+        # The requested date interval stops after the end of the legislation. Use the value of the last period, when
+        # this period ends the same day or after the legislation.
+        if not value_by_step:
+            value_start = period_start
+        else:
+            value_start = periods.next_step(period_unit, max(value_by_step))
+        for value_step in periods.iter_steps(period_unit, value_start, period_stop):
+            value_by_step[value_step] = max_value
+
+    if period_start == period_stop:
+        # Don't use an array for singletons, to simplify JSON
+        return value_by_step.get(period_start)
+    value = [
+        value_by_step.get(step)
+        for step in periods.iter(period)
+        ]
+    if all(item_value is None for item_value in value):
+        return None
+    return value
 
 
-def generate_dated_legislation_json(legislation_json, date):
-    date_str = date.isoformat()
+def generate_dated_legislation_json(legislation_json, period):
+    period_unit = periods.unit(period)
     dated_legislation_json = generate_dated_node_json(
-        legislation_json, date_str, legislation_json['start'],
-        legislation_json['stop']
+        legislation_json,
+        periods.step_from_date_str(period_unit, legislation_json['start']),
+        periods.step_from_date_str(period_unit, legislation_json['stop']),
+        period,
         )
-    dated_legislation_json['@context'] = 'http://openfisca.fr/contexts/dated-legislation.jsonld'
-    dated_legislation_json['datesim'] = date_str
+    dated_legislation_json['@context'] = u'http://openfisca.fr/contexts/dated-legislation.jsonld'
+    dated_legislation_json['period'] = periods.json(period)
     return dated_legislation_json
 
 
-def generate_dated_node_json(node_json, date_str, legislation_from_str, legislation_to_str):
+def generate_dated_node_json(node_json, legislation_start, legislation_stop, period):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
@@ -145,9 +281,10 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
             dated_children_json = type(value)(
                 (child_code, dated_child_json)
                 for child_code, dated_child_json in (
-                    (child_code,
-                     generate_dated_node_json(child_json, date_str, legislation_from_str, legislation_to_str)
-                     )
+                    (
+                        child_code,
+                        generate_dated_node_json(child_json, legislation_start, legislation_stop, period),
+                        )
                     for child_code, child_json in value.iteritems()
                     )
                 if dated_child_json is not None
@@ -162,7 +299,7 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
             dated_slices_json = [
                 dated_slice_json
                 for dated_slice_json in (
-                    generate_dated_slice_json(slice_json, date_str, legislation_from_str, legislation_to_str)
+                    generate_dated_slice_json(slice_json, legislation_start, legislation_stop, period)
                     for slice_json in value
                     )
                 if dated_slice_json is not None
@@ -172,7 +309,7 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
             dated_node_json[key] = dated_slices_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, date_str, legislation_from_str, legislation_to_str)
+            dated_value = generate_dated_json_value(value, legislation_start, legislation_stop, period)
             if dated_value is None:
                 return None
             dated_node_json['value'] = dated_value
@@ -181,11 +318,11 @@ def generate_dated_node_json(node_json, date_str, legislation_from_str, legislat
     return dated_node_json
 
 
-def generate_dated_slice_json(slice_json, date_str, legislation_from_str, legislation_to_str):
+def generate_dated_slice_json(slice_json, legislation_start, legislation_stop, period):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, date_str, legislation_from_str, legislation_to_str)
+            dated_value = generate_dated_json_value(value, legislation_start, legislation_stop, period)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
         else:
@@ -234,10 +371,32 @@ def validate_dated_legislation_json(dated_legislation_json, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                datesim = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
+                period = conv.pipe(
+                    conv.test_isinstance(dict),
+                    conv.struct(
+                        dict(
+                            start = conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.iso8601_input_to_date,
+                                conv.date_to_iso8601_str,
+                                conv.not_none,
+                                ),
+                            stop = conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.iso8601_input_to_date,
+                                conv.date_to_iso8601_str,
+                                conv.not_none,
+                                ),
+                            unit = conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.test_in((u"month", u"year")),
+                                conv.not_none,
+                                ),
+                            ),
+                        constructor = collections.OrderedDict,
+                        drop_none_values = 'missing',
+                        keep_value_order = True,
+                        ),
                     conv.not_none,
                     ),
                 ),
@@ -250,9 +409,9 @@ def validate_dated_legislation_json(dated_legislation_json, state = None):
     if error is not None:
         return dated_legislation_json, error
 
-    datesim = dated_legislation_json.pop('datesim')
+    period = dated_legislation_json.pop('period')
     dated_legislation_json, error = validate_dated_node_json(dated_legislation_json, state = state)
-    dated_legislation_json['datesim'] = datesim
+    dated_legislation_json['period'] = period
     return dated_legislation_json, error
 
 
@@ -341,7 +500,9 @@ def validate_dated_node_json(node, state = None):
                 conv.test_in(units),
                 ),
             value = conv.pipe(
-                validate_dated_value_json,
+                conv.item_or_sequence(
+                    validate_dated_value_json,
+                    ),
                 conv.not_none,
                 ),
             ))
@@ -363,6 +524,7 @@ def validate_dated_node_json(node, state = None):
                     validate_dated_slice_json,
                     drop_none_items = True,
                     ),
+                validate_dated_slices_json_types,
                 conv.empty_to_none,
                 conv.not_none,
                 ),
@@ -393,22 +555,30 @@ def validate_dated_slice_json(slice, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                amount = validate_dated_value_json,
-                base = conv.pipe(
+                amount = conv.item_or_sequence(
                     validate_dated_value_json,
-                    conv.test_greater_or_equal(0),
+                    ),
+                base = conv.item_or_sequence(
+                    conv.pipe(
+                        validate_dated_value_json,
+                        conv.test_greater_or_equal(0),
+                        ),
                     ),
                 comment = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
-                rate = conv.pipe(
-                    validate_dated_value_json,
-                    conv.test_between(0, 1),
+                rate = conv.item_or_sequence(
+                    conv.pipe(
+                        validate_dated_value_json,
+                        conv.test_between(0, 1),
+                        ),
                     ),
-                threshold = conv.pipe(
-                    validate_dated_value_json,
-                    conv.test_greater_or_equal(0),
+                threshold = conv.item_or_sequence(
+                    conv.pipe(
+                        validate_dated_value_json,
+                        conv.test_greater_or_equal(0),
+                        ),
                     ),
                 ),
             constructor = collections.OrderedDict,
@@ -418,6 +588,28 @@ def validate_dated_slice_json(slice, state = None):
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
+
+
+def validate_dated_slices_json_types(slices, state = None):
+    if not slices:
+        return slices, None
+
+    has_amount = any(
+        'amount' in slice
+        for slice in slices
+        )
+    if has_amount:
+        if state is None:
+            state = conv.default_state
+        errors = {}
+        for slice_index, slice in enumerate(slices):
+            if 'base' in slice:
+                errors.setdefault(slice_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
+            if 'rate' in slice:
+                errors.setdefault(slice_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
+        if errors:
+            return slices, errors
+    return slices, None
 
 
 def validate_dated_value_json(value, state = None):
@@ -484,11 +676,11 @@ def validate_legislation_json(legislation, state = None):
     if error is not None:
         return legislation, error
 
-    saved_from = legislation.pop('start')
-    saved_to = legislation.pop('stop')
+    start = legislation.pop('start')
+    stop = legislation.pop('stop')
     legislation, error = validate_node_json(legislation, state = state)
-    legislation['start'] = saved_from
-    legislation['stop'] = saved_to
+    legislation['start'] = start
+    legislation['stop'] = stop
     return legislation, error
 
 
@@ -605,6 +797,7 @@ def validate_node_json(node, state = None):
                     validate_slice_json,
                     drop_none_items = True,
                     ),
+                validate_slices_json_types,
                 validate_slices_json_dates,
                 conv.empty_to_none,
                 conv.not_none,
@@ -760,9 +953,31 @@ def validate_slices_json_dates(slices, state = None):
                         break
                 else:
                     errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
-                        {})['start'] = state._(u"Dates don't belong to rate or amount dates")
+                        {})['start'] = state._(u"Dates don't belong to amount or rate dates")
 
     return slices, errors or None
+
+
+def validate_slices_json_types(slices, state = None):
+    if not slices:
+        return slices, None
+
+    has_amount = any(
+        'amount' in slice
+        for slice in slices
+        )
+    if has_amount:
+        if state is None:
+            state = conv.default_state
+        errors = {}
+        for slice_index, slice in enumerate(slices):
+            if 'base' in slice:
+                errors.setdefault(slice_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
+            if 'rate' in slice:
+                errors.setdefault(slice_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
+        if errors:
+            return slices, errors
+    return slices, None
 
 
 def validate_value_json(value, state = None):

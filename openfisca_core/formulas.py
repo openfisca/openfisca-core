@@ -190,10 +190,15 @@ class DatedFormula(AbstractGroupedFormula):
 
         entity = holder.entity
         simulation = entity.simulation
-        datesim = simulation.compact_legislation.datesim
+
+        compact_legislation = simulation.compact_legislation
+        period = compact_legislation.period
+        assert period.unit == u'year'
+        simulation_date = period.date  # TODO: Handle different start & stop dates.
+
         requested_formulas.add(self)
         for dated_formula in self.dated_formulas:
-            if dated_formula['start'] <= datesim <= dated_formula['end']:
+            if dated_formula['start'] <= simulation_date <= dated_formula['end']:
                 array = dated_formula['formula'].calculate(lazy = lazy, requested_formulas = requested_formulas)
                 if array is not None:
                     self.used_formula = dated_formula['formula']
