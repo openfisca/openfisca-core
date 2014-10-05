@@ -35,7 +35,7 @@ from . import accessors, holders
 log = logging.getLogger(__name__)
 
 
-# Exception
+# Exceptions
 
 
 class NaNCreationError(Exception):
@@ -312,13 +312,12 @@ class SimpleFormula(AbstractFormula):
     def __init__(self, holder = None):
         super(SimpleFormula, self).__init__(holder = holder)
 
-        column = holder.column
         entity = holder.entity
         simulation = entity.simulation
         self.holder_by_parameter = holder_by_parameter = collections.OrderedDict()
         for parameter in self.parameters:
             clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            holder_by_parameter[parameter] = parameter_holder = simulation.get_or_new_holder(clean_parameter)
+            holder_by_parameter[parameter] = simulation.get_or_new_holder(clean_parameter)
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
         holder = self.holder
@@ -570,8 +569,6 @@ class SimpleFormula(AbstractFormula):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
-        entity = holder.entity
-        simulation = entity.simulation
         for parameter_holder in self.holder_by_parameter.itervalues():
             parameter_holder.graph(edges, nodes, visited)
             edges.append({

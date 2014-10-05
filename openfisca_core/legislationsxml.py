@@ -34,7 +34,7 @@ import itertools
 from . import conv
 
 
-#legislation_json_key_by_xml_tag = dict(
+# legislation_json_key_by_xml_tag = dict(
 #    ASSIETTE = 'base',  # "base" is singular, because a slice has only one base.
 #    BAREME = 'scales',
 #    CODE = 'parameters',

@@ -53,8 +53,11 @@ class Accessor(object):
     def __getattribute__(self, name):
         if name.startswith('__') or name in ('iter_ancestors', 'name', 'parent'):
             return super(Accessor, self).__getattribute__(name)
-        return Accessor(name = name, parent = self if super(Accessor, self).__getattribute__('name') is not None else None)
-            
+        return Accessor(
+            name = name,
+            parent = self if super(Accessor, self).__getattribute__('name') is not None else None,
+            )
+
     def __str__(self):
         return 'Accessor({})'.format('.'.join(
             ancestor.name

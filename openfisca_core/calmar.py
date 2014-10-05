@@ -61,8 +61,9 @@ def logit(u, low, up):
 
 def logit_prime(u, low, up):
     a = (up - low) / ((1 - low) * (up - 1))
-    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u)) -
-        (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) / (up - 1 + (1 - low) * exp(a * u)) ** 2
+    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u))
+        - (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) \
+        / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
 
 def build_dummies_dict(data):
@@ -89,7 +90,8 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
       - method : 'linear', 'raking ratio', 'logit'
       - lo     : lower bound on weights ratio  <1
       - up     : upper bound on weights ration >1
-      - use_proportions : default FALSE; if TRUE use proportions if total population from margins doesn't match total population
+      - use_proportions : default FALSE; if TRUE use proportions if total population from margins doesn't match total
+        population
       - param xtol  : relative precision on lagrangian multipliers. By default xtol = 1.49012e-08 (default fsolve xtol)
       - param maxfev :  maximum number of function evaluation TODO
     '''
@@ -104,7 +106,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         raise Exception("Calmar requires non empty dict of margins")
 
     # choice of method
-    if not 'method' in parameters:
+    if 'method' not in parameters:
         parameters['method'] = 'linear'
 
     if parameters['method'] == 'linear':
@@ -114,9 +116,9 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         F = raking_ratio
         F_prime = raking_ratio_prime
     elif parameters['method'] == 'logit':
-        if not 'up' in parameters:
+        if 'up' not in parameters:
             raise Exception("When method is 'logit', 'up' parameter is needed in parameters")
-        if not 'lo' in parameters:
+        if 'lo' not in parameters:
             raise Exception("When method is 'logit', 'lo' parameter is needed in parameters")
         if parameters['up'] <= 1:
             raise Exception("When method is 'logit', 'up' should be strictly greater than 1")
@@ -203,7 +205,7 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     # Résolution des équations du premier ordre
     constraint = lambda l: dot(d * F(dot(x, l)), x) - xmargins
     constraint_prime = lambda l: dot(d * (x.T * F_prime(dot(x, l))), x)
-    ## le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
+    # le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
     tries, ier = 0, 2
     if 'xtol' in parameters:

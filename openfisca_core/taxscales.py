@@ -154,22 +154,22 @@ class AmountTaxScale(AbstractTaxScale):
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):
-    def calc(self, base):
-        if len(self.rates) == 1:
-            return base * self.rates[0]
-        base1 = np.tile(base, (len(self.thresholds) - 1, 1)).T
-        thresholds1 = np.tile(np.hstack(self.thresholds), (len(base), 1))
-        a = (base1 >= thresholds1[:, :-1]) * (base1 < thresholds1[:, 1:])
+    # def calc(self, base):
+    #     if len(self.rates) == 1:
+    #         return base * self.rates[0]
+    #     base1 = np.tile(base, (len(self.thresholds) - 1, 1)).T
+    #     thresholds1 = np.tile(np.hstack(self.thresholds), (len(base), 1))
+    #     a = (base1 >= thresholds1[:, :-1]) * (base1 < thresholds1[:, 1:])
 
-        rates2 = np.array([0] + self.rates[:-1])
-        thresholds2 = np.array(self.thresholds)
-        rate_x = (rates[1:] - rates[:-1]) / (thresholds[1:] - thresholds[:-1])
-        A = np.dot(a, rate_x.T)
+    #     rates2 = np.array([0] + self.rates[:-1])
+    #     thresholds2 = np.array(self.thresholds)
+    #     rate_x = (rates[1:] - rates[:-1]) / (thresholds[1:] - thresholds[:-1])
+    #     A = np.dot(a, rate_x.T)
 
-        B = np.dot(a, np.array(self.thresholds[1:]))
-        C = np.dot(a, np.array(self.rates[:-1]))
-        return base * (A * (base - B) + C) + max_(base - self.thresholds[-1], 0) * self.rates[-1] \
-            + (base >= self.thresholds[-1]) * self.thresholds[-1] * self.rates[-2]
+    #     B = np.dot(a, np.array(self.thresholds[1:]))
+    #     C = np.dot(a, np.array(self.rates[:-1]))
+    #     return base * (A * (base - B) + C) + max_(base - self.thresholds[-1], 0) * self.rates[-1] \
+    #         + (base >= self.thresholds[-1]) * self.thresholds[-1] * self.rates[-2]
 
     def to_marginal(self):
         marginal_tax_scale = MarginalRateTaxScale(name = self.name, option = self.option, unit = self.unit)

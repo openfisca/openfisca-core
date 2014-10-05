@@ -27,7 +27,6 @@ import collections
 
 import numpy as np
 
-from . import columns
 
 
 class Holder(object):

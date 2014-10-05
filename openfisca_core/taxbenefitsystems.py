@@ -113,5 +113,5 @@ class AbstractTaxBenefitSystem(object):
         scenario.tax_benefit_system = self
         return scenario
 
-    def update_legislation(self):
-        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
+#    def update_legislation(self):
+#        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
