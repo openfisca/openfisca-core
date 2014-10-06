@@ -25,10 +25,11 @@
 
 import collections
 
+from . import periods
 
-class Simulation(object):
+
+class Simulation(periods.PeriodMixin):
     compact_legislation = None
-    date = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
     entity_by_column_name = None
@@ -41,11 +42,10 @@ class Simulation(object):
     trace = False
     traceback = None
 
-    def __init__(self, compact_legislation = None, date = None, debug = False, debug_all = False,
-            reference_compact_legislation = None, entity_class_by_key_plural = None, tax_benefit_system = None,
-            trace = False):
-        assert date is not None
-        self.date = date
+    def __init__(self, compact_legislation = None, debug = False, debug_all = False, entity_class_by_key_plural = None,
+            period = None, reference_compact_legislation = None, tax_benefit_system = None, trace = False):
+        assert period is not None
+        self.period = period
         if debug:
             self.debug = True
         if debug_all:
@@ -59,11 +59,11 @@ class Simulation(object):
 
         self.compact_legislation = compact_legislation \
             if compact_legislation is not None \
-            else tax_benefit_system.get_compact_legislation(date)
+            else tax_benefit_system.get_compact_legislation(period)
 
         self.reference_compact_legislation = reference_compact_legislation \
             if reference_compact_legislation is not None \
-            else tax_benefit_system.get_compact_legislation(date)
+            else tax_benefit_system.get_compact_legislation(period)
 
         if tax_benefit_system.preprocess_legislation_parameters is not None:
             tax_benefit_system.preprocess_legislation_parameters(self.compact_legislation)
@@ -90,15 +90,17 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, lazy = False, requested_formulas = None):
-        return self.compute(column_name, lazy = lazy, requested_formulas = requested_formulas).array
+    def calculate(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
+        if period is None:
+            period = self.period
+        return self.compute(column_name, period = period, lazy = lazy,
+            requested_formulas_by_period = requested_formulas_by_period).get_array(period)
 
-    def compute(self, column_name, lazy = False, requested_formulas = None):
-        return self.entity_by_column_name[column_name].compute(
-            column_name,
-            lazy = lazy,
-            requested_formulas = requested_formulas,
-            )
+    def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
+        if period is None:
+            period = self.period
+        return self.entity_by_column_name[column_name].compute(column_name, lazy = lazy, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
 
     def get_holder(self, column_name, default = UnboundLocalError):
         entity = self.entity_by_column_name[column_name]

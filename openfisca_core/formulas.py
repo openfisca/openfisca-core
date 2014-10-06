@@ -86,47 +86,64 @@ class AlternativeFormula(AbstractGroupedFormula):
             for alternative_formula_constructor in self.alternative_formulas_constructor
             ]
 
-    def calculate(self, lazy = False, requested_formulas = None):
+    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
+        entity = holder.entity
+        simulation = entity.simulation
+        if period is None:
+            period = simulation.period
 
-        if requested_formulas is None:
-            requested_formulas = set()
+        if requested_formulas_by_period is None:
+            requested_formulas_by_period = {}
+        period_or_none = None if column.is_period_invariant else period
+        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
+        if period_requested_formulas is None:
+            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
         elif lazy:
-            if self in requested_formulas:
-                return holder.array
+            if self in period_requested_formulas:
+                return holder.get_array(period)
         else:
-            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
-                column.name,
-                u', '.join(sorted(set(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    ))).encode('utf-8'),
-                )
+            assert self not in period_requested_formulas, \
+                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                    column.name,
+                    u', '.join(sorted(set(
+                        requested_formula.holder.column.name
+                        for requested_formula in period_requested_formulas
+                        ))).encode('utf-8'),
+                    )
 
-        if holder.array is not None:
-            return holder.array
-#        if holder.disabled:
-#            return holder.array
+        array = holder.get_array(period)
+        if array is not None:
+            return array
+        # if holder.disabled:
+        #     return holder.array
 
-        requested_formulas.add(self)
+        period_requested_formulas.add(self)
         for alternative_formula in self.alternative_formulas:
-            # Caution: Note that requested_formulas are copied below.
-            array = alternative_formula.calculate(lazy = True, requested_formulas = requested_formulas.copy())
+            # Copy requested_formulas_by_period.
+            new_requested_formulas_by_period = dict(
+                (period, period_requested_formulas1.copy())
+                for period, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+                )
+            array = alternative_formula.calculate(lazy = True, period = period,
+                requested_formulas_by_period = new_requested_formulas_by_period)
             if array is not None:
                 self.used_formula = alternative_formula
-                holder.array = array
-                requested_formulas.remove(self)
+                holder.set_array(period, array)
+                period_requested_formulas.remove(self)
                 return array
         if lazy:
-            requested_formulas.remove(self)
+            period_requested_formulas.remove(self)
             return None
         # No alternative has an existing array => Calculate array using first alternative.
         # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
         self.used_formula = alternative_formula
-        holder.array = array = alternative_formula.calculate(lazy = False, requested_formulas = requested_formulas)
-        requested_formulas.remove(self)
+        array = alternative_formula.calculate(lazy = False, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+        holder.set_array(period, array)
+        period_requested_formulas.remove(self)
         return array
 
     def graph_parameters(self, edges, nodes, visited):
@@ -165,50 +182,59 @@ class DatedFormula(AbstractGroupedFormula):
             for dated_formula_class in self.dated_formulas_class
             ]
 
-    def calculate(self, lazy = False, requested_formulas = None):
+    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
-
-        if requested_formulas is None:
-            requested_formulas = set()
-        elif lazy:
-            if self in requested_formulas:
-                return holder.array
-        else:
-            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
-                column.name,
-                u', '.join(sorted(set(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    ))).encode('utf-8'),
-                )
-
-        if holder.array is not None:
-            return holder.array
-#        if holder.disabled:
-#            return holder.array
-
         entity = holder.entity
         simulation = entity.simulation
+        if period is None:
+            period = simulation.period
+
+        if requested_formulas_by_period is None:
+            requested_formulas_by_period = {}
+        period_or_none = None if column.is_period_invariant else period
+        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
+        if period_requested_formulas is None:
+            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
+        elif lazy:
+            if self in period_requested_formulas:
+                return holder.get_array(period)
+        else:
+            assert self not in period_requested_formulas, \
+                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                    column.name,
+                    u', '.join(sorted(set(
+                        requested_formula.holder.column.name
+                        for requested_formula in period_requested_formulas
+                        ))).encode('utf-8'),
+                    )
+
+        array = holder.get_array(period)
+        if array is not None:
+            return array
+        # if holder.disabled:
+        #     return array
 
         compact_legislation = simulation.compact_legislation
         period = compact_legislation.period
         assert periods.unit(period) == u'year'
         simulation_date = periods.date(period)  # TODO: Handle different start & stop dates.
 
-        requested_formulas.add(self)
+        period_requested_formulas.add(self)
         for dated_formula in self.dated_formulas:
             if dated_formula['start'] <= simulation_date <= dated_formula['end']:
-                array = dated_formula['formula'].calculate(lazy = lazy, requested_formulas = requested_formulas)
+                array = dated_formula['formula'].calculate(lazy = lazy, period = period,
+                    requested_formulas_by_period = requested_formulas_by_period)
                 if array is not None:
                     self.used_formula = dated_formula['formula']
-                    holder.array = array
-                    requested_formulas.remove(self)
+                    holder.set_array(period, array)
+                    period_requested_formulas.remove(self)
                     return array
 
-        holder.array = np.empty(entity.count, dtype = column.dtype)
-        holder.array.fill(column.default)
-        requested_formulas.remove(self)
+        array = np.empty(entity.count, dtype = column.dtype)
+        array.fill(column.default)
+        holder.set_array(period, array)
+        period_requested_formulas.remove(self)
         return holder.array
 
     def graph_parameters(self, edges, nodes, visited):
@@ -247,42 +273,53 @@ class SelectFormula(AbstractGroupedFormula):
             for main_variable, formula_constructor in self.formula_constructor_by_main_variable.iteritems()
             )
 
-    def calculate(self, lazy = False, requested_formulas = None):
+    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
-
-        if requested_formulas is None:
-            requested_formulas = set()
-        elif lazy:
-            if self in requested_formulas:
-                return holder.array
-        else:
-            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
-                column.name,
-                u', '.join(sorted(set(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    ))).encode('utf-8'),
-                )
-
-        if holder.array is not None:
-            return holder.array
-#        if holder.disabled:
-#            return holder.array
-
         entity = holder.entity
         simulation = entity.simulation
-        requested_formulas.add(self)
+        if period is None:
+            period = simulation.period
+
+        if requested_formulas_by_period is None:
+            requested_formulas_by_period = {}
+        period_or_none = None if column.is_period_invariant else period
+        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
+        if period_requested_formulas is None:
+            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
+        elif lazy:
+            if self in period_requested_formulas:
+                return holder.get_array(period)
+        else:
+            assert self not in period_requested_formulas, \
+                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                    column.name,
+                    u', '.join(sorted(set(
+                        requested_formula.holder.column.name
+                        for requested_formula in period_requested_formulas
+                        ))).encode('utf-8'),
+                    )
+
+        array = holder.get_array(period)
+        if array is not None:
+            return array
+        # if holder.disabled:
+        #     return holder.array
+
+        period_requested_formulas.add(self)
         for main_variable, formula in self.formula_by_main_variable.iteritems():
-            main_array = simulation.calculate(main_variable, lazy = True, requested_formulas = requested_formulas)
+            main_array = simulation.calculate(main_variable, lazy = True, period = period,
+                requested_formulas_by_period = requested_formulas_by_period)
             if main_array is not None:
                 selected_formula = formula
                 break
         else:
             selected_formula = self.formula_by_main_variable.values()[0]
         self.used_formula = selected_formula
-        holder.array = array = selected_formula.calculate(lazy = lazy, requested_formulas = requested_formulas)
-        requested_formulas.remove(self)
+        array = selected_formula.calculate(lazy = lazy, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+        holder.set_array(period, array)
+        period_requested_formulas.remove(self)
         return array
 
     def graph_parameters(self, edges, nodes, visited):
@@ -354,44 +391,52 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def calculate(self, lazy = False, requested_formulas = None):
+    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
-
-        if requested_formulas is None:
-            requested_formulas = set()
-        elif lazy:
-            if self in requested_formulas:
-                return holder.array
-        else:
-            assert self not in requested_formulas, 'Infinite loop in formula {}. Missing values for columns: {}'.format(
-                column.name,
-                u', '.join(sorted(set(
-                    requested_formula.holder.column.name
-                    for requested_formula in requested_formulas
-                    ))).encode('utf-8'),
-                )
-
         entity = holder.entity
         simulation = entity.simulation
+        if period is None:
+            period = simulation.period
 
-        if holder.array is not None:
-            return holder.array
-#        if holder.disabled:
-#            return holder.array
+        if requested_formulas_by_period is None:
+            requested_formulas_by_period = {}
+        period_or_none = None if column.is_period_invariant else period
+        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
+        if period_requested_formulas is None:
+            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
+        elif lazy:
+            if self in period_requested_formulas:
+                return holder.get_array(period)
+        else:
+            assert self not in period_requested_formulas, \
+                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                    column.name,
+                    u', '.join(sorted(set(
+                        requested_formula.holder.column.name
+                        for requested_formula in period_requested_formulas
+                        ))).encode('utf-8'),
+                    )
 
-        requested_formulas.add(self)
+        array = holder.get_array(period)
+        if array is not None:
+            return array
+        # if holder.disabled:
+        #     return holder.array
+
+        period_requested_formulas.add(self)
         required_parameters = set(self.holder_by_parameter.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
         arguments = {}
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
         for parameter, parameter_holder in self.holder_by_parameter.iteritems():
-            parameter_array = parameter_holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
+            parameter_array = parameter_holder.calculate(lazy = lazy, period = period,
+                requested_formulas_by_period = requested_formulas_by_period)
             if parameter_array is None:
                 # A parameter is missing in lazy mode, formula can not be calculated yet.
                 assert lazy
-                requested_formulas.remove(self)
+                period_requested_formulas.remove(self)
                 return None
             # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
@@ -447,7 +492,7 @@ class SimpleFormula(AbstractFormula):
                 default_arguments = has_only_default_arguments,
                 is_computed = True,
                 ))
-        requested_formulas.remove(self)
+        period_requested_formulas.remove(self)
 
         return array
 

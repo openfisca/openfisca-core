@@ -36,7 +36,7 @@ class Reform(object):
     reference_dated_legislation_json = None
 
     def __init__(self, dated_legislation_json = None, entity_class_by_key_plural = None, label = None, name = None,
-                 reference_dated_legislation_json = None):
+            reference_dated_legislation_json = None):
         assert name is not None, u"a name should be provided"
         self.dated_legislation_json = dated_legislation_json
         self.entity_class_by_key_plural = entity_class_by_key_plural

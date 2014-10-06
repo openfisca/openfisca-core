@@ -27,10 +27,34 @@ import collections
 
 import numpy as np
 
+from . import periods
+
+
+class DatedHolder(object):
+    """A view of an holder, for a given period"""
+    holder = None
+    period = None
+
+    def __init__(self, holder, period):
+        self.holder = holder
+        self.period = period
+
+    @property
+    def array(self):
+        return self.holder.get_array(self.period)
+
+    @array.deleter
+    def array(self):
+        self.holder.delete_array(self.period)
+
+    @array.setter
+    def array(self, array):
+        self.holder.set_array(self.period, array)
 
 
 class Holder(object):
-    _array = None
+    _array = None  # Only used when column.is_period_invariant
+    _array_by_period = None  # Only used when not column.is_period_invariant
     column = None
     entity = None
     formula = None
@@ -44,18 +68,15 @@ class Holder(object):
 
     @property
     def array(self):
+        if not self.column.is_period_invariant:
+            return self.get_array(self.entity.simulation.period)
         return self._array
-
-    @array.deleter
-    def array(self):
-        simulation = self.entity.simulation
-        if simulation.trace:
-            simulation.traceback.pop(self.column.name, None)
-        del self._array
 
     @array.setter
     def array(self, array):
         simulation = self.entity.simulation
+        if not self.column.is_period_invariant:
+            return self.set_array(simulation.period, array)
         if simulation.trace:
             name = self.column.name
             step = simulation.traceback.get(name)
@@ -65,22 +86,32 @@ class Holder(object):
                     )
         self._array = array
 
-    def calculate(self, lazy = False, requested_formulas = None):
-        column = self.column
-        date = self.entity.simulation.date
-        formula = self.formula
-        if formula is None or column.start is not None and column.start > date or column.end is not None \
-                and column.end < date:
-            if not lazy and self.array is None:
-                self.array = np.empty(self.entity.count, dtype = column.dtype)
-                self.array.fill(column.default)
-            return self.array
-        return formula.calculate(lazy = lazy, requested_formulas = requested_formulas)
+    def at_period(self, period):
+        return DatedHolder(self, period)
 
-    def copy_for_entity(self, entity):
-        new = self.__class__(column = self.column, entity = entity)
-        new.array = self.array
-        return new
+    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
+        if period is None:
+            period = self.entity.simulation.period
+        column = self.column
+        formula = self.formula
+        if formula is None or column.start is not None and column.start > periods.stop_date(period) \
+                or column.end is not None and column.end < periods.start_date(period):
+            array = self.get_array(period)
+            if not lazy and array is None:
+                array = np.empty(self.entity.count, dtype = column.dtype)
+                array.fill(column.default)
+                self.set_array(period, array)
+            return array
+        return formula.calculate(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
+
+    def get_array(self, period):
+        if self.column.is_period_invariant:
+            return self.array
+        assert period is not None
+        array_by_period = self._array_by_period
+        if array_by_period is None:
+            return None
+        return array_by_period.get(period)
 
     def graph(self, edges, nodes, visited):
         column = self.column
@@ -100,8 +131,8 @@ class Holder(object):
             return
         formula.graph_parameters(edges, nodes, visited)
 
-    def new_test_case_array(self):
-        array = self.array
+    def new_test_case_array(self, period):
+        array = self.get_array(period)
         if array is None:
             return None
         entity = self.entity
@@ -114,7 +145,25 @@ class Holder(object):
             return None
         return formula.real_formula
 
-    def to_json(self, with_array = False):
+    def set_array(self, period, array):
+        if self.column.is_period_invariant:
+            self.array = array
+            return
+        assert period is not None
+        simulation = self.entity.simulation
+        if simulation.trace:
+            name = self.column.name
+            step = simulation.traceback.get(name)
+            if step is None:
+                simulation.traceback[name] = dict(
+                    holder = self,
+                    )
+        array_by_period = self._array_by_period
+        if array_by_period is None:
+            self._array_by_period = array_by_period = {}
+        array_by_period[period] = array
+
+    def to__field_json(self):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
@@ -131,7 +180,4 @@ class Holder(object):
                 ('label', consumer_column.label),
                 ('name', consumer_column.name),
                 )))
-
-        if with_array and self.array is not None:
-            self_json['array'] = self.array.tolist()
         return self_json

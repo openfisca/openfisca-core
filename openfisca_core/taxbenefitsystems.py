@@ -26,7 +26,7 @@
 import xml.etree.ElementTree
 import weakref
 
-from . import conv, legislations, legislationsxml, periods
+from . import conv, legislations, legislationsxml
 
 
 __all__ = ['AbstractTaxBenefitSystem']
@@ -36,7 +36,7 @@ class AbstractTaxBenefitSystem(object):
     check_consistency = None
     column_by_name = None
     columns_name_tree_by_entity = None
-    compact_legislation_by_date_str_cache = None
+    compact_legislation_by_period_cache = None
     entities = None  # class attribute
     ENTITIES_INDEX = None  # class attribute
     entity_class_by_key_plural = None  # class attribute
@@ -62,7 +62,7 @@ class AbstractTaxBenefitSystem(object):
             if formula_class is not None:
                 formula_class.set_dependencies(column, column_by_name)
 
-        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()
+        self.compact_legislation_by_period_cache = weakref.WeakValueDictionary()
 
         legislation_xml_file_path = self.PARAM_FILE
         legislation_json = self.legislation_json_by_xml_file_path.get(legislation_xml_file_path)
@@ -81,24 +81,13 @@ class AbstractTaxBenefitSystem(object):
             self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
         self.legislation_json = legislation_json
 
-    def get_compact_legislation(self, date):
-        date_str = date.isoformat()
-        compact_legislation = self.compact_legislation_by_date_str_cache.get(date_str)
+    def get_compact_legislation(self, period):
+        compact_legislation = self.compact_legislation_by_period_cache.get(period)
         if compact_legislation is None:
-            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json,
-                periods.period_from_date_str('year', date_str))
+            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, period)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-            self.compact_legislation_by_date_str_cache[date_str] = compact_legislation
+            self.compact_legislation_by_period_cache[period] = compact_legislation
         return compact_legislation
-
-#    def get_reference_dated_legislation(self, date):
-#        date_str = date.isoformat()
-#        reference_dated_legislation = self.reference_legislation_by_date_str_cache.get(date_str)
-#        if reference_dated_legislation is None:
-#            reference_dated_legislation = legislations.generate_dated_legislation_json(self.legislation_json,
-#                periods.period_from_date_str('year', date_str))
-#            self.reference_legislation_by_date_str_cache[date_str] = reference_dated_legislation
-#        return reference_dated_legislation
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -114,6 +103,3 @@ class AbstractTaxBenefitSystem(object):
         scenario = self.Scenario()
         scenario.tax_benefit_system = self
         return scenario
-
-#    def update_legislation(self):
-#        self.compact_legislation_by_date_str_cache = weakref.WeakValueDictionary()

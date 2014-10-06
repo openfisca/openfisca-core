@@ -51,6 +51,7 @@ class Column(object):
     formula_constructor = None
     function = None
     info = None
+    is_period_invariant = False  # When True, value of column doesn't depend from date period
     # json_type = None  # Defined in sub-classes
     label = None
     name = None
@@ -60,7 +61,7 @@ class Column(object):
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
-            label = None, start = None, survey_only = False, url = None, val_type = None):
+            is_period_invariant = False, label = None, start = None, survey_only = False, url = None, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self.default:
@@ -72,6 +73,8 @@ class Column(object):
             self.function = function
         if info is not None:
             self.info = info
+        if is_period_invariant:
+            self.is_period_invariant = True
         if label is not None:
             self.label = label
         if start is not None:

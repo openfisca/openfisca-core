@@ -23,20 +23,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import copy
 import logging
 
-from . import conv
-from . import simulations
+from . import conv, periods, simulations
 
 
 log = logging.getLogger(__name__)
 N_ = lambda message: message
 
 
-class AbstractScenario(object):
+class AbstractScenario(periods.PeriodMixin):
     compact_legislation = None
-    date = None
     reform_by_name = None
     tax_benefit_system = None
 
@@ -49,6 +46,24 @@ class AbstractScenario(object):
     def add_reforms(self, reforms):
         for reform in reforms:
             self.add_reform(reform)
+
+    @staticmethod
+    def cleanup_period_in_json_or_python(value, state = None):
+        if value is None:
+            return None, None
+        value = value.copy()
+        if 'date' not in value:
+            year = value.pop('year', None)
+            if year is not None:
+                value['date'] = year
+        if 'period' not in value:
+            date = value.pop('date', None)
+            if date is not None:
+                value['period'] = dict(
+                    unit = u'year',
+                    start = date,
+                    )
+        return value, None
 
     def fill_simulation(self, simulation):
         """Implemented in child classes."""
@@ -73,10 +88,10 @@ class AbstractScenario(object):
             reference_compact_legislation = reform.reference_compact_legislation
         simulation = simulations.Simulation(
             compact_legislation = compact_legislation,
-            date = self.date,
             debug = debug,
             debug_all = debug_all,
             entity_class_by_key_plural = entity_class_by_key_plural,
+            period = self.period,
             reference_compact_legislation = reference_compact_legislation,
             tax_benefit_system = self.tax_benefit_system,
             trace = trace,

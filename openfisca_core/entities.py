@@ -43,9 +43,9 @@ class AbstractEntity(object):
         if simulation is not None:
             self.simulation = simulation
 
-    def compute(self, column_name, lazy = False, requested_formulas = None):
+    def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.get_or_new_holder(column_name)
-        holder.calculate(lazy = lazy, requested_formulas = requested_formulas)
+        holder.calculate(lazy = lazy, period = period, requested_formulas_by_period = requested_formulas_by_period)
         return holder
 
     def get_or_new_holder(self, column_name):
