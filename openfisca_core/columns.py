@@ -303,7 +303,7 @@ class EnumCol(IntCol):
 # Column couple builder
 
 
-def build_column_couple(name = None, column = None, entities = None):
+def build_column_couple(name = None, column = None, entity_class_by_symbol = None):
     assert isinstance(name, basestring), name
     name = unicode(name)
     if column.label is None:
@@ -311,7 +311,7 @@ def build_column_couple(name = None, column = None, entities = None):
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
