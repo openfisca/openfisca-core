@@ -52,61 +52,8 @@ class CompactNode(object):
         return '{}}({})'.format(self.__class__.__name__, repr(self.__dict__))
 
 
-class CompactRootNode(CompactNode):
-    _period_start_date = None
-    _period_start_date_str = None
-    _period_stop_date = None
-    _period_stop_date_str = None
-    period = None
-
-    @property
-    def date(self):
-        period_start = self.period_start
-        assert period_start == self.period_stop, \
-            'Property "period_date" is undefined for a period with several steps: {}'.format(self.period)
-        return period_start
-
-    @property
-    def date_str(self):
-        assert self.period_start == self.period_stop, \
-            'Property "period_date_str" is undefined for a period with several steps: {}'.format(self.period)
-        return self.period_start_str
-
-    @property
-    def period_start(self):
-        return periods.start(self.period)
-
-    @property
-    def period_start_date(self):
-        if self._period_start_date is None:
-            self._period_start_date = periods.start_date(self.period)
-        return self._period_start_date
-
-    @property
-    def period_start_date_str(self):
-        if self._period_start_date_str is None:
-            self._period_start_date_str = self.period_start_date.isoformat()
-        return self._period_start_date_str
-
-    @property
-    def period_stop(self):
-        return periods.stop(self.period)
-
-    @property
-    def period_stop_date(self):
-        if self._period_stop_date is None:
-            self._period_stop_date = periods.stop_date(self.period)
-        return self._period_stop_date
-
-    @property
-    def period_stop_date_str(self):
-        if self._period_stop_date_str is None:
-            self._period_stop_date_str = self.period_stop_date.isoformat()
-        return self._period_stop_date_str
-
-    @property
-    def period_unit(self):
-        return periods.unit(self.period)
+class CompactRootNode(CompactNode, periods.PeriodMixin):
+    pass
 
 
 # Functions
