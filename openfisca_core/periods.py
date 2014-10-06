@@ -49,16 +49,11 @@ class PeriodMixin(object):
 
     @property
     def date(self):
-        period_start = self.period_start
-        assert self.period_start == self.period_stop, \
-            'Property "date" is undefined for a period with several steps: {}'.format(self.period)
-        return self.period_start_date
+        return date(self.period)
 
     @property
     def date_str(self):
-        assert self.period_start == self.period_stop, \
-            'Property "date_str" is undefined for a period with several steps: {}'.format(self.period)
-        return self.period_start_date_str
+        return date_str(self.period)
 
     @property
     def period_start(self):
@@ -87,6 +82,20 @@ class PeriodMixin(object):
     @property
     def period_unit(self):
         return unit(self.period)
+
+
+def date(period):
+    if period is None:
+        return None
+    assert period[1] == period[2], '"date" is undefined for a period with several steps: {}'.format(period)
+    return start_date(period)
+
+
+def date_str(period):
+    if period is None:
+        return None
+    assert period[1] == period[2], '"date_str" is undefined for a period with several steps: {}'.format(period)
+    return start_date_str(period)
 
 
 def iter(period):
