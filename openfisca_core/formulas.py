@@ -29,7 +29,7 @@ import logging
 
 import numpy as np
 
-from . import accessors, holders
+from . import accessors, holders, periods
 
 
 log = logging.getLogger(__name__)
@@ -193,8 +193,8 @@ class DatedFormula(AbstractGroupedFormula):
 
         compact_legislation = simulation.compact_legislation
         period = compact_legislation.period
-        assert period.unit == u'year'
-        simulation_date = period.date  # TODO: Handle different start & stop dates.
+        assert periods.unit(period) == u'year'
+        simulation_date = periods.date(period)  # TODO: Handle different start & stop dates.
 
         requested_formulas.add(self)
         for dated_formula in self.dated_formulas:
