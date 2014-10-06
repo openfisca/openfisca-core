@@ -37,6 +37,58 @@ import collections
 import datetime
 
 
+# Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
+start_date_by_period_cache = {}
+start_date_str_by_period_cache = {}
+stop_date_by_period_cache = {}
+stop_date_str_by_period_cache = {}
+
+
+class PeriodMixin(object):
+    period = None
+
+    @property
+    def date(self):
+        period_start = self.period_start
+        assert self.period_start == self.period_stop, \
+            'Property "date" is undefined for a period with several steps: {}'.format(self.period)
+        return self.period_start_date
+
+    @property
+    def date_str(self):
+        assert self.period_start == self.period_stop, \
+            'Property "date_str" is undefined for a period with several steps: {}'.format(self.period)
+        return self.period_start_date_str
+
+    @property
+    def period_start(self):
+        return start(self.period)
+
+    @property
+    def period_start_date(self):
+        return start_date(self.period)
+
+    @property
+    def period_start_date_str(self):
+        return start_date_str(self.period)
+
+    @property
+    def period_stop(self):
+        return stop(self.period)
+
+    @property
+    def period_stop_date(self):
+        return stop_date(self.period)
+
+    @property
+    def period_stop_date_str(self):
+        return stop_date_str(self.period)
+
+    @property
+    def period_unit(self):
+        return unit(self.period)
+
+
 def iter(period):
     if period is not None:
         for step in iter_steps(*period):
@@ -68,7 +120,6 @@ def json(period):
         ('stop', stop_date_str(period)),
         ))
 
-
 def next_step(unit, step):
     if unit == u'month':
         year, month = step
@@ -82,12 +133,6 @@ def next_step(unit, step):
 
 
 def period(unit, start, stop = None):
-    if stop is None:
-        stop = start
-    return (unit, start, stop)
-
-
-def period_from_anything(unit, start, stop = None):
     if isinstance(start, datetime.date):
         start = start.isoformat()
     elif isinstance(start, int):
@@ -111,6 +156,12 @@ def period_from_date_str(unit, start_date_str, stop_date_str = None):
     return (unit, step_from_date_str(unit, start_date_str), step_from_date_str(unit, stop_date_str))
 
 
+def period_from_step(unit, start, stop = None):
+    if stop is None:
+        stop = start
+    return (unit, start, stop)
+
+
 def previous_step(unit, step):
     if unit == u'month':
         year, month = step
@@ -132,18 +183,26 @@ def start(period):
 def start_date(period):
     if period is None:
         return None
-    unit = period[0]
-    start = period[1]
-    if unit == u'month':
-        return datetime.date(start[0], start[1], 1)
-    assert unit == u'year', unit
-    return datetime.date(start, 1, 1)
+    start_date = start_date_by_period_cache.get(period)
+    if start_date is None:
+        unit = period[0]
+        start = period[1]
+        if unit == u'month':
+            start_date = datetime.date(start[0], start[1], 1)
+        else:
+            assert unit == u'year', unit
+            start_date = datetime.date(start, 1, 1)
+        start_date_by_period_cache[period] = start_date
+    return start_date
 
 
 def start_date_str(period):
     if period is None:
         return None
-    return start_date(period).isoformat()
+    start_date_str = start_date_str_by_period_cache.get(period)
+    if start_date_str is None:
+        start_date_str_by_period_cache[period] = start_date_str = start_date(period).isoformat()
+    return start_date_str
 
 
 def step_from_date_str(unit, date_str):
@@ -167,18 +226,26 @@ def stop(period):
 def stop_date(period):
     if period is None:
         return None
-    unit = period[0]
-    stop = period[2]
-    if unit == u'month':
-        return datetime.date(stop[0], stop[1], calendar.monthrange(stop[0], stop[1])[1])
-    assert unit == u'year', unit
-    return datetime.date(stop, 12, 31)
+    stop_date = stop_date_by_period_cache.get(period)
+    if stop_date is None:
+        unit = period[0]
+        stop = period[2]
+        if unit == u'month':
+            stop_date = datetime.date(stop[0], stop[1], calendar.monthrange(stop[0], stop[1])[1])
+        else:
+            assert unit == u'year', unit
+            stop_date = datetime.date(stop, 12, 31)
+        stop_date_by_period_cache[period] = stop_date
+    return stop_date
 
 
 def stop_date_str(period):
     if period is None:
         return None
-    return stop_date(period).isoformat()
+    stop_date_str = stop_date_str_by_period_cache.get(period)
+    if stop_date_str is None:
+        stop_date_str_by_period_cache[period] = stop_date_str = stop_date(period).isoformat()
+    return stop_date_str
 
 
 def unit(period):
