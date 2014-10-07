@@ -28,6 +28,7 @@ class Accessor(object):
 
     May be used to access inside a legislation tree or...
     """
+    _path = None
     name = None
     parent = None
 
@@ -71,6 +72,22 @@ class Accessor(object):
         if parent is not None:
             for ancestor in parent.iter_ancestors():
                 yield ancestor
+
+    @property
+    def path(self):
+        path = self._path
+        if path is None:
+            parent = self.parent
+            parent_path = None if parent is None else parent.path
+            self._path = path = u'.'.join(
+                fragment
+                for fragment in (
+                    parent_path,
+                    self.name,
+                    )
+                if fragment is not None
+                )
+        return path
 
 
 law = Accessor()

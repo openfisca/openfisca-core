@@ -51,6 +51,14 @@ class DatedHolder(object):
     def array(self, array):
         self.holder.set_array(self.period, array)
 
+    @property
+    def column(self):
+        return self.holder.column
+
+    @property
+    def entity(self):
+        return self.holder.entity
+
 
 class Holder(object):
     _array = None  # Only used when column.is_period_invariant
@@ -96,7 +104,7 @@ class Holder(object):
         self._array = array
 
     def at_period(self, period):
-        return DatedHolder(self, period)
+        return self if self.column.is_period_invariant else DatedHolder(self, period)
 
     def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         if period is None:

@@ -369,7 +369,7 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, holders.Holder):
+        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
         else:
@@ -426,7 +426,8 @@ class SimpleFormula(AbstractFormula):
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
         for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
-            variable_array = variable_holder.calculate(lazy = lazy, period = period,
+            variable_period = self.get_variable_period(variable_name)
+            variable_array = variable_holder.calculate(lazy = lazy, period = variable_period,
                 requested_formulas_by_period = requested_formulas_by_period)
             if variable_array is None:
                 # A variable is missing in lazy mode, formula can not be calculated yet.
@@ -435,7 +436,9 @@ class SimpleFormula(AbstractFormula):
                 return None
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
-            arguments[variable_name] = variable_holder if variable_name.endswith('_holder') else variable_holder.array
+            arguments[variable_name] = variable_holder.at_period(variable_period) \
+                if variable_name.endswith('_holder') \
+                else variable_holder.array
             if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
                     and np.any(variable_array != variable_holder.column.default):
                 has_only_default_arguments = False
@@ -508,7 +511,7 @@ class SimpleFormula(AbstractFormula):
         target_entity = holder.entity
         simulation = target_entity.simulation
         persons = simulation.persons
-        if isinstance(array_or_holder, holders.Holder):
+        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
             if entity is None:
                 entity = array_or_holder.entity
             else:
@@ -584,7 +587,7 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, holders.Holder):
+        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
             if default is None:
@@ -615,6 +618,22 @@ class SimpleFormula(AbstractFormula):
             u'{} = {}@{}'.format(variable_name, variable_holder.entity.key_plural, unicode(variable_holder.array))
             for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
+
+    def get_law_period(self, law_path):
+        """Return the period required for a node of the legislation used by the formula.
+
+        By default, the period of a legislation node is the same as the simulation period.
+        Override this method for legislation nodes with different periods.
+        """
+        return self.holder.entity.simulation.period
+
+    def get_variable_period(self, variable_name):
+        """Return the period required for an input variable used by the formula.
+
+        By default, the period of an input variable is the same as the simulation period.
+        Override this method for input variables with different periods.
+        """
+        return self.holder.entity.simulation.period
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -653,7 +672,7 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, holders.Holder):
+        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
             if default is None:
@@ -695,7 +714,7 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, holders.Holder):
+        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
             assert array_or_holder.entity.is_persons_entity
             array = array_or_holder.array
         else:
