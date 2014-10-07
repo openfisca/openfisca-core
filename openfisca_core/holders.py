@@ -72,6 +72,15 @@ class Holder(object):
             return self.get_array(self.entity.simulation.period)
         return self._array
 
+    @array.deleter
+    def array(self):
+        simulation = self.entity.simulation
+        if not self.column.is_period_invariant:
+            return self.delete_array(simulation.period)
+        if simulation.trace:
+            simulation.traceback.pop(self.column.name, None)
+        del self._array
+
     @array.setter
     def array(self, array):
         simulation = self.entity.simulation
@@ -103,6 +112,20 @@ class Holder(object):
                 self.set_array(period, array)
             return array
         return formula.calculate(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
+
+    def delete_array(self, period):
+        if self.column.is_period_invariant:
+            del self.array
+            return
+        assert period is not None
+        simulation = self.entity.simulation
+        if simulation.trace:
+            simulation.traceback.pop(self.column.name, None)
+        array_by_period = self._array_by_period
+        if array_by_period is not None:
+            array_by_period.pop(period, None)
+            if not array_by_period:
+                del self._array_by_period
 
     def get_array(self, period):
         if self.column.is_period_invariant:
