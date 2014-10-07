@@ -116,8 +116,6 @@ class AlternativeFormula(AbstractGroupedFormula):
         array = holder.get_array(period)
         if array is not None:
             return array
-        # if holder.disabled:
-        #     return holder.array
 
         period_requested_formulas.add(self)
         for alternative_formula in self.alternative_formulas:
@@ -212,8 +210,6 @@ class DatedFormula(AbstractGroupedFormula):
         array = holder.get_array(period)
         if array is not None:
             return array
-        # if holder.disabled:
-        #     return array
 
         compact_legislation = simulation.compact_legislation
         period = compact_legislation.period
@@ -303,8 +299,6 @@ class SelectFormula(AbstractGroupedFormula):
         array = holder.get_array(period)
         if array is not None:
             return array
-        # if holder.disabled:
-        #     return holder.array
 
         period_requested_formulas.add(self)
         for main_variable, formula in self.formula_by_main_variable.iteritems():
@@ -424,8 +418,6 @@ class SimpleFormula(AbstractFormula):
         array = holder.get_array(period)
         if array is not None:
             return array
-        # if holder.disabled:
-        #     return holder.array
 
         period_requested_formulas.add(self)
         required_parameters = set(self.holder_by_variable_name.iterkeys()).union(
