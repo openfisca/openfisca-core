@@ -344,22 +344,25 @@ class SelectFormula(AbstractGroupedFormula):
 
 class SimpleFormula(AbstractFormula):
     function = None  # Class attribute. Overridden by subclasses
-    holder_by_parameter = None
+    holder_by_variable_name = None
     legislation_accessor_by_name = None
-    parameters = None  # class attribute
     requires_default_legislation = False  # class attribute
     requires_legislation = False  # class attribute
     requires_self = False  # class attribute
+    requires_simulation = False  # class attribute
+    variables_name = None  # class attribute
 
     def __init__(self, holder = None):
         super(SimpleFormula, self).__init__(holder = holder)
 
         entity = holder.entity
         simulation = entity.simulation
-        self.holder_by_parameter = holder_by_parameter = collections.OrderedDict()
-        for parameter in self.parameters:
-            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            holder_by_parameter[parameter] = simulation.get_or_new_holder(clean_parameter)
+        self.holder_by_variable_name = holder_by_variable_name = collections.OrderedDict()
+        for variable_name in self.variables_name:
+            clean_variable_name = variable_name[:-len('_holder')] \
+                if variable_name.endswith('_holder') \
+                else variable_name
+            holder_by_variable_name[variable_name] = simulation.get_or_new_holder(clean_variable_name)
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
         holder = self.holder
@@ -425,24 +428,24 @@ class SimpleFormula(AbstractFormula):
         #     return holder.array
 
         period_requested_formulas.add(self)
-        required_parameters = set(self.holder_by_parameter.iterkeys()).union(
+        required_parameters = set(self.holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
         arguments = {}
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
-        for parameter, parameter_holder in self.holder_by_parameter.iteritems():
-            parameter_array = parameter_holder.calculate(lazy = lazy, period = period,
+        for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
+            variable_array = variable_holder.calculate(lazy = lazy, period = period,
                 requested_formulas_by_period = requested_formulas_by_period)
-            if parameter_array is None:
-                # A parameter is missing in lazy mode, formula can not be calculated yet.
+            if variable_array is None:
+                # A variable is missing in lazy mode, formula can not be calculated yet.
                 assert lazy
                 period_requested_formulas.remove(self)
                 return None
-            # When parameter ends with "_holder" suffix, use holder as argument instead of its array.
+            # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
-            arguments[parameter] = parameter_holder if parameter.endswith('_holder') else parameter_holder.array
+            arguments[variable_name] = variable_holder if variable_name.endswith('_holder') else variable_holder.array
             if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
-                    and np.any(parameter_array != parameter_holder.column.default):
+                    and np.any(variable_array != variable_holder.column.default):
                 has_only_default_arguments = False
 
         if self.requires_default_legislation:
@@ -454,6 +457,9 @@ class SimpleFormula(AbstractFormula):
         if self.requires_self:
             required_parameters.add('self')
             arguments['self'] = self
+        if self.requires_simulation:
+            required_parameters.add('simulation')
+            arguments['simulation'] = simulation
         if self.legislation_accessor_by_name is not None:
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
                 # TODO: Also handle simulation.reference_compact_legislation.
@@ -548,7 +554,7 @@ class SimpleFormula(AbstractFormula):
         return target_array
 
     @classmethod
-    def extract_parameters(cls):
+    def extract_variables_name(cls):
         function = cls.function
         code = function.__code__
         defaults = function.__defaults__ or ()
@@ -558,19 +564,22 @@ class SimpleFormula(AbstractFormula):
                 assert isinstance(default, accessors.Accessor), 'Unexpected defaut parameter: {} = {}'.format(name,
                     default)
                 cls.legislation_accessor_by_name[name] = default
-        cls.parameters = parameters = list(code.co_varnames[:code.co_argcount - len(defaults)])
+        cls.variables_name = variables_name = list(code.co_varnames[:code.co_argcount - len(defaults)])
         # Check whether default legislation is used by function.
-        if '_defaultP' in parameters:
+        if '_defaultP' in variables_name:
             cls.requires_default_legislation = True
-            parameters.remove('_defaultP')
+            variables_name.remove('_defaultP')
         # Check whether current legislation is used by function.
-        if '_P' in parameters:
+        if '_P' in variables_name:
             cls.requires_legislation = True
-            parameters.remove('_P')
+            variables_name.remove('_P')
         # Check whether function uses self (aka formula).
-        if 'self' in parameters:
+        if 'self' in variables_name:
             cls.requires_self = True
-            parameters.remove('self')
+            variables_name.remove('self')
+        if 'simulation' in variables_name:
+            cls.requires_simulation = True
+            variables_name.remove('simulation')
 
     def filter_role(self, array_or_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
@@ -611,18 +620,18 @@ class SimpleFormula(AbstractFormula):
 
     def get_arguments_str(self):
         return u', '.join(
-            u'{} = {}@{}'.format(parameter, parameter_holder.entity.key_plural, unicode(parameter_holder.array))
-            for parameter, parameter_holder in self.holder_by_parameter.iteritems()
+            u'{} = {}@{}'.format(variable_name, variable_holder.entity.key_plural, unicode(variable_holder.array))
+            for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
-        for parameter_holder in self.holder_by_parameter.itervalues():
-            parameter_holder.graph(edges, nodes, visited)
+        for variable_holder in self.holder_by_variable_name.itervalues():
+            variable_holder.graph(edges, nodes, visited)
             edges.append({
-                'from': parameter_holder.column.name,
+                'from': variable_holder.column.name,
                 'to': column.name,
                 })
 
@@ -632,12 +641,14 @@ class SimpleFormula(AbstractFormula):
 
     @classmethod
     def set_dependencies(cls, column, column_by_name):
-        for parameter in cls.parameters:
-            clean_parameter = parameter[:-len('_holder')] if parameter.endswith('_holder') else parameter
-            parameter_column = column_by_name[clean_parameter]
-            if parameter_column.consumers is None:
-                parameter_column.consumers = set()
-            parameter_column.consumers.add(column.name)
+        for variable_name in cls.variables_name:
+            clean_variable_name = variable_name[:-len('_holder')] \
+                if variable_name.endswith('_holder') \
+                else variable_name
+            variable_column = column_by_name[clean_variable_name]
+            if variable_column.consumers is None:
+                variable_column.consumers = set()
+            variable_column.consumers.add(column.name)
 
     def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
@@ -715,23 +726,23 @@ class SimpleFormula(AbstractFormula):
         function = self.function
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
-        parameters_json = []
-        for parameter, parameter_holder in self.holder_by_parameter.iteritems():
-            parameter_column = parameter_holder.column
-            parameters_json.append(collections.OrderedDict((
-                ('entity', parameter_holder.entity.key_plural),
-                ('label', parameter_column.label),
-                ('name', parameter_column.name),
-                )))
         source_lines, line_number = inspect.getsourcelines(function)
+        variables_json = []
+        for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
+            variable_column = variable_holder.column
+            variables_json.append(collections.OrderedDict((
+                ('entity', variable_holder.entity.key_plural),
+                ('label', variable_column.label),
+                ('name', variable_column.name),
+                )))
         return collections.OrderedDict((
             ('@type', u'SimpleFormula'),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
             ('line_number', line_number),
             ('module', inspect.getmodule(function).__name__),
-            ('parameters', parameters_json),
             ('source', ''.join(source_lines).decode('utf-8')),
+            ('variables', variables_json),
             ))
 
 
@@ -749,7 +760,7 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
             ))
-        formula_class.extract_parameters()
+        formula_class.extract_variables_name()
         alternative_formulas_constructor.append(formula_class)
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
         alternative_formulas_constructor = alternative_formulas_constructor,
@@ -784,7 +795,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
                 function = staticmethod(dated_function['function']),
                 ),
             )
-        formula_class.extract_parameters()
+        formula_class.extract_variables_name()
         dated_formulas_class.append(dict(
             end = dated_function['end'],
             formula_class = formula_class,
@@ -819,7 +830,7 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
             ))
-        formula_class.extract_parameters()
+        formula_class.extract_variables_name()
         formula_constructor_by_main_variable[main_variable] = formula_class
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
         formula_constructor_by_main_variable = formula_constructor_by_main_variable,
@@ -843,7 +854,7 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
         ))
-    formula_class.extract_parameters()
+    formula_class.extract_variables_name()
     del column.function
     if column.label is None:
         column.label = name
