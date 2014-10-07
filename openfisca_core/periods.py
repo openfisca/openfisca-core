@@ -187,10 +187,7 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
                         conv.not_none,
                         ),
                     # stop
-                    conv.pipe(
-                        make_json_or_python_to_date_str(min_date, max_date),
-                        conv.not_none,
-                        ),
+                    make_json_or_python_to_date_str(min_date, max_date),
                     ),
                 ),
             conv.function(lambda value: period(*value)),
@@ -203,10 +200,7 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
                         make_json_or_python_to_date_str(min_date, max_date),
                         conv.not_none,
                         ),
-                    stop = conv.pipe(
-                        make_json_or_python_to_date_str(min_date, max_date),
-                        conv.not_none,
-                        ),
+                    stop = make_json_or_python_to_date_str(min_date, max_date),
                     unit = conv.pipe(
                         conv.test_isinstance(basestring),
                         conv.input_to_slug,
