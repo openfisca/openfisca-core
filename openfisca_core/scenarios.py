@@ -34,18 +34,7 @@ N_ = lambda message: message
 
 class AbstractScenario(periods.PeriodMixin):
     compact_legislation = None
-    reform_by_name = None
     tax_benefit_system = None
-
-    def __init__(self):
-        self.reform_by_name = {}
-
-    def add_reform(self, reform):
-        self.reform_by_name[reform.name] = reform
-
-    def add_reforms(self, reforms):
-        for reform in reforms:
-            self.add_reform(reform)
 
     @staticmethod
     def cleanup_period_in_json_or_python(value, state = None):
@@ -76,13 +65,12 @@ class AbstractScenario(periods.PeriodMixin):
     def make_json_or_python_to_attributes(self, cache_dir = None, repair = False):
         raise NotImplementedError  # TODO migrate here all the non test_case or survey specific stuff
 
-    def new_simulation(self, debug = False, debug_all = False, reform_name = None, trace = False):
-        if reform_name is None:
+    def new_simulation(self, debug = False, debug_all = False, reform = None, trace = False):
+        if reform is None:
             entity_class_by_key_plural = None
             compact_legislation = self.compact_legislation
             reference_compact_legislation = None
         else:
-            reform = self.reform_by_name[reform_name]
             entity_class_by_key_plural = reform.entity_class_by_key_plural
             compact_legislation = reform.compact_legislation
             reference_compact_legislation = reform.reference_compact_legislation
