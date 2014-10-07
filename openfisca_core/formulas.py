@@ -340,8 +340,8 @@ class SimpleFormula(AbstractFormula):
     function = None  # Class attribute. Overridden by subclasses
     holder_by_variable_name = None
     legislation_accessor_by_name = None
-    requires_default_legislation = False  # class attribute
     requires_legislation = False  # class attribute
+    requires_reference_legislation = False  # class attribute
     requires_self = False  # class attribute
     requires_simulation = False  # class attribute
     variables_name = None  # class attribute
@@ -440,12 +440,12 @@ class SimpleFormula(AbstractFormula):
                     and np.any(variable_array != variable_holder.column.default):
                 has_only_default_arguments = False
 
-        if self.requires_default_legislation:
-            required_parameters.add('_defaultP')
-            arguments['_defaultP'] = simulation.reference_compact_legislation
         if self.requires_legislation:
             required_parameters.add('_P')
             arguments['_P'] = simulation.compact_legislation
+        if self.requires_reference_legislation:
+            required_parameters.add('_defaultP')
+            arguments['_defaultP'] = simulation.reference_compact_legislation
         if self.requires_self:
             required_parameters.add('self')
             arguments['self'] = self
@@ -559,7 +559,7 @@ class SimpleFormula(AbstractFormula):
         cls.variables_name = variables_name = list(code.co_varnames[:code.co_argcount - len(defaults)])
         # Check whether default legislation is used by function.
         if '_defaultP' in variables_name:
-            cls.requires_default_legislation = True
+            cls.requires_reference_legislation = True
             variables_name.remove('_defaultP')
         # Check whether current legislation is used by function.
         if '_P' in variables_name:
