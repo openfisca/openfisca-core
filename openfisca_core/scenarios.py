@@ -33,7 +33,7 @@ N_ = lambda message: message
 
 
 class AbstractScenario(periods.PeriodMixin):
-    compact_legislation = None
+    legislation_json = None
     tax_benefit_system = None
 
     @staticmethod
@@ -63,24 +63,14 @@ class AbstractScenario(periods.PeriodMixin):
         return self
 
     def make_json_or_python_to_attributes(self, cache_dir = None, repair = False):
-        raise NotImplementedError  # TODO migrate here all the non test_case or survey specific stuff
+        raise NotImplementedError  # TODO: Migrate here all the non test_case or survey specific stuff.
 
-    def new_simulation(self, debug = False, debug_all = False, reform = None, trace = False):
-        if reform is None:
-            entity_class_by_key_plural = None
-            compact_legislation = self.compact_legislation
-            reference_compact_legislation = None
-        else:
-            entity_class_by_key_plural = reform.entity_class_by_key_plural
-            compact_legislation = reform.compact_legislation
-            reference_compact_legislation = reform.reference_compact_legislation
+    def new_simulation(self, debug = False, debug_all = False, trace = False):
         simulation = simulations.Simulation(
-            compact_legislation = compact_legislation,
             debug = debug,
             debug_all = debug_all,
-            entity_class_by_key_plural = entity_class_by_key_plural,
+            legislation_json = self.legislation_json,
             period = self.period,
-            reference_compact_legislation = reference_compact_legislation,
             tax_benefit_system = self.tax_benefit_system,
             trace = trace,
             )

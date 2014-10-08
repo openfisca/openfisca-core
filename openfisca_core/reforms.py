@@ -23,40 +23,36 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from openfisca_core import legislations
+from . import simulations
 
 
 class Reform(object):
-    _compact_legislation = None
-    _reference_compact_legislation = None
-    dated_legislation_json = None
     entity_class_by_key_plural = None
     label = None
+    legislation_json = None
     name = None
-    reference_dated_legislation_json = None
+    reference_legislation_json = None
 
-    def __init__(self, dated_legislation_json = None, entity_class_by_key_plural = None, label = None, name = None,
-            reference_dated_legislation_json = None):
+    def __init__(self, entity_class_by_key_plural = None, label = None, legislation_json = None, name = None,
+            reference_legislation_json = None):
         assert name is not None, u"a name should be provided"
-        self.dated_legislation_json = dated_legislation_json
         self.entity_class_by_key_plural = entity_class_by_key_plural
         self.label = label if label is not None else name
+        self.legislation_json = legislation_json
         self.name = name
-        self.reference_dated_legislation_json = reference_dated_legislation_json
+        self.reference_legislation_json = reference_legislation_json
 
-    @property
-    def compact_legislation(self):
-        if self._compact_legislation is None:
-            self._compact_legislation = legislations.compact_dated_node_json(self.dated_legislation_json)
-        return self._compact_legislation
-
-    @property
-    def reference_compact_legislation(self):
-        if self._reference_compact_legislation is None:
-            self._reference_compact_legislation = legislations.compact_dated_node_json(
-                self.reference_dated_legislation_json
-                )
-        return self._reference_compact_legislation
+    def new_simulation(self, debug = False, debug_all = False, scenario = None, trace = False):
+        simulation = simulations.Simulation(
+            debug = debug,
+            debug_all = debug_all,
+            legislation_json = self.legislation_json,
+            period = scenario.period,
+            tax_benefit_system = scenario.tax_benefit_system,
+            trace = trace,
+            )
+        scenario.fill_simulation(simulation)
+        return simulation
 
 
 def clone_entity_classes(entity_class_by_symbol, symbols):

@@ -211,8 +211,6 @@ class DatedFormula(AbstractGroupedFormula):
         if array is not None:
             return array
 
-        compact_legislation = simulation.compact_legislation
-        period = compact_legislation.period
         assert periods.unit(period) == u'year'
         simulation_date = periods.date(period)  # TODO: Handle different start & stop dates.
 
@@ -341,9 +339,9 @@ class SimpleFormula(AbstractFormula):
     holder_by_variable_name = None
     legislation_accessor_by_name = None
     requires_legislation = False  # class attribute
+    requires_period = False  # class attribute
     requires_reference_legislation = False  # class attribute
     requires_self = False  # class attribute
-    requires_simulation = False  # class attribute
     variables_name = None  # class attribute
 
     def __init__(self, holder = None):
@@ -445,20 +443,21 @@ class SimpleFormula(AbstractFormula):
 
         if self.requires_legislation:
             required_parameters.add('_P')
-            arguments['_P'] = simulation.compact_legislation
+            arguments['_P'] = simulation.get_compact_legislation(period)
         if self.requires_reference_legislation:
             required_parameters.add('_defaultP')
-            arguments['_defaultP'] = simulation.reference_compact_legislation
+            arguments['_defaultP'] = simulation.get_reference_compact_legislation(period)
         if self.requires_self:
             required_parameters.add('self')
             arguments['self'] = self
-        if self.requires_simulation:
-            required_parameters.add('simulation')
-            arguments['simulation'] = simulation
+        if self.requires_period:
+            required_parameters.add('period')
+            arguments['period'] = period
         if self.legislation_accessor_by_name is not None:
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
-                # TODO: Also handle simulation.reference_compact_legislation.
-                arguments[name] = legislation_accessor(simulation.compact_legislation, default = None)
+                # TODO: Also handle simulation.get_reference_compact_legislation(...).
+                arguments[name] = legislation_accessor(
+                    simulation.get_compact_legislation(self.get_law_period(legislation_accessor.path)), default = None)
 
         provided_parameters = set(arguments.keys())
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
@@ -568,13 +567,13 @@ class SimpleFormula(AbstractFormula):
         if '_P' in variables_name:
             cls.requires_legislation = True
             variables_name.remove('_P')
+        if 'period' in variables_name:
+            cls.requires_period = True
+            variables_name.remove('period')
         # Check whether function uses self (aka formula).
         if 'self' in variables_name:
             cls.requires_self = True
             variables_name.remove('self')
-        if 'simulation' in variables_name:
-            cls.requires_simulation = True
-            variables_name.remove('simulation')
 
     def filter_role(self, array_or_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""

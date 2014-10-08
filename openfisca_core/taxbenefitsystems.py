@@ -47,6 +47,7 @@ class AbstractTaxBenefitSystem(object):
     legislation_json = None
     legislation_json_by_xml_file_path = {}  # class attribute
     PARAM_FILE = None  # class attribute
+    preprocess_compact_legislation = None  # To override with a method
     prestation_by_name = None
     Scenario = None
 
@@ -86,6 +87,8 @@ class AbstractTaxBenefitSystem(object):
         if compact_legislation is None:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, period)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+            if self.preprocess_compact_legislation is not None:
+                self.preprocess_compact_legislation(compact_legislation)
             self.compact_legislation_by_period_cache[period] = compact_legislation
         return compact_legislation
 
