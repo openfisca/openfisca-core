@@ -464,29 +464,21 @@ class SimpleFormula(AbstractFormula):
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
         try:
-            array = self.function(**arguments)
+            result = self.function(**arguments)
         except:
             log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
                 self.get_arguments_str()))
             raise
-        assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-            entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
-        assert array.size == entity.count, \
-            u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
-            column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
+        if isinstance(result, holders.DatedHolder):
+            assert result.holder is self.holder, u"Function {}@{}({}) doesn't return its own holder, but: {}".format(
+                entity.key_plural, column.name, self.get_arguments_str(), result).encode('utf-8')
+            array = result.array
+        else:
+            dated_holder = self.set_result_array(period, result)
+            array = dated_holder.array
 
-        if not simulation.debug:
-            try:
-                if np.isnan(np.min(array)):
-                    raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
-            except TypeError:
-                pass
-
-        if array.dtype != column.dtype:
-            array = array.astype(column.dtype)
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
             log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(), array))
-        holder.array = array
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
@@ -659,6 +651,32 @@ class SimpleFormula(AbstractFormula):
             if variable_column.consumers is None:
                 variable_column.consumers = set()
             variable_column.consumers.add(column.name)
+
+    def set_result_array(self, period, array):
+        holder = self.holder
+        column = holder.column
+        entity = holder.entity
+        simulation = entity.simulation
+
+        assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
+            entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
+        assert array.size == entity.count, \
+            u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
+            column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
+
+        if not simulation.debug:
+            try:
+                if np.isnan(np.min(array)):
+                    raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
+            except TypeError:
+                pass
+
+        if array.dtype != column.dtype:
+            array = array.astype(column.dtype)
+
+        dated_holder = holder.at_period(period)
+        dated_holder.array = array
+        return dated_holder
 
     def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
