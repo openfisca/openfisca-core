@@ -49,7 +49,7 @@ class CompactNode(object):
     # Note: Attributes come from dated_node_json and are not defined in class.
 
     def __repr__(self):
-        return '{}}({})'.format(self.__class__.__name__, repr(self.__dict__))
+        return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
 
 
 class CompactRootNode(CompactNode, periods.PeriodMixin):
