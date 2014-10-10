@@ -118,6 +118,7 @@ class Holder(object):
         else:
             assert column.function_period_unit in ('year', 'month')  # TODO
             period_start_date = periods.start_date(period)
+            # Check that the start day of the column belongs to period.
             use_array = column.start is not None and column.start > period_start_date \
                 or column.end is not None and column.end < period_start_date
         if use_array:
