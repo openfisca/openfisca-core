@@ -80,12 +80,12 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
     if node_type == u'Parameter':
         return dated_node_json.get('value')
     assert node_type == u'Scale'
-    period_start = periods.start(period)
-    period_stop = periods.stop(period)
+    period_start_instant = periods.start_instant(period)
+    period_stop_instant = periods.stop_instant(period)
     period_unit = periods.unit(period)
     if any('amount' in slice for slice in dated_node_json['slices']):
         # AmountTaxScale
-        if periods.next_step(period_unit, period_start) > period_stop:
+        if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
             # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
             tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
             for dated_slice_json in dated_node_json['slices']:
@@ -98,7 +98,7 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
             return tax_scale
         tax_scales = [
             taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
-            for step in periods.iter(period)
+            for instant in periods.iter(period)
             ]
         for dated_slice_json in dated_node_json['slices']:
             amounts = dated_slice_json.get('amount')
@@ -115,7 +115,7 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
         return tax_scales
 
     # MarginalRateTaxScale
-    if periods.next_step(period_unit, period_start) > period_stop:
+    if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
         # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
         tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
         for dated_slice_json in dated_node_json['slices']:
@@ -130,11 +130,11 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
         return tax_scale
     tax_scales = [
         taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
-        for step in periods.iter(period)
+        for instant in periods.iter(period)
         ]
     default_bases = [
         1
-        for step in periods.iter(period)
+        for instant in periods.iter(period)
         ]
     for dated_slice_json in dated_node_json['slices']:
         bases = dated_slice_json.get('base', default_bases)
@@ -153,56 +153,59 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
     return tax_scales
 
 
-def generate_dated_json_value(values_json, legislation_start, legislation_stop, period):
-    max_stop = None
+def generate_dated_json_value(values_json, legislation_start_instant, legislation_stop_instant, period):
+    max_stop_instant = None
     max_value = None
-    min_start = None
+    min_start_instant = None
     min_value = None
-    period_start = periods.start(period)
-    period_stop = periods.stop(period)
+    period_start_instant = periods.start_instant(period)
+    period_stop_instant = periods.stop_instant(period)
     period_unit = periods.unit(period)
-    value_by_step = {}
+    value_by_instant = {}
     for value_json in values_json:
-        _, value_start, value_stop = periods.period(period_unit, value_json['start'], value_json['stop'])
-        if value_start <= period_stop and value_stop >= period_start:
-            for value_step in periods.iter_steps(period_unit, max(period_start, value_start),
-                    min(period_stop, value_stop)):
-                value_by_step[value_step] = value_json['value']
-        if max_stop is None or value_stop > max_stop:
-            max_stop = value_stop
+        _, value_start_instant, value_stop_instant = periods.period(period_unit, value_json['start'],
+            value_json['stop'])
+        if value_start_instant <= period_stop_instant and value_stop_instant >= period_start_instant:
+            for value_instant in periods.iter_instants(period_unit, max(period_start_instant, value_start_instant),
+                    min(period_stop_instant, value_stop_instant)):
+                value_by_instant[value_instant] = value_json['value']
+        if max_stop_instant is None or value_stop_instant > max_stop_instant:
+            max_stop_instant = value_stop_instant
             max_value = value_json['value']
-        if min_start is None or value_start < min_start:
-            min_start = value_start
+        if min_start_instant is None or value_start_instant < min_start_instant:
+            min_start_instant = value_start_instant
             min_value = value_json['value']
 
-    if (not value_by_step or min(value_by_step) > period_start) and period_start < legislation_start \
-            and min_start is not None and min_start <= legislation_start:
+    if (not value_by_instant or min(value_by_instant) > period_start_instant) \
+            and period_start_instant < legislation_start_instant and min_start_instant is not None \
+            and min_start_instant <= legislation_start_instant:
         # The requested date interval starts before the beginning of the legislation. Use the value of the first period,
         # when this period begins the same day or before the legislation.
-        if not value_by_step:
-            value_stop = period_stop
+        if not value_by_instant:
+            value_stop_instant = period_stop_instant
         else:
-            value_stop = periods.step_previous_day(min(value_by_step))
-        for value_step in periods.iter_steps(period_unit, period_start, value_stop):
-            value_by_step[value_step] = min_value
+            value_stop_instant = periods.previous_day_instant(min(value_by_instant))
+        for value_instant in periods.iter_instants(period_unit, period_start_instant, value_stop_instant):
+            value_by_instant[value_instant] = min_value
 
-    if (not value_by_step or max(value_by_step) < period_stop) and period_stop > legislation_stop \
-            and max_stop is not None and max_stop >= legislation_stop:
+    if (not value_by_instant or max(value_by_instant) < period_stop_instant) \
+            and period_stop_instant > legislation_stop_instant and max_stop_instant is not None \
+            and max_stop_instant >= legislation_stop_instant:
         # The requested date interval stops after the end of the legislation. Use the value of the last period, when
         # this period ends the same day or after the legislation.
-        if not value_by_step:
-            value_start = period_start
+        if not value_by_instant:
+            value_start_instant = period_start_instant
         else:
-            value_start = periods.step_next_day(max(value_by_step))
-        for value_step in periods.iter_steps(period_unit, value_start, period_stop):
-            value_by_step[value_step] = max_value
+            value_start_instant = periods.next_day_instant(max(value_by_instant))
+        for value_instant in periods.iter_instants(period_unit, value_start_instant, period_stop_instant):
+            value_by_instant[value_instant] = max_value
 
-    if periods.next_step(period_unit, period_start) > period_stop:
+    if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
         # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
-        return value_by_step.get(period_start)
+        return value_by_instant.get(period_start_instant)
     value = [
-        value_by_step.get(step)
-        for step in periods.iter(period)
+        value_by_instant.get(instant)
+        for instant in periods.iter(period)
         ]
     if all(item_value is None for item_value in value):
         return None
@@ -211,12 +214,12 @@ def generate_dated_json_value(values_json, legislation_start, legislation_stop, 
 
 def generate_dated_legislation_json(legislation_json, period):
     period_unit = periods.unit(period)
-    _, legislation_start, legislation_stop = periods.period(period_unit, legislation_json['start'],
+    _, legislation_start_instant, legislation_stop_instant = periods.period(period_unit, legislation_json['start'],
         legislation_json['stop'])
     dated_legislation_json = generate_dated_node_json(
         legislation_json,
-        legislation_start,
-        legislation_stop,
+        legislation_start_instant,
+        legislation_stop_instant,
         period,
         )
     dated_legislation_json['@context'] = u'http://openfisca.fr/contexts/dated-legislation.jsonld'
@@ -224,7 +227,7 @@ def generate_dated_legislation_json(legislation_json, period):
     return dated_legislation_json
 
 
-def generate_dated_node_json(node_json, legislation_start, legislation_stop, period):
+def generate_dated_node_json(node_json, legislation_start_instant, legislation_stop_instant, period):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
@@ -234,7 +237,8 @@ def generate_dated_node_json(node_json, legislation_start, legislation_stop, per
                 for child_code, dated_child_json in (
                     (
                         child_code,
-                        generate_dated_node_json(child_json, legislation_start, legislation_stop, period),
+                        generate_dated_node_json(child_json, legislation_start_instant, legislation_stop_instant,
+                            period),
                         )
                     for child_code, child_json in value.iteritems()
                     )
@@ -250,7 +254,7 @@ def generate_dated_node_json(node_json, legislation_start, legislation_stop, per
             dated_slices_json = [
                 dated_slice_json
                 for dated_slice_json in (
-                    generate_dated_slice_json(slice_json, legislation_start, legislation_stop, period)
+                    generate_dated_slice_json(slice_json, legislation_start_instant, legislation_stop_instant, period)
                     for slice_json in value
                     )
                 if dated_slice_json is not None
@@ -260,7 +264,7 @@ def generate_dated_node_json(node_json, legislation_start, legislation_stop, per
             dated_node_json[key] = dated_slices_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, legislation_start, legislation_stop, period)
+            dated_value = generate_dated_json_value(value, legislation_start_instant, legislation_stop_instant, period)
             if dated_value is None:
                 return None
             dated_node_json['value'] = dated_value
@@ -269,11 +273,11 @@ def generate_dated_node_json(node_json, legislation_start, legislation_stop, per
     return dated_node_json
 
 
-def generate_dated_slice_json(slice_json, legislation_start, legislation_stop, period):
+def generate_dated_slice_json(slice_json, legislation_start_instant, legislation_stop_instant, period):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, legislation_start, legislation_stop, period)
+            dated_value = generate_dated_json_value(value, legislation_start_instant, legislation_stop_instant, period)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
         else:
