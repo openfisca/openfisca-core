@@ -111,8 +111,16 @@ class Holder(object):
             period = self.entity.simulation.period
         column = self.column
         formula = self.formula
-        if formula is None or column.start is not None and column.start > periods.stop_date(period) \
-                or column.end is not None and column.end < periods.start_date(period):
+        # if formula is None or column.start is not None and column.start > periods.stop_date(period) \
+        #         or column.end is not None and column.end < periods.start_date(period):
+        if formula is None:
+            use_array = True
+        else:
+            assert column.function_period_unit in ('year', 'month')  # TODO
+            period_start_date = periods.start_date(period)
+            use_array = column.start is not None and column.start > period_start_date \
+                or column.end is not None and column.end < period_start_date
+        if use_array:
             array = self.get_array(period)
             if not lazy and array is None:
                 array = np.empty(self.entity.count, dtype = column.dtype)

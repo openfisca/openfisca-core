@@ -42,10 +42,8 @@ from . import conv
 
 N_ = lambda message: message
 # Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
-start_date_by_period_cache = {}
-start_date_str_by_period_cache = {}
-stop_date_by_period_cache = {}
-stop_date_str_by_period_cache = {}
+date_by_step_cache = {}
+date_str_by_step_cache = {}
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
 
 
@@ -92,14 +90,16 @@ class PeriodMixin(object):
 def date(period):
     if period is None:
         return None
-    assert period[1] == period[2], '"date" is undefined for a period with several steps: {}'.format(period)
+    assert next_step(period[0], period[1]) > period[2], \
+        '"date" is undefined for a period with several steps: {}'.format(period)
     return start_date(period)
 
 
 def date_str(period):
     if period is None:
         return None
-    assert period[1] == period[2], '"date_str" is undefined for a period with several steps: {}'.format(period)
+    assert next_step(period[0], period[1]) > period[2], \
+        '"date_str" is undefined for a period with several steps: {}'.format(period)
     return start_date_str(period)
 
 
@@ -113,16 +113,16 @@ def iter_steps(unit, start, stop):
     step = start
     while step <= stop:
         yield step
+        year, month, day = step
         if unit == u'month':
-            year, month = step
             month += 1
             if month == 13:
                 month = 1
                 year += 1
-            step = (year, month)
         else:
             assert unit == u'year', unit
-            step += 1
+            year += 1
+        step = (year, month, day)
 
 
 def json(period):
@@ -135,7 +135,7 @@ def json(period):
         ))
 
 
-def make_json_or_python_to_date_str(min_date = None, max_date = None):
+def make_json_or_python_to_date(min_date = None, max_date = None):
     if min_date is None and max_date is None:
         test_range = conv.noop
     elif min_date is None:
@@ -149,22 +149,32 @@ def make_json_or_python_to_date_str(min_date = None, max_date = None):
             conv.test_isinstance(datetime.date),
             conv.noop,
             conv.condition(
-                conv.test_isinstance(int),
-                conv.pipe(
-                    conv.test_between(1870, 2099),
-                    conv.function(lambda year: datetime.date(year, 1, 1)),
-                    ),
+                conv.test_isinstance(basestring),
                 conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
                     conv.function(lambda date: u'-'.join((date.split(u'-') + [u'01', u'01'])[:3])),
                     conv.iso8601_input_to_date,
                     ),
+                conv.condition(
+                    conv.test_isinstance(int),
+                    conv.pipe(
+                        conv.test_between(1870, 2099),
+                        conv.function(lambda year: datetime.date(year, 1, 1)),
+                        ),
+                    conv.pipe(
+                        conv.test_isinstance((list, tuple)),
+                        conv.uniform_sequence(conv.test_isinstance(int)),
+                        conv.test(lambda date_tuple: 1 <= len(date_tuple) <= 3, error = N_(u'Invalid date tuple')),
+                        conv.function(lambda date_tuple:
+                            u'-'.join((tuple(unicode(fragment) for fragment in date_tuple) + (u'01', u'01'))[:3])),
+                        conv.iso8601_input_to_date,
+                        ),
+                    ),
                 ),
             ),
         conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
         test_range,
-        conv.date_to_iso8601_str,
         )
 
 
@@ -183,11 +193,11 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
                         ),
                     # start
                     conv.pipe(
-                        make_json_or_python_to_date_str(min_date, max_date),
+                        make_json_or_python_to_date(min_date, max_date),
                         conv.not_none,
                         ),
                     # stop
-                    make_json_or_python_to_date_str(min_date, max_date),
+                    make_json_or_python_to_date(min_date, max_date),
                     ),
                 ),
             conv.function(lambda value: period(*value)),
@@ -197,10 +207,10 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
             conv.struct(
                 dict(
                     start = conv.pipe(
-                        make_json_or_python_to_date_str(min_date, max_date),
+                        make_json_or_python_to_date(min_date, max_date),
                         conv.not_none,
                         ),
-                    stop = make_json_or_python_to_date_str(min_date, max_date),
+                    stop = make_json_or_python_to_date(min_date, max_date),
                     unit = conv.pipe(
                         conv.test_isinstance(basestring),
                         conv.input_to_slug,
@@ -215,48 +225,75 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
 
 
 def next_step(unit, step):
+    year, month, day = step
     if unit == u'month':
-        year, month = step
         month += 1
         if month == 13:
             month = 1
             year += 1
-        return (year, month)
-    assert unit == u'year', unit
-    return step + 1
+    else:
+        assert unit == u'year', unit
+        year += 1
+    return (year, month, day)
 
 
 def period(unit, start, stop = None):
-    start = step(unit, start)
-    if stop is None:
-        stop = start
+    if isinstance(start, basestring):
+        start = tuple(
+            int(fragment)
+            for fragment in start.split(u'-', 2)[:2]
+            )
+    elif isinstance(start, datetime.date):
+        start = (start.year, start.month, start.day)
+    elif isinstance(start, int):
+        start = (start,)
+    elif isinstance(start, list):
+        assert 1 <= len(start) <= 3
+        start = tuple(start)
     else:
-        stop = step(unit, stop)
-    return (unit, start, stop)
+        assert isinstance(start, tuple)
+        assert 1 <= len(start) <= 3
+    if len(start) == 1:
+        start = (start[0], 1, 1)
+    elif len(start) == 2:
+        start = (start[0], start[1], 1)
 
-
-def period_from_date_str(unit, start_date_str, stop_date_str = None):
-    if stop_date_str is None:
-        stop_date_str = start_date_str
-    return (unit, step_from_date_str(unit, start_date_str), step_from_date_str(unit, stop_date_str))
-
-
-def period_from_step(unit, start, stop = None):
     if stop is None:
-        stop = start
+        stop = datetime.date(*next_step(unit, start)) - datetime.timedelta(days = 1)
+    if isinstance(stop, basestring):
+        stop = tuple(
+            int(fragment)
+            for fragment in stop.split(u'-', 2)[:2]
+            )
+    elif isinstance(stop, datetime.date):
+        stop = (stop.year, stop.month, stop.day)
+    elif isinstance(stop, int):
+        stop = (stop,)
+    elif isinstance(stop, list):
+        assert 1 <= len(stop) <= 3
+        stop = tuple(stop)
+    else:
+        assert isinstance(stop, tuple)
+        assert 1 <= len(stop) <= 3
+    if len(stop) == 1:
+        stop = (stop[0], 12, 31)
+    elif len(stop) == 2:
+        stop = (stop[0], stop[1], calendar.monthrange(stop[0], stop[1])[1])
+
     return (unit, start, stop)
 
 
 def previous_step(unit, step):
+    year, month, day = step
     if unit == u'month':
-        year, month = step
         month -= 1
         if month == 0:
             month = 12
             year -= 1
-        return (year, month)
-    assert unit == u'year', unit
-    return step - 1
+    else:
+        assert unit == u'year', unit
+        year -= 1
+    return (year, month, day)
 
 
 def start(period):
@@ -268,50 +305,59 @@ def start(period):
 def start_date(period):
     if period is None:
         return None
-    start_date = start_date_by_period_cache.get(period)
-    if start_date is None:
-        unit = period[0]
-        start = period[1]
-        if unit == u'month':
-            start_date = datetime.date(start[0], start[1], 1)
-        else:
-            assert unit == u'year', unit
-            start_date = datetime.date(start, 1, 1)
-        start_date_by_period_cache[period] = start_date
-    return start_date
+    return step_date(period[1])
 
 
 def start_date_str(period):
     if period is None:
         return None
-    start_date_str = start_date_str_by_period_cache.get(period)
-    if start_date_str is None:
-        start_date_str_by_period_cache[period] = start_date_str = start_date(period).isoformat()
-    return start_date_str
+    return step_date_str(period[1])
 
 
-def step(unit, step):
+def step_date(step):
     if step is None:
         return None
-    if isinstance(step, datetime.date):
-        step = step.isoformat()
-    elif isinstance(step, int):
-        step = unicode(step)
-    else:
-        assert isinstance(step, basestring)
-    return step_from_date_str(unit, step)
+    step_date = date_by_step_cache.get(step)
+    if step_date is None:
+        date_by_step_cache[step] = step_date = datetime.date(*step)
+    return step_date
 
 
-def step_from_date_str(unit, date_str):
-    if date_str is None:
+def step_date_str(step):
+    if step is None:
         return None
-    if unit == u'month':
-        return tuple(
-            int(fragment)
-            for fragment in date_str.split(u'-', 2)[:2]
-            )
-    assert unit == u'year', unit
-    return int(date_str.split(u'-', 1)[0])
+    step_date_str = date_str_by_step_cache.get(step)
+    if step_date_str is None:
+        date_str_by_step_cache[step] = step_date_str = step_date(step).isoformat()
+    return step_date_str
+
+
+def step_next_day(step):
+    if step is None:
+        return None
+    year, month, day = step
+    day += 1
+    if day > calendar.monthrange(year, month)[1]:
+        month += 1
+        if month == 13:
+            year += 1
+            month = 1
+        day = 1
+    return (year, month, day)
+
+
+def step_previous_day(step):
+    if step is None:
+        return None
+    year, month, day = step
+    day -= 1
+    if day <= 0:
+        month -= 1
+        if month == 0:
+            year -= 1
+            month = 12
+        day = calendar.monthrange(year, month)[1]
+    return (year, month, day)
 
 
 def stop(period):
@@ -323,26 +369,13 @@ def stop(period):
 def stop_date(period):
     if period is None:
         return None
-    stop_date = stop_date_by_period_cache.get(period)
-    if stop_date is None:
-        unit = period[0]
-        stop = period[2]
-        if unit == u'month':
-            stop_date = datetime.date(stop[0], stop[1], calendar.monthrange(stop[0], stop[1])[1])
-        else:
-            assert unit == u'year', unit
-            stop_date = datetime.date(stop, 12, 31)
-        stop_date_by_period_cache[period] = stop_date
-    return stop_date
+    return step_date(period[2])
 
 
 def stop_date_str(period):
     if period is None:
         return None
-    stop_date_str = stop_date_str_by_period_cache.get(period)
-    if stop_date_str is None:
-        stop_date_str_by_period_cache[period] = stop_date_str = stop_date(period).isoformat()
-    return stop_date_str
+    return step_date_str(period[2])
 
 
 def unit(period):
