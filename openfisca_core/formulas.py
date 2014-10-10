@@ -666,6 +666,7 @@ class SimpleFormula(AbstractFormula):
 
         if not simulation.debug:
             try:
+                # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                 if np.isnan(np.min(array)):
                     raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
             except TypeError:
