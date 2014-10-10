@@ -241,7 +241,7 @@ def period(unit, start, stop = None):
     if isinstance(start, basestring):
         start = tuple(
             int(fragment)
-            for fragment in start.split(u'-', 2)[:2]
+            for fragment in start.split(u'-', 2)[:3]
             )
     elif isinstance(start, datetime.date):
         start = (start.year, start.month, start.day)
@@ -263,7 +263,7 @@ def period(unit, start, stop = None):
     if isinstance(stop, basestring):
         stop = tuple(
             int(fragment)
-            for fragment in stop.split(u'-', 2)[:2]
+            for fragment in stop.split(u'-', 2)[:3]
             )
     elif isinstance(stop, datetime.date):
         stop = (stop.year, stop.month, stop.day)
