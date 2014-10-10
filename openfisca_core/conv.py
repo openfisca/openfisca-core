@@ -73,17 +73,16 @@ def anything_to_strict_int(value, state = None):
         return value, None
     if state is None:
         state = default_state
-    try:
+    if isinstance(value, int):
         return int(value), None
+    try:
+        float_value = float(value)
+        int_value = int(float_value)
     except ValueError:
-        try:
-            float_value = float(value)
-            int_value = int(float_value)
-        except ValueError:
-            return value, state._(u'Value must be an integer')
-        if float_value != int_value:
-            return value, state._(u'Value must be an integer')
-        return int_value, None
+        return value, state._(u'Value must be an integer')
+    if float_value != int_value:
+        return value, state._(u'Value must be an integer')
+    return int_value, None
 
 
 def embed_error(value, error_key, error):
