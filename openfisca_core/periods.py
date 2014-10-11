@@ -103,6 +103,130 @@ def date_str(period):
     return start_date_str(period)
 
 
+def input_to_period_tuple(value, state = None):
+    """Convert an input string to a period tuple (ie: not a real period, but a tuple that allows to construct a period).
+
+    >>> input_to_period_tuple(u'2014')
+    ((u'year', 2014), None)
+    >>> input_to_period_tuple(u'2014:2015')
+    ((u'year', 2014, 2015), None)
+    >>> input_to_period_tuple(u'2014-2')
+    ((u'month', (2014, 2)), None)
+    >>> input_to_period_tuple(u'2014-2:2015-03')
+    ((u'month', (2014, 2), (2015, 3)), None)
+    """
+    if value is None:
+        return value, None
+    if state is None:
+        state = conv.default_state
+    split_value = tuple(
+        clean_fragment
+        for clean_fragment in (
+            fragment.strip()
+            for fragment in value.split(u':')
+            )
+        if clean_fragment
+        )
+    if not split_value:
+        return None, None
+    if len(split_value) == 1:
+        split_value = tuple(
+            clean_fragment
+            for clean_fragment in (
+                fragment.strip()
+                for fragment in split_value[0].split(u'-')
+                )
+            if clean_fragment
+            )
+        if len(split_value) == 1:
+            return conv.pipe(
+                conv.input_to_strict_int,
+                conv.test_greater_or_equal(0),
+                conv.function(lambda year: (u'year', year)),
+                )(split_value[0], state = state)
+        if len(split_value) == 2:
+            return conv.pipe(
+                conv.struct(
+                    (
+                        conv.pipe(
+                            conv.input_to_strict_int,
+                            conv.test_greater_or_equal(0),
+                            ),
+                        conv.pipe(
+                            conv.input_to_strict_int,
+                            conv.test_between(1, 12),
+                            ),
+                        ),
+                    ),
+                conv.function(lambda month_tuple: (u'month', month_tuple)),
+                )(split_value, state = state)
+        return split_value, state._(u'Instant string contains too much "-" for a year or a month')
+    if len(split_value) == 2:
+        split_start = tuple(
+            clean_fragment
+            for clean_fragment in (
+                fragment.strip()
+                for fragment in split_value[0].split(u'-')
+                )
+            if clean_fragment
+            )
+        split_stop = tuple(
+            clean_fragment
+            for clean_fragment in (
+                fragment.strip()
+                for fragment in split_value[1].split(u'-')
+                )
+            if clean_fragment
+            )
+        if len(split_start) == len(split_stop) == 1:
+            start_stop_couple, error = conv.struct(
+                (
+                    conv.pipe(
+                        conv.input_to_strict_int,
+                        conv.test_greater_or_equal(0),
+                        ),
+                    conv.pipe(
+                        conv.input_to_strict_int,
+                        conv.test_greater_or_equal(0),
+                        ),
+                    ),
+                )((split_start[0], split_stop[0]), state = state)
+            if error is None:
+                return (u'year', start_stop_couple[0], start_stop_couple[1]), None
+        elif len(split_start) == len(split_stop) == 2:
+            start_stop_couple, error = conv.struct(
+                (
+                    conv.struct(
+                        (
+                            conv.pipe(
+                                conv.input_to_strict_int,
+                                conv.test_greater_or_equal(0),
+                                ),
+                            conv.pipe(
+                                conv.input_to_strict_int,
+                                conv.test_between(1, 12),
+                                ),
+                            ),
+                        ),
+                    conv.struct(
+                        (
+                            conv.pipe(
+                                conv.input_to_strict_int,
+                                conv.test_greater_or_equal(0),
+                                ),
+                            conv.pipe(
+                                conv.input_to_strict_int,
+                                conv.test_between(1, 12),
+                                ),
+                            ),
+                        ),
+                    ),
+                )((split_start, split_stop), state = state)
+            if error is None:
+                return (u'month', start_stop_couple[0], start_stop_couple[1]), None
+    return split_value, None
+
+
 def instant_date(instant):
     if instant is None:
         return None
@@ -252,6 +376,14 @@ def make_json_or_python_to_instant(last = False, min_date = None, max_date = Non
 def make_json_or_python_to_period(min_date = None, max_date = None):
     """Return a converter that creates a period from a JSON or Python object.
 
+    >>> make_json_or_python_to_period()(u'2014')
+    ((u'year', (2014, 1, 1), (2014, 12, 31)), None)
+    >>> make_json_or_python_to_period()(u'2014:2015')
+    ((u'year', (2014, 1, 1), (2015, 12, 31)), None)
+    >>> make_json_or_python_to_period()(u'2014-2')
+    ((u'month', (2014, 2, 1), (2014, 2, 28)), None)
+    >>> make_json_or_python_to_period()(u'2014-2:2015-03')
+    ((u'month', (2014, 2, 1), (2015, 3, 31)), None)
     >>> make_json_or_python_to_period()(u'month:2014')
     ((u'month', (2014, 1, 1), (2014, 1, 31)), None)
     >>> make_json_or_python_to_period()(u'year:2014')
@@ -280,7 +412,14 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
     return conv.pipe(
         conv.condition(
             conv.test_isinstance(basestring),
-            conv.function(lambda period_str: tuple(period_str.split(u':', 2) + [None])[:3]),
+            input_to_period_tuple,
+            conv.condition(
+                conv.test_isinstance(int),
+                conv.pipe(
+                    conv.test_greater_or_equal(0),
+                    conv.function(lambda year: (u'year', year)),
+                    ),
+                ),
             ),
         conv.condition(
             conv.test_isinstance(dict),
