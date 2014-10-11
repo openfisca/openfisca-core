@@ -223,7 +223,7 @@ def generate_dated_legislation_json(legislation_json, period):
         period,
         )
     dated_legislation_json['@context'] = u'http://openfisca.fr/contexts/dated-legislation.jsonld'
-    dated_legislation_json['period'] = periods.json(period)
+    dated_legislation_json['period'] = periods.json_dict(period)
     return dated_legislation_json
 
 
