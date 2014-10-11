@@ -51,11 +51,11 @@ class PeriodMixin(object):
     period = None
 
     @property
-    def date(self):
+    def period_date(self):
         return date(self.period)
 
     @property
-    def date_str(self):
+    def period_date_str(self):
         return date_str(self.period)
 
     @property

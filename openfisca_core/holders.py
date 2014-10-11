@@ -164,10 +164,10 @@ class Holder(object):
             label = column.name,
             title = column.label,
             ))
-        date = self.entity.simulation.date
+        period_date = self.entity.simulation.period_date
         formula = self.formula
-        if formula is None or column.start is not None and column.start > date or column.end is not None \
-                and column.end < date:
+        if formula is None or column.start is not None and column.start > period_date or column.end is not None \
+                and column.end < period_date:
             return
         formula.graph_parameters(edges, nodes, visited)
 

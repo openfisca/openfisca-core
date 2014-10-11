@@ -212,11 +212,11 @@ class DatedFormula(AbstractGroupedFormula):
             return array
 
         assert periods.unit(period) == u'year'
-        simulation_date = periods.date(period)  # TODO: Handle different start & stop dates.
+        period_date = periods.date(period)  # TODO: Handle different start & stop dates.
 
         period_requested_formulas.add(self)
         for dated_formula in self.dated_formulas:
-            if dated_formula['start'] <= simulation_date <= dated_formula['end']:
+            if dated_formula['start'] <= period_date <= dated_formula['end']:
                 array = dated_formula['formula'].calculate(lazy = lazy, period = period,
                     requested_formulas_by_period = requested_formulas_by_period)
                 if array is not None:
