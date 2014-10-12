@@ -52,7 +52,7 @@ class AbstractTaxBenefitSystem(object):
     prestation_by_name = None
     Scenario = None
 
-    def __init__(self):
+    def __init__(self, legislation_json = None):
         # Merge prestation_by_name into column_by_name, because it is no more used.
         # TODO: To delete once prestation_by_name is no more used.
         self.column_by_name = column_by_name = self.column_by_name.copy()
@@ -66,21 +66,22 @@ class AbstractTaxBenefitSystem(object):
 
         self.compact_legislation_by_period_cache = weakref.WeakValueDictionary()
 
-        legislation_xml_file_path = self.PARAM_FILE
-        legislation_json = self.legislation_json_by_xml_file_path.get(legislation_xml_file_path)
         if legislation_json is None:
-            legislation_tree = xml.etree.ElementTree.parse(legislation_xml_file_path)
-            state = conv.State()
-            legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
-                legislation_tree.getroot(),
-                state = state,
-                )
-            legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
-                legislation_xml_json,
-                state = state,
-                )
-            _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
-            self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
+            legislation_xml_file_path = self.PARAM_FILE
+            legislation_json = self.legislation_json_by_xml_file_path.get(legislation_xml_file_path)
+            if legislation_json is None:
+                legislation_tree = xml.etree.ElementTree.parse(legislation_xml_file_path)
+                state = conv.State()
+                legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
+                    legislation_tree.getroot(),
+                    state = state,
+                    )
+                legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
+                    legislation_xml_json,
+                    state = state,
+                    )
+                _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+                self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
         self.legislation_json = legislation_json
 
     def get_compact_legislation(self, period):
