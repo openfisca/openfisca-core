@@ -40,6 +40,7 @@ class AbstractTaxBenefitSystem(object):
     entities = None  # class attribute
     ENTITIES_INDEX = None  # class attribute
     entity_class_by_key_plural = None  # class attribute
+    entity_class_by_symbol = None  # class attribute
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
