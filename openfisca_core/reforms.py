@@ -52,6 +52,7 @@ class Reform(object):
             trace = trace,
             )
         scenario.fill_simulation(simulation)
+        scenario.set_simulation_axes(simulation)
         return simulation
 
 

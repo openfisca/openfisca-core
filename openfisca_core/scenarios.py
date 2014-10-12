@@ -25,6 +25,8 @@
 
 import logging
 
+import numpy as np
+
 from . import conv, periods, simulations
 
 
@@ -75,4 +77,35 @@ class AbstractScenario(periods.PeriodMixin):
             trace = trace,
             )
         self.fill_simulation(simulation)
+        self.set_simulation_axes(simulation)
         return simulation
+
+    def set_simulation_axes(self, simulation):
+        if self.axes is not None:
+            if len(self.axes) == 1:
+                axis = self.axes[0]
+                entity = simulation.entity_by_column_name[axis['name']]
+                holder = simulation.get_or_new_holder(axis['name'])
+                column = holder.column
+                array = holder.array
+                if array is None:
+                    array = np.empty(entity.count, dtype = column.dtype)
+                    array.fill(column.default)
+                    holder.array = array
+                array[axis['index']:: entity.step_size] = np.linspace(axis['min'], axis['max'], axis['count'])
+            else:
+                axes_linspaces = [
+                    np.linspace(axis['min'], axis['max'], axis['count'])
+                    for axis in self.axes
+                    ]
+                axes_meshes = np.meshgrid(*axes_linspaces)
+                for axis, mesh in zip(self.axes, axes_meshes):
+                    entity = simulation.entity_by_column_name[axis['name']]
+                    holder = simulation.get_or_new_holder(axis['name'])
+                    column = holder.column
+                    array = holder.array
+                    if array is None:
+                        array = np.empty(entity.count, dtype = column.dtype)
+                        array.fill(column.default)
+                        holder.array = array
+                    array[axis['index']:: entity.step_size] = mesh.reshape(simulation.steps_count)
