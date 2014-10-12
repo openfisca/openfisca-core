@@ -77,10 +77,40 @@ class AbstractScenario(periods.PeriodMixin):
             trace = trace,
             )
         self.fill_simulation(simulation)
-        self.set_simulation_axes(simulation)
         return simulation
 
-    def set_simulation_axes(self, simulation):
+    def set_simulation_variables(self, simulation, variables_name_to_skip = None):
+        column_by_name = self.tax_benefit_system.column_by_name
+        steps_count = simulation.steps_count
+        test_case = self.test_case
+        if variables_name_to_skip is None:
+            variables_name_to_skip = set()
+        else:
+            variables_name_to_skip = set(variables_name_to_skip)
+
+        for entity_key_plural, entity in simulation.entity_by_key_plural.iteritems():
+            used_columns_name = set(
+                key
+                for entity_member in test_case[entity_key_plural].itervalues()
+                for key, value in entity_member.iteritems()
+                if value is not None
+                )
+            for column_name, column in column_by_name.iteritems():
+                if column.entity == entity.symbol and column_name in used_columns_name \
+                        and column_name not in variables_name_to_skip:
+                    cells_iter = (
+                        cell if cell is not None else column.default
+                        for cell in (
+                            entity_member.get(column_name)
+                            for step_index in range(steps_count)
+                            for entity_member in test_case[entity_key_plural].itervalues()
+                            )
+                        )
+                    array = np.fromiter(cells_iter, dtype = column.dtype) \
+                        if column.dtype is not object else np.array(list(cells_iter), dtype = column.dtype)
+                    holder = entity.get_or_new_holder(column_name)
+                    holder.array = array
+
         if self.axes is not None:
             if len(self.axes) == 1:
                 axis = self.axes[0]
@@ -108,4 +138,4 @@ class AbstractScenario(periods.PeriodMixin):
                         array = np.empty(entity.count, dtype = column.dtype)
                         array.fill(column.default)
                         holder.array = array
-                    array[axis['index']:: entity.step_size] = mesh.reshape(simulation.steps_count)
+                    array[axis['index']:: entity.step_size] = mesh.reshape(steps_count)
