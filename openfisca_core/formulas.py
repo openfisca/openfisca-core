@@ -564,7 +564,9 @@ class SimpleFormula(AbstractFormula):
             variables_name.remove('period')
         # Check whether function uses self (aka formula).
         if 'self' in variables_name:
-            cls.requires_self = True
+            # Don't require self for a method (it will have a value for self when it is bound).
+            if not inspect.ismethod(function):
+                cls.requires_self = True
             variables_name.remove('self')
 
     def filter_role(self, array_or_holder, default = None, entity = None, role = None):
