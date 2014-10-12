@@ -57,6 +57,7 @@ class NaNCreationError(Exception):
 
 class AbstractFormula(object):
     holder = None
+    period_unit = None  # class method
 
     def __init__(self, holder = None):
         assert holder is not None
@@ -790,11 +791,13 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
     for function in functions:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
+            period_unit = u'year',
             ))
         formula_class.extract_variables_name()
         alternative_formulas_constructor.append(formula_class)
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
         alternative_formulas_constructor = alternative_formulas_constructor,
+        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -824,6 +827,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             (SimpleFormula,),
             dict(
                 function = staticmethod(dated_function['function']),
+                period_unit = u'year',
                 ),
             )
         formula_class.extract_variables_name()
@@ -835,6 +839,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
 
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
         dated_formulas_class = dated_formulas_class,
+        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -860,11 +865,13 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
     for main_variable, function in main_variable_function_couples:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
+            period_unit = u'year',
             ))
         formula_class.extract_variables_name()
         formula_constructor_by_main_variable[main_variable] = formula_class
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
         formula_constructor_by_main_variable = formula_constructor_by_main_variable,
+        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -884,6 +891,7 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
 
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
+        period_unit = u'year',
         ))
     formula_class.extract_variables_name()
     del column.function

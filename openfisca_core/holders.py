@@ -116,7 +116,7 @@ class Holder(object):
         if formula is None:
             use_array = True
         else:
-            assert column.function_period_unit in ('year', 'month')  # TODO
+            assert formula.period_unit in ('year', 'month')  # TODO: start_day may not be sufficient.
             period_start_date = periods.start_date(period)
             # Check that the start day of the column belongs to period.
             use_array = column.start is not None and column.start > period_start_date \
