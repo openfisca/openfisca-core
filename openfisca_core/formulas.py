@@ -425,7 +425,7 @@ class SimpleFormula(AbstractFormula):
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
         for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
-            variable_period = self.get_variable_period(variable_name)
+            variable_period = self.get_variable_period(period, variable_name)
             variable_array = variable_holder.calculate(lazy = lazy, period = variable_period,
                 requested_formulas_by_period = requested_formulas_by_period)
             if variable_array is None:
@@ -458,7 +458,9 @@ class SimpleFormula(AbstractFormula):
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
                 # TODO: Also handle simulation.get_reference_compact_legislation(...).
                 arguments[name] = legislation_accessor(
-                    simulation.get_compact_legislation(self.get_law_period(legislation_accessor.path)), default = None)
+                    simulation.get_compact_legislation(self.get_law_period(period, legislation_accessor.path)),
+                    default = None,
+                    )
 
         provided_parameters = set(arguments.keys())
         assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
@@ -613,21 +615,21 @@ class SimpleFormula(AbstractFormula):
             for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
 
-    def get_law_period(self, law_path):
+    def get_law_period(self, period, law_path):
         """Return the period required for a node of the legislation used by the formula.
 
-        By default, the period of a legislation node is the same as the simulation period.
+        By default, the period of a legislation node is the same as the requested period.
         Override this method for legislation nodes with different periods.
         """
-        return self.holder.entity.simulation.period
+        return period
 
-    def get_variable_period(self, variable_name):
+    def get_variable_period(self, period, variable_name):
         """Return the period required for an input variable used by the formula.
 
-        By default, the period of an input variable is the same as the simulation period.
+        By default, the period of an input variable is the same as the requested period.
         Override this method for input variables with different periods.
         """
-        return self.holder.entity.simulation.period
+        return period
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
