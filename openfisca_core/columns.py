@@ -30,7 +30,7 @@ import re
 from biryani1 import strings
 import numpy as np
 
-from . import conv
+from . import conv, periods
 from .enumerations import Enum
 
 
@@ -93,6 +93,23 @@ class Column(object):
     def json_default(self):
         return self.default
 
+    @property
+    def json_to_python(self):
+        return conv.condition(
+            conv.test_isinstance(dict),
+            conv.pipe(
+                # Value is a dict of (period, value) couples.
+                conv.uniform_mapping(
+                    conv.pipe(
+                        periods.make_json_or_python_to_period(),
+                        conv.not_none,
+                        ),
+                    self.json_to_dated_python,
+                    ),
+                ),
+            self.json_to_dated_python,
+            )
+
     def to_json(self):
         self_json = collections.OrderedDict((
             ('@type', self.json_type),
@@ -144,7 +161,7 @@ class BoolCol(Column):
     json_type = 'Boolean'
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.pipe(
             conv.test_isinstance((basestring, bool, int)),
             conv.guess_bool,
@@ -163,7 +180,7 @@ class DateCol(Column):
         return unicode(np.array(self.default, self.dtype))  # 0 = 1970-01-01
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.pipe(
             conv.condition(
                 conv.test_isinstance(datetime.date),
@@ -198,7 +215,7 @@ class FloatCol(Column):
     json_type = 'Float'
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.pipe(
             conv.test_isinstance((float, int)),
             conv.anything_to_float,
@@ -213,7 +230,7 @@ class IntCol(Column):
     json_type = 'Integer'
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.test_isinstance(int)
 
 
@@ -223,7 +240,7 @@ class StrCol(Column):
     json_type = 'String'
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.test_isinstance(basestring)
 
 
@@ -237,9 +254,9 @@ class AgeCol(IntCol):
     default = -9999
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         return conv.pipe(
-            super(AgeCol, self).json_to_python,
+            super(AgeCol, self).json_to_dated_python,
             conv.first_match(
                 conv.test_greater_or_equal(0),
                 conv.test_equals(-9999),
@@ -265,7 +282,7 @@ class EnumCol(IntCol):
         return unicode(self.default) if self.default is not None else None
 
     @property
-    def json_to_python(self):
+    def json_to_dated_python(self):
         enum = self.enum
         if enum is None:
             return conv.pipe(
