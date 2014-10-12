@@ -35,8 +35,10 @@ N_ = lambda message: message
 
 
 class AbstractScenario(periods.PeriodMixin):
+    axes = None
     legislation_json = None
     tax_benefit_system = None
+    test_case = None
 
     @staticmethod
     def cleanup_period_in_json_or_python(value, state = None):
@@ -81,6 +83,7 @@ class AbstractScenario(periods.PeriodMixin):
 
     def set_simulation_variables(self, simulation, variables_name_to_skip = None):
         column_by_name = self.tax_benefit_system.column_by_name
+        simulation_period = simulation.period
         steps_count = simulation.steps_count
         test_case = self.test_case
         if variables_name_to_skip is None:
@@ -93,35 +96,56 @@ class AbstractScenario(periods.PeriodMixin):
                 key
                 for entity_member in test_case[entity_key_plural].itervalues()
                 for key, value in entity_member.iteritems()
-                if value is not None
+                if key not in variables_name_to_skip and value is not None
                 )
-            for column_name, column in column_by_name.iteritems():
-                if column.entity == entity.symbol and column_name in used_columns_name \
-                        and column_name not in variables_name_to_skip:
-                    cells_iter = (
-                        cell if cell is not None else column.default
-                        for cell in (
-                            entity_member.get(column_name)
-                            for step_index in range(steps_count)
+            for variable_name, column in column_by_name.iteritems():
+                if column.entity == entity.symbol and variable_name in used_columns_name:
+                    variable_periods = set()
+                    for cell in (
+                            entity_member.get(variable_name)
                             for entity_member in test_case[entity_key_plural].itervalues()
+                            ):
+                        if isinstance(cell, dict):
+                            variable_periods.update(cell.iterkeys())
+                        else:
+                            variable_periods.add(simulation_period)
+                    holder = entity.get_or_new_holder(variable_name)
+                    variable_default_value = column.default
+                    for variable_period in variable_periods:
+                        variable_values = [
+                            variable_default_value if dated_cell is None else dated_cell
+                            for dated_cell in (
+                                cell.get(variable_period) if isinstance(cell, dict) else (cell
+                                    if variable_period == simulation_period else None)
+                                for cell in (
+                                    entity_member.get(variable_name)
+                                    for entity_member in test_case[entity_key_plural].itervalues()
+                                    )
+                                )
+                            ]
+                        variable_values_iter = (
+                            variable_value
+                            for step_index in range(steps_count)
+                            for variable_value in variable_values
                             )
-                        )
-                    array = np.fromiter(cells_iter, dtype = column.dtype) \
-                        if column.dtype is not object else np.array(list(cells_iter), dtype = column.dtype)
-                    holder = entity.get_or_new_holder(column_name)
-                    holder.array = array
+                        array = np.fromiter(variable_values_iter, dtype = column.dtype) \
+                            if column.dtype is not object \
+                            else np.array(list(variable_values_iter), dtype = column.dtype)
+                        holder.set_array(variable_period, array)
 
         if self.axes is not None:
             if len(self.axes) == 1:
                 axis = self.axes[0]
-                entity = simulation.entity_by_column_name[axis['name']]
-                holder = simulation.get_or_new_holder(axis['name'])
+                axis_name = axis['name']
+                axis_period = axis['period'] or simulation_period
+                entity = simulation.entity_by_column_name[axis_name]
+                holder = simulation.get_or_new_holder(axis_name)
                 column = holder.column
-                array = holder.array
+                array = holder.get_array(axis_period)
                 if array is None:
                     array = np.empty(entity.count, dtype = column.dtype)
                     array.fill(column.default)
-                    holder.array = array
+                    holder.set_array(axis_period, array)
                 array[axis['index']:: entity.step_size] = np.linspace(axis['min'], axis['max'], axis['count'])
             else:
                 axes_linspaces = [
@@ -130,12 +154,14 @@ class AbstractScenario(periods.PeriodMixin):
                     ]
                 axes_meshes = np.meshgrid(*axes_linspaces)
                 for axis, mesh in zip(self.axes, axes_meshes):
-                    entity = simulation.entity_by_column_name[axis['name']]
-                    holder = simulation.get_or_new_holder(axis['name'])
+                    axis_name = axis['name']
+                    axis_period = axis['period'] or simulation_period
+                    entity = simulation.entity_by_column_name[axis_name]
+                    holder = simulation.get_or_new_holder(axis_name)
                     column = holder.column
-                    array = holder.array
+                    array = holder.get_array(axis_period)
                     if array is None:
                         array = np.empty(entity.count, dtype = column.dtype)
                         array.fill(column.default)
-                        holder.array = array
+                        holder.set_array(axis_period, array)
                     array[axis['index']:: entity.step_size] = mesh.reshape(steps_count)
