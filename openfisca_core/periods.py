@@ -87,6 +87,10 @@ class PeriodMixin(object):
         return unit(self.period)
 
 
+def are_overlapping(period_1, period_2):
+    return stop_date(period_2) >= start_date(period_1) and stop_date(period_1) >= start_date(period_2)
+
+
 def date(period):
     if period is None:
         return None

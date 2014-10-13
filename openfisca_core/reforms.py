@@ -23,7 +23,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from . import simulations
+import collections
+import datetime
+
+from . import periods, simulations
+
+
+to_date = lambda date_str: datetime.date(*(int(fragment) for fragment in date_str.split('-')))
 
 
 class Reform(object):
@@ -68,3 +74,104 @@ def clone_entity_class(entity_class):
         pass
     ReformEntity.column_by_name = entity_class.column_by_name.copy()
     return ReformEntity
+
+
+def find_item_at_date(items, date, nearest_in_period = None):
+    """
+    Find an item (a dict with start, stop, value key) at a specific date in a list of items which have each one
+    a start date and a stop date.
+    """
+    for item in items:
+        if to_date(item['start']) <= date <= to_date(item['stop']):
+            return item
+    if nearest_in_period is not None and \
+            periods.start_date(nearest_in_period) <= date <= periods.stop_date(nearest_in_period):
+        earliest_item = min(items, key = lambda item: to_date(item['start']))
+        latest_item = max(items, key = lambda item: to_date(item['stop']))
+        if date < to_date(earliest_item['start']):
+            return earliest_item
+        elif date > to_date(latest_item['stop']):
+            return latest_item
+    return None
+
+
+def update_legislation(legislation_json, path, period, value):
+    """
+    Update legislation JSON with a value defined for a specific period.
+
+    This function does not modify input parameters.
+    """
+    def build_node(root_node, path_index):
+        if isinstance(root_node, collections.Sequence):
+            return [
+                build_node(node, path_index + 1) if path[path_index] == index else node
+                for index, node in enumerate(root_node)
+                ]
+        elif isinstance(root_node, collections.Mapping):
+            return collections.OrderedDict((
+                (
+                    key,
+                    (
+                        updated_legislation_items(node, period, value)
+                        if path_index == len(path) - 1
+                        else build_node(node, path_index + 1)
+                        )
+                    if path[path_index] == key
+                    else node
+                    )
+                for key, node in root_node.iteritems()
+                ))
+        else:
+            raise ValueError(u'Unexpected type for node: {!r}'.format(root_node))
+
+    updated_legislation = build_node(legislation_json, 0)
+    return updated_legislation
+
+
+def updated_legislation_items(items, period, value):
+    """
+    Iterates items (a dict with start, stop, value key) and returns new items sorted by start date,
+    according to these rules:
+    * if the period matches no existing item, the new item is yielded as-is
+    * if the period strictly overlaps another one, the new item is yielded as-is
+    * if the period non-strictly overlaps another one, the existing item is partitioned, the period in common removed,
+      the new item is yielded as-is and the parts of the existing item are yielded
+    """
+    assert isinstance(items, collections.Sequence)
+    new_items = []
+    new_item = collections.OrderedDict((
+        ('start', periods.start_date_str(period)),
+        ('stop', periods.stop_date_str(period)),
+        ('value', value),
+        ))
+    new_item_start = periods.start_date(period)
+    new_item_stop = periods.stop_date(period)
+    overlapping_item = None
+    for item in items:
+        item_start = to_date(item['start'])
+        item_stop = to_date(item['stop'])
+        if periods.are_overlapping(periods.period('day', item_start, item_stop), period):
+            assert overlapping_item is None, u'Only one existing item can overlap the new item'
+            overlapping_item = item
+            new_items.append(new_item)
+            if new_item_start > item_start:
+                new_items.append(
+                    collections.OrderedDict((
+                        ('start', item['start']),
+                        ('stop', periods.instant_date_str(periods.previous_day_instant(periods.start_instant(period)))),
+                        ('value', item['value']),
+                        ))
+                    )
+            if new_item_stop < item_stop:
+                new_items.append(
+                    collections.OrderedDict((
+                        ('start', periods.instant_date_str(periods.next_day_instant(periods.stop_instant(period)))),
+                        ('stop', item['stop']),
+                        ('value', item['value']),
+                        ))
+                    )
+        else:
+            new_items.append(item)
+    if overlapping_item is None:
+        new_items.append(new_item)
+    return sorted(new_items, key = lambda item: item['start'])
