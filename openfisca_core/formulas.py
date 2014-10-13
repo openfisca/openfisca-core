@@ -29,7 +29,7 @@ import logging
 
 import numpy as np
 
-from . import accessors, holders, periods
+from . import accessors, columns, holders, periods
 
 
 log = logging.getLogger(__name__)
@@ -908,3 +908,34 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
     entity_column_by_name[name] = column
 
     return (name, column)
+
+
+def reference_formula(prestation_by_name = None):
+    """Decorator used to declare a formula defined in reference tax benefit system."""
+    def reference_formula_decorator(formula_class):
+        formula_class.extract_variables_name()
+
+        entity_class = formula_class.entity_class
+        formula_class.name = name = unicode(formula_class.__name__)
+        formula_class.label = label = name if formula_class.label is None else unicode(formula_class.label)
+        assert formula_class.period_unit in (u'month', u'year'), formula_class.period_unit
+
+        column = formula_class.column
+        if not isinstance(column, columns.Column):
+            column = column()
+            assert isinstance(column, columns.Column)
+        column.entity = entity_class.symbol
+        column.label = label
+        column.formula_constructor = formula_class
+        column.name = name
+
+        entity_column_by_name = entity_class.column_by_name
+        assert name not in entity_column_by_name, name
+        entity_column_by_name[name] = column
+
+        assert name not in prestation_by_name, name
+        prestation_by_name[name] = column
+
+        return formula_class
+
+    return reference_formula_decorator
