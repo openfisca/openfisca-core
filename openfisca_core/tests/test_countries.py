@@ -363,7 +363,8 @@ class salaire_net(SimpleFormula):
     label = u"Salaire net"
     period_unit = u'year'
 
-    def function(self, salaire_brut):
+    @staticmethod
+    def function(salaire_brut):
         return salaire_brut * 0.8
 
 
