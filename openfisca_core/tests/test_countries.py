@@ -382,6 +382,5 @@ def test_country():
         period = periods.period('year', 2014),
         parent1 = {},
         ).new_simulation(debug = True)
-    revenu_disponible = simulation.calculate('revenu_disponible')
-    print revenu_disponible
-    boum
+    # revenu_disponible = simulation.calculate('revenu_disponible')
+    simulation.calculate('revenu_disponible')
