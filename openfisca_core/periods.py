@@ -325,28 +325,29 @@ def iter(period):
             yield instant
 
 
-def iter_instants(unit, start, stop):
-    instant = start
-    while instant <= stop:
+def iter_instants(unit, start_instant, stop_instant):
+    instant = start_instant
+    while instant <= stop_instant:
         yield instant
-        year, month, day = instant
-        if unit == u'day':
-            day += 1
-            if day > calendar.monthrange(year, month)[1]:
-                month += 1
-                if month == 13:
-                    year += 1
-                    month = 1
-                day = 1
-        elif unit == u'month':
-            month += 1
-            if month == 13:
-                month = 1
-                year += 1
-        else:
-            assert unit == u'year', unit
-            year += 1
-        instant = (year, month, day)
+        instant = offset_instant(unit, instant, 1)
+
+
+def iter_subperiods(super_period, unit):
+    """Iterate in a period, using a subperiod unit.
+
+    >>> subperiods = list(iter_subperiods(period('year', 2014), 'month'))
+    >>> len(subperiods)
+    12
+    >>> subperiods[0]
+    (u'month', (2014, 1, 1), (2014, 1, 31))
+    >>> subperiods[1]
+    (u'month', (2014, 2, 1), (2014, 2, 28))
+    >>> subperiods[11]
+    (u'month', (2014, 12, 1), (2014, 12, 31))
+    """
+    if super_period is not None:
+        for start_instant in iter_instants(unit, super_period[1], super_period[2]):
+            yield period(unit, start_instant)
 
 
 def json_dict(period):
