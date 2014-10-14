@@ -92,7 +92,7 @@ class Simulation(periods.PeriodMixin):
         if period is None:
             period = self.period
         return self.compute(column_name, period = period, lazy = lazy,
-            requested_formulas_by_period = requested_formulas_by_period).get_array(period)
+            requested_formulas_by_period = requested_formulas_by_period).array
 
     def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         if period is None:

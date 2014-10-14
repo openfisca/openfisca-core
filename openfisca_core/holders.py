@@ -23,11 +23,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
 import collections
 
 import numpy as np
 
-from . import periods
+from . import columns, periods
 
 
 class DatedHolder(object):
@@ -118,30 +120,95 @@ class Holder(object):
         """
         if period is None:
             period = self.entity.simulation.period
+        dated_holder = self.at_period(period)
+        if dated_holder.array is not None:
+            return dated_holder
+
+        period_unit, start_instant, stop_instant = period
         column = self.column
         formula = self.formula
-        dated_holder = None
-        # if formula is None or column.start is not None and column.start > periods.stop_date(period) \
-        #         or column.end is not None and column.end < periods.start_date(period):
         if formula is not None:
-            assert formula.period_unit in ('year', 'month')  # TODO: start_day may not be sufficient.
-            period_start_date = periods.start_date(period)
-            # Check that the start day of the column belongs to period.
-            if (column.start is None or column.start <= period_start_date) \
-                    and (column.end is None or column.end >= period_start_date):
-                dated_holder = formula.compute(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
-                if dated_holder.period != period:
-                    dated_holder = None
-        if dated_holder is None:
-            dated_holder = self.at_period(period)
-        array = dated_holder.array
-        if array is not None:
+            if period_unit == u'year' and formula.period_unit == u'month':
+                for formula_period in periods.iter_subperiods(period, formula.period_unit):
+                    formula_dated_holder = self.at_period(formula_period)
+                    if formula_dated_holder.array is None:
+                        self.compute_formula(lazy = lazy, period = formula_period,
+                            requested_formulas_by_period = requested_formulas_by_period)
+            elif period_unit == u'month' and formula.period_unit == u'year':
+                # Create a super period starting at start day of current period.
+                formula_period = periods.period(formula.period_unit, periods.start_instant(period))
+                formula_dated_holder = self.at_period(formula_period)
+                if formula_dated_holder.array is None:
+                    self.compute_formula(lazy = lazy, period = formula_period,
+                        requested_formulas_by_period = requested_formulas_by_period)
+            else:
+                self.compute_formula(lazy = lazy, period = period,
+                    requested_formulas_by_period = requested_formulas_by_period)
+
+        if dated_holder.array is not None:
             return dated_holder
+        array = None
+        # if period_unit == u'day':
+        #     TODO
+        # elif period_unit == u'month':
+        if period_unit == u'month':
+            # Look for an array with a year period that contains the requested month period.
+            array_by_period = self._array_by_period
+            if array_by_period is not None:
+                for item_period, item_array in array_by_period.iteritems():
+                    if item_array is not None:
+                        item_period_unit, item_start_instant, item_stop_instant = item_period
+                        if item_period_unit == u'year' and item_start_instant <= start_instant \
+                                and item_stop_instant >= stop_instant:
+                            if isinstance(column, columns.EnumCol):
+                                array = np.copy(item_array)
+                            else:
+                                # TODO: Handle booleans, etc.
+                                array = item_array / 12
+        else:
+            assert period_unit == u'year', period_unit
+            # Look for monthly arrays covering the year of period. If at least one is found
+            for month_period in periods.iter_subperiods(period, u'month'):
+                month_array = self.get_array(month_period)
+                if month_array is not None:
+                    if array is None:
+                        array = np.copy(month_array)
+                    else:
+                        # TODO: Handle enumerations, booleans, etc.
+                        array += month_array
+            # TODO: Code below may be too slow.
+            # if array is None:
+            #     for day_period in periods.iter_subperiods(period, u'day'):
+            #         day_array = self.get_array(day_period)
+            #         if day_array is not None:
+            #             if array is None:
+            #                 array = np.copy(day_array)
+            #             else:
+            #                 array += day_array
+
         if not lazy and array is None:
             array = np.empty(self.entity.count, dtype = column.dtype)
             array.fill(column.default)
+        if array is not None:
             dated_holder.array = array
         return dated_holder
+
+    def compute_formula(self, lazy = False, period = None, requested_formulas_by_period = None):
+        column = self.column
+        formula = self.formula
+        assert period is not None
+        period_unit = period[0]
+        assert period_unit == formula.period_unit, \
+            u"For {}: Don't know how to use a {}-based formula for a {} computation".format(
+                column.name, formula.period_unit, period_unit).encode('utf-8')
+        assert formula.period_unit in (u'day', u'month', u'year')
+        # TODO: Testing start_date may not be sufficient for other period_units.
+        start_date = periods.start_date(period)
+        # Check that the start day of the column belongs to period.
+        if (column.start is None or column.start <= start_date) and (column.end is None or column.end >= start_date):
+            return formula.compute(lazy = lazy, period = period,
+                requested_formulas_by_period = requested_formulas_by_period)
+        return None
 
     def delete_array(self, period):
         if self.column.is_period_invariant:

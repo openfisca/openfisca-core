@@ -86,15 +86,13 @@ class AlternativeFormula(AbstractGroupedFormula):
             alternative_formula_constructor(holder = holder)
             for alternative_formula_constructor in self.alternative_formulas_constructor
             ]
+        assert self.alternative_formulas
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
-        entity = holder.entity
-        simulation = entity.simulation
-        if period is None:
-            period = simulation.period
 
+        assert period is not None
         if requested_formulas_by_period is None:
             requested_formulas_by_period = {}
         period_or_none = None if column.is_period_invariant else period
@@ -114,10 +112,6 @@ class AlternativeFormula(AbstractGroupedFormula):
                         ))).encode('utf-8'),
                     )
 
-        dated_holder = holder.at_period(period)
-        if dated_holder.array is not None:
-            return dated_holder
-
         period_requested_formulas.add(self)
         for alternative_formula in self.alternative_formulas:
             # Copy requested_formulas_by_period.
@@ -125,13 +119,12 @@ class AlternativeFormula(AbstractGroupedFormula):
                 (period, period_requested_formulas1.copy())
                 for period, period_requested_formulas1 in requested_formulas_by_period.iteritems()
                 )
-            alternative_dated_holder = alternative_formula.compute(lazy = True, period = period,
+            dated_holder = alternative_formula.compute(lazy = True, period = period,
                 requested_formulas_by_period = new_requested_formulas_by_period)
-            if alternative_dated_holder.array is not None:
+            if dated_holder.array is not None:
                 self.used_formula = alternative_formula
-                holder.set_array(period, alternative_dated_holder.array)
                 period_requested_formulas.remove(self)
-                return holder.at_period(period)
+                return dated_holder
         if lazy:
             period_requested_formulas.remove(self)
             return dated_holder  # Note: dated_holder.array is None
@@ -141,9 +134,8 @@ class AlternativeFormula(AbstractGroupedFormula):
         self.used_formula = alternative_formula
         dated_holder = alternative_formula.compute(lazy = False, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
-        holder.set_array(period, dated_holder.array)
         period_requested_formulas.remove(self)
-        return holder.at_period(period)
+        return dated_holder
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -180,15 +172,14 @@ class DatedFormula(AbstractGroupedFormula):
                 )
             for dated_formula_class in self.dated_formulas_class
             ]
+        assert self.dated_formulas
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
         entity = holder.entity
-        simulation = entity.simulation
-        if period is None:
-            period = simulation.period
 
+        assert period is not None
         if requested_formulas_by_period is None:
             requested_formulas_by_period = {}
         period_or_none = None if column.is_period_invariant else period
@@ -208,14 +199,11 @@ class DatedFormula(AbstractGroupedFormula):
                         ))).encode('utf-8'),
                     )
 
-        dated_holder = holder.at_period(period)
-        if dated_holder.array is not None:
-            return dated_holder
-
         assert periods.unit(period) == u'year'
         period_date = periods.date(period)  # TODO: Handle different start & stop dates.
 
         period_requested_formulas.add(self)
+        dated_holder = None
         for dated_formula in self.dated_formulas:
             if dated_formula['start'] <= period_date <= dated_formula['end']:
                 dated_holder = dated_formula['formula'].compute(lazy = lazy, period = period,
@@ -223,15 +211,16 @@ class DatedFormula(AbstractGroupedFormula):
                 if dated_holder.array is None:
                     break
                 self.used_formula = dated_formula['formula']
-                holder.set_array(period, dated_holder.array)
                 period_requested_formulas.remove(self)
-                return holder.at_period(period)
+                return dated_holder
 
         array = np.empty(entity.count, dtype = column.dtype)
         array.fill(column.default)
-        holder.set_array(period, array)
+        if dated_holder is None:
+            dated_holder = holder.at_period(period)
+        dated_holder.array = array
         period_requested_formulas.remove(self)
-        return holder.at_period(period)
+        return dated_holder
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -268,15 +257,15 @@ class SelectFormula(AbstractGroupedFormula):
             (main_variable, formula_constructor(holder = holder))
             for main_variable, formula_constructor in self.formula_constructor_by_main_variable.iteritems()
             )
+        assert self.formula_by_main_variable
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        if period is None:
-            period = simulation.period
 
+        assert period is not None
         if requested_formulas_by_period is None:
             requested_formulas_by_period = {}
         period_or_none = None if column.is_period_invariant else period
@@ -296,15 +285,11 @@ class SelectFormula(AbstractGroupedFormula):
                         ))).encode('utf-8'),
                     )
 
-        dated_holder = holder.at_period(period)
-        if dated_holder.array is not None:
-            return dated_holder
-
         period_requested_formulas.add(self)
         for main_variable, formula in self.formula_by_main_variable.iteritems():
-            main_dated_holder = simulation.compute(main_variable, lazy = True, period = period,
+            dated_holder = simulation.compute(main_variable, lazy = True, period = period,
                 requested_formulas_by_period = requested_formulas_by_period)
-            if main_dated_holder.array is not None:
+            if dated_holder.array is not None:
                 selected_formula = formula
                 break
         else:
@@ -312,9 +297,8 @@ class SelectFormula(AbstractGroupedFormula):
         self.used_formula = selected_formula
         dated_holder = selected_formula.compute(lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
-        holder.set_array(period, dated_holder.array)
         period_requested_formulas.remove(self)
-        return holder.at_period(period)
+        return dated_holder
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -445,9 +429,8 @@ class SimpleFormula(AbstractFormula):
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        if period is None:
-            period = simulation.period
 
+        assert period is not None
         if requested_formulas_by_period is None:
             requested_formulas_by_period = {}
         period_or_none = None if column.is_period_invariant else period
@@ -467,10 +450,6 @@ class SimpleFormula(AbstractFormula):
                         ))).encode('utf-8'),
                     )
 
-        dated_holder = holder.at_period(period)
-        if dated_holder.array is not None:
-            return dated_holder
-
         period_requested_formulas.add(self)
         required_parameters = set(self.holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
@@ -485,12 +464,12 @@ class SimpleFormula(AbstractFormula):
                 # A variable is missing in lazy mode, formula can not be computed yet.
                 assert lazy
                 period_requested_formulas.remove(self)
-                return variable_dated_holder
+                return holder.at_period(period)
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
-            arguments[variable_name] = variable_holder.at_period(variable_period) \
+            arguments[variable_name] = variable_dated_holder \
                 if variable_name.endswith('_holder') \
-                else variable_holder.get_array(variable_period)
+                else variable_dated_holder.array
             if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
                     and np.any(variable_dated_holder.array != variable_holder.column.default):
                 has_only_default_arguments = False

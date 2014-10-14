@@ -51,7 +51,7 @@ class Column(object):
     formula_constructor = None
     function = None
     info = None
-    is_period_invariant = False  # When True, value of column doesn't depend from date period
+    is_period_invariant = False  # When True, value of column doesn't depend from date
     # json_type = None  # Defined in sub-classes
     label = None
     name = None
