@@ -339,10 +339,10 @@ class rsa(SimpleFormula):
         return (salaire_imposable < 500) * 333
 
     # def get_law_period(self, period, law_path):
-    #     return periods.offset_period(period, -3)
+    #     return periods.offset(period, -3)
 
     # def get_variable_period(self, period, variable_name):
-    #     return periods.offset_period(period, -3)
+    #     return periods.offset(period, -3)
 
 
 @reference_formula

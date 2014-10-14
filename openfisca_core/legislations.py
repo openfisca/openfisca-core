@@ -85,7 +85,7 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
     period_unit = periods.unit(period)
     if any('amount' in slice for slice in dated_node_json['slices']):
         # AmountTaxScale
-        if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
+        if periods.offset_instant(period_unit, period_start_instant, 1) > period_stop_instant:
             # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
             tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
             for dated_slice_json in dated_node_json['slices']:
@@ -115,7 +115,7 @@ def compact_dated_node_json(dated_node_json, code = None, period = None):
         return tax_scales
 
     # MarginalRateTaxScale
-    if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
+    if periods.offset_instant(period_unit, period_start_instant, 1) > period_stop_instant:
         # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
         tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
         for dated_slice_json in dated_node_json['slices']:
@@ -184,7 +184,7 @@ def generate_dated_json_value(values_json, legislation_start_instant, legislatio
         if not value_by_instant:
             value_stop_instant = period_stop_instant
         else:
-            value_stop_instant = periods.previous_instant('day', min(value_by_instant))
+            value_stop_instant = periods.offset_instant('day', min(value_by_instant), -1)
         for value_instant in periods.iter_instants(period_unit, period_start_instant, value_stop_instant):
             value_by_instant[value_instant] = min_value
 
@@ -196,11 +196,11 @@ def generate_dated_json_value(values_json, legislation_start_instant, legislatio
         if not value_by_instant:
             value_start_instant = period_start_instant
         else:
-            value_start_instant = periods.next_instant('day', max(value_by_instant))
+            value_start_instant = periods.offset_instant('day', max(value_by_instant), 1)
         for value_instant in periods.iter_instants(period_unit, value_start_instant, period_stop_instant):
             value_by_instant[value_instant] = max_value
 
-    if periods.next_instant(period_unit, period_start_instant) > period_stop_instant:
+    if periods.offset_instant(period_unit, period_start_instant, 1) > period_stop_instant:
         # Don't use an array for singletons, to simplify JSON and for compatibility with existing formulas.
         return value_by_instant.get(period_start_instant)
     value = [

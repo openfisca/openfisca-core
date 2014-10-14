@@ -94,7 +94,7 @@ def are_overlapping(period_1, period_2):
 def date(period):
     if period is None:
         return None
-    assert next_instant(period[0], period[1]) > period[2], \
+    assert offset_instant(period[0], period[1], 1) > period[2], \
         '"date" is undefined for a period with several instants: {}'.format(period)
     return start_date(period)
 
@@ -102,7 +102,7 @@ def date(period):
 def date_str(period):
     if period is None:
         return None
-    assert next_instant(period[0], period[1]) > period[2], \
+    assert offset_instant(period[0], period[1], 1) > period[2], \
         '"date_str" is undefined for a period with several instants: {}'.format(period)
     return start_date_str(period)
 
@@ -622,37 +622,124 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
         )
 
 
-def next_instant(unit, instant):
-    """Return the next instant for given unit..
+def offset(period, delta):
+    """Increment (or decrement) the given period with the given delta of the period unit.
 
-    >>> next_instant('day', (2014, 1, 1))
+    >>> offset(period('year', 2014), 1)
+    (u'year', (2015, 1, 1), (2015, 12, 31))
+    >>> offset(period('month', 2014), 1)
+    (u'month', (2014, 2, 1), (2015, 1, 31))
+    >>> offset(period('day', 2014), 1)
+    (u'day', (2014, 1, 2), (2015, 1, 1))
+
+    >>> offset(period('year', '2014-02'), 1)
+    (u'year', (2015, 2, 1), (2016, 1, 31))
+    >>> offset(period('month', '2014-02'), 1)
+    (u'month', (2014, 3, 1), (2014, 3, 31))
+    >>> offset(period('day', '2014-02'), 1)
+    (u'day', (2014, 2, 2), (2014, 3, 1))
+
+    >>> offset(None, 1)
+    """
+    if period is None:
+        return None
+    unit, start_instant, stop_instant = period
+    return (unit, offset_instant(unit, start_instant, delta), offset_instant(unit, stop_instant, delta))
+
+
+def offset_instant(unit, instant, delta):
+    """Increment (or decrement) the given instant with the given delta of the unit.
+
+    >>> offset_instant('day', (2014, 1, 1), 1)
     (2014, 1, 2)
-    >>> next_instant('month', (2014, 1, 1))
+    >>> offset_instant('month', (2014, 1, 1), 1)
     (2014, 2, 1)
-    >>> next_instant('year', (2014, 1, 1))
+    >>> offset_instant('year', (2014, 1, 1), 1)
     (2015, 1, 1)
 
-    >>> next_instant('year', None)
+    >>> offset_instant('day', (2014, 1, 31), 1)
+    (2014, 2, 1)
+    >>> offset_instant('month', (2014, 1, 31), 1)
+    (2014, 2, 28)
+    >>> offset_instant('year', (2014, 1, 31), 1)
+    (2015, 1, 31)
+
+    >>> offset_instant('day', (2011, 2, 28), 1)
+    (2011, 3, 1)
+    >>> offset_instant('month', (2011, 2, 28), 1)
+    (2011, 3, 31)
+    >>> offset_instant('year', (2011, 2, 28), 1)
+    (2012, 2, 29)
+
+    >>> offset_instant('day', (2014, 1, 1), -1)
+    (2013, 12, 31)
+    >>> offset_instant('month', (2014, 1, 1), -1)
+    (2013, 12, 1)
+    >>> offset_instant('year', (2014, 1, 1), -1)
+    (2013, 1, 1)
+
+    >>> offset_instant('day', (2011, 3, 1), -1)
+    (2011, 2, 28)
+    >>> offset_instant('month', (2011, 3, 31), -1)
+    (2011, 2, 28)
+    >>> offset_instant('year', (2012, 2, 29), -1)
+    (2011, 2, 28)
+
+    >>> offset_instant('day', (2014, 1, 30), 3)
+    (2014, 2, 2)
+    >>> offset_instant('month', (2014, 10, 2), 3)
+    (2015, 1, 2)
+    >>> offset_instant('year', (2014, 1, 1), 3)
+    (2017, 1, 1)
+
+    >>> offset_instant('day', (2014, 1, 1), -3)
+    (2013, 12, 29)
+    >>> offset_instant('month', (2014, 1, 1), -3)
+    (2013, 10, 1)
+    >>> offset_instant('year', (2014, 1, 1), -3)
+    (2011, 1, 1)
+
+    >>> offset_instant('year', None, 1)
     """
     if instant is None:
         return None
     year, month, day = instant
     if unit == u'day':
-        day += 1
-        if day > calendar.monthrange(year, month)[1]:
-            month += 1
-            if month == 13:
-                year += 1
-                month = 1
-            day = 1
+        day += delta
+        if delta < 0:
+            while day < 1:
+                month -= 1
+                if month == 0:
+                    year -= 1
+                    month = 12
+                day += calendar.monthrange(year, month)[1]
+        elif delta > 0:
+            month_last_day = calendar.monthrange(year, month)[1]
+            while day > month_last_day:
+                month += 1
+                if month == 13:
+                    year += 1
+                    month = 1
+                day -= month_last_day
     elif unit == u'month':
-        month += 1
-        if month == 13:
-            month = 1
-            year += 1
+        is_last_day_of_month = day == calendar.monthrange(year, month)[1]
+        month += delta
+        if delta < 0:
+            while month < 1:
+                year -= 1
+                month += 12
+        elif delta > 0:
+            while month > 12:
+                year += 1
+                month -= 12
+        if is_last_day_of_month:
+            day = calendar.monthrange(year, month)[1]
     else:
         assert unit == u'year', unit
-        year += 1
+        is_last_day_of_month = day == calendar.monthrange(year, month)[1]
+        year += delta
+        if is_last_day_of_month:
+            day = calendar.monthrange(year, month)[1]
     return (year, month, day)
 
 
@@ -710,11 +797,11 @@ def period(unit, start, stop = None):
         start = (start[0], start[1], 1)
         if stop is None:
             if unit == u'year':
-                stop = datetime.date(*next_instant(unit, start)) - datetime.timedelta(days = 1)
+                stop = datetime.date(*offset_instant(unit, start, 1)) - datetime.timedelta(days = 1)
             else:
                 stop = (start[0], start[1], calendar.monthrange(start[0], start[1])[1])
     elif stop is None:
-        stop = datetime.date(*next_instant(unit, start)) - datetime.timedelta(days = 1)
+        stop = datetime.date(*offset_instant(unit, start, 1)) - datetime.timedelta(days = 1)
 
     if isinstance(stop, basestring):
         stop = tuple(
@@ -737,40 +824,6 @@ def period(unit, start, stop = None):
         stop = (stop[0], stop[1], calendar.monthrange(stop[0], stop[1])[1])
 
     return (unicode(unit), start, stop)
-
-
-def previous_instant(unit, instant):
-    """Return the previous instant for given unit..
-
-    >>> previous_instant('day', (2014, 1, 1))
-    (2013, 12, 31)
-    >>> previous_instant('month', (2014, 1, 1))
-    (2013, 12, 1)
-    >>> previous_instant('year', (2014, 1, 1))
-    (2013, 1, 1)
-
-    >>> previous_instant('year', None)
-    """
-    if instant is None:
-        return None
-    year, month, day = instant
-    if unit == u'day':
-        day -= 1
-        if day <= 0:
-            month -= 1
-            if month == 0:
-                year -= 1
-                month = 12
-            day = calendar.monthrange(year, month)[1]
-    elif unit == u'month':
-        month -= 1
-        if month == 0:
-            month = 12
-            year -= 1
-    else:
-        assert unit == u'year', unit
-        year -= 1
-    return (year, month, day)
 
 
 def start_date(period):
