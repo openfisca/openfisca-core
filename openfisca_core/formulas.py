@@ -125,16 +125,16 @@ class AlternativeFormula(AbstractGroupedFormula):
                 (period, period_requested_formulas1.copy())
                 for period, period_requested_formulas1 in requested_formulas_by_period.iteritems()
                 )
-            dated_holder = alternative_formula.compute(lazy = True, period = period,
+            alternative_dated_holder = alternative_formula.compute(lazy = True, period = period,
                 requested_formulas_by_period = new_requested_formulas_by_period)
-            if dated_holder is not None:
+            if alternative_dated_holder.array is not None:
                 self.used_formula = alternative_formula
-                holder.set_array(period, dated_holder.array)
+                holder.set_array(period, alternative_dated_holder.array)
                 period_requested_formulas.remove(self)
                 return holder.at_period(period)
         if lazy:
             period_requested_formulas.remove(self)
-            return None
+            return dated_holder  # Note: dated_holder.array is None
         # No alternative has an existing array => Compute array using first alternative.
         # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
@@ -220,11 +220,12 @@ class DatedFormula(AbstractGroupedFormula):
             if dated_formula['start'] <= period_date <= dated_formula['end']:
                 dated_holder = dated_formula['formula'].compute(lazy = lazy, period = period,
                     requested_formulas_by_period = requested_formulas_by_period)
-                if dated_holder is not None:
-                    self.used_formula = dated_formula['formula']
-                    holder.set_array(period, dated_holder.array)
-                    period_requested_formulas.remove(self)
-                    return holder.at_period(period)
+                if dated_holder.array is None:
+                    break
+                self.used_formula = dated_formula['formula']
+                holder.set_array(period, dated_holder.array)
+                period_requested_formulas.remove(self)
+                return holder.at_period(period)
 
         array = np.empty(entity.count, dtype = column.dtype)
         array.fill(column.default)
@@ -303,7 +304,7 @@ class SelectFormula(AbstractGroupedFormula):
         for main_variable, formula in self.formula_by_main_variable.iteritems():
             main_dated_holder = simulation.compute(main_variable, lazy = True, period = period,
                 requested_formulas_by_period = requested_formulas_by_period)
-            if main_dated_holder is not None:
+            if main_dated_holder.array is not None:
                 selected_formula = formula
                 break
         else:
@@ -480,16 +481,16 @@ class SimpleFormula(AbstractFormula):
             variable_period = self.get_variable_period(period, variable_name)
             variable_dated_holder = variable_holder.compute(lazy = lazy, period = variable_period,
                 requested_formulas_by_period = requested_formulas_by_period)
-            if variable_dated_holder is None:
+            if variable_dated_holder.array is None:
                 # A variable is missing in lazy mode, formula can not be computed yet.
                 assert lazy
                 period_requested_formulas.remove(self)
-                return None
+                return variable_dated_holder
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
             arguments[variable_name] = variable_holder.at_period(variable_period) \
                 if variable_name.endswith('_holder') \
-                else variable_holder.array
+                else variable_holder.get_array(variable_period)
             if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
                     and np.any(variable_dated_holder.array != variable_holder.column.default):
                 has_only_default_arguments = False

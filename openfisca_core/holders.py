@@ -114,7 +114,7 @@ class Holder(object):
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
 
-        The returned dated holder is always of the requested period.
+        The returned dated holder is always of the requested period and this method never returns None.
         """
         if period is None:
             period = self.entity.simulation.period
@@ -130,7 +130,7 @@ class Holder(object):
             if (column.start is None or column.start <= period_start_date) \
                     and (column.end is None or column.end >= period_start_date):
                 dated_holder = formula.compute(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
-                if dated_holder is not None and dated_holder.period != period:
+                if dated_holder.period != period:
                     dated_holder = None
         if dated_holder is None:
             dated_holder = self.at_period(period)
