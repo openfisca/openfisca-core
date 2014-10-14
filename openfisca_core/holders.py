@@ -107,28 +107,41 @@ class Holder(object):
         return self if self.column.is_period_invariant else DatedHolder(self, period)
 
     def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
+        dated_holder = self.compute(lazy = lazy, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+        return dated_holder.array
+
+    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+        """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
+
+        The returned dated holder is always of the requested period.
+        """
         if period is None:
             period = self.entity.simulation.period
         column = self.column
         formula = self.formula
+        dated_holder = None
         # if formula is None or column.start is not None and column.start > periods.stop_date(period) \
         #         or column.end is not None and column.end < periods.start_date(period):
-        if formula is None:
-            use_array = True
-        else:
+        if formula is not None:
             assert formula.period_unit in ('year', 'month')  # TODO: start_day may not be sufficient.
             period_start_date = periods.start_date(period)
             # Check that the start day of the column belongs to period.
-            use_array = column.start is not None and column.start > period_start_date \
-                or column.end is not None and column.end < period_start_date
-        if use_array:
-            array = self.get_array(period)
-            if not lazy and array is None:
-                array = np.empty(self.entity.count, dtype = column.dtype)
-                array.fill(column.default)
-                self.set_array(period, array)
-            return array
-        return formula.calculate(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
+            if (column.start is None or column.start <= period_start_date) \
+                    and (column.end is None or column.end >= period_start_date):
+                dated_holder = formula.compute(lazy = lazy, requested_formulas_by_period = requested_formulas_by_period)
+                if dated_holder is not None and dated_holder.period != period:
+                    dated_holder = None
+        if dated_holder is None:
+            dated_holder = self.at_period(period)
+        array = dated_holder.array
+        if array is not None:
+            return dated_holder
+        if not lazy and array is None:
+            array = np.empty(self.entity.count, dtype = column.dtype)
+            array.fill(column.default)
+            dated_holder.array = array
+        return dated_holder
 
     def delete_array(self, period):
         if self.column.is_period_invariant:
