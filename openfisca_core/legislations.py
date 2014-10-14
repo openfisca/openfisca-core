@@ -184,7 +184,7 @@ def generate_dated_json_value(values_json, legislation_start_instant, legislatio
         if not value_by_instant:
             value_stop_instant = period_stop_instant
         else:
-            value_stop_instant = periods.previous_day_instant(min(value_by_instant))
+            value_stop_instant = periods.previous_instant('day', min(value_by_instant))
         for value_instant in periods.iter_instants(period_unit, period_start_instant, value_stop_instant):
             value_by_instant[value_instant] = min_value
 
@@ -196,7 +196,7 @@ def generate_dated_json_value(values_json, legislation_start_instant, legislatio
         if not value_by_instant:
             value_start_instant = period_start_instant
         else:
-            value_start_instant = periods.next_day_instant(max(value_by_instant))
+            value_start_instant = periods.next_instant('day', max(value_by_instant))
         for value_instant in periods.iter_instants(period_unit, value_start_instant, period_stop_instant):
             value_by_instant[value_instant] = max_value
 

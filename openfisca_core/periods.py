@@ -622,20 +622,6 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
         )
 
 
-def next_day_instant(instant):
-    if instant is None:
-        return None
-    year, month, day = instant
-    day += 1
-    if day > calendar.monthrange(year, month)[1]:
-        month += 1
-        if month == 13:
-            year += 1
-            month = 1
-        day = 1
-    return (year, month, day)
-
-
 def next_instant(unit, instant):
     """Return the next instant for given unit..
 
@@ -645,11 +631,21 @@ def next_instant(unit, instant):
     (2014, 2, 1)
     >>> next_instant('year', (2014, 1, 1))
     (2015, 1, 1)
+
+    >>> next_instant('year', None)
     """
-    if unit == u'day':
-        return next_day_instant(instant)
+    if instant is None:
+        return None
     year, month, day = instant
-    if unit == u'month':
+    if unit == u'day':
+        day += 1
+        if day > calendar.monthrange(year, month)[1]:
+            month += 1
+            if month == 13:
+                year += 1
+                month = 1
+            day = 1
+    elif unit == u'month':
         month += 1
         if month == 13:
             month = 1
@@ -743,20 +739,6 @@ def period(unit, start, stop = None):
     return (unicode(unit), start, stop)
 
 
-def previous_day_instant(instant):
-    if instant is None:
-        return None
-    year, month, day = instant
-    day -= 1
-    if day <= 0:
-        month -= 1
-        if month == 0:
-            year -= 1
-            month = 12
-        day = calendar.monthrange(year, month)[1]
-    return (year, month, day)
-
-
 def previous_instant(unit, instant):
     """Return the previous instant for given unit..
 
@@ -766,11 +748,21 @@ def previous_instant(unit, instant):
     (2013, 12, 1)
     >>> previous_instant('year', (2014, 1, 1))
     (2013, 1, 1)
+
+    >>> previous_instant('year', None)
     """
-    if unit == u'day':
-        return previous_day_instant(instant)
+    if instant is None:
+        return None
     year, month, day = instant
-    if unit == u'month':
+    if unit == u'day':
+        day -= 1
+        if day <= 0:
+            month -= 1
+            if month == 0:
+                year -= 1
+                month = 12
+            day = calendar.monthrange(year, month)[1]
+    elif unit == u'month':
         month -= 1
         if month == 0:
             month = 12

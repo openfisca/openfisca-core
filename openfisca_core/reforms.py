@@ -158,14 +158,15 @@ def updated_legislation_items(items, period, value):
                 new_items.append(
                     collections.OrderedDict((
                         ('start', item['start']),
-                        ('stop', periods.instant_date_str(periods.previous_day_instant(periods.start_instant(period)))),
+                        ('stop', periods.instant_date_str(periods.previous_instant('day',
+                            periods.start_instant(period)))),
                         ('value', item['value']),
                         ))
                     )
             if new_item_stop < item_stop:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', periods.instant_date_str(periods.next_day_instant(periods.stop_instant(period)))),
+                        ('start', periods.instant_date_str(periods.next_instant('day', periods.stop_instant(period)))),
                         ('stop', item['stop']),
                         ('value', item['value']),
                         ))
