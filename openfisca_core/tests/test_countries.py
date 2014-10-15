@@ -368,9 +368,15 @@ class salaire_net(SimpleFormula):
         return salaire_brut * 0.8
 
 
+# TaxBenefitSystem instance declared after formulas
+
+
+TaxBenefitSystem = init_country()
+tax_benefit_system = TaxBenefitSystem(legislation_json = {})
+
+
 def test_country():
-    TaxBenefitSystem = init_country()
-    tax_benefit_system = TaxBenefitSystem(legislation_json = {})
+    global tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             dict(
@@ -383,5 +389,4 @@ def test_country():
         period = periods.period('year', 2014),
         parent1 = {},
         ).new_simulation(debug = True)
-    # revenu_disponible = simulation.calculate('revenu_disponible')
     simulation.calculate('revenu_disponible')
