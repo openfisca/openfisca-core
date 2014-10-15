@@ -91,6 +91,102 @@ def are_overlapping(period_1, period_2):
     return stop_date(period_2) >= start_date(period_1) and stop_date(period_1) >= start_date(period_2)
 
 
+def base(period, offset = 0, size = 1):
+    """Compute a base period of size units from the (start of) the given one and offset it of offset units.
+
+    >>> base(period('year', 2014))
+    (u'year', (2014, 1, 1), (2014, 12, 31))
+    >>> base(period('year', '2014-2-3'))
+    (u'year', (2014, 1, 1), (2014, 12, 31))
+    >>> base(period('year', '2014-2-3'), offset = -4)
+    (u'year', (2010, 1, 1), (2010, 12, 31))
+    >>> base(period('year', '2014-2-3'), size = 4)
+    (u'year', (2014, 1, 1), (2017, 12, 31))
+    >>> base(period('year', '2014-2-3'), offset = -4, size = 4)
+    (u'year', (2010, 1, 1), (2013, 12, 31))
+
+    >>> base(period('month', 2014))
+    (u'month', (2014, 1, 1), (2014, 1, 31))
+    >>> base(period('month', '2014-2-3'))
+    (u'month', (2014, 2, 1), (2014, 2, 28))
+    >>> base(period('month', '2014-2-3'), offset = -4)
+    (u'month', (2013, 10, 1), (2013, 10, 31))
+    >>> base(period('month', '2014-2-3'), size = 4)
+    (u'month', (2014, 2, 1), (2014, 5, 31))
+    >>> base(period('month', '2014-2-3'), offset = -4, size = 4)
+    (u'month', (2013, 10, 1), (2014, 1, 31))
+
+    >>> base(period('day', 2014))
+    (u'day', (2014, 1, 1), (2014, 1, 1))
+    >>> base(period('day', '2014-2-3'))
+    (u'day', (2014, 2, 3), (2014, 2, 3))
+    >>> base(period('day', '2014-2-3'), offset = -4)
+    (u'day', (2014, 1, 30), (2014, 1, 30))
+    >>> base(period('day', '2014-2-3'), size = 4)
+    (u'day', (2014, 2, 3), (2014, 2, 6))
+    >>> base(period('day', '2014-2-3'), offset = -4, size = 4)
+    (u'day', (2014, 1, 30), (2014, 2, 2))
+
+    >>> base(None)
+    """
+    if period is None:
+        return None
+    assert size >= 1
+    unit, start_instant, stop_instant = period
+    year, month, day = start_instant
+    if unit == u'day':
+        day += offset
+        if offset < 0:
+            while day < 1:
+                month -= 1
+                if month == 0:
+                    year -= 1
+                    month = 12
+                day += calendar.monthrange(year, month)[1]
+        elif offset > 0:
+            month_last_day = calendar.monthrange(year, month)[1]
+            while day > month_last_day:
+                month += 1
+                if month == 13:
+                    year += 1
+                    month = 1
+                day -= month_last_day
+        start_instant = (year, month, day)
+        if size > 1:
+            day += size - 1
+            month_last_day = calendar.monthrange(year, month)[1]
+            while day > month_last_day:
+                month += 1
+                if month == 13:
+                    year += 1
+                    month = 1
+                day -= month_last_day
+        stop_instant = (year, month, day)
+    elif unit == u'month':
+        month += offset
+        if offset < 0:
+            while month < 1:
+                year -= 1
+                month += 12
+        elif offset > 0:
+            while month > 12:
+                year += 1
+                month -= 12
+        start_instant = (year, month, 1)
+        if size > 1:
+            month += size - 1
+            while month > 12:
+                year += 1
+                month -= 12
+        stop_instant = (year, month, calendar.monthrange(year, month)[1])
+    else:
+        assert unit == u'year', unit
+        year += offset
+        start_instant = (year, 1, 1)
+        stop_instant = (year + size - 1, 12, 31)
+    return (unit, start_instant, stop_instant)
+
+
 def date(period):
     if period is None:
         return None
