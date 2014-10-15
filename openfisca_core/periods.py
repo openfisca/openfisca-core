@@ -719,8 +719,8 @@ def make_json_or_python_to_period(min_date = None, max_date = None):
         )
 
 
-def offset(period, delta):
-    """Increment (or decrement) the given period with the given delta of the period unit.
+def offset(period, offset):
+    """Increment (or decrement) the given period with offset units.
 
     >>> offset(period('year', 2014), 1)
     (u'year', (2015, 1, 1), (2015, 12, 31))
@@ -741,11 +741,11 @@ def offset(period, delta):
     if period is None:
         return None
     unit, start_instant, stop_instant = period
-    return (unit, offset_instant(unit, start_instant, delta), offset_instant(unit, stop_instant, delta))
+    return (unit, offset_instant(unit, start_instant, offset), offset_instant(unit, stop_instant, offset))
 
 
-def offset_instant(unit, instant, delta):
-    """Increment (or decrement) the given instant with the given delta of the unit.
+def offset_instant(unit, instant, offset):
+    """Increment (or decrement) the given instant with offset units.
 
     >>> offset_instant('day', (2014, 1, 1), 1)
     (2014, 1, 2)
@@ -802,15 +802,15 @@ def offset_instant(unit, instant, delta):
         return None
     year, month, day = instant
     if unit == u'day':
-        day += delta
-        if delta < 0:
+        day += offset
+        if offset < 0:
             while day < 1:
                 month -= 1
                 if month == 0:
                     year -= 1
                     month = 12
                 day += calendar.monthrange(year, month)[1]
-        elif delta > 0:
+        elif offset > 0:
             month_last_day = calendar.monthrange(year, month)[1]
             while day > month_last_day:
                 month += 1
@@ -820,12 +820,12 @@ def offset_instant(unit, instant, delta):
                 day -= month_last_day
     elif unit == u'month':
         is_last_day_of_month = day == calendar.monthrange(year, month)[1]
-        month += delta
-        if delta < 0:
+        month += offset
+        if offset < 0:
             while month < 1:
                 year -= 1
                 month += 12
-        elif delta > 0:
+        elif offset > 0:
             while month > 12:
                 year += 1
                 month -= 12
@@ -834,7 +834,7 @@ def offset_instant(unit, instant, delta):
     else:
         assert unit == u'year', unit
         is_last_day_of_month = day == calendar.monthrange(year, month)[1]
-        year += delta
+        year += offset
         if is_last_day_of_month:
             day = calendar.monthrange(year, month)[1]
     return (year, month, day)
