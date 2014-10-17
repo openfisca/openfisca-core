@@ -214,6 +214,14 @@ class Holder(object):
             if not array_by_period:
                 del self._array_by_period
 
+    def delete_arrays(self):
+        if self._array is not None:
+            del self._array
+        if self._array_by_period is not None:
+            del self._array_by_period
+        if self._extrapolated_array_by_period is not None:
+            del self._extrapolated_array_by_period
+
     def delete_extrapolated_array(self, period):
         assert not self.column.is_period_invariant
         assert period is not None
