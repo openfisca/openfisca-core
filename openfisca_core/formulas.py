@@ -619,7 +619,14 @@ class SimpleFormula(AbstractFormula):
 
     def get_arguments_str(self):
         return u', '.join(
-            u'{} = {}@{}'.format(variable_name, variable_holder.entity.key_plural, unicode(variable_holder.array))
+            u'{} = {}@{}'.format(
+                variable_name,
+                variable_holder.entity.key_plural,
+                u'[{}]'.format(u', '.join(
+                    unicode(cell)
+                    for cell in variable_holder.array
+                    )) if variable_holder.array is not None else None,
+                )
             for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
 
