@@ -140,8 +140,8 @@ def updated_legislation_items(items, period, value):
     assert isinstance(items, collections.Sequence)
     new_items = []
     new_item = collections.OrderedDict((
-        ('start', periods.start_date_str(period)),
-        ('stop', periods.stop_date_str(period)),
+        ('start', periods.start_str(period)),
+        ('stop', periods.stop_str(period)),
         ('value', value),
         ))
     new_item_start = periods.start_date(period)
@@ -150,7 +150,7 @@ def updated_legislation_items(items, period, value):
     for item in items:
         item_start = to_date(item['start'])
         item_stop = to_date(item['stop'])
-        if periods.are_overlapping(periods.period('day', item_start, item_stop), period):
+        if periods.intersection(period, periods.instant(item_start), periods.instant(item_stop)) is not None:
             assert overlapping_item is None, u'Only one existing item can overlap the new item'
             overlapping_item = item
             new_items.append(new_item)
@@ -158,7 +158,7 @@ def updated_legislation_items(items, period, value):
                 new_items.append(
                     collections.OrderedDict((
                         ('start', item['start']),
-                        ('stop', periods.instant_date_str(periods.offset_instant('day', periods.start_instant(period),
+                        ('stop', periods.instant_str(periods.offset_instant('day', periods.start_instant(period),
                             -1))),
                         ('value', item['value']),
                         ))
@@ -166,7 +166,7 @@ def updated_legislation_items(items, period, value):
             if new_item_stop < item_stop:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', periods.instant_date_str(periods.offset_instant('day', periods.stop_instant(period),
+                        ('start', periods.instant_str(periods.offset_instant('day', periods.stop_instant(period),
                             1))),
                         ('stop', item['stop']),
                         ('value', item['value']),

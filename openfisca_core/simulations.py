@@ -29,7 +29,7 @@ from . import legislations, periods
 
 
 class Simulation(periods.PeriodMixin):
-    compact_legislation_by_period_cache = None
+    compact_legislation_by_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
     entity_by_column_name = None
@@ -37,7 +37,7 @@ class Simulation(periods.PeriodMixin):
     entity_by_key_singular = None
     legislation_json = None
     persons = None
-    reference_compact_legislation_by_period_cache = None
+    reference_compact_legislation_by_instant_cache = None
     reference_legislation_json = None
     steps_count = 1
     tax_benefit_system = None
@@ -60,10 +60,10 @@ class Simulation(periods.PeriodMixin):
             self.traceback = collections.OrderedDict()
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
-        self.compact_legislation_by_period_cache = {}
+        self.compact_legislation_by_instant_cache = {}
         if legislation_json is not None:
             self.legislation_json = legislation_json
-        self.reference_compact_legislation_by_period_cache = {}
+        self.reference_compact_legislation_by_instant_cache = {}
         if reference_legislation_json is not None:
             self.reference_legislation_json = reference_legislation_json
 
@@ -100,18 +100,18 @@ class Simulation(periods.PeriodMixin):
         return self.entity_by_column_name[column_name].compute(column_name, lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
 
-    def get_compact_legislation(self, period):
-        compact_legislation = self.compact_legislation_by_period_cache.get(period)
+    def get_compact_legislation(self, instant):
+        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
         if compact_legislation is None:
             legislation_json = self.legislation_json
             if legislation_json is None:
-                compact_legislation = self.tax_benefit_system.get_compact_legislation(period)
+                compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
             else:
-                dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, period)
+                dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, instant)
                 compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
                 if self.tax_benefit_system.preprocess_compact_legislation is not None:
                     self.tax_benefit_system.preprocess_compact_legislation(compact_legislation)
-            self.compact_legislation_by_period_cache[period] = compact_legislation
+            self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
@@ -124,19 +124,19 @@ class Simulation(periods.PeriodMixin):
         entity = self.entity_by_column_name[column_name]
         return entity.get_or_new_holder(column_name)
 
-    def get_reference_compact_legislation(self, period):
-        reference_compact_legislation = self.reference_compact_legislation_by_period_cache.get(period)
+    def get_reference_compact_legislation(self, instant):
+        reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
         if reference_compact_legislation is None:
             reference_legislation_json = self.reference_legislation_json
             if reference_legislation_json is None:
-                reference_compact_legislation = self.tax_benefit_system.get_compact_legislation(period)
+                reference_compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
             else:
                 reference_dated_legislation_json = legislations.generate_dated_legislation_json(
-                    reference_legislation_json, period)
+                    reference_legislation_json, instant)
                 reference_compact_legislation = legislations.compact_dated_node_json(reference_dated_legislation_json)
                 if self.tax_benefit_system.preprocess_compact_legislation is not None:
                     self.tax_benefit_system.preprocess_compact_legislation(reference_compact_legislation)
-            self.reference_compact_legislation_by_period_cache[period] = reference_compact_legislation
+            self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 
     def graph(self, column_name, edges, nodes, visited):

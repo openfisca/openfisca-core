@@ -36,7 +36,7 @@ class AbstractTaxBenefitSystem(object):
     check_consistency = None
     column_by_name = None
     columns_name_tree_by_entity = None
-    compact_legislation_by_period_cache = None
+    compact_legislation_by_instant_cache = None
     entities = None  # class attribute
     ENTITIES_INDEX = None  # class attribute
     entity_class_by_key_plural = None  # class attribute
@@ -64,7 +64,7 @@ class AbstractTaxBenefitSystem(object):
             if formula_class is not None:
                 formula_class.set_dependencies(column, column_by_name)
 
-        self.compact_legislation_by_period_cache = weakref.WeakValueDictionary()
+        self.compact_legislation_by_instant_cache = weakref.WeakValueDictionary()
 
         if legislation_json is None:
             legislation_xml_file_path = self.PARAM_FILE
@@ -84,14 +84,14 @@ class AbstractTaxBenefitSystem(object):
                 self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
         self.legislation_json = legislation_json
 
-    def get_compact_legislation(self, period):
-        compact_legislation = self.compact_legislation_by_period_cache.get(period)
+    def get_compact_legislation(self, instant):
+        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
         if compact_legislation is None:
-            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, period)
+            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
             if self.preprocess_compact_legislation is not None:
                 self.preprocess_compact_legislation(compact_legislation)
-            self.compact_legislation_by_period_cache[period] = compact_legislation
+            self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
     @classmethod

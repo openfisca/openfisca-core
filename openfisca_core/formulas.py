@@ -450,6 +450,17 @@ class SimpleFormula(AbstractFormula):
                         ))).encode('utf-8'),
                     )
 
+        output_period = self.get_output_period(period)
+        assert output_period[0] == self.period_unit, \
+            u"{} {} declares a {} period unit but returns a different output period: {}".format(self.__class__.__name__,
+                column.name, self.period_unit, output_period).encode('utf-8')
+        assert output_period[1] <= period[1] <= periods.stop_instant(output_period), \
+            u"{} {} returns an output period {} that doesn't include start instant of requested period".format(
+                self.__class__.__name__, column.name).encode('utf-8')
+        dated_holder = holder.at_period(output_period)
+        if dated_holder.array is not None:
+            return dated_holder
+
         period_requested_formulas.add(self)
         required_parameters = set(self.holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
@@ -457,14 +468,14 @@ class SimpleFormula(AbstractFormula):
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
         for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
-            variable_period = self.get_variable_period(period, variable_name)
+            variable_period = self.get_variable_period(output_period, variable_name)
             variable_dated_holder = variable_holder.compute(lazy = lazy, period = variable_period,
                 requested_formulas_by_period = requested_formulas_by_period)
             if variable_dated_holder.array is None:
                 # A variable is missing in lazy mode, formula can not be computed yet.
                 assert lazy
                 period_requested_formulas.remove(self)
-                return holder.at_period(period)
+                return holder.at_period(output_period)
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
             arguments[variable_name] = variable_dated_holder \
@@ -476,21 +487,21 @@ class SimpleFormula(AbstractFormula):
 
         if self.requires_legislation:
             required_parameters.add('_P')
-            arguments['_P'] = simulation.get_compact_legislation(period)
+            arguments['_P'] = simulation.get_compact_legislation(output_period[1])
         if self.requires_reference_legislation:
             required_parameters.add('_defaultP')
-            arguments['_defaultP'] = simulation.get_reference_compact_legislation(period)
+            arguments['_defaultP'] = simulation.get_reference_compact_legislation(output_period[1])
         if self.requires_self:
             required_parameters.add('self')
             arguments['self'] = self
         if self.requires_period:
             required_parameters.add('period')
-            arguments['period'] = period
+            arguments['period'] = output_period
         if self.legislation_accessor_by_name is not None:
             for name, legislation_accessor in self.legislation_accessor_by_name.iteritems():
                 # TODO: Also handle simulation.get_reference_compact_legislation(...).
                 arguments[name] = legislation_accessor(
-                    simulation.get_compact_legislation(self.get_law_period(period, legislation_accessor.path)),
+                    simulation.get_compact_legislation(self.get_law_instant(output_period, legislation_accessor.path)),
                     default = None,
                     )
 
@@ -499,21 +510,36 @@ class SimpleFormula(AbstractFormula):
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
         try:
-            result = self.function(**arguments)
+            array = self.function(**arguments)
         except:
             log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
                 self.get_arguments_str()))
             raise
-        if isinstance(result, holders.DatedHolder):
-            assert result.holder is self.holder, u"Function {}@{}({}) doesn't return its own holder, but: {}".format(
-                entity.key_plural, column.name, self.get_arguments_str(), result).encode('utf-8')
-            dated_holder = result
+        if array is None:
+            # Retrieve dated holder that may have been set by function... or None.
+            array = dated_holder.array
         else:
-            dated_holder = self.set_result_array(period, result)
+            assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
+                entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
+            assert array.size == entity.count, \
+                u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(
+                    entity.key_plural, column.name, self.get_arguments_str(), array.size, entity.count,
+                    entity.key_singular).encode('utf-8')
+
+            if not simulation.debug:
+                try:
+                    # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
+                    if np.isnan(np.min(array)):
+                        raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
+                except TypeError:
+                    pass
+
+            if array.dtype != column.dtype:
+                array = array.astype(column.dtype)
+            dated_holder.array = array
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(),
-                dated_holder.array))
+            log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(), array))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
@@ -596,21 +622,30 @@ class SimpleFormula(AbstractFormula):
             for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
 
-    def get_law_period(self, period, law_path):
-        """Return the period required for a node of the legislation used by the formula.
+    def get_law_instant(self, output_period, law_path):
+        """Return the instant required for a node of the legislation used by the formula.
 
-        By default, the period of a legislation node is the same as the requested period.
-        Override this method for legislation nodes with different periods.
+        By default, the instant of a legislation node is the start instant of the output period of the formula.
+
+        Override this method when needing different instants for legislation nodes.
         """
-        return period
+        return output_period[1]
 
-    def get_variable_period(self, period, variable_name):
+    def get_output_period(self, period):
+        """Return the period of the array(s) returned by the formula.
+
+        By default, the output period is the base period of size 1 of the requested period using formula unit.
+        """
+        return periods.base(self.period_unit, period[1])
+
+    def get_variable_period(self, output_period, variable_name):
         """Return the period required for an input variable used by the formula.
 
-        By default, the period of an input variable is the same as the requested period.
+        By default, the period of an input variable is the output period of the formula.
+
         Override this method for input variables with different periods.
         """
-        return period
+        return output_period
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -637,33 +672,6 @@ class SimpleFormula(AbstractFormula):
             if variable_column.consumers is None:
                 variable_column.consumers = set()
             variable_column.consumers.add(column.name)
-
-    def set_result_array(self, period, array):
-        holder = self.holder
-        column = holder.column
-        entity = holder.entity
-        simulation = entity.simulation
-
-        assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-            entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
-        assert array.size == entity.count, \
-            u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(entity.key_plural,
-            column.name, self.get_arguments_str(), array.size, entity.count, entity.key_singular).encode('utf-8')
-
-        if not simulation.debug:
-            try:
-                # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
-                if np.isnan(np.min(array)):
-                    raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
-            except TypeError:
-                pass
-
-        if array.dtype != column.dtype:
-            array = array.astype(column.dtype)
-
-        dated_holder = holder.at_period(period)
-        dated_holder.array = array
-        return dated_holder
 
     def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""

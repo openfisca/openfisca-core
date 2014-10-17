@@ -43,6 +43,7 @@ class DatedHolder(object):
 
     @property
     def array(self):
+        # Note: This property may return an extrapolated array.
         return self.holder.get_array(self.period)
 
     @array.deleter
@@ -61,10 +62,23 @@ class DatedHolder(object):
     def entity(self):
         return self.holder.entity
 
+    @property
+    def extrapolated_array(self):
+        raise NotImplementedError("Getter of property DatedHolder.extrapolated_array doesn't exist")
+
+    @extrapolated_array.deleter
+    def extrapolated_array(self):
+        self.holder.delete_extrapolated_array(self.period)
+
+    @extrapolated_array.setter
+    def extrapolated_array(self, array):
+        self.holder.set_extrapolated_array(self.period, array)
+
 
 class Holder(object):
     _array = None  # Only used when column.is_period_invariant
     _array_by_period = None  # Only used when not column.is_period_invariant
+    _extrapolated_array_by_period = None  # Only used when not column.is_period_invariant
     column = None
     entity = None
     formula = None
@@ -124,91 +138,67 @@ class Holder(object):
         if dated_holder.array is not None:
             return dated_holder
 
-        period_unit, start_instant, stop_instant = period
+        period_unit, start_instant, _ = period
+        stop_instant = periods.stop_instant(period)
         column = self.column
+        entity = self.entity
         formula = self.formula
         if formula is not None:
-            if period_unit == u'year' and formula.period_unit == u'month':
-                for formula_period in periods.iter_subperiods(period, formula.period_unit):
-                    formula_dated_holder = self.at_period(formula_period)
-                    if formula_dated_holder.array is None:
-                        self.compute_formula(lazy = lazy, period = formula_period,
-                            requested_formulas_by_period = requested_formulas_by_period)
-            elif period_unit == u'month' and formula.period_unit == u'year':
-                # Create a super period starting at start day of current period.
-                formula_period = periods.period(formula.period_unit, periods.start_instant(period))
-                formula_dated_holder = self.at_period(formula_period)
-                if formula_dated_holder.array is None:
-                    self.compute_formula(lazy = lazy, period = formula_period,
-                        requested_formulas_by_period = requested_formulas_by_period)
-            else:
-                self.compute_formula(lazy = lazy, period = period,
+            formula_period = period
+            formula_start_instant = formula_period[1]
+            column_start_instant = periods.instant(column.start)
+            column_stop_instant = periods.instant(column.end)
+            while True:
+                # TODO: Testing start_date may not be sufficient for other period_units.
+                # Check that the start day of the column belongs to period.
+                intersection_period = periods.intersection(formula_period, column_start_instant, column_stop_instant)
+                if intersection_period is None:
+                    array = np.empty(entity.count, dtype = column.dtype)
+                    array.fill(column.default)
+                    dated_holder.array = array
+                    break
+                formula_dated_holder = formula.compute(lazy = lazy, period = intersection_period,
                     requested_formulas_by_period = requested_formulas_by_period)
+                formula_period = periods.offset(formula_dated_holder.period, offset = formula_dated_holder.period[2])
+                formula_start_instant = formula_period[1]
+                if formula_start_instant > stop_instant:
+                    break
 
         if dated_holder.array is not None:
             return dated_holder
-        array = None
-        # if period_unit == u'day':
-        #     TODO
-        # elif period_unit == u'month':
-        if period_unit == u'month':
-            # Look for an array with a year period that contains the requested month period.
-            array_by_period = self._array_by_period
-            if array_by_period is not None:
-                for item_period, item_array in array_by_period.iteritems():
-                    if item_array is not None:
-                        item_period_unit, item_start_instant, item_stop_instant = item_period
-                        if item_period_unit == u'year' and item_start_instant <= start_instant \
-                                and item_stop_instant >= stop_instant:
-                            if isinstance(column, columns.EnumCol):
-                                array = np.copy(item_array)
-                            else:
-                                # TODO: Handle booleans, etc.
-                                array = item_array / 12
-        else:
-            assert period_unit == u'year', period_unit
-            # Look for monthly arrays covering the year of period. If at least one is found
-            for month_period in periods.iter_subperiods(period, u'month'):
-                month_array = self.get_array(month_period)
-                if month_array is not None:
-                    if array is None:
-                        array = np.copy(month_array)
-                    else:
-                        # TODO: Handle enumerations, booleans, etc.
-                        array += month_array
-            # TODO: Code below may be too slow.
-            # if array is None:
-            #     for day_period in periods.iter_subperiods(period, u'day'):
-            #         day_array = self.get_array(day_period)
-            #         if day_array is not None:
-            #             if array is None:
-            #                 array = np.copy(day_array)
-            #             else:
-            #                 array += day_array
 
+        array = None
+        array_by_period = self._array_by_period
+        if array_by_period is not None:
+            for exact_period in sorted(array_by_period):
+                exact_start_instant = exact_period[1]
+                exact_stop_instant = periods.stop_instant(exact_period)
+                exact_array = array_by_period[exact_period]
+                if exact_array is not None:
+                    intersection_period = periods.intersection(period, exact_start_instant, exact_stop_instant)
+                    if intersection_period is not None:
+                        if isinstance(column, (columns.FloatCol, columns.IntCol)):
+                            intersection_days = periods.days(intersection_period)
+                            exact_days = periods.days(exact_period)
+                            if intersection_days == exact_days:
+                                intersection_array = exact_array
+                            else:
+                                intersection_array = exact_array * intersection_days / exact_days
+                            if array is None:
+                                array = intersection_array
+                            else:
+                                array += intersection_array
+                        else:
+                            # TODO: Handle booleans, etc.
+                            array = np.copy(exact_array)
+                if exact_stop_instant >= stop_instant:
+                    break
         if not lazy and array is None:
-            array = np.empty(self.entity.count, dtype = column.dtype)
+            array = np.empty(entity.count, dtype = column.dtype)
             array.fill(column.default)
         if array is not None:
-            dated_holder.array = array
+            dated_holder.extrapolated_array = array
         return dated_holder
-
-    def compute_formula(self, lazy = False, period = None, requested_formulas_by_period = None):
-        column = self.column
-        formula = self.formula
-        assert period is not None
-        period_unit = period[0]
-        assert period_unit == formula.period_unit, \
-            u"For {}: Don't know how to use a {}-based formula for a {} computation".format(
-                column.name, formula.period_unit, period_unit).encode('utf-8')
-        assert formula.period_unit in (u'day', u'month', u'year')
-        # TODO: Testing start_date may not be sufficient for other period_units.
-        start_date = periods.start_date(period)
-        # Check that the start day of the column belongs to period.
-        if (column.start is None or column.start <= start_date) and (column.end is None or column.end >= start_date):
-            return formula.compute(lazy = lazy, period = period,
-                requested_formulas_by_period = requested_formulas_by_period)
-        return None
 
     def delete_array(self, period):
         if self.column.is_period_invariant:
@@ -224,14 +214,34 @@ class Holder(object):
             if not array_by_period:
                 del self._array_by_period
 
-    def get_array(self, period):
+    def delete_extrapolated_array(self, period):
+        assert not self.column.is_period_invariant
+        assert period is not None
+        simulation = self.entity.simulation
+        if simulation.trace:
+            simulation.traceback.pop(self.column.name, None)
+        extrapolated_array_by_period = self._extrapolated_array_by_period
+        if extrapolated_array_by_period is not None:
+            extrapolated_array_by_period.pop(period, None)
+            if not extrapolated_array_by_period:
+                del self._extrapolated_array_by_period
+
+    def get_array(self, period, exact = False):
         if self.column.is_period_invariant:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
-        if array_by_period is None:
-            return None
-        return array_by_period.get(period)
+        if array_by_period is not None:
+            array = array_by_period.get(period)
+            if array is not None:
+                return array
+        if not exact:
+            extrapolated_array_by_period = self._extrapolated_array_by_period
+            if extrapolated_array_by_period is not None:
+                array = extrapolated_array_by_period.get(period)
+                if array is not None:
+                    return array
+        return None
 
     def graph(self, edges, nodes, visited):
         column = self.column
@@ -282,6 +292,22 @@ class Holder(object):
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
         array_by_period[period] = array
+
+    def set_extrapolated_array(self, period, array):
+        assert not self.column.is_period_invariant
+        assert period is not None
+        simulation = self.entity.simulation
+        if simulation.trace:
+            name = self.column.name
+            step = simulation.traceback.get(name)
+            if step is None:
+                simulation.traceback[name] = dict(
+                    holder = self,
+                    )
+        extrapolated_array_by_period = self._extrapolated_array_by_period
+        if extrapolated_array_by_period is None:
+            self._extrapolated_array_by_period = extrapolated_array_by_period = {}
+        extrapolated_array_by_period[period] = array
 
     def to__field_json(self):
         self_json = self.column.to_json()

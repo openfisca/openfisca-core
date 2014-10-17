@@ -38,7 +38,7 @@ def test_find_item_at_date():
             "value": 0.0,
             },
         ]
-    legislation_period = periods.period('year', 2006, 2014)
+    legislation_period = periods.period('year', 2006, 9)  # 2006-2014
     assert_is(reforms.find_item_at_date(items, datetime.date(2010, 5, 21)), None)
     assert_is(
         reforms.find_item_at_date(items, datetime.date(2005, 12, 31), nearest_in_period = legislation_period),
