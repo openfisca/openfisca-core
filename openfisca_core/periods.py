@@ -425,6 +425,10 @@ def instant_str(instant):
 
 
 def intersection(period, start_instant_1, stop_instant_1):
+    if period is None:
+        return None
+    if start_instant_1 is None and stop_instant_1 is None:
+        return period
     period_start_instant = period[1]
     period_stop_instant = stop_instant(period)
     if start_instant_1 is None:
