@@ -338,7 +338,8 @@ def build_column_couple(name = None, column = None, entity_class_by_symbol = Non
     return (name, column)
 
 
-def reference_input_variable(column = None, column_by_name = None, entity_class = None, label = None, name = None):
+def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_period_invariant = False,
+        label = None, name = None):
     """Declare an input variable defined in reference tax benefit system."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -348,6 +349,8 @@ def reference_input_variable(column = None, column_by_name = None, entity_class 
         column = column()
         assert isinstance(column, Column)
     column.entity = entity_class.symbol
+    if is_period_invariant:
+        column.is_period_invariant = True
     column.label = label
     column.name = name
 
