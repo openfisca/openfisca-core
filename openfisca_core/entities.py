@@ -32,14 +32,22 @@ class AbstractEntity(object):
     holder_by_name = None
     key_plural = None
     key_singular = None
-    is_persons_entity = False
-    roles_count = None  # Not used for individus
+    index_for_person_variable_name = None  # Class attribute. Not used for persons
+    is_persons_entity = False  # Class attribute
+    roles_count = None  # Not used for persons
+    role_for_person_variable_name = None  # Class attribute. Not used for persons
     step_size = 0
     simulation = None
     symbol = None  # Class attribute. Must be overridden by subclasses.
 
     def __init__(self, simulation = None):
         self.holder_by_name = {}
+        if self.is_persons_entity:
+            assert self.index_for_person_variable_name is None
+            assert self.role_for_person_variable_name is None
+        else:
+            assert self.index_for_person_variable_name is not None
+            assert self.role_for_person_variable_name is not None
         if simulation is not None:
             self.simulation = simulation
 
@@ -58,3 +66,8 @@ class AbstractEntity(object):
 
     def graph(self, column_name, edges, nodes, visited):
         self.get_or_new_holder(column_name).graph(edges, nodes, visited)
+
+    def iter_member_persons_role_and_id(self, member):
+        assert not self.is_persons_entity
+        raise NotImplementedError('Method "iter_member_persons_role_and_id" is not implemented for class {}'.format(
+            self.__class__.__name__))

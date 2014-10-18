@@ -64,9 +64,129 @@ class AbstractScenario(periods.PeriodMixin):
                     )
         return value, None
 
-    def fill_simulation(self, simulation):
-        """Implemented in child classes."""
-        raise NotImplementedError
+    def fill_simulation(self, simulation, variables_name_to_skip = None):
+        assert isinstance(simulation, simulations.Simulation)
+        if variables_name_to_skip is None:
+            variables_name_to_skip = set()
+        column_by_name = self.tax_benefit_system.column_by_name
+        entity_by_key_plural = simulation.entity_by_key_plural
+        steps_count = 1
+        if self.axes is not None:
+            for axis in self.axes:
+                steps_count *= axis['count']
+        simulation.steps_count = steps_count
+        simulation_period = simulation.period
+        test_case = self.test_case
+
+        persons = None
+        for entity in entity_by_key_plural.itervalues():
+            entity.step_size = entity_step_size = len(test_case[entity.key_plural])
+            entity.count = steps_count * entity_step_size
+            if entity.is_persons_entity:
+                assert persons is None
+                persons = entity
+        assert persons is not None
+        persons_step_size = persons.step_size
+
+        person_index_by_id = dict(
+            (person_id, person_index)
+            for person_index, person_id in enumerate(test_case[persons.key_plural])
+            )
+
+        for entity_key_plural, entity in entity_by_key_plural.iteritems():
+            if entity.is_persons_entity:
+                continue
+            entity_step_size = entity.step_size
+            persons.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = np.empty(
+                steps_count * persons.step_size, dtype = column_by_name[entity.index_for_person_variable_name].dtype)
+            persons.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = np.empty(
+                steps_count * persons.step_size, dtype = column_by_name[entity.role_for_person_variable_name].dtype)
+            for member_index, member in enumerate(test_case[entity_key_plural].itervalues()):
+                for person_role, person_id in entity.iter_member_persons_role_and_id(member):
+                    person_index = person_index_by_id[person_id]
+                    for step_index in range(steps_count):
+                        person_entity_id_array[step_index * persons_step_size + person_index] \
+                            = step_index * entity_step_size + member_index
+                        person_entity_role_array[step_index * persons_step_size + person_index] = person_role
+            entity.roles_count = person_entity_role_array.max() + 1
+
+        for entity_key_plural, entity in entity_by_key_plural.iteritems():
+            used_columns_name = set(
+                key
+                for entity_member in test_case[entity_key_plural].itervalues()
+                for key, value in entity_member.iteritems()
+                if value is not None and key not in (
+                    entity.index_for_person_variable_name,
+                    entity.role_for_person_variable_name,
+                    ) and key not in variables_name_to_skip
+                )
+            for variable_name, column in column_by_name.iteritems():
+                if column.entity == entity.symbol and variable_name in used_columns_name:
+                    variable_periods = set()
+                    for cell in (
+                            entity_member.get(variable_name)
+                            for entity_member in test_case[entity_key_plural].itervalues()
+                            ):
+                        if isinstance(cell, dict):
+                            variable_periods.update(cell.iterkeys())
+                        else:
+                            variable_periods.add(simulation_period)
+                    holder = entity.get_or_new_holder(variable_name)
+                    variable_default_value = column.default
+                    for variable_period in variable_periods:
+                        variable_values = [
+                            variable_default_value if dated_cell is None else dated_cell
+                            for dated_cell in (
+                                cell.get(variable_period) if isinstance(cell, dict) else (cell
+                                    if variable_period == simulation_period else None)
+                                for cell in (
+                                    entity_member.get(variable_name)
+                                    for entity_member in test_case[entity_key_plural].itervalues()
+                                    )
+                                )
+                            ]
+                        variable_values_iter = (
+                            variable_value
+                            for step_index in range(steps_count)
+                            for variable_value in variable_values
+                            )
+                        array = np.fromiter(variable_values_iter, dtype = column.dtype) \
+                            if column.dtype is not object \
+                            else np.array(list(variable_values_iter), dtype = column.dtype)
+                        holder.set_array(variable_period, array)
+
+        if self.axes is not None:
+            if len(self.axes) == 1:
+                axis = self.axes[0]
+                axis_name = axis['name']
+                axis_period = axis['period'] or simulation_period
+                entity = simulation.entity_by_column_name[axis_name]
+                holder = simulation.get_or_new_holder(axis_name)
+                column = holder.column
+                array = holder.get_array(axis_period)
+                if array is None:
+                    array = np.empty(entity.count, dtype = column.dtype)
+                    array.fill(column.default)
+                    holder.set_array(axis_period, array)
+                array[axis['index']:: entity.step_size] = np.linspace(axis['min'], axis['max'], axis['count'])
+            else:
+                axes_linspaces = [
+                    np.linspace(axis['min'], axis['max'], axis['count'])
+                    for axis in self.axes
+                    ]
+                axes_meshes = np.meshgrid(*axes_linspaces)
+                for axis, mesh in zip(self.axes, axes_meshes):
+                    axis_name = axis['name']
+                    axis_period = axis['period'] or simulation_period
+                    entity = simulation.entity_by_column_name[axis_name]
+                    holder = simulation.get_or_new_holder(axis_name)
+                    column = holder.column
+                    array = holder.get_array(axis_period)
+                    if array is None:
+                        array = np.empty(entity.count, dtype = column.dtype)
+                        array.fill(column.default)
+                        holder.set_array(axis_period, array)
+                    array[axis['index']:: entity.step_size] = mesh.reshape(steps_count)
 
     def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
@@ -249,88 +369,3 @@ class AbstractScenario(periods.PeriodMixin):
             )
         self.fill_simulation(simulation)
         return simulation
-
-    def set_simulation_variables(self, simulation, variables_name_to_skip = None):
-        column_by_name = self.tax_benefit_system.column_by_name
-        simulation_period = simulation.period
-        steps_count = simulation.steps_count
-        test_case = self.test_case
-        if variables_name_to_skip is None:
-            variables_name_to_skip = set()
-        else:
-            variables_name_to_skip = set(variables_name_to_skip)
-
-        for entity_key_plural, entity in simulation.entity_by_key_plural.iteritems():
-            used_columns_name = set(
-                key
-                for entity_member in test_case[entity_key_plural].itervalues()
-                for key, value in entity_member.iteritems()
-                if key not in variables_name_to_skip and value is not None
-                )
-            for variable_name, column in column_by_name.iteritems():
-                if column.entity == entity.symbol and variable_name in used_columns_name:
-                    variable_periods = set()
-                    for cell in (
-                            entity_member.get(variable_name)
-                            for entity_member in test_case[entity_key_plural].itervalues()
-                            ):
-                        if isinstance(cell, dict):
-                            variable_periods.update(cell.iterkeys())
-                        else:
-                            variable_periods.add(simulation_period)
-                    holder = entity.get_or_new_holder(variable_name)
-                    variable_default_value = column.default
-                    for variable_period in variable_periods:
-                        variable_values = [
-                            variable_default_value if dated_cell is None else dated_cell
-                            for dated_cell in (
-                                cell.get(variable_period) if isinstance(cell, dict) else (cell
-                                    if variable_period == simulation_period else None)
-                                for cell in (
-                                    entity_member.get(variable_name)
-                                    for entity_member in test_case[entity_key_plural].itervalues()
-                                    )
-                                )
-                            ]
-                        variable_values_iter = (
-                            variable_value
-                            for step_index in range(steps_count)
-                            for variable_value in variable_values
-                            )
-                        array = np.fromiter(variable_values_iter, dtype = column.dtype) \
-                            if column.dtype is not object \
-                            else np.array(list(variable_values_iter), dtype = column.dtype)
-                        holder.set_array(variable_period, array)
-
-        if self.axes is not None:
-            if len(self.axes) == 1:
-                axis = self.axes[0]
-                axis_name = axis['name']
-                axis_period = axis['period'] or simulation_period
-                entity = simulation.entity_by_column_name[axis_name]
-                holder = simulation.get_or_new_holder(axis_name)
-                column = holder.column
-                array = holder.get_array(axis_period)
-                if array is None:
-                    array = np.empty(entity.count, dtype = column.dtype)
-                    array.fill(column.default)
-                    holder.set_array(axis_period, array)
-                array[axis['index']:: entity.step_size] = np.linspace(axis['min'], axis['max'], axis['count'])
-            else:
-                axes_linspaces = [
-                    np.linspace(axis['min'], axis['max'], axis['count'])
-                    for axis in self.axes
-                    ]
-                axes_meshes = np.meshgrid(*axes_linspaces)
-                for axis, mesh in zip(self.axes, axes_meshes):
-                    axis_name = axis['name']
-                    axis_period = axis['period'] or simulation_period
-                    entity = simulation.entity_by_column_name[axis_name]
-                    holder = simulation.get_or_new_holder(axis_name)
-                    column = holder.column
-                    array = holder.get_array(axis_period)
-                    if array is None:
-                        array = np.empty(entity.count, dtype = column.dtype)
-                        array.fill(column.default)
-                        holder.set_array(axis_period, array)
-                    array[axis['index']:: entity.step_size] = mesh.reshape(steps_count)

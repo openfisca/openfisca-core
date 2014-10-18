@@ -28,7 +28,7 @@ import functools
 import itertools
 
 from openfisca_core import conv, periods
-from openfisca_core.columns import FloatCol, reference_input_variable
+from openfisca_core.columns import FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import reference_formula, SimpleFormula
 from openfisca_core.scenarios import AbstractScenario
@@ -45,17 +45,35 @@ prestation_by_name = {}
 
 class Familles(AbstractEntity):
     column_by_name = collections.OrderedDict()
+    index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
     label = u'Famille'
     max_cardinality_by_role_key = {'parents': 2}
     name_key = 'nom_famille'
+    role_for_person_variable_name = 'role_dans_famille'
     roles_key = ['parents', 'enfants']
     label_by_role_key = {
         'enfants': u'Enfants',
         'parents': u'Parents',
         }
     symbol = 'fam'
+
+    def iter_member_persons_role_and_id(self, member):
+        role = 0
+
+        parents_id = member['parents']
+        assert 1 <= len(parents_id) <= 2
+        for parent_role, parent_id in enumerate(parents_id, role):
+            assert parent_id is not None
+            yield parent_role, parent_id
+        role += 2
+
+        enfants_id = member.get('enfants')
+        if enfants_id is not None:
+            for enfant_role, enfant_id in enumerate(enfants_id, role):
+                assert enfant_id is not None
+                yield enfant_role, enfant_id
 
 
 class Individus(AbstractEntity):
@@ -78,24 +96,6 @@ entity_class_by_symbol = dict(
 
 
 class Scenario(AbstractScenario):
-    def fill_simulation(self, simulation):
-        entity_by_key_plural = simulation.entity_by_key_plural
-        steps_count = 1
-        if self.axes is not None:
-            for axis in self.axes:
-                steps_count *= axis['count']
-        simulation.steps_count = steps_count
-        test_case = self.test_case
-
-        familles = entity_by_key_plural[u'familles']
-        familles.step_size = familles_step_size = len(test_case[u'familles'])
-        familles.count = steps_count * familles_step_size
-        individus = entity_by_key_plural[u'individus']
-        individus.step_size = individus_step_size = len(test_case[u'individus'])
-        individus.count = steps_count * individus_step_size
-
-        self.set_simulation_variables(simulation, variables_name_to_skip = ())
-
     def init_single_entity(self, axes = None, enfants = None, famille = None, parent1 = None, parent2 = None,
             period = None):
         if enfants is None:
@@ -304,8 +304,26 @@ reference_input_variable = functools.partial(reference_input_variable, column_by
 
 
 reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    is_period_invariant = True,
+    label = u"Identifiant de la famille",
+    name = 'id_famille',
+    )
+
+
+reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    is_period_invariant = True,
+    label = u"Rôle dans la famille",
+    name = 'role_dans_famille',
+    )
+
+
+reference_input_variable(
     column = FloatCol,
-    entity_class = Familles,
+    entity_class = Individus,
     label = "Salaire brut",
     name = 'salaire_brut',
     )
