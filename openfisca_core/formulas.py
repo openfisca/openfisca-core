@@ -132,7 +132,7 @@ class AlternativeFormula(AbstractGroupedFormula):
         # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
         self.used_formula = alternative_formula
-        dated_holder = alternative_formula.compute(lazy = False, period = period,
+        dated_holder = alternative_formula.compute(lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
         period_requested_formulas.remove(self)
         return dated_holder
@@ -474,7 +474,8 @@ class SimpleFormula(AbstractFormula):
                 requested_formulas_by_period = requested_formulas_by_period)
             if variable_dated_holder.array is None:
                 # A variable is missing in lazy mode, formula can not be computed yet.
-                assert lazy
+                assert lazy, 'When computing {}, variable {} is None for period {}, although not in lazy mode'.format(
+                    column.name, variable_name, variable_period)
                 period_requested_formulas.remove(self)
                 return holder.at_period(output_period)
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
@@ -521,7 +522,7 @@ class SimpleFormula(AbstractFormula):
             array = dated_holder.array
         else:
             assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-                entity.key_plural, column.name, self.get_arguments_str(), array).encode('utf-8')
+                entity.key_plural, column.name, self.get_arguments_str(), stringify_array(array)).encode('utf-8')
             assert array.size == entity.count, \
                 u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(
                     entity.key_plural, column.name, self.get_arguments_str(), array.size, entity.count,
@@ -540,7 +541,8 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = array
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(), array))
+            log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(),
+                stringify_array(array)))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
@@ -622,10 +624,7 @@ class SimpleFormula(AbstractFormula):
             u'{} = {}@{}'.format(
                 variable_name,
                 variable_holder.entity.key_plural,
-                u'[{}]'.format(u', '.join(
-                    unicode(cell)
-                    for cell in variable_holder.array
-                    )) if variable_holder.array is not None else None,
+                stringify_array(variable_holder.array),
                 )
             for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
             )
@@ -936,3 +935,10 @@ def reference_formula(prestation_by_name = None):
         return formula_class
 
     return reference_formula_decorator
+
+
+def stringify_array(array):
+    return u'[{}]'.format(u', '.join(
+        unicode(cell)
+        for cell in array
+        )) if array is not None else u'None'
