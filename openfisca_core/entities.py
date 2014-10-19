@@ -51,6 +51,25 @@ class AbstractEntity(object):
         if simulation is not None:
             self.simulation = simulation
 
+    def clone(self, simulation):
+        """Copy the entity just enough to be able to run the simulation without modifying the original simulation."""
+        other = Dummy()
+        other.__class__ = self.__class__
+        other_dict = other.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key not in ('holder_by_name', 'simulation'):
+                other_dict[key] = value
+
+        other_dict['simulation'] = simulation
+        # Caution: holders must be cloned after the simulation has been set into other.
+        other_dict['holder_by_name'] = {
+            name: holder.clone(other)
+            for name, holder in self.holder_by_name.iteritems()
+            }
+
+        return other
+
     def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         return self.get_or_new_holder(column_name).compute(lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
@@ -71,3 +90,7 @@ class AbstractEntity(object):
         assert not self.is_persons_entity
         raise NotImplementedError('Method "iter_member_persons_role_and_id" is not implemented for class {}'.format(
             self.__class__.__name__))
+
+
+class Dummy(object):
+    pass

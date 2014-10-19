@@ -75,6 +75,10 @@ class DatedHolder(object):
         self.holder.set_extrapolated_array(self.period, array)
 
 
+class Dummy(object):
+    pass
+
+
 class Holder(object):
     _array = None  # Only used when column.is_period_invariant
     _array_by_period = None  # Only used when not column.is_period_invariant
@@ -126,6 +130,28 @@ class Holder(object):
         dated_holder = self.compute(lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
         return dated_holder.array
+
+    def clone(self, entity):
+        """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
+        other = Dummy()
+        other.__class__ = self.__class__
+        other_dict = other.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key in ('_array_by_period', '_extrapolated_array_by_period'):
+                if value is not None:
+                    # There is no need to copy the arrays, because the formulas don't modify them.
+                    other_dict[key] = value.copy()
+            elif key not in ('entity', 'formula'):
+                other_dict[key] = value
+
+        other_dict['entity'] = entity
+        # Caution: formula must be cloned after the entity has been set into other.
+        formula = self.formula
+        if formula is not None:
+            other_dict['formula'] = formula.clone(other)
+
+        return other
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         """Compute array if needed and/or convert it to requested period and return a dated holder containig it.

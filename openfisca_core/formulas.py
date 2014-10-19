@@ -35,6 +35,10 @@ from . import accessors, columns, holders, periods
 log = logging.getLogger(__name__)
 
 
+class Dummy(object):
+    pass
+
+
 # Exceptions
 
 
@@ -63,6 +67,23 @@ class AbstractFormula(object):
         assert holder is not None
         self.holder = holder
 
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        other = Dummy()
+        other.__class__ = self.__class__
+        other_dict = other.__dict__
+
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('holder')
+        for key, value in self.__dict__.iteritems():
+            if key not in keys_to_skip:
+                other_dict[key] = value
+
+        other_dict['holder'] = holder
+
+        return other
+
 
 class AbstractGroupedFormula(AbstractFormula):
     used_formula = None
@@ -87,6 +108,20 @@ class AlternativeFormula(AbstractGroupedFormula):
             for alternative_formula_constructor in self.alternative_formulas_constructor
             ]
         assert self.alternative_formulas
+
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('alternative_formulas')
+        other = super(AlternativeFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+
+        other.alternative_formulas = [
+            alternative_formula.clone(holder)
+            for alternative_formula in self.alternative_formulas
+            ]
+
+        return other
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
@@ -174,6 +209,23 @@ class DatedFormula(AbstractGroupedFormula):
             ]
         assert self.dated_formulas
 
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('dated_formulas')
+        other = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+
+        other.dated_formulas = [
+            {
+                key: value.clone(holder) if key == 'formula' else value
+                for key, value in dated_formula.iteritems()
+                }
+            for dated_formula in self.dated_formulas
+            ]
+
+        return other
+
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
@@ -259,6 +311,20 @@ class SelectFormula(AbstractGroupedFormula):
             )
         assert self.formula_by_main_variable
 
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('formula_by_main_variable')
+        other = super(SelectFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+
+        other.formula_by_main_variable = collections.OrderedDict(
+            (variable_name, formula.clone(holder))
+            for variable_name, formula in self.formula_by_main_variable.iteritems()
+            )
+
+        return other
+
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
@@ -321,26 +387,14 @@ class SelectFormula(AbstractGroupedFormula):
 
 
 class SimpleFormula(AbstractFormula):
+    _holder_by_variable_name = None
     function = None  # Class attribute. Overridden by subclasses
-    holder_by_variable_name = None
     legislation_accessor_by_name = None
     requires_legislation = False  # class attribute
     requires_period = False  # class attribute
     requires_reference_legislation = False  # class attribute
     requires_self = False  # class attribute
     variables_name = None  # class attribute
-
-    def __init__(self, holder = None):
-        super(SimpleFormula, self).__init__(holder = holder)
-
-        entity = holder.entity
-        simulation = entity.simulation
-        self.holder_by_variable_name = holder_by_variable_name = collections.OrderedDict()
-        for variable_name in self.variables_name:
-            clean_variable_name = variable_name[:-len('_holder')] \
-                if variable_name.endswith('_holder') \
-                else variable_name
-            holder_by_variable_name[variable_name] = simulation.get_or_new_holder(clean_variable_name)
 
     def any_by_roles(self, array_or_holder, entity = None, roles = None):
         holder = self.holder
@@ -423,6 +477,13 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('_holder_by_variable_name')
+        return super(SimpleFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         holder = self.holder
@@ -463,12 +524,13 @@ class SimpleFormula(AbstractFormula):
             return dated_holder
 
         period_requested_formulas.add(self)
-        required_parameters = set(self.holder_by_variable_name.iterkeys()).union(
+        holder_by_variable_name = self.holder_by_variable_name
+        required_parameters = set(holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
         arguments = {}
         if simulation.debug and not simulation.debug_all or simulation.trace:
             has_only_default_arguments = True
-        for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
+        for variable_name, variable_holder in holder_by_variable_name.iteritems():
             variable_period = self.get_variable_period(output_period, variable_name)
             variable_dated_holder = variable_holder.compute(lazy = lazy, period = variable_period,
                 requested_formulas_by_period = requested_formulas_by_period)
@@ -664,6 +726,20 @@ class SimpleFormula(AbstractFormula):
                 'from': variable_holder.column.name,
                 'to': column.name,
                 })
+
+    @property
+    def holder_by_variable_name(self):
+        # Note: This property is not precomputed at __init__ time, to ease the cloning of the formula.
+        holder_by_variable_name = self._holder_by_variable_name
+        if holder_by_variable_name is None:
+            self._holder_by_variable_name = holder_by_variable_name = collections.OrderedDict()
+            simulation = self.holder.entity.simulation
+            for variable_name in self.variables_name:
+                clean_variable_name = variable_name[:-len('_holder')] \
+                    if variable_name.endswith('_holder') \
+                    else variable_name
+                holder_by_variable_name[variable_name] = simulation.get_or_new_holder(clean_variable_name)
+        return holder_by_variable_name
 
     @property
     def real_formula(self):

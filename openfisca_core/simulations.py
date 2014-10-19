@@ -28,6 +28,10 @@ import collections
 from . import legislations, periods
 
 
+class Dummy(object):
+    pass
+
+
 class Simulation(periods.PeriodMixin):
     compact_legislation_by_instant_cache = None
     debug = False
@@ -70,20 +74,20 @@ class Simulation(periods.PeriodMixin):
         entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural \
             if entity_class_by_key_plural is None \
             else entity_class_by_key_plural
-        self.entity_by_key_plural = dict(
+        self.entity_by_key_plural = entity_by_key_plural = dict(
             (key_plural, entity_class(simulation = self))
             for key_plural, entity_class in entity_class_by_key_plural.iteritems()
             )
         self.entity_by_column_name = dict(
             (column_name, entity)
-            for entity in self.entity_by_key_plural.itervalues()
+            for entity in entity_by_key_plural.itervalues()
             for column_name in entity.column_by_name.iterkeys()
             )
         self.entity_by_key_singular = dict(
             (entity.key_singular, entity)
-            for entity in self.entity_by_key_plural.itervalues()
+            for entity in entity_by_key_plural.itervalues()
             )
-        for entity in self.entity_by_key_plural.itervalues():
+        for entity in entity_by_key_plural.itervalues():
             if entity.is_persons_entity:
                 self.persons = entity
                 break
@@ -93,6 +97,44 @@ class Simulation(periods.PeriodMixin):
             period = self.period
         return self.compute(column_name, period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period).array
+
+    def clone(self, debug = False, debug_all = False, trace = False):
+        """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
+        other = Dummy()
+        other.__class__ = self.__class__
+        other_dict = other.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key not in ('debug', 'debug_all', 'entity_by_key_plural', 'persons', 'trace'):
+                other_dict[key] = value
+
+        if debug:
+            other_dict['debug'] = True
+        if debug_all:
+            other_dict['debug_all'] = True
+        if trace:
+            other_dict['trace'] = True
+            other_dict['traceback'] = collections.OrderedDict()
+
+        other_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
+            (key_plural, entity.clone(simulation = other))
+            for key_plural, entity in self.entity_by_key_plural.iteritems()
+            )
+        other_dict['entity_by_column_name'] = dict(
+            (column_name, entity)
+            for entity in entity_by_key_plural.itervalues()
+            for column_name in entity.column_by_name.iterkeys()
+            )
+        other_dict['entity_by_key_singular'] = dict(
+            (entity.key_singular, entity)
+            for entity in entity_by_key_plural.itervalues()
+            )
+        for entity in entity_by_key_plural.itervalues():
+            if entity.is_persons_entity:
+                other_dict['persons'] = entity
+                break
+
+        return other
 
     def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         if period is None:
