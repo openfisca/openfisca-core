@@ -171,8 +171,6 @@ class Holder(object):
             column_start_instant = periods.instant(column.start)
             column_stop_instant = periods.instant(column.end)
             while True:
-                # TODO: Testing start_date may not be sufficient for other period_units.
-                # Check that the start day of the column belongs to period.
                 intersection_period = periods.intersection(formula_period, column_start_instant, column_stop_instant)
                 if intersection_period is None:
                     array = np.empty(entity.count, dtype = column.dtype)

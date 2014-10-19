@@ -24,13 +24,15 @@
 
 
 import collections
+import datetime
 import functools
 import itertools
 
+import numpy as np
 from openfisca_core import conv, periods
 from openfisca_core.columns import FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import reference_formula, SimpleFormulaColumn
+from openfisca_core.formulas import dated_function, DatedFormulaColumn, reference_formula, SimpleFormulaColumn
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -347,14 +349,23 @@ class revenu_disponible(SimpleFormulaColumn):
 
 
 @reference_formula
-class rsa(SimpleFormulaColumn):
+class rsa(DatedFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
     period_unit = u'month'
 
-    def function(self, salaire_imposable):
-        return (salaire_imposable < 500) * 333
+    @dated_function(datetime.date(2010, 1, 1))
+    def function_2010(self, salaire_imposable):
+        return (salaire_imposable < 500) * 100.0
+
+    @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
+    def function_2011_2012(self, salaire_imposable):
+        return (salaire_imposable < 500) * 200.0
+
+    @dated_function(datetime.date(2013, 1, 1))
+    def function_2013(self, salaire_imposable):
+        return (salaire_imposable < 500) * 300
 
 
 @reference_formula
@@ -387,7 +398,7 @@ TaxBenefitSystem = init_country()
 tax_benefit_system = TaxBenefitSystem(legislation_json = {})
 
 
-def test_country():
+def check_revenu_disponible(year, expected_array = None):
     global tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
@@ -398,7 +409,17 @@ def test_country():
                 min = 0,
                 ),
             ],
-        period = periods.period('year', 2014),
+        period = periods.period('year', year),
         parent1 = {},
         ).new_simulation(debug = True)
-    simulation.calculate('revenu_disponible')
+    revenu_disponible = simulation.calculate('revenu_disponible')
+    assert (revenu_disponible == expected_array).all(), str((revenu_disponible, expected_array))
+
+
+def test_revenu_disponible():
+    yield check_revenu_disponible, 2009, np.array([0, 25200, 50400])
+    yield check_revenu_disponible, 2010, np.array([1200, 25200, 50400])
+    yield check_revenu_disponible, 2011, np.array([2400, 25200, 50400])
+    yield check_revenu_disponible, 2012, np.array([2400, 25200, 50400])
+    yield check_revenu_disponible, 2013, np.array([3600, 25200, 50400])
+    yield check_revenu_disponible, 2014, np.array([3600, 25200, 50400])

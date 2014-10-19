@@ -26,6 +26,7 @@
 import collections
 import datetime
 import inspect
+import itertools
 import logging
 
 import numpy as np
@@ -190,7 +191,7 @@ class AlternativeFormula(AbstractGroupedFormula):
 
 
 class DatedFormula(AbstractGroupedFormula):
-    dated_formulas = None  # A list of dictionaries containing a formula jointly with a start date and an end date
+    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
     dated_formulas_class = None  # Class attribute
 
     def __init__(self, holder = None):
@@ -198,9 +199,9 @@ class DatedFormula(AbstractGroupedFormula):
 
         self.dated_formulas = [
             dict(
-                end = dated_formula_class['end'],
                 formula = dated_formula_class['formula_class'](holder = holder),
-                start = dated_formula_class['start'],
+                start_instant = dated_formula_class['start_instant'],
+                stop_instant = dated_formula_class['stop_instant'],
                 )
             for dated_formula_class in self.dated_formulas_class
             ]
@@ -248,20 +249,22 @@ class DatedFormula(AbstractGroupedFormula):
                         ))).encode('utf-8'),
                     )
 
-        assert periods.unit(period) == u'year'
-        period_date = periods.date(period)  # TODO: Handle different start & stop dates.
-
         period_requested_formulas.add(self)
         dated_holder = None
+        stop_instant = periods.stop_instant(period)
         for dated_formula in self.dated_formulas:
-            if dated_formula['start'] <= period_date <= dated_formula['end']:
-                dated_holder = dated_formula['formula'].compute(lazy = lazy, period = period,
-                    requested_formulas_by_period = requested_formulas_by_period)
-                if dated_holder.array is None:
-                    break
-                self.used_formula = dated_formula['formula']
-                period_requested_formulas.remove(self)
-                return dated_holder
+            if dated_formula['start_instant'] > stop_instant:
+                break
+            output_period = periods.intersection(period, dated_formula['start_instant'], dated_formula['stop_instant'])
+            if output_period is None:
+                continue
+            dated_holder = dated_formula['formula'].compute(lazy = lazy, period = output_period,
+                requested_formulas_by_period = requested_formulas_by_period)
+            if dated_holder.array is None:
+                break
+            self.used_formula = dated_formula['formula']
+            period_requested_formulas.remove(self)
+            return dated_holder
 
         array = np.empty(entity.count, dtype = column.dtype)
         array.fill(column.default)
@@ -859,7 +862,7 @@ class FormulaColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes SimpleFormulaColumn, etc.
+            # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         # Extract attributes.
@@ -902,20 +905,54 @@ class FormulaColumnMetaclass(type):
             __module__ = attributes.pop('__module__'),
             period_unit = period_unit,
             )
-        if issubclass(formula_class, SimpleFormula):
+        if issubclass(formula_class, DatedFormula):
+            dated_formulas_class = []
+            for function_name, function in attributes.copy().iteritems():
+                start_instant = getattr(function, 'start_instant', UnboundLocalError)
+                if start_instant is UnboundLocalError:
+                    # Function is not dated (and may not even be a function). Ignore it.
+                    continue
+                stop_instant = function.stop_instant
+                if stop_instant is not None:
+                    assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
+                        function_name, start_instant, stop_instant)
+
+                dated_formula_class_attributes = formula_class_attributes.copy()
+                dated_formula_class_attributes['function'] = function
+                dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
+                dated_formula_class.extract_variables_name()
+
+                del attributes[function_name]
+                dated_formulas_class.append(dict(
+                    formula_class = dated_formula_class,
+                    start_instant = start_instant,
+                    stop_instant = stop_instant,
+                    ))
+            # Sort dated formulas by start instant and add missing stop instants.
+            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+            for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
+                    itertools.islice(dated_formulas_class, 1, None)):
+                if dated_formula_class['stop_instant'] is None:
+                    dated_formula_class['stop_instant'] = periods.offset_instant('day',
+                        next_dated_formula_class['start_instant'], -1)
+                else:
+                    assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
+                        "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
+
+            formula_class_attributes['dated_formulas_class'] = dated_formulas_class
+        else:
+            assert issubclass(formula_class, SimpleFormula), formula_class
             function = attributes.pop('function')
             assert function is not None
-
-            formula_class_attributes.update(
-                function = function,
-                )
+            formula_class_attributes['function'] = function
 
         # Ensure that all attributes defined in FormulaColumn class are used.
         assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
             ', '.join(attributes.iterkeys()))
 
-        formula_class = type(str(name), (formula_class,), formula_class_attributes)
-        formula_class.extract_variables_name()
+        formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
+        if issubclass(formula_class, SimpleFormula):
+            formula_class.extract_variables_name()
 
         # Fill column attributes.
         if stop_date is not None:
@@ -933,6 +970,12 @@ class FormulaColumnMetaclass(type):
             column.url = url
 
         return column
+
+
+class DatedFormulaColumn(object):
+    """Syntactic sugar to generate a DatedFormula class and fill its column"""
+    __metaclass__ = FormulaColumnMetaclass
+    formula_class = DatedFormula
 
 
 class SimpleFormulaColumn(object):
@@ -994,9 +1037,9 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             )
         formula_class.extract_variables_name()
         dated_formulas_class.append(dict(
-            end = dated_function['end'],
             formula_class = formula_class,
-            start = dated_function['start'],
+            start_instant = periods.instant(dated_function['start']),
+            stop_instant = periods.instant(dated_function['end']),
             ))
 
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
@@ -1070,6 +1113,16 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
     entity_column_by_name[name] = column
 
     return (name, column)
+
+
+def dated_function(start = None, stop = None):
+    """Function decorator used to give start & stop instants to a method of a function in class DatedFormulaColumn."""
+    def dated_function_decorator(function):
+        function.start_instant = periods.instant(start)
+        function.stop_instant = periods.instant(stop)
+        return function
+
+    return dated_function_decorator
 
 
 def reference_formula(prestation_by_name = None):
