@@ -914,16 +914,24 @@ def reference_formula(prestation_by_name = None):
         entity_class = formula_class.entity_class
         formula_class.name = name = unicode(formula_class.__name__)
         formula_class.label = label = name if formula_class.label is None else unicode(formula_class.label)
+        assert formula_class.is_period_invariant in (False, True), formula_class.is_period_invariant
         assert formula_class.period_unit in (u'month', u'year'), formula_class.period_unit
+        url = formula_class.url
+        if url is not None:
+            formula_class.url = url = unicode(url)
 
         column = formula_class.column
         if not isinstance(column, columns.Column):
             column = column()
             assert isinstance(column, columns.Column)
         column.entity = entity_class.symbol
-        column.label = label
         column.formula_constructor = formula_class
+        if formula_class.is_period_invariant:
+            column.is_period_invariant = True
+        column.label = label
         column.name = name
+        if url is not None:
+            column.url = url
 
         entity_column_by_name = entity_class.column_by_name
         assert name not in entity_column_by_name, name

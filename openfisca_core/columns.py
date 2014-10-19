@@ -339,7 +339,7 @@ def build_column_couple(name = None, column = None, entity_class_by_symbol = Non
 
 
 def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_period_invariant = False,
-        label = None, name = None):
+        label = None, name = None, url = None):
     """Declare an input variable defined in reference tax benefit system."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -353,6 +353,8 @@ def reference_input_variable(column = None, column_by_name = None, entity_class 
         column.is_period_invariant = True
     column.label = label
     column.name = name
+    if url is not None:
+        column.url = unicode(url)
 
     entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
