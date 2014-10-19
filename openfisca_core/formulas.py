@@ -24,6 +24,7 @@
 
 
 import collections
+import datetime
 import inspect
 import logging
 
@@ -58,7 +59,7 @@ class NaNCreationError(Exception):
 
 class AbstractFormula(object):
     holder = None
-    period_unit = None  # class method
+    period_unit = None  # class attribute
 
     def __init__(self, holder = None):
         assert holder is not None
@@ -848,10 +849,100 @@ class SimpleFormula(AbstractFormula):
             ))
 
 
-# Formulas couple builders
+# Formulas Generators
+
+
+class FormulaColumnMetaclass(type):
+    """The metaclass of FormulaColumn classes: It generates a column instead of a formula FormulaColumn class."""
+    def __new__(cls, name, bases, attributes):
+        """Return a column containing a formula, built from FormulaColumn class definition."""
+        assert len(bases) == 1, bases
+        base_class = bases[0]
+        if base_class is object:
+            # Do nothing when creating classes SimpleFormulaColumn, etc.
+            return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
+
+        # Extract attributes.
+
+        column = attributes.pop('column')
+        if not isinstance(column, columns.Column):
+            column = column()
+            assert isinstance(column, columns.Column)
+
+        entity_class = attributes.pop('entity_class')
+
+        formula_class = attributes.pop('formula_class', base_class.formula_class)
+        assert issubclass(formula_class, AbstractFormula), formula_class
+
+        is_period_invariant = attributes.pop('is_period_invariant', False)
+        assert is_period_invariant in (False, True), is_period_invariant
+
+        name = unicode(name)
+        label = attributes.pop('label', None)
+        label = name if label is None else unicode(label)
+
+        period_unit = attributes.pop('period_unit')
+        assert period_unit in (u'month', u'year'), period_unit
+
+        start_date = attributes.pop('start_date', None)
+        if start_date is not None:
+            assert isinstance(start_date, datetime.date)
+
+        stop_date = attributes.pop('stop_date', None)
+        if stop_date is not None:
+            assert isinstance(stop_date, datetime.date)
+
+        url = attributes.pop('url', None)
+        if url is not None:
+            url = unicode(url)
+
+        # Build formula class and column from extracted attributes.
+
+        formula_class_attributes = dict(
+            __module__ = attributes.pop('__module__'),
+            period_unit = period_unit,
+            )
+        if issubclass(formula_class, SimpleFormula):
+            function = attributes.pop('function')
+            assert function is not None
+
+            formula_class_attributes.update(
+                function = function,
+                )
+
+        # Ensure that all attributes defined in FormulaColumn class are used.
+        assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
+            ', '.join(attributes.iterkeys()))
+
+        formula_class = type(str(name), (formula_class,), formula_class_attributes)
+        formula_class.extract_variables_name()
+
+        # Fill column attributes.
+        if stop_date is not None:
+            column.end = stop_date
+        column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
+        column.entity_class = entity_class
+        column.formula_constructor = formula_class
+        if is_period_invariant:
+            column.is_period_invariant = True
+        column.label = label
+        column.name = name
+        if start_date is not None:
+            column.start = start_date
+        if url is not None:
+            column.url = url
+
+        return column
+
+
+class SimpleFormulaColumn(object):
+    """Syntactic sugar to generate a SimpleFormula class and fill its column"""
+    __metaclass__ = FormulaColumnMetaclass
+    formula_class = SimpleFormula
 
 
 def build_alternative_formula_couple(name = None, functions = None, column = None, entity_class_by_symbol = None):
+    # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
     assert isinstance(functions, list), functions
@@ -882,7 +973,8 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
 
 
 def build_dated_formula_couple(name = None, dated_functions = None, column = None, entity_class_by_symbol = None,
-                               replace = False):
+        replace = False):
+    # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
     assert isinstance(dated_functions, list), dated_functions
@@ -925,7 +1017,8 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
 
 
 def build_select_formula_couple(name = None, main_variable_function_couples = None, column = None,
-                                entity_class_by_symbol = None):
+        entity_class_by_symbol = None):
+    # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
     assert isinstance(main_variable_function_couples, list), main_variable_function_couples
@@ -956,6 +1049,7 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
 
 
 def build_simple_formula_couple(name = None, column = None, entity_class_by_symbol = None, replace = False):
+    # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
 
@@ -979,39 +1073,19 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
 
 
 def reference_formula(prestation_by_name = None):
-    """Decorator used to declare a formula defined in reference tax benefit system."""
-    def reference_formula_decorator(formula_class):
-        formula_class.extract_variables_name()
+    """Class decorator used to declare a formula to the reference tax benefit system."""
+    def reference_formula_decorator(column):
+        assert isinstance(column, columns.Column)
+        assert column.formula_constructor is not None
 
-        entity_class = formula_class.entity_class
-        formula_class.name = name = unicode(formula_class.__name__)
-        formula_class.label = label = name if formula_class.label is None else unicode(formula_class.label)
-        assert formula_class.is_period_invariant in (False, True), formula_class.is_period_invariant
-        assert formula_class.period_unit in (u'month', u'year'), formula_class.period_unit
-        url = formula_class.url
-        if url is not None:
-            formula_class.url = url = unicode(url)
-
-        column = formula_class.column
-        if not isinstance(column, columns.Column):
-            column = column()
-            assert isinstance(column, columns.Column)
-        column.entity = entity_class.symbol
-        column.formula_constructor = formula_class
-        if formula_class.is_period_invariant:
-            column.is_period_invariant = True
-        column.label = label
-        column.name = name
-        if url is not None:
-            column.url = url
-
-        entity_column_by_name = entity_class.column_by_name
+        entity_column_by_name = column.entity_class.column_by_name
+        name = column.name
         assert name not in entity_column_by_name, name
         entity_column_by_name[name] = column
 
         assert name not in prestation_by_name, name
         prestation_by_name[name] = column
 
-        return formula_class
+        return column
 
     return reference_formula_decorator

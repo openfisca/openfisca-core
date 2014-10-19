@@ -30,7 +30,7 @@ import itertools
 from openfisca_core import conv, periods
 from openfisca_core.columns import FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import reference_formula, SimpleFormula
+from openfisca_core.formulas import reference_formula, SimpleFormulaColumn
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -336,7 +336,7 @@ reference_formula = reference_formula(prestation_by_name = prestation_by_name)
 
 
 @reference_formula
-class revenu_disponible(SimpleFormula):
+class revenu_disponible(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible"
@@ -347,7 +347,7 @@ class revenu_disponible(SimpleFormula):
 
 
 @reference_formula
-class rsa(SimpleFormula):
+class rsa(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
@@ -356,15 +356,9 @@ class rsa(SimpleFormula):
     def function(self, salaire_imposable):
         return (salaire_imposable < 500) * 333
 
-    # def get_law_period(self, period, law_path):
-    #     return periods.offset(period, -3)
-
-    # def get_variable_period(self, period, variable_name):
-    #     return periods.offset(period, -3)
-
 
 @reference_formula
-class salaire_imposable(SimpleFormula):
+class salaire_imposable(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
@@ -375,7 +369,7 @@ class salaire_imposable(SimpleFormula):
 
 
 @reference_formula
-class salaire_net(SimpleFormula):
+class salaire_net(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"

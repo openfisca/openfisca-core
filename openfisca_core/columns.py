@@ -47,7 +47,8 @@ class Column(object):
     default = 0
     dtype = float
     end = None
-    entity = None
+    entity = None  # Obsolete: To remove once build_..._couple() functions are no more used.
+    entity_class = None  # Caution: Don't use this attribute till build_..._couple() functions are no more used.
     formula_constructor = None
     function = None
     info = None
@@ -339,7 +340,7 @@ def build_column_couple(name = None, column = None, entity_class_by_symbol = Non
 
 
 def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_period_invariant = False,
-        label = None, name = None, url = None):
+        label = None, name = None, start_date = None, stop_date = None, url = None):
     """Declare an input variable defined in reference tax benefit system."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -348,11 +349,19 @@ def reference_input_variable(column = None, column_by_name = None, entity_class 
     if not isinstance(column, Column):
         column = column()
         assert isinstance(column, Column)
-    column.entity = entity_class.symbol
+
+    if stop_date is not None:
+        assert isinstance(stop_date, datetime.date)
+        column.end = stop_date
+    column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
+    column.entity_class = entity_class
     if is_period_invariant:
         column.is_period_invariant = True
     column.label = label
     column.name = name
+    if start_date is not None:
+        assert isinstance(start_date, datetime.date)
+        column.start = start_date
     if url is not None:
         column.url = unicode(url)
 
