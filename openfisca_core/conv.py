@@ -26,9 +26,9 @@
 """Conversion functions"""
 
 
-from biryani1.baseconv import *
-from biryani1.datetimeconv import *
-from biryani1.jsonconv import *
+from biryani1.baseconv import *  # noqa
+from biryani1.datetimeconv import *  # noqa
+from biryani1.jsonconv import *  # noqa
 from biryani1.states import State
 
 

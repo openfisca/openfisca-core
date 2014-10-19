@@ -1,5 +1,8 @@
-test:
-	nosetests -x --with-doctest openfisca_core/tests
+check-tests-syntax:
+	flake8 openfisca_core/
 
-test-with-cover:
-	nosetests -x openfisca_core/tests --with-coverage --cover-package=openfisca_core --cover-erase --cover-branches --cover-html
+test: check-tests-syntax
+	nosetests -x --with-doctest openfisca_core/
+
+test-with-coverage:
+	nosetests -x openfisca_core/ --with-coverage --cover-package=openfisca_core --cover-erase --cover-branches --cover-html
