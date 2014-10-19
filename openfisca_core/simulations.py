@@ -26,10 +26,7 @@
 import collections
 
 from . import legislations, periods
-
-
-class Dummy(object):
-    pass
+from .tools import empty_clone
 
 
 class Simulation(periods.PeriodMixin):
@@ -100,41 +97,40 @@ class Simulation(periods.PeriodMixin):
 
     def clone(self, debug = False, debug_all = False, trace = False):
         """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
-        other = Dummy()
-        other.__class__ = self.__class__
-        other_dict = other.__dict__
+        new = empty_clone(self)
+        new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
             if key not in ('debug', 'debug_all', 'entity_by_key_plural', 'persons', 'trace'):
-                other_dict[key] = value
+                new_dict[key] = value
 
         if debug:
-            other_dict['debug'] = True
+            new_dict['debug'] = True
         if debug_all:
-            other_dict['debug_all'] = True
+            new_dict['debug_all'] = True
         if trace:
-            other_dict['trace'] = True
-            other_dict['traceback'] = collections.OrderedDict()
+            new_dict['trace'] = True
+            new_dict['traceback'] = collections.OrderedDict()
 
-        other_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
-            (key_plural, entity.clone(simulation = other))
+        new_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
+            (key_plural, entity.clone(simulation = new))
             for key_plural, entity in self.entity_by_key_plural.iteritems()
             )
-        other_dict['entity_by_column_name'] = dict(
+        new_dict['entity_by_column_name'] = dict(
             (column_name, entity)
             for entity in entity_by_key_plural.itervalues()
             for column_name in entity.column_by_name.iterkeys()
             )
-        other_dict['entity_by_key_singular'] = dict(
+        new_dict['entity_by_key_singular'] = dict(
             (entity.key_singular, entity)
             for entity in entity_by_key_plural.itervalues()
             )
         for entity in entity_by_key_plural.itervalues():
             if entity.is_persons_entity:
-                other_dict['persons'] = entity
+                new_dict['persons'] = entity
                 break
 
-        return other
+        return new
 
     def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         if period is None:

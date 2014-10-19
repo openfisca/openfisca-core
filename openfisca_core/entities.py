@@ -24,6 +24,7 @@
 
 
 from . import holders
+from .tools import empty_clone
 
 
 class AbstractEntity(object):
@@ -53,22 +54,21 @@ class AbstractEntity(object):
 
     def clone(self, simulation):
         """Copy the entity just enough to be able to run the simulation without modifying the original simulation."""
-        other = Dummy()
-        other.__class__ = self.__class__
-        other_dict = other.__dict__
+        new = empty_clone(self)
+        new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
             if key not in ('holder_by_name', 'simulation'):
-                other_dict[key] = value
+                new_dict[key] = value
 
-        other_dict['simulation'] = simulation
-        # Caution: holders must be cloned after the simulation has been set into other.
-        other_dict['holder_by_name'] = {
-            name: holder.clone(other)
+        new_dict['simulation'] = simulation
+        # Caution: holders must be cloned after the simulation has been set into new.
+        new_dict['holder_by_name'] = {
+            name: holder.clone(new)
             for name, holder in self.holder_by_name.iteritems()
             }
 
-        return other
+        return new
 
     def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
         return self.get_or_new_holder(column_name).compute(lazy = lazy, period = period,
@@ -90,7 +90,3 @@ class AbstractEntity(object):
         assert not self.is_persons_entity
         raise NotImplementedError('Method "iter_member_persons_role_and_id" is not implemented for class {}'.format(
             self.__class__.__name__))
-
-
-class Dummy(object):
-    pass

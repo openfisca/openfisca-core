@@ -30,13 +30,10 @@ import logging
 import numpy as np
 
 from . import accessors, columns, holders, periods
+from .tools import empty_clone, stringify_array
 
 
 log = logging.getLogger(__name__)
-
-
-class Dummy(object):
-    pass
 
 
 # Exceptions
@@ -69,20 +66,19 @@ class AbstractFormula(object):
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        other = Dummy()
-        other.__class__ = self.__class__
-        other_dict = other.__dict__
+        new = empty_clone(self)
+        new_dict = new.__dict__
 
         if keys_to_skip is None:
             keys_to_skip = set()
         keys_to_skip.add('holder')
         for key, value in self.__dict__.iteritems():
             if key not in keys_to_skip:
-                other_dict[key] = value
+                new_dict[key] = value
 
-        other_dict['holder'] = holder
+        new_dict['holder'] = holder
 
-        return other
+        return new
 
 
 class AbstractGroupedFormula(AbstractFormula):
@@ -114,14 +110,14 @@ class AlternativeFormula(AbstractGroupedFormula):
         if keys_to_skip is None:
             keys_to_skip = set()
         keys_to_skip.add('alternative_formulas')
-        other = super(AlternativeFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+        new = super(AlternativeFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
-        other.alternative_formulas = [
+        new.alternative_formulas = [
             alternative_formula.clone(holder)
             for alternative_formula in self.alternative_formulas
             ]
 
-        return other
+        return new
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
@@ -214,9 +210,9 @@ class DatedFormula(AbstractGroupedFormula):
         if keys_to_skip is None:
             keys_to_skip = set()
         keys_to_skip.add('dated_formulas')
-        other = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+        new = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
-        other.dated_formulas = [
+        new.dated_formulas = [
             {
                 key: value.clone(holder) if key == 'formula' else value
                 for key, value in dated_formula.iteritems()
@@ -224,7 +220,7 @@ class DatedFormula(AbstractGroupedFormula):
             for dated_formula in self.dated_formulas
             ]
 
-        return other
+        return new
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
@@ -316,14 +312,14 @@ class SelectFormula(AbstractGroupedFormula):
         if keys_to_skip is None:
             keys_to_skip = set()
         keys_to_skip.add('formula_by_main_variable')
-        other = super(SelectFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+        new = super(SelectFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
-        other.formula_by_main_variable = collections.OrderedDict(
+        new.formula_by_main_variable = collections.OrderedDict(
             (variable_name, formula.clone(holder))
             for variable_name, formula in self.formula_by_main_variable.iteritems()
             )
 
-        return other
+        return new
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         holder = self.holder
@@ -1019,10 +1015,3 @@ def reference_formula(prestation_by_name = None):
         return formula_class
 
     return reference_formula_decorator
-
-
-def stringify_array(array):
-    return u'[{}]'.format(u', '.join(
-        unicode(cell)
-        for cell in array
-        )) if array is not None else u'None'
