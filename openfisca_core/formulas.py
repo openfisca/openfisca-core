@@ -694,11 +694,11 @@ class SimpleFormula(AbstractFormula):
         return output_period[1]
 
     def get_output_period(self, period):
-        """Return the period of the array(s) returned by the formula.
-
-        By default, the output period is the base period of size 1 of the requested period using formula unit.
-        """
-        return periods.base(self.period_unit, period[1])
+        """Return the period of the array(s) returned by the formula."""
+        # By default, the output period is the base period of size 1 of the requested period using formula unit.
+        # return periods.base(self.period_unit, period[1])
+        raise NotImplementedError('Method get_output_period is not implemented for formula "{}"'.format(
+            self.column.name))
 
     def get_variable_period(self, output_period, variable_name):
         """Return the period required for an input variable used by the formula.
