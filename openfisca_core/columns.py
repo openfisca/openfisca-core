@@ -141,9 +141,18 @@ class Column(object):
             self_json['val_type'] = self.val_type
         return self_json
 
-    def transform_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value):
         # Convert a non-NumPy Python value to JSON.
         return value
+
+    def transform_value_to_json(self, value):
+        # Convert a non-NumPy Python value to JSON.
+        if isinstance(value, dict):
+            return collections.OrderedDict(
+                (periods.json_str(period), self.transform_dated_value_to_json(dated_value))
+                for period, dated_value in value.iteritems()
+                )
+        return self.transform_dated_value_to_json(value)
 
 
 # Level-1 Columns
@@ -199,7 +208,7 @@ class DateCol(Column):
             conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
             )
 
-    def transform_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value):
         # Convert a non-NumPy Python value to JSON.
         return value.isoformat() if value is not None else value
 
