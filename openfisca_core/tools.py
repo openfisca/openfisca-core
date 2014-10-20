@@ -26,6 +26,7 @@
 __all__ = [
     'empty_clone',
     'stringify_array',
+    'stringify_formula_arguments',
     ]
 
 
@@ -53,3 +54,14 @@ def stringify_array(array):
         unicode(cell)
         for cell in array
         )) if array is not None else u'None'
+
+
+def stringify_formula_arguments(dated_holder_by_variable_name):
+    return u', '.join(
+        u'{} = {}@{}'.format(
+            variable_name,
+            variable_dated_holder.entity.key_plural,
+            stringify_array(variable_dated_holder.array),
+            )
+        for variable_name, variable_dated_holder in dated_holder_by_variable_name.iteritems()
+        )

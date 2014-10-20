@@ -32,7 +32,7 @@ import logging
 import numpy as np
 
 from . import accessors, columns, holders, periods
-from .tools import empty_clone, stringify_array
+from .tools import empty_clone, stringify_array, stringify_formula_arguments
 
 
 log = logging.getLogger(__name__)
@@ -524,6 +524,7 @@ class SimpleFormula(AbstractFormula):
             return dated_holder
 
         period_requested_formulas.add(self)
+        dated_holder_by_variable_name = collections.OrderedDict()
         holder_by_variable_name = self.holder_by_variable_name
         required_parameters = set(holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
@@ -540,6 +541,7 @@ class SimpleFormula(AbstractFormula):
                     column.name, variable_name, variable_period)
                 period_requested_formulas.remove(self)
                 return holder.at_period(output_period)
+            dated_holder_by_variable_name[variable_name] = variable_dated_holder
             # When variable_name ends with "_holder" suffix, use holder as argument instead of its array.
             # It is a hack until we use static typing annotations of Python 3 (cf PEP 3107).
             arguments[variable_name] = variable_dated_holder \
@@ -577,17 +579,18 @@ class SimpleFormula(AbstractFormula):
             array = self.function(**arguments)
         except:
             log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
-                self.get_arguments_str()))
+                stringify_formula_arguments(dated_holder_by_variable_name)))
             raise
         if array is None:
             # Retrieve dated holder that may have been set by function... or None.
             array = dated_holder.array
         else:
             assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-                entity.key_plural, column.name, self.get_arguments_str(), stringify_array(array)).encode('utf-8')
+                entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name),
+                stringify_array(array)).encode('utf-8')
             assert array.size == entity.count, \
                 u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(
-                    entity.key_plural, column.name, self.get_arguments_str(), array.size, entity.count,
+                    entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name), array.size, entity.count,
                     entity.key_singular).encode('utf-8')
 
             if not simulation.debug:
@@ -604,7 +607,7 @@ class SimpleFormula(AbstractFormula):
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
             log.info(u'<=> {}@{}[{}]({}) --> {}'.format(entity.key_plural, column.name, periods.json_str(output_period),
-                self.get_arguments_str(), stringify_array(array)))
+                stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array)))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
@@ -680,16 +683,6 @@ class SimpleFormula(AbstractFormula):
                 entity.key_singular, role, holder.column.name))
             raise
         return target_array
-
-    def get_arguments_str(self):
-        return u', '.join(
-            u'{} = {}@{}'.format(
-                variable_name,
-                variable_holder.entity.key_plural,
-                stringify_array(variable_holder.array),
-                )
-            for variable_name, variable_holder in self.holder_by_variable_name.iteritems()
-            )
 
     def get_law_instant(self, output_period, law_path):
         """Return the instant required for a node of the legislation used by the formula.
