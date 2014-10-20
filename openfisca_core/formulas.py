@@ -872,6 +872,8 @@ class FormulaColumnMetaclass(type):
             column = column()
             assert isinstance(column, columns.Column)
 
+        doc = attributes.pop('__doc__', None)
+
         entity_class = attributes.pop('entity_class')
 
         formula_class = attributes.pop('formula_class', base_class.formula_class)
@@ -909,6 +911,9 @@ class FormulaColumnMetaclass(type):
             __module__ = attributes.pop('__module__'),
             period_unit = period_unit,
             )
+        if doc is not None:
+            formula_class_attributes['__doc__'] = doc
+
         if issubclass(formula_class, DatedFormula):
             dated_formulas_class = []
             for function_name, function in attributes.copy().iteritems():
