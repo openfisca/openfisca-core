@@ -880,6 +880,10 @@ class FormulaColumnMetaclass(type):
         is_period_invariant = attributes.pop('is_period_invariant', False)
         assert is_period_invariant in (False, True), is_period_invariant
 
+        get_law_instant = attributes.pop('get_law_instant', None)
+        get_output_period = attributes.pop('get_output_period', None)
+        get_variable_period = attributes.pop('get_variable_period', None)
+
         name = unicode(name)
         label = attributes.pop('label', None)
         label = name if label is None else unicode(label)
@@ -919,6 +923,12 @@ class FormulaColumnMetaclass(type):
 
                 dated_formula_class_attributes = formula_class_attributes.copy()
                 dated_formula_class_attributes['function'] = function
+                if get_law_instant is not None:
+                    dated_formula_class_attributes['get_law_instant'] = get_law_instant
+                if get_output_period is not None:
+                    dated_formula_class_attributes['get_output_period'] = get_output_period
+                if get_variable_period is not None:
+                    dated_formula_class_attributes['get_variable_period'] = get_variable_period
                 dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
                 dated_formula_class.extract_variables_name()
 
@@ -945,6 +955,12 @@ class FormulaColumnMetaclass(type):
             function = attributes.pop('function')
             assert function is not None
             formula_class_attributes['function'] = function
+            if get_law_instant is not None:
+                formula_class_attributes['get_law_instant'] = get_law_instant
+            if get_output_period is not None:
+                formula_class_attributes['get_output_period'] = get_output_period
+            if get_variable_period is not None:
+                formula_class_attributes['get_variable_period'] = get_variable_period
 
         # Ensure that all attributes defined in FormulaColumn class are used.
         assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
