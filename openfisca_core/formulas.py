@@ -603,8 +603,8 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = array
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}({}) --> {}'.format(entity.key_plural, column.name, self.get_arguments_str(),
-                stringify_array(array)))
+            log.info(u'<=> {}@{}[{}]({}) --> {}'.format(entity.key_plural, column.name, periods.json_str(output_period),
+                self.get_arguments_str(), stringify_array(array)))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
                 default_arguments = has_only_default_arguments,
