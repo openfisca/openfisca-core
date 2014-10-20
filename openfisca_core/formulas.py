@@ -42,17 +42,7 @@ log = logging.getLogger(__name__)
 
 
 class NaNCreationError(Exception):
-    def __init__(self, column_name, entity, index):
-        self.column_name = column_name
-        self.entity = entity
-        self.index = index
-
-    def __str__(self):
-        return repr("{} NaN value(s) are present in {} variable {}".format(
-            len(self.index),
-            self.entity.key_singular,
-            self.column_name,
-            ))
+    pass
 
 
 # Formulas
@@ -593,11 +583,15 @@ class SimpleFormula(AbstractFormula):
                     entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name),
                     array.size, entity.count, entity.key_singular).encode('utf-8')
 
-            if not simulation.debug:
+            if simulation.debug:
                 try:
                     # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                     if np.isnan(np.min(array)):
-                        raise NaNCreationError(column.name, entity, np.arange(len(array))[np.isnan(array)])
+                        nan_count = np.count_nonzero(np.isnan(array))
+                        raise NaNCreationError(u'{} NaN value(s) are present in result of {}@{}[{}]({}) --> {}'.format(
+                            nan_count, entity.key_plural, column.name, periods.json_str(output_period),
+                            stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array),
+                            ).encode('utf-8'))
                 except TypeError:
                     pass
 
