@@ -516,8 +516,8 @@ class SimpleFormula(AbstractFormula):
             u"{} {} declares a {} period unit but returns a different output period: {}".format(self.__class__.__name__,
                 column.name, self.period_unit, output_period).encode('utf-8')
         assert output_period[1] <= period[1] <= periods.stop_instant(output_period), \
-            u"{} {} returns an output period {} that doesn't include start instant of requested period".format(
-                self.__class__.__name__, column.name).encode('utf-8')
+            u"{} {} returns an output period {} that doesn't include start instant of requested period {}".format(
+                self.__class__.__name__, column.name, output_period, period).encode('utf-8')
         output_period = periods.intersection(output_period, periods.instant(column.start), periods.instant(column.end))
         dated_holder = holder.at_period(output_period)
         if dated_holder.array is not None:
