@@ -590,8 +590,8 @@ class SimpleFormula(AbstractFormula):
                 stringify_array(array)).encode('utf-8')
             assert array.size == entity.count, \
                 u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(
-                    entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name), array.size, entity.count,
-                    entity.key_singular).encode('utf-8')
+                    entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name),
+                    array.size, entity.count, entity.key_singular).encode('utf-8')
 
             if not simulation.debug:
                 try:
