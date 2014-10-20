@@ -1016,6 +1016,9 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
     for function in functions:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
+            # Use a year period starting at beginning of month.
+            get_output_period = lambda self, period: periods.period(u'year',
+                periods.base_instant('month', periods.start_instant(period))),
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
@@ -1053,6 +1056,9 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             (SimpleFormula,),
             dict(
                 function = staticmethod(dated_function['function']),
+                # Use a year period starting at beginning of month.
+                get_output_period = lambda self, period: periods.period(u'year',
+                    periods.base_instant('month', periods.start_instant(period))),
                 period_unit = u'year',
                 ),
             )
@@ -1092,6 +1098,9 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
     for main_variable, function in main_variable_function_couples:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
+            # Use a year period starting at beginning of month.
+            get_output_period = lambda self, period: periods.period(u'year',
+                periods.base_instant('month', periods.start_instant(period))),
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
@@ -1119,6 +1128,9 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
 
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
+        # Use a year period starting at beginning of month.
+        get_output_period = lambda self, period: periods.period(u'year',
+            periods.base_instant('month', periods.start_instant(period))),
         period_unit = u'year',
         ))
     formula_class.extract_variables_name()
