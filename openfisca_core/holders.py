@@ -197,7 +197,8 @@ class Holder(object):
                 if exact_array is not None:
                     intersection_period = periods.intersection(period, exact_start_instant, exact_stop_instant)
                     if intersection_period is not None:
-                        if isinstance(column, (columns.FloatCol, columns.IntCol)):
+                        if isinstance(column, (columns.FloatCol, columns.IntCol)) \
+                                and not isinstance(column, (columns.AgeCol, columns.EnumCol)):
                             intersection_days = periods.days(intersection_period)
                             exact_days = periods.days(exact_period)
                             if intersection_days == exact_days:
@@ -209,7 +210,7 @@ class Holder(object):
                             else:
                                 array += intersection_array
                         else:
-                            # TODO: Handle booleans, etc.
+                            # TODO: Handle booleans, enumerations, etc.
                             array = np.copy(exact_array)
                 if exact_stop_instant >= stop_instant:
                     break
