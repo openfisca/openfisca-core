@@ -347,6 +347,9 @@ class revenu_disponible(SimpleFormulaColumn):
     def function(self, rsa, salaire_imposable):
         return rsa + salaire_imposable * 0.7
 
+    def get_output_period(self, period):
+        return periods.base_period(self.period_unit, period)
+
 
 @reference_formula
 class rsa(DatedFormulaColumn):
@@ -367,6 +370,9 @@ class rsa(DatedFormulaColumn):
     def function_2013(self, salaire_imposable):
         return (salaire_imposable < 500) * 300
 
+    def get_output_period(self, period):
+        return periods.base_period(self.period_unit, period)
+
 
 @reference_formula
 class salaire_imposable(SimpleFormulaColumn):
@@ -377,6 +383,9 @@ class salaire_imposable(SimpleFormulaColumn):
 
     def function(self, salaire_net):
         return salaire_net * 0.9
+
+    def get_output_period(self, period):
+        return periods.base_period(self.period_unit, period)
 
 
 @reference_formula
@@ -389,6 +398,9 @@ class salaire_net(SimpleFormulaColumn):
     @staticmethod
     def function(salaire_brut):
         return salaire_brut * 0.8
+
+    def get_output_period(self, period):
+        return periods.base_period(self.period_unit, period)
 
 
 # TaxBenefitSystem instance declared after formulas

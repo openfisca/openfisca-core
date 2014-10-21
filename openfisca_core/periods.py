@@ -87,51 +87,47 @@ class PeriodMixin(object):
         return unit(self.period)
 
 
-def base(unit, instant, offset = 0, size = 1):
+def base(period, offset = 0, size = 1):
     """Compute a base period of size units from the (start of) the given one and offset it of offset units.
 
-    >>> base('year', instant(2014))
+    >>> base(period('year', 2014))
     (u'year', (2014, 1, 1), 1)
-    >>> base('year', instant('2014-2-3'))
+    >>> base(period('year', '2014-2-3'))
     (u'year', (2014, 1, 1), 1)
-    >>> base('year', instant('2014-2-3'), offset = -4)
+    >>> base(period('year', '2014-2-3'), offset = -4)
     (u'year', (2010, 1, 1), 1)
-    >>> base('year', instant('2014-2-3'), size = 4)
+    >>> base(period('year', '2014-2-3'), size = 4)
     (u'year', (2014, 1, 1), 4)
-    >>> base('year', instant('2014-2-3'), offset = -4, size = 4)
+    >>> base(period('year', '2014-2-3'), offset = -4, size = 4)
     (u'year', (2010, 1, 1), 4)
 
-    >>> base('month', instant(2014))
+    >>> base(period('month', '2014'))
     (u'month', (2014, 1, 1), 1)
-    >>> base('month', instant('2014-2-3'))
+    >>> base(period('month', '2014-2-3'))
     (u'month', (2014, 2, 1), 1)
-    >>> base('month', instant('2014-2-3'), offset = -4)
+    >>> base(period('month', '2014-2-3'), offset = -4)
     (u'month', (2013, 10, 1), 1)
-    >>> base('month', instant('2014-2-3'), size = 4)
+    >>> base(period('month', '2014-2-3'), size = 4)
     (u'month', (2014, 2, 1), 4)
-    >>> base('month', instant('2014-2-3'), offset = -4, size = 4)
+    >>> base(period('month', '2014-2-3'), offset = -4, size = 4)
     (u'month', (2013, 10, 1), 4)
 
-    >>> base('day', instant(2014))
+    >>> base(period('day', '2014'))
     (u'day', (2014, 1, 1), 1)
-    >>> base('day', instant('2014-2-3'))
+    >>> base(period('day', '2014-2-3'))
     (u'day', (2014, 2, 3), 1)
-    >>> base('day', instant('2014-2-3'), offset = -4)
+    >>> base(period('day', '2014-2-3'), offset = -4)
     (u'day', (2014, 1, 30), 1)
-    >>> base('day', instant('2014-2-3'), size = 4)
+    >>> base(period('day', '2014-2-3'), size = 4)
     (u'day', (2014, 2, 3), 4)
-    >>> base('day', instant('2014-2-3'), offset = -4, size = 4)
+    >>> base(period('day', '2014-2-3'), offset = -4, size = 4)
     (u'day', (2014, 1, 30), 4)
 
-    >>> base(u'year', None)
-    >>> base(u'month', None)
-    >>> base(u'day', None)
+    >>> base(None)
     """
-    if instant is None:
+    if period is None:
         return None
-    unit = unicode(unit)
-    assert size >= 1
-    return (unit, base_instant(unit, instant, offset = offset), size)
+    return base_period(period[0], period[1], offset = offset, size = size)
 
 
 def base_instant(unit, instant, offset = 0):
@@ -200,6 +196,87 @@ def base_instant(unit, instant, offset = 0):
         year += offset
         base_instant = (year, 1, 1)
     return base_instant
+
+
+def base_period(unit, instant_or_period, offset = 0, size = 1):
+    """Compute a base period of size units from the givent instant one and offset it of offset units.
+
+    >>> base_period('year', instant(2014))
+    (u'year', (2014, 1, 1), 1)
+    >>> base_period('year', instant('2014-2-3'))
+    (u'year', (2014, 1, 1), 1)
+    >>> base_period('year', instant('2014-2-3'), offset = -4)
+    (u'year', (2010, 1, 1), 1)
+    >>> base_period('year', instant('2014-2-3'), size = 4)
+    (u'year', (2014, 1, 1), 4)
+    >>> base_period('year', instant('2014-2-3'), offset = -4, size = 4)
+    (u'year', (2010, 1, 1), 4)
+
+    >>> base_period('month', instant(2014))
+    (u'month', (2014, 1, 1), 1)
+    >>> base_period('month', instant('2014-2-3'))
+    (u'month', (2014, 2, 1), 1)
+    >>> base_period('month', instant('2014-2-3'), offset = -4)
+    (u'month', (2013, 10, 1), 1)
+    >>> base_period('month', instant('2014-2-3'), size = 4)
+    (u'month', (2014, 2, 1), 4)
+    >>> base_period('month', instant('2014-2-3'), offset = -4, size = 4)
+    (u'month', (2013, 10, 1), 4)
+
+    >>> base_period('day', instant(2014))
+    (u'day', (2014, 1, 1), 1)
+    >>> base_period('day', instant('2014-2-3'))
+    (u'day', (2014, 2, 3), 1)
+    >>> base_period('day', instant('2014-2-3'), offset = -4)
+    (u'day', (2014, 1, 30), 1)
+    >>> base_period('day', instant('2014-2-3'), size = 4)
+    (u'day', (2014, 2, 3), 4)
+    >>> base_period('day', instant('2014-2-3'), offset = -4, size = 4)
+    (u'day', (2014, 1, 30), 4)
+
+    >>> base_period('year', period('day', 2014))
+    (u'year', (2014, 1, 1), 1)
+    >>> base_period('year', period('month', '2014-2-3'))
+    (u'year', (2014, 1, 1), 1)
+    >>> base_period('year', period('year', '2014-2-3'), offset = -4)
+    (u'year', (2010, 1, 1), 1)
+    >>> base_period('year', period('day', '2014-2-3'), size = 4)
+    (u'year', (2014, 1, 1), 4)
+    >>> base_period('year', period('month', '2014-2-3'), offset = -4, size = 4)
+    (u'year', (2010, 1, 1), 4)
+
+    >>> base_period('month', period('day', 2014))
+    (u'month', (2014, 1, 1), 1)
+    >>> base_period('month', period('month', '2014-2-3'))
+    (u'month', (2014, 2, 1), 1)
+    >>> base_period('month', period('year', '2014-2-3'), offset = -4)
+    (u'month', (2013, 10, 1), 1)
+    >>> base_period('month', period('day', '2014-2-3'), size = 4)
+    (u'month', (2014, 2, 1), 4)
+    >>> base_period('month', period('month', '2014-2-3'), offset = -4, size = 4)
+    (u'month', (2013, 10, 1), 4)
+
+    >>> base_period('day', period('day', 2014))
+    (u'day', (2014, 1, 1), 1)
+    >>> base_period('day', period('month', '2014-2-3'))
+    (u'day', (2014, 2, 3), 1)
+    >>> base_period('day', period('year', '2014-2-3'), offset = -4)
+    (u'day', (2014, 1, 30), 1)
+    >>> base_period('day', period('day', '2014-2-3'), size = 4)
+    (u'day', (2014, 2, 3), 4)
+    >>> base_period('day', period('month', '2014-2-3'), offset = -4, size = 4)
+    (u'day', (2014, 1, 30), 4)
+
+    >>> base_period(u'year', None)
+    >>> base_period(u'month', None)
+    >>> base_period(u'day', None)
+    """
+    if instant_or_period is None:
+        return None
+    unit = unicode(unit)
+    assert size >= 1
+    instant = instant_or_period[1] if isinstance(instant_or_period[0], basestring) else instant_or_period
+    return (unit, base_instant(unit, instant, offset = offset), size)
 
 
 def date(period):
