@@ -410,7 +410,7 @@ TaxBenefitSystem = init_country()
 tax_benefit_system = TaxBenefitSystem(legislation_json = {})
 
 
-def check_revenu_disponible(year, expected_array = None):
+def check_revenu_disponible(year, expected_revenu_disponible):
     global tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
@@ -425,7 +425,7 @@ def check_revenu_disponible(year, expected_array = None):
         parent1 = {},
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')
-    assert (revenu_disponible == expected_array).all(), str((revenu_disponible, expected_array))
+    assert (revenu_disponible == expected_revenu_disponible).all(), str((revenu_disponible, expected_revenu_disponible))
 
 
 def test_revenu_disponible():
