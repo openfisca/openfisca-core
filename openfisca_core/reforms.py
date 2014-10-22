@@ -52,6 +52,7 @@ class Reform(object):
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
+            entity_class_by_key_plural = self.entity_class_by_key_plural,
             legislation_json = self.legislation_json,
             period = scenario.period,
             tax_benefit_system = scenario.tax_benefit_system,
