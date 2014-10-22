@@ -210,8 +210,11 @@ class Holder(object):
                             else:
                                 array += intersection_array
                         else:
-                            # TODO: Handle booleans, enumerations, etc.
-                            array = np.copy(exact_array)
+                            # Handle booleans, enumerations, etc.
+                            # Use always the first value for the period, because the output period may end before the
+                            # requested period (because of base instant).
+                            if array is None:
+                                array = np.copy(exact_array)
                 if exact_stop_instant >= stop_instant:
                     break
         if not lazy and array is None:
