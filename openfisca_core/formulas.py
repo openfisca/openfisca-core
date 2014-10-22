@@ -308,7 +308,7 @@ class SimpleFormula(AbstractFormula):
     requires_self = False  # class attribute
     variables_name = None  # class attribute
 
-    def any_by_roles(self, array_or_holder, entity = None, roles = None):
+    def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
         target_entity = holder.entity
         simulation = target_entity.simulation
@@ -319,11 +319,11 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_holder.entity.is_persons_entity
-            array = array_or_holder.array
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_persons_entity
+            array = array_or_dated_holder.array
         else:
-            array = array_or_holder
+            array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
@@ -338,12 +338,12 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def cast_from_entity_to_role(self, array_or_holder, default = None, entity = None, role = None):
+    def cast_from_entity_to_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Cast an entity array to a persons array, setting only cells of persons having the given role."""
         assert isinstance(role, int)
-        return self.cast_from_entity_to_roles(array_or_holder, default = default, entity = entity, roles = [role])
+        return self.cast_from_entity_to_roles(array_or_dated_holder, default = default, entity = entity, roles = [role])
 
-    def cast_from_entity_to_roles(self, array_or_holder, default = None, entity = None, roles = None):
+    def cast_from_entity_to_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
 
         When no roles are given, it means "all the roles" => every cell is set.
@@ -352,21 +352,22 @@ class SimpleFormula(AbstractFormula):
         target_entity = holder.entity
         simulation = target_entity.simulation
         persons = simulation.persons
-        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
             if entity is None:
-                entity = array_or_holder.entity
+                entity = array_or_dated_holder.entity
             else:
                 assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
                 entity = simulation.entity_by_key_singular[entity]
-                assert entity == array_or_holder.entity, u"""Holder entity "{}" and given entity "{}" don't match""" \
-                    .format(entity.key_plural, array_or_holder.entity.key_plural).encode('utf-8')
-            array = array_or_holder.array
+                assert entity == array_or_dated_holder.entity, \
+                    u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key_plural,
+                        array_or_dated_holder.entity.key_plural).encode('utf-8')
+            array = array_or_dated_holder.array
             if default is None:
-                default = array_or_holder.column.default
+                default = array_or_dated_holder.column.default
         else:
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
-            array = array_or_holder
+            array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
             assert array.size == entity.count, u"Expected an array of size {}. Got: {}".format(entity.count,
@@ -564,7 +565,7 @@ class SimpleFormula(AbstractFormula):
                 cls.requires_self = True
             variables_name.remove('self')
 
-    def filter_role(self, array_or_holder, default = None, entity = None, role = None):
+    def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
         holder = self.holder
         simulation = holder.entity.simulation
@@ -575,13 +576,13 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_holder.entity.is_persons_entity
-            array = array_or_holder.array
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_persons_entity
+            array = array_or_dated_holder.array
             if default is None:
-                default = array_or_holder.column.default
+                default = array_or_dated_holder.column.default
         else:
-            array = array_or_holder
+            array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
@@ -666,7 +667,7 @@ class SimpleFormula(AbstractFormula):
                 variable_column.consumers = set()
             variable_column.consumers.add(column.name)
 
-    def split_by_roles(self, array_or_holder, default = None, entity = None, roles = None):
+    def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
         holder = self.holder
         simulation = holder.entity.simulation
@@ -677,13 +678,13 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_holder.entity.is_persons_entity
-            array = array_or_holder.array
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_persons_entity
+            array = array_or_dated_holder.array
             if default is None:
-                default = array_or_holder.column.default
+                default = array_or_dated_holder.column.default
         else:
-            array = array_or_holder
+            array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
@@ -708,7 +709,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array_by_role
 
-    def sum_by_entity(self, array_or_holder, entity = None, roles = None):
+    def sum_by_entity(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
         target_entity = holder.entity
         simulation = target_entity.simulation
@@ -719,11 +720,11 @@ class SimpleFormula(AbstractFormula):
             assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
             entity = simulation.entity_by_key_singular[entity]
         assert not entity.is_persons_entity
-        if isinstance(array_or_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_holder.entity.is_persons_entity
-            array = array_or_holder.array
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_persons_entity
+            array = array_or_dated_holder.array
         else:
-            array = array_or_holder
+            array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
