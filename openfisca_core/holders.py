@@ -190,7 +190,7 @@ class Holder(object):
         array = None
         array_by_period = self._array_by_period
         if array_by_period is not None:
-            for exact_period in sorted(array_by_period):
+            for exact_period in sorted(array_by_period, key = lambda period: period[1]):
                 exact_start_instant = exact_period[1]
                 exact_stop_instant = periods.stop_instant(exact_period)
                 exact_array = array_by_period[exact_period]
