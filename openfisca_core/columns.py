@@ -52,7 +52,8 @@ class Column(object):
     formula_constructor = None
     function = None
     info = None
-    is_period_invariant = False  # When True, value of column doesn't depend from date
+    is_period_invariant = False  # When True, value of column doesn't depend from dates of period (example: ID)
+    is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     # json_type = None  # Defined in sub-classes
     label = None
     name = None
@@ -164,6 +165,7 @@ class BoolCol(Column):
     '''
     default = False
     dtype = np.bool
+    is_period_size_independent = True
     json_type = 'Boolean'
 
     @property
@@ -179,6 +181,7 @@ class DateCol(Column):
     A column of Datetime 64 to store dates of people
     '''
     dtype = 'datetime64[D]'
+    is_period_size_independent = True
     json_type = 'Date'
     val_type = 'date'
 
@@ -243,6 +246,7 @@ class IntCol(Column):
 class StrCol(Column):
     default = u''
     dtype = object
+    is_period_size_independent = True
     json_type = 'String'
 
     @property
@@ -258,6 +262,7 @@ class AgeCol(IntCol):
     A column of Int to store ages of people
     '''
     default = -9999
+    is_period_size_independent = True
 
     @property
     def json_to_dated_python(self):
@@ -277,6 +282,7 @@ class EnumCol(IntCol):
     dtype = np.int16
     enum = None
     index_by_slug = None
+    is_period_size_independent = True
     json_type = 'Enumeration'
 
     def __init__(self, enum = None, **kwargs):
@@ -328,6 +334,10 @@ class EnumCol(IntCol):
                 for label, index in self.enum
                 )
         return self_json
+
+
+class PeriodSizeIndependentIntCol(IntCol):
+    is_period_size_independent = True
 
 
 # Column couple builder
