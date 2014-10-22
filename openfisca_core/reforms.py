@@ -48,7 +48,7 @@ class Reform(object):
         self.name = name
         self.reference_legislation_json = reference_legislation_json
 
-    def new_simulation(self, debug = False, debug_all = False, scenario = None, trace = False):
+    def new_simulation(self, scenario, debug = False, debug_all = False, trace = False):
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
