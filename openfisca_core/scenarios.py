@@ -128,8 +128,9 @@ class AbstractScenario(periods.PeriodMixin):
                             for entity_member in test_case[entity_key_plural].itervalues()
                             ):
                         if isinstance(cell, dict):
-                            variable_periods.update(cell.iterkeys())
-                        else:
+                            if any(value is not None for value in cell.itervalues()):
+                                variable_periods.update(cell.iterkeys())
+                        elif cell is not None:
                             variable_periods.add(simulation_period)
                     holder = entity.get_or_new_holder(variable_name)
                     variable_default_value = column.default
