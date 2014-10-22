@@ -191,6 +191,7 @@ class Holder(object):
         array_by_period = self._array_by_period
         if array_by_period is not None:
             for exact_period in sorted(array_by_period, key = lambda period: period[1]):
+                exact_unit = exact_period[0]
                 exact_start_instant = exact_period[1]
                 exact_stop_instant = periods.stop_instant(exact_period)
                 exact_array = array_by_period[exact_period]
@@ -203,12 +204,16 @@ class Holder(object):
                             if array is None:
                                 array = np.copy(exact_array)
                         else:
-                            intersection_days = periods.days(intersection_period)
-                            exact_days = periods.days(exact_period)
-                            if intersection_days == exact_days:
-                                intersection_array = exact_array
+                            intersection_unit = intersection_period[0]
+                            if intersection_unit == exact_unit:
+                                intersection_array = exact_array * intersection_period[2] / exact_period[2]
+                            elif intersection_unit == u'month' and exact_unit == u'year':
+                                intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
+                            elif intersection_unit == u'year' and exact_unit == u'month':
+                                intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
                             else:
-                                intersection_array = exact_array * intersection_days / exact_days
+                                intersection_array = exact_array * (periods.days(intersection_period)
+                                    / periods.days(exact_period))
                             if array is None:
                                 array = np.copy(intersection_array)
                             else:
