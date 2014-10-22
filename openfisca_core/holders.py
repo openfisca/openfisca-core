@@ -206,7 +206,7 @@ class Holder(object):
                             else:
                                 intersection_array = exact_array * intersection_days / exact_days
                             if array is None:
-                                array = intersection_array
+                                array = np.copy(intersection_array)
                             else:
                                 array += intersection_array
                         else:
