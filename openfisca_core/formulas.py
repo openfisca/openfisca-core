@@ -125,6 +125,7 @@ class AlternativeFormula(AbstractGroupedFormula):
                 self.used_formula = alternative_formula
                 return dated_holder
         if lazy:
+            assert dated_holder is not None
             return dated_holder  # Note: dated_holder.array is None
         # No alternative has an existing array => Compute array using first alternative.
         # TODO: Imagine a better strategy.
@@ -204,6 +205,7 @@ class DatedFormula(AbstractGroupedFormula):
             return dated_holder
 
         if lazy:
+            assert dated_holder is not None
             return dated_holder  # Note: dated_holder.array is None
         holder = self.holder
         column = holder.column
@@ -417,12 +419,13 @@ class SimpleFormula(AbstractFormula):
 
         if requested_formulas_by_period is None:
             requested_formulas_by_period = {}
-        period_or_none = None if column.is_period_invariant else period
+        period_or_none = None if column.is_permanent else period
         period_requested_formulas = requested_formulas_by_period.get(period_or_none)
         if period_requested_formulas is None:
             requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
         elif lazy:
             if self in period_requested_formulas:
+                assert dated_holder is not None
                 return dated_holder
         else:
             assert self not in period_requested_formulas, \

@@ -179,6 +179,7 @@ class Holder(object):
                     break
                 formula_dated_holder = formula.compute(lazy = lazy, period = intersection_period,
                     requested_formulas_by_period = requested_formulas_by_period)
+                assert formula_dated_holder is not None
                 formula_period = periods.offset(formula_dated_holder.period, offset = formula_dated_holder.period[2])
                 formula_start_instant = formula_period[1]
                 if formula_start_instant > stop_instant:
