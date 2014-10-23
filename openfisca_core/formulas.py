@@ -982,6 +982,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             start_instant = periods.instant(dated_function['start']),
             stop_instant = periods.instant(dated_function['end']),
             ))
+    dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
         dated_formulas_class = dated_formulas_class,
