@@ -52,8 +52,8 @@ class Column(object):
     formula_constructor = None
     function = None
     info = None
-    is_period_invariant = False  # When True, value of column doesn't depend from dates of period (example: ID)
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
+    is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
     label = None
     name = None
@@ -63,7 +63,7 @@ class Column(object):
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
-            is_period_invariant = False, label = None, start = None, survey_only = False, url = None, val_type = None):
+            is_permanent = False, label = None, start = None, survey_only = False, url = None, val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self.default:
@@ -75,8 +75,8 @@ class Column(object):
             self.function = function
         if info is not None:
             self.info = info
-        if is_period_invariant:
-            self.is_period_invariant = True
+        if is_permanent:
+            self.is_permanent = True
         if label is not None:
             self.label = label
         if start is not None:
@@ -358,7 +358,7 @@ def build_column_couple(name = None, column = None, entity_class_by_symbol = Non
     return (name, column)
 
 
-def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_period_invariant = False,
+def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_permanent = False,
         label = None, name = None, start_date = None, stop_date = None, url = None):
     """Declare an input variable defined in reference tax benefit system."""
     assert isinstance(name, basestring), name
@@ -374,8 +374,8 @@ def reference_input_variable(column = None, column_by_name = None, entity_class 
         column.end = stop_date
     column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_class = entity_class
-    if is_period_invariant:
-        column.is_period_invariant = True
+    if is_permanent:
+        column.is_permanent = True
     column.label = label
     column.name = name
     if start_date is not None:

@@ -793,8 +793,8 @@ class FormulaColumnMetaclass(type):
         formula_class = attributes.pop('formula_class', base_class.formula_class)
         assert issubclass(formula_class, AbstractFormula), formula_class
 
-        is_period_invariant = attributes.pop('is_period_invariant', False)
-        assert is_period_invariant in (False, True), is_period_invariant
+        is_permanent = attributes.pop('is_permanent', False)
+        assert is_permanent in (False, True), is_permanent
 
         get_law_instant = attributes.pop('get_law_instant', None)
         get_output_period = attributes.pop('get_output_period', None)
@@ -895,8 +895,8 @@ class FormulaColumnMetaclass(type):
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
         column.entity_class = entity_class
         column.formula_constructor = formula_class
-        if is_period_invariant:
-            column.is_period_invariant = True
+        if is_permanent:
+            column.is_permanent = True
         column.label = label
         column.name = name
         if start_date is not None:

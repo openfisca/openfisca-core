@@ -308,7 +308,7 @@ reference_input_variable = functools.partial(reference_input_variable, column_by
 reference_input_variable(
     column = IntCol,
     entity_class = Individus,
-    is_period_invariant = True,
+    is_permanent = True,
     label = u"Identifiant de la famille",
     name = 'id_famille',
     )
@@ -317,7 +317,7 @@ reference_input_variable(
 reference_input_variable(
     column = IntCol,
     entity_class = Individus,
-    is_period_invariant = True,
+    is_permanent = True,
     label = u"Rôle dans la famille",
     name = 'role_dans_famille',
     )

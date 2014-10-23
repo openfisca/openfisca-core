@@ -77,9 +77,9 @@ class DatedHolder(object):
 
 
 class Holder(object):
-    _array = None  # Only used when column.is_period_invariant
-    _array_by_period = None  # Only used when not column.is_period_invariant
-    _extrapolated_array_by_period = None  # Only used when not column.is_period_invariant
+    _array = None  # Only used when column.is_permanent
+    _array_by_period = None  # Only used when not column.is_permanent
+    _extrapolated_array_by_period = None  # Only used when not column.is_permanent
     column = None
     entity = None
     formula = None
@@ -93,14 +93,14 @@ class Holder(object):
 
     @property
     def array(self):
-        if not self.column.is_period_invariant:
+        if not self.column.is_permanent:
             return self.get_array(self.entity.simulation.period)
         return self._array
 
     @array.deleter
     def array(self):
         simulation = self.entity.simulation
-        if not self.column.is_period_invariant:
+        if not self.column.is_permanent:
             return self.delete_array(simulation.period)
         if simulation.trace:
             simulation.traceback.pop(self.column.name, None)
@@ -109,7 +109,7 @@ class Holder(object):
     @array.setter
     def array(self, array):
         simulation = self.entity.simulation
-        if not self.column.is_period_invariant:
+        if not self.column.is_permanent:
             return self.set_array(simulation.period, array)
         if simulation.trace:
             name = self.column.name
@@ -121,7 +121,7 @@ class Holder(object):
         self._array = array
 
     def at_period(self, period):
-        return self if self.column.is_period_invariant else DatedHolder(self, period)
+        return self if self.column.is_permanent else DatedHolder(self, period)
 
     def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
         dated_holder = self.compute(lazy = lazy, period = period,
@@ -229,7 +229,7 @@ class Holder(object):
         return dated_holder
 
     def delete_array(self, period):
-        if self.column.is_period_invariant:
+        if self.column.is_permanent:
             del self.array
             return
         assert period is not None
@@ -251,7 +251,7 @@ class Holder(object):
             del self._extrapolated_array_by_period
 
     def delete_extrapolated_array(self, period):
-        assert not self.column.is_period_invariant
+        assert not self.column.is_permanent
         assert period is not None
         simulation = self.entity.simulation
         if simulation.trace:
@@ -263,7 +263,7 @@ class Holder(object):
                 del self._extrapolated_array_by_period
 
     def get_array(self, period, exact = False):
-        if self.column.is_period_invariant:
+        if self.column.is_permanent:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
@@ -312,7 +312,7 @@ class Holder(object):
         return formula.real_formula
 
     def set_array(self, period, array):
-        if self.column.is_period_invariant:
+        if self.column.is_permanent:
             self.array = array
             return
         assert period is not None
@@ -330,7 +330,7 @@ class Holder(object):
         array_by_period[period] = array
 
     def set_extrapolated_array(self, period, array):
-        assert not self.column.is_period_invariant
+        assert not self.column.is_permanent
         assert period is not None
         simulation = self.entity.simulation
         if simulation.trace:
