@@ -204,10 +204,14 @@ class DatedFormula(AbstractGroupedFormula):
             self.used_formula = dated_formula['formula']
             return dated_holder
 
-        if lazy:
-            assert dated_holder is not None
-            return dated_holder  # Note: dated_holder.array is None
         holder = self.holder
+        if lazy:
+            if dated_holder is None:
+                # No formula exists for the given date. Use the output_period of one of the formulas (assuming they all
+                # have the same) to create an empty dated_holder and return it.
+                output_period = self.dated_formulas[-1]['formula'].get_output_period(period)
+                dated_holder = holder.at_period(output_period)
+            return dated_holder  # Note: dated_holder.array is None
         column = holder.column
         array = np.empty(holder.entity.count, dtype = column.dtype)
         array.fill(column.default)
