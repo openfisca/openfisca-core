@@ -161,7 +161,7 @@ class Holder(object):
             return dated_holder
 
         period_unit, start_instant, _ = period
-        stop_instant = periods.stop_instant(period)
+        stop_instant = period.stop
         column = self.column
         entity = self.entity
         formula = self.formula
@@ -171,7 +171,7 @@ class Holder(object):
             column_start_instant = periods.instant(column.start)
             column_stop_instant = periods.instant(column.end)
             while True:
-                intersection_period = periods.intersection(formula_period, column_start_instant, column_stop_instant)
+                intersection_period = formula_period.intersection(column_start_instant, column_stop_instant)
                 if intersection_period is None:
                     array = np.empty(entity.count, dtype = column.dtype)
                     array.fill(column.default)
@@ -180,7 +180,8 @@ class Holder(object):
                 formula_dated_holder = formula.compute(lazy = lazy, period = intersection_period,
                     requested_formulas_by_period = requested_formulas_by_period)
                 assert formula_dated_holder is not None
-                formula_period = periods.offset(formula_dated_holder.period, offset = formula_dated_holder.period[2])
+                formula_period = formula_dated_holder.period
+                formula_period = formula_period.offset(formula_period.size)
                 formula_start_instant = formula_period[1]
                 if formula_start_instant > stop_instant:
                     break
@@ -194,10 +195,10 @@ class Holder(object):
             for exact_period in sorted(array_by_period, key = lambda period: period[1]):
                 exact_unit = exact_period[0]
                 exact_start_instant = exact_period[1]
-                exact_stop_instant = periods.stop_instant(exact_period)
+                exact_stop_instant = exact_period.stop
                 exact_array = array_by_period[exact_period]
                 if exact_array is not None:
-                    intersection_period = periods.intersection(period, exact_start_instant, exact_stop_instant)
+                    intersection_period = period.intersection(exact_start_instant, exact_stop_instant)
                     if intersection_period is not None:
                         if column.is_period_size_independent:
                             # Use always the first value for the period, because the output period may end before the
@@ -213,8 +214,7 @@ class Holder(object):
                             elif intersection_unit == u'year' and exact_unit == u'month':
                                 intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
                             else:
-                                intersection_array = exact_array * (periods.days(intersection_period)
-                                    / periods.days(exact_period))
+                                intersection_array = exact_array * (intersection_period.days / exact_period.days)
                             if array is None:
                                 array = np.copy(intersection_array)
                             else:
@@ -290,10 +290,10 @@ class Holder(object):
             label = column.name,
             title = column.label,
             ))
-        period_date = self.entity.simulation.period_date
+        period = self.entity.simulation.period
         formula = self.formula
-        if formula is None or column.start is not None and column.start > period_date or column.end is not None \
-                and column.end < period_date:
+        if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
+                and column.end < period.start.date:
             return
         formula.graph_parameters(edges, nodes, visited)
 

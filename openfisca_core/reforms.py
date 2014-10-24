@@ -24,12 +24,8 @@
 
 
 import collections
-import datetime
 
 from . import periods, simulations
-
-
-to_date = lambda date_str: datetime.date(*(int(fragment) for fragment in date_str.split('-')))
 
 
 class Reform(object):
@@ -82,16 +78,17 @@ def find_item_at_date(items, date, nearest_in_period = None):
     Find an item (a dict with start, stop, value key) at a specific date in a list of items which have each one
     a start date and a stop date.
     """
+    instant = periods.instant(date)
+    instant_str = str(instant)
     for item in items:
-        if to_date(item['start']) <= date <= to_date(item['stop']):
+        if item['start'] <= instant_str <= item['stop']:
             return item
-    if nearest_in_period is not None and \
-            periods.start_date(nearest_in_period) <= date <= periods.stop_date(nearest_in_period):
-        earliest_item = min(items, key = lambda item: to_date(item['start']))
-        latest_item = max(items, key = lambda item: to_date(item['stop']))
-        if date < to_date(earliest_item['start']):
+    if nearest_in_period is not None and nearest_in_period.start <= instant <= nearest_in_period.stop:
+        earliest_item = min(items, key = lambda item: item['start'])
+        if instant_str < earliest_item['start']:
             return earliest_item
-        elif date > to_date(latest_item['stop']):
+        latest_item = max(items, key = lambda item: item['stop'])
+        if instant_str > latest_item['stop']:
             return latest_item
     return None
 
@@ -141,17 +138,17 @@ def updated_legislation_items(items, period, value):
     assert isinstance(items, collections.Sequence)
     new_items = []
     new_item = collections.OrderedDict((
-        ('start', periods.start_str(period)),
-        ('stop', periods.stop_str(period)),
+        ('start', str(period.start)),
+        ('stop', str(period.stop)),
         ('value', value),
         ))
-    new_item_start = periods.start_date(period)
-    new_item_stop = periods.stop_date(period)
+    new_item_start = period.start
+    new_item_stop = period.stop
     overlapping_item = None
     for item in items:
-        item_start = to_date(item['start'])
-        item_stop = to_date(item['stop'])
-        if periods.intersection(period, periods.instant(item_start), periods.instant(item_stop)) is not None:
+        item_start = periods.instant(item['start'])
+        item_stop = periods.instant(item['stop'])
+        if period.intersection(item_start, item_stop) is not None:
             assert overlapping_item is None, u'Only one existing item can overlap the new item'
             overlapping_item = item
             new_items.append(new_item)
@@ -159,16 +156,14 @@ def updated_legislation_items(items, period, value):
                 new_items.append(
                     collections.OrderedDict((
                         ('start', item['start']),
-                        ('stop', periods.instant_str(periods.offset_instant('day', periods.start_instant(period),
-                            -1))),
+                        ('stop', str(new_item_start.offset(-1, 'day'))),
                         ('value', item['value']),
                         ))
                     )
             if new_item_stop < item_stop:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', periods.instant_str(periods.offset_instant('day', periods.stop_instant(period),
-                            1))),
+                        ('start', str(new_item_stop.offset(1, 'day'))),
                         ('stop', item['stop']),
                         ('value', item['value']),
                         ))

@@ -348,7 +348,7 @@ class revenu_disponible(SimpleFormulaColumn):
         return rsa + salaire_imposable * 0.7
 
     def get_output_period(self, period):
-        return periods.base_period(self.period_unit, period)
+        return period.start.period(self.period_unit).offset('first-of')
 
 
 @reference_formula
@@ -371,7 +371,7 @@ class rsa(DatedFormulaColumn):
         return (salaire_imposable < 500) * 300
 
     def get_output_period(self, period):
-        return periods.base_period(self.period_unit, period)
+        return period.start.period(self.period_unit).offset('first-of')
 
 
 @reference_formula
@@ -385,7 +385,7 @@ class salaire_imposable(SimpleFormulaColumn):
         return salaire_net * 0.9
 
     def get_output_period(self, period):
-        return periods.base_period(self.period_unit, period)
+        return period.start.period(self.period_unit).offset('first-of')
 
 
 @reference_formula
@@ -400,7 +400,7 @@ class salaire_net(SimpleFormulaColumn):
         return salaire_brut * 0.8
 
     def get_output_period(self, period):
-        return periods.base_period(self.period_unit, period)
+        return period.start.period(self.period_unit).offset('first-of')
 
 
 # TaxBenefitSystem instance declared after formulas
@@ -421,7 +421,7 @@ def check_revenu_disponible(year, expected_revenu_disponible):
                 min = 0,
                 ),
             ],
-        period = periods.period('year', year),
+        period = periods.period(year),
         parent1 = {},
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')

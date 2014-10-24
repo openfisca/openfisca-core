@@ -134,7 +134,7 @@ def generate_dated_json_value(values_json, legislation_start_str, legislation_st
 
 
 def generate_dated_legislation_json(legislation_json, instant):
-    instant_str = periods.instant_str(periods.instant(instant))
+    instant_str = str(periods.instant(instant))
     dated_legislation_json = generate_dated_node_json(
         legislation_json,
         legislation_json['start'],

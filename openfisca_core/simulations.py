@@ -25,11 +25,11 @@
 
 import collections
 
-from . import legislations, periods
+from . import legislations
 from .tools import empty_clone
 
 
-class Simulation(periods.PeriodMixin):
+class Simulation(object):
     compact_legislation_by_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
@@ -37,6 +37,7 @@ class Simulation(periods.PeriodMixin):
     entity_by_key_plural = None
     entity_by_key_singular = None
     legislation_json = None
+    period = None
     persons = None
     reference_compact_legislation_by_instant_cache = None
     reference_legislation_json = None

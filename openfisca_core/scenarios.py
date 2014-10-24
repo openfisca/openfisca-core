@@ -40,9 +40,10 @@ log = logging.getLogger(__name__)
 N_ = lambda message: message
 
 
-class AbstractScenario(periods.PeriodMixin):
+class AbstractScenario(object):
     axes = None
     legislation_json = None
+    period = None
     tax_benefit_system = None
     test_case = None
 
@@ -230,7 +231,7 @@ class AbstractScenario(periods.PeriodMixin):
                                 conv.not_none,
                                 ),
                             # TODO: Check that period is valid in params.
-                            period = periods.make_json_or_python_to_period(),
+                            period = periods.json_or_python_to_period,
                             ),
                         ),
                     ),
@@ -261,7 +262,7 @@ class AbstractScenario(periods.PeriodMixin):
                             conv.make_input_to_url(error_if_fragment = True, full = True, schemes = ('http', 'https')),
                             ),
                         period = conv.pipe(
-                            periods.make_json_or_python_to_period(),  # TODO: Check that period is valid in params.
+                            periods.json_or_python_to_period,  # TODO: Check that period is valid in params.
                             conv.not_none,
                             ),
                         test_case = conv.pipe(

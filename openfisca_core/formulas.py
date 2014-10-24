@@ -190,11 +190,11 @@ class DatedFormula(AbstractGroupedFormula):
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
         dated_holder = None
-        stop_instant = periods.stop_instant(period)
+        stop_instant = period.stop
         for dated_formula in self.dated_formulas:
             if dated_formula['start_instant'] > stop_instant:
                 break
-            output_period = periods.intersection(period, dated_formula['start_instant'], dated_formula['stop_instant'])
+            output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
             if output_period is None:
                 continue
             dated_holder = dated_formula['formula'].compute(lazy = lazy, period = output_period,
@@ -236,8 +236,8 @@ class DatedFormula(AbstractGroupedFormula):
             ('dated_formulas', [
                 dict(
                     formula = dated_formula['formula'].to_json(),
-                    start_instant = periods.instant_str(dated_formula['start_instant']),
-                    stop_instant = periods.instant_str(dated_formula['stop_instant']),
+                    start_instant = str(dated_formula['start_instant']),
+                    stop_instant = str(dated_formula['stop_instant']),
                     )
                 for dated_formula in self.dated_formulas
                 ]),
@@ -415,10 +415,10 @@ class SimpleFormula(AbstractFormula):
         assert output_period[0] == self.period_unit, \
             u"Formula {} declares a {} period unit but returns a different output period: {}".format(column.name,
                 self.period_unit, output_period).encode('utf-8')
-        assert output_period[1] <= period[1] <= periods.stop_instant(output_period), \
+        assert output_period[1] <= period[1] <= output_period.stop, \
             u"Formula {} returns an output period {} that doesn't include start instant of requested period {}".format(
                 column.name, output_period, period).encode('utf-8')
-        output_period = periods.intersection(output_period, periods.instant(column.start), periods.instant(column.end))
+        output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
         dated_holder = holder.at_period(output_period)
 
         if requested_formulas_by_period is None:
@@ -520,7 +520,7 @@ class SimpleFormula(AbstractFormula):
                     if np.isnan(np.min(array)):
                         nan_count = np.count_nonzero(np.isnan(array))
                         raise NaNCreationError(u'{} NaN value(s) are present in result of {}@{}[{}]({}) --> {}'.format(
-                            nan_count, entity.key_plural, column.name, periods.json_str(output_period),
+                            nan_count, entity.key_plural, column.name, str(output_period),
                             stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array),
                             ).encode('utf-8'))
                 except TypeError:
@@ -531,7 +531,7 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = array
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}[{}]({}) --> {}'.format(entity.key_plural, column.name, periods.json_str(output_period),
+            log.info(u'<=> {}@{}[{}]({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
                 stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array)))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
@@ -621,7 +621,7 @@ class SimpleFormula(AbstractFormula):
     def get_output_period(self, period):
         """Return the period of the array(s) returned by the formula."""
         # By default, the output period is the base period of size 1 of the requested period using formula unit.
-        # return periods.base(period)
+        # return period.offset('first-of')
         raise NotImplementedError('Method get_output_period is not implemented for formula "{}"'.format(
             self.holder.column.name))
 
@@ -866,8 +866,7 @@ class FormulaColumnMetaclass(type):
             for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
                     itertools.islice(dated_formulas_class, 1, None)):
                 if dated_formula_class['stop_instant'] is None:
-                    dated_formula_class['stop_instant'] = periods.offset_instant('day',
-                        next_dated_formula_class['start_instant'], -1)
+                    dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
                 else:
                     assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
                         "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
@@ -935,8 +934,7 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
             # Use a year period starting at beginning of month.
-            get_output_period = lambda self, period: periods.period(u'year',
-                periods.base_instant('month', periods.start_instant(period))),
+            get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
@@ -975,8 +973,7 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             dict(
                 function = staticmethod(dated_function['function']),
                 # Use a year period starting at beginning of month.
-                get_output_period = lambda self, period: periods.period(u'year',
-                    periods.base_instant('month', periods.start_instant(period))),
+                get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
                 period_unit = u'year',
                 ),
             )
@@ -1018,8 +1015,7 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
             # Use a year period starting at beginning of month.
-            get_output_period = lambda self, period: periods.period(u'year',
-                periods.base_instant('month', periods.start_instant(period))),
+            get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
@@ -1048,8 +1044,7 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
     column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
         # Use a year period starting at beginning of month.
-        get_output_period = lambda self, period: periods.period(u'year',
-            periods.base_instant('month', periods.start_instant(period))),
+        get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
         period_unit = u'year',
         ))
     formula_class.extract_variables_name()

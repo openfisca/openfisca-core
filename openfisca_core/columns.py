@@ -99,7 +99,7 @@ class Column(object):
                 # Value is a dict of (period, value) couples.
                 conv.uniform_mapping(
                     conv.pipe(
-                        periods.make_json_or_python_to_period(),
+                        periods.json_or_python_to_period,
                         conv.not_none,
                         ),
                     self.json_to_dated_python,
@@ -150,7 +150,7 @@ class Column(object):
         # Convert a non-NumPy Python value to JSON.
         if isinstance(value, dict):
             return collections.OrderedDict(
-                (periods.json_str(period), self.transform_dated_value_to_json(dated_value))
+                (str(period), self.transform_dated_value_to_json(dated_value))
                 for period, dated_value in value.iteritems()
                 )
         return self.transform_dated_value_to_json(value)
