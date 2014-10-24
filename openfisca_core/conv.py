@@ -32,9 +32,6 @@ from biryani1.jsonconv import *  # noqa
 from biryani1.states import State
 
 
-class State(State):
-    TaxBenefitSystem = None
-
 default_state = State()
 
 
