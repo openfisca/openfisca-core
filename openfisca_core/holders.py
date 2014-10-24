@@ -345,7 +345,7 @@ class Holder(object):
             self._extrapolated_array_by_period = extrapolated_array_by_period = {}
         extrapolated_array_by_period[period] = array
 
-    def to__field_json(self):
+    def to_field_json(self):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
