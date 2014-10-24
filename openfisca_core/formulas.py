@@ -235,9 +235,9 @@ class DatedFormula(AbstractGroupedFormula):
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    end = dated_formula['end'].isoformat(),
                     formula = dated_formula['formula'].to_json(),
-                    start = dated_formula['start'].isoformat(),
+                    start_instant = periods.instant_str(dated_formula['start_instant']),
+                    stop_instant = periods.instant_str(dated_formula['stop_instant']),
                     )
                 for dated_formula in self.dated_formulas
                 ]),
