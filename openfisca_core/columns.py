@@ -49,7 +49,7 @@ class Column(object):
     end = None
     entity = None  # Obsolete: To remove once build_..._couple() functions are no more used.
     entity_class = None  # Caution: Don't use this attribute till build_..._couple() functions are no more used.
-    formula_constructor = None
+    formula_class = None
     function = None
     info = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
@@ -343,23 +343,24 @@ class PeriodSizeIndependentIntCol(IntCol):
 # Column couple builder
 
 
-def build_column_couple(name = None, column = None, entity_class_by_symbol = None):
+def build_column(name = None, column = None, entity_class_by_symbol = None):
+    # Obsolete. Use reference_input_variable instead.
     assert isinstance(name, basestring), name
     name = unicode(name)
+
+    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
     if column.label is None:
         column.label = name
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
-    return (name, column)
 
-
-def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_permanent = False,
-        label = None, name = None, start_date = None, stop_date = None, url = None):
+def reference_input_variable(column = None, entity_class = None, is_permanent = False, label = None, name = None,
+        start_date = None, stop_date = None, url = None):
     """Define an input variable and add it to relevant entity class."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -387,6 +388,3 @@ def reference_input_variable(column = None, column_by_name = None, entity_class 
     entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
-
-    assert name not in column_by_name, name
-    column_by_name[name] = column

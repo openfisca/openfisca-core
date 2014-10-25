@@ -25,37 +25,38 @@
 
 import collections
 
-from . import periods, simulations
+from . import periods, taxbenefitsystems
 
 
-class Reform(object):
-    entity_class_by_key_plural = None
+class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
+    """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
     label = None
-    legislation_json = None
     name = None
-    reference_legislation_json = None
 
     def __init__(self, entity_class_by_key_plural = None, label = None, legislation_json = None, name = None,
-            reference_legislation_json = None):
-        assert name is not None, u"a name should be provided"
-        self.entity_class_by_key_plural = entity_class_by_key_plural
-        self.label = label if label is not None else name
-        self.legislation_json = legislation_json
-        self.name = name
-        self.reference_legislation_json = reference_legislation_json
+            reference = None):
+        if reference is not None:
+            self.reference = reference
+        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
+        assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
 
-    def new_simulation(self, scenario, debug = False, debug_all = False, trace = False):
-        simulation = simulations.Simulation(
-            debug = debug,
-            debug_all = debug_all,
-            entity_class_by_key_plural = self.entity_class_by_key_plural,
-            legislation_json = self.legislation_json,
-            period = scenario.period,
-            tax_benefit_system = scenario.tax_benefit_system,
-            trace = trace,
+        if entity_class_by_key_plural is None and self.entity_class_by_key_plural is None:
+            entity_class_by_key_plural = self.reference.entity_class_by_key_plural
+        if legislation_json is None and self.legislation_json is None:
+            legislation_json = self.reference.legislation_json
+        if self.preprocess_compact_legislation is None and self.reference.preprocess_compact_legislation is not None:
+            self.preprocess_compact_legislation = self.reference.preprocess_compact_legislation
+        if self.Scenario is None:
+            self.Scenario = self.reference.Scenario
+
+        super(Reform, self).__init__(
+            entity_class_by_key_plural = entity_class_by_key_plural,
+            legislation_json = legislation_json,
             )
-        scenario.fill_simulation(simulation)
-        return simulation
+
+        assert name is not None
+        self.label = label if label is not None else name
+        self.name = name
 
 
 def clone_entity_classes(entity_class_by_symbol, symbols):

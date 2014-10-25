@@ -25,7 +25,7 @@
 
 import collections
 
-from . import legislations
+from . import periods
 from .tools import empty_clone
 
 
@@ -36,19 +36,16 @@ class Simulation(object):
     entity_by_column_name = None
     entity_by_key_plural = None
     entity_by_key_singular = None
-    legislation_json = None
     period = None
     persons = None
     reference_compact_legislation_by_instant_cache = None
-    reference_legislation_json = None
     steps_count = 1
     tax_benefit_system = None
     trace = False
     traceback = None
 
-    def __init__(self, debug = False, debug_all = False, entity_class_by_key_plural = None, legislation_json = None,
-            period = None, reference_legislation_json = None, tax_benefit_system = None, trace = False):
-        assert period is not None
+    def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None, trace = False):
+        assert isinstance(period, periods.Period)
         self.period = period
         if debug:
             self.debug = True
@@ -63,15 +60,9 @@ class Simulation(object):
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self.compact_legislation_by_instant_cache = {}
-        if legislation_json is not None:
-            self.legislation_json = legislation_json
         self.reference_compact_legislation_by_instant_cache = {}
-        if reference_legislation_json is not None:
-            self.reference_legislation_json = reference_legislation_json
 
-        entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural \
-            if entity_class_by_key_plural is None \
-            else entity_class_by_key_plural
+        entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural
         self.entity_by_key_plural = entity_by_key_plural = dict(
             (key_plural, entity_class(simulation = self))
             for key_plural, entity_class in entity_class_by_key_plural.iteritems()
@@ -142,14 +133,7 @@ class Simulation(object):
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
         if compact_legislation is None:
-            legislation_json = self.legislation_json
-            if legislation_json is None:
-                compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
-            else:
-                dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, instant)
-                compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-                if self.tax_benefit_system.preprocess_compact_legislation is not None:
-                    self.tax_benefit_system.preprocess_compact_legislation(compact_legislation)
+            compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
@@ -166,15 +150,7 @@ class Simulation(object):
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
         if reference_compact_legislation is None:
-            reference_legislation_json = self.reference_legislation_json
-            if reference_legislation_json is None:
-                reference_compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
-            else:
-                reference_dated_legislation_json = legislations.generate_dated_legislation_json(
-                    reference_legislation_json, instant)
-                reference_compact_legislation = legislations.compact_dated_node_json(reference_dated_legislation_json)
-                if self.tax_benefit_system.preprocess_compact_legislation is not None:
-                    self.tax_benefit_system.preprocess_compact_legislation(reference_compact_legislation)
+            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(instant)
             self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 

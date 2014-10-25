@@ -37,11 +37,6 @@ from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
 
-column_by_name = {}
-entity_class_by_symbol = {}
-prestation_by_name = {}
-
-
 # Entities
 
 
@@ -291,18 +286,12 @@ def init_country():
             }
 
     # Define class attributes after class declaration to avoid "name is not defined" exceptions.
-    TaxBenefitSystem.column_by_name = column_by_name
-    TaxBenefitSystem.entity_class_by_symbol = entity_class_by_symbol
-    TaxBenefitSystem.prestation_by_name = prestation_by_name
     TaxBenefitSystem.Scenario = Scenario
 
     return TaxBenefitSystem
 
 
 # Input variables
-
-
-reference_input_variable = functools.partial(reference_input_variable, column_by_name = column_by_name)
 
 
 reference_input_variable(
@@ -332,9 +321,6 @@ reference_input_variable(
 
 
 # Calculated variables
-
-
-reference_formula = reference_formula(prestation_by_name = prestation_by_name)
 
 
 @reference_formula
@@ -407,7 +393,7 @@ class salaire_net(SimpleFormulaColumn):
 
 
 TaxBenefitSystem = init_country()
-tax_benefit_system = TaxBenefitSystem(legislation_json = {})
+tax_benefit_system = TaxBenefitSystem()
 
 
 def check_revenu_disponible(year, expected_revenu_disponible):

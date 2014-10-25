@@ -25,7 +25,6 @@
 
 import numpy
 
-from .. import periods
 from . import test_countries
 
 
@@ -42,7 +41,7 @@ def test_new_test_case_array():
                 min = axis_min,
                 ),
             ],
-        period = periods.period('year', 2014),
+        period = 2014,
         parent1 = {},
         ).new_simulation(debug = True)
     simulation.calculate('salaire_brut')

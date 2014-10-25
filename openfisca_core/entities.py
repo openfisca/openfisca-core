@@ -28,7 +28,7 @@ from .tools import empty_clone
 
 
 class AbstractEntity(object):
-    column_by_name = None  # Class attribute. Must be overridden by subclasses.
+    column_by_name = None  # Class attribute. Must be overridden by subclasses with an OrderedDict.
     count = 0
     holder_by_name = None
     key_plural = None
@@ -79,8 +79,8 @@ class AbstractEntity(object):
         if holder is None:
             column = self.column_by_name[column_name]
             self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = self)
-            if column.formula_constructor is not None:
-                holder.formula = column.formula_constructor(holder = holder)
+            if column.formula_class is not None:
+                holder.formula = column.formula_class(holder = holder)
         return holder
 
     def graph(self, column_name, edges, nodes, visited):

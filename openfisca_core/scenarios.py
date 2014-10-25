@@ -33,7 +33,7 @@ import uuid
 
 import numpy as np
 
-from . import conv, legislations, periods, simulations
+from . import conv, legislations, periods, reforms, simulations
 
 
 log = logging.getLogger(__name__)
@@ -293,7 +293,7 @@ class AbstractScenario(object):
                         errors.setdefault('axes', {}).setdefault(axis_index, {})['max'] = state._(
                             u"Max value must be greater than min value")
                     column = column_by_name[axis['name']]
-                    entity_class = self.tax_benefit_system.entity_class_by_symbol[column.entity]
+                    entity_class = column.entity_class
                     if axis['index'] >= len(data['test_case'][entity_class.key_plural]):
                         errors.setdefault('axes', {}).setdefault(axis_index, {})['index'] = state._(
                             u"Index must be lower than {}").format(len(data['test_case'][entity_class.key_plural]))
@@ -360,13 +360,30 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, trace = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
+        assert isinstance(reference, (bool, int)), \
+            'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
+        tax_benefit_system = self.tax_benefit_system
+        if reference:
+            while True:
+                reference_tax_benefit_system = tax_benefit_system.reference
+                if reference_tax_benefit_system is None:
+                    break
+                tax_benefit_system = reference_tax_benefit_system
+        if self.legislation_json is not None:
+            tax_benefit_system = reforms.Reform(
+                label = (u'Parametric Reform {}'.format(self.legislation_url)
+                    if self.legislation_url is not None
+                    else u'Parametric Reform'),
+                legislation_json = self.legislation_json,
+                name = u'Parametric Reform',
+                reference = tax_benefit_system,
+                )
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
-            legislation_json = self.legislation_json,
             period = self.period,
-            tax_benefit_system = self.tax_benefit_system,
+            tax_benefit_system = tax_benefit_system,
             trace = trace,
             )
         self.fill_simulation(simulation)

@@ -92,8 +92,8 @@ class AlternativeFormula(AbstractGroupedFormula):
         super(AlternativeFormula, self).__init__(holder = holder)
 
         self.alternative_formulas = [
-            alternative_formula_constructor(holder = holder)
-            for alternative_formula_constructor in self.alternative_formulas_constructor
+            alternative_formula_class(holder = holder)
+            for alternative_formula_class in self.alternative_formulas_constructor
             ]
         assert self.alternative_formulas
 
@@ -141,8 +141,8 @@ class AlternativeFormula(AbstractGroupedFormula):
 
     @classmethod
     def set_dependencies(cls, column, column_by_name):
-        for alternative_formula_constructor in cls.alternative_formulas_constructor:
-            alternative_formula_constructor.set_dependencies(column, column_by_name)
+        for alternative_formula_class in cls.alternative_formulas_constructor:
+            alternative_formula_class.set_dependencies(column, column_by_name)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -246,14 +246,14 @@ class DatedFormula(AbstractGroupedFormula):
 
 class SelectFormula(AbstractGroupedFormula):
     formula_by_main_variable = None
-    formula_constructor_by_main_variable = None  # Class attribute. List of formulas sorted by descending preference
+    formula_class_by_main_variable = None  # Class attribute. List of formulas sorted by descending preference
 
     def __init__(self, holder = None):
         super(SelectFormula, self).__init__(holder = holder)
 
         self.formula_by_main_variable = collections.OrderedDict(
-            (main_variable, formula_constructor(holder = holder))
-            for main_variable, formula_constructor in self.formula_constructor_by_main_variable.iteritems()
+            (main_variable, formula_class(holder = holder))
+            for main_variable, formula_class in self.formula_class_by_main_variable.iteritems()
             )
         assert self.formula_by_main_variable
 
@@ -291,8 +291,8 @@ class SelectFormula(AbstractGroupedFormula):
 
     @classmethod
     def set_dependencies(cls, column, column_by_name):
-        for formula_constructor in cls.formula_constructor_by_main_variable.itervalues():
-            formula_constructor.set_dependencies(column, column_by_name)
+        for formula_class in cls.formula_class_by_main_variable.itervalues():
+            formula_class.set_dependencies(column, column_by_name)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -897,7 +897,7 @@ class FormulaColumnMetaclass(type):
             column.end = stop_date
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
         column.entity_class = entity_class
-        column.formula_constructor = formula_class
+        column.formula_class = formula_class
         if is_permanent:
             column.is_permanent = True
         column.label = label
@@ -922,7 +922,7 @@ class SimpleFormulaColumn(object):
     formula_class = SimpleFormula
 
 
-def build_alternative_formula_couple(name = None, functions = None, column = None, entity_class_by_symbol = None):
+def build_alternative_formula(name = None, functions = None, column = None, entity_class_by_symbol = None):
     # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -939,7 +939,9 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
             ))
         formula_class.extract_variables_name()
         alternative_formulas_constructor.append(formula_class)
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
+
+    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    column.formula_class = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
         alternative_formulas_constructor = alternative_formulas_constructor,
         period_unit = u'year',
         ))
@@ -948,14 +950,12 @@ def build_alternative_formula_couple(name = None, functions = None, column = Non
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
-    return (name, column)
 
-
-def build_dated_formula_couple(name = None, dated_functions = None, column = None, entity_class_by_symbol = None,
+def build_dated_formula(name = None, dated_functions = None, column = None, entity_class_by_symbol = None,
         replace = False):
     # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
@@ -985,7 +985,8 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
             ))
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
+    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    column.formula_class = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
         dated_formulas_class = dated_formulas_class,
         period_unit = u'year',
         ))
@@ -994,15 +995,13 @@ def build_dated_formula_couple(name = None, dated_functions = None, column = Non
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class.column_by_name
     if not replace:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
-    return (name, column)
 
-
-def build_select_formula_couple(name = None, main_variable_function_couples = None, column = None,
+def build_select_formula(name = None, main_variable_function_couples = None, column = None,
         entity_class_by_symbol = None):
     # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
@@ -1010,7 +1009,7 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
     assert isinstance(main_variable_function_couples, list), main_variable_function_couples
     assert column.function is None
 
-    formula_constructor_by_main_variable = collections.OrderedDict()
+    formula_class_by_main_variable = collections.OrderedDict()
     for main_variable, function in main_variable_function_couples:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
@@ -1019,9 +1018,11 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
-        formula_constructor_by_main_variable[main_variable] = formula_class
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
-        formula_constructor_by_main_variable = formula_constructor_by_main_variable,
+        formula_class_by_main_variable[main_variable] = formula_class
+
+    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    column.formula_class = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
+        formula_class_by_main_variable = formula_class_by_main_variable,
         period_unit = u'year',
         ))
     if column.label is None:
@@ -1029,19 +1030,18 @@ def build_select_formula_couple(name = None, main_variable_function_couples = No
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
 
-    return (name, column)
 
-
-def build_simple_formula_couple(name = None, column = None, entity_class_by_symbol = None, replace = False):
+def build_simple_formula(name = None, column = None, entity_class_by_symbol = None, replace = False):
     # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
 
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
+    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    column.formula_class = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
         # Use a year period starting at beginning of month.
         get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
@@ -1054,12 +1054,10 @@ def build_simple_formula_couple(name = None, column = None, entity_class_by_symb
     assert column.name is None
     column.name = name
 
-    entity_column_by_name = entity_class_by_symbol[column.entity].column_by_name
+    entity_column_by_name = entity_class.column_by_name
     if not replace:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
-
-    return (name, column)
 
 
 def dated_function(start = None, stop = None):
@@ -1072,20 +1070,14 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
-def reference_formula(prestation_by_name = None):
+def reference_formula(column):
     """Class decorator used to declare a formula to the relevant entity class."""
-    def reference_formula_decorator(column):
-        assert isinstance(column, columns.Column)
-        assert column.formula_constructor is not None
+    assert isinstance(column, columns.Column)
+    assert column.formula_class is not None
 
-        entity_column_by_name = column.entity_class.column_by_name
-        name = column.name
-        assert name not in entity_column_by_name, name
-        entity_column_by_name[name] = column
+    entity_column_by_name = column.entity_class.column_by_name
+    name = column.name
+    assert name not in entity_column_by_name, name
+    entity_column_by_name[name] = column
 
-        assert name not in prestation_by_name, name
-        prestation_by_name[name] = column
-
-        return column
-
-    return reference_formula_decorator
+    return column

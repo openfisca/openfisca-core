@@ -23,66 +23,56 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import collections
 import xml.etree.ElementTree
 import weakref
 
 from . import conv, legislations, legislationsxml
 
 
-__all__ = ['AbstractTaxBenefitSystem']
+__all__ = [
+    'AbstractTaxBenefitSystem',
+    'LegacyTaxBenefitSystem',
+    'XmlBasedTaxBenefitSystem',
+    ]
 
 
 class AbstractTaxBenefitSystem(object):
-    check_consistency = None
-    column_by_name = None
-    columns_name_tree_by_entity = None
+    column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
-    entities = None  # class attribute
-    ENTITIES_INDEX = None  # class attribute
-    entity_class_by_key_plural = None  # class attribute
-    entity_class_by_symbol = None  # class attribute
+    entity_class_by_key_plural = None
+    legislation_json = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
         ))
-    legislation_json = None
-    legislation_json_by_xml_file_path = {}  # class attribute
-    PARAM_FILE = None  # class attribute
     preprocess_compact_legislation = None  # To override with a method
-    prestation_by_name = None
+    reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
+    reform_by_name = None
     Scenario = None
 
-    def __init__(self, legislation_json = None):
-        # Merge prestation_by_name into column_by_name, because it is no more used.
-        # TODO: To delete once prestation_by_name is no more used.
-        self.column_by_name = column_by_name = self.column_by_name.copy()
-        column_by_name.update(self.prestation_by_name)
-        self.prestation_by_name = None
-
-        for column in column_by_name.itervalues():
-            formula_class = column.formula_constructor
-            if formula_class is not None:
-                formula_class.set_dependencies(column, column_by_name)
-
+    def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
         self.compact_legislation_by_instant_cache = weakref.WeakValueDictionary()
 
-        if legislation_json is None:
-            legislation_xml_file_path = self.PARAM_FILE
-            legislation_json = self.legislation_json_by_xml_file_path.get(legislation_xml_file_path)
-            if legislation_json is None:
-                legislation_tree = xml.etree.ElementTree.parse(legislation_xml_file_path)
-                state = conv.State()
-                legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
-                    legislation_tree.getroot(),
-                    state = state,
-                    )
-                legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
-                    legislation_xml_json,
-                    state = state,
-                    )
-                _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
-                self.legislation_json_by_xml_file_path[legislation_xml_file_path] = legislation_json
-        self.legislation_json = legislation_json
+        if entity_class_by_key_plural is not None:
+            self.entity_class_by_key_plural = entity_class_by_key_plural
+        assert self.entity_class_by_key_plural is not None
+
+        if legislation_json is not None:
+            self.legislation_json = legislation_json
+        # Note: self.legislation_json may be None for simulators without legislation parameters.
+
+        # Now that classes of entities are defined, build a column_by_name by aggregating the column_by_name of each
+        # entity class.
+        assert self.column_by_name is None
+        self.column_by_name = column_by_name = collections.OrderedDict()
+        for entity_class in self.entity_class_by_key_plural.itervalues():
+            column_by_name.update(entity_class.column_by_name)
+
+        for column in column_by_name.itervalues():
+            formula_class = column.formula_class
+            if formula_class is not None:
+                formula_class.set_dependencies(column, column_by_name)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -93,6 +83,12 @@ class AbstractTaxBenefitSystem(object):
                 self.preprocess_compact_legislation(compact_legislation)
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
+
+    def get_reference_compact_legislation(self, instant):
+        reference = self.reference
+        if reference is None:
+            return self.get_compact_legislation(instant)
+        return reference.get_reference_compact_legislation(instant)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -108,3 +104,39 @@ class AbstractTaxBenefitSystem(object):
         scenario = self.Scenario()
         scenario.tax_benefit_system = self
         return scenario
+
+
+class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
+    """A tax-benefit sytem with legislation stored in a XML file."""
+    legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
+
+    def __init__(self, entity_class_by_key_plural = None):
+        legislation_tree = xml.etree.ElementTree.parse(self.legislation_xml_file_path)
+        state = conv.State()
+        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
+            legislation_tree.getroot(),
+            state = state,
+            )
+        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
+            legislation_xml_json,
+            state = state,
+            )
+        _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+
+        super(XmlBasedTaxBenefitSystem, self).__init__(
+            entity_class_by_key_plural = entity_class_by_key_plural,
+            legislation_json = legislation_json,
+            )
+
+
+class LegacyTaxBenefitSystem(XmlBasedTaxBenefitSystem):
+    """The obsolete way of creating a TaxBenefitSystem. Don't use it anymore.
+
+    In this kind of tax-benefit system, a lot of attributes are defined in class.
+    """
+    check_consistency = None
+    columns_name_tree_by_entity = None
+    entities = None  # class attribute
+
+    def __init__(self):
+        super(LegacyTaxBenefitSystem, self).__init__()
