@@ -1073,7 +1073,7 @@ def dated_function(start = None, stop = None):
 
 
 def reference_formula(prestation_by_name = None):
-    """Class decorator used to declare a formula to the reference tax benefit system."""
+    """Class decorator used to declare a formula to the relevant entity class."""
     def reference_formula_decorator(column):
         assert isinstance(column, columns.Column)
         assert column.formula_constructor is not None

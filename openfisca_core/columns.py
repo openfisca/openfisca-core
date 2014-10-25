@@ -360,7 +360,7 @@ def build_column_couple(name = None, column = None, entity_class_by_symbol = Non
 
 def reference_input_variable(column = None, column_by_name = None, entity_class = None, is_permanent = False,
         label = None, name = None, start_date = None, stop_date = None, url = None):
-    """Declare an input variable defined in reference tax benefit system."""
+    """Define an input variable and add it to relevant entity class."""
     assert isinstance(name, basestring), name
     name = unicode(name)
     label = name if label is None else unicode(label)
