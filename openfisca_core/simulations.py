@@ -180,18 +180,3 @@ class Simulation(object):
 
     def graph(self, column_name, edges, nodes, visited):
         self.entity_by_column_name[column_name].graph(column_name, edges, nodes, visited)
-
-
-def average_tax_rate(simulation, target_column_name = None, varying_column_name = None):
-    target = simulation.calculate(target_column_name)    # numerator
-    varying = simulation.calculate(varying_column_name)  # denominator
-    div = varying * (varying != 0) + (varying == 0)
-    average_rate = (1 - target / div)
-    return average_rate
-
-
-def marginal_tax_rate(simulation, target_column_name = None, varying_column_name = None):
-    target = simulation.calculate(target_column_name)    # numerator
-    varying = simulation.calculate(varying_column_name)  # denominator
-    marginal_rate = (1 - (target[:-1] - target[1:]) / (varying[:-1] - varying[1:]))
-    return marginal_rate
