@@ -25,7 +25,7 @@
 
 import collections
 import xml.etree.ElementTree
-import weakref
+# import weakref
 
 from . import conv, legislations, legislationsxml
 
@@ -52,7 +52,8 @@ class AbstractTaxBenefitSystem(object):
     Scenario = None
 
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
-        self.compact_legislation_by_instant_cache = weakref.WeakValueDictionary()
+        # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
+        self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural
