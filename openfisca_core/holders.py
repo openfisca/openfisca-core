@@ -79,6 +79,7 @@ class DatedHolder(object):
 class Holder(object):
     _array = None  # Only used when column.is_permanent
     _array_by_period = None  # Only used when not column.is_permanent
+    _extrapolated_array = None  # Only used when not column.is_permanent
     _extrapolated_array_by_period = None  # Only used when not column.is_permanent
     column = None
     entity = None
@@ -95,7 +96,10 @@ class Holder(object):
     def array(self):
         if not self.column.is_permanent:
             return self.get_array(self.entity.simulation.period)
-        return self._array
+        array = self._array
+        if array is None:
+            array = self._extrapolated_array
+        return array
 
     @array.deleter
     def array(self):
@@ -261,6 +265,33 @@ class Holder(object):
             extrapolated_array_by_period.pop(period, None)
             if not extrapolated_array_by_period:
                 del self._extrapolated_array_by_period
+
+    @property
+    def extrapolated_array(self):
+        raise NotImplementedError("Getter of property Holder.extrapolated_array doesn't exist")
+
+    @extrapolated_array.deleter
+    def extrapolated_array(self):
+        simulation = self.entity.simulation
+        if not self.column.is_permanent:
+            return self.delete_extrapolated_array(simulation.period)
+        if simulation.trace:
+            simulation.traceback.pop(self.column.name, None)
+        del self._extrapolated_array
+
+    @extrapolated_array.setter
+    def extrapolated_array(self, extrapolated_array):
+        simulation = self.entity.simulation
+        if not self.column.is_permanent:
+            return self.set_extrapolated_array(simulation.period, extrapolated_array)
+        if simulation.trace:
+            name = self.column.name
+            step = simulation.traceback.get(name)
+            if step is None:
+                simulation.traceback[name] = dict(
+                    holder = self,
+                    )
+        self._extrapolated_array = extrapolated_array
 
     def get_array(self, period, exact = False):
         if self.column.is_permanent:
