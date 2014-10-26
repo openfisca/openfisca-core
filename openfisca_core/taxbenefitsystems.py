@@ -38,6 +38,7 @@ __all__ = [
 
 
 class AbstractTaxBenefitSystem(object):
+    _real_reference = None
     column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
@@ -105,6 +106,16 @@ class AbstractTaxBenefitSystem(object):
         scenario = self.Scenario()
         scenario.tax_benefit_system = self
         return scenario
+
+    @property
+    def real_reference(self):
+        real_reference = self._real_reference
+        if real_reference is None:
+            reference = self.reference
+            if reference is None:
+                return self
+            self._real_reference = real_reference = reference.real_reference
+        return real_reference
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
