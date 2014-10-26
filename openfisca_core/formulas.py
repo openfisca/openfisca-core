@@ -493,33 +493,36 @@ class SimpleFormula(AbstractFormula):
                     )
 
         provided_parameters = set(arguments.keys())
-        assert provided_parameters == required_parameters, 'Formula {} requires missing parameters : {}'.format(
+        assert provided_parameters == required_parameters, 'Formula {}@{}<{}> requires missing parameters : {}'.format(
+            entity.key_plural, column.name, str(output_period),
             u', '.join(sorted(required_parameters - provided_parameters)).encode('utf-8'))
 
         try:
             array = self.function(**arguments)
         except:
-            log.error(u'An error occurred while calling function {}@{}({})'.format(entity.key_plural, column.name,
-                stringify_formula_arguments(dated_holder_by_variable_name)))
+            log.error(u'An error occurred while calling function {}@{}<{}>({})'.format(entity.key_plural, column.name,
+                str(output_period), stringify_formula_arguments(dated_holder_by_variable_name)))
             raise
         if array is None:
             # Retrieve dated holder that may have been set by function... or None.
             array = dated_holder.array
         else:
-            assert isinstance(array, np.ndarray), u"Function {}@{}({}) doesn't return a numpy array, but: {}".format(
-                entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name),
-                stringify_array(array)).encode('utf-8')
+            assert isinstance(array, np.ndarray), \
+                u"Function {}@{}<{}>({}) doesn't return a numpy array, but: {}".format(
+                    entity.key_plural, column.name, str(output_period),
+                    stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array)).encode('utf-8')
             assert array.size == entity.count, \
-                u"Function {}@{}({}) returns an array of size {}, but size {} is expected for {}".format(
-                    entity.key_plural, column.name, stringify_formula_arguments(dated_holder_by_variable_name),
-                    array.size, entity.count, entity.key_singular).encode('utf-8')
+                u"Function {}@{}<{}>({}) returns an array of size {}, but size {} is expected for {}".format(
+                    entity.key_plural, column.name, str(output_period),
+                    stringify_formula_arguments(dated_holder_by_variable_name), array.size, entity.count,
+                    entity.key_singular).encode('utf-8')
 
             if simulation.debug:
                 try:
                     # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                     if np.isnan(np.min(array)):
                         nan_count = np.count_nonzero(np.isnan(array))
-                        raise NaNCreationError(u'{} NaN value(s) are present in result of {}@{}[{}]({}) --> {}'.format(
+                        raise NaNCreationError(u'{} NaN value(s) are present in result of {}@{}<{}>({}) --> {}'.format(
                             nan_count, entity.key_plural, column.name, str(output_period),
                             stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array),
                             ).encode('utf-8'))
@@ -531,7 +534,7 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = array
 
         if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}[{}]({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
+            log.info(u'<=> {}@{}<{}>({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
                 stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array)))
         if simulation.trace:
             simulation.traceback[column.name].update(dict(
