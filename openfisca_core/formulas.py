@@ -140,9 +140,9 @@ class AlternativeFormula(AbstractGroupedFormula):
             alternative_formula.graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, column_by_name):
+    def set_dependencies(cls, column, tax_benefit_system):
         for alternative_formula_class in cls.alternative_formulas_constructor:
-            alternative_formula_class.set_dependencies(column, column_by_name)
+            alternative_formula_class.set_dependencies(column, tax_benefit_system)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -226,9 +226,9 @@ class DatedFormula(AbstractGroupedFormula):
             dated_formula['formula'].graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, column_by_name):
+    def set_dependencies(cls, column, tax_benefit_system):
         for dated_formula_class in cls.dated_formulas_class:
-            dated_formula_class['formula_class'].set_dependencies(column, column_by_name)
+            dated_formula_class['formula_class'].set_dependencies(column, tax_benefit_system)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -290,9 +290,9 @@ class SelectFormula(AbstractGroupedFormula):
             formula.graph_parameters(edges, nodes, visited)
 
     @classmethod
-    def set_dependencies(cls, column, column_by_name):
+    def set_dependencies(cls, column, tax_benefit_system):
         for formula_class in cls.formula_class_by_main_variable.itervalues():
-            formula_class.set_dependencies(column, column_by_name)
+            formula_class.set_dependencies(column, tax_benefit_system)
 
     def to_json(self):
         return collections.OrderedDict((
@@ -667,15 +667,12 @@ class SimpleFormula(AbstractFormula):
         return self
 
     @classmethod
-    def set_dependencies(cls, column, column_by_name):
+    def set_dependencies(cls, column, tax_benefit_system):
         for variable_name in cls.variables_name:
             clean_variable_name = variable_name[:-len('_holder')] \
                 if variable_name.endswith('_holder') \
                 else variable_name
-            variable_column = column_by_name[clean_variable_name]
-            if variable_column.consumers is None:
-                variable_column.consumers = set()
-            variable_column.consumers.add(column.name)
+            tax_benefit_system.consumers_by_variable_name.setdefault(clean_variable_name, set()).add(column.name)
 
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
