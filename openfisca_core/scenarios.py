@@ -387,3 +387,19 @@ class AbstractScenario(object):
             )
         self.fill_simulation(simulation)
         return simulation
+
+    def to_json(self):
+        return collections.OrderedDict(
+            (key, value)
+            for key, value in (
+                (key, getattr(self, key))
+                for key in (
+                    'axes',
+                    'legislation_json',
+                    'legislation_url',
+                    'period',
+                    'test_case',
+                    )
+                )
+            if value is not None
+            )
