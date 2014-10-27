@@ -86,14 +86,14 @@ class AbstractGroupedFormula(AbstractFormula):
 
 class AlternativeFormula(AbstractGroupedFormula):
     alternative_formulas = None
-    alternative_formulas_constructor = None  # Class attribute. List of formulas sorted by descending preference
+    alternative_formulas_class = None  # Class attribute. List of formulas sorted by descending preference
 
     def __init__(self, holder = None):
         super(AlternativeFormula, self).__init__(holder = holder)
 
         self.alternative_formulas = [
             alternative_formula_class(holder = holder)
-            for alternative_formula_class in self.alternative_formulas_constructor
+            for alternative_formula_class in self.alternative_formulas_class
             ]
         assert self.alternative_formulas
 
@@ -141,7 +141,7 @@ class AlternativeFormula(AbstractGroupedFormula):
 
     @classmethod
     def set_dependencies(cls, column, tax_benefit_system):
-        for alternative_formula_class in cls.alternative_formulas_constructor:
+        for alternative_formula_class in cls.alternative_formulas_class:
             alternative_formula_class.set_dependencies(column, tax_benefit_system)
 
     def to_json(self):
@@ -245,61 +245,61 @@ class DatedFormula(AbstractGroupedFormula):
 
 
 class SelectFormula(AbstractGroupedFormula):
-    formula_by_main_variable = None
-    formula_class_by_main_variable = None  # Class attribute. List of formulas sorted by descending preference
+    formula_by_main_variable_name = None
+    formula_class_by_main_variable_name = None  # Class attribute. List of formulas sorted by descending preference
 
     def __init__(self, holder = None):
         super(SelectFormula, self).__init__(holder = holder)
 
-        self.formula_by_main_variable = collections.OrderedDict(
-            (main_variable, formula_class(holder = holder))
-            for main_variable, formula_class in self.formula_class_by_main_variable.iteritems()
+        self.formula_by_main_variable_name = collections.OrderedDict(
+            (main_variable_name, formula_class(holder = holder))
+            for main_variable_name, formula_class in self.formula_class_by_main_variable_name.iteritems()
             )
-        assert self.formula_by_main_variable
+        assert self.formula_by_main_variable_name
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
         if keys_to_skip is None:
             keys_to_skip = set()
-        keys_to_skip.add('formula_by_main_variable')
+        keys_to_skip.add('formula_by_main_variable_name')
         new = super(SelectFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
-        new.formula_by_main_variable = collections.OrderedDict(
+        new.formula_by_main_variable_name = collections.OrderedDict(
             (variable_name, formula.clone(holder))
-            for variable_name, formula in self.formula_by_main_variable.iteritems()
+            for variable_name, formula in self.formula_by_main_variable_name.iteritems()
             )
 
         return new
 
     def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
-        for main_variable, formula in self.formula_by_main_variable.iteritems():
-            dated_holder = self.holder.entity.simulation.compute(main_variable, lazy = True, period = period,
+        for main_variable_name, formula in self.formula_by_main_variable_name.iteritems():
+            dated_holder = self.holder.entity.simulation.compute(main_variable_name, lazy = True, period = period,
                 requested_formulas_by_period = requested_formulas_by_period)
             if dated_holder.array is not None:
                 selected_formula = formula
                 break
         else:
-            selected_formula = self.formula_by_main_variable.values()[0]
+            selected_formula = self.formula_by_main_variable_name.values()[0]
         self.used_formula = selected_formula
         return selected_formula.compute(lazy = lazy, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
 
     def graph_parameters(self, edges, nodes, visited):
         """Recursively build a graph of formulas."""
-        for formula in self.formula_by_main_variable.itervalues():
+        for formula in self.formula_by_main_variable_name.itervalues():
             formula.graph_parameters(edges, nodes, visited)
 
     @classmethod
     def set_dependencies(cls, column, tax_benefit_system):
-        for formula_class in cls.formula_class_by_main_variable.itervalues():
+        for formula_class in cls.formula_class_by_main_variable_name.itervalues():
             formula_class.set_dependencies(column, tax_benefit_system)
 
     def to_json(self):
         return collections.OrderedDict((
             ('@type', u'SelectFormula'),
             ('formula_by_main_variable', collections.OrderedDict(
-                (main_variable, formula.to_json())
-                for main_variable, formula in self.formula_by_main_variable.iteritems()
+                (main_variable_name, formula.to_json())
+                for main_variable_name, formula in self.formula_by_main_variable_name.iteritems()
                 )),
             ))
 
@@ -832,12 +832,37 @@ class FormulaColumnMetaclass(type):
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
 
-        if issubclass(formula_class, DatedFormula):
+        if issubclass(formula_class, AlternativeFormula):
+            alternative_formulas_class = []
+            for function_name, function in attributes.copy().iteritems():
+                if not getattr(function, 'alternative', False):
+                    # Function is not an alternative (and may not even be a function). Skip it.
+                    continue
+
+                alternative_formula_class_attributes = formula_class_attributes.copy()
+                alternative_formula_class_attributes['function'] = function
+                if get_law_instant is not None:
+                    alternative_formula_class_attributes['get_law_instant'] = get_law_instant
+                if get_output_period is not None:
+                    alternative_formula_class_attributes['get_output_period'] = get_output_period
+                if get_variable_period is not None:
+                    alternative_formula_class_attributes['get_variable_period'] = get_variable_period
+                alternative_formula_class = type(name.encode('utf-8'), (SimpleFormula,),
+                    alternative_formula_class_attributes)
+                alternative_formula_class.extract_variables_name()
+
+                del attributes[function_name]
+                alternative_formulas_class.append(alternative_formula_class)
+
+            # TODO: Sort alternatives (or preserve their initial order if possible).
+
+            formula_class_attributes['alternative_formulas_class'] = alternative_formulas_class
+        elif issubclass(formula_class, DatedFormula):
             dated_formulas_class = []
             for function_name, function in attributes.copy().iteritems():
                 start_instant = getattr(function, 'start_instant', UnboundLocalError)
                 if start_instant is UnboundLocalError:
-                    # Function is not dated (and may not even be a function). Ignore it.
+                    # Function is not dated (and may not even be a function). Skip it.
                     continue
                 stop_instant = function.stop_instant
                 if stop_instant is not None:
@@ -872,6 +897,30 @@ class FormulaColumnMetaclass(type):
                         "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
 
             formula_class_attributes['dated_formulas_class'] = dated_formulas_class
+        elif issubclass(formula_class, SelectFormula):
+            formula_class_by_main_variable_name = collections.OrderedDict()
+            for function_name, function in attributes.copy().iteritems():
+                main_variable_name = getattr(function, 'main_variable_name', UnboundLocalError)
+                if main_variable_name is UnboundLocalError:
+                    # Function has no main_variable_name (and may not even be a function). Skip it.
+                    continue
+
+                select_formula_class_attributes = formula_class_attributes.copy()
+                select_formula_class_attributes['function'] = function
+                if get_law_instant is not None:
+                    select_formula_class_attributes['get_law_instant'] = get_law_instant
+                if get_output_period is not None:
+                    select_formula_class_attributes['get_output_period'] = get_output_period
+                if get_variable_period is not None:
+                    select_formula_class_attributes['get_variable_period'] = get_variable_period
+                select_formula_class = type(name.encode('utf-8'), (SimpleFormula,),
+                    select_formula_class_attributes)
+                select_formula_class.extract_variables_name()
+
+                del attributes[function_name]
+                formula_class_by_main_variable_name[main_variable_name] = select_formula_class
+
+            formula_class_attributes['formula_class_by_main_variable_name'] = formula_class_by_main_variable_name
         else:
             assert issubclass(formula_class, SimpleFormula), formula_class
             function = attributes.pop('function')
@@ -910,16 +959,37 @@ class FormulaColumnMetaclass(type):
         return column
 
 
+class AlternativeFormulaColumn(object):
+    """Syntactic sugar to generate an AlternativeFormula class and fill its column"""
+    __metaclass__ = FormulaColumnMetaclass
+    formula_class = AlternativeFormula
+
+
 class DatedFormulaColumn(object):
     """Syntactic sugar to generate a DatedFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     formula_class = DatedFormula
 
 
+class SelectFormulaColumn(object):
+    """Syntactic sugar to generate a SelectFormula class and fill its column"""
+    __metaclass__ = FormulaColumnMetaclass
+    formula_class = SelectFormula
+
+
 class SimpleFormulaColumn(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     formula_class = SimpleFormula
+
+
+def alternative_function(start = None, stop = None):
+    """Function decorator used to declare a method as an alternative function in class AlternativeFormulaColumn."""
+    def alternative_function_decorator(function):
+        function.alternative = True
+        return function
+
+    return alternative_function_decorator
 
 
 def build_alternative_formula(name = None, functions = None, column = None, entity_class_by_symbol = None):
@@ -929,7 +999,7 @@ def build_alternative_formula(name = None, functions = None, column = None, enti
     assert isinstance(functions, list), functions
     assert column.function is None
 
-    alternative_formulas_constructor = []
+    alternative_formulas_class = []
     for function in functions:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
@@ -938,12 +1008,12 @@ def build_alternative_formula(name = None, functions = None, column = None, enti
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
-        alternative_formulas_constructor.append(formula_class)
+        alternative_formulas_class.append(formula_class)
 
     entity_class = entity_class_by_symbol[column.entity]
     column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
-        alternative_formulas_constructor = alternative_formulas_constructor,
+        alternative_formulas_class = alternative_formulas_class,
         period_unit = u'year',
         ))
     if column.label is None:
@@ -1003,16 +1073,16 @@ def build_dated_formula(name = None, dated_functions = None, column = None, enti
     entity_column_by_name[name] = column
 
 
-def build_select_formula(name = None, main_variable_function_couples = None, column = None,
+def build_select_formula(name = None, main_variable_name_function_couples = None, column = None,
         entity_class_by_symbol = None):
     # Obsolete: Use FormulaColumn classes and reference_formula decorator instead."""
     assert isinstance(name, basestring), name
     name = unicode(name)
-    assert isinstance(main_variable_function_couples, list), main_variable_function_couples
+    assert isinstance(main_variable_name_function_couples, list), main_variable_name_function_couples
     assert column.function is None
 
-    formula_class_by_main_variable = collections.OrderedDict()
-    for main_variable, function in main_variable_function_couples:
+    formula_class_by_main_variable_name = collections.OrderedDict()
+    for main_variable_name, function in main_variable_name_function_couples:
         formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
             function = staticmethod(function),
             # Use a year period starting at beginning of month.
@@ -1020,12 +1090,12 @@ def build_select_formula(name = None, main_variable_function_couples = None, col
             period_unit = u'year',
             ))
         formula_class.extract_variables_name()
-        formula_class_by_main_variable[main_variable] = formula_class
+        formula_class_by_main_variable_name[main_variable_name] = formula_class
 
     entity_class = entity_class_by_symbol[column.entity]
     column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
-        formula_class_by_main_variable = formula_class_by_main_variable,
+        formula_class_by_main_variable_name = formula_class_by_main_variable_name,
         period_unit = u'year',
         ))
     if column.label is None:
@@ -1091,3 +1161,12 @@ def make_reference_formula_decorator(entity_class_by_symbol = None):
         return column
 
     return reference_formula_decorator
+
+
+def select_function(main_variable_name):
+    """Function decorator used to give main_variable_name to a method of a function in class SelectFormulaColumn."""
+    def select_function_decorator(function):
+        function.main_variable_name = main_variable_name
+        return function
+
+    return select_function_decorator
