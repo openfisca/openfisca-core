@@ -899,7 +899,7 @@ class FormulaColumnMetaclass(type):
         if stop_date is not None:
             column.end = stop_date
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-        column.entity_class = entity_class
+        column.entity_key_plural = entity_class.key_plural
         column.formula_class = formula_class
         if is_permanent:
             column.is_permanent = True
@@ -943,7 +943,8 @@ def build_alternative_formula(name = None, functions = None, column = None, enti
         formula_class.extract_variables_name()
         alternative_formulas_constructor.append(formula_class)
 
-    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    entity_class = entity_class_by_symbol[column.entity]
+    column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
         alternative_formulas_constructor = alternative_formulas_constructor,
         period_unit = u'year',
@@ -988,7 +989,8 @@ def build_dated_formula(name = None, dated_functions = None, column = None, enti
             ))
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    entity_class = entity_class_by_symbol[column.entity]
+    column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
         dated_formulas_class = dated_formulas_class,
         period_unit = u'year',
@@ -1023,7 +1025,8 @@ def build_select_formula(name = None, main_variable_function_couples = None, col
         formula_class.extract_variables_name()
         formula_class_by_main_variable[main_variable] = formula_class
 
-    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    entity_class = entity_class_by_symbol[column.entity]
+    column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
         formula_class_by_main_variable = formula_class_by_main_variable,
         period_unit = u'year',
@@ -1043,7 +1046,8 @@ def build_simple_formula(name = None, column = None, entity_class_by_symbol = No
     assert isinstance(name, basestring), name
     name = unicode(name)
 
-    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    entity_class = entity_class_by_symbol[column.entity]
+    column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         function = staticmethod(column.function),
         # Use a year period starting at beginning of month.
@@ -1073,14 +1077,20 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
-def reference_formula(column):
-    """Class decorator used to declare a formula to the relevant entity class."""
-    assert isinstance(column, columns.Column)
-    assert column.formula_class is not None
+def make_reference_formula_decorator(entity_class_by_symbol = None):
+    assert isinstance(entity_class_by_symbol, dict)
 
-    entity_column_by_name = column.entity_class.column_by_name
-    name = column.name
-    assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
+    def reference_formula_decorator(column):
+        """Class decorator used to declare a formula to the relevant entity class."""
+        assert isinstance(column, columns.Column)
+        assert column.formula_class is not None
 
-    return column
+        entity_class = entity_class_by_symbol[column.entity]
+        entity_column_by_name = entity_class.column_by_name
+        name = column.name
+        assert name not in entity_column_by_name, name
+        entity_column_by_name[name] = column
+
+        return column
+
+    return reference_formula_decorator

@@ -293,10 +293,9 @@ class AbstractScenario(object):
                         errors.setdefault('axes', {}).setdefault(axis_index, {})['max'] = state._(
                             u"Max value must be greater than min value")
                     column = column_by_name[axis['name']]
-                    entity_class = column.entity_class
-                    if axis['index'] >= len(data['test_case'][entity_class.key_plural]):
+                    if axis['index'] >= len(data['test_case'][column.entity_key_plural]):
                         errors.setdefault('axes', {}).setdefault(axis_index, {})['index'] = state._(
-                            u"Index must be lower than {}").format(len(data['test_case'][entity_class.key_plural]))
+                            u"Index must be lower than {}").format(len(data['test_case'][column.entity_key_plural]))
             if errors:
                 return data, errors
 

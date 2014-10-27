@@ -48,7 +48,7 @@ class Column(object):
     dtype = float
     end = None
     entity = None  # Obsolete: To remove once build_..._couple() functions are no more used.
-    entity_class = None  # Caution: Don't use this attribute till build_..._couple() functions are no more used.
+    entity_key_plural = None
     formula_class = None
     function = None
     info = None
@@ -348,7 +348,8 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
     assert isinstance(name, basestring), name
     name = unicode(name)
 
-    column.entity_class = entity_class = entity_class_by_symbol[column.entity]
+    entity_class = entity_class_by_symbol[column.entity]
+    column.entity_key_plural = entity_class.key_plural
     if column.label is None:
         column.label = name
     assert column.name is None
@@ -374,7 +375,7 @@ def reference_input_variable(column = None, entity_class = None, is_permanent = 
         assert isinstance(stop_date, datetime.date)
         column.end = stop_date
     column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-    column.entity_class = entity_class
+    column.entity_key_plural = entity_class.key_plural
     if is_permanent:
         column.is_permanent = True
     column.label = label

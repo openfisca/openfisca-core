@@ -25,14 +25,14 @@
 
 import collections
 import datetime
-import functools
 import itertools
 
 import numpy as np
 from openfisca_core import conv, periods
 from openfisca_core.columns import FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import dated_function, DatedFormulaColumn, reference_formula, SimpleFormulaColumn
+from openfisca_core.formulas import (dated_function, DatedFormulaColumn, make_reference_formula_decorator,
+    SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -321,6 +321,9 @@ reference_input_variable(
 
 
 # Calculated variables
+
+
+reference_formula = make_reference_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
 
 @reference_formula
