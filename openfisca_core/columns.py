@@ -216,6 +216,27 @@ class DateCol(Column):
         return value.isoformat() if value is not None else value
 
 
+class FixedStrCol(Column):
+    default = u''
+    dtype = None
+    is_period_size_independent = True
+    json_type = 'String'
+    max_length = None
+
+    def __init__(self, max_length = None, **kwargs):
+        super(FixedStrCol, self).__init__(**kwargs)
+        assert isinstance(max_length, int)
+        self.dtype = '|S{}'.format(max_length)
+        self.max_length = max_length
+
+    @property
+    def json_to_dated_python(self):
+        return conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.test(lambda value: len(value) <= self.max_length),
+            )
+
+
 class FloatCol(Column):
     '''
     A column of float 32
