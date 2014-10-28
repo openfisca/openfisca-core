@@ -103,6 +103,9 @@ class AbstractTaxBenefitSystem(object):
         scenario.tax_benefit_system = self
         return scenario
 
+    def prefill_cache(self):
+        pass
+
     @property
     def real_reference(self):
         real_reference = self._real_reference
