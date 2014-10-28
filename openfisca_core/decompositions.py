@@ -24,8 +24,58 @@
 
 
 import collections
+import copy
+import os
+import xml
 
 from . import conv
+from . import decompositionsxml
+
+
+def calculate(simulation, decomposition_json = None):
+    assert simulation is not None
+    tax_benefit_system = simulation.tax_benefit_system
+    if decomposition_json is None:
+        xml_file_path = os.path.join(
+            tax_benefit_system.DECOMP_DIR,
+            "decomp.xml"
+            )
+        decomposition_json = get_decomposition_json(xml_file_path, tax_benefit_system)
+
+    for node in iter_decomposition_nodes(decomposition_json):
+        if not node.get('children'):
+            simulation.calculate(node['code'])
+
+    response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
+    for node in iter_decomposition_nodes(response_json, children_first = True):
+        children = node.get('children')
+        if children:
+            node['values'] = map(lambda *l: sum(l), *(
+                child['values']
+                for child in children
+                ))
+        else:
+            node['values'] = values = []
+            holder = simulation.get_holder(node['code'])
+            column = holder.column
+            values.extend(
+                column.transform_value_to_json(value)
+                for value in holder.new_test_case_array(simulation.period).tolist()
+                )
+        column = tax_benefit_system.column_by_name.get(node['code'])
+        if column is not None and column.url is not None:
+            node['url'] = column.url
+    return response_json
+
+
+def get_decomposition_json(xml_file_path, tax_benefit_system):
+    decomposition_tree = xml.etree.ElementTree.parse(xml_file_path)
+    decomposition_xml_json = conv.check(decompositionsxml.xml_decomposition_to_json)(decomposition_tree.getroot(),
+        state = conv.State)
+    decomposition_xml_json = conv.check(decompositionsxml.make_validate_node_xml_json(tax_benefit_system))(
+        decomposition_xml_json, state = conv.State)
+    decomposition_json = decompositionsxml.transform_node_xml_json_to_json(decomposition_xml_json)
+    return decomposition_json
 
 
 def iter_decomposition_nodes(node_or_nodes, children_first = False):

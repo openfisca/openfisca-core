@@ -25,7 +25,8 @@
 
 import collections
 
-from . import periods, taxbenefitsystems
+
+from . import periods, taxbenefitsystems, tools
 
 
 class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
@@ -72,6 +73,20 @@ def clone_entity_class(entity_class):
         pass
     ReformEntity.column_by_name = entity_class.column_by_name.copy()
     return ReformEntity
+
+
+def clone_simple_formula_column_with_new_function(column, function):
+    reform_column = tools.empty_clone(column)
+    reform_column.__dict__ = column.__dict__.copy()
+    formula_class = column.formula_class
+    reform_formula_class = type(
+        u'reform_{}'.format(column.name).encode('utf-8'),
+        (formula_class, ),
+        {'function': staticmethod(function)},
+        )
+    reform_formula_class.extract_variables_name()
+    reform_column.formula_class = reform_formula_class
+    return reform_column
 
 
 def find_item_at_date(items, date, nearest_in_period = None):
