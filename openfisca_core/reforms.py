@@ -50,6 +50,10 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
         if self.Scenario is None:
             self.Scenario = self.reference.Scenario
 
+        self.CURRENCY = self.reference.CURRENCY
+        self.DECOMP_DIR = self.reference.DECOMP_DIR
+
+
         super(Reform, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
