@@ -36,6 +36,7 @@ from .tools import empty_clone, stringify_array, stringify_formula_arguments
 
 
 log = logging.getLogger(__name__)
+select_function_sort_index = 0
 
 
 # Exceptions
@@ -952,7 +953,7 @@ class FormulaColumnMetaclass(type):
 
             formula_class_attributes['dated_formulas_class'] = dated_formulas_class
         elif issubclass(formula_class, SelectFormula):
-            formula_class_by_main_variable_name = collections.OrderedDict()
+            select_infos = []
             for function_name, function in attributes.copy().iteritems():
                 main_variable_name = getattr(function, 'main_variable_name', UnboundLocalError)
                 if main_variable_name is UnboundLocalError:
@@ -972,9 +973,12 @@ class FormulaColumnMetaclass(type):
                 select_formula_class.extract_variables_name()
 
                 del attributes[function_name]
-                formula_class_by_main_variable_name[main_variable_name] = select_formula_class
+                select_infos.append((function.sort_index, main_variable_name, select_formula_class))
 
-            formula_class_attributes['formula_class_by_main_variable_name'] = formula_class_by_main_variable_name
+            formula_class_attributes['formula_class_by_main_variable_name'] = collections.OrderedDict(
+                (main_variable_name, select_formula_class)
+                for _, main_variable_name, select_formula_class in sorted(select_infos)
+                )
         else:
             assert issubclass(formula_class, SimpleFormula), formula_class
             function = attributes.pop('function')
@@ -1220,7 +1224,10 @@ def make_reference_formula_decorator(entity_class_by_symbol = None):
 def select_function(main_variable_name):
     """Function decorator used to give main_variable_name to a method of a function in class SelectFormulaColumn."""
     def select_function_decorator(function):
+        global select_function_sort_index
         function.main_variable_name = main_variable_name
+        function.sort_index = select_function_sort_index
+        select_function_sort_index += 1
         return function
 
     return select_function_decorator
