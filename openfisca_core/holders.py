@@ -107,7 +107,7 @@ class Holder(object):
         if not self.column.is_permanent:
             return self.delete_array(simulation.period)
         if simulation.trace:
-            simulation.traceback.pop(self.column.name, None)
+            simulation.traceback.pop((self.column.name, None), None)
         del self._array
 
     @array.setter
@@ -117,9 +117,9 @@ class Holder(object):
             return self.set_array(simulation.period, array)
         if simulation.trace:
             name = self.column.name
-            step = simulation.traceback.get(name)
+            step = simulation.traceback.get((name, None))
             if step is None:
-                simulation.traceback[name] = dict(
+                simulation.traceback[(name, None)] = dict(
                     holder = self,
                     )
         self._array = array
@@ -239,7 +239,7 @@ class Holder(object):
         assert period is not None
         simulation = self.entity.simulation
         if simulation.trace:
-            simulation.traceback.pop(self.column.name, None)
+            simulation.traceback.pop((self.column.name, period), None)
         array_by_period = self._array_by_period
         if array_by_period is not None:
             array_by_period.pop(period, None)
@@ -259,7 +259,7 @@ class Holder(object):
         assert period is not None
         simulation = self.entity.simulation
         if simulation.trace:
-            simulation.traceback.pop(self.column.name, None)
+            simulation.traceback.pop((self.column.name, period), None)
         extrapolated_array_by_period = self._extrapolated_array_by_period
         if extrapolated_array_by_period is not None:
             extrapolated_array_by_period.pop(period, None)
@@ -276,7 +276,7 @@ class Holder(object):
         if not self.column.is_permanent:
             return self.delete_extrapolated_array(simulation.period)
         if simulation.trace:
-            simulation.traceback.pop(self.column.name, None)
+            simulation.traceback.pop((self.column.name, None), None)
         del self._extrapolated_array
 
     @extrapolated_array.setter
@@ -286,9 +286,9 @@ class Holder(object):
             return self.set_extrapolated_array(simulation.period, extrapolated_array)
         if simulation.trace:
             name = self.column.name
-            step = simulation.traceback.get(name)
+            step = simulation.traceback.get((name, None))
             if step is None:
-                simulation.traceback[name] = dict(
+                simulation.traceback[(name, None)] = dict(
                     holder = self,
                     )
         self._extrapolated_array = extrapolated_array
@@ -350,9 +350,9 @@ class Holder(object):
         simulation = self.entity.simulation
         if simulation.trace:
             name = self.column.name
-            step = simulation.traceback.get(name)
+            step = simulation.traceback.get((name, period))
             if step is None:
-                simulation.traceback[name] = dict(
+                simulation.traceback[(name, period)] = dict(
                     holder = self,
                     )
         array_by_period = self._array_by_period
@@ -366,9 +366,9 @@ class Holder(object):
         simulation = self.entity.simulation
         if simulation.trace:
             name = self.column.name
-            step = simulation.traceback.get(name)
+            step = simulation.traceback.get((name, period))
             if step is None:
-                simulation.traceback[name] = dict(
+                simulation.traceback[(name, period)] = dict(
                     holder = self,
                     )
         extrapolated_array_by_period = self._extrapolated_array_by_period
@@ -376,7 +376,7 @@ class Holder(object):
             self._extrapolated_array_by_period = extrapolated_array_by_period = {}
         extrapolated_array_by_period[period] = array
 
-    def to_field_json(self):
+    def to_field_json(self, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
@@ -395,4 +395,34 @@ class Holder(object):
                     ('label', consumer_column.label),
                     ('name', consumer_column.name),
                     )))
+        if with_value:
+            self_json['value'] = self.to_value_json()
         return self_json
+
+    def to_value_json(self):
+        column = self.column
+        transform_dated_value_to_json = column.transform_dated_value_to_json
+        if column.is_permanent:
+            array = self._array
+            if array is None:
+                array = self._extrapolated_array
+                if array is None:
+                    return None
+            return [
+                transform_dated_value_to_json(cell)
+                for cell in array.tolist()
+                ]
+        value_json = {}
+        if self._array_by_period is not None:
+            for period, array in self._array_by_period.iteritems():
+                value_json[str(period)] = [
+                    transform_dated_value_to_json(cell)
+                    for cell in array.tolist()
+                    ]
+        if self._extrapolated_array_by_period is not None:
+            for period, array in self._extrapolated_array_by_period.iteritems():
+                value_json[str(period)] = [
+                    transform_dated_value_to_json(cell)
+                    for cell in array.tolist()
+                    ]
+        return value_json

@@ -463,6 +463,9 @@ class SimpleFormula(AbstractFormula):
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
+        debug = simulation.debug
+        debug_all = simulation.debug_all
+        trace = simulation.trace
 
         assert period is not None
         output_period = self.get_output_period(period)
@@ -499,13 +502,15 @@ class SimpleFormula(AbstractFormula):
             return dated_holder
 
         period_requested_formulas.add(self)
+        arguments = {}
         dated_holder_by_variable_name = collections.OrderedDict()
         holder_by_variable_name = self.holder_by_variable_name
         required_parameters = set(holder_by_variable_name.iterkeys()).union(
             (self.legislation_accessor_by_name or {}).iterkeys())
-        arguments = {}
-        if simulation.debug and not simulation.debug_all or simulation.trace:
+        if debug and not debug_all or trace:
             has_only_default_arguments = True
+        if trace:
+            variable_period_by_name = collections.OrderedDict()
         for variable_name, variable_holder in holder_by_variable_name.iteritems():
             variable_period = self.get_variable_period(output_period, variable_name)
             variable_dated_holder = variable_holder.compute(lazy = lazy, period = variable_period,
@@ -523,9 +528,14 @@ class SimpleFormula(AbstractFormula):
             arguments[variable_name] = variable_dated_holder \
                 if variable_name.endswith('_holder') \
                 else variable_dated_holder.array
-            if (simulation.debug and not simulation.debug_all or simulation.trace) and has_only_default_arguments \
+            if (debug and not debug_all or trace) and has_only_default_arguments \
                     and np.any(variable_dated_holder.array != variable_holder.column.default):
                 has_only_default_arguments = False
+            if trace:
+                clean_variable_name = variable_name[:-len('_holder')] \
+                    if variable_name.endswith('_holder') \
+                    else variable_name
+                variable_period_by_name[clean_variable_name] = variable_period
 
         if self.requires_legislation:
             required_parameters.add('_P')
@@ -572,7 +582,7 @@ class SimpleFormula(AbstractFormula):
                     stringify_formula_arguments(dated_holder_by_variable_name), array.size, entity.count,
                     entity.key_singular).encode('utf-8')
 
-            if simulation.debug:
+            if debug:
                 try:
                     # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                     if np.isnan(np.min(array)):
@@ -588,11 +598,12 @@ class SimpleFormula(AbstractFormula):
                 array = array.astype(column.dtype)
             dated_holder.array = array
 
-        if simulation.debug and (simulation.debug_all or not has_only_default_arguments):
+        if debug and (debug_all or not has_only_default_arguments):
             log.info(u'<=> {}@{}<{}>({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
                 stringify_formula_arguments(dated_holder_by_variable_name), stringify_array(array)))
-        if simulation.trace:
-            simulation.traceback[column.name].update(dict(
+        if trace:
+            simulation.traceback[(column.name, dated_holder.period)].update(dict(
+                arguments = variable_period_by_name,
                 default_arguments = has_only_default_arguments,
                 is_computed = True,
                 ))
