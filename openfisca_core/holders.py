@@ -160,13 +160,59 @@ class Holder(object):
         """
         if period is None:
             period = self.entity.simulation.period
-        dated_holder = self.at_period(period)
-        if dated_holder.array is not None:
-            return dated_holder
-
         period_unit, start_instant, _ = period
         stop_instant = period.stop
         column = self.column
+
+        # First look for dated_holders covering the whole period (without hole).
+        dated_holder = self.at_period(period)
+        if dated_holder.array is not None:
+            return dated_holder
+        assert self._array is None  # self._array should always be None when dated_holder.array is None.
+        array_by_period = self._array_by_period
+        if array_by_period is not None:
+            array = None
+            remaining_start_instant = start_instant
+            for exact_period, exact_array in sorted(array_by_period.iteritems(),
+                    key = lambda (period, array): period[1]):
+                if exact_array is None:
+                    continue
+                exact_start_instant = exact_period.start
+                if exact_start_instant > stop_instant:
+                    # The existing data arrays don't fully cover the requested period.
+                    break
+                exact_stop_instant = exact_period.stop
+                if exact_start_instant <= remaining_start_instant and exact_stop_instant >= remaining_start_instant:
+                    intersection_period = exact_period.intersection(remaining_start_instant, stop_instant)
+                    assert intersection_period is not None
+                    if column.is_period_size_independent:
+                        # Use always the first value for the period, because the output period may end before
+                        # the requested period (because of base instant).
+                        if array is None:
+                            array = np.copy(exact_array)
+                    else:
+                        exact_unit = exact_period[0]
+                        intersection_unit = intersection_period[0]
+                        if intersection_unit == exact_unit:
+                            intersection_array = exact_array * intersection_period[2] / exact_period[2]
+                        elif intersection_unit == u'month' and exact_unit == u'year':
+                            intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
+                        elif intersection_unit == u'year' and exact_unit == u'month':
+                            intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
+                        else:
+                            intersection_array = exact_array * (intersection_period.days / exact_period.days)
+                        if array is None:
+                            array = np.copy(intersection_array)
+                        else:
+                            array += intersection_array
+                    remaining_start_instant = exact_stop_instant.offset(1, 'day')
+                    if remaining_start_instant > stop_instant:
+                        dated_holder.extrapolated_array = array
+                        return dated_holder
+                if exact_stop_instant >= stop_instant:
+                    # The existing data arrays don't fully cover the requested period.
+                    break
+
         entity = self.entity
         formula = self.formula
         if formula is not None:
@@ -197,33 +243,34 @@ class Holder(object):
         if array is None:
             array_by_period = self._array_by_period
             if array_by_period is not None:
-                for exact_period in sorted(array_by_period, key = lambda period: period[1]):
-                    exact_unit = exact_period[0]
+                for exact_period, exact_array in sorted(array_by_period.iteritems(),
+                        key = lambda (period, array): period[1]):
+                    if exact_array is None:
+                        continue
                     exact_start_instant = exact_period[1]
                     exact_stop_instant = exact_period.stop
-                    exact_array = array_by_period[exact_period]
-                    if exact_array is not None:
-                        intersection_period = period.intersection(exact_start_instant, exact_stop_instant)
-                        if intersection_period is not None:
-                            if column.is_period_size_independent:
-                                # Use always the first value for the period, because the output period may end before
-                                # the requested period (because of base instant).
-                                if array is None:
-                                    array = np.copy(exact_array)
+                    intersection_period = period.intersection(exact_start_instant, exact_stop_instant)
+                    if intersection_period is not None:
+                        if column.is_period_size_independent:
+                            # Use always the first value for the period, because the output period may end before
+                            # the requested period (because of base instant).
+                            if array is None:
+                                array = np.copy(exact_array)
+                        else:
+                            exact_unit = exact_period[0]
+                            intersection_unit = intersection_period[0]
+                            if intersection_unit == exact_unit:
+                                intersection_array = exact_array * intersection_period[2] / exact_period[2]
+                            elif intersection_unit == u'month' and exact_unit == u'year':
+                                intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
+                            elif intersection_unit == u'year' and exact_unit == u'month':
+                                intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
                             else:
-                                intersection_unit = intersection_period[0]
-                                if intersection_unit == exact_unit:
-                                    intersection_array = exact_array * intersection_period[2] / exact_period[2]
-                                elif intersection_unit == u'month' and exact_unit == u'year':
-                                    intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
-                                elif intersection_unit == u'year' and exact_unit == u'month':
-                                    intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
-                                else:
-                                    intersection_array = exact_array * (intersection_period.days / exact_period.days)
-                                if array is None:
-                                    array = np.copy(intersection_array)
-                                else:
-                                    array += intersection_array
+                                intersection_array = exact_array * (intersection_period.days / exact_period.days)
+                            if array is None:
+                                array = np.copy(intersection_array)
+                            else:
+                                array += intersection_array
                     if exact_stop_instant >= stop_instant:
                         break
         if not lazy and array is None:
