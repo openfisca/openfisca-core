@@ -26,10 +26,14 @@
 from __future__ import division
 
 from bisect import bisect_left, bisect_right
+import logging
 import itertools
 
 import numpy as np
 from numpy import maximum as max_, minimum as min_
+
+
+log = logging.getLogger(__name__)
 
 
 class AbstractTaxScale(object):
@@ -154,29 +158,32 @@ class AmountTaxScale(AbstractTaxScale):
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):
-    # def calc(self, base):
-    #     if len(self.rates) == 1:
-    #         return base * self.rates[0]
-    #     base1 = np.tile(base, (len(self.thresholds) - 1, 1)).T
-    #     thresholds1 = np.tile(np.hstack(self.thresholds), (len(base), 1))
-    #     a = (base1 >= thresholds1[:, :-1]) * (base1 < thresholds1[:, 1:])
+    def calc(self, base):
+        if len(self.rates) == 1:
+            return base * self.rates[0]
 
-    #     rates2 = np.array([0] + self.rates[:-1])
-    #     thresholds2 = np.array(self.thresholds)
-    #     rate_x = (rates[1:] - rates[:-1]) / (thresholds[1:] - thresholds[:-1])
-    #     A = np.dot(a, rate_x.T)
+        tiled_base = np.tile(base, (len(self.thresholds) - 1, 1)).T
+        tiled_thresholds = np.tile(np.hstack(self.thresholds), (len(base), 1))
+        bracket_dummy = (tiled_base >= tiled_thresholds[:, :-1]) * (tiled_base < tiled_thresholds[:, 1:])
+        rates_array = np.array(self.rates)
+        thresholds_array = np.array(self.thresholds)
+        rate_slope = (rates_array[1:] - rates_array[:-1]) / (thresholds_array[1:] - thresholds_array[:-1])
+        average_rate_slope = np.dot(bracket_dummy, rate_slope.T)
 
-    #     B = np.dot(a, np.array(self.thresholds[1:]))
-    #     C = np.dot(a, np.array(self.rates[:-1]))
-    #     return base * (A * (base - B) + C) + max_(base - self.thresholds[-1], 0) * self.rates[-1] \
-    #         + (base >= self.thresholds[-1]) * self.thresholds[-1] * self.rates[-2]
+        bracket_average_start_rate = np.dot(bracket_dummy, rates_array[:-1])
+        bracket_threshold = np.dot(bracket_dummy, thresholds_array[:-1])
+        log.info("bracket_average_start_rate :  {}".format(bracket_average_start_rate))
+        log.info("average_rate_slope:  {}".format(average_rate_slope))
+        return base * (
+            bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope
+            )
 
     def to_marginal(self):
         marginal_tax_scale = MarginalRateTaxScale(name = self.name, option = self.option, unit = self.unit)
         previous_I = 0
         previous_threshold = 0
-        for threshold, rate in itertools.izip(self.thresholds, self.rates):
-            if threshold != 'Infini':
+        for threshold, rate in itertools.izip(self.thresholds[1:], self.rates[1:]):
+            if threshold != float('Inf'):
                 I = rate * threshold
                 marginal_tax_scale.add_bracket(previous_threshold, (I - previous_I) / (threshold - previous_threshold))
                 previous_I = I
@@ -248,6 +255,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
     def to_average(self):
         average_tax_scale = LinearAverageRateTaxScale(name = self.name, option = self.option, unit = self.unit)
+        average_tax_scale.add_bracket(0, 0)
         if self.thresholds:
             I = 0
             previous_threshold = self.thresholds[0]
@@ -257,7 +265,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 average_tax_scale.add_bracket(threshold, I / threshold)
                 previous_threshold = threshold
                 previous_rate = rate
-            average_tax_scale.add_bracket('Infini', rate)
+
+            average_tax_scale.add_bracket(float('Inf'), rate)
         return average_tax_scale
 
 
