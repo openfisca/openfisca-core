@@ -78,13 +78,13 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
     if node_type == u'Parameter':
         return dated_node_json.get('value')
     assert node_type == u'Scale'
-    if any('amount' in slice for slice in dated_node_json['slices']):
+    if any('amount' in bracket for bracket in dated_node_json['brackets']):
         # AmountTaxScale
         tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
-        for dated_slice_json in dated_node_json['slices']:
-            amount = dated_slice_json.get('amount')
+        for dated_bracket_json in dated_node_json['brackets']:
+            amount = dated_bracket_json.get('amount')
             assert not isinstance(amount, list)
-            threshold = dated_slice_json.get('threshold')
+            threshold = dated_bracket_json.get('threshold')
             assert not isinstance(threshold, list)
             if amount is not None and threshold is not None:
                 tax_scale.add_bracket(threshold, amount)
@@ -102,12 +102,12 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
         # MarginalRateTaxScale
         tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
 
-    for dated_slice_json in dated_node_json['slices']:
-        base = dated_slice_json.get('base', 1)
+    for dated_bracket_json in dated_node_json['brackets']:
+        base = dated_bracket_json.get('base', 1)
         assert not isinstance(base, list)
-        rate = dated_slice_json.get('rate')
+        rate = dated_bracket_json.get('rate')
         assert not isinstance(rate, list)
-        threshold = dated_slice_json.get('threshold')
+        threshold = dated_bracket_json.get('threshold')
         assert not isinstance(threshold, list)
         if rate is not None and threshold is not None:
             tax_scale.add_bracket(threshold, rate * base)
@@ -178,19 +178,19 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
             dated_node_json[key] = dated_children_json
         elif key in ('start', 'stop'):
             pass
-        elif key == 'slices':
+        elif key == 'brackets':
             # Occurs when @type == 'Scale'.
-            dated_slices_json = [
-                dated_slice_json
-                for dated_slice_json in (
-                    generate_dated_slice_json(slice_json, legislation_start_str, legislation_stop_str, instant_str)
-                    for slice_json in value
+            dated_brackets_json = [
+                dated_bracket_json
+                for dated_bracket_json in (
+                    generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str)
+                    for bracket_json in value
                     )
-                if dated_slice_json is not None
+                if dated_bracket_json is not None
                 ]
-            if not dated_slices_json:
+            if not dated_brackets_json:
                 return None
-            dated_node_json[key] = dated_slices_json
+            dated_node_json[key] = dated_brackets_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
             dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
@@ -202,16 +202,16 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
     return dated_node_json
 
 
-def generate_dated_slice_json(slice_json, legislation_start_str, legislation_stop_str, instant_str):
-    dated_slice_json = collections.OrderedDict()
-    for key, value in slice_json.iteritems():
+def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str):
+    dated_bracket_json = collections.OrderedDict()
+    for key, value in bracket_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
             dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
             if dated_value is not None:
-                dated_slice_json[key] = dated_value
+                dated_bracket_json[key] = dated_value
         else:
-            dated_slice_json[key] = value
-    return dated_slice_json
+            dated_bracket_json[key] = value
+    return dated_bracket_json
 
 
 # Level-1 Converters
@@ -380,13 +380,13 @@ def validate_dated_node_json(node, state = None):
                     'noncontrib',
                     )),
                 ),
-            slices = conv.pipe(
+            brackets = conv.pipe(
                 conv.test_isinstance(list),
                 conv.uniform_sequence(
-                    validate_dated_slice_json,
+                    validate_dated_bracket_json,
                     drop_none_items = True,
                     ),
-                validate_dated_slices_json_types,
+                validate_dated_brackets_json_types,
                 conv.empty_to_none,
                 conv.not_none,
                 ),
@@ -409,11 +409,11 @@ def validate_dated_node_json(node, state = None):
     return validated_node, errors
 
 
-def validate_dated_slice_json(slice, state = None):
-    if slice is None:
+def validate_dated_bracket_json(bracket, state = None):
+    if bracket is None:
         return None, None
-    state = conv.add_ancestor_to_state(state, slice)
-    validated_slice, errors = conv.pipe(
+    state = conv.add_ancestor_to_state(state, bracket)
+    validated_bracket, errors = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(
             dict(
@@ -447,31 +447,31 @@ def validate_dated_slice_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
-        )(slice, state = state)
-    conv.remove_ancestor_from_state(state, slice)
-    return validated_slice, errors
+        )(bracket, state = state)
+    conv.remove_ancestor_from_state(state, bracket)
+    return validated_bracket, errors
 
 
-def validate_dated_slices_json_types(slices, state = None):
-    if not slices:
-        return slices, None
+def validate_dated_brackets_json_types(brackets, state = None):
+    if not brackets:
+        return brackets, None
 
     has_amount = any(
-        'amount' in slice
-        for slice in slices
+        'amount' in bracket
+        for bracket in brackets
         )
     if has_amount:
         if state is None:
             state = conv.default_state
         errors = {}
-        for slice_index, slice in enumerate(slices):
-            if 'base' in slice:
-                errors.setdefault(slice_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
-            if 'rate' in slice:
-                errors.setdefault(slice_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
+        for bracket_index, bracket in enumerate(brackets):
+            if 'base' in bracket:
+                errors.setdefault(bracket_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
+            if 'rate' in bracket:
+                errors.setdefault(bracket_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
         if errors:
-            return slices, errors
-    return slices, None
+            return brackets, errors
+    return brackets, None
 
 
 def validate_dated_value_json(value, state = None):
@@ -653,14 +653,14 @@ def validate_node_json(node, state = None):
                     'noncontrib',
                     )),
                 ),
-            slices = conv.pipe(
+            brackets = conv.pipe(
                 conv.test_isinstance(list),
                 conv.uniform_sequence(
-                    validate_slice_json,
+                    validate_bracket_json,
                     drop_none_items = True,
                     ),
-                validate_slices_json_types,
-                validate_slices_json_dates,
+                validate_brackets_json_types,
+                validate_brackets_json_dates,
                 conv.empty_to_none,
                 conv.not_none,
                 ),
@@ -683,11 +683,11 @@ def validate_node_json(node, state = None):
     return validated_node, errors
 
 
-def validate_slice_json(slice, state = None):
-    if slice is None:
+def validate_bracket_json(bracket, state = None):
+    if bracket is None:
         return None, None
-    state = conv.add_ancestor_to_state(state, slice)
-    validated_slice, errors = conv.pipe(
+    state = conv.add_ancestor_to_state(state, bracket)
+    validated_bracket, errors = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(
             dict(
@@ -707,47 +707,47 @@ def validate_slice_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
-        conv.test(lambda slice: bool(slice.get('amount')) ^ bool(slice.get('rate')),
+        conv.test(lambda bracket: bool(bracket.get('amount')) ^ bool(bracket.get('rate')),
             error = N_(u"Either amount or rate must be provided")),
-        )(slice, state = state)
-    conv.remove_ancestor_from_state(state, slice)
-    return validated_slice, errors
+        )(bracket, state = state)
+    conv.remove_ancestor_from_state(state, bracket)
+    return validated_bracket, errors
 
 
-def validate_slices_json_dates(slices, state = None):
-    if not slices:
-        return slices, None
+def validate_brackets_json_dates(brackets, state = None):
+    if not brackets:
+        return brackets, None
     if state is None:
         state = conv.default_state
     errors = {}
 
-    previous_slice = slices[0]
-    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+    previous_bracket = brackets[0]
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
         for key in ('amount', 'base', 'rate', 'threshold'):
             valid_segments = []
-            for value_json in (previous_slice.get(key) or []):
+            for value_json in (previous_bracket.get(key) or []):
                 from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
                 to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
                 if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                     valid_segments[-1] = (from_date, valid_segments[-1][1])
                 else:
                     valid_segments.append((from_date, to_date))
-            for value_index, value_json in enumerate(slice.get(key) or []):
+            for value_index, value_json in enumerate(bracket.get(key) or []):
                 from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
                 to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
                 for valid_segment in valid_segments:
                     if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
                         break
                 else:
-                    errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(value_index,
-                        {})['start'] = state._(u"Dates don't belong to valid dates of previous slice")
-        previous_slice = slice
+                    errors.setdefault(bracket_index, {}).setdefault(key, {}).setdefault(value_index,
+                        {})['start'] = state._(u"Dates don't belong to valid dates of previous bracket")
+        previous_bracket = bracket
     if errors:
-        return slices, errors
+        return brackets, errors
 
-    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
         amount_segments = []
-        for value_json in (slice.get('amount') or []):
+        for value_json in (bracket.get('amount') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if amount_segments and amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
@@ -756,7 +756,7 @@ def validate_slices_json_dates(slices, state = None):
                 amount_segments.append((from_date, to_date))
 
         rate_segments = []
-        for value_json in (slice.get('rate') or []):
+        for value_json in (bracket.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
@@ -765,7 +765,7 @@ def validate_slices_json_dates(slices, state = None):
                 rate_segments.append((from_date, to_date))
 
         threshold_segments = []
-        for value_json in (slice.get('threshold') or []):
+        for value_json in (bracket.get('threshold') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
@@ -773,37 +773,37 @@ def validate_slices_json_dates(slices, state = None):
             else:
                 threshold_segments.append((from_date, to_date))
 
-        for value_index, value_json in enumerate(slice.get('base') or []):
+        for value_index, value_json in enumerate(bracket.get('base') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for rate_segment in rate_segments:
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('base', {}).setdefault(value_index,
+                errors.setdefault(bracket_index, {}).setdefault('base', {}).setdefault(value_index,
                     {})['start'] = state._(u"Dates don't belong to rate dates")
 
-        for value_index, value_json in enumerate(slice.get('amount') or []):
+        for value_index, value_json in enumerate(bracket.get('amount') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for threshold_segment in threshold_segments:
                 if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('amount', {}).setdefault(value_index,
+                errors.setdefault(bracket_index, {}).setdefault('amount', {}).setdefault(value_index,
                     {})['start'] = state._(u"Dates don't belong to threshold dates")
 
-        for value_index, value_json in enumerate(slice.get('rate') or []):
+        for value_index, value_json in enumerate(bracket.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for threshold_segment in threshold_segments:
                 if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('rate', {}).setdefault(value_index,
+                errors.setdefault(bracket_index, {}).setdefault('rate', {}).setdefault(value_index,
                     {})['start'] = state._(u"Dates don't belong to threshold dates")
 
-        for value_index, value_json in enumerate(slice.get('threshold') or []):
+        for value_index, value_json in enumerate(bracket.get('threshold') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
             to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
             for amount_segment in amount_segments:
@@ -814,32 +814,32 @@ def validate_slices_json_dates(slices, state = None):
                     if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                         break
                 else:
-                    errors.setdefault(slice_index, {}).setdefault('threshold', {}).setdefault(value_index,
+                    errors.setdefault(bracket_index, {}).setdefault('threshold', {}).setdefault(value_index,
                         {})['start'] = state._(u"Dates don't belong to amount or rate dates")
 
-    return slices, errors or None
+    return brackets, errors or None
 
 
-def validate_slices_json_types(slices, state = None):
-    if not slices:
-        return slices, None
+def validate_brackets_json_types(brackets, state = None):
+    if not brackets:
+        return brackets, None
 
     has_amount = any(
-        'amount' in slice
-        for slice in slices
+        'amount' in bracket
+        for bracket in brackets
         )
     if has_amount:
         if state is None:
             state = conv.default_state
         errors = {}
-        for slice_index, slice in enumerate(slices):
-            if 'base' in slice:
-                errors.setdefault(slice_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
-            if 'rate' in slice:
-                errors.setdefault(slice_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
+        for bracket_index, bracket in enumerate(brackets):
+            if 'base' in bracket:
+                errors.setdefault(bracket_index, {})['base'] = state._(u"A scale can't contain both amounts and bases")
+            if 'rate' in bracket:
+                errors.setdefault(bracket_index, {})['rate'] = state._(u"A scale can't contain both amounts and rates")
         if errors:
-            return slices, errors
-    return slices, None
+            return brackets, errors
+    return brackets, None
 
 
 def validate_value_json(value, state = None):

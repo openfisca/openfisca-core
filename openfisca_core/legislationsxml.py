@@ -35,14 +35,14 @@ from . import conv
 
 
 # legislation_json_key_by_xml_tag = dict(
-#    ASSIETTE = 'base',  # "base" is singular, because a slice has only one base.
+#    ASSIETTE = 'base',  # "base" is singular, because a bracket has only one base.
 #    BAREME = 'scales',
 #    CODE = 'parameters',
 #    MONTANT = 'amount',
 #    NODE = 'nodes',
-#    SEUIL= 'threshold',  # "threshold" is singular, because a slice has only one base.
-#    TAUX = 'rate',  # "rate" is singular, because a slice has only one base.
-#    TRANCHE = 'slices', # TODO: should be renamed to bracket
+#    SEUIL= 'threshold',  # "threshold" is singular, because a bracket has only one base.
+#    TAUX = 'rate',  # "rate" is singular, because a bracket has only one base.
+#    TRANCHE = 'brackets', # TODO: should be renamed to bracket
 #    VALUE = 'values',
 #    )
 
@@ -190,8 +190,8 @@ def transform_scale_xml_json_to_json(scale_xml_json):
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'TRANCHE':
-            scale_json['slices'] = [
-                transform_slice_xml_json_to_json(item)
+            scale_json['brackets'] = [
+                transform_bracket_xml_json_to_json(item)
                 for item in value
                 ]
         elif key == 'type':
@@ -203,28 +203,28 @@ def transform_scale_xml_json_to_json(scale_xml_json):
     return scale_xml_json['code'], scale_json
 
 
-def transform_slice_xml_json_to_json(slice_xml_json):
+def transform_bracket_xml_json_to_json(bracket_xml_json):
     comments = []
-    slice_json = collections.OrderedDict()
-    for key, value in slice_xml_json.iteritems():
+    bracket_json = collections.OrderedDict()
+    for key, value in bracket_xml_json.iteritems():
         if key == 'ASSIETTE':
-            slice_json['base'] = transform_values_holder_xml_json_to_json(value[0])
+            bracket_json['base'] = transform_values_holder_xml_json_to_json(value[0])
         elif key == 'code':
             pass
         elif key == 'MONTANT':
-            slice_json['amount'] = transform_values_holder_xml_json_to_json(value[0])
+            bracket_json['amount'] = transform_values_holder_xml_json_to_json(value[0])
         elif key == 'SEUIL':
-            slice_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
+            bracket_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'TAUX':
-            slice_json['rate'] = transform_values_holder_xml_json_to_json(value[0])
+            bracket_json['rate'] = transform_values_holder_xml_json_to_json(value[0])
 
         else:
-            slice_json[key] = value
+            bracket_json[key] = value
     if comments:
-        slice_json['comment'] = u'\n\n'.join(comments)
-    return slice_json
+        bracket_json['comment'] = u'\n\n'.join(comments)
+    return bracket_json
 
 
 def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_transformer):
@@ -473,11 +473,11 @@ def validate_scale_xml_json(scale, state = None):
                 TRANCHE = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
-                        validate_slice_xml_json,
+                        validate_bracket_xml_json,
                         drop_none_items = True,
                         ),
-                    validate_slices_xml_json_types,
-                    validate_slices_xml_json_dates,
+                    validate_brackets_xml_json_types,
+                    validate_brackets_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -506,11 +506,11 @@ def validate_scale_xml_json(scale, state = None):
     return validated_scale, errors
 
 
-def validate_slice_xml_json(slice, state = None):
-    if slice is None:
+def validate_bracket_xml_json(bracket, state = None):
+    if bracket is None:
         return None, None
-    state = conv.add_ancestor_to_state(state, slice)
-    validated_slice, errors = conv.pipe(
+    state = conv.add_ancestor_to_state(state, bracket)
+    validated_bracket, errors = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(
             dict(
@@ -568,25 +568,25 @@ def validate_slice_xml_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
-        conv.test(lambda slice: bool(slice.get('MONTANT')) ^ bool(slice.get('TAUX')),
+        conv.test(lambda bracket: bool(bracket.get('MONTANT')) ^ bool(bracket.get('TAUX')),
             error = N_(u"Either MONTANT or TAUX must be provided")),
-        )(slice, state = state)
-    conv.remove_ancestor_from_state(state, slice)
-    return validated_slice, errors
+        )(bracket, state = state)
+    conv.remove_ancestor_from_state(state, bracket)
+    return validated_bracket, errors
 
 
-def validate_slices_xml_json_dates(slices, state = None):
-    if not slices:
-        return slices, None
+def validate_brackets_xml_json_dates(brackets, state = None):
+    if not brackets:
+        return brackets, None
     if state is None:
         state = conv.default_state
     errors = {}
 
-    previous_slice = slices[0]
-    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+    previous_bracket = brackets[0]
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
         for key in ('ASSIETTE', 'MONTANT', 'SEUIL', 'TAUX'):
             valid_segments = []
-            values_holder_xml_json = previous_slice.get(key)
+            values_holder_xml_json = previous_bracket.get(key)
             values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
             for value_xml_json in values_xml_json:
                 from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -596,7 +596,7 @@ def validate_slices_xml_json_dates(slices, state = None):
                 else:
                     valid_segments.append((from_date, to_date))
 
-            values_holder_xml_json = slice.get(key)
+            values_holder_xml_json = bracket.get(key)
             values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
             for value_index, value_xml_json in enumerate(values_xml_json):
                 from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -605,16 +605,16 @@ def validate_slices_xml_json_dates(slices, state = None):
                     if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
                         break
                 else:
-                    errors.setdefault(slice_index, {}).setdefault(key, {}).setdefault(0, {}).setdefault('VALUE',
+                    errors.setdefault(bracket_index, {}).setdefault(key, {}).setdefault(0, {}).setdefault('VALUE',
                         {}).setdefault(value_index, {})['deb'] = state._(
-                        u"Dates don't belong to valid dates of previous slice")
-        previous_slice = slice
+                        u"Dates don't belong to valid dates of previous bracket")
+        previous_bracket = bracket
     if errors:
-        return slices, errors
+        return brackets, errors
 
-    for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
         amount_segments = []
-        values_holder_xml_json = slice.get('MONTANT')
+        values_holder_xml_json = bracket.get('MONTANT')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_xml_json in values_xml_json:
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -625,7 +625,7 @@ def validate_slices_xml_json_dates(slices, state = None):
                 amount_segments.append((from_date, to_date))
 
         rate_segments = []
-        values_holder_xml_json = slice.get('TAUX')
+        values_holder_xml_json = bracket.get('TAUX')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_xml_json in values_xml_json:
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -636,7 +636,7 @@ def validate_slices_xml_json_dates(slices, state = None):
                 rate_segments.append((from_date, to_date))
 
         threshold_segments = []
-        values_holder_xml_json = slice.get('SEUIL')
+        values_holder_xml_json = bracket.get('SEUIL')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_xml_json in values_xml_json:
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -646,7 +646,7 @@ def validate_slices_xml_json_dates(slices, state = None):
             else:
                 threshold_segments.append((from_date, to_date))
 
-        values_holder_xml_json = slice.get('ASSIETTE')
+        values_holder_xml_json = bracket.get('ASSIETTE')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_index, value_xml_json in enumerate(values_xml_json):
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -655,10 +655,10 @@ def validate_slices_xml_json_dates(slices, state = None):
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('ASSIETTE', {}).setdefault(0, {}).setdefault('VALUE',
+                errors.setdefault(bracket_index, {}).setdefault('ASSIETTE', {}).setdefault(0, {}).setdefault('VALUE',
                     {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
 
-        values_holder_xml_json = slice.get('TAUX')
+        values_holder_xml_json = bracket.get('TAUX')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_index, value_xml_json in enumerate(values_xml_json):
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -667,10 +667,10 @@ def validate_slices_xml_json_dates(slices, state = None):
                 if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('TAUX', {}).setdefault(0, {}).setdefault('VALUE',
+                errors.setdefault(bracket_index, {}).setdefault('TAUX', {}).setdefault(0, {}).setdefault('VALUE',
                     {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to SEUIL dates")
 
-        values_holder_xml_json = slice.get('SEUIL')
+        values_holder_xml_json = bracket.get('SEUIL')
         values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
         for value_index, value_xml_json in enumerate(values_xml_json):
             from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
@@ -683,32 +683,32 @@ def validate_slices_xml_json_dates(slices, state = None):
                     if amount_segment[0] <= from_date and to_date <= amount_segment[1]:
                         break
                 else:
-                    errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
+                    errors.setdefault(bracket_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
                         {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
-    return slices, errors or None
+    return brackets, errors or None
 
 
-def validate_slices_xml_json_types(slices, state = None):
-    if not slices:
-        return slices, None
+def validate_brackets_xml_json_types(brackets, state = None):
+    if not brackets:
+        return brackets, None
 
     has_amount = any(
-        'MONTANT' in slice
-        for slice in slices
+        'MONTANT' in bracket
+        for bracket in brackets
         )
     if has_amount:
         if state is None:
             state = conv.default_state
         errors = {}
-        for slice_index, slice in enumerate(slices):
-            if 'ASSIETTE' in slice:
-                errors.setdefault(slice_index, {})['ASSIETTE'] = state._(
+        for bracket_index, bracket in enumerate(brackets):
+            if 'ASSIETTE' in bracket:
+                errors.setdefault(bracket_index, {})['ASSIETTE'] = state._(
                     u"A scale can't contain both MONTANT and ASSIETTE")
-            if 'TAUX' in slice:
-                errors.setdefault(slice_index, {})['TAUX'] = state._(u"A scale can't contain both MONTANT and TAUX")
+            if 'TAUX' in bracket:
+                errors.setdefault(bracket_index, {})['TAUX'] = state._(u"A scale can't contain both MONTANT and TAUX")
         if errors:
-            return slices, errors
-    return slices, None
+            return brackets, errors
+    return brackets, None
 
 
 def validate_value_xml_json(value, state = None):
