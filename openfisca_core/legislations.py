@@ -90,8 +90,18 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
                 tax_scale.add_bracket(threshold, amount)
         return tax_scale
 
-    # MarginalRateTaxScale
-    tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
+    rates_kind = dated_node_json.get('rates_kind', None)
+    if rates_kind == "average":
+        # LinearAverageRateTaxScale
+        tax_scale = taxscales.LinearAverageRateTaxScale(
+            name = code,
+            option = dated_node_json.get('option'),
+            unit = dated_node_json.get('unit'),
+            )
+    else:
+        # MarginalRateTaxScale
+        tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
+
     for dated_slice_json in dated_node_json['slices']:
         base = dated_slice_json.get('base', 1)
         assert not isinstance(base, list)
