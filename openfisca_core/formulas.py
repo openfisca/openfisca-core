@@ -51,7 +51,6 @@ class NaNCreationError(Exception):
 
 class AbstractFormula(object):
     holder = None
-    period_unit = None  # class attribute
 
     def __init__(self, holder = None):
         assert holder is not None
@@ -469,9 +468,6 @@ class SimpleFormula(AbstractFormula):
 
         assert period is not None
         output_period = self.get_output_period(period)
-        assert output_period[0] == self.period_unit, \
-            u"Formula {} declares a {} period unit but returns a different output period: {}".format(column.name,
-                self.period_unit, output_period).encode('utf-8')
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Formula {} returns an output period {} that doesn't include start instant of requested period {}".format(
                 column.name, output_period, period).encode('utf-8')
@@ -874,9 +870,6 @@ class FormulaColumnMetaclass(type):
         label = attributes.pop('label', None)
         label = name if label is None else unicode(label)
 
-        period_unit = attributes.pop('period_unit')
-        assert period_unit in (u'month', u'year'), period_unit
-
         start_date = attributes.pop('start_date', None)
         if start_date is not None:
             assert isinstance(start_date, datetime.date)
@@ -893,7 +886,6 @@ class FormulaColumnMetaclass(type):
 
         formula_class_attributes = dict(
             __module__ = attributes.pop('__module__'),
-            period_unit = period_unit,
             )
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
@@ -1074,7 +1066,6 @@ def build_alternative_formula(name = None, functions = None, column = None, enti
             function = staticmethod(function),
             # Use a year period starting at beginning of month.
             get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
-            period_unit = u'year',
             ))
         formula_class.extract_variables_name()
         alternative_formulas_class.append(formula_class)
@@ -1083,7 +1074,6 @@ def build_alternative_formula(name = None, functions = None, column = None, enti
     column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
         alternative_formulas_class = alternative_formulas_class,
-        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -1114,7 +1104,6 @@ def build_dated_formula(name = None, dated_functions = None, column = None, enti
                 function = staticmethod(dated_function['function']),
                 # Use a year period starting at beginning of month.
                 get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
-                period_unit = u'year',
                 ),
             )
         formula_class.extract_variables_name()
@@ -1129,7 +1118,6 @@ def build_dated_formula(name = None, dated_functions = None, column = None, enti
     column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
         dated_formulas_class = dated_formulas_class,
-        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -1156,7 +1144,6 @@ def build_select_formula(name = None, main_variable_name_function_couples = None
             function = staticmethod(function),
             # Use a year period starting at beginning of month.
             get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
-            period_unit = u'year',
             ))
         formula_class.extract_variables_name()
         formula_class_by_main_variable_name[main_variable_name] = formula_class
@@ -1165,7 +1152,6 @@ def build_select_formula(name = None, main_variable_name_function_couples = None
     column.entity_key_plural = entity_class.key_plural
     column.formula_class = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
         formula_class_by_main_variable_name = formula_class_by_main_variable_name,
-        period_unit = u'year',
         ))
     if column.label is None:
         column.label = name
@@ -1188,7 +1174,6 @@ def build_simple_formula(name = None, column = None, entity_class_by_symbol = No
         function = staticmethod(column.function),
         # Use a year period starting at beginning of month.
         get_output_period = lambda self, period: period.start.offset('first-of', 'month').period('year'),
-        period_unit = u'year',
         ))
     formula_class.extract_variables_name()
     del column.function

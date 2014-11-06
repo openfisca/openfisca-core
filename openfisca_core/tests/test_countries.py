@@ -341,13 +341,12 @@ class dom_tom(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
-    period_unit = u'year'
 
     def function(self, depcom):
         return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
     def get_output_period(self, period):
-        return period.start.period(self.period_unit).offset('first-of')
+        return period.start.period(u'year').offset('first-of')
 
 
 @reference_formula
@@ -355,13 +354,12 @@ class revenu_disponible(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible"
-    period_unit = u'year'
 
     def function(self, rsa, salaire_imposable):
         return rsa + salaire_imposable * 0.7
 
     def get_output_period(self, period):
-        return period.start.period(self.period_unit).offset('first-of')
+        return period.start.period(u'year').offset('first-of')
 
 
 @reference_formula
@@ -369,7 +367,6 @@ class rsa(DatedFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
-    period_unit = u'month'
 
     @dated_function(datetime.date(2010, 1, 1))
     def function_2010(self, salaire_imposable):
@@ -384,7 +381,7 @@ class rsa(DatedFormulaColumn):
         return (salaire_imposable < 500) * 300
 
     def get_output_period(self, period):
-        return period.start.period(self.period_unit).offset('first-of')
+        return period.start.period(u'month').offset('first-of')
 
 
 @reference_formula
@@ -392,13 +389,12 @@ class salaire_imposable(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
-    period_unit = u'year'
 
     def function(self, dom_tom, salaire_net):
         return salaire_net * 0.9 - 100 * dom_tom
 
     def get_output_period(self, period):
-        return period.start.period(self.period_unit).offset('first-of')
+        return period.start.period(u'year').offset('first-of')
 
 
 @reference_formula
@@ -406,14 +402,13 @@ class salaire_net(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"
-    period_unit = u'year'
 
     @staticmethod
     def function(salaire_brut):
         return salaire_brut * 0.8
 
     def get_output_period(self, period):
-        return period.start.period(self.period_unit).offset('first-of')
+        return period.start.period(u'year').offset('first-of')
 
 
 # TaxBenefitSystem instance declared after formulas

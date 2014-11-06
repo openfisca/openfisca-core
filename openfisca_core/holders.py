@@ -160,7 +160,7 @@ class Holder(object):
         """
         if period is None:
             period = self.entity.simulation.period
-        period_unit, start_instant, _ = period
+        start_instant = period[1]
         stop_instant = period.stop
         column = self.column
 
