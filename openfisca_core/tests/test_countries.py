@@ -32,8 +32,8 @@ from numpy.core.defchararray import startswith
 from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, make_reference_formula_decorator,
-    SimpleFormulaColumn)
+from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+    make_reference_formula_decorator, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -297,7 +297,7 @@ def init_country():
 
 reference_input_variable(
     column = FixedStrCol(max_length = 5),
-    entity_class = Individus,
+    entity_class = Familles,
     is_permanent = True,
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille""",
     name = 'depcom',
@@ -339,14 +339,21 @@ reference_formula = make_reference_formula_decorator(entity_class_by_symbol = en
 @reference_formula
 class dom_tom(SimpleFormulaColumn):
     column = BoolCol
-    entity_class = Individus
-    label = u"La personne habite-t-elle les DOM-TOM ?"
+    entity_class = Familles
+    label = u"La famille habite-t-elle les DOM-TOM ?"
 
     def function(self, depcom):
         return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
     def get_output_period(self, period):
         return period.start.period(u'year').offset('first-of')
+
+
+@reference_formula
+class dom_tom_individus(EntityToPersonColumn):
+    entity_class = Individus
+    label = u"La personne habite-t-elle les DOM-TOM ?"
+    variable = dom_tom
 
 
 @reference_formula
@@ -390,8 +397,8 @@ class salaire_imposable(SimpleFormulaColumn):
     entity_class = Individus
     label = u"Salaire imposable"
 
-    def function(self, dom_tom, salaire_net):
-        return salaire_net * 0.9 - 100 * dom_tom
+    def function(self, dom_tom_individus, salaire_net):
+        return salaire_net * 0.9 - 100 * dom_tom_individus
 
     def get_output_period(self, period):
         return period.start.period(u'year').offset('first-of')
@@ -429,22 +436,24 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
                 min = 0,
                 ),
             ],
+        famille = dict(depcom = depcom),
         period = periods.period(year),
-        parent1 = dict(depcom = depcom),
+        parent1 = dict(),
+        parent2 = dict(),
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')
     assert (revenu_disponible == expected_revenu_disponible).all(), str((revenu_disponible, expected_revenu_disponible))
 
 
 def test_revenu_disponible():
-    yield check_revenu_disponible, 2009, '75101', np.array([0, 25200, 50400])
-    yield check_revenu_disponible, 2010, '75101', np.array([1200, 25200, 50400])
-    yield check_revenu_disponible, 2011, '75101', np.array([2400, 25200, 50400])
-    yield check_revenu_disponible, 2012, '75101', np.array([2400, 25200, 50400])
-    yield check_revenu_disponible, 2013, '75101', np.array([3600, 25200, 50400])
+    yield check_revenu_disponible, 2009, '75101', np.array([0, 0, 25200, 0, 50400, 0])
+    yield check_revenu_disponible, 2010, '75101', np.array([1200, 1200, 25200, 1200, 50400, 1200])
+    yield check_revenu_disponible, 2011, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400])
+    yield check_revenu_disponible, 2012, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400])
+    yield check_revenu_disponible, 2013, '75101', np.array([3600, 3600, 25200, 3600, 50400, 3600])
 
-    yield check_revenu_disponible, 2009, '97123', np.array([-70.0, 25130.0, 50330.0])
-    yield check_revenu_disponible, 2010, '97123', np.array([1130.0, 25130.0, 50330.0])
-    yield check_revenu_disponible, 2011, '98456', np.array([2330.0, 25130.0, 50330.0])
-    yield check_revenu_disponible, 2012, '98456', np.array([2330.0, 25130.0, 50330.0])
-    yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 25130.0, 50330.0])
+    yield check_revenu_disponible, 2009, '97123', np.array([-70.0, -70.0, 25130.0, -70.0, 50330.0, -70.0])
+    yield check_revenu_disponible, 2010, '97123', np.array([1130.0, 1130.0, 25130.0, 1130.0, 50330.0, 1130.0])
+    yield check_revenu_disponible, 2011, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
+    yield check_revenu_disponible, 2012, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
+    yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0])
