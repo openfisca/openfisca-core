@@ -32,7 +32,7 @@ from numpy.core.defchararray import startswith
 from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn, PersonToEntityColumn,
     make_reference_formula_decorator, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
@@ -350,7 +350,7 @@ class dom_tom(SimpleFormulaColumn):
 
 
 @reference_formula
-class dom_tom_individus(EntityToPersonColumn):
+class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
@@ -360,13 +360,21 @@ class dom_tom_individus(EntityToPersonColumn):
 class revenu_disponible(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
-    label = u"Revenu disponible"
+    label = u"Revenu disponible de l'individu"
 
     def function(self, rsa, salaire_imposable):
         return rsa + salaire_imposable * 0.7
 
     def get_output_period(self, period):
         return period.start.period(u'year').offset('first-of')
+
+
+@reference_formula
+class revenu_disponible_famille(PersonToEntityColumn):
+    entity_class = Familles
+    label = u"Revenu disponible de la famille"
+    operation = 'add'
+    variable = revenu_disponible
 
 
 @reference_formula
@@ -397,8 +405,8 @@ class salaire_imposable(SimpleFormulaColumn):
     entity_class = Individus
     label = u"Salaire imposable"
 
-    def function(self, dom_tom_individus, salaire_net):
-        return salaire_net * 0.9 - 100 * dom_tom_individus
+    def function(self, dom_tom_individu, salaire_net):
+        return salaire_net * 0.9 - 100 * dom_tom_individu
 
     def get_output_period(self, period):
         return period.start.period(u'year').offset('first-of')
@@ -443,6 +451,13 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')
     assert (revenu_disponible == expected_revenu_disponible).all(), str((revenu_disponible, expected_revenu_disponible))
+    revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
+    expected_revenu_disponible_famille = np.array([
+        expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
+        for i in range(0, len(expected_revenu_disponible), 2)
+        ])
+    assert (revenu_disponible_famille == expected_revenu_disponible_famille).all(), str((revenu_disponible_famille,
+        expected_revenu_disponible_famille))
 
 
 def test_revenu_disponible():

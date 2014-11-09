@@ -77,6 +77,110 @@ class AbstractFormula(object):
         return self
 
 
+class AbstractEntityToEntity(AbstractFormula):
+    _variable_holder = None
+    roles = None  # class attribute. When None the entity value is duplicated to each person belonging to entity.
+    variable_name = None  # class attribute
+
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('_variable_holder')
+        return super(AbstractEntityToEntity, self).clone(holder, keys_to_skip = keys_to_skip)
+
+    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+        """Call the formula function (if needed) and return a dated holder containing its result."""
+        holder = self.holder
+        column = holder.column
+        entity = holder.entity
+        simulation = entity.simulation
+        debug = simulation.debug
+        debug_all = simulation.debug_all
+        trace = simulation.trace
+
+        assert period is not None
+
+        variable_holder = self.variable_holder
+        variable_name = self.variable_name
+        variable_dated_holder = variable_holder.compute(lazy = lazy, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+        output_period = variable_dated_holder.period
+        if variable_dated_holder.array is None:
+            # A variable is missing in lazy mode, formula can not be computed yet.
+            assert lazy, 'When computing {}, variable {} is None for period {}, although not in lazy mode'.format(
+                column.name, variable_name, period)
+            return holder.at_period(output_period)  # array = None
+        if (debug and not debug_all or trace) and np.any(variable_dated_holder.array != variable_holder.column.default):
+            has_only_default_arguments = False
+        else:
+            has_only_default_arguments = True
+
+        array = self.transform(variable_dated_holder, roles = self.roles)
+        if array.dtype != column.dtype:
+            array = array.astype(column.dtype)
+        dated_holder = holder.at_period(output_period)
+        dated_holder.array = array
+
+        if debug and (debug_all or not has_only_default_arguments):
+            log.info(u'<=> {}@{}<{}>({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
+                stringify_formula_arguments({variable_name: variable_dated_holder}), stringify_array(array)))
+        if trace:
+            simulation.traceback[(column.name, dated_holder.period)].update(dict(
+                arguments = {variable_name: period},
+                default_arguments = has_only_default_arguments,
+                is_computed = True,
+                ))
+
+        return dated_holder
+
+    def graph_parameters(self, edges, nodes, visited):
+        """Recursively build a graph of formulas."""
+        holder = self.holder
+        column = holder.column
+        variable_holder = self.variable_holder
+        variable_holder.graph(edges, nodes, visited)
+        edges.append({
+            'from': variable_holder.column.name,
+            'to': column.name,
+            })
+
+    @classmethod
+    def set_dependencies(cls, column, tax_benefit_system):
+        tax_benefit_system.consumers_by_variable_name.setdefault(cls.variable_name, set()).add(column.name)
+
+    def to_json(self):
+        cls = self.__class__
+        comments = inspect.getcomments(cls)
+        doc = inspect.getdoc(cls)
+        source_lines, line_number = inspect.getsourcelines(cls)
+        variable_holder = self.variable_holder
+        variable_column = variable_holder.column
+        variables_json = [collections.OrderedDict((
+            ('entity', variable_holder.entity.key_plural),
+            ('label', variable_column.label),
+            ('name', variable_column.name),
+            ))]
+        return collections.OrderedDict((
+            ('@type', self.__class__.__name__),
+            ('comments', comments.decode('utf-8') if comments is not None else None),
+            ('doc', doc.decode('utf-8') if doc is not None else None),
+            ('line_number', line_number),
+            ('module', inspect.getmodule(cls).__name__),
+            ('source', ''.join(source_lines).decode('utf-8')),
+            ('variables', variables_json),
+            ))
+
+    @property
+    def variable_holder(self):
+        # Note: This property is not precomputed at __init__ time, to ease the cloning of the formula.
+        variable_holder = self._variable_holder
+        if variable_holder is None:
+            self._variable_holder = variable_holder = self.holder.entity.simulation.get_or_new_holder(
+                self.variable_name)
+        return variable_holder
+
+
 class AbstractGroupedFormula(AbstractFormula):
     used_formula = None
 
@@ -275,12 +379,8 @@ class DatedFormula(AbstractGroupedFormula):
             ))
 
 
-class EntityToPerson(AbstractFormula):
-    _variable_holder = None
-    roles = None  # class attribute. When None the entity value is duplicated to each person belonging to entity.
-    variable_name = None  # class attribute
-
-    def cast_from_entity_to_roles(self, dated_holder, roles = None):
+class EntityToPerson(AbstractEntityToEntity):
+    def transform(self, dated_holder, roles = None):
         """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
 
         When no roles are given, it means "all the roles" => every cell is set.
@@ -307,103 +407,50 @@ class EntityToPerson(AbstractFormula):
                 raise
         return target_array
 
-    def clone(self, holder, keys_to_skip = None):
-        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        if keys_to_skip is None:
-            keys_to_skip = set()
-        keys_to_skip.add('_variable_holder')
-        return super(EntityToPerson, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
-        """Call the formula function (if needed) and return a dated holder containing its result."""
+class PersonToEntity(AbstractEntityToEntity):
+    operation = None
+
+    def transform(self, dated_holder, roles = None):
+        """Convert an array of persons to an array of non-person entities.
+
+        When no roles are given, it means "all the roles".
+        """
         holder = self.holder
-        column = holder.column
         entity = holder.entity
-        simulation = entity.simulation
-        debug = simulation.debug
-        debug_all = simulation.debug_all
-        trace = simulation.trace
+        assert not entity.is_persons_entity
 
-        assert period is not None
+        persons = dated_holder.entity
+        assert persons.is_persons_entity
+        array = dated_holder.array
 
-        variable_holder = self.variable_holder
-        variable_name = self.variable_name
-        variable_dated_holder = variable_holder.compute(lazy = lazy, period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
-        output_period = variable_dated_holder.period
-        if variable_dated_holder.array is None:
-            # A variable is missing in lazy mode, formula can not be computed yet.
-            assert lazy, 'When computing {}, variable {} is None for period {}, although not in lazy mode'.format(
-                column.name, variable_name, period)
-            return holder.at_period(output_period)  # array = None
-        if (debug and not debug_all or trace) and np.any(variable_dated_holder.array != variable_holder.column.default):
-            has_only_default_arguments = False
+        target_array = np.empty(entity.count, dtype = array.dtype)
+        target_array.fill(dated_holder.column.default)
+        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        if roles is None:
+            roles = range(entity.roles_count)
+        if len(roles) == 1:
+            assert self.operation is None
+            role = roles[0]
+            # TODO: Cache filter.
+            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            try:
+                target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
+            except:
+                log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                    entity.key_singular, role, holder.column.name))
+                raise
         else:
-            has_only_default_arguments = True
+            operation = self.operation
+            assert operation in ('add', 'or'), 'Invalid operation: {}'.format(operation)
+            target_array = np.zeros(entity.count,
+                dtype = np.bool if operation == 'or' else array.dtype if array.dtype != np.bool else np.int16)
+            for role in roles:
+                # TODO: Cache filters.
+                boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+                target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
 
-        array = self.cast_from_entity_to_roles(variable_dated_holder, roles = self.roles)
-        if array.dtype != column.dtype:
-            array = array.astype(column.dtype)
-        dated_holder = holder.at_period(output_period)
-        dated_holder.array = array
-
-        if debug and (debug_all or not has_only_default_arguments):
-            log.info(u'<=> {}@{}<{}>({}) --> {}'.format(entity.key_plural, column.name, str(output_period),
-                stringify_formula_arguments({variable_name: variable_dated_holder}), stringify_array(array)))
-        if trace:
-            simulation.traceback[(column.name, dated_holder.period)].update(dict(
-                arguments = {variable_name: period},
-                default_arguments = has_only_default_arguments,
-                is_computed = True,
-                ))
-
-        return dated_holder
-
-    def graph_parameters(self, edges, nodes, visited):
-        """Recursively build a graph of formulas."""
-        holder = self.holder
-        column = holder.column
-        variable_holder = self.variable_holder
-        variable_holder.graph(edges, nodes, visited)
-        edges.append({
-            'from': variable_holder.column.name,
-            'to': column.name,
-            })
-
-    @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
-        tax_benefit_system.consumers_by_variable_name.setdefault(cls.variable_name, set()).add(column.name)
-
-    def to_json(self):
-        cls = self.__class__
-        comments = inspect.getcomments(cls)
-        doc = inspect.getdoc(cls)
-        source_lines, line_number = inspect.getsourcelines(cls)
-        variable_holder = self.variable_holder
-        variable_column = variable_holder.column
-        variables_json = [collections.OrderedDict((
-            ('entity', variable_holder.entity.key_plural),
-            ('label', variable_column.label),
-            ('name', variable_column.name),
-            ))]
-        return collections.OrderedDict((
-            ('@type', u'EntityToPerson'),
-            ('comments', comments.decode('utf-8') if comments is not None else None),
-            ('doc', doc.decode('utf-8') if doc is not None else None),
-            ('line_number', line_number),
-            ('module', inspect.getmodule(cls).__name__),
-            ('source', ''.join(source_lines).decode('utf-8')),
-            ('variables', variables_json),
-            ))
-
-    @property
-    def variable_holder(self):
-        # Note: This property is not precomputed at __init__ time, to ease the cloning of the formula.
-        variable_holder = self._variable_holder
-        if variable_holder is None:
-            self._variable_holder = variable_holder = self.holder.entity.simulation.get_or_new_holder(
-                self.variable_name)
-        return variable_holder
+        return target_array
 
 
 class SelectFormula(AbstractGroupedFormula):
@@ -984,7 +1031,6 @@ class ConversionColumnMetaclass(type):
         doc = attributes.pop('__doc__', None)
 
         entity_class = attributes.pop('entity_class')
-        assert entity_class.is_persons_entity
 
         name = unicode(name)
         label = attributes.pop('label', None)
@@ -996,7 +1042,6 @@ class ConversionColumnMetaclass(type):
 
         variable = attributes.pop('variable')
         assert isinstance(variable, columns.Column)
-        column = variable.__class__()
 
         # Build formula class and column from extracted attributes.
 
@@ -1006,7 +1051,6 @@ class ConversionColumnMetaclass(type):
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
 
-        assert issubclass(formula_class, EntityToPerson)
         role = attributes.pop('role', None)
         roles = attributes.pop('roles', None)
         if role is None:
@@ -1020,6 +1064,27 @@ class ConversionColumnMetaclass(type):
             formula_class_attributes['roles'] = roles
 
         formula_class_attributes['variable_name'] = variable.name
+
+        if issubclass(formula_class, EntityToPerson):
+            assert entity_class.is_persons_entity
+            column = variable.__class__()
+        else:
+            assert issubclass(formula_class, PersonToEntity)
+
+            assert not entity_class.is_persons_entity
+
+            if roles is None or len(roles) > 1:
+                operation = attributes.pop('operation')
+                assert operation in ('add', 'or'), 'Invalid operation: {}'.format(operation)
+                formula_class_attributes['operation'] = operation
+
+                if operation == 'add':
+                    column = variable.__class__()
+                else:
+                    assert operation == 'or'
+                    column = columns.BoolCol()
+            else:
+                column = variable.__class__()
 
         # Ensure that all attributes defined in ConversionColumn class are used.
         assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
@@ -1246,6 +1311,12 @@ class EntityToPersonColumn(object):
     """Syntactic sugar to generate an EntityToPerson class and fill its column"""
     __metaclass__ = ConversionColumnMetaclass
     formula_class = EntityToPerson
+
+
+class PersonToEntityColumn(object):
+    """Syntactic sugar to generate an PersonToEntity class and fill its column"""
+    __metaclass__ = ConversionColumnMetaclass
+    formula_class = PersonToEntity
 
 
 class SelectFormulaColumn(object):
