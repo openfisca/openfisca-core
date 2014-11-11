@@ -23,7 +23,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import numpy as np
+
+
 __all__ = [
+    'assert_near',
     'empty_clone',
     'stringify_array',
     'stringify_formula_arguments',
@@ -36,6 +40,21 @@ class Dummy(object):
     Used by function ``empty_clone`` to create an empty instance from an existing object.
     """
     pass
+
+
+def assert_near(value, target_value, error_margin = 1):
+    if isinstance(value, (list, tuple)):
+        value = np.array(value)
+    if isinstance(target_value, (list, tuple)):
+        target_value = np.array(target_value)
+    if isinstance(value, np.ndarray):
+        assert (target_value - error_margin < value).all() and (value < target_value + error_margin).all(), \
+            '{} differs from {} with a margin {} >= {}'.format(value, target_value, abs(value - target_value),
+                error_margin)
+    else:
+        assert target_value - error_margin < value < target_value + error_margin, \
+            '{} differs from {} with a margin {} >= {}'.format(value, target_value, abs(value - target_value),
+                error_margin)
 
 
 def empty_clone(original):
