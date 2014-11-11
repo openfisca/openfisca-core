@@ -29,6 +29,7 @@ import itertools
 
 import numpy as np
 from numpy.core.defchararray import startswith
+
 from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
@@ -36,6 +37,7 @@ from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityT
     make_reference_formula_decorator, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
+from openfisca_core.tools import assert_near
 
 
 # Entities
@@ -433,6 +435,78 @@ TaxBenefitSystem = init_country()
 tax_benefit_system = TaxBenefitSystem()
 
 
+def test_1_axis():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        axes = [
+            dict(
+                count = 3,
+                name = 'salaire_brut',
+                max = 100000,
+                min = 0,
+                ),
+            ],
+        period = year,
+        parent1 = {},
+        parent2 = {},
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], error_margin = 0.005)
+
+
+def test_2_parallel_axes_1_constant():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        axes = [
+            [
+                dict(
+                    count = 3,
+                    name = 'salaire_brut',
+                    max = 100000,
+                    min = 0,
+                    ),
+                dict(
+                    count = 3,
+                    index = 1,
+                    name = 'salaire_brut',
+                    max = 0.0001,
+                    min = 0,
+                    ),
+                ],
+            ],
+        period = year,
+        parent1 = {},
+        parent2 = {},
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], error_margin = 0.005)
+
+
+def test_2_parallel_axes_same_values():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        axes = [
+            [
+                dict(
+                    count = 3,
+                    name = 'salaire_brut',
+                    max = 100000,
+                    min = 0,
+                    ),
+                dict(
+                    count = 3,
+                    index = 1,
+                    name = 'salaire_brut',
+                    max = 100000,
+                    min = 0,
+                    ),
+                ],
+            ],
+        period = year,
+        parent1 = {},
+        parent2 = {},
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], error_margin = 0.005)
+
+
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
     global tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
@@ -450,14 +524,13 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
         parent2 = dict(),
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')
-    assert (revenu_disponible == expected_revenu_disponible).all(), str((revenu_disponible, expected_revenu_disponible))
+    assert_near(revenu_disponible, expected_revenu_disponible, error_margin = 0.005)
     revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
     expected_revenu_disponible_famille = np.array([
         expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
         for i in range(0, len(expected_revenu_disponible), 2)
         ])
-    assert (revenu_disponible_famille == expected_revenu_disponible_famille).all(), str((revenu_disponible_famille,
-        expected_revenu_disponible_famille))
+    assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, error_margin = 0.005)
 
 
 def test_revenu_disponible():
