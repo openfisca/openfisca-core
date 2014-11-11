@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
 import collections
 import json
 import logging
@@ -73,7 +75,9 @@ class AbstractScenario(object):
         entity_by_key_plural = simulation.entity_by_key_plural
         steps_count = 1
         if self.axes is not None:
-            for axis in self.axes:
+            for parallel_axes in self.axes:
+                # All parallel axes have the same count, entity and period.
+                axis = parallel_axes[0]
                 steps_count *= axis['count']
         simulation.steps_count = steps_count
         simulation_period = simulation.period
@@ -159,36 +163,46 @@ class AbstractScenario(object):
 
         if self.axes is not None:
             if len(self.axes) == 1:
-                axis = self.axes[0]
-                axis_name = axis['name']
-                axis_period = axis['period'] or simulation_period
-                entity = simulation.entity_by_column_name[axis_name]
-                holder = simulation.get_or_new_holder(axis_name)
-                column = holder.column
-                array = holder.get_array(axis_period)
-                if array is None:
-                    array = np.empty(entity.count, dtype = column.dtype)
-                    array.fill(column.default)
-                    holder.set_array(axis_period, array)
-                array[axis['index']:: entity.step_size] = np.linspace(axis['min'], axis['max'], axis['count'])
-            else:
-                axes_linspaces = [
-                    np.linspace(axis['min'], axis['max'], axis['count'])
-                    for axis in self.axes
-                    ]
-                axes_meshes = np.meshgrid(*axes_linspaces)
-                for axis, mesh in zip(self.axes, axes_meshes):
-                    axis_name = axis['name']
-                    axis_period = axis['period'] or simulation_period
-                    entity = simulation.entity_by_column_name[axis_name]
-                    holder = simulation.get_or_new_holder(axis_name)
+                parallel_axes = self.axes[0]
+                # All parallel axes have the same count, entity and period.
+                first_axis = parallel_axes[0]
+                axis_count = first_axis['count']
+                axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                axis_period = first_axis['period'] or simulation_period
+                for axis in parallel_axes:
+                    holder = simulation.get_or_new_holder(axis['name'])
                     column = holder.column
                     array = holder.get_array(axis_period)
                     if array is None:
-                        array = np.empty(entity.count, dtype = column.dtype)
+                        array = np.empty(axis_entity.count, dtype = column.dtype)
                         array.fill(column.default)
                         holder.set_array(axis_period, array)
-                    array[axis['index']:: entity.step_size] = mesh.reshape(steps_count)
+                    array[axis['index']:: axis_entity.step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+            else:
+                axes_linspaces = [
+                    np.linspace(0, first_axis['count'] - 1, first_axis['count'])
+                    for first_axis in (
+                        parallel_axes[0]
+                        for parallel_axes in self.axes
+                        )
+                    ]
+                axes_meshes = np.meshgrid(*axes_linspaces)
+                for parallel_axes, mesh in zip(self.axes, axes_meshes):
+                    # All parallel axes have the same count, entity and period.
+                    first_axis = parallel_axes[0]
+                    axis_count = first_axis['count']
+                    axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                    axis_period = first_axis['period'] or simulation_period
+                    for axis in parallel_axes:
+                        holder = simulation.get_or_new_holder(axis['name'])
+                        column = holder.column
+                        array = holder.get_array(axis_period)
+                        if array is None:
+                            array = np.empty(axis_entity.count, dtype = column.dtype)
+                            array.fill(column.default)
+                            holder.set_array(axis_period, array)
+                        array[axis['index']:: axis_entity.step_size] = axis['min'] \
+                            + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
 
     def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
@@ -201,39 +215,45 @@ class AbstractScenario(object):
             conv.test_isinstance(list),
             conv.uniform_sequence(
                 conv.pipe(
-                    conv.test_isinstance(dict),
-                    conv.struct(
-                        dict(
-                            count = conv.pipe(
-                                conv.test_isinstance(int),
-                                conv.test_greater_or_equal(1),
-                                conv.not_none,
+                    conv.item_or_sequence(
+                        conv.pipe(
+                            conv.test_isinstance(dict),
+                            conv.struct(
+                                dict(
+                                    count = conv.pipe(
+                                        conv.test_isinstance(int),
+                                        conv.test_greater_or_equal(1),
+                                        conv.not_none,
+                                        ),
+                                    index = conv.pipe(
+                                        conv.test_isinstance(int),
+                                        conv.test_greater_or_equal(0),
+                                        conv.default(0),
+                                        ),
+                                    max = conv.pipe(
+                                        conv.test_isinstance((float, int)),
+                                        conv.not_none,
+                                        ),
+                                    min = conv.pipe(
+                                        conv.test_isinstance((float, int)),
+                                        conv.not_none,
+                                        ),
+                                    name = conv.pipe(
+                                        conv.test_isinstance(basestring),
+                                        conv.test_in(column_by_name),
+                                        conv.test(lambda column_name: column_by_name[column_name].dtype in (
+                                            np.float32, np.int16, np.int32),
+                                            error = N_(u'Invalid type for axe: integer or float expected')),
+                                        conv.not_none,
+                                        ),
+                                    # TODO: Check that period is valid in params.
+                                    period = periods.json_or_python_to_period,
+                                    ),
                                 ),
-                            index = conv.pipe(
-                                conv.test_isinstance(int),
-                                conv.test_greater_or_equal(0),
-                                conv.default(0),
-                                ),
-                            max = conv.pipe(
-                                conv.test_isinstance((float, int)),
-                                conv.not_none,
-                                ),
-                            min = conv.pipe(
-                                conv.test_isinstance((float, int)),
-                                conv.not_none,
-                                ),
-                            name = conv.pipe(
-                                conv.test_isinstance(basestring),
-                                conv.test_in(column_by_name),
-                                conv.test(lambda column_name: column_by_name[column_name].dtype in (
-                                    np.float32, np.int16, np.int32),
-                                    error = N_(u'Invalid type for axe: integer or float expected')),
-                                conv.not_none,
-                                ),
-                            # TODO: Check that period is valid in params.
-                            period = periods.json_or_python_to_period,
                             ),
+                        drop_none_items = True,
                         ),
+                    conv.make_item_to_singleton(),
                     ),
                 drop_none_items = True,
                 ),
@@ -288,14 +308,31 @@ class AbstractScenario(object):
             # Third validation and conversion step
             errors = {}
             if data['axes'] is not None:
-                for axis_index, axis in enumerate(data['axes']):
-                    if axis['min'] >= axis['max']:
-                        errors.setdefault('axes', {}).setdefault(axis_index, {})['max'] = state._(
-                            u"Max value must be greater than min value")
-                    column = column_by_name[axis['name']]
-                    if axis['index'] >= len(data['test_case'][column.entity_key_plural]):
-                        errors.setdefault('axes', {}).setdefault(axis_index, {})['index'] = state._(
-                            u"Index must be lower than {}").format(len(data['test_case'][column.entity_key_plural]))
+                for parallel_axes_index, parallel_axes in enumerate(data['axes']):
+                    first_axis = parallel_axes[0]
+                    axis_count = first_axis['count']
+                    axis_entity_key_plural = column_by_name[first_axis['name']].entity_key_plural
+                    axis_period = first_axis['period']
+                    for axis_index, axis in enumerate(parallel_axes):
+                        if axis['min'] >= axis['max']:
+                            errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                axis_index, {})['max'] = state._(u"Max value must be greater than min value")
+                        column = column_by_name[axis['name']]
+                        if axis['index'] >= len(data['test_case'][column.entity_key_plural]):
+                            errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                axis_index, {})['index'] = state._(u"Index must be lower than {}").format(
+                                    len(data['test_case'][column.entity_key_plural]))
+                        if axis_index > 0:
+                            if axis['count'] != axis_count:
+                                errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                    axis_index, {})['count'] = state._(u"Parallel indexes must have the same count")
+                            if column.entity_key_plural != axis_entity_key_plural:
+                                errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                    axis_index, {})['period'] = state._(
+                                        u"Parallel indexes must belong to the same entity")
+                            if axis['period'] != axis_period:
+                                errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                    axis_index, {})['period'] = state._(u"Parallel indexes must have the same period")
             if errors:
                 return data, errors
 
