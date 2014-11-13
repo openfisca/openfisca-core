@@ -1085,7 +1085,10 @@ class ConversionColumnMetaclass(type):
                 formula_class_attributes['operation'] = operation
 
                 if operation == 'add':
-                    column = variable.__class__()
+                    column_class = variable.__class__
+                    if column_class is columns.BoolCol:
+                        column_class = columns.IntCol
+                    column = column_class()
                 else:
                     assert operation == 'or'
                     column = columns.BoolCol()
