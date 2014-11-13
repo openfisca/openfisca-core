@@ -427,10 +427,9 @@ class PersonToEntity(AbstractEntityToEntity):
         target_array = np.empty(entity.count, dtype = array.dtype)
         target_array.fill(dated_holder.column.default)
         entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
-        if roles is None:
-            roles = range(entity.roles_count)
-        if len(roles) == 1:
-            assert self.operation is None
+        if roles is not None and len(roles) == 1:
+            assert self.operation is None, 'Unexpected operation {} in formula {}'.format(self.operation,
+                holder.column.name)
             role = roles[0]
             # TODO: Cache filter.
             boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
@@ -442,7 +441,10 @@ class PersonToEntity(AbstractEntityToEntity):
                 raise
         else:
             operation = self.operation
-            assert operation in ('add', 'or'), 'Invalid operation: {}'.format(operation)
+            assert operation in ('add', 'or'), 'Invalid operation {} in formula {}'.format(operation,
+                holder.column.name)
+            if roles is None:
+                roles = range(entity.roles_count)
             target_array = np.zeros(entity.count,
                 dtype = np.bool if operation == 'or' else array.dtype if array.dtype != np.bool else np.int16)
             for role in roles:
