@@ -1030,6 +1030,10 @@ class ConversionColumnMetaclass(type):
         formula_class = attributes.pop('formula_class', base_class.formula_class)
         assert issubclass(formula_class, AbstractFormula), formula_class
 
+        cerfa_field = attributes.pop('cerfa_field', None)
+        if cerfa_field is not None:
+            cerfa_field = unicode(cerfa_field)
+
         doc = attributes.pop('__doc__', None)
 
         entity_class = attributes.pop('entity_class')
@@ -1095,6 +1099,8 @@ class ConversionColumnMetaclass(type):
         formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
 
         # Fill column attributes.
+        if cerfa_field is not None:
+            column.cerfa_field = cerfa_field
         if variable.end is not None:
             column.end = variable.end
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
@@ -1123,6 +1129,10 @@ class FormulaColumnMetaclass(type):
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         # Extract attributes.
+
+        cerfa_field = attributes.pop('cerfa_field', None)
+        if cerfa_field is not None:
+            cerfa_field = unicode(cerfa_field)
 
         column = attributes.pop('column')
         if not isinstance(column, columns.Column):
@@ -1280,6 +1290,8 @@ class FormulaColumnMetaclass(type):
             formula_class.extract_variables_name()
 
         # Fill column attributes.
+        if cerfa_field is not None:
+            column.cerfa_field = cerfa_field
         if stop_date is not None:
             column.end = stop_date
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
