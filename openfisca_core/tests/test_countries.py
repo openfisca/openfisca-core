@@ -31,10 +31,10 @@ import numpy as np
 from numpy.core.defchararray import startswith
 
 from openfisca_core import conv, periods
-from openfisca_core.columns import BoolCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
+from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn, PersonToEntityColumn,
-    make_reference_formula_decorator, SimpleFormulaColumn)
+from openfisca_core.formulas import (alternative_function, AlternativeFormulaColumn, dated_function, DatedFormulaColumn,
+    EntityToPersonColumn, PersonToEntityColumn, make_reference_formula_decorator, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -298,6 +298,22 @@ def init_country():
 
 
 reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    label = u"Âge (en nombre de mois)",
+    name = 'age_en_mois',
+    )
+
+
+reference_input_variable(
+    column = DateCol,
+    entity_class = Individus,
+    label = u"Date de naissance",
+    name = 'birth',
+    )
+
+
+reference_input_variable(
     column = FixedStrCol(max_length = 5),
     entity_class = Familles,
     is_permanent = True,
@@ -336,6 +352,24 @@ reference_input_variable(
 
 
 reference_formula = make_reference_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
+
+
+@reference_formula
+class age(AlternativeFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+    label = u"Âge (en nombre d'années)"
+
+    @alternative_function()
+    def from_age_en_mois(self, age_en_mois):
+        return age_en_mois // 12
+
+    @alternative_function()
+    def from_birth(self, birth, period):
+        return (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
+
+    def get_output_period(self, period):
+        return period
 
 
 @reference_formula
@@ -505,6 +539,25 @@ def test_2_parallel_axes_same_values():
         parent2 = {},
         ).new_simulation(debug = True)
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], error_margin = 0.005)
+
+
+def test_age():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            birth = datetime.date(year - 40, 1, 1),
+            ),
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('age'), [40], error_margin = 0.005)
+
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            age_en_mois = 40 * 12 + 11,
+            ),
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('age'), [40], error_margin = 0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):

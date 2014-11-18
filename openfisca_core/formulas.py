@@ -35,6 +35,7 @@ from . import accessors, columns, holders, periods
 from .tools import empty_clone, stringify_array, stringify_formula_arguments
 
 
+alternative_function_sort_index = 0
 log = logging.getLogger(__name__)
 select_function_sort_index = 0
 
@@ -1181,7 +1182,7 @@ class FormulaColumnMetaclass(type):
             formula_class_attributes['__doc__'] = doc
 
         if issubclass(formula_class, AlternativeFormula):
-            alternative_formulas_class = []
+            alternative_infos = []
             for function_name, function in attributes.copy().iteritems():
                 if not getattr(function, 'alternative', False):
                     # Function is not an alternative (and may not even be a function). Skip it.
@@ -1200,11 +1201,12 @@ class FormulaColumnMetaclass(type):
                 alternative_formula_class.extract_variables_name()
 
                 del attributes[function_name]
-                alternative_formulas_class.append(alternative_formula_class)
+                alternative_infos.append((function.sort_index, alternative_formula_class))
 
-            # TODO: Sort alternatives (or preserve their initial order if possible).
-
-            formula_class_attributes['alternative_formulas_class'] = alternative_formulas_class
+            formula_class_attributes['alternative_formulas_class'] = [
+                alternative_formula_class1
+                for _, alternative_formula_class1 in sorted(alternative_infos)
+                ]
         elif issubclass(formula_class, DatedFormula):
             dated_formulas_class = []
             for function_name, function in attributes.copy().iteritems():
@@ -1348,10 +1350,13 @@ class SimpleFormulaColumn(object):
     formula_class = SimpleFormula
 
 
-def alternative_function(start = None, stop = None):
+def alternative_function():
     """Function decorator used to declare a method as an alternative function in class AlternativeFormulaColumn."""
     def alternative_function_decorator(function):
         function.alternative = True
+        global alternative_function_sort_index
+        function.sort_index = alternative_function_sort_index
+        alternative_function_sort_index += 1
         return function
 
     return alternative_function_decorator
