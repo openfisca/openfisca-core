@@ -1085,7 +1085,6 @@ class ConversionColumnMetaclass(type):
                 formula_class_attributes['operation'] = operation
 
                 if operation == 'add':
-                    column_class = variable.__class__
                     if variable.__class__ is columns.BoolCol:
                         column = columns.IntCol()
                     else:
