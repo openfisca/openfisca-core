@@ -1073,7 +1073,7 @@ class ConversionColumnMetaclass(type):
 
         if issubclass(formula_class, EntityToPerson):
             assert entity_class.is_persons_entity
-            column = variable.__class__()
+            column = variable.empty_clone()
         else:
             assert issubclass(formula_class, PersonToEntity)
 
@@ -1086,14 +1086,15 @@ class ConversionColumnMetaclass(type):
 
                 if operation == 'add':
                     column_class = variable.__class__
-                    if column_class is columns.BoolCol:
-                        column_class = columns.IntCol
-                    column = column_class()
+                    if variable.__class__ is columns.BoolCol:
+                        column = columns.IntCol()
+                    else:
+                        column = variable.empty_clone()
                 else:
                     assert operation == 'or'
-                    column = columns.BoolCol()
+                    column = variable.empty_clone()
             else:
-                column = variable.__class__()
+                column = variable.empty_clone()
 
         # Ensure that all attributes defined in ConversionColumn class are used.
         assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,

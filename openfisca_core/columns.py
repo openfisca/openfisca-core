@@ -88,6 +88,9 @@ class Column(object):
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
 
+    def empty_clone(self):
+        return self.__class__()
+
     def json_default(self):
         return self.default
 
@@ -229,6 +232,9 @@ class FixedStrCol(Column):
         self.dtype = '|S{}'.format(max_length)
         self.max_length = max_length
 
+    def empty_clone(self):
+        return self.__class__(max_length = self.max_length)
+
     @property
     def json_to_dated_python(self):
         return conv.pipe(
@@ -310,6 +316,9 @@ class EnumCol(IntCol):
         super(EnumCol, self).__init__(**kwargs)
         assert isinstance(enum, Enum)
         self.enum = enum
+
+    def empty_clone(self):
+        return self.__class__(enum = self.enum)
 
     def json_default(self):
         return unicode(self.default) if self.default is not None else None
