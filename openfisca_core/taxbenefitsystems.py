@@ -33,6 +33,7 @@ from . import conv, legislations, legislationsxml
 __all__ = [
     'AbstractTaxBenefitSystem',
     'LegacyTaxBenefitSystem',
+    'LegislationLessTaxBenefitSystem',
     'XmlBasedTaxBenefitSystem',
     ]
 
@@ -74,7 +75,7 @@ class AbstractTaxBenefitSystem(object):
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-        if compact_legislation is None:
+        if compact_legislation is None and self.legislation_json is not None:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
             if self.preprocess_compact_legislation is not None:
@@ -123,6 +124,10 @@ class AbstractTaxBenefitSystem(object):
                 formula_class = column.formula_class
                 if formula_class is not None:
                     formula_class.set_dependencies(column, self)
+
+
+class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):
+    pass
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
