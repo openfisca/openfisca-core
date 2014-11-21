@@ -235,11 +235,13 @@ class AlternativeFormula(AbstractGroupedFormula):
                 return holder.at_period(period)  # array = None
         else:
             assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
                     column.name,
+                    period,
                     u', '.join(sorted(set(
-                        requested_formula.holder.column.name
-                        for requested_formula in period_requested_formulas
+                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+                        for requested_formula in period_requested_formulas1
                         ))).encode('utf-8'),
                     )
         period_requested_formulas.add(self)
@@ -498,11 +500,13 @@ class SelectFormula(AbstractGroupedFormula):
                 return holder.at_period(period)  # array = None
         else:
             assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
                     column.name,
+                    period,
                     u', '.join(sorted(set(
-                        requested_formula.holder.column.name
-                        for requested_formula in period_requested_formulas
+                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+                        for requested_formula in period_requested_formulas1
                         ))).encode('utf-8'),
                     )
         period_requested_formulas.add(self)
@@ -671,11 +675,13 @@ class SimpleFormula(AbstractFormula):
                 return dated_holder
         else:
             assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}. Missing values for columns: {}'.format(
+                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
                     column.name,
+                    period,
                     u', '.join(sorted(set(
-                        requested_formula.holder.column.name
-                        for requested_formula in period_requested_formulas
+                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+                        for requested_formula in period_requested_formulas1
                         ))).encode('utf-8'),
                     )
 
