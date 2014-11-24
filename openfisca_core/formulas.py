@@ -28,6 +28,7 @@ import datetime
 import inspect
 import itertools
 import logging
+import textwrap
 
 import numpy as np
 
@@ -1000,6 +1001,7 @@ class SimpleFormula(AbstractFormula):
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         source_lines, line_number = inspect.getsourcelines(function)
+        source = textwrap.dedent(''.join(source_lines).decode('utf-8'))
         variables_json = []
         for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
             variable_column = variable_holder.column
@@ -1014,7 +1016,7 @@ class SimpleFormula(AbstractFormula):
             ('doc', doc.decode('utf-8') if doc is not None else None),
             ('line_number', line_number),
             ('module', inspect.getmodule(function).__name__),
-            ('source', ''.join(source_lines).decode('utf-8')),
+            ('source', source),
             ('variables', variables_json),
             ))
 
