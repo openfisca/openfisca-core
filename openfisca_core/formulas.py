@@ -234,17 +234,23 @@ class AlternativeFormula(AbstractGroupedFormula):
         elif lazy:
             if self in period_requested_formulas:
                 return holder.at_period(period)  # array = None
-        else:
-            assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
-                        for requested_formula in period_requested_formulas1
-                        ))).encode('utf-8'),
-                    )
+        # else:
+        #     assert self not in period_requested_formulas, \
+        #         'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
+        #             column.name,
+        #             period,
+        #             u', '.join(sorted(set(
+        #                 u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+        #                 for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+        #                 for requested_formula in period_requested_formulas1
+        #                 ))).encode('utf-8'),
+        #             )
+        elif self in period_requested_formulas:
+            dated_holder = holder.at_period(period)
+            dated_holder.array = array = np.empty(holder.entity.count, dtype = column.dtype)
+            array.fill(column.default)
+            return dated_holder
+
         period_requested_formulas.add(self)
 
         dated_holder = None
@@ -499,17 +505,22 @@ class SelectFormula(AbstractGroupedFormula):
         elif lazy:
             if self in period_requested_formulas:
                 return holder.at_period(period)  # array = None
-        else:
-            assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
-                        for requested_formula in period_requested_formulas1
-                        ))).encode('utf-8'),
-                    )
+        # else:
+        #     assert self not in period_requested_formulas, \
+        #         'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
+        #             column.name,
+        #             period,
+        #             u', '.join(sorted(set(
+        #                 u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+        #                 for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+        #                 for requested_formula in period_requested_formulas1
+        #                 ))).encode('utf-8'),
+        #             )
+        elif self in period_requested_formulas:
+            dated_holder = holder.at_period(period)
+            dated_holder.array = array = np.empty(holder.entity.count, dtype = column.dtype)
+            array.fill(column.default)
+            return dated_holder
         period_requested_formulas.add(self)
 
         for main_variable_name, formula in self.formula_by_main_variable_name.iteritems():
@@ -674,17 +685,22 @@ class SimpleFormula(AbstractFormula):
             if self in period_requested_formulas:
                 assert dated_holder is not None
                 return dated_holder
-        else:
-            assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
-                        for requested_formula in period_requested_formulas1
-                        ))).encode('utf-8'),
-                    )
+        # else:
+        #     assert self not in period_requested_formulas, \
+        #         'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
+        #             column.name,
+        #             period,
+        #             u', '.join(sorted(set(
+        #                 u'{}<{}>'.format(requested_formula.holder.column.name, period1)
+        #                 for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+        #                 for requested_formula in period_requested_formulas1
+        #                 ))).encode('utf-8'),
+        #             )
+        elif self in period_requested_formulas:
+            assert dated_holder is not None
+            dated_holder.array = array = np.empty(holder.entity.count, dtype = column.dtype)
+            array.fill(column.default)
+            return dated_holder
 
         if dated_holder.array is not None:
             return dated_holder
