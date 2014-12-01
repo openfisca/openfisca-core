@@ -158,11 +158,13 @@ class Holder(object):
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
+        simulation = self.entity.simulation
         if period is None:
-            period = self.entity.simulation.period
+            period = simulation.period
         start_instant = period[1]
         stop_instant = period.stop
         column = self.column
+        trace = simulation.trace
 
         # First look for dated_holders covering the whole period (without hole).
         dated_holder = self.at_period(period)
@@ -173,6 +175,8 @@ class Holder(object):
         if array_by_period is not None:
             array = None
             remaining_start_instant = start_instant
+            if trace:
+                used_periods = []
             for exact_period, exact_array in sorted(array_by_period.iteritems(),
                     key = lambda (period, array): period[1]):
                 if exact_array is None:
@@ -205,9 +209,13 @@ class Holder(object):
                             array = np.copy(intersection_array)
                         else:
                             array += intersection_array
+                        if trace:
+                            used_periods.append(exact_period)
                     remaining_start_instant = exact_stop_instant.offset(1, 'day')
                     if remaining_start_instant > stop_instant:
                         dated_holder.extrapolated_array = array
+                        if trace:
+                            simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
                         return dated_holder
                 if exact_stop_instant >= stop_instant:
                     # The existing data arrays don't fully cover the requested period.
@@ -240,6 +248,8 @@ class Holder(object):
             return dated_holder
 
         array = self._array
+        if trace:
+            used_periods = []
         if array is None:
             array_by_period = self._array_by_period
             if array_by_period is not None:
@@ -271,6 +281,8 @@ class Holder(object):
                                 array = np.copy(intersection_array)
                             else:
                                 array += intersection_array
+                            if trace:
+                                used_periods.append(exact_period)
                     if exact_stop_instant >= stop_instant:
                         break
         if not lazy and array is None:
@@ -278,6 +290,8 @@ class Holder(object):
             array.fill(column.default)
         if array is not None:
             dated_holder.extrapolated_array = array
+            if trace and used_periods:
+                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
         return dated_holder
 
     def delete_array(self, period):
