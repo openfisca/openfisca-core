@@ -349,19 +349,33 @@ class FunctionCall(object):
                         )
                     return test, None
                 if method_name == 'astype':
-                    assert value.data_type == np.datetime64, ast.dump(node)
                     assert len(positional_arguments) == 1, ast.dump(node)
                     assert len(named_arguments) == 0, ast.dump(node)
                     new_type = positional_arguments[0]
-                    assert isinstance(new_type, state.String), ast.dump(node)
-                    assert value.data_type == np.datetime64
-                    assert new_type.value in ('timedelta64[Y]', 'timedelta64[M]')
-                    test = state.Array(
-                        data_type = np.int32,
-                        entity_key_plural = value.entity_key_plural,
-                        operation = value,
-                        )
-                    return test, None
+                    if isinstance(new_type, state.String):
+                        if new_type.value in ('timedelta64[Y]', 'timedelta64[M]'):
+                            assert value.data_type == np.datetime64
+                            test = state.Array(
+                                data_type = np.int32,
+                                entity_key_plural = value.entity_key_plural,
+                                operation = value,
+                                )
+                            return test, None
+                        assert False, 'Unhandled data type {} for array method {}({}) in node {}'.format(
+                            value.data_type, method_name, new_type, ast.dump(node))
+                    if isinstance(new_type, state.Type):
+                        if new_type.value is np.int16:
+                            assert value.data_type == np.bool
+                            test = state.Array(
+                                data_type = np.int16,
+                                entity_key_plural = value.entity_key_plural,
+                                operation = value,
+                                )
+                            return test, None
+                        assert False, 'Unhandled data type {} for array method {}({}) in node {}'.format(
+                            value.data_type, method_name, new_type, ast.dump(node))
+                    assert False, 'Unhandled data type {} for array method {}({}) in node {}'.format(value.data_type,
+                        method_name, new_type, ast.dump(node))
                 assert False, 'Unknown array method {} in node {}'.format(method_name, ast.dump(node))
             if isinstance(value, state.Formula):
                 method_name = function.attr
@@ -774,11 +788,17 @@ class FunctionCall(object):
             return result, None
         if function_name in ('ones', 'zeros'):
             assert len(positional_arguments) == 1, ast.dump(node)
-            assert len(named_arguments) == 0, ast.dump(node)
+            assert 0 <= len(named_arguments) <= 1, ast.dump(node)
             length = positional_arguments[0]
             assert isinstance(length, state.ArrayLength), ast.dump(node)
+            cast_type = named_arguments.get('dtype')
+            if cast_type is None:
+                data_type = np.float32  # Should be np.float64
+            else:
+                assert isinstance(cast_type, state.Type), ast.dump(node)
+                data_type = cast_type.value
             result = state.Array(
-                data_type = np.float32,
+                data_type = data_type,
                 entity_key_plural = length.array.entity_key_plural,
                 # operation = operation,
                 )
@@ -819,8 +839,11 @@ class FunctionCall(object):
             x = positional_arguments[1] if len(positional_arguments) >= 2 else None
             y = positional_arguments[2] if len(positional_arguments) >= 3 else None
             if isinstance(condition, state.Array):
+                data_type = np.bool if x is None and y is None else x.data_type if x is not None else y.data_type
+                if data_type is int:
+                    data_type = np.int32
                 value = state.Array(
-                    data_type = np.bool if x is None and y is None else x.data_type if x is not None else y.data_type,
+                    data_type = data_type,
                     entity_key_plural = condition.entity_key_plural,
                     # operation = operation,
                     )
@@ -1383,6 +1406,8 @@ class Module(object):
             CONJ = state.Number(data_type = int, value = 1),
             CREF = state.Number(data_type = int, value = 1),
             ENFS = state.UniformList(state.Number(data_type = int)),
+            int16 = state.Type(np.int16),
+            int32 = state.Type(np.int32),
             law = state.LawNode(),
             log = state.Logger(),
             PAC1 = state.Number(data_type = int, value = 2),
@@ -1462,6 +1487,13 @@ class Structure(object):
 
 class TaxScalesTree(object):
     pass
+
+
+class Type(object):
+    value = None
+
+    def __init__(self, value):
+        self.value = value
 
 
 class UnaryOperation(object):
@@ -1557,6 +1589,13 @@ class FormulaFunctionDefinition(FunctionDefinition):
                 value = statement.operation
                 assert isinstance(value, state.Array), "Unexpected return value {} in node {}".format(value,
                     ast.dump(node))
+                data_type = value.data_type
+                expected_data_type = state.column.dtype
+                assert (
+                    data_type == expected_data_type
+                    or data_type == np.int32 and expected_data_type == np.float32
+                    or data_type == np.int32 and expected_data_type == np.int16
+                    ), "Formula returns an array of {} instead of {}".format(value.data_type, state.column.dtype)
                 assert value.entity_key_plural == state.column.entity_key_plural, ast.dump(node)
                 return value, None
         assert False, 'Missing return statement in formula: {}'.format(ast.dump(node))
@@ -1604,6 +1643,7 @@ class State(conv.State):
     Structure = Structure
     tax_benefit_system = None
     TaxScalesTree = TaxScalesTree
+    Type = Type
     UnaryOperation = UnaryOperation
     UniformDictionary = UniformDictionary
     UniformIterator = UniformIterator
