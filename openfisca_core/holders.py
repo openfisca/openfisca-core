@@ -75,6 +75,13 @@ class DatedHolder(object):
     def extrapolated_array(self, array):
         self.holder.set_extrapolated_array(self.period, array)
 
+    def to_value_json(self):
+        transform_dated_value_to_json = self.holder.column.transform_dated_value_to_json
+        return [
+            transform_dated_value_to_json(cell)
+            for cell in self.array.tolist()
+            ]
+
 
 class Holder(object):
     _array = None  # Only used when column.is_permanent
