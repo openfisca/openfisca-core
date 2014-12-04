@@ -45,6 +45,7 @@ N_ = lambda message: message
 class AbstractScenario(object):
     axes = None
     legislation_json = None
+    legislation_url = None
     period = None
     tax_benefit_system = None
     test_case = None
