@@ -422,6 +422,21 @@ class Period(tuple):
         intersection_stop = min(period_stop, stop)
         if intersection_start == period_start and intersection_stop == period_stop:
             return self
+        if intersection_start.day == 1 and intersection_start.month == 1 \
+                and intersection_stop.day == 31 and intersection_stop.month == 12:
+            return self.__class__((
+                u'year',
+                intersection_start,
+                intersection_stop.year - intersection_start.year + 1,
+                ))
+        if intersection_start.day == 1 and intersection_stop.day == calendar.monthrange(intersection_stop.year,
+                intersection_stop.month)[1]:
+            return self.__class__((
+                u'month',
+                intersection_start,
+                ((intersection_stop.year - intersection_start.year) * 12 + intersection_stop.month
+                    - intersection_start.month + 1),
+                ))
         return self.__class__((
             u'day',
             intersection_start,
