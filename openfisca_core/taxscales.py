@@ -26,11 +26,14 @@
 from __future__ import division
 
 from bisect import bisect_left, bisect_right
+import copy
 import logging
 import itertools
 
 import numpy as np
 from numpy import maximum as max_, minimum as min_
+
+from .tools import empty_clone
 
 
 log = logging.getLogger(__name__)
@@ -70,6 +73,11 @@ class AbstractTaxScale(object):
 
     def calc(self, base):
         raise NotImplementedError('Method "calc" is not implemented for {}'.format(self.__class__.__name__))
+
+    def copy(self):
+        new = empty_clone(self)
+        new.__dict__ = copy.deepcopy(self.__dict__)
+        return new
 
 
 class AbstractRateTaxScale(AbstractTaxScale):
@@ -367,4 +375,5 @@ def scale_tax_scales(tax_scales_tree, factor):
             for tax_scale, tax_scale_factor in itertools.izip(tax_scales_tree, factor)
             ]
     assert isinstance(factor, (float, int))
-    return tax_scales_tree.multiply_thresholds(factor)
+    tax_scale = tax_scales_tree.copy()
+    return tax_scale.multiply_thresholds(factor)
