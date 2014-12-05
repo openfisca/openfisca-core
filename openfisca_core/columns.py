@@ -172,6 +172,10 @@ class BoolCol(Column):
     json_type = 'Boolean'
 
     @property
+    def input_to_dated_python(self):
+        return conv.guess_bool
+
+    @property
     def json_to_dated_python(self):
         return conv.pipe(
             conv.test_isinstance((basestring, bool, int)),
@@ -187,6 +191,14 @@ class DateCol(Column):
     is_period_size_independent = True
     json_type = 'Date'
     val_type = 'date'
+
+    @property
+    def input_to_dated_python(self):
+        return conv.pipe(
+            conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
+            conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
+            conv.iso8601_input_to_date,
+            )
 
     def json_default(self):
         return unicode(np.array(self.default, self.dtype))  # 0 = 1970-01-01
@@ -236,6 +248,10 @@ class FixedStrCol(Column):
         return self.__class__(max_length = self.max_length)
 
     @property
+    def input_to_dated_python(self):
+        return conv.test(lambda value: len(value) <= self.max_length)
+
+    @property
     def json_to_dated_python(self):
         return conv.pipe(
             conv.test_isinstance(basestring),
@@ -249,6 +265,10 @@ class FloatCol(Column):
     '''
     dtype = np.float32
     json_type = 'Float'
+
+    @property
+    def input_to_dated_python(self):
+        return conv.input_to_float
 
     @property
     def json_to_dated_python(self):
@@ -266,6 +286,10 @@ class IntCol(Column):
     json_type = 'Integer'
 
     @property
+    def input_to_dated_python(self):
+        return conv.input_to_int
+
+    @property
     def json_to_dated_python(self):
         return conv.test_isinstance(int)
 
@@ -275,6 +299,10 @@ class StrCol(Column):
     dtype = object
     is_period_size_independent = True
     json_type = 'String'
+
+    @property
+    def input_to_dated_python(self):
+        return conv.noop
 
     @property
     def json_to_dated_python(self):
@@ -290,6 +318,16 @@ class AgeCol(IntCol):
     '''
     default = -9999
     is_period_size_independent = True
+
+    @property
+    def input_to_dated_python(self):
+        return conv.pipe(
+            super(AgeCol, self).input_to_dated_python,
+            conv.first_match(
+                conv.test_greater_or_equal(0),
+                conv.test_equals(-9999),
+                ),
+            )
 
     @property
     def json_to_dated_python(self):
@@ -319,6 +357,33 @@ class EnumCol(IntCol):
 
     def empty_clone(self):
         return self.__class__(enum = self.enum)
+
+    @property
+    def input_to_dated_python(self):
+        enum = self.enum
+        if enum is None:
+            return conv.input_to_int
+        # This converters accepts either an item number or an item name.
+        index_by_slug = self.index_by_slug
+        if index_by_slug is None:
+            self.index_by_slug = index_by_slug = dict(
+                (strings.slugify(name), index)
+                for index, name in sorted(enum._vars.iteritems())
+                )
+        return conv.condition(
+            conv.input_to_int,
+            conv.pipe(
+                # Verify that item index belongs to enumeration.
+                conv.input_to_int,
+                conv.test_in(enum._vars),
+                ),
+            conv.pipe(
+                # Convert item name to its index.
+                conv.input_to_slug,
+                conv.test_in(index_by_slug),
+                conv.function(lambda slug: index_by_slug[slug]),
+                ),
+            )
 
     def json_default(self):
         return unicode(self.default) if self.default is not None else None
