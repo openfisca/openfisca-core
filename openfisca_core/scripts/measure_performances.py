@@ -1,0 +1,353 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+"""Measure performances of a basic tax-benefit system to compare to other OpenFisca implementations."""
+
+
+import argparse
+import collections
+import datetime
+import logging
+import sys
+import time
+
+import numpy as np
+from numpy.core.defchararray import startswith
+
+from openfisca_core import periods, simulations
+from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
+from openfisca_core.entities import AbstractEntity
+from openfisca_core.formulas import (alternative_function, AlternativeFormulaColumn, dated_function, DatedFormulaColumn,
+    EntityToPersonColumn, PersonToEntityColumn, make_reference_formula_decorator, SimpleFormulaColumn)
+from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
+from openfisca_core.tools import assert_near
+
+
+args = None
+
+
+def timeit(method):
+    def timed(*args, **kwargs):
+        start_time = time.time()
+        result = method(*args, **kwargs)
+        # print '%r (%r, %r) %2.9f s' % (method.__name__, args, kw, time.time() - start_time)
+        print '{:2.6f} s'.format(time.time() - start_time)
+        return result
+
+    return timed
+
+
+# Entities
+
+
+PARENT1 = 0
+PARENT2 = 1
+
+
+class Familles(AbstractEntity):
+    column_by_name = collections.OrderedDict()
+    index_for_person_variable_name = 'id_famille'
+    key_plural = 'familles'
+    key_singular = 'famille'
+    label = u'Famille'
+    max_cardinality_by_role_key = {'parents': 2}
+    name_key = 'nom_famille'
+    role_for_person_variable_name = 'role_dans_famille'
+    roles_key = ['parents', 'enfants']
+    label_by_role_key = {
+        'enfants': u'Enfants',
+        'parents': u'Parents',
+        }
+    symbol = 'fam'
+
+    def iter_member_persons_role_and_id(self, member):
+        role = 0
+
+        parents_id = member['parents']
+        assert 1 <= len(parents_id) <= 2
+        for parent_role, parent_id in enumerate(parents_id, role):
+            assert parent_id is not None
+            yield parent_role, parent_id
+        role += 2
+
+        enfants_id = member.get('enfants')
+        if enfants_id is not None:
+            for enfant_role, enfant_id in enumerate(enfants_id, role):
+                assert enfant_id is not None
+                yield enfant_role, enfant_id
+
+
+class Individus(AbstractEntity):
+    column_by_name = collections.OrderedDict()
+    is_persons_entity = True
+    key_plural = 'individus'
+    key_singular = 'individu'
+    label = u'Personne'
+    name_key = 'nom_individu'
+    symbol = 'ind'
+
+
+entity_class_by_symbol = dict(
+    fam = Familles,
+    ind = Individus,
+    )
+
+
+# TaxBenefitSystems
+
+
+def init_country():
+    class TaxBenefitSystem(AbstractTaxBenefitSystem):
+        entity_class_by_key_plural = {
+            entity_class.key_plural: entity_class
+            for entity_class in entity_class_by_symbol.itervalues()
+            }
+
+    return TaxBenefitSystem
+
+
+# Input variables
+
+
+reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    label = u"Âge (en nombre de mois)",
+    name = 'age_en_mois',
+    )
+
+
+reference_input_variable(
+    column = DateCol,
+    entity_class = Individus,
+    label = u"Date de naissance",
+    name = 'birth',
+    )
+
+
+reference_input_variable(
+    column = FixedStrCol(max_length = 5),
+    entity_class = Familles,
+    is_permanent = True,
+    label = u"""Code INSEE "depcom" de la commune de résidence de la famille""",
+    name = 'depcom',
+    )
+
+
+reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    is_permanent = True,
+    label = u"Identifiant de la famille",
+    name = 'id_famille',
+    )
+
+
+reference_input_variable(
+    column = IntCol,
+    entity_class = Individus,
+    is_permanent = True,
+    label = u"Rôle dans la famille",
+    name = 'role_dans_famille',
+    )
+
+
+reference_input_variable(
+    column = FloatCol,
+    entity_class = Individus,
+    label = "Salaire brut",
+    name = 'salaire_brut',
+    )
+
+
+# Calculated variables
+
+
+reference_formula = make_reference_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
+
+
+@reference_formula
+class age(AlternativeFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+    label = u"Âge (en nombre d'années)"
+
+    @alternative_function()
+    def from_age_en_mois(self, age_en_mois):
+        return age_en_mois // 12
+
+    @alternative_function()
+    def from_birth(self, birth, period):
+        return (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
+
+    def get_output_period(self, period):
+        return period
+
+
+@reference_formula
+class dom_tom(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = Familles
+    label = u"La famille habite-t-elle les DOM-TOM ?"
+
+    def function(self, depcom):
+        return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+
+    def get_output_period(self, period):
+        return period.start.period(u'year').offset('first-of')
+
+
+@reference_formula
+class dom_tom_individu(EntityToPersonColumn):
+    entity_class = Individus
+    label = u"La personne habite-t-elle les DOM-TOM ?"
+    variable = dom_tom
+
+
+@reference_formula
+class revenu_disponible(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
+    label = u"Revenu disponible de l'individu"
+
+    def function(self, rsa, salaire_imposable):
+        return rsa + salaire_imposable * 0.7
+
+    def get_output_period(self, period):
+        return period.start.period(u'year').offset('first-of')
+
+
+@reference_formula
+class revenu_disponible_famille(PersonToEntityColumn):
+    entity_class = Familles
+    label = u"Revenu disponible de la famille"
+    operation = 'add'
+    variable = revenu_disponible
+
+
+@reference_formula
+class rsa(DatedFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
+    label = u"RSA"
+
+    @dated_function(datetime.date(2010, 1, 1))
+    def function_2010(self, salaire_imposable):
+        return (salaire_imposable < 500) * 100.0
+
+    @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
+    def function_2011_2012(self, salaire_imposable):
+        return (salaire_imposable < 500) * 200.0
+
+    @dated_function(datetime.date(2013, 1, 1))
+    def function_2013(self, salaire_imposable):
+        return (salaire_imposable < 500) * 300
+
+    def get_output_period(self, period):
+        return period.start.period(u'month').offset('first-of')
+
+
+@reference_formula
+class salaire_imposable(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
+    label = u"Salaire imposable"
+
+    def function(self, dom_tom_individu, salaire_net):
+        return salaire_net * 0.9 - 100 * dom_tom_individu
+
+    def get_output_period(self, period):
+        return period.start.period(u'year').offset('first-of')
+
+
+@reference_formula
+class salaire_net(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
+    label = u"Salaire net"
+
+    @staticmethod
+    def function(salaire_brut):
+        return salaire_brut * 0.8
+
+    def get_output_period(self, period):
+        return period.start.period(u'year').offset('first-of')
+
+
+# TaxBenefitSystem instance declared after formulas
+
+
+TaxBenefitSystem = init_country()
+tax_benefit_system = TaxBenefitSystem()
+
+
+@timeit
+def check_revenu_disponible(year, depcom, expected_revenu_disponible):
+    simulation = simulations.Simulation(period = periods.period(year), tax_benefit_system = tax_benefit_system)
+    famille = simulation.entity_by_key_singular["famille"]
+    famille.count = 3
+    famille.roles_count = 2
+    famille.step_size = 1
+    individu = simulation.entity_by_key_singular["individu"]
+    individu.count = 6
+    individu.step_size = 2
+    simulation.get_or_new_holder("depcom").array = np.array([depcom, depcom, depcom])
+    simulation.get_or_new_holder("id_famille").array = np.array([0, 0, 1, 1, 2, 2])
+    simulation.get_or_new_holder("role_dans_famille").array = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
+        PARENT2])
+    simulation.get_or_new_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])
+    revenu_disponible = simulation.calculate('revenu_disponible')
+    assert_near(revenu_disponible, expected_revenu_disponible, error_margin = 0.005)
+    # revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
+    # expected_revenu_disponible_famille = np.array([
+    #     expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
+    #     for i in range(0, len(expected_revenu_disponible), 2)
+    #     ])
+    # assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, error_margin = 0.005)
+
+
+def main():
+    parser = argparse.ArgumentParser(description = __doc__)
+    parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
+    global args
+    args = parser.parse_args()
+    logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
+
+    check_revenu_disponible(2009, '75101', np.array([0, 0, 25200, 0, 50400, 0]))
+    check_revenu_disponible(2010, '75101', np.array([1200, 1200, 25200, 1200, 50400, 1200]))
+    check_revenu_disponible(2011, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400]))
+    check_revenu_disponible(2012, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400]))
+    check_revenu_disponible(2013, '75101', np.array([3600, 3600, 25200, 3600, 50400, 3600]))
+
+    check_revenu_disponible(2009, '97123', np.array([-70.0, -70.0, 25130.0, -70.0, 50330.0, -70.0]))
+    check_revenu_disponible(2010, '97123', np.array([1130.0, 1130.0, 25130.0, 1130.0, 50330.0, 1130.0]))
+    check_revenu_disponible(2011, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0]))
+    check_revenu_disponible(2012, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0]))
+    check_revenu_disponible(2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0]))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
