@@ -22,50 +22,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from nose.tools import assert_equal, assert_less
+
 import numpy as np
 
-
 from openfisca_core.taxscales import MarginalRateTaxScale
+from openfisca_core.tools import assert_near
 
 
 def test_linear_average_rate_tax_scale():
+    base = np.array([1, 1.5, 2, 2.5])
+
     marginal_tax_scale = MarginalRateTaxScale()
     marginal_tax_scale.add_bracket(0, 0)
-    marginal_tax_scale.add_bracket(1, .1)
-    marginal_tax_scale.add_bracket(2, .2)
-    base = np.array([1, 1.5, 2, 2.5])
-    assert_equal(
-        max(abs(marginal_tax_scale.calc(base) - np.array([0, .05, .1, .2]))),
-        0,
-        "MarginalRateTaxScale computation error"
-        )
+    marginal_tax_scale.add_bracket(1, 0.1)
+    marginal_tax_scale.add_bracket(2, 0.2)
+    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], error_margin = 0)
+
     average_tax_scale = marginal_tax_scale.to_average()
-    assert_equal(
-        max(abs(np.array(average_tax_scale.rates) - np.array([0, 0, .05, .2]))),
-        0,
-        "MarginalRateTaxScale computation error"
-        )
-    assert_equal(
-        max(abs(np.array(average_tax_scale.thresholds) - np.array([0, 1, 2, float('Inf')]))),
-        0,
-        "MarginalRateTaxScale to LinearAverageTaxScale conversion error"
-        )
-    error_margin = 1e-10
-    assert_less(
-        max(abs(np.array(average_tax_scale.calc(base)) - np.array([0, .0375, .1, .125]))),
-        error_margin,
-        "LinearAverageTaxScale  computation error"
-        )
+    assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], error_margin = 0)
+    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], error_margin = 0)
+    assert_near(average_tax_scale.calc(base), [0, 0.0375, 0.1, 0.125], error_margin = 1e-10)
+
     new_marginal_tax_scale = average_tax_scale.to_marginal()
-    assert (new_marginal_tax_scale.rates == marginal_tax_scale.rates), \
-        "LinearAverageTaxScale to MarginalRateTaxScale conversion error"
-    assert (new_marginal_tax_scale.thresholds == marginal_tax_scale.thresholds), \
-        "LinearAverageTaxScale to MarginalRateTaxScale conversion error"
-
-
-if __name__ == '__main__':
-    import logging
-    import sys
-    logging.basicConfig(level = logging.ERROR, stream = sys.stdout)
-    test_linear_average_rate_tax_scale()
+    assert_near(new_marginal_tax_scale.thresholds, marginal_tax_scale.thresholds, error_margin = 0)
+    assert_near(new_marginal_tax_scale.rates, marginal_tax_scale.rates, error_margin = 0)
+    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], error_margin = 0)
