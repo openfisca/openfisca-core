@@ -270,7 +270,7 @@ class Holder(object):
                         remaining_start_instant = exact_stop_instant.offset(1, 'day')
                         if remaining_start_instant > stop_instant:
                             dated_holder.extrapolated_array = array
-                            if trace:
+                            if trace and used_periods:
                                 simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
                             return dated_holder
                     if exact_stop_instant >= stop_instant:
