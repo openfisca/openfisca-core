@@ -265,8 +265,8 @@ class Holder(object):
                                 array = np.copy(intersection_array)
                             else:
                                 array += intersection_array
-                            if trace:
-                                used_periods.append(exact_period)
+                        if trace:
+                            used_periods.append(exact_period)
                         remaining_start_instant = exact_stop_instant.offset(1, 'day')
                         if remaining_start_instant > stop_instant:
                             dated_holder.extrapolated_array = array
