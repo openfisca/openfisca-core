@@ -164,7 +164,7 @@ class AbstractEntityToEntity(AbstractFormula):
             ('name', variable_column.name),
             ))]
         return collections.OrderedDict((
-            ('@type', cls.__name__),
+            ('@type', cls.__bases__[0].__name__),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
             ('line_number', line_number),
