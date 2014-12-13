@@ -91,7 +91,7 @@ class AbstractEntityToEntity(AbstractFormula):
         keys_to_skip.add('_variable_holder')
         return super(AbstractEntityToEntity, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         holder = self.holder
         column = holder.column
@@ -105,7 +105,7 @@ class AbstractEntityToEntity(AbstractFormula):
 
         variable_holder = self.variable_holder
         variable_name = self.variable_name
-        variable_dated_holder = variable_holder.compute(lazy = lazy, period = period,
+        variable_dated_holder = variable_holder.compute(period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
         output_period = variable_dated_holder.period
         if variable_dated_holder.array is None:
@@ -221,7 +221,7 @@ class AlternativeFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
 
@@ -260,7 +260,7 @@ class AlternativeFormula(AbstractGroupedFormula):
                 (period, period_requested_formulas1.copy())
                 for period, period_requested_formulas1 in requested_formulas_by_period.iteritems()
                 ) if requested_formulas_by_period is not None else None
-            dated_holder = alternative_formula.compute(lazy = True, period = period,
+            dated_holder = alternative_formula.compute(period = period, lazy = True,
                 requested_formulas_by_period = new_requested_formulas_by_period)
             if dated_holder.array is not None:
                 self.used_formula = alternative_formula
@@ -274,7 +274,7 @@ class AlternativeFormula(AbstractGroupedFormula):
         # TODO: Imagine a better strategy.
         alternative_formula = self.alternative_formulas[0]
         self.used_formula = alternative_formula
-        dated_holder = alternative_formula.compute(lazy = lazy, period = period,
+        dated_holder = alternative_formula.compute(period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
         period_requested_formulas.remove(self)
         return dated_holder
@@ -333,7 +333,7 @@ class DatedFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         dated_holder = None
         stop_instant = period.stop
         for dated_formula in self.dated_formulas:
@@ -342,7 +342,7 @@ class DatedFormula(AbstractGroupedFormula):
             output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
             if output_period is None:
                 continue
-            dated_holder = dated_formula['formula'].compute(lazy = lazy, period = output_period,
+            dated_holder = dated_formula['formula'].compute(period = output_period, lazy = False,
                 requested_formulas_by_period = requested_formulas_by_period)
             if dated_holder.array is None:
                 break
@@ -492,7 +492,7 @@ class SelectFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         holder = self.holder
         column = holder.column
 
@@ -524,7 +524,7 @@ class SelectFormula(AbstractGroupedFormula):
         period_requested_formulas.add(self)
 
         for main_variable_name, formula in self.formula_by_main_variable_name.iteritems():
-            dated_holder = self.holder.entity.simulation.compute(main_variable_name, lazy = True, period = period,
+            dated_holder = self.holder.entity.simulation.compute(main_variable_name, period = period, lazy = True,
                 requested_formulas_by_period = requested_formulas_by_period)
             if dated_holder.array is not None:
                 selected_formula = formula
@@ -533,7 +533,7 @@ class SelectFormula(AbstractGroupedFormula):
             # No main variable is available.
             selected_formula = self.formula_by_main_variable_name.values()[0]
         self.used_formula = selected_formula
-        dated_holder = selected_formula.compute(lazy = lazy, period = period,
+        dated_holder = selected_formula.compute(period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
         period_requested_formulas.remove(self)
         return dated_holder
@@ -657,7 +657,7 @@ class SimpleFormula(AbstractFormula):
         keys_to_skip.add('_holder_by_variable_name')
         return super(SimpleFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         holder = self.holder
         column = holder.column
@@ -717,7 +717,7 @@ class SimpleFormula(AbstractFormula):
             variable_period_by_name = collections.OrderedDict()
         for variable_name, variable_holder in holder_by_variable_name.iteritems():
             variable_period = self.get_variable_period(output_period, variable_name)
-            variable_dated_holder = variable_holder.compute(lazy = lazy, period = variable_period,
+            variable_dated_holder = variable_holder.compute(period = variable_period, lazy = lazy,
                 requested_formulas_by_period = requested_formulas_by_period)
             if variable_dated_holder.array is None:
                 # A variable is missing in lazy mode, formula can not be computed yet.

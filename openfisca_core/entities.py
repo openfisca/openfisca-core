@@ -70,8 +70,8 @@ class AbstractEntity(object):
 
         return new
 
-    def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute(lazy = lazy, period = period,
+    def compute(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).compute(period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
 
     def get_or_new_holder(self, column_name):

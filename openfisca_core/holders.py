@@ -135,8 +135,8 @@ class Holder(object):
     def at_period(self, period):
         return self if self.column.is_permanent else DatedHolder(self, period)
 
-    def calculate(self, lazy = False, period = None, requested_formulas_by_period = None):
-        dated_holder = self.compute(lazy = lazy, period = period,
+    def calculate(self, period = None, lazy = False, requested_formulas_by_period = None):
+        dated_holder = self.compute(period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
         return dated_holder.array
 
@@ -161,7 +161,7 @@ class Holder(object):
 
         return new
 
-    def compute(self, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, lazy = False, requested_formulas_by_period = None):
         """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
 
         The returned dated holder is always of the requested period and this method never returns None.
@@ -194,7 +194,7 @@ class Holder(object):
                     array.fill(column.default)
                     dated_holder.array = array
                     break
-                formula_dated_holder = formula.compute(lazy = lazy, period = intersection_period,
+                formula_dated_holder = formula.compute(period = intersection_period, lazy = lazy,
                     requested_formulas_by_period = requested_formulas_by_period)
                 assert formula_dated_holder is not None
                 formula_period = formula_dated_holder.period

@@ -81,7 +81,7 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
+    def calculate(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         return self.compute(column_name, period = period, lazy = lazy,
@@ -124,10 +124,10 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, lazy = False, period = None, requested_formulas_by_period = None):
+    def compute(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.entity_by_column_name[column_name].compute(column_name, lazy = lazy, period = period,
+        return self.entity_by_column_name[column_name].compute(column_name, period = period, lazy = lazy,
             requested_formulas_by_period = requested_formulas_by_period)
 
     def get_compact_legislation(self, instant):
