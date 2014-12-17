@@ -26,10 +26,10 @@
 """Conversion functions"""
 
 
-from biryani1.baseconv import *  # noqa
-from biryani1.datetimeconv import *  # noqa
-from biryani1.jsonconv import *  # noqa
-from biryani1.states import State
+from biryani.baseconv import *  # noqa
+from biryani.datetimeconv import *  # noqa
+from biryani.jsonconv import *  # noqa
+from biryani.states import State
 
 
 default_state = State()
