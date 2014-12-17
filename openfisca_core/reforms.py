@@ -38,7 +38,7 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
             reference = None):
         if reference is not None:
             self.reference = reference
-        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
+        assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
 
         if entity_class_by_key_plural is None and self.entity_class_by_key_plural is None:
@@ -63,12 +63,11 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
         self.name = name
 
 
-def clone_entity_classes(entity_class_by_symbol, symbols):
-    new_entity_class_by_symbol = {
-        symbol: clone_entity_class(entity_class) if symbol in symbols else entity_class
-        for symbol, entity_class in entity_class_by_symbol.iteritems()
+def clone_entity_classes(entity_class_by_key_plural):
+    return {
+        key_plural: clone_entity_class(entity_class)
+        for key_plural, entity_class in entity_class_by_key_plural.iteritems()
         }
-    return new_entity_class_by_symbol
 
 
 def clone_entity_class(entity_class):
@@ -76,19 +75,6 @@ def clone_entity_class(entity_class):
         pass
     ReformEntity.column_by_name = entity_class.column_by_name.copy()
     return ReformEntity
-
-
-def clone_simple_formula_column_with_new_function(column, function):
-    reform_column = tools.empty_clone(column)
-    reform_column.__dict__ = column.__dict__.copy()
-    formula_class = column.formula_class
-    reform_formula_class = type(
-        u'reform_{}'.format(column.name).encode('utf-8'),
-        (formula_class, ),
-        {'function': staticmethod(function)},
-        )
-    reform_column.formula_class = reform_formula_class
-    return reform_column
 
 
 def find_item_at_date(items, date, nearest_in_period = None):
@@ -109,6 +95,21 @@ def find_item_at_date(items, date, nearest_in_period = None):
         if instant_str > latest_item['stop']:
             return latest_item
     return None
+
+
+# TODO Delete this helper when it is no more used.
+def replace_simple_formula_column_function(column, function):
+    reform_column = tools.empty_clone(column)
+    reform_column.__dict__ = column.__dict__.copy()
+    formula_class = column.formula_class
+    reform_formula_class = type(
+        u'reform_{}'.format(column.name).encode('utf-8'),
+        (formula_class, ),
+        {'function': staticmethod(function)},
+        )
+    reform_formula_class.extract_variables_name()
+    reform_column.formula_class = reform_formula_class
+    return reform_column
 
 
 def update_legislation(legislation_json, path, period, value):
