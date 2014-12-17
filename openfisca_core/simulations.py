@@ -26,7 +26,7 @@
 import collections
 
 from . import periods
-from .tools import empty_clone
+from .tools import empty_clone, stringify_array
 
 
 class Simulation(object):
@@ -39,6 +39,7 @@ class Simulation(object):
     period = None
     persons = None
     reference_compact_legislation_by_instant_cache = None
+    stack_trace = None
     steps_count = 1
     tax_benefit_system = None
     trace = False
@@ -56,6 +57,8 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         if trace:
             self.trace = True
+        if debug or trace:
+            self.stack_trace = collections.deque()
             self.traceback = collections.OrderedDict()
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
@@ -81,10 +84,10 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
+    def calculate(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute(column_name, period = period, lazy = lazy,
+        return self.compute(column_name, period = period,
             requested_formulas_by_period = requested_formulas_by_period).array
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -102,6 +105,8 @@ class Simulation(object):
             new_dict['debug_all'] = True
         if trace:
             new_dict['trace'] = True
+        if debug or trace:
+            new_dict['stack_trace'] = collections.deque()
             new_dict['traceback'] = collections.OrderedDict()
 
         new_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
@@ -124,11 +129,28 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
+    def compute(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.entity_by_column_name[column_name].compute(column_name, period = period, lazy = lazy,
+        if (self.debug or self.trace) and self.stack_trace:
+            variable_infos = (column_name, period)
+            calling_frame = self.stack_trace[-1]
+            caller_input_variables_infos = calling_frame['input_variables_infos']
+            if variable_infos not in caller_input_variables_infos:
+                caller_input_variables_infos.append(variable_infos)
+        return self.entity_by_column_name[column_name].compute(column_name, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
+
+    def get_array(self, column_name, period = None):
+        if period is None:
+            period = self.period
+        if (self.debug or self.trace) and self.stack_trace:
+            variable_infos = (column_name, period)
+            calling_frame = self.stack_trace[-1]
+            caller_input_variables_infos = calling_frame['input_variables_infos']
+            if variable_infos not in caller_input_variables_infos:
+                caller_input_variables_infos.append(variable_infos)
+        return self.entity_by_column_name[column_name].get_array(column_name, period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -156,3 +178,22 @@ class Simulation(object):
 
     def graph(self, column_name, edges, nodes, visited):
         self.entity_by_column_name[column_name].graph(column_name, edges, nodes, visited)
+
+    def legislation_at(self, instant, reference = False):
+        if reference:
+            return self.get_reference_compact_legislation(instant)
+        return self.get_compact_legislation(instant)
+
+    def stringify_input_variables_infos(self, input_variables_infos):
+        return u', '.join(
+            u'{}@{}<{}>{}'.format(
+                input_holder.entity.key_plural,
+                input_holder.column.name,
+                str(input_variable_period),
+                stringify_array(input_holder.get_array(input_variable_period)),
+                )
+            for input_holder, input_variable_period in (
+                (self.get_holder(input_variable_name), input_variable_period1)
+                for input_variable_name, input_variable_period1 in input_variables_infos
+                )
+            )

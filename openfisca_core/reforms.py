@@ -87,7 +87,6 @@ def clone_simple_formula_column_with_new_function(column, function):
         (formula_class, ),
         {'function': staticmethod(function)},
         )
-    reform_formula_class.extract_variables_name()
     reform_column.formula_class = reform_formula_class
     return reform_column
 
