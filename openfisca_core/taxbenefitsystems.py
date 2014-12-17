@@ -24,7 +24,6 @@
 
 
 import collections
-import xml.etree.ElementTree
 # import weakref
 
 from . import conv, legislations, legislationsxml
@@ -135,18 +134,9 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
 
     def __init__(self, entity_class_by_key_plural = None):
-        legislation_tree = xml.etree.ElementTree.parse(self.legislation_xml_file_path)
         state = conv.State()
-        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(
-            legislation_tree.getroot(),
-            state = state,
-            )
-        legislation_xml_json = conv.check(legislationsxml.validate_legislation_xml_json)(
-            legislation_xml_json,
-            state = state,
-            )
-        _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
-
+        legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
+            self.legislation_xml_file_path, state = state)
         super(XmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
