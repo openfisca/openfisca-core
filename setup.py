@@ -70,7 +70,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    # package_data = {'openfisca_core': ['i18n/*/LC_MESSAGES/*.mo']},
     packages = find_packages(),
     test_suite = 'nose.collector',
     zip_safe = False,
