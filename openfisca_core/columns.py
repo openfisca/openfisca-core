@@ -27,7 +27,7 @@ import collections
 import datetime
 import re
 
-from biryani1 import strings
+from biryani import strings
 import numpy as np
 
 from . import conv, periods
