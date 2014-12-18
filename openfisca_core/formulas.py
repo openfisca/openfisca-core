@@ -507,7 +507,7 @@ class SimpleFormula(AbstractFormula):
                 stringify_array(array)).encode('utf-8')
         assert isinstance(array, np.ndarray), \
             u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-                entity.key_plural, column.name, str(period), str(output_period), stringify_array(array)).encode('utf-8')
+                entity.key_plural, column.name, str(period), str(output_period), array).encode('utf-8')
         assert array.size == entity.count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
                 entity.key_plural, column.name, str(period), str(output_period), stringify_array(array),
