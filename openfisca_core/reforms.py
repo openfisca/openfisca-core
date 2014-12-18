@@ -63,6 +63,12 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
         self.name = name
 
 
+def clone_column(column):
+    reform_column = tools.empty_clone(column)
+    reform_column.__dict__ = column.__dict__.copy()
+    return reform_column
+
+
 def clone_entity_classes(entity_class_by_key_plural):
     return {
         key_plural: clone_entity_class(entity_class)
@@ -99,15 +105,13 @@ def find_item_at_date(items, date, nearest_in_period = None):
 
 # TODO Delete this helper when it is no more used.
 def replace_simple_formula_column_function(column, function):
-    reform_column = tools.empty_clone(column)
-    reform_column.__dict__ = column.__dict__.copy()
+    reform_column = clone_column(column)
     formula_class = column.formula_class
     reform_formula_class = type(
         u'reform_{}'.format(column.name).encode('utf-8'),
         (formula_class, ),
         {'function': staticmethod(function)},
         )
-    reform_formula_class.extract_variables_name()
     reform_column.formula_class = reform_formula_class
     return reform_column
 
