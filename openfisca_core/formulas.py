@@ -116,7 +116,12 @@ class AbstractEntityToEntity(AbstractFormula):
             array = array.astype(column.dtype)
 
         if debug or trace:
-            step = simulation.traceback.setdefault((column.name, output_period), {})
+            variable_infos = (column.name, output_period)
+            step = simulation.traceback.get(variable_infos)
+            if step is None:
+                simulation.traceback[variable_infos] = step = dict(
+                    holder = holder,
+                    )
             step.update(simulation.stack_trace.pop())
             input_variables_infos = step['input_variables_infos']
             if not debug_all or trace:
@@ -526,7 +531,12 @@ class SimpleFormula(AbstractFormula):
             array = array.astype(column.dtype)
 
         if debug or trace:
-            step = simulation.traceback.setdefault((column.name, output_period), {})
+            variable_infos = (column.name, output_period)
+            step = simulation.traceback.get(variable_infos)
+            if step is None:
+                simulation.traceback[variable_infos] = step = dict(
+                    holder = holder,
+                    )
             step.update(simulation.stack_trace.pop())
             input_variables_infos = step['input_variables_infos']
             if not debug_all or trace:
