@@ -503,8 +503,10 @@ class SimpleFormula(AbstractFormula):
         try:
             formula_result = self.function(simulation, period)
         except:
-            log.error(u'An error occurred while calling function {}@{}<{}>()'.format(entity.key_plural, column.name,
-                str(period)))
+            log.error(u'An error occurred while calling formula {}@{}<{}> in {}.{}'.format(
+                entity.key_plural, column.name, str(period), self.function.__module__,
+                self.function.__name__ if self.function.__name__ != 'function' else column.name,
+                ))
             raise
         else:
             try:
