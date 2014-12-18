@@ -489,7 +489,10 @@ class SimpleFormula(AbstractFormula):
             try:
                 output_period, array = formula_result
             except ValueError:
-                raise ValueError(u'A formula must return 2 values: period and array')
+                raise ValueError(u'A formula must return "period, array": {}.{}'.format(
+                    self.function.__module__,
+                    self.function.__name__ if self.function.__name__ != 'function' else column.name,
+                    ))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
             u"requested period".format(entity.key_plural, column.name, str(period), str(output_period),
