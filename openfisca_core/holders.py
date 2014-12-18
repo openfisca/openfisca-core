@@ -529,19 +529,6 @@ class Holder(object):
         formula = self.formula
         if formula is not None:
             self_json['formula'] = formula.to_json()
-        simulation = self.entity.simulation
-        consumers_by_variable_name = simulation.tax_benefit_system.consumers_by_variable_name
-        if consumers_by_variable_name is not None:
-            consumers = consumers_by_variable_name.get(self.column.name)
-            self_json['consumers'] = consumers_json = []
-            for consumer in sorted(consumers or []):
-                consumer_holder = simulation.get_or_new_holder(consumer)
-                consumer_column = consumer_holder.column
-                consumers_json.append(collections.OrderedDict((
-                    ('entity', consumer_holder.entity.key_plural),
-                    ('label', consumer_column.label),
-                    ('name', consumer_column.name),
-                    )))
         if with_value:
             self_json['value'] = self.to_value_json()
         return self_json

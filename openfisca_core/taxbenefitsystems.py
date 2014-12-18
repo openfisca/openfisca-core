@@ -41,7 +41,6 @@ class AbstractTaxBenefitSystem(object):
     _real_reference = None
     column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
-    consumers_by_variable_name = None  # for each variable, the list of (names of) prestations using this variable
     entity_class_by_key_plural = None
     legislation_json = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -115,14 +114,6 @@ class AbstractTaxBenefitSystem(object):
                 return self
             self._real_reference = real_reference = reference.real_reference
         return real_reference
-
-    def set_variables_dependencies(self):
-        if self.consumers_by_variable_name is None:
-            self.consumers_by_variable_name = {}
-            for column in self.column_by_name.itervalues():
-                formula_class = column.formula_class
-                if formula_class is not None:
-                    formula_class.set_dependencies(column, self)
 
 
 class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):

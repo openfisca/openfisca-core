@@ -153,10 +153,6 @@ class AbstractEntityToEntity(AbstractFormula):
             'to': column.name,
             })
 
-    @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
-        tax_benefit_system.consumers_by_variable_name.setdefault(cls.variable_name, set()).add(column.name)
-
     def to_json(self):
         cls = self.__class__
         comments = inspect.getcomments(cls)
@@ -264,11 +260,6 @@ class DatedFormula(AbstractGroupedFormula):
         for dated_formula in self.dated_formulas:
             dated_formula['formula'].graph_parameters(edges, nodes, visited)
 
-    @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
-        for dated_formula_class in cls.dated_formulas_class:
-            dated_formula_class['formula_class'].set_dependencies(column, tax_benefit_system)
-
     def to_json(self):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
@@ -360,14 +351,7 @@ class PersonToEntity(AbstractEntityToEntity):
 
 
 class SimpleFormula(AbstractFormula):
-    _holder_by_variable_name = None
     function = None  # Class attribute. Overridden by subclasses
-    legislation_accessor_by_name = None
-    requires_legislation = False  # class attribute
-    requires_period = False  # class attribute
-    requires_reference_legislation = False  # class attribute
-    requires_self = False  # class attribute
-    variables_name = None  # class attribute
 
     def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
@@ -450,13 +434,6 @@ class SimpleFormula(AbstractFormula):
                     entity.key_singular, role, holder.column.name))
                 raise
         return target_array
-
-    def clone(self, holder, keys_to_skip = None):
-        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        if keys_to_skip is None:
-            keys_to_skip = set()
-        keys_to_skip.add('_holder_by_variable_name')
-        return super(SimpleFormula, self).clone(holder, keys_to_skip = keys_to_skip)
 
     def compute(self, period = None, requested_formulas_by_period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
@@ -624,34 +601,13 @@ class SimpleFormula(AbstractFormula):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
-        for variable_holder in self.holder_by_variable_name.itervalues():
-            variable_holder.graph(edges, nodes, visited)
-            edges.append({
-                'from': variable_holder.column.name,
-                'to': column.name,
-                })
-
-    @property
-    def holder_by_variable_name(self):
-        # Note: This property is not precomputed at __init__ time, to ease the cloning of the formula.
-        holder_by_variable_name = self._holder_by_variable_name
-        if holder_by_variable_name is None:
-            self._holder_by_variable_name = holder_by_variable_name = collections.OrderedDict()
-            simulation = self.holder.entity.simulation
-            for variable_name in self.variables_name:
-                clean_variable_name = variable_name[:-len('_holder')] \
-                    if variable_name.endswith('_holder') \
-                    else variable_name
-                holder_by_variable_name[variable_name] = simulation.get_or_new_holder(clean_variable_name)
-        return holder_by_variable_name
-
-    @classmethod
-    def set_dependencies(cls, column, tax_benefit_system):
-        for variable_name in cls.variables_name:
-            clean_variable_name = variable_name[:-len('_holder')] \
-                if variable_name.endswith('_holder') \
-                else variable_name
-            tax_benefit_system.consumers_by_variable_name.setdefault(clean_variable_name, set()).add(column.name)
+        # TODO
+        # for variable_holder in self.holder_by_variable_name.itervalues():
+        #     variable_holder.graph(edges, nodes, visited)
+        #     edges.append({
+        #         'from': variable_holder.column.name,
+        #         'to': column.name,
+        #         })
 
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
@@ -731,14 +687,6 @@ class SimpleFormula(AbstractFormula):
         doc = inspect.getdoc(function)
         source_lines, line_number = inspect.getsourcelines(function)
         source = textwrap.dedent(''.join(source_lines).decode('utf-8'))
-        variables_json = []
-        for variable_name, variable_holder in self.holder_by_variable_name.iteritems():
-            variable_column = variable_holder.column
-            variables_json.append(collections.OrderedDict((
-                ('entity', variable_holder.entity.key_plural),
-                ('label', variable_column.label),
-                ('name', variable_column.name),
-                )))
         return collections.OrderedDict((
             ('@type', u'SimpleFormula'),
             ('comments', comments.decode('utf-8') if comments is not None else None),
@@ -746,7 +694,6 @@ class SimpleFormula(AbstractFormula):
             ('line_number', line_number),
             ('module', inspect.getmodule(function).__name__),
             ('source', source),
-            ('variables', variables_json),
             ))
 
 

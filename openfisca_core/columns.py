@@ -43,7 +43,6 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]
 
 class Column(object):
     cerfa_field = None
-    consumers = None  # list of prestation names using this column
     default = 0
     dtype = float
     end = None
