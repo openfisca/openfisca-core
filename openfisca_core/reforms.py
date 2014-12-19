@@ -107,7 +107,7 @@ def find_item_at_date(items, date, nearest_in_period = None):
     return None
 
 
-def new_simple_reform_class(label = None, name = None, reference = None):
+def new_simple_reform_class(label = None, legislation_json = None, name = None, reference = None):
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
     reform_entity_class_by_key_plural = clone_entity_classes(reference.entity_class_by_key_plural)
@@ -116,12 +116,14 @@ def new_simple_reform_class(label = None, name = None, reference = None):
         for entity_class in reform_entity_class_by_key_plural.itervalues()
         }
     reform_label = label
+    reform_legislation_json = legislation_json
     reform_name = name
     reform_reference = reference
 
     class SimpleReform(Reform):
         entity_class_by_key_plural = reform_entity_class_by_key_plural
         label = reform_label
+        legislation_json = reform_legislation_json
         name = reform_name
         reference = reform_reference
 
