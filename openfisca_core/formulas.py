@@ -1011,7 +1011,7 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
-def make_reference_formula_decorator(entity_class_by_symbol = None):
+def make_reference_formula_decorator(entity_class_by_symbol = None, update = False):
     assert isinstance(entity_class_by_symbol, dict)
 
     def reference_formula_decorator(column):
@@ -1022,7 +1022,8 @@ def make_reference_formula_decorator(entity_class_by_symbol = None):
         entity_class = entity_class_by_symbol[column.entity]
         entity_column_by_name = entity_class.column_by_name
         name = column.name
-        assert name not in entity_column_by_name, name
+        if not update:
+            assert name not in entity_column_by_name, name
         entity_column_by_name[name] = column
 
         return column

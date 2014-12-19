@@ -455,7 +455,7 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
 
 
 def reference_input_variable(column = None, entity_class = None, is_permanent = False, label = None, name = None,
-        start_date = None, stop_date = None, url = None):
+        start_date = None, stop_date = None, update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -481,5 +481,6 @@ def reference_input_variable(column = None, entity_class = None, is_permanent = 
         column.url = unicode(url)
 
     entity_column_by_name = entity_class.column_by_name
-    assert name not in entity_column_by_name, name
+    if not update:
+        assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column

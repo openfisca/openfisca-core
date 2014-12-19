@@ -25,8 +25,7 @@
 
 import collections
 
-
-from . import periods, taxbenefitsystems, tools
+from . import columns, formulas, periods, taxbenefitsystems, tools
 
 
 class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
@@ -58,9 +57,14 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
             legislation_json = legislation_json,
             )
 
-        assert name is not None
-        self.label = label if label is not None else name
-        self.name = name
+        if name is not None:
+            self.name = name
+        assert self.name is not None
+
+        if label is not None:
+            self.label = label
+        if self.label is None:
+            self.label = self.name
 
 
 def clone_column(column):
@@ -101,6 +105,40 @@ def find_item_at_date(items, date, nearest_in_period = None):
         if instant_str > latest_item['stop']:
             return latest_item
     return None
+
+
+def new_simple_reform_class(label = None, name = None, reference = None):
+    assert isinstance(name, basestring)
+    assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
+    reform_entity_class_by_key_plural = clone_entity_classes(reference.entity_class_by_key_plural)
+    reform_entity_class_by_symbol = {
+        entity_class.symbol: entity_class
+        for entity_class in reform_entity_class_by_key_plural.itervalues()
+        }
+    reform_label = label
+    reform_name = name
+    reform_reference = reference
+
+    class SimpleReform(Reform):
+        entity_class_by_key_plural = reform_entity_class_by_key_plural
+        label = reform_label
+        name = reform_name
+        reference = reform_reference
+
+        formula = staticmethod(formulas.make_reference_formula_decorator(
+            entity_class_by_symbol = reform_entity_class_by_symbol,
+            update = True,
+            ))
+
+        @classmethod
+        def input_variable(cls, entity_class = None, **kwargs):
+            # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
+            entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
+            assert 'update' not in kwargs
+            kwargs['update'] = True
+            return columns.reference_input_variable(entity_class = entity_class, **kwargs)
+
+    return SimpleReform
 
 
 # TODO Delete this helper when it is no more used.
