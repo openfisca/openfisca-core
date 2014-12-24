@@ -208,11 +208,14 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base):
+    def calc(self, base, round_base_decimals = None):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
-        return np.dot(self.rates, a.T)
+        if round_base_decimals is None:
+            return np.dot(self.rates, a.T)
+        else:
+            return np.dot(self.rates, np.round(a.T, round_base_decimals))
 
     def combine_bracket(self, rate, threshold_low = 0, threshold_high = False):
         # Insert threshold_low and threshold_high without modifying rates
