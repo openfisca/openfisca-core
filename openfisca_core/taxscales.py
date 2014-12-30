@@ -119,16 +119,23 @@ class AbstractRateTaxScale(AbstractTaxScale):
             new_tax_scale.rates.append(rate * factor)
         return new_tax_scale
 
-    def multiply_thresholds(self, factor, inplace = True, new_name = None):
+    def multiply_thresholds(self, factor, decimals = None, inplace = True, new_name = None):
         if inplace:
             assert new_name is None
             for i, threshold in enumerate(self.thresholds):
-                self.thresholds[i] = threshold * factor
+                if decimals is not None:
+                    self.thresholds[i] = np.around(threshold * factor, decimals = decimals)
+                else:
+                    self.thresholds[i] = threshold * factor
             return self
 
         new_tax_scale = self.__class__(new_name or self.name, option = self.option, unit = self.unit)
         for threshold, rate in itertools.izip(self.thresholds, self.rates):
-            new_tax_scale.thresholds.append(threshold * factor)
+            if decimals is not None:
+                new_tax_scale.thresholds.append(np.around(threshold * factor, decimals = decimals))
+            else:
+                new_tax_scale.thresholds.append(threshold * factor)
+
             new_tax_scale.rates.append(rate)
         return new_tax_scale
 
@@ -208,14 +215,23 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base, round_base_decimals = None):
+    def calc(self, base, factor = 1, round_base_decimals = None):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
-        thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
+        if round_base_decimals is not None:
+            factor = np.round(factor, round_base_decimals)
+        if isinstance(factor, (float, int)):
+            factor = np.ones(len(base)) * factor
+        thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
         if round_base_decimals is None:
             return np.dot(self.rates, a.T)
         else:
-            return np.dot(self.rates, np.round(a.T, round_base_decimals))
+            if self.name == "deduc":
+                print self
+                print base
+            r = np.tile(self.rates, (len(base), 1))
+            b = np.round(a, round_base_decimals)
+            return np.round(r * b, round_base_decimals).sum(axis = 1)
 
     def combine_bracket(self, rate, threshold_low = 0, threshold_high = False):
         # Insert threshold_low and threshold_high without modifying rates
