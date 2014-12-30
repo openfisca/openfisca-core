@@ -64,17 +64,17 @@ def test_round_marginal_tax_scale():
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 1),
-        [10, 10.02, 10., 10.06, 10., 10.05, 10.],
+        [10, 10., 10., 10.1, 10., 10, 10.],
         error_margin = 1e-10,
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 2),
-        [10, 10.02, 10., 10.06, 10.001, 10.05, 10],
+        [10, 10.02, 10., 10.06, 10.00, 10.05, 10],
         error_margin = 1e-10,
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 3),
-        [10, 10.02, 10.0002, 10.06, 10.0006, 10.05, 10.0005],
+        [10, 10.02, 10., 10.06, 10.001, 10.05, 10],
         error_margin = 1e-10,
         )
 

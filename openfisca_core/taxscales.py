@@ -226,9 +226,6 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         if round_base_decimals is None:
             return np.dot(self.rates, a.T)
         else:
-            if self.name == "deduc":
-                print self
-                print base
             r = np.tile(self.rates, (len(base), 1))
             b = np.round(a, round_base_decimals)
             return np.round(r * b, round_base_decimals).sum(axis = 1)
