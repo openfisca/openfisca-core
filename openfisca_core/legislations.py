@@ -114,6 +114,18 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
     return tax_scale
 
 
+def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str):
+    dated_bracket_json = collections.OrderedDict()
+    for key, value in bracket_json.iteritems():
+        if key in ('amount', 'base', 'rate', 'threshold'):
+            dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
+            if dated_value is not None:
+                dated_bracket_json[key] = dated_value
+        else:
+            dated_bracket_json[key] = value
+    return dated_bracket_json
+
+
 def generate_dated_json_value(values_json, legislation_start_str, legislation_stop_str, instant_str):
     max_stop_str = None
     max_value = None
@@ -200,18 +212,6 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
         else:
             dated_node_json[key] = value
     return dated_node_json
-
-
-def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str):
-    dated_bracket_json = collections.OrderedDict()
-    for key, value in bracket_json.iteritems():
-        if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
-            if dated_value is not None:
-                dated_bracket_json[key] = dated_value
-        else:
-            dated_bracket_json[key] = value
-    return dated_bracket_json
 
 
 # Level-1 Converters
