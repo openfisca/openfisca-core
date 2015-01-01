@@ -189,9 +189,7 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
         bracket_threshold = np.dot(bracket_dummy, thresholds_array[:-1])
         log.info("bracket_average_start_rate :  {}".format(bracket_average_start_rate))
         log.info("average_rate_slope:  {}".format(average_rate_slope))
-        return base * (
-            bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope
-            )
+        return base * (bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope)
 
     def to_marginal(self):
         marginal_tax_scale = MarginalRateTaxScale(name = self.name, option = self.option, unit = self.unit)
