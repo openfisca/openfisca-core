@@ -178,7 +178,7 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
             return base * self.rates[0]
 
         tiled_base = np.tile(base, (len(self.thresholds) - 1, 1)).T
-        tiled_thresholds = np.tile(np.hstack(self.thresholds), (len(base), 1))
+        tiled_thresholds = np.tile(self.thresholds, (len(base), 1))
         bracket_dummy = (tiled_base >= tiled_thresholds[:, :-1]) * (tiled_base < tiled_thresholds[:, 1:])
         rates_array = np.array(self.rates)
         thresholds_array = np.array(self.thresholds)
