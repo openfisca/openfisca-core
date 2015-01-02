@@ -8,4 +8,5 @@ before_install:
   - sudo apt-get install -qq python-scipy
 install:
   - pip install flake8  # Not yet available in Debian stable
+  - pip install -e .
 script: make test
