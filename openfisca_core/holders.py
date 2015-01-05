@@ -523,12 +523,12 @@ class Holder(object):
             self._extrapolated_array_by_period = extrapolated_array_by_period = {}
         extrapolated_array_by_period[period] = array
 
-    def to_field_json(self, with_value = False):
+    def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
         if formula is not None:
-            self_json['formula'] = formula.to_json()
+            self_json['formula'] = formula.to_json(input_variables_extractor = input_variables_extractor)
         if with_value:
             self_json['value'] = self.to_value_json()
         return self_json

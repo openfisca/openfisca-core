@@ -153,27 +153,29 @@ class AbstractEntityToEntity(AbstractFormula):
             'to': column.name,
             })
 
-    def to_json(self):
+    def to_json(self, with_input_variables = False):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
         source_lines, line_number = inspect.getsourcelines(cls)
         variable_holder = self.variable_holder
         variable_column = variable_holder.column
-        variables_json = [collections.OrderedDict((
-            ('entity', variable_holder.entity.key_plural),
-            ('label', variable_column.label),
-            ('name', variable_column.name),
-            ))]
-        return collections.OrderedDict((
+        self_json = collections.OrderedDict((
             ('@type', cls.__bases__[0].__name__),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
             ('line_number', line_number),
             ('module', inspect.getmodule(cls).__name__),
             ('source', ''.join(source_lines).decode('utf-8')),
-            ('variables', variables_json),
             ))
+        if with_input_variables:
+            variables_json = [collections.OrderedDict((
+                ('entity', variable_holder.entity.key_plural),
+                ('label', variable_column.label),
+                ('name', variable_column.name),
+                ))]
+            self_json['variables'] = variables_json
+        return self_json
 
     @property
     def variable_holder(self):
@@ -666,13 +668,13 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self):
+    def to_json(self, input_variables_extractor = None):
         function = self.function
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         source_lines, line_number = inspect.getsourcelines(function)
         source = textwrap.dedent(''.join(source_lines).decode('utf-8'))
-        return collections.OrderedDict((
+        self_json = collections.OrderedDict((
             ('@type', u'SimpleFormula'),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
@@ -680,6 +682,23 @@ class SimpleFormula(AbstractFormula):
             ('module', inspect.getmodule(function).__name__),
             ('source', source),
             ))
+        if input_variables_extractor is not None:
+            holder = self.holder
+            column = holder.column
+            entity = holder.entity
+            simulation = entity.simulation
+            variables_name = input_variables_extractor.get_input_variables(column)
+            variables_json = []
+            for variable_name in sorted(variables_name):
+                variable_holder = simulation.get_or_new_holder(variable_name)
+                variable_column = variable_holder.column
+                variables_json.append(collections.OrderedDict((
+                    ('entity', variable_holder.entity.key_plural),
+                    ('label', variable_column.label),
+                    ('name', variable_column.name),
+                    )))
+            self_json['variables'] = variables_json
+        return self_json
 
 
 # Formulas Generators
