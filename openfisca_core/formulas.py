@@ -215,6 +215,18 @@ class DatedFormula(AbstractGroupedFormula):
             ]
         assert self.dated_formulas
 
+    def at_instant(cls, instant, default = UnboundLocalError):
+        assert isinstance(instant, periods.Instant)
+        for dated_formula_class in cls.dated_formulas_class:
+            start_instant = dated_formula_class['start_instant']
+            stop_instant = dated_formula_class['stop_instant']
+            if (start_instant is None or start_instant <= instant) and (
+                    stop_instant is None and instant <= stop_instant):
+                return dated_formula_class['formula_class']
+        if default is UnboundLocalError:
+            raise KeyError(instant)
+        return default
+
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
         if keys_to_skip is None:
