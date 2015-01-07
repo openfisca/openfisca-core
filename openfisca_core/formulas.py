@@ -222,7 +222,7 @@ class DatedFormula(AbstractGroupedFormula):
             start_instant = dated_formula_class['start_instant']
             stop_instant = dated_formula_class['stop_instant']
             if (start_instant is None or start_instant <= instant) and (
-                    stop_instant is None and instant <= stop_instant):
+                    stop_instant is None or instant <= stop_instant):
                 return dated_formula_class['formula_class']
         if default is UnboundLocalError:
             raise KeyError(instant)
