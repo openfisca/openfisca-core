@@ -215,6 +215,7 @@ class DatedFormula(AbstractGroupedFormula):
             ]
         assert self.dated_formulas
 
+    @classmethod
     def at_instant(cls, instant, default = UnboundLocalError):
         assert isinstance(instant, periods.Instant)
         for dated_formula_class in cls.dated_formulas_class:
