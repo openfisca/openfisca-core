@@ -25,7 +25,6 @@
 
 from __future__ import division
 
-import collections
 import itertools
 
 import numpy as np
@@ -522,6 +521,30 @@ class Holder(object):
         if extrapolated_array_by_period is None:
             self._extrapolated_array_by_period = extrapolated_array_by_period = {}
         extrapolated_array_by_period[period] = array
+
+    def sum_compute(self, period = None, requested_formulas_by_period = None):
+        unit = period[0]
+        if unit == u'month':
+            return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
+        assert unit == u'year', unit
+        array = None
+        year, month, day = period.start
+        for period_index in range(period.size):
+            for month_index in range(12):
+                month_period = periods.period(periods.instant(year, month, day))
+                month_array = self.calculate(period = month_period,
+                    requested_formulas_by_period = requested_formulas_by_period)
+                if array is None:
+                    array = month_array.copy()
+                else:
+                    array += month_array
+                month += 1
+                if month > 12:
+                    month -= 12
+                    year += 1
+        dated_holder = self.at_period(period)
+        dated_holder.extrapolated_array = array
+        return dated_holder
 
     def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()

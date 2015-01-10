@@ -93,3 +93,7 @@ class AbstractEntity(object):
         assert not self.is_persons_entity
         raise NotImplementedError('Method "iter_member_persons_role_and_id" is not implemented for class {}'.format(
             self.__class__.__name__))
+
+    def sum_compute(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).sum_compute(period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
