@@ -531,7 +531,7 @@ class Holder(object):
         year, month, day = period.start
         for period_index in range(period.size):
             for month_index in range(12):
-                month_period = periods.period(periods.instant(year, month, day))
+                month_period = periods.period(u'month', periods.instant((year, month, day)))
                 month_array = self.calculate(period = month_period,
                     requested_formulas_by_period = requested_formulas_by_period)
                 if array is None:
