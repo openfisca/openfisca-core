@@ -523,6 +523,10 @@ class Holder(object):
         extrapolated_array_by_period[period] = array
 
     def sum_compute(self, period = None, requested_formulas_by_period = None):
+        dated_holder = self.at_period(period)
+        if dated_holder.array is not None:
+            return dated_holder
+
         unit = period[0]
         if unit == u'month':
             return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
@@ -543,7 +547,7 @@ class Holder(object):
                     month -= 12
                     year += 1
         dated_holder = self.at_period(period)
-        dated_holder.extrapolated_array = array
+        dated_holder.array = array
         return dated_holder
 
     def to_field_json(self, input_variables_extractor = None, with_value = False):
