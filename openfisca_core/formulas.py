@@ -134,7 +134,7 @@ class AbstractEntityToEntity(AbstractFormula):
                     )
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(entity.key_plural, column.name, str(period),
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key_plural, str(period),
                     simulation.stringify_input_variables_infos(input_variables_infos), stringify_array(array),
                     str(output_period)))
 
@@ -496,7 +496,7 @@ class SimpleFormula(AbstractFormula):
             formula_result = self.function(simulation, period)
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in {}.{}'.format(
-                entity.key_plural, column.name, str(period), self.function.__module__,
+                column.name, entity.key_plural, str(period), self.function.__module__,
                 self.function.__name__ if self.function.__name__ != 'function' else column.name,
                 ))
             raise
@@ -510,14 +510,13 @@ class SimpleFormula(AbstractFormula):
                     ))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
-            u"requested period".format(entity.key_plural, column.name, str(period), str(output_period),
+            u"requested period".format(column.name, entity.key_plural, str(period), str(output_period),
                 stringify_array(array)).encode('utf-8')
-        assert isinstance(array, np.ndarray), \
-            u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-                entity.key_plural, column.name, str(period), str(output_period), array).encode('utf-8')
+        assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
+            column.name, entity.key_plural, str(period), str(output_period), array).encode('utf-8')
         assert array.size == entity.count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                entity.key_plural, column.name, str(period), str(output_period), stringify_array(array),
+                column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
                 array.size, entity.count, entity.key_singular).encode('utf-8')
         if debug:
             try:
@@ -525,7 +524,7 @@ class SimpleFormula(AbstractFormula):
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        entity.key_plural, column.name, str(period), str(output_period), stringify_array(array),
+                        column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
@@ -551,7 +550,7 @@ class SimpleFormula(AbstractFormula):
                     )
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(entity.key_plural, column.name, str(period),
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key_plural, str(period),
                     simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
                     stringify_array(array)))
 

@@ -191,8 +191,8 @@ class Simulation(object):
     def stringify_input_variables_infos(self, input_variables_infos):
         return u', '.join(
             u'{}@{}<{}>{}'.format(
-                input_holder.entity.key_plural,
                 input_holder.column.name,
+                input_holder.entity.key_plural,
                 str(input_variable_period),
                 stringify_array(input_holder.get_array(input_variable_period)),
                 )
