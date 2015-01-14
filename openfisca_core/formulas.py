@@ -142,18 +142,18 @@ class AbstractEntityToEntity(AbstractFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, nodes, visited):
+    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         variable_holder = self.variable_holder
-        variable_holder.graph(edges, nodes, visited)
+        variable_holder.graph(edges, input_variables_extractor, nodes, visited)
         edges.append({
             'from': variable_holder.column.name,
             'to': column.name,
             })
 
-    def to_json(self, with_input_variables = False):
+    def to_json(self, input_variables_extractor = None):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
@@ -168,7 +168,7 @@ class AbstractEntityToEntity(AbstractFormula):
             ('module', inspect.getmodule(cls).__name__),
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
-        if with_input_variables:
+        if input_variables_extractor is not None:
             variables_json = [collections.OrderedDict((
                 ('entity', variable_holder.entity.key_plural),
                 ('label', variable_column.label),
@@ -270,17 +270,17 @@ class DatedFormula(AbstractGroupedFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, nodes, visited):
+    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
         """Recursively build a graph of formulas."""
         for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, nodes, visited)
+            dated_formula['formula'].graph_parameters(edges, input_variables_extractor, nodes, visited)
 
-    def to_json(self):
+    def to_json(self, input_variables_extractor = None):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    formula = dated_formula['formula'].to_json(),
+                    formula = dated_formula['formula'].to_json(input_variables_extractor = input_variables_extractor),
                     start_instant = str(dated_formula['start_instant']),
                     stop_instant = str(dated_formula['stop_instant']),
                     )
@@ -596,17 +596,20 @@ class SimpleFormula(AbstractFormula):
             raise
         return target_array
 
-    def graph_parameters(self, edges, nodes, visited):
+    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
         """Recursively build a graph of formulas."""
-        # holder = self.holder
-        # column = holder.column
-        # TODO
-        # for variable_holder in self.holder_by_variable_name.itervalues():
-        #     variable_holder.graph(edges, nodes, visited)
-        #     edges.append({
-        #         'from': variable_holder.column.name,
-        #         'to': column.name,
-        #         })
+        holder = self.holder
+        column = holder.column
+        entity = holder.entity
+        simulation = entity.simulation
+        variables_name = input_variables_extractor.get_input_variables(column)
+        for variable_name in sorted(variables_name):
+            variable_holder = simulation.get_or_new_holder(variable_name)
+            variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+            edges.append({
+                'from': variable_holder.column.name,
+                'to': column.name,
+                })
 
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""

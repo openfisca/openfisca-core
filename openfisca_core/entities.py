@@ -86,8 +86,8 @@ class AbstractEntity(object):
                 holder.formula = column.formula_class(holder = holder)
         return holder
 
-    def graph(self, column_name, edges, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, nodes, visited)
+    def graph(self, column_name, edges, input_variables_extractor, nodes, visited):
+        self.get_or_new_holder(column_name).graph(edges, input_variables_extractor, nodes, visited)
 
     def iter_member_persons_role_and_id(self, member):
         assert not self.is_persons_entity

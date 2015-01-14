@@ -456,7 +456,7 @@ class Holder(object):
                     return array
         return None
 
-    def graph(self, edges, nodes, visited):
+    def graph(self, edges, input_variables_extractor, nodes, visited):
         column = self.column
         if self in visited:
             return
@@ -472,7 +472,7 @@ class Holder(object):
         if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
                 and column.end < period.start.date:
             return
-        formula.graph_parameters(edges, nodes, visited)
+        formula.graph_parameters(edges, input_variables_extractor, nodes, visited)
 
     def new_test_case_array(self, period):
         array = self.get_array(period)
