@@ -4,7 +4,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -33,8 +33,8 @@ from numpy.core.defchararray import startswith
 from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (alternative_function, AlternativeFormulaColumn, dated_function, DatedFormulaColumn,
-    EntityToPersonColumn, PersonToEntityColumn, make_reference_formula_decorator, SimpleFormulaColumn)
+from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn, PersonToEntityColumn,
+    make_reference_formula_decorator, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -355,21 +355,19 @@ reference_formula = make_reference_formula_decorator(entity_class_by_symbol = en
 
 
 @reference_formula
-class age(AlternativeFormulaColumn):
+class age(SimpleFormulaColumn):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre d'années)"
 
-    @alternative_function()
-    def from_age_en_mois(self, age_en_mois):
-        return age_en_mois // 12
-
-    @alternative_function()
-    def from_birth(self, birth, period):
-        return (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
-
-    def get_output_period(self, period):
-        return period
+    def function(self, simulation, period):
+        birth = simulation.get_array('birth', period)
+        if birth is None:
+            age_en_mois = simulation.get_array('age_en_mois', period)
+            if age_en_mois is not None:
+                return period, age_en_mois // 12
+            birth = simulation.calculate('birth', period)
+        return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
 @reference_formula
@@ -378,11 +376,11 @@ class dom_tom(SimpleFormulaColumn):
     entity_class = Familles
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
-    def function(self, depcom):
-        return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+    def function(self, simulation, period):
+        period = period.start.period(u'year').offset('first-of')
+        depcom = simulation.calculate('depcom', period)
 
-    def get_output_period(self, period):
-        return period.start.period(u'year').offset('first-of')
+        return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
 @reference_formula
@@ -398,11 +396,12 @@ class revenu_disponible(SimpleFormulaColumn):
     entity_class = Individus
     label = u"Revenu disponible de l'individu"
 
-    def function(self, rsa, salaire_imposable):
-        return rsa + salaire_imposable * 0.7
+    def function(self, simulation, period):
+        period = period.start.period(u'year').offset('first-of')
+        rsa = simulation.calculate('rsa', period)
+        salaire_imposable = simulation.calculate('salaire_imposable', period)
 
-    def get_output_period(self, period):
-        return period.start.period(u'year').offset('first-of')
+        return period, rsa + salaire_imposable * 0.7
 
 
 @reference_formula
@@ -420,19 +419,25 @@ class rsa(DatedFormulaColumn):
     label = u"RSA"
 
     @dated_function(datetime.date(2010, 1, 1))
-    def function_2010(self, salaire_imposable):
-        return (salaire_imposable < 500) * 100.0
+    def function_2010(self, simulation, period):
+        period = period.start.period(u'month').offset('first-of')
+        salaire_imposable = simulation.calculate('salaire_imposable', period)
+
+        return period, (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
-    def function_2011_2012(self, salaire_imposable):
-        return (salaire_imposable < 500) * 200.0
+    def function_2011_2012(self, simulation, period):
+        period = period.start.period(u'month').offset('first-of')
+        salaire_imposable = simulation.calculate('salaire_imposable', period)
+
+        return period, (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
-    def function_2013(self, salaire_imposable):
-        return (salaire_imposable < 500) * 300
+    def function_2013(self, simulation, period):
+        period = period.start.period(u'month').offset('first-of')
+        salaire_imposable = simulation.calculate('salaire_imposable', period)
 
-    def get_output_period(self, period):
-        return period.start.period(u'month').offset('first-of')
+        return period, (salaire_imposable < 500) * 300
 
 
 @reference_formula
@@ -441,11 +446,12 @@ class salaire_imposable(SimpleFormulaColumn):
     entity_class = Individus
     label = u"Salaire imposable"
 
-    def function(self, dom_tom_individu, salaire_net):
-        return salaire_net * 0.9 - 100 * dom_tom_individu
+    def function(self, simulation, period):
+        period = period.start.period(u'year').offset('first-of')
+        dom_tom_individu = simulation.calculate('dom_tom_individu', period)
+        salaire_net = simulation.calculate('salaire_net', period)
 
-    def get_output_period(self, period):
-        return period.start.period(u'year').offset('first-of')
+        return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
 
 @reference_formula
@@ -454,12 +460,11 @@ class salaire_net(SimpleFormulaColumn):
     entity_class = Individus
     label = u"Salaire net"
 
-    @staticmethod
-    def function(salaire_brut):
-        return salaire_brut * 0.8
+    def function(self, simulation, period):
+        period = period.start.period(u'year').offset('first-of')
+        salaire_brut = simulation.calculate('salaire_brut', period)
 
-    def get_output_period(self, period):
-        return period.start.period(u'year').offset('first-of')
+        return period, salaire_brut * 0.8
 
 
 # TaxBenefitSystem instance declared after formulas

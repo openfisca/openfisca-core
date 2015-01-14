@@ -4,7 +4,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -43,7 +43,6 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]
 
 class Column(object):
     cerfa_field = None
-    consumers = None  # list of prestation names using this column
     default = 0
     dtype = float
     end = None
@@ -456,7 +455,7 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
 
 
 def reference_input_variable(column = None, entity_class = None, is_permanent = False, label = None, name = None,
-        start_date = None, stop_date = None, url = None):
+        start_date = None, stop_date = None, update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
     assert isinstance(name, basestring), name
     name = unicode(name)
@@ -482,5 +481,6 @@ def reference_input_variable(column = None, entity_class = None, is_permanent = 
         column.url = unicode(url)
 
     entity_column_by_name = entity_class.column_by_name
-    assert name not in entity_column_by_name, name
+    if not update:
+        assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column

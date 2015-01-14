@@ -4,7 +4,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -30,6 +30,8 @@ import collections
 import datetime
 import logging
 import itertools
+
+import xml.etree.ElementTree
 
 from . import conv
 
@@ -62,6 +64,8 @@ xml_json_formats = (
     'percent',
     )
 
+
+# Level 1 converters
 
 def make_validate_values_xml_json_dates(require_consecutive_dates = False):
     def validate_values_xml_json_dates(values_xml_json, state = None):
@@ -817,6 +821,24 @@ validate_values_holder_xml_json = conv.struct(
     )
 
 
+def xml_legislation_file_path_to_xml(value, state = None):
+    try:
+        legislation_tree = xml.etree.ElementTree.parse(value)
+    except xml.etree.ElementTree.ParseError as error:
+        return value, unicode(error)
+    xml_legislation = legislation_tree.getroot()
+    return xml_legislation, None
+
+
+def xml_legislation_str_to_xml(value, state = None):
+    value = value.encode('utf-8')
+    try:
+        xml_legislation = xml.etree.ElementTree.fromstring(value)
+    except xml.etree.ElementTree.ParseError as error:
+        return value, unicode(error)
+    return xml_legislation, None
+
+
 def xml_legislation_to_json(xml_element, state = None):
     if xml_element is None:
         return None, None
@@ -826,3 +848,21 @@ def xml_legislation_to_json(xml_element, state = None):
             state = conv.default_state
         return json_element, state._(u'Invalid root element in XML: "{}" instead of "NODE"').format(xml_element.tag)
     return json_element, None
+
+
+# Level 2 converters
+
+xml_legislation_file_path_to_json = conv.pipe(
+    xml_legislation_file_path_to_xml,
+    xml_legislation_to_json,
+    validate_legislation_xml_json,
+    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
+    )
+
+
+xml_legislation_str_to_json = conv.pipe(
+    xml_legislation_str_to_xml,
+    xml_legislation_to_json,
+    validate_legislation_xml_json,
+    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
+    )

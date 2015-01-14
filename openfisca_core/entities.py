@@ -4,7 +4,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -70,9 +70,12 @@ class AbstractEntity(object):
 
         return new
 
-    def compute(self, column_name, period = None, lazy = False, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute(period = period, lazy = lazy,
+    def compute(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).compute(period = period,
             requested_formulas_by_period = requested_formulas_by_period)
+
+    def get_array(self, column_name, period = None):
+        return self.get_or_new_holder(column_name).get_array(period)
 
     def get_or_new_holder(self, column_name):
         holder = self.holder_by_name.get(column_name)

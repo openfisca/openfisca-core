@@ -4,7 +4,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -25,8 +25,7 @@
 
 import collections
 
-
-from . import periods, taxbenefitsystems, tools
+from . import columns, formulas, periods, taxbenefitsystems, tools
 
 
 class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
@@ -38,7 +37,7 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
             reference = None):
         if reference is not None:
             self.reference = reference
-        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
+        assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
 
         if entity_class_by_key_plural is None and self.entity_class_by_key_plural is None:
@@ -58,17 +57,27 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
             legislation_json = legislation_json,
             )
 
-        assert name is not None
-        self.label = label if label is not None else name
-        self.name = name
+        if name is not None:
+            self.name = name
+        assert self.name is not None
+
+        if label is not None:
+            self.label = label
+        if self.label is None:
+            self.label = self.name
 
 
-def clone_entity_classes(entity_class_by_symbol, symbols):
-    new_entity_class_by_symbol = {
-        symbol: clone_entity_class(entity_class) if symbol in symbols else entity_class
-        for symbol, entity_class in entity_class_by_symbol.iteritems()
+def clone_column(column):
+    reform_column = tools.empty_clone(column)
+    reform_column.__dict__ = column.__dict__.copy()
+    return reform_column
+
+
+def clone_entity_classes(entity_class_by_key_plural):
+    return {
+        key_plural: clone_entity_class(entity_class)
+        for key_plural, entity_class in entity_class_by_key_plural.iteritems()
         }
-    return new_entity_class_by_symbol
 
 
 def clone_entity_class(entity_class):
@@ -76,20 +85,6 @@ def clone_entity_class(entity_class):
         pass
     ReformEntity.column_by_name = entity_class.column_by_name.copy()
     return ReformEntity
-
-
-def clone_simple_formula_column_with_new_function(column, function):
-    reform_column = tools.empty_clone(column)
-    reform_column.__dict__ = column.__dict__.copy()
-    formula_class = column.formula_class
-    reform_formula_class = type(
-        u'reform_{}'.format(column.name).encode('utf-8'),
-        (formula_class, ),
-        {'function': staticmethod(function)},
-        )
-    reform_formula_class.extract_variables_name()
-    reform_column.formula_class = reform_formula_class
-    return reform_column
 
 
 def find_item_at_date(items, date, nearest_in_period = None):
@@ -110,6 +105,55 @@ def find_item_at_date(items, date, nearest_in_period = None):
         if instant_str > latest_item['stop']:
             return latest_item
     return None
+
+
+def new_simple_reform_class(label = None, legislation_json = None, name = None, reference = None):
+    assert isinstance(name, basestring)
+    assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
+    reform_entity_class_by_key_plural = clone_entity_classes(reference.entity_class_by_key_plural)
+    reform_entity_class_by_symbol = {
+        entity_class.symbol: entity_class
+        for entity_class in reform_entity_class_by_key_plural.itervalues()
+        }
+    reform_label = label
+    reform_legislation_json = legislation_json
+    reform_name = name
+    reform_reference = reference
+
+    class SimpleReform(Reform):
+        entity_class_by_key_plural = reform_entity_class_by_key_plural
+        label = reform_label
+        legislation_json = reform_legislation_json
+        name = reform_name
+        reference = reform_reference
+
+        formula = staticmethod(formulas.make_reference_formula_decorator(
+            entity_class_by_symbol = reform_entity_class_by_symbol,
+            update = True,
+            ))
+
+        @classmethod
+        def input_variable(cls, entity_class = None, **kwargs):
+            # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
+            entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
+            assert 'update' not in kwargs
+            kwargs['update'] = True
+            return columns.reference_input_variable(entity_class = entity_class, **kwargs)
+
+    return SimpleReform
+
+
+# TODO Delete this helper when it is no more used.
+def replace_simple_formula_column_function(column, function):
+    reform_column = clone_column(column)
+    formula_class = column.formula_class
+    reform_formula_class = type(
+        u'reform_{}'.format(column.name).encode('utf-8'),
+        (formula_class, ),
+        {'function': staticmethod(function)},
+        )
+    reform_column.formula_class = reform_formula_class
+    return reform_column
 
 
 def update_legislation(legislation_json, path, period, value):
