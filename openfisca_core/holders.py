@@ -25,7 +25,6 @@
 
 from __future__ import division
 
-import collections
 import itertools
 
 import numpy as np
@@ -523,12 +522,40 @@ class Holder(object):
             self._extrapolated_array_by_period = extrapolated_array_by_period = {}
         extrapolated_array_by_period[period] = array
 
-    def to_field_json(self, with_value = False):
+    def sum_compute(self, period = None, requested_formulas_by_period = None):
+        dated_holder = self.at_period(period)
+        if dated_holder.array is not None:
+            return dated_holder
+
+        unit = period[0]
+        if unit == u'month':
+            return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
+        assert unit == u'year', unit
+        array = None
+        year, month, day = period.start
+        for period_index in range(period.size):
+            for month_index in range(12):
+                month_period = periods.period(u'month', periods.instant((year, month, day)))
+                month_array = self.calculate(period = month_period,
+                    requested_formulas_by_period = requested_formulas_by_period)
+                if array is None:
+                    array = month_array.copy()
+                else:
+                    array += month_array
+                month += 1
+                if month > 12:
+                    month -= 12
+                    year += 1
+        dated_holder = self.at_period(period)
+        dated_holder.array = array
+        return dated_holder
+
+    def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
         formula = self.formula
         if formula is not None:
-            self_json['formula'] = formula.to_json()
+            self_json['formula'] = formula.to_json(input_variables_extractor = input_variables_extractor)
         if with_value:
             self_json['value'] = self.to_value_json()
         return self_json

@@ -134,7 +134,7 @@ class AbstractEntityToEntity(AbstractFormula):
                     )
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(entity.key_plural, column.name, str(period),
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key_plural, str(period),
                     simulation.stringify_input_variables_infos(input_variables_infos), stringify_array(array),
                     str(output_period)))
 
@@ -153,27 +153,29 @@ class AbstractEntityToEntity(AbstractFormula):
             'to': column.name,
             })
 
-    def to_json(self):
+    def to_json(self, with_input_variables = False):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
         source_lines, line_number = inspect.getsourcelines(cls)
         variable_holder = self.variable_holder
         variable_column = variable_holder.column
-        variables_json = [collections.OrderedDict((
-            ('entity', variable_holder.entity.key_plural),
-            ('label', variable_column.label),
-            ('name', variable_column.name),
-            ))]
-        return collections.OrderedDict((
+        self_json = collections.OrderedDict((
             ('@type', cls.__bases__[0].__name__),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
             ('line_number', line_number),
             ('module', inspect.getmodule(cls).__name__),
             ('source', ''.join(source_lines).decode('utf-8')),
-            ('variables', variables_json),
             ))
+        if with_input_variables:
+            variables_json = [collections.OrderedDict((
+                ('entity', variable_holder.entity.key_plural),
+                ('label', variable_column.label),
+                ('name', variable_column.name),
+                ))]
+            self_json['variables'] = variables_json
+        return self_json
 
     @property
     def variable_holder(self):
@@ -212,6 +214,19 @@ class DatedFormula(AbstractGroupedFormula):
             for dated_formula_class in self.dated_formulas_class
             ]
         assert self.dated_formulas
+
+    @classmethod
+    def at_instant(cls, instant, default = UnboundLocalError):
+        assert isinstance(instant, periods.Instant)
+        for dated_formula_class in cls.dated_formulas_class:
+            start_instant = dated_formula_class['start_instant']
+            stop_instant = dated_formula_class['stop_instant']
+            if (start_instant is None or start_instant <= instant) and (
+                    stop_instant is None or instant <= stop_instant):
+                return dated_formula_class['formula_class']
+        if default is UnboundLocalError:
+            raise KeyError(instant)
+        return default
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
@@ -481,7 +496,7 @@ class SimpleFormula(AbstractFormula):
             formula_result = self.function(simulation, period)
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in {}.{}'.format(
-                entity.key_plural, column.name, str(period), self.function.__module__,
+                column.name, entity.key_plural, str(period), self.function.__module__,
                 self.function.__name__ if self.function.__name__ != 'function' else column.name,
                 ))
             raise
@@ -495,14 +510,13 @@ class SimpleFormula(AbstractFormula):
                     ))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
-            u"requested period".format(entity.key_plural, column.name, str(period), str(output_period),
+            u"requested period".format(column.name, entity.key_plural, str(period), str(output_period),
                 stringify_array(array)).encode('utf-8')
-        assert isinstance(array, np.ndarray), \
-            u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-                entity.key_plural, column.name, str(period), str(output_period), array).encode('utf-8')
+        assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
+            column.name, entity.key_plural, str(period), str(output_period), array).encode('utf-8')
         assert array.size == entity.count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                entity.key_plural, column.name, str(period), str(output_period), stringify_array(array),
+                column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
                 array.size, entity.count, entity.key_singular).encode('utf-8')
         if debug:
             try:
@@ -510,7 +524,7 @@ class SimpleFormula(AbstractFormula):
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        entity.key_plural, column.name, str(period), str(output_period), stringify_array(array),
+                        column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
@@ -536,7 +550,7 @@ class SimpleFormula(AbstractFormula):
                     )
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(entity.key_plural, column.name, str(period),
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key_plural, str(period),
                     simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
                     stringify_array(array)))
 
@@ -666,13 +680,13 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self):
+    def to_json(self, input_variables_extractor = None):
         function = self.function
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         source_lines, line_number = inspect.getsourcelines(function)
         source = textwrap.dedent(''.join(source_lines).decode('utf-8'))
-        return collections.OrderedDict((
+        self_json = collections.OrderedDict((
             ('@type', u'SimpleFormula'),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
@@ -680,6 +694,23 @@ class SimpleFormula(AbstractFormula):
             ('module', inspect.getmodule(function).__name__),
             ('source', source),
             ))
+        if input_variables_extractor is not None:
+            holder = self.holder
+            column = holder.column
+            entity = holder.entity
+            simulation = entity.simulation
+            variables_name = input_variables_extractor.get_input_variables(column)
+            variables_json = []
+            for variable_name in sorted(variables_name):
+                variable_holder = simulation.get_or_new_holder(variable_name)
+                variable_column = variable_holder.column
+                variables_json.append(collections.OrderedDict((
+                    ('entity', variable_holder.entity.key_plural),
+                    ('label', variable_column.label),
+                    ('name', variable_column.name),
+                    )))
+            self_json['variables'] = variables_json
+        return self_json
 
 
 # Formulas Generators
