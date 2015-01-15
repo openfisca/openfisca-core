@@ -1,3 +1,5 @@
+TESTS_DIR="openfisca_core/tests/"
+
 all: flake8 test
 
 check-syntax-errors: clean-pyc
@@ -14,7 +16,7 @@ flake8: clean-pyc
 	flake8
 
 test: check-syntax-errors
-	nosetests -v --with-doctest openfisca_core/
+	nosetests -v --with-doctest $(TESTS_DIR)
 
 test-with-coverage:
-	nosetests -v openfisca_core/ --with-coverage --cover-package=openfisca_core --cover-erase --cover-branches --cover-html
+	nosetests -v $(TESTS_DIR) --with-coverage --cover-package=openfisca_core --cover-erase --cover-branches --cover-html
