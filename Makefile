@@ -1,3 +1,5 @@
+all: flake8 test
+
 check-syntax-errors: clean-pyc
 	@# This is a hack around flake8 not displaying E910 errors with the select option.
 	test -z "`flake8 --first | grep E901`"
