@@ -48,8 +48,81 @@ units = [
 class CompactNode(object):
     # Note: Attributes come from dated_node_json and are not defined in class.
 
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __iter__(self):
+        return self.__dict__.iterkeys()
+
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def combine_tax_scales(self):
+        """Combine all the MarginalRateTaxScales in the node into a single MarginalRateTaxScale."""
+        combined_tax_scales = None
+        for name, child in self.iteritems():
+            assert isinstance(child, taxscales.AbstractTaxScale), child
+            if combined_tax_scales is None:
+                combined_tax_scales = taxscales.MarginalRateTaxScale(name = name)
+                combined_tax_scales.add_bracket(0, 0)
+            combined_tax_scales.add_tax_scale(child)
+        return combined_tax_scales
+
+    def copy(self, deep = False):
+        new = self.__class__()
+        for name, value in self.iteritems():
+            if deep:
+                if isinstance(value, CompactNode):
+                    new[name] = value.copy(deep = deep)
+                elif isinstance(value, taxscales.AbstractTaxScale):
+                    new[name] = value.copy()
+                else:
+                    new[name] = value
+            else:
+                new[name] = value
+        return new
+
+    def get(self, key, default = None):
+        return self.__dict__.get(key, default)
+
+    def items(self):
+        return self.__dict__.items()
+
+    def iteritems(self):
+        return self.__dict__.iteritems()
+
+    def iterkeys(self):
+        return self.__dict__.iterkeys()
+
+    def itervalues(self):
+        return self.__dict__.itervalues()
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def pop(self, key, default = None):
+        return self.__dict__.pop(key, default)
+
+    def scale_tax_scales(self, factor):
+        """Scale all the MarginalRateTaxScales in the node."""
+        scaled_node = CompactNode()
+        for key, child in self.iteritems():
+            scaled_node[key] = child.scale_tax_scales(factor)
+        return scaled_node
+
+    def update(self, value):
+        if isinstance(value, CompactNode):
+            value = value.__dict__
+        return self.__dict__.update(value)
+
+    def values(self):
+        return self.__dict__.values()
 
 
 class CompactRootNode(CompactNode):
