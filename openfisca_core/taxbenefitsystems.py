@@ -47,7 +47,6 @@ class AbstractTaxBenefitSystem(object):
         conv.test_isinstance(dict),
         conv.struct({}),
         ))
-    preprocess_compact_legislation = None  # To override with a method
     reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     reform_by_name = None
     Scenario = None
@@ -76,8 +75,6 @@ class AbstractTaxBenefitSystem(object):
         if compact_legislation is None and self.legislation_json is not None:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-            if self.preprocess_compact_legislation is not None:
-                self.preprocess_compact_legislation(compact_legislation)
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
@@ -123,11 +120,14 @@ class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     """A tax-benefit sytem with legislation stored in a XML file."""
     legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
+    preprocess_legislation = None
 
     def __init__(self, entity_class_by_key_plural = None):
         state = conv.State()
         legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
             self.legislation_xml_file_path, state = state)
+        if self.preprocess_legislation is not None:
+            self.preprocess_legislation(legislation_json)
         super(XmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,

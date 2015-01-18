@@ -44,8 +44,6 @@ class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
             entity_class_by_key_plural = self.reference.entity_class_by_key_plural
         if legislation_json is None and self.legislation_json is None:
             legislation_json = self.reference.legislation_json
-        if self.preprocess_compact_legislation is None and self.reference.preprocess_compact_legislation is not None:
-            self.preprocess_compact_legislation = self.reference.preprocess_compact_legislation
         if self.Scenario is None:
             self.Scenario = self.reference.Scenario
 
