@@ -32,7 +32,7 @@ from . import conv
 from . import decompositionsxml
 
 
-def calculate(simulation, decomposition_json = None):
+def calculate(simulation, decomposition_json = None, period = None):
     assert simulation is not None
     tax_benefit_system = simulation.tax_benefit_system
     if decomposition_json is None:
@@ -44,7 +44,7 @@ def calculate(simulation, decomposition_json = None):
 
     for node in iter_decomposition_nodes(decomposition_json):
         if not node.get('children'):
-            simulation.calculate(node['code'])
+            simulation.calculate(node['code'], period = period)
 
     response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
     for node in iter_decomposition_nodes(response_json, children_first = True):
