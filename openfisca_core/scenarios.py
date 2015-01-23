@@ -26,26 +26,17 @@
 from __future__ import division
 
 import collections
-import json
-import logging
-import os
-import time
-import urllib2
-import uuid
 
 import numpy as np
 
-from . import conv, legislations, periods, reforms, simulations
+from . import conv, periods, simulations
 
 
-log = logging.getLogger(__name__)
 N_ = lambda message: message
 
 
 class AbstractScenario(object):
     axes = None
-    legislation_json = None
-    legislation_url = None
     period = None
     tax_benefit_system = None
     test_case = None
@@ -205,8 +196,8 @@ class AbstractScenario(object):
                         array[axis['index']:: axis_entity.step_size] = axis['min'] \
                             + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
 
-    def init_from_attributes(self, cache_dir = None, repair = False, **attributes):
-        conv.check(self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair))(attributes)
+    def init_from_attributes(self, repair = False, **attributes):
+        conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
         return self
 
     @property
@@ -261,7 +252,7 @@ class AbstractScenario(object):
             conv.empty_to_none,
             )
 
-    def make_json_or_python_to_attributes(self, cache_dir = None, repair = False):
+    def make_json_or_python_to_attributes(self, repair = False):
         column_by_name = self.tax_benefit_system.column_by_name
 
         def json_or_python_to_attributes(value, state = None):
@@ -278,10 +269,6 @@ class AbstractScenario(object):
                 conv.struct(
                     dict(
                         axes = self.json_or_python_to_axes,
-                        legislation_url = conv.pipe(
-                            conv.test_isinstance(basestring),
-                            conv.make_input_to_url(error_if_fragment = True, full = True, schemes = ('http', 'https')),
-                            ),
                         period = conv.pipe(
                             periods.json_or_python_to_period,  # TODO: Check that period is valid in params.
                             conv.not_none,
@@ -337,49 +324,7 @@ class AbstractScenario(object):
             if errors:
                 return data, errors
 
-            legislation_json = None
-            if data['legislation_url'] is not None:
-                if cache_dir is not None:
-                    legislation_uuid_hex = uuid.uuid5(uuid.NAMESPACE_URL, data['legislation_url'].encode('utf-8')).hex
-                    legislation_dir = os.path.join(cache_dir, 'legislations', legislation_uuid_hex[:2])
-                    legislation_filename = '{}.json'.format(legislation_uuid_hex[2:])
-                    legislation_file_path = os.path.join(legislation_dir, legislation_filename)
-                    if os.path.exists(legislation_file_path) \
-                            and os.path.getmtime(legislation_file_path) > time.time() - 900:  # 15 minutes
-                        with open(legislation_file_path) as legislation_file:
-                            try:
-                                legislation_json = json.load(legislation_file,
-                                    object_pairs_hook = collections.OrderedDict)
-                            except ValueError:
-                                log.exception('Error while reading legislation JSON file: {}'.format(
-                                    legislation_file_path))
-                if legislation_json is None:
-                    request = urllib2.Request(data['legislation_url'], headers = {
-                        'User-Agent': 'OpenFisca',
-                        })
-                    try:
-                        response = urllib2.urlopen(request)
-                    except urllib2.HTTPError:
-                        return data, dict(legislation_url = state._(u'HTTP Error while retrieving legislation JSON'))
-                    except urllib2.URLError:
-                        return data, dict(legislation_url = state._(u'Error while retrieving legislation JSON'))
-                    legislation_json, error = conv.pipe(
-                        conv.make_input_to_json(object_pairs_hook = collections.OrderedDict),
-                        legislations.validate_any_legislation_json,
-                        conv.not_none,
-                        )(response.read(), state = state)
-                    if error is not None:
-                        return data, dict(legislation_url = error)
-                    if cache_dir is not None:
-                        if not os.path.exists(legislation_dir):
-                            os.makedirs(legislation_dir)
-                        with open(legislation_file_path, 'w') as legislation_file:
-                            legislation_file.write(unicode(json.dumps(legislation_json, encoding = 'utf-8',
-                                ensure_ascii = False, indent = 2)).encode('utf-8'))
-
             self.axes = data['axes']
-            self.legislation_json = legislation_json
-            self.legislation_url = data['legislation_url']
             self.period = data['period']
             self.test_case = data['test_case']
             return self, None
@@ -387,13 +332,13 @@ class AbstractScenario(object):
         return json_or_python_to_attributes
 
     @classmethod
-    def make_json_to_instance(cls, cache_dir = None, repair = False, tax_benefit_system = None):
+    def make_json_to_instance(cls, repair = False, tax_benefit_system = None):
         def json_to_instance(value, state = None):
             if value is None:
                 return None, None
             self = cls()
             self.tax_benefit_system = tax_benefit_system
-            return self.make_json_or_python_to_attributes(cache_dir = cache_dir, repair = repair)(
+            return self.make_json_or_python_to_attributes(repair = repair)(
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
@@ -407,15 +352,6 @@ class AbstractScenario(object):
                 if reference_tax_benefit_system is None:
                     break
                 tax_benefit_system = reference_tax_benefit_system
-        if self.legislation_json is not None:
-            tax_benefit_system = reforms.Reform(
-                label = (u'Parametric Reform {}'.format(self.legislation_url)
-                    if self.legislation_url is not None
-                    else u'Parametric Reform'),
-                legislation_json = self.legislation_json,
-                name = u'Parametric Reform',
-                reference = tax_benefit_system,
-                )
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
@@ -433,8 +369,6 @@ class AbstractScenario(object):
                 (key, getattr(self, key))
                 for key in (
                     'axes',
-                    'legislation_json',
-                    'legislation_url',
                     'period',
                     'test_case',
                     )
