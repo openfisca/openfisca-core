@@ -873,7 +873,9 @@ class FormulaColumnMetaclass(type):
         formula_class = attributes.pop('formula_class', UnboundLocalError)
         assert formula_class is not None, """Missing attribute "formula_class" in definition of class {}""".format(name)
         if formula_class is UnboundLocalError:
-            formula_class = base_class.formula_class if reference_column is None else reference_column.formula_class
+            formula_class = base_class.formula_class \
+                if reference_column is None or reference_column.formula_class is None \
+                else reference_column.formula_class
         assert issubclass(formula_class, AbstractFormula), formula_class
 
         is_permanent = attributes.pop('is_permanent', UnboundLocalError)
