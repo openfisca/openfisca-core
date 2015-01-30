@@ -163,8 +163,10 @@ def update_legislation(legislation_json, path, period = None, value = None, star
     """
     assert value is not None
     if period is not None:
+        assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
         start = period.start
         stop = period.stop
+    assert start is not None and stop is not None, u'start and stop must be provided, or period'
 
     def build_node(root_node, path_index):
         if isinstance(root_node, collections.Sequence):
@@ -209,13 +211,11 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
         ('stop', stop_instant),
         ('value', value),
         ))
-    new_item_start = start_instant
-    new_item_stop = stop_instant
     inserted = False
     for item in items:
         item_start = periods.instant(item['start'])
         item_stop = periods.instant(item['stop'])
-        if item_stop < new_item_start or item_start > new_item_stop:  # non-overlapping items are kept: add and skip
+        if item_stop < start_instant or item_start > stop_instant:  # non-overlapping items are kept: add and skip
             new_items.append(
                 collections.OrderedDict((
                     ('start', item['start']),
@@ -225,51 +225,51 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
                 )
             continue
 
-        if item_stop == new_item_stop and item_start == new_item_start:  # exact matching: replace
+        if item_stop == stop_instant and item_start == start_instant:  # exact matching: replace
             if not inserted:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', str(new_item_start)),
-                        ('stop', str(new_item_stop)),
+                        ('start', str(start_instant)),
+                        ('stop', str(stop_instant)),
                         ('value', new_item['value']),
                         ))
                     )
                 inserted = True
             continue
 
-        if item_start < new_item_start and item_stop <= new_item_stop:
+        if item_start < start_instant and item_stop <= stop_instant:
             # left edge overlapping are corrected and new_item inserted
             new_items.append(
                 collections.OrderedDict((
                     ('start', item['start']),
-                    ('stop', str(new_item_start.offset(-1, 'day'))),
+                    ('stop', str(start_instant.offset(-1, 'day'))),
                     ('value', item['value']),
                     ))
                 )
             if not inserted:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', str(new_item_start)),
-                        ('stop', str(new_item_stop)),
+                        ('start', str(start_instant)),
+                        ('stop', str(stop_instant)),
                         ('value', new_item['value']),
                         ))
                     )
                 inserted = True
 
-        if item_start < new_item_start and item_stop > new_item_stop:
+        if item_start < start_instant and item_stop > stop_instant:
             # new_item contained in item: divide, shrink left, insert, new, shrink right
             new_items.append(
                 collections.OrderedDict((
                     ('start', item['start']),
-                    ('stop', str(new_item_start.offset(-1, 'day'))),
+                    ('stop', str(start_instant.offset(-1, 'day'))),
                     ('value', item['value']),
                     ))
                 )
             if not inserted:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', str(new_item_start)),
-                        ('stop', str(new_item_stop)),
+                        ('start', str(start_instant)),
+                        ('stop', str(stop_instant)),
                         ('value', new_item['value']),
                         ))
                     )
@@ -277,18 +277,18 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
 
             new_items.append(
                 collections.OrderedDict((
-                    ('start', str(new_item_stop.offset(+1, 'day'))),
+                    ('start', str(stop_instant.offset(+1, 'day'))),
                     ('stop', item['stop']),
                     ('value', item['value']),
                     ))
                 )
-        if item_start >= new_item_start and item_stop < new_item_stop:
+        if item_start >= start_instant and item_stop < stop_instant:
             # right edge overlapping are corrected
             if not inserted:
                 new_items.append(
                     collections.OrderedDict((
-                        ('start', str(new_item_start)),
-                        ('stop', str(new_item_stop)),
+                        ('start', str(start_instant)),
+                        ('stop', str(stop_instant)),
                         ('value', new_item['value']),
                         ))
                     )
@@ -296,12 +296,12 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
 
             new_items.append(
                 collections.OrderedDict((
-                    ('start', str(new_item_stop.offset(+1, 'day'))),
+                    ('start', str(stop_instant.offset(+1, 'day'))),
                     ('stop', item['stop']),
                     ('value', item['value']),
                     ))
                 )
-        if item_start >= new_item_start and item_stop <= new_item_stop:
+        if item_start >= start_instant and item_stop <= stop_instant:
             # drop those
             continue
 
