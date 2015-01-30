@@ -25,57 +25,29 @@
 
 import collections
 
-from . import columns, formulas, periods, taxbenefitsystems, tools
+from . import columns, formulas, periods, taxbenefitsystems
 
 
-class Reform(taxbenefitsystems.AbstractTaxBenefitSystem):
+class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
-    label = None
+    DECOMP_DIR = None
+    DEFAULT_DECOMP_FILE = None
     name = None
 
-    def __init__(self, entity_class_by_key_plural = None, label = None, legislation_json = None, name = None,
-            reference = None):
-        if reference is not None:
-            self.reference = reference
+    def __init__(self):
+        assert self.name is not None
         assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
-
-        if entity_class_by_key_plural is None and self.entity_class_by_key_plural is None:
-            entity_class_by_key_plural = self.reference.entity_class_by_key_plural
-        if legislation_json is None and self.legislation_json is None:
-            legislation_json = self.reference.legislation_json
-        if self.Scenario is None:
-            self.Scenario = self.reference.Scenario
-
+        self.Scenario = self.reference.Scenario
         self.CURRENCY = self.reference.CURRENCY
-        self.DECOMP_DIR = self.reference.DECOMP_DIR
-
-        super(Reform, self).__init__(
-            entity_class_by_key_plural = entity_class_by_key_plural,
-            legislation_json = legislation_json,
+        if self.DECOMP_DIR is None:
+            self.DECOMP_DIR = self.reference.DECOMP_DIR
+        if self.DEFAULT_DECOMP_FILE is None:
+            self.DEFAULT_DECOMP_FILE = self.reference.DEFAULT_DECOMP_FILE
+        super(AbstractReform, self).__init__(
+            entity_class_by_key_plural = self.entity_class_by_key_plural or self.reference.entity_class_by_key_plural,
+            legislation_json = self.legislation_json or self.reference.legislation_json,
             )
-
-        if name is not None:
-            self.name = name
-        assert self.name is not None
-
-        if label is not None:
-            self.label = label
-        if self.label is None:
-            self.label = self.name
-
-
-def clone_column(column):
-    reform_column = tools.empty_clone(column)
-    reform_column.__dict__ = column.__dict__.copy()
-    return reform_column
-
-
-def clone_entity_classes(entity_class_by_key_plural):
-    return {
-        key_plural: clone_entity_class(entity_class)
-        for key_plural, entity_class in entity_class_by_key_plural.iteritems()
-        }
 
 
 def clone_entity_class(entity_class):
@@ -84,6 +56,64 @@ def clone_entity_class(entity_class):
     ReformEntity.column_by_name = entity_class.column_by_name.copy()
     return ReformEntity
 
+
+def compose_reforms(build_reform_list, base_tax_benefit_system):
+    """
+    Compose reforms: the first reform is built with the given base tax-benefit system,
+    then each one is built with the previous one as the reference.
+    """
+    assert isinstance(build_reform_list, list)
+    composed_reform = build_reform_list[0](base_tax_benefit_system)
+    for build_reform in build_reform_list[1:]:
+        composed_reform = build_reform(composed_reform)
+    return composed_reform
+
+
+def make_reform(decomposition_dir_name = None, decomposition_file_name = None, legislation_json = None, name = None,
+        new_formulas = None, reference = None):
+    assert isinstance(name, basestring)
+    assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
+    reform_entity_class_by_key_plural = {
+        key_plural: clone_entity_class(entity_class)
+        for key_plural, entity_class in reference.entity_class_by_key_plural.iteritems()
+        }
+    reform_entity_class_by_symbol = {
+        entity_class.symbol: entity_class
+        for entity_class in reform_entity_class_by_key_plural.itervalues()
+        }
+    reform_legislation_json = legislation_json
+    reform_name = name
+    reform_reference = reference
+
+    class Reform(AbstractReform):
+        DECOMP_DIR = decomposition_dir_name
+        DEFAULT_DECOMP_FILE = decomposition_file_name
+        entity_class_by_key_plural = reform_entity_class_by_key_plural
+        legislation_json = reform_legislation_json
+        name = reform_name
+        reference = reform_reference
+
+        formula = staticmethod(formulas.make_reference_formula_decorator(
+            entity_class_by_symbol = reform_entity_class_by_symbol,
+            update = True,
+            ))
+
+        @classmethod
+        def input_variable(cls, entity_class = None, **kwargs):
+            # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
+            entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
+            assert 'update' not in kwargs
+            kwargs['update'] = True
+            return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
+
+    if new_formulas is not None:
+        for new_formula in new_formulas:
+            Reform.formula(new_formula)
+
+    return Reform
+
+
+# Legislation helpers
 
 def find_item_at_date(items, date, nearest_in_period = None):
     """
@@ -103,55 +133,6 @@ def find_item_at_date(items, date, nearest_in_period = None):
         if instant_str > latest_item['stop']:
             return latest_item
     return None
-
-
-def new_simple_reform_class(label = None, legislation_json = None, name = None, reference = None):
-    assert isinstance(name, basestring)
-    assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
-    reform_entity_class_by_key_plural = clone_entity_classes(reference.entity_class_by_key_plural)
-    reform_entity_class_by_symbol = {
-        entity_class.symbol: entity_class
-        for entity_class in reform_entity_class_by_key_plural.itervalues()
-        }
-    reform_label = label
-    reform_legislation_json = legislation_json
-    reform_name = name
-    reform_reference = reference
-
-    class SimpleReform(Reform):
-        entity_class_by_key_plural = reform_entity_class_by_key_plural
-        label = reform_label
-        legislation_json = reform_legislation_json
-        name = reform_name
-        reference = reform_reference
-
-        formula = staticmethod(formulas.make_reference_formula_decorator(
-            entity_class_by_symbol = reform_entity_class_by_symbol,
-            update = True,
-            ))
-
-        @classmethod
-        def input_variable(cls, entity_class = None, **kwargs):
-            # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
-            entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
-            assert 'update' not in kwargs
-            kwargs['update'] = True
-            return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
-
-    return SimpleReform
-
-
-# TODO Delete this helper when it is no more used.
-def replace_simple_formula_column_function(column, function):
-    reform_column = clone_column(column)
-    formula_class = column.formula_class
-    reform_formula_class = type(
-        u'reform_{}'.format(column.name).encode('utf-8'),
-        (formula_class, ),
-        {'function': staticmethod(function)},
-        )
-    reform_column.formula_class = reform_formula_class
-    return reform_column
 
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):

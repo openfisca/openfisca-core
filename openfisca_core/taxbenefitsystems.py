@@ -49,7 +49,6 @@ class AbstractTaxBenefitSystem(object):
         conv.struct({}),
         ))
     reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
-    reform_by_name = None
     Scenario = None
 
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
