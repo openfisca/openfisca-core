@@ -67,9 +67,9 @@ def test_find_item_at_date():
 
 
 def test_updated_legislation_items():
-    def check_updated_legislation_items(description, items, period, value, expected_items):
-        new_items = reforms.updated_legislation_items(items, period, value)
-        assert_equal(new_items, expected_items)
+    def check_updated_legislation_items(description, items, start_instant, stop_instant, value, expected_items):
+        new_items = reforms.updated_legislation_items(items, start_instant, stop_instant, value)
+        assert_equal(map(dict, new_items), expected_items)
 
     yield(
         check_updated_legislation_items,
@@ -81,7 +81,8 @@ def test_updated_legislation_items():
                 "value": 0.0,
                 },
             ],
-        periods.period('year', 2010),
+        periods.period('year', 2010).start,
+        periods.period('year', 2010).stop,
         1,
         [
             {
@@ -106,7 +107,8 @@ def test_updated_legislation_items():
                 "value": 0.0,
                 },
             ],
-        periods.period('year', 2014),
+        periods.period('year', 2014).start,
+        periods.period('year', 2014).stop,
         1,
         [
             {
@@ -131,7 +133,8 @@ def test_updated_legislation_items():
                 "value": 0.0,
                 },
             ],
-        periods.period('year', 2013),
+        periods.period('year', 2013).start,
+        periods.period('year', 2013).stop,
         1,
         [
             {
@@ -151,7 +154,8 @@ def test_updated_legislation_items():
                 "value": 0.0,
                 },
             ],
-        periods.period('year', 2011),
+        periods.period('year', 2011).start,
+        periods.period('year', 2011).stop,
         1,
         [
             {
