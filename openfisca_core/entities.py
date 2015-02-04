@@ -74,6 +74,10 @@ class AbstractEntity(object):
         return self.get_or_new_holder(column_name).compute(period = period,
             requested_formulas_by_period = requested_formulas_by_period)
 
+    def divide_compute(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).divide_compute(period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+
     def get_array(self, column_name, period = None):
         return self.get_or_new_holder(column_name).get_array(period)
 

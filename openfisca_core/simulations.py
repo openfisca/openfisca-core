@@ -143,6 +143,26 @@ class Simulation(object):
         return self.entity_by_column_name[column_name].compute(column_name, period = period,
             requested_formulas_by_period = requested_formulas_by_period)
 
+    def divide_calculate(self, column_name, period = None, requested_formulas_by_period = None):
+        if period is None:
+            period = self.period
+        return self.divide_compute(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period).array
+
+    def divide_compute(self, column_name, period = None, requested_formulas_by_period = None):
+        if period is None:
+            period = self.period
+        elif not isinstance(period, periods.Period):
+            period = periods.period(period)
+        if (self.debug or self.trace) and self.stack_trace:
+            variable_infos = (column_name, period)
+            calling_frame = self.stack_trace[-1]
+            caller_input_variables_infos = calling_frame['input_variables_infos']
+            if variable_infos not in caller_input_variables_infos:
+                caller_input_variables_infos.append(variable_infos)
+        return self.entity_by_column_name[column_name].divide_compute(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+
     def get_array(self, column_name, period = None):
         if period is None:
             period = self.period

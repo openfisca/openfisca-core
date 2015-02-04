@@ -412,6 +412,30 @@ class Holder(object):
     #         if not extrapolated_array_by_period:
     #             del self._extrapolated_array_by_period
 
+    def divide_compute(self, period = None, requested_formulas_by_period = None):
+        dated_holder = self.at_period(period)
+        if dated_holder.array is not None:
+            return dated_holder
+
+        array = None
+        unit = period[0]
+        year, month, day = period.start
+        if unit == u'month':
+            # TODO: Add argument accept_other_period = True
+            dated_holder = self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
+            assert dated_holder.period.unit == u'year', \
+                "Requested a year period. Got {} returned by variable {}.".format(dated_holder.period, self.column.name)
+            assert dated_holder.period.start < period.start and period.stop < dated_holder.period.stop, \
+                "Requested period {} returned by variable {} doesn't include requested period {}.".format(
+                    dated_holder.period, self.column.name, period)
+            array = dated_holder.array * period.size / (12 * dated_holder.period.size)
+            dated_holder = self.at_period(period)
+            dated_holder.array = array
+            return dated_holder
+        else:
+            assert unit == u'year', unit
+            return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
+
     @property
     def extrapolated_array(self):
         raise NotImplementedError("Getter of property Holder.extrapolated_array doesn't exist")
@@ -527,14 +551,11 @@ class Holder(object):
         if dated_holder.array is not None:
             return dated_holder
 
-        unit = period[0]
-        if unit == u'month':
-            return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
-        assert unit == u'year', unit
         array = None
+        unit = period[0]
         year, month, day = period.start
-        for period_index in range(period.size):
-            for month_index in range(12):
+        if unit == u'month':
+            for month_index in range(period.size):
                 month_period = periods.period(u'month', periods.instant((year, month, day)))
                 month_array = self.calculate(period = month_period,
                     requested_formulas_by_period = requested_formulas_by_period)
@@ -546,6 +567,21 @@ class Holder(object):
                 if month > 12:
                     month -= 12
                     year += 1
+        else:
+            assert unit == u'year', unit
+            for year_index in range(period.size):
+                for month_index in range(12):
+                    month_period = periods.period(u'month', periods.instant((year, month, day)))
+                    month_array = self.calculate(period = month_period,
+                        requested_formulas_by_period = requested_formulas_by_period)
+                    if array is None:
+                        array = month_array.copy()
+                    else:
+                        array += month_array
+                    month += 1
+                    if month > 12:
+                        month -= 12
+                        year += 1
         dated_holder = self.at_period(period)
         dated_holder.array = array
         return dated_holder
