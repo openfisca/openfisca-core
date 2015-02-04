@@ -746,6 +746,10 @@ class ConversionColumnMetaclass(type):
         label = attributes.pop('label', None)
         label = name if label is None else unicode(label)
 
+        law_reference = attributes.pop('law_reference', None)
+        if law_reference is not None:
+            assert isinstance(law_reference, (basestring, list))
+
         url = attributes.pop('url', None)
         if url is not None:
             url = unicode(url)
@@ -816,6 +820,7 @@ class ConversionColumnMetaclass(type):
         if variable.is_permanent:
             column.is_permanent = True
         column.label = label
+        column.law_reference = law_reference
         column.name = name
         if variable.start is not None:
             column.start = variable.start
@@ -889,6 +894,12 @@ class FormulaColumnMetaclass(type):
             label = name if reference_column is None else reference_column.label
         else:
             label = name if label is None else unicode(label)
+
+        law_reference = attributes.pop('law_reference', UnboundLocalError)
+        if law_reference is UnboundLocalError:
+            law_reference = None if reference_column is None else reference_column.law_reference
+        else:
+            assert isinstance(law_reference, (basestring, list))
 
         start_date = attributes.pop('start_date', UnboundLocalError)
         if start_date is UnboundLocalError:
@@ -1004,6 +1015,7 @@ class FormulaColumnMetaclass(type):
         if is_permanent:
             column.is_permanent = True
         column.label = label
+        column.law_reference = law_reference
         column.name = name
         if start_date is not None:
             column.start = start_date

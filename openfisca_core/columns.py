@@ -55,6 +55,7 @@ class Column(object):
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
     label = None
+    law_reference = None  # Either a single reference or a list of references
     name = None
     start = None
     survey_only = False
@@ -62,7 +63,8 @@ class Column(object):
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
-            is_permanent = False, label = None, start = None, survey_only = False, url = None, val_type = None):
+            is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
+            val_type = None):
         if cerfa_field is not None:
             self.cerfa_field = cerfa_field
         if default is not None and default != self.default:
@@ -76,6 +78,8 @@ class Column(object):
             self.info = info
         if is_permanent:
             self.is_permanent = True
+        if law_reference is not None:
+            self.law_reference = law_reference
         if label is not None:
             self.label = label
         if start is not None:
