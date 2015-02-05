@@ -423,12 +423,16 @@ class Holder(object):
         if unit == u'month':
             # TODO: Add argument accept_other_period = True
             dated_holder = self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
-            assert dated_holder.period.unit == u'year', \
-                "Requested a year period. Got {} returned by variable {}.".format(dated_holder.period, self.column.name)
             assert dated_holder.period.start < period.start and period.stop < dated_holder.period.stop, \
                 "Requested period {} returned by variable {} doesn't include requested period {}.".format(
                     dated_holder.period, self.column.name, period)
-            array = dated_holder.array * period.size / (12 * dated_holder.period.size)
+            if dated_holder.period.unit == u'month':
+                array = dated_holder.array * period.size / dated_holder.period.size
+            else:
+                assert dated_holder.period.unit == u'year', \
+                    "Requested a year period. Got {} returned by variable {}.".format(dated_holder.period,
+                        self.column.name)
+                array = dated_holder.array * period.size / (12 * dated_holder.period.size)
             dated_holder = self.at_period(period)
             dated_holder.array = array
             return dated_holder
