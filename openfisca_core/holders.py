@@ -423,7 +423,7 @@ class Holder(object):
         if unit == u'month':
             # TODO: Add argument accept_other_period = True
             dated_holder = self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
-            assert dated_holder.period.start < period.start and period.stop < dated_holder.period.stop, \
+            assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
                 "Requested period {} returned by variable {} doesn't include requested period {}.".format(
                     dated_holder.period, self.column.name, period)
             if dated_holder.period.unit == u'month':
