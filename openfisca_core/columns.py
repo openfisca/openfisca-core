@@ -257,6 +257,11 @@ class FixedStrCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
+            conv.condition(
+                conv.test_isinstance((float, int)),
+                # YAML stores strings containing only digits as numbers.
+                conv.function(unicode),
+                ),
             conv.test_isinstance(basestring),
             conv.test(lambda value: len(value) <= self.max_length),
             )
@@ -309,7 +314,14 @@ class StrCol(Column):
 
     @property
     def json_to_dated_python(self):
-        return conv.test_isinstance(basestring)
+        return conv.pipe(
+            conv.condition(
+                conv.test_isinstance((float, int)),
+                # YAML stores strings containing only digits as numbers.
+                conv.function(unicode),
+                ),
+            conv.test_isinstance(basestring),
+            )
 
 
 # Level-2 Columns
