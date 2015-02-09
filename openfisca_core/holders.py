@@ -135,8 +135,8 @@ class Holder(object):
     def at_period(self, period):
         return self if self.column.is_permanent else DatedHolder(self, period)
 
-    def calculate(self, period = None, requested_formulas_by_period = None):
-        dated_holder = self.compute(period = period,
+    def calculate(self, period = None, accept_other_period = False, requested_formulas_by_period = None):
+        dated_holder = self.compute(period = period, accept_other_period = accept_other_period,
             requested_formulas_by_period = requested_formulas_by_period)
         return dated_holder.array
 
@@ -161,7 +161,7 @@ class Holder(object):
 
         return new
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, accept_other_period = False, requested_formulas_by_period = None):
         """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
 
         The returned dated holder is always of the requested period and this method never returns None.
@@ -221,28 +221,30 @@ class Holder(object):
                     if exact_start_instant <= remaining_start_instant and exact_stop_instant >= remaining_start_instant:
                         intersection_period = exact_period.intersection(remaining_start_instant, stop_instant)
                         assert intersection_period is not None
-                        if column.is_period_size_independent:
+                        if column.is_period_size_independent or accept_other_period:
                             # Use always the first value for the period, because the output period may end before
                             # the requested period (because of base instant).
-                            if array is None:
-                                array = np.copy(exact_array)
-                        else:
-                            exact_unit = exact_period[0]
-                            intersection_unit = intersection_period[0]
-                            if intersection_unit == exact_unit:
-                                intersection_array = exact_array * intersection_period[2] / exact_period[2]
-                            elif intersection_unit == u'month' and exact_unit == u'year':
-                                intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
-                            elif intersection_unit == u'year' and exact_unit == u'month':
-                                intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
-                            else:
-                                intersection_array = exact_array * (intersection_period.days / exact_period.days)
-                            if array is None:
-                                array = np.copy(intersection_array)
-                            else:
-                                array += intersection_array
+                            dated_holder.extrapolated_array = np.copy(exact_array)
                             if debug or trace:
                                 used_periods.append(exact_period)
+                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
+                            return dated_holder
+                        exact_unit = exact_period[0]
+                        intersection_unit = intersection_period[0]
+                        if intersection_unit == exact_unit:
+                            intersection_array = exact_array * intersection_period[2] / exact_period[2]
+                        elif intersection_unit == u'month' and exact_unit == u'year':
+                            intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
+                        elif intersection_unit == u'year' and exact_unit == u'month':
+                            intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
+                        else:
+                            intersection_array = exact_array * (intersection_period.days / exact_period.days)
+                        if array is None:
+                            array = np.copy(intersection_array)
+                        else:
+                            array += intersection_array
+                        if debug or trace:
+                            used_periods.append(exact_period)
                         remaining_start_instant = exact_stop_instant.offset(1, 'day')
                         if remaining_start_instant > stop_instant:
                             dated_holder.extrapolated_array = array
@@ -337,32 +339,34 @@ class Holder(object):
                     if exact_start_instant <= remaining_start_instant and exact_stop_instant >= remaining_start_instant:
                         intersection_period = exact_period.intersection(remaining_start_instant, stop_instant)
                         assert intersection_period is not None
-                        if column.is_period_size_independent:
+                        if column.is_period_size_independent or accept_other_period:
                             # Use always the first value for the period, because the output period may end before
                             # the requested period (because of base instant).
-                            if array is None:
-                                array = np.copy(exact_array)
+                            dated_holder.extrapolated_array = np.copy(exact_array)
+                            if debug or trace:
+                                used_periods.append(exact_period)
+                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
+                            return dated_holder
+                        exact_unit = exact_period[0]
+                        intersection_unit = intersection_period[0]
+                        if intersection_unit == exact_unit:
+                            intersection_array = exact_array * intersection_period[2] / exact_period[2]
+                        elif intersection_unit == u'month' and exact_unit == u'year':
+                            intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
+                        elif intersection_unit == u'year' and exact_unit == u'month':
+                            intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
                         else:
-                            exact_unit = exact_period[0]
-                            intersection_unit = intersection_period[0]
-                            if intersection_unit == exact_unit:
-                                intersection_array = exact_array * intersection_period[2] / exact_period[2]
-                            elif intersection_unit == u'month' and exact_unit == u'year':
-                                intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
-                            elif intersection_unit == u'year' and exact_unit == u'month':
-                                intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
-                            else:
-                                intersection_array = exact_array * (intersection_period.days / exact_period.days)
-                            if array is None:
-                                array = np.copy(intersection_array)
-                            else:
-                                array += intersection_array
+                            intersection_array = exact_array * (intersection_period.days / exact_period.days)
+                        if array is None:
+                            array = np.copy(intersection_array)
+                        else:
+                            array += intersection_array
                         if debug or trace:
                             used_periods.append(exact_period)
                         remaining_start_instant = exact_stop_instant.offset(1, 'day')
                         if remaining_start_instant > stop_instant:
                             dated_holder.extrapolated_array = array
-                            if (debug or trace) and used_periods:
+                            if debug or trace:
                                 simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
                             return dated_holder
                     if exact_stop_instant >= stop_instant:

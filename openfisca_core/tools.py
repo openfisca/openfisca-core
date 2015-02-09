@@ -41,25 +41,27 @@ class Dummy(object):
     pass
 
 
-def assert_near(value, target_value, error_margin = 1):
+def assert_near(value, target_value, error_margin = 1, message = ''):
     if isinstance(value, (list, tuple)):
         value = np.array(value)
     if isinstance(target_value, (list, tuple)):
         target_value = np.array(target_value)
+    if isinstance(message, unicode):
+        message = message.encode('utf-8')
     if isinstance(value, np.ndarray):
         if error_margin <= 0:
-            assert (target_value == value).all(), '{} differs from {}'.format(value, target_value)
+            assert (target_value == value).all(), '{}{} differs from {}'.format(message, value, target_value)
         else:
             assert (target_value - error_margin < value).all() and (value < target_value + error_margin).all(), \
-                '{} differs from {} with a margin {} >= {}'.format(value, target_value, abs(value - target_value),
-                    error_margin)
+                '{}{} differs from {} with a margin {} >= {}'.format(message, value, target_value,
+                    abs(value - target_value), error_margin)
     else:
         if error_margin <= 0:
-            assert target_value == value, '{} differs from {}'.format(value, target_value)
+            assert target_value == value, '{}{} differs from {}'.format(message, value, target_value)
         else:
             assert target_value - error_margin < value < target_value + error_margin, \
-                '{} differs from {} with a margin {} >= {}'.format(value, target_value, abs(value - target_value),
-                    error_margin)
+                '{}{} differs from {} with a margin {} >= {}'.format(message, value, target_value,
+                    abs(value - target_value), error_margin)
 
 
 def empty_clone(original):

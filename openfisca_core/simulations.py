@@ -84,10 +84,10 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, period = None, requested_formulas_by_period = None):
+    def calculate(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute(column_name, period = period,
+        return self.compute(column_name, period = period, accept_other_period = accept_other_period,
             requested_formulas_by_period = requested_formulas_by_period).array
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -129,7 +129,7 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period = None, requested_formulas_by_period = None):
+    def compute(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -141,7 +141,7 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         return self.entity_by_column_name[column_name].compute(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+            accept_other_period = accept_other_period, requested_formulas_by_period = requested_formulas_by_period)
 
     def divide_calculate(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
