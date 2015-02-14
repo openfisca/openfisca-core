@@ -136,7 +136,7 @@ def new_simple_reform_class(label = None, legislation_json = None, name = None, 
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
             assert 'update' not in kwargs
             kwargs['update'] = True
-            return columns.reference_input_variable(entity_class = entity_class, **kwargs)
+            return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
 
     return SimpleReform
 

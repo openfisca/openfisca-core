@@ -31,10 +31,10 @@ import numpy as np
 from numpy.core.defchararray import startswith
 
 from openfisca_core import conv, periods
-from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, reference_input_variable
+from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn, PersonToEntityColumn,
-    make_reference_formula_decorator, SimpleFormulaColumn)
+from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+    make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near

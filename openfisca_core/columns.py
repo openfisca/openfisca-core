@@ -51,6 +51,7 @@ class Column(object):
     formula_class = None
     function = None  # Obsolete: To remove once build_..._couple() functions are no more used.
     info = None
+    is_input_variable = False
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
@@ -467,36 +468,4 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
 
     entity_column_by_name = entity_class.column_by_name
     assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-
-def reference_input_variable(column = None, entity_class = None, is_permanent = False, label = None, name = None,
-        start_date = None, stop_date = None, update = False, url = None):
-    """Define an input variable and add it to relevant entity class."""
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-    label = name if label is None else unicode(label)
-
-    if not isinstance(column, Column):
-        column = column()
-        assert isinstance(column, Column)
-
-    if stop_date is not None:
-        assert isinstance(stop_date, datetime.date)
-        column.end = stop_date
-    column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-    column.entity_key_plural = entity_class.key_plural
-    if is_permanent:
-        column.is_permanent = True
-    column.label = label
-    column.name = name
-    if start_date is not None:
-        assert isinstance(start_date, datetime.date)
-        column.start = start_date
-    if url is not None:
-        column.url = unicode(url)
-
-    entity_column_by_name = entity_class.column_by_name
-    if not update:
-        assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column

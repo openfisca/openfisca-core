@@ -1059,6 +1059,20 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
+def last_duration_last_value(formula, simulation, period):
+    # This formula is used for variables that are constants between events but are period size dependent.
+    # It returns the latest known value for the requested start of period but with the last period size.
+    holder = formula.holder
+    column = holder.column
+    if holder._array_by_period is not None:
+        for last_period, last_array in sorted(holder._array_by_period.iteritems(), reverse = True):
+            if last_period.start <= period.start:
+                return periods.Period((last_period[0], period.start, last_period[2])), last_array
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
 def make_reference_formula_decorator(entity_class_by_symbol = None, update = False):
     assert isinstance(entity_class_by_symbol, dict)
 
@@ -1077,3 +1091,40 @@ def make_reference_formula_decorator(entity_class_by_symbol = None, update = Fal
         return column
 
     return reference_formula_decorator
+
+
+def reference_input_variable(column = None, entity_class = None, function = None, is_permanent = False, label = None,
+        name = None, start_date = None, stop_date = None, update = False, url = None):
+    """Define an input variable and add it to relevant entity class."""
+    assert isinstance(name, basestring), name
+    name = unicode(name)
+    label = name if label is None else unicode(label)
+
+    if not isinstance(column, columns.Column):
+        column = column()
+        assert isinstance(column, columns.Column)
+
+    if stop_date is not None:
+        assert isinstance(stop_date, datetime.date)
+        column.end = stop_date
+    column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
+    column.entity_key_plural = entity_class.key_plural
+    if function is not None:
+        column.formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
+            function = function,
+            ))
+        column.is_input_variable = True
+    if is_permanent:
+        column.is_permanent = True
+    column.label = label
+    column.name = name
+    if start_date is not None:
+        assert isinstance(start_date, datetime.date)
+        column.start = start_date
+    if url is not None:
+        column.url = unicode(url)
+
+    entity_column_by_name = entity_class.column_by_name
+    if not update:
+        assert name not in entity_column_by_name, name
+    entity_column_by_name[name] = column
