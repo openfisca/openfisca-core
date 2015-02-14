@@ -74,8 +74,16 @@ class AbstractEntity(object):
         return self.get_or_new_holder(column_name).compute(period = period, accept_other_period = accept_other_period,
             requested_formulas_by_period = requested_formulas_by_period)
 
-    def divide_compute(self, column_name, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).divide_compute(period = period,
+    def compute_add(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).compute_add(period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+
+    def compute_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).compute_add_divide(period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
+
+    def compute_divide(self, column_name, period = None, requested_formulas_by_period = None):
+        return self.get_or_new_holder(column_name).compute_divide(period = period,
             requested_formulas_by_period = requested_formulas_by_period)
 
     def get_array(self, column_name, period = None):
@@ -97,7 +105,3 @@ class AbstractEntity(object):
         assert not self.is_persons_entity
         raise NotImplementedError('Method "iter_member_persons_role_and_id" is not implemented for class {}'.format(
             self.__class__.__name__))
-
-    def sum_compute(self, column_name, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).sum_compute(period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
