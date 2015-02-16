@@ -25,7 +25,7 @@
 
 import collections
 
-from . import columns, formulas, periods, taxbenefitsystems
+from . import formulas, periods, taxbenefitsystems
 
 
 class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
