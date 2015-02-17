@@ -86,8 +86,8 @@ class AbstractScenario(object):
         persons_step_size = persons.step_size
 
         person_index_by_id = dict(
-            (person_id, person_index)
-            for person_index, person_id in enumerate(test_case[persons.key_plural])
+            (person[u'id'], person_index)
+            for person_index, person in enumerate(test_case[persons.key_plural])
             )
 
         for entity_key_plural, entity in entity_by_key_plural.iteritems():
@@ -98,7 +98,7 @@ class AbstractScenario(object):
                 steps_count * persons.step_size, dtype = column_by_name[entity.index_for_person_variable_name].dtype)
             persons.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = np.empty(
                 steps_count * persons.step_size, dtype = column_by_name[entity.role_for_person_variable_name].dtype)
-            for member_index, member in enumerate(test_case[entity_key_plural].itervalues()):
+            for member_index, member in enumerate(test_case[entity_key_plural]):
                 for person_role, person_id in entity.iter_member_persons_role_and_id(member):
                     person_index = person_index_by_id[person_id]
                     for step_index in range(steps_count):
@@ -110,7 +110,7 @@ class AbstractScenario(object):
         for entity_key_plural, entity in entity_by_key_plural.iteritems():
             used_columns_name = set(
                 key
-                for entity_member in test_case[entity_key_plural].itervalues()
+                for entity_member in test_case[entity_key_plural]
                 for key, value in entity_member.iteritems()
                 if value is not None and key not in (
                     entity.index_for_person_variable_name,
@@ -122,7 +122,7 @@ class AbstractScenario(object):
                     variable_periods = set()
                     for cell in (
                             entity_member.get(variable_name)
-                            for entity_member in test_case[entity_key_plural].itervalues()
+                            for entity_member in test_case[entity_key_plural]
                             ):
                         if isinstance(cell, dict):
                             if any(value is not None for value in cell.itervalues()):
@@ -139,7 +139,7 @@ class AbstractScenario(object):
                                     if variable_period == simulation_period else None)
                                 for cell in (
                                     entity_member.get(variable_name)
-                                    for entity_member in test_case[entity_key_plural].itervalues()
+                                    for entity_member in test_case[entity_key_plural]
                                     )
                                 )
                             ]
@@ -375,3 +375,10 @@ class AbstractScenario(object):
                 )
             if value is not None
             )
+
+
+def set_entities_json_id(entities_json):
+    for index, entity_json in enumerate(entities_json):
+        if 'id' not in entity_json:
+            entity_json['id'] = index
+    return entities_json

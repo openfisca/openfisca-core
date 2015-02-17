@@ -35,7 +35,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
     make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, SimpleFormulaColumn)
-from openfisca_core.scenarios import AbstractScenario
+from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -142,93 +142,77 @@ class Scenario(AbstractScenario):
                 conv.struct(
                     dict(
                         familles = conv.pipe(
-                            conv.condition(
-                                conv.test_isinstance(list),
-                                conv.pipe(
-                                    conv.uniform_sequence(
-                                        conv.test_isinstance(dict),
-                                        drop_none_items = True,
-                                        ),
-                                    conv.function(lambda values: collections.OrderedDict(
-                                        (value.pop('id', index), value)
-                                        for index, value in enumerate(values)
-                                        )),
-                                    ),
+                            conv.make_item_to_singleton(),
+                            conv.test_isinstance(list),
+                            conv.uniform_sequence(
+                                conv.test_isinstance(dict),
+                                drop_none_items = True,
                                 ),
-                            conv.test_isinstance(dict),
-                            conv.uniform_mapping(
-                                conv.pipe(
-                                    conv.test_isinstance((basestring, int)),
-                                    conv.not_none,
-                                    ),
-                                conv.pipe(
-                                    conv.test_isinstance(dict),
-                                    conv.struct(
-                                        dict(itertools.chain(
-                                            dict(
-                                                enfants = conv.pipe(
-                                                    conv.test_isinstance(list),
-                                                    conv.uniform_sequence(
-                                                        conv.test_isinstance((basestring, int)),
-                                                        drop_none_items = True,
-                                                        ),
-                                                    conv.default([]),
+                            conv.function(set_entities_json_id),
+                            conv.uniform_sequence(
+                                conv.struct(
+                                    dict(itertools.chain(
+                                        dict(
+                                            enfants = conv.pipe(
+                                                conv.test_isinstance(list),
+                                                conv.uniform_sequence(
+                                                    conv.test_isinstance((basestring, int)),
+                                                    drop_none_items = True,
                                                     ),
-                                                parents = conv.pipe(
-                                                    conv.test_isinstance(list),
-                                                    conv.uniform_sequence(
-                                                        conv.test_isinstance((basestring, int)),
-                                                        drop_none_items = True,
-                                                        ),
-                                                    conv.default([]),
-                                                    ),
-                                                ).iteritems(),
-                                            (
-                                                (column.name, column.json_to_python)
-                                                for column in column_by_name.itervalues()
-                                                if column.entity == 'fam'
+                                                conv.default([]),
                                                 ),
-                                            )),
-                                        drop_none_values = True,
-                                        ),
+                                            id = conv.pipe(
+                                                conv.test_isinstance((basestring, int)),
+                                                conv.not_none,
+                                                ),
+                                            parents = conv.pipe(
+                                                conv.test_isinstance(list),
+                                                conv.uniform_sequence(
+                                                    conv.test_isinstance((basestring, int)),
+                                                    drop_none_items = True,
+                                                    ),
+                                                conv.default([]),
+                                                ),
+                                            ).iteritems(),
+                                        (
+                                            (column.name, column.json_to_python)
+                                            for column in column_by_name.itervalues()
+                                            if column.entity == 'fam'
+                                            ),
+                                        )),
+                                    drop_none_values = True,
                                     ),
-                                drop_none_values = True,
+                                drop_none_items = True,
                                 ),
                             conv.default({}),
                             ),
                         individus = conv.pipe(
-                            conv.condition(
-                                conv.test_isinstance(list),
-                                conv.pipe(
-                                    conv.uniform_sequence(
-                                        conv.test_isinstance(dict),
-                                        drop_none_items = True,
-                                        ),
-                                    conv.function(lambda values: collections.OrderedDict(
-                                        (value.pop('id', index), value)
-                                        for index, value in enumerate(values)
-                                        )),
-                                    ),
+                            conv.make_item_to_singleton(),
+                            conv.test_isinstance(list),
+                            conv.uniform_sequence(
+                                conv.test_isinstance(dict),
+                                drop_none_items = True,
                                 ),
-                            conv.test_isinstance(dict),
-                            conv.uniform_mapping(
-                                conv.pipe(
-                                    conv.test_isinstance((basestring, int)),
-                                    conv.not_none,
-                                    ),
-                                conv.pipe(
-                                    conv.test_isinstance(dict),
-                                    conv.struct(
+                            conv.function(set_entities_json_id),
+                            conv.uniform_sequence(
+                                conv.struct(
+                                    dict(itertools.chain(
                                         dict(
+                                            id = conv.pipe(
+                                                conv.test_isinstance((basestring, int)),
+                                                conv.not_none,
+                                                ),
+                                            ).iteritems(),
+                                        (
                                             (column.name, column.json_to_python)
                                             for column in column_by_name.itervalues()
                                             if column.entity == 'ind' and column.name not in (
                                                 'idfam', 'idfoy', 'idmen', 'quifam', 'quifoy', 'quimen')
                                             ),
-                                        drop_none_values = True,
-                                        ),
+                                        )),
+                                    drop_none_values = True,
                                     ),
-                                drop_none_values = True,
+                                drop_none_items = True,
                                 ),
                             conv.empty_to_none,
                             conv.not_none,
@@ -240,11 +224,10 @@ class Scenario(AbstractScenario):
                 return test_case, error
 
             # Second validation step
-            familles_individus_id = list(test_case['individus'].iterkeys())
+            familles_individus_id = [individu['id'] for individu in test_case['individus']]
             test_case, error = conv.struct(
                 dict(
-                    familles = conv.uniform_mapping(
-                        conv.noop,
+                    familles = conv.uniform_sequence(
                         conv.struct(
                             dict(
                                 enfants = conv.uniform_sequence(conv.test_in_pop(familles_individus_id)),
@@ -259,17 +242,22 @@ class Scenario(AbstractScenario):
 
             remaining_individus_id = set(familles_individus_id)
             if remaining_individus_id:
+                individu_index_by_id = {
+                    individu[u'id']: individu_index
+                    for individu_index, individu in enumerate(test_case[u'individus'])
+                    }
                 if error is None:
                     error = {}
                 for individu_id in remaining_individus_id:
-                    error.setdefault('individus', {})[individu_id] = state._(u"Individual is missing from {}").format(
-                        state._(u' & ').join(
-                            word
-                            for word in [
-                                u'familles' if individu_id in familles_individus_id else None,
-                                ]
-                            if word is not None
-                            ))
+                    error.setdefault('individus', {})[individu_index_by_id[individu_id]] = state._(
+                        u"Individual is missing from {}").format(
+                            state._(u' & ').join(
+                                word
+                                for word in [
+                                    u'familles' if individu_id in familles_individus_id else None,
+                                    ]
+                                if word is not None
+                                ))
             if error is not None:
                 return test_case, error
 
