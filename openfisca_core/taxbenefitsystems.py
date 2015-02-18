@@ -43,6 +43,7 @@ class AbstractTaxBenefitSystem(object):
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
+    person_key_plural = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -69,6 +70,8 @@ class AbstractTaxBenefitSystem(object):
         self.column_by_name = column_by_name = collections.OrderedDict()
         for entity_class in self.entity_class_by_key_plural.itervalues():
             column_by_name.update(entity_class.column_by_name)
+            if entity_class.is_persons_entity:
+                self.person_key_plural = entity_class.key_plural
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)

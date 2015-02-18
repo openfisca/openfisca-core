@@ -26,6 +26,7 @@
 from __future__ import division
 
 import collections
+import itertools
 
 import numpy as np
 
@@ -200,58 +201,6 @@ class AbstractScenario(object):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
         return self
 
-    @property
-    def json_or_python_to_axes(self):
-        column_by_name = self.tax_benefit_system.column_by_name
-        return conv.pipe(
-            conv.test_isinstance(list),
-            conv.uniform_sequence(
-                conv.pipe(
-                    conv.item_or_sequence(
-                        conv.pipe(
-                            conv.test_isinstance(dict),
-                            conv.struct(
-                                dict(
-                                    count = conv.pipe(
-                                        conv.test_isinstance(int),
-                                        conv.test_greater_or_equal(1),
-                                        conv.not_none,
-                                        ),
-                                    index = conv.pipe(
-                                        conv.test_isinstance(int),
-                                        conv.test_greater_or_equal(0),
-                                        conv.default(0),
-                                        ),
-                                    max = conv.pipe(
-                                        conv.test_isinstance((float, int)),
-                                        conv.not_none,
-                                        ),
-                                    min = conv.pipe(
-                                        conv.test_isinstance((float, int)),
-                                        conv.not_none,
-                                        ),
-                                    name = conv.pipe(
-                                        conv.test_isinstance(basestring),
-                                        conv.test_in(column_by_name),
-                                        conv.test(lambda column_name: column_by_name[column_name].dtype in (
-                                            np.float32, np.int16, np.int32),
-                                            error = N_(u'Invalid type for axe: integer or float expected')),
-                                        conv.not_none,
-                                        ),
-                                    # TODO: Check that period is valid in params.
-                                    period = periods.json_or_python_to_period,
-                                    ),
-                                ),
-                            ),
-                        drop_none_items = True,
-                        ),
-                    conv.make_item_to_singleton(),
-                    ),
-                drop_none_items = True,
-                ),
-            conv.empty_to_none,
-            )
-
     def make_json_or_python_to_attributes(self, repair = False):
         column_by_name = self.tax_benefit_system.column_by_name
 
@@ -268,7 +217,7 @@ class AbstractScenario(object):
                 self.cleanup_period_in_json_or_python,
                 conv.struct(
                     dict(
-                        axes = self.json_or_python_to_axes,
+                        axes = make_json_or_python_to_axes(self.tax_benefit_system),
                         period = conv.pipe(
                             periods.json_or_python_to_period,  # TODO: Check that period is valid in params.
                             conv.not_none,
@@ -375,6 +324,208 @@ class AbstractScenario(object):
                 )
             if value is not None
             )
+
+
+def make_json_or_python_to_axes(tax_benefit_system):
+    column_by_name = tax_benefit_system.column_by_name
+    return conv.pipe(
+        conv.test_isinstance(list),
+        conv.uniform_sequence(
+            conv.pipe(
+                conv.item_or_sequence(
+                    conv.pipe(
+                        conv.test_isinstance(dict),
+                        conv.struct(
+                            dict(
+                                count = conv.pipe(
+                                    conv.test_isinstance(int),
+                                    conv.test_greater_or_equal(1),
+                                    conv.not_none,
+                                    ),
+                                index = conv.pipe(
+                                    conv.test_isinstance(int),
+                                    conv.test_greater_or_equal(0),
+                                    conv.default(0),
+                                    ),
+                                max = conv.pipe(
+                                    conv.test_isinstance((float, int)),
+                                    conv.not_none,
+                                    ),
+                                min = conv.pipe(
+                                    conv.test_isinstance((float, int)),
+                                    conv.not_none,
+                                    ),
+                                name = conv.pipe(
+                                    conv.test_isinstance(basestring),
+                                    conv.test_in(column_by_name),
+                                    conv.test(lambda column_name: column_by_name[column_name].dtype in (
+                                        np.float32, np.int16, np.int32),
+                                        error = N_(u'Invalid type for axe: integer or float expected')),
+                                    conv.not_none,
+                                    ),
+                                # TODO: Check that period is valid in params.
+                                period = periods.json_or_python_to_period,
+                                ),
+                            ),
+                        ),
+                    drop_none_items = True,
+                    ),
+                conv.make_item_to_singleton(),
+                ),
+            drop_none_items = True,
+            ),
+        conv.empty_to_none,
+        )
+
+
+def make_json_or_python_to_output_by_variable_name(tax_benefit_system):
+    def json_or_python_to_output_by_variable_name(value, state = None):
+        if value is None:
+            return value, None
+        if state is None:
+            state = conv.default_state
+        error_by_variable_name = {}
+        output_by_variable_name = {}
+        for variable_name, variable_value in value.iteritems():
+            column = tax_benefit_system.column_by_name[variable_name]
+            variable_output, error = column.json_to_python(variable_value, state = state)
+            if variable_output is not None:
+                output_by_variable_name[variable_name] = variable_output
+            if error is not None:
+                error_by_variable_name[variable_name] = error
+        return output_by_variable_name, error_by_variable_name or None
+
+    return json_or_python_to_output_by_variable_name
+
+
+def make_json_or_python_to_test(tax_benefit_system):
+    column_by_name = tax_benefit_system.column_by_name
+    variables_name = set(column_by_name)
+    validate = conv.struct(
+        dict(itertools.chain(
+            dict(
+                axes = make_json_or_python_to_axes(tax_benefit_system),
+                description = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_line,
+                    ),
+                ignore = conv.pipe(
+                    conv.test_isinstance((bool, int)),
+                    conv.anything_to_bool,
+                    ),
+                input_variables = conv.pipe(
+                    conv.test_isinstance(dict),
+                    conv.uniform_mapping(
+                        conv.pipe(
+                            conv.test_isinstance(basestring),
+                            conv.test_in(variables_name),
+                            conv.not_none,
+                            ),
+                        conv.noop,
+                        ),
+                    conv.empty_to_none,
+                    ),
+                name = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_line,
+                    ),
+                output_variables = conv.pipe(
+                    conv.test_isinstance(dict),
+                    conv.uniform_mapping(
+                        conv.pipe(
+                            conv.test_isinstance(basestring),
+                            conv.test_in(variables_name),
+                            conv.not_none,
+                            ),
+                        conv.noop,
+                        ),
+                    make_json_or_python_to_output_by_variable_name(tax_benefit_system),
+                    conv.empty_to_none,
+                    ),
+                period = conv.pipe(
+                    periods.json_or_python_to_period,
+                    conv.not_none,
+                    ),
+                ).iteritems(),
+            (
+                (entity_class.key_plural, conv.pipe(
+                    conv.make_item_to_singleton(),
+                    conv.test_isinstance(list),
+                    ))
+                for entity_class in tax_benefit_system.entity_class_by_key_plural.itervalues()
+                ),
+            )),
+        )
+
+    def json_or_python_to_test(value, state = None):
+        if value is None:
+            return value, None
+        if state is None:
+            state = conv.default_state
+        value, error = validate(value, state = state)
+        if error is not None:
+            return value, error
+        test_case = value.copy()
+        axes = test_case.pop(u'axes')
+        description = test_case.pop(u'description')
+        ignore = test_case.pop(u'ignore')
+        input_variables = test_case.pop(u'input_variables')
+        name = test_case.pop(u'name')
+        output_variables = test_case.pop(u'output_variables')
+        period = test_case.pop(u'period')
+
+        if input_variables is not None:
+            # When using input_variables, always ensure that the test_case contains at least one person. Otherwise
+            # scenario validation will fail.
+            person_members = test_case[tax_benefit_system.person_key_plural]
+            if person_members is None:
+                test_case[tax_benefit_system.person_key_plural] = person_members = []
+            if not person_members:
+                person_members.append({})
+
+        scenario, error = tax_benefit_system.Scenario.make_json_to_instance(repair = True,
+            tax_benefit_system = tax_benefit_system)(dict(
+                axes = axes,
+                period = period,
+                test_case = test_case,
+                ), state = state)
+        if error is not None:
+            return scenario, error
+
+        if input_variables is not None:
+            # Dispatch input variables to their respective entities.
+            # When there are several entities of the same type, the first one is used.
+            error_by_variable_name = {}
+            test_case = scenario.test_case
+            for variable_name, variable_value in input_variables.iteritems():
+                column = column_by_name[variable_name]
+                entity_members = test_case[column.entity_key_plural]
+                entity_member = entity_members[0]
+                existing_value = entity_member.get(variable_name)
+                if existing_value is not None:
+                    error_by_variable_name[variable_name] = N_(
+                        u"Input variable can't override an existing value in entity")
+                    continue
+                cell, error = column.json_to_python(variable_value, state = state)
+                if error is not None:
+                    error_by_variable_name[variable_name] = error
+                entity_member[variable_name] = cell
+            if error_by_variable_name:
+                return value, error_by_variable_name
+
+        return {
+            key: value
+            for key, value in dict(
+                description = description,
+                ignore = ignore,
+                name = name,
+                scenario = scenario,
+                output_variables = output_variables,
+                ).iteritems()
+            if value is not None
+            }, None
+
+    return json_or_python_to_test
 
 
 def set_entities_json_id(entities_json):
