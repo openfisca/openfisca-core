@@ -603,13 +603,14 @@ class SimpleFormula(AbstractFormula):
         entity = holder.entity
         simulation = entity.simulation
         variables_name = input_variables_extractor.get_input_variables(column)
-        for variable_name in sorted(variables_name):
-            variable_holder = simulation.get_or_new_holder(variable_name)
-            variable_holder.graph(edges, input_variables_extractor, nodes, visited)
-            edges.append({
-                'from': variable_holder.column.name,
-                'to': column.name,
-                })
+        if variables_name is not None:
+            for variable_name in sorted(variables_name):
+                variable_holder = simulation.get_or_new_holder(variable_name)
+                variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+                edges.append({
+                    'from': variable_holder.column.name,
+                    'to': column.name,
+                    })
 
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
