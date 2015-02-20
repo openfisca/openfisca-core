@@ -62,7 +62,7 @@ setup(
         ],
     install_requires = [
         'Babel >= 0.9.4',
-        'Biryani[datetimeconv] >= 0.10.1',
+        'Biryani[datetimeconv] >= 0.10.4dev',
         'numpy',
         ],
     message_extractors = {

@@ -107,7 +107,7 @@ class AbstractEntityToEntity(AbstractFormula):
                 ))
 
         variable_holder = self.variable_holder
-        variable_dated_holder = variable_holder.compute(period = period,
+        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True,
             requested_formulas_by_period = requested_formulas_by_period)
         output_period = variable_dated_holder.period
 
@@ -199,6 +199,7 @@ class AbstractGroupedFormula(AbstractFormula):
 
 
 class DatedFormula(AbstractGroupedFormula):
+    base_function = None  # Class attribute. Overridden by subclasses
     dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
     dated_formulas_class = None  # Class attribute
 
@@ -366,6 +367,7 @@ class PersonToEntity(AbstractEntityToEntity):
 
 
 class SimpleFormula(AbstractFormula):
+    base_function = None  # Class attribute. Overridden by subclasses
     function = None  # Class attribute. Overridden by subclasses
 
     def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
@@ -493,21 +495,19 @@ class SimpleFormula(AbstractFormula):
                 ))
 
         try:
-            formula_result = self.function(simulation, period)
+            formula_result = self.base_function(simulation, period)
         except:
-            log.error(u'An error occurred while calling formula {}@{}<{}> in {}.{}'.format(
+            log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
                 column.name, entity.key_plural, str(period), self.function.__module__,
-                self.function.__name__ if self.function.__name__ != 'function' else column.name,
                 ))
             raise
         else:
             try:
                 output_period, array = formula_result
             except ValueError:
-                raise ValueError(u'A formula must return "period, array": {}.{}'.format(
-                    self.function.__module__,
-                    self.function.__name__ if self.function.__name__ != 'function' else column.name,
-                    ))
+                raise ValueError(u'A formula must return "period, array": {}@{}<{}> in module {}'.format(
+                    column.name, entity.key_plural, str(period), self.function.__module__,
+                    ).encode('utf-8'))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
             u"requested period".format(column.name, entity.key_plural, str(period), str(output_period),
@@ -928,7 +928,27 @@ class FormulaColumnMetaclass(type):
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
 
+        base_function = attributes.pop('base_function', UnboundLocalError)
+        if is_permanent:
+            assert base_function is UnboundLocalError
+            base_function = permanent_default_value
+        elif column.is_period_size_independent:
+            assert base_function is UnboundLocalError
+            base_function = requested_period_last_value
+        elif base_function is UnboundLocalError:
+            base_function = requested_period_default_value
+        if base_function is UnboundLocalError:
+            assert reference_column is not None \
+                and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
+                """Missing attribute "base_function" in definition of class {}""".format(name)
+            base_function = reference_column.formula_class.base_function
+        else:
+            assert base_function is not None, \
+                """Missing attribute "base_function" in definition of class {}""".format(name)
+        formula_class_attributes['base_function'] = base_function
+
         if issubclass(formula_class, DatedFormula):
+            assert not is_permanent
             dated_formulas_class = []
             for function_name, function in attributes.copy().iteritems():
                 start_instant = getattr(function, 'start_instant', UnboundLocalError)
@@ -990,7 +1010,10 @@ class FormulaColumnMetaclass(type):
             formula_class_attributes['dated_formulas_class'] = dated_formulas_class
         else:
             assert issubclass(formula_class, SimpleFormula), formula_class
+
             function = attributes.pop('function', UnboundLocalError)
+            if is_permanent:
+                assert function is UnboundLocalError
             if function is UnboundLocalError:
                 assert reference_column is not None and issubclass(reference_column.formula_class, SimpleFormula), \
                     """Missing attribute "function" in definition of class {}""".format(name)
@@ -1064,11 +1087,13 @@ def last_duration_last_value(formula, simulation, period):
     # This formula is used for variables that are constants between events but are period size dependent.
     # It returns the latest known value for the requested start of period but with the last period size.
     holder = formula.holder
-    column = holder.column
     if holder._array_by_period is not None:
         for last_period, last_array in sorted(holder._array_by_period.iteritems(), reverse = True):
-            if last_period.start <= period.start:
+            if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 return periods.Period((last_period[0], period.start, last_period[2])), last_array
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
     return period, array
@@ -1094,27 +1119,50 @@ def make_reference_formula_decorator(entity_class_by_symbol = None, update = Fal
     return reference_formula_decorator
 
 
-def reference_input_variable(column = None, entity_class = None, function = None, is_permanent = False, label = None,
-        name = None, start_date = None, stop_date = None, update = False, url = None):
+def missing_value(formula, simulation, period):
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    holder = formula.holder
+    column = holder.column
+    raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
+
+
+def permanent_default_value(formula, simulation, period):
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    holder = formula.holder
+    column = holder.column
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
+def reference_input_variable(base_function = None, column = None, entity_class = None, is_permanent = False,
+        label = None, name = None, start_date = None, stop_date = None, update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
+    if not isinstance(column, columns.Column):
+        column = column()
+        assert isinstance(column, columns.Column)
+    if is_permanent:
+        assert base_function is None
+        base_function = permanent_default_value
+    elif column.is_period_size_independent:
+        assert base_function is None
+        base_function = requested_period_last_value
+    elif base_function is None:
+        base_function = requested_period_default_value
     assert isinstance(name, basestring), name
     name = unicode(name)
     label = name if label is None else unicode(label)
 
-    if not isinstance(column, columns.Column):
-        column = column()
-        assert isinstance(column, columns.Column)
-
+    column.formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
+        base_function = base_function,
+        ))
     if stop_date is not None:
         assert isinstance(stop_date, datetime.date)
         column.end = stop_date
     column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_key_plural = entity_class.key_plural
-    if function is not None:
-        column.formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
-            function = function,
-            ))
-        column.is_input_variable = True
     if is_permanent:
         column.is_permanent = True
     column.label = label
@@ -1129,3 +1177,29 @@ def reference_input_variable(column = None, entity_class = None, function = None
     if not update:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
+
+
+def requested_period_default_value(formula, simulation, period):
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    holder = formula.holder
+    column = holder.column
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
+def requested_period_last_value(formula, simulation, period):
+    # This formula is used for variables that are constants between events and period size independent.
+    # It returns the latest known value for the requested period.
+    holder = formula.holder
+    if holder._array_by_period is not None:
+        for last_period, last_array in sorted(holder._array_by_period.iteritems(), reverse = True):
+            if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
+                return period, last_array
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    column = holder.column
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array

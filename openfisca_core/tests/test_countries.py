@@ -386,7 +386,7 @@ class revenu_disponible(SimpleFormulaColumn):
 
     def function(self, simulation, period):
         period = period.start.period(u'year').offset('first-of')
-        rsa = simulation.calculate('rsa', period)
+        rsa = simulation.calculate_add('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
 
         return period, rsa + salaire_imposable * 0.7
@@ -409,21 +409,21 @@ class rsa(DatedFormulaColumn):
     @dated_function(datetime.date(2010, 1, 1))
     def function_2010(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate('salaire_imposable', period)
+        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
 
         return period, (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
     def function_2011_2012(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate('salaire_imposable', period)
+        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
 
         return period, (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
     def function_2013(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate('salaire_imposable', period)
+        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
 
         return period, (salaire_imposable < 500) * 300
 

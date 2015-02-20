@@ -25,7 +25,6 @@
 
 from __future__ import division
 
-import itertools
 import math
 
 import numpy as np
@@ -45,7 +44,6 @@ class DatedHolder(object):
 
     @property
     def array(self):
-        # Note: This property may return an extrapolated array.
         return self.holder.get_array(self.period)
 
     @array.deleter
@@ -64,18 +62,6 @@ class DatedHolder(object):
     def entity(self):
         return self.holder.entity
 
-    @property
-    def extrapolated_array(self):
-        raise NotImplementedError("Getter of property DatedHolder.extrapolated_array doesn't exist")
-
-    @extrapolated_array.deleter
-    def extrapolated_array(self):
-        self.holder.delete_extrapolated_array(self.period)
-
-    @extrapolated_array.setter
-    def extrapolated_array(self, array):
-        self.holder.set_extrapolated_array(self.period, array)
-
     def to_value_json(self):
         transform_dated_value_to_json = self.holder.column.transform_dated_value_to_json
         return [
@@ -87,8 +73,6 @@ class DatedHolder(object):
 class Holder(object):
     _array = None  # Only used when column.is_permanent
     _array_by_period = None  # Only used when not column.is_permanent
-    _extrapolated_array = None  # Only used when not column.is_permanent
-    _extrapolated_array_by_period = None  # Only used when not column.is_permanent
     column = None
     entity = None
     formula = None
@@ -105,19 +89,7 @@ class Holder(object):
     def array(self):
         if not self.column.is_permanent:
             return self.get_array(self.entity.simulation.period)
-        array = self._array
-        if array is None:
-            array = self._extrapolated_array
-        return array
-
-    # @array.deleter
-    # def array(self):
-    #     simulation = self.entity.simulation
-    #     if not self.column.is_permanent:
-    #         return self.delete_array(simulation.period)
-    #     if simulation.debug or simulation.trace:
-    #         simulation.traceback.pop((self.column.name, None), None)
-    #     del self._array
+        return self._array
 
     @array.setter
     def array(self, array):
@@ -147,7 +119,7 @@ class Holder(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key in ('_array_by_period', '_extrapolated_array_by_period'):
+            if key in ('_array_by_period',):
                 if value is not None:
                     # There is no need to copy the arrays, because the formulas don't modify them.
                     new_dict[key] = value.copy()
@@ -171,11 +143,7 @@ class Holder(object):
         simulation = entity.simulation
         if period is None:
             period = simulation.period
-        start_instant = period[1]
-        stop_instant = period.stop
         column = self.column
-        debug = simulation.debug
-        trace = simulation.trace
 
         # First look for dated_holders covering the whole period (without hole).
         dated_holder = self.at_period(period)
@@ -183,218 +151,21 @@ class Holder(object):
             return dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
-        array_by_period = self._array_by_period
-        if array_by_period is None:
-            sorted_period_and_array_couples = []
-        else:
-            array = None
-            if debug or trace:
-                used_periods = []
-            sorted_period_and_array_couples = sorted(array_by_period.iteritems(),
-                key = lambda (period, array): period[1])
-            best_first_index = None
-            best_fist_start_instant = None
-            for index, (exact_period, exact_array) in enumerate(sorted_period_and_array_couples):
-                if exact_array is None:
-                    continue
-                exact_start_instant = exact_period.start
-                if exact_start_instant == best_fist_start_instant:
-                    # When encountering several periods starting with the same instant, use the smallest one.
-                    continue
-                if exact_start_instant <= start_instant:
-                    best_first_index = index
-                    best_fist_start_instant = exact_start_instant
-                    if exact_start_instant == start_instant:
-                        break
-                else:
-                    break
-            if best_first_index is not None:
-                remaining_start_instant = start_instant
-                for exact_period, exact_array in itertools.islice(sorted_period_and_array_couples, best_first_index,
-                        None):
-                    if exact_array is None:
-                        continue
-                    exact_start_instant = exact_period.start
-                    if exact_start_instant > stop_instant:
-                        # The existing data arrays don't fully cover the requested period.
-                        break
-                    exact_stop_instant = exact_period.stop
-                    if exact_start_instant <= remaining_start_instant and exact_stop_instant >= remaining_start_instant:
-                        intersection_period = exact_period.intersection(remaining_start_instant, stop_instant)
-                        assert intersection_period is not None
-                        if column.is_period_size_independent:
-                            # Use always the first value for the period, because the output period may end before
-                            # the requested period (because of base instant).
-                            dated_holder.extrapolated_array = np.copy(exact_array)
-                            if debug or trace:
-                                used_periods.append(exact_period)
-                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
-                            return dated_holder
-                        if accept_other_period:
-                            # Use always the first value for the period, because the output period may end before
-                            # the requested period (because of base instant).
-                            if debug or trace:
-                                used_periods.append(exact_period)
-                                simulation.traceback[(column.name, exact_period)]['used_periods'] = used_periods
-                            return self.at_period(exact_period)
-                        exact_unit = exact_period[0]
-                        intersection_unit = intersection_period[0]
-                        if intersection_unit == exact_unit:
-                            intersection_array = exact_array * intersection_period[2] / exact_period[2]
-                        elif intersection_unit == u'month' and exact_unit == u'year':
-                            intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
-                        elif intersection_unit == u'year' and exact_unit == u'month':
-                            intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
-                        else:
-                            intersection_array = exact_array * (intersection_period.days / exact_period.days)
-                        if array is None:
-                            array = np.copy(intersection_array)
-                        else:
-                            array += intersection_array
-                        if debug or trace:
-                            used_periods.append(exact_period)
-                        remaining_start_instant = exact_stop_instant.offset(1, 'day')
-                        if remaining_start_instant > stop_instant:
-                            dated_holder.extrapolated_array = array
-                            if debug or trace:
-                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
-                            return dated_holder
-                    if exact_stop_instant >= stop_instant:
-                        # The existing data arrays don't fully cover the requested period.
-                        break
-
-        formula = self.formula
-        if formula is not None:
-            formula_period = period
-            formula_start_instant = formula_period[1]
-            column_start_instant = periods.instant(column.start)
-            column_stop_instant = periods.instant(column.end)
-            while True:
-                intersection_period = formula_period.intersection(column_start_instant, column_stop_instant)
-                if intersection_period is not None:
-                    formula_period = intersection_period
-                if self.formula_output_period_by_requested_period is None:
-                    self.formula_output_period_by_requested_period = {}
-                    formula_output_period = None
-                else:
-                    formula_output_period = self.formula_output_period_by_requested_period.get(formula_period)
-                if formula_output_period is None:
-                    for exact_period, exact_array in sorted_period_and_array_couples:
-                        if exact_period[1] == formula_period[1]:
-                            # Reuse array starting at same instant.
-                            formula_output_period = exact_period
-                            break
-                        if exact_period[1] > formula_period[1]:
-                            break
-                    if formula_output_period is None:
-                        # The array for period formula_period has not been computed yet and is not an input variable.
-                        # Compute it now.
-                        if intersection_period is None:
-                            array = np.empty(entity.count, dtype = column.dtype)
-                            array.fill(column.default)
-                            formula_output_period = formula_period
-                            self.at_period(formula_output_period).array = array
-                        else:
-                            formula_dated_holder = formula.compute(period = formula_period,
-                                requested_formulas_by_period = requested_formulas_by_period)
-                            assert formula_dated_holder is not None
-                            formula_output_period = formula_dated_holder.period
-                        self.formula_output_period_by_requested_period[formula_period] = formula_output_period
-                formula_period = formula_output_period.offset(formula_output_period.size)
-                formula_start_instant = formula_period[1]
-                if formula_start_instant > stop_instant:
-                    break
-
-        if dated_holder.array is not None:
-            return dated_holder
-        assert self._array is None  # self._array should always be None when dated_holder.array is None.
-
-        if debug or trace:
-            used_periods = []
-
-        array = None
-        array_by_period = self._array_by_period
-        if array_by_period is not None:
-            best_first_index = None
-            best_fist_start_instant = None
-            sorted_period_and_array_couples = sorted(array_by_period.iteritems(),
-                key = lambda (period, array): period[1])
-            for index, (exact_period, exact_array) in enumerate(sorted_period_and_array_couples):
-                if exact_array is None:
-                    continue
-                exact_start_instant = exact_period.start
-                if exact_start_instant == best_fist_start_instant:
-                    # When encountering several periods starting with the same instant, use the smallest one.
-                    continue
-                if exact_start_instant <= start_instant:
-                    best_first_index = index
-                    best_fist_start_instant = exact_start_instant
-                    if exact_start_instant == start_instant:
-                        break
-                else:
-                    break
-            if best_first_index is not None:
-                remaining_start_instant = start_instant
-                for exact_period, exact_array in itertools.islice(sorted_period_and_array_couples, best_first_index,
-                        None):
-                    if exact_array is None:
-                        continue
-                    exact_start_instant = exact_period.start
-                    if exact_start_instant > stop_instant:
-                        # The existing data arrays don't fully cover the requested period.
-                        break
-                    exact_stop_instant = exact_period.stop
-                    if exact_start_instant <= remaining_start_instant and exact_stop_instant >= remaining_start_instant:
-                        intersection_period = exact_period.intersection(remaining_start_instant, stop_instant)
-                        assert intersection_period is not None
-                        if column.is_period_size_independent:
-                            # Use always the first value for the period, because the output period may end before
-                            # the requested period (because of base instant).
-                            dated_holder.extrapolated_array = np.copy(exact_array)
-                            if debug or trace:
-                                used_periods.append(exact_period)
-                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
-                            return dated_holder
-                        if accept_other_period:
-                            # Use always the first value for the period, because the output period may end before
-                            # the requested period (because of base instant).
-                            if debug or trace:
-                                used_periods.append(exact_period)
-                                simulation.traceback[(column.name, exact_period)]['used_periods'] = used_periods
-                            return self.at_period(exact_period)
-                        exact_unit = exact_period[0]
-                        intersection_unit = intersection_period[0]
-                        if intersection_unit == exact_unit:
-                            intersection_array = exact_array * intersection_period[2] / exact_period[2]
-                        elif intersection_unit == u'month' and exact_unit == u'year':
-                            intersection_array = exact_array * intersection_period[2] / (exact_period[2] * 12)
-                        elif intersection_unit == u'year' and exact_unit == u'month':
-                            intersection_array = exact_array * intersection_period[2] * 12 / exact_period[2]
-                        else:
-                            intersection_array = exact_array * (intersection_period.days / exact_period.days)
-                        if array is None:
-                            array = np.copy(intersection_array)
-                        else:
-                            array += intersection_array
-                        if debug or trace:
-                            used_periods.append(exact_period)
-                        remaining_start_instant = exact_stop_instant.offset(1, 'day')
-                        if remaining_start_instant > stop_instant:
-                            dated_holder.extrapolated_array = array
-                            if debug or trace:
-                                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
-                            return dated_holder
-                    if exact_stop_instant >= stop_instant:
-                        # The existing data arrays don't fully cover the requested period.
-                        break
-
-        if array is None:
-            array = np.empty(entity.count, dtype = column.dtype)
-            array.fill(column.default)
-        if array is not None:
-            dated_holder.extrapolated_array = array
-            if (debug or trace) and used_periods:
-                simulation.traceback[(column.name, dated_holder.period)]['used_periods'] = used_periods
+        column_start_instant = periods.instant(column.start)
+        column_stop_instant = periods.instant(column.end)
+        if (column_start_instant is None or column_start_instant <= period.start) \
+                and (column_stop_instant is None or period.start <= column_stop_instant):
+            formula_dated_holder = self.formula.compute(period = period,
+                requested_formulas_by_period = requested_formulas_by_period)
+            assert formula_dated_holder is not None
+            if not column.is_permanent:
+                assert accept_other_period or formula_dated_holder.period == period, \
+                    u"Requested period {} differs from {} returned by variable {}".format(period,
+                        formula_dated_holder.period, column.name)
+            return formula_dated_holder
+        array = np.empty(entity.count, dtype = column.dtype)
+        array.fill(column.default)
+        dated_holder.array = array
         return dated_holder
 
     def compute_add(self, period = None, requested_formulas_by_period = None):
@@ -446,6 +217,7 @@ class Holder(object):
         unit = period[0]
         requested_period = period
         if unit == u'month':
+            remaining_period_months = period.size
             while True:
                 dated_holder = self.compute(accept_other_period = True, period = requested_period,
                     requested_formulas_by_period = requested_formulas_by_period)
@@ -459,30 +231,32 @@ class Holder(object):
                 requested_start_months = requested_start.year * 12 + requested_start.month
                 returned_start_months = returned_start.year * 12 + returned_start.month
                 if returned_period.unit == u'month':
-                    intersection_size = min(requested_start_months + requested_period.size,
+                    intersection_months = min(requested_start_months + requested_period.size,
                         returned_start_months + returned_period.size) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_size / returned_period.size
+                    intersection_array = dated_holder.array * intersection_months / returned_period.size
                 else:
                     assert returned_period.unit == u'year', \
                         "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
                             returned_period, self.column.name)
-                    intersection_size = min(requested_start_months + requested_period.size,
+                    intersection_months = min(requested_start_months + requested_period.size,
                         returned_start_months + returned_period.size * 12) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_size / (returned_period.size * 12)
+                    intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
                 if array is None:
                     array = intersection_array.copy()
                 else:
                     array += intersection_array
 
-                requested_period_size = requested_period.size - intersection_size
-                if requested_period_size <= 0:
+                remaining_period_months -= intersection_months
+                if remaining_period_months <= 0:
                     dated_holder = self.at_period(period)
                     dated_holder.array = array
                     return dated_holder
-                requested_period = requested_start.offset(intersection_size, u'month').period(u'month',
+                requested_period_size = requested_period.size - intersection_months
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'month',
                     requested_period_size)
         else:
             assert unit == u'year', unit
+            remaining_period_months = period.size * 12
             while True:
                 dated_holder = self.compute(accept_other_period = True, period = requested_period,
                     requested_formulas_by_period = requested_formulas_by_period)
@@ -496,27 +270,28 @@ class Holder(object):
                 requested_start_months = requested_start.year * 12 + requested_start.month
                 returned_start_months = returned_start.year * 12 + returned_start.month
                 if returned_period.unit == u'month':
-                    intersection_size = min(requested_start_months + requested_period.size * 12,
+                    intersection_months = min(requested_start_months + requested_period.size * 12,
                         returned_start_months + returned_period.size) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_size / returned_period.size
+                    intersection_array = dated_holder.array * intersection_months / returned_period.size
                 else:
                     assert returned_period.unit == u'year', \
                         "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
                             returned_period, self.column.name)
-                    intersection_size = min(requested_start_months + requested_period.size * 12,
+                    intersection_months = min(requested_start_months + requested_period.size * 12,
                         returned_start_months + returned_period.size * 12) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_size / (returned_period.size * 12)
+                    intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
                 if array is None:
                     array = intersection_array.copy()
                 else:
                     array += intersection_array
 
-                requested_period_size = int(math.ceil((requested_period.size - intersection_size) / 12))
-                if requested_period_size <= 0:
+                remaining_period_months -= intersection_months
+                if remaining_period_months <= 0:
                     dated_holder = self.at_period(period)
                     dated_holder.array = array
                     return dated_holder
-                requested_period = requested_start.offset(intersection_size, u'month').period(u'year',
+                requested_period_size = requested_period.size - int(math.floor(intersection_months / 12))
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'year',
                     requested_period_size)
 
     def compute_divide(self, period = None, requested_formulas_by_period = None):
@@ -552,28 +327,8 @@ class Holder(object):
             del self._array
         if self._array_by_period is not None:
             del self._array_by_period
-        if self._extrapolated_array_by_period is not None:
-            del self._extrapolated_array_by_period
 
-    @property
-    def extrapolated_array(self):
-        raise NotImplementedError("Getter of property Holder.extrapolated_array doesn't exist")
-
-    @extrapolated_array.setter
-    def extrapolated_array(self, extrapolated_array):
-        simulation = self.entity.simulation
-        if not self.column.is_permanent:
-            return self.set_extrapolated_array(simulation.period, extrapolated_array)
-        if simulation.debug or simulation.trace:
-            variable_infos = (self.column.name, None)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
-        self._extrapolated_array = extrapolated_array
-
-    def get_array(self, period, exact = False):
+    def get_array(self, period):
         if self.column.is_permanent:
             return self.array
         assert period is not None
@@ -582,12 +337,6 @@ class Holder(object):
             array = array_by_period.get(period)
             if array is not None:
                 return array
-        if not exact:
-            extrapolated_array_by_period = self._extrapolated_array_by_period
-            if extrapolated_array_by_period is not None:
-                array = extrapolated_array_by_period.get(period)
-                if array is not None:
-                    return array
         return None
 
     def graph(self, edges, input_variables_extractor, nodes, visited):
@@ -640,22 +389,6 @@ class Holder(object):
             self._array_by_period = array_by_period = {}
         array_by_period[period] = array
 
-    def set_extrapolated_array(self, period, array):
-        assert not self.column.is_permanent
-        assert period is not None
-        simulation = self.entity.simulation
-        if simulation.debug or simulation.trace:
-            variable_infos = (self.column.name, period)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
-        extrapolated_array_by_period = self._extrapolated_array_by_period
-        if extrapolated_array_by_period is None:
-            self._extrapolated_array_by_period = extrapolated_array_by_period = {}
-        extrapolated_array_by_period[period] = array
-
     def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
@@ -672,9 +405,7 @@ class Holder(object):
         if column.is_permanent:
             array = self._array
             if array is None:
-                array = self._extrapolated_array
-                if array is None:
-                    return None
+                return None
             return [
                 transform_dated_value_to_json(cell)
                 for cell in array.tolist()
@@ -682,12 +413,6 @@ class Holder(object):
         value_json = {}
         if self._array_by_period is not None:
             for period, array in self._array_by_period.iteritems():
-                value_json[str(period)] = [
-                    transform_dated_value_to_json(cell)
-                    for cell in array.tolist()
-                    ]
-        if self._extrapolated_array_by_period is not None:
-            for period, array in self._extrapolated_array_by_period.iteritems():
                 value_json[str(period)] = [
                     transform_dated_value_to_json(cell)
                     for cell in array.tolist()

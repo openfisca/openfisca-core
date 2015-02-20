@@ -51,7 +51,6 @@ class Column(object):
     formula_class = None
     function = None  # Obsolete: To remove once build_..._couple() functions are no more used.
     info = None
-    is_input_variable = False
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
@@ -282,8 +281,8 @@ class FloatCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((float, int)),
-            conv.anything_to_float,
+            conv.test_isinstance((float, int, basestring)),
+            conv.make_anything_to_float(accept_expression = True),
             )
 
 
@@ -300,7 +299,10 @@ class IntCol(Column):
 
     @property
     def json_to_dated_python(self):
-        return conv.test_isinstance(int)
+        return conv.pipe(
+            conv.test_isinstance((int, basestring)),
+            conv.make_anything_to_int(accept_expression = True),
+            )
 
 
 class StrCol(Column):
@@ -456,11 +458,24 @@ class PeriodSizeIndependentIntCol(IntCol):
 
 def build_column(name = None, column = None, entity_class_by_symbol = None):
     # Obsolete. Use reference_input_variable instead.
+    from . import formulas
+
     assert isinstance(name, basestring), name
     name = unicode(name)
 
     entity_class = entity_class_by_symbol[column.entity]
     column.entity_key_plural = entity_class.key_plural
+
+    if column.is_permanent:
+        base_function = formulas.permanent_default_value
+    elif column.is_period_size_independent:
+        base_function = formulas.requested_period_last_value
+    else:
+        base_function = formulas.requested_period_default_value
+    column.formula_class = type(name.encode('utf-8'), (formulas.SimpleFormula,), dict(
+        base_function = base_function,
+        ))
+
     if column.label is None:
         column.label = name
     assert column.name is None
