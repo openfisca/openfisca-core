@@ -71,6 +71,7 @@ def compose_reforms(build_reform_list, base_tax_benefit_system):
 
 def make_reform(decomposition_dir_name = None, decomposition_file_name = None, legislation_json = None, name = None,
         new_formulas = None, reference = None):
+    """Return a Reform class inherited from AbstractReform."""
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
     reform_entity_class_by_key_plural = {
