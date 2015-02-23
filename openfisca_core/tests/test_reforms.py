@@ -71,58 +71,58 @@ def test_updated_legislation_items():
         new_items = reforms.updated_legislation_items(items, start_instant, stop_instant, value)
         assert_equal(map(dict, new_items), expected_items)
 
-    yield(
-        check_updated_legislation_items,
-        u'Insert a new item before the first existing item',
-        [
-            {
-                "start": "2012-01-01",
-                "stop": "2013-12-31",
-                "value": 0.0,
-                },
-            ],
-        periods.period('year', 2010).start,
-        periods.period('year', 2010).stop,
-        1,
-        [
-            {
-                "start": "2010-01-01",
-                "stop": "2010-12-31",
-                "value": 1.0,
-                },
-            {
-                "start": "2012-01-01",
-                "stop": "2013-12-31",
-                "value": 0.0,
-                },
-            ],
-        )
-    yield(
-        check_updated_legislation_items,
-        u'Insert a new item after the last existing item',
-        [
-            {
-                "start": "2012-01-01",
-                "stop": "2013-12-31",
-                "value": 0.0,
-                },
-            ],
-        periods.period('year', 2014).start,
-        periods.period('year', 2014).stop,
-        1,
-        [
-            {
-                "start": "2012-01-01",
-                "stop": "2013-12-31",
-                "value": 0.0,
-                },
-            {
-                "start": "2014-01-01",
-                "stop": "2014-12-31",
-                "value": 1.0,
-                },
-            ],
-        )
+    # yield(
+    #     check_updated_legislation_items,
+    #     u'Insert a new item before the first existing item',
+    #     [
+    #         {
+    #             "start": "2012-01-01",
+    #             "stop": "2013-12-31",
+    #             "value": 0.0,
+    #             },
+    #         ],
+    #     periods.period('year', 2010).start,
+    #     periods.period('year', 2010).stop,
+    #     1,
+    #     [
+    #         {
+    #             "start": "2010-01-01",
+    #             "stop": "2010-12-31",
+    #             "value": 1.0,
+    #             },
+    #         {
+    #             "start": "2012-01-01",
+    #             "stop": "2013-12-31",
+    #             "value": 0.0,
+    #             },
+    #         ],
+    #     )
+    # yield(
+    #     check_updated_legislation_items,
+    #     u'Insert a new item after the last existing item',
+    #     [
+    #         {
+    #             "start": "2012-01-01",
+    #             "stop": "2013-12-31",
+    #             "value": 0.0,
+    #             },
+    #         ],
+    #     periods.period('year', 2014).start,
+    #     periods.period('year', 2014).stop,
+    #     1,
+    #     [
+    #         {
+    #             "start": "2012-01-01",
+    #             "stop": "2013-12-31",
+    #             "value": 0.0,
+    #             },
+    #         {
+    #             "start": "2014-01-01",
+    #             "stop": "2014-12-31",
+    #             "value": 1.0,
+    #             },
+    #         ],
+    #     )
     yield(
         check_updated_legislation_items,
         u'Replace an item by a new item',

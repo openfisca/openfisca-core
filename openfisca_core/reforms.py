@@ -138,6 +138,8 @@ def find_item_at_date(items, date, nearest_in_period = None):
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
     """
+    This function is deprecated.
+
     Update legislation JSON with a value defined for a specific couple of period defined by
     its start and stop instant or a period object.
 
@@ -179,6 +181,8 @@ def update_legislation(legislation_json, path, period = None, value = None, star
 
 def updated_legislation_items(items, start_instant, stop_instant, value):
     """
+    This function is deprecated.
+
     Iterates items (a dict with start, stop, value key) and returns new items sorted by start date,
     according to these rules:
     * if the period matches no existing item, the new item is yielded as-is
