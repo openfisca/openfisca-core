@@ -244,6 +244,7 @@ class Simulation(object):
         self.entity_by_column_name[column_name].graph(column_name, edges, input_variables_extractor, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
+        assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
         if reference:
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
