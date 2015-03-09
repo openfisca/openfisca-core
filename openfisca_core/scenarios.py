@@ -474,7 +474,7 @@ def make_json_or_python_to_test(tax_benefit_system):
         output_variables = test_case.pop(u'output_variables')
         period = test_case.pop(u'period')
 
-        if input_variables is not None:
+        if input_variables is not None or all(item_value is None for item_value in test_case.itervalues()):
             # When using input_variables, always ensure that the test_case contains at least one person. Otherwise
             # scenario validation will fail.
             person_members = test_case[tax_benefit_system.person_key_plural]
