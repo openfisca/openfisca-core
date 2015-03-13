@@ -97,6 +97,39 @@ class Column(object):
     def json_default(self):
         return self.default
 
+    def make_json_to_array_by_period(self, period):
+        return conv.condition(
+            conv.test_isinstance(dict),
+            conv.pipe(
+                # Value is a dict of (period, value) couples.
+                conv.uniform_mapping(
+                    conv.pipe(
+                        periods.json_or_python_to_period,
+                        conv.not_none,
+                        ),
+                    conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.uniform_sequence(
+                            self.json_to_dated_python,
+                            ),
+                        conv.empty_to_none,
+                        conv.function(lambda cells_list: np.array(cells_list, dtype = self.dtype)),
+                        ),
+                    drop_none_values = True,
+                    ),
+                conv.empty_to_none,
+                ),
+            conv.pipe(
+                conv.make_item_to_singleton(),
+                conv.uniform_sequence(
+                    self.json_to_dated_python,
+                    ),
+                conv.empty_to_none,
+                conv.function(lambda cells_list: np.array(cells_list, dtype = self.dtype)),
+                conv.function(lambda array: {period: array}),
+                ),
+            )
+
     @property
     def json_to_python(self):
         return conv.condition(

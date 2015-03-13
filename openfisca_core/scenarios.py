@@ -38,6 +38,7 @@ N_ = lambda message: message
 
 class AbstractScenario(object):
     axes = None
+    input_variables = None
     period = None
     tax_benefit_system = None
     test_case = None
@@ -66,121 +67,127 @@ class AbstractScenario(object):
             variables_name_to_skip = set()
         column_by_name = self.tax_benefit_system.column_by_name
         entity_by_key_plural = simulation.entity_by_key_plural
-        steps_count = 1
-        if self.axes is not None:
-            for parallel_axes in self.axes:
-                # All parallel axes have the same count, entity and period.
-                axis = parallel_axes[0]
-                steps_count *= axis['count']
-        simulation.steps_count = steps_count
         simulation_period = simulation.period
         test_case = self.test_case
 
         persons = None
         for entity in entity_by_key_plural.itervalues():
-            entity.step_size = entity_step_size = len(test_case[entity.key_plural])
-            entity.count = steps_count * entity_step_size
             if entity.is_persons_entity:
                 assert persons is None
                 persons = entity
         assert persons is not None
-        persons_step_size = persons.step_size
 
-        person_index_by_id = dict(
-            (person[u'id'], person_index)
-            for person_index, person in enumerate(test_case[persons.key_plural])
-            )
+        if test_case is None:
+            if self.input_variables is not None:
+                for variable_name, array_by_period in self.input_variables.iteritems():
+                    holder = simulation.get_or_new_holder(variable_name)
+                    entity = holder.entity
+                    for period, array in array_by_period.iteritems():
+                        if entity.count == 0:
+                            entity.count = len(array)
+                        holder.set_array(period, array)
 
-        for entity_key_plural, entity in entity_by_key_plural.iteritems():
-            if entity.is_persons_entity:
-                continue
-            entity_step_size = entity.step_size
-            persons.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = np.empty(
-                steps_count * persons.step_size, dtype = column_by_name[entity.index_for_person_variable_name].dtype)
-            persons.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = np.empty(
-                steps_count * persons.step_size, dtype = column_by_name[entity.role_for_person_variable_name].dtype)
-            for member_index, member in enumerate(test_case[entity_key_plural]):
-                for person_role, person_id in entity.iter_member_persons_role_and_id(member):
-                    person_index = person_index_by_id[person_id]
-                    for step_index in range(steps_count):
-                        person_entity_id_array[step_index * persons_step_size + person_index] \
-                            = step_index * entity_step_size + member_index
-                        person_entity_role_array[step_index * persons_step_size + person_index] = person_role
-            entity.roles_count = person_entity_role_array.max() + 1
+            for entity in simulation.entity_by_key_plural.itervalues():
+                if entity.count == 0:
+                    entity.count = 1
+                if entity is not persons:
+                    index_holder = persons.get_or_new_holder(entity.index_for_person_variable_name)
+                    index_array = index_holder.array
+                    if index_array is None:
+                        index_holder.array = np.arange(persons.count, dtype = index_holder.column.dtype)
 
-        for entity_key_plural, entity in entity_by_key_plural.iteritems():
-            used_columns_name = set(
-                key
-                for entity_member in test_case[entity_key_plural]
-                for key, value in entity_member.iteritems()
-                if value is not None and key not in (
-                    entity.index_for_person_variable_name,
-                    entity.role_for_person_variable_name,
-                    ) and key not in variables_name_to_skip
+                    role_holder = persons.get_or_new_holder(entity.role_for_person_variable_name)
+                    role_array = role_holder.array
+                    if role_array is None:
+                        role_holder.array = np.zeros(persons.count, role_holder.column.dtype)
+                    entity.roles_count = 1
+        else:
+            steps_count = 1
+            if self.axes is not None:
+                for parallel_axes in self.axes:
+                    # All parallel axes have the same count, entity and period.
+                    axis = parallel_axes[0]
+                    steps_count *= axis['count']
+            simulation.steps_count = steps_count
+
+            for entity in entity_by_key_plural.itervalues():
+                entity.step_size = entity_step_size = len(test_case[entity.key_plural])
+                entity.count = steps_count * entity_step_size
+            persons_step_size = persons.step_size
+
+            person_index_by_id = dict(
+                (person[u'id'], person_index)
+                for person_index, person in enumerate(test_case[persons.key_plural])
                 )
-            for variable_name, column in column_by_name.iteritems():
-                if column.entity == entity.symbol and variable_name in used_columns_name:
-                    variable_periods = set()
-                    for cell in (
-                            entity_member.get(variable_name)
-                            for entity_member in test_case[entity_key_plural]
-                            ):
-                        if isinstance(cell, dict):
-                            if any(value is not None for value in cell.itervalues()):
-                                variable_periods.update(cell.iterkeys())
-                        elif cell is not None:
-                            variable_periods.add(simulation_period)
-                    holder = entity.get_or_new_holder(variable_name)
-                    variable_default_value = column.default
-                    for variable_period in variable_periods:
-                        variable_values = [
-                            variable_default_value if dated_cell is None else dated_cell
-                            for dated_cell in (
-                                cell.get(variable_period) if isinstance(cell, dict) else (cell
-                                    if variable_period == simulation_period else None)
-                                for cell in (
-                                    entity_member.get(variable_name)
-                                    for entity_member in test_case[entity_key_plural]
-                                    )
-                                )
-                            ]
-                        variable_values_iter = (
-                            variable_value
-                            for step_index in range(steps_count)
-                            for variable_value in variable_values
-                            )
-                        array = np.fromiter(variable_values_iter, dtype = column.dtype) \
-                            if column.dtype is not object \
-                            else np.array(list(variable_values_iter), dtype = column.dtype)
-                        holder.set_array(variable_period, array)
 
-        if self.axes is not None:
-            if len(self.axes) == 1:
-                parallel_axes = self.axes[0]
-                # All parallel axes have the same count, entity and period.
-                first_axis = parallel_axes[0]
-                axis_count = first_axis['count']
-                axis_entity = simulation.entity_by_column_name[first_axis['name']]
-                axis_period = first_axis['period'] or simulation_period
-                for axis in parallel_axes:
-                    holder = simulation.get_or_new_holder(axis['name'])
-                    column = holder.column
-                    array = holder.get_array(axis_period)
-                    if array is None:
-                        array = np.empty(axis_entity.count, dtype = column.dtype)
-                        array.fill(column.default)
-                        holder.set_array(axis_period, array)
-                    array[axis['index']:: axis_entity.step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-            else:
-                axes_linspaces = [
-                    np.linspace(0, first_axis['count'] - 1, first_axis['count'])
-                    for first_axis in (
-                        parallel_axes[0]
-                        for parallel_axes in self.axes
-                        )
-                    ]
-                axes_meshes = np.meshgrid(*axes_linspaces)
-                for parallel_axes, mesh in zip(self.axes, axes_meshes):
+            for entity_key_plural, entity in entity_by_key_plural.iteritems():
+                if entity.is_persons_entity:
+                    continue
+                entity_step_size = entity.step_size
+                persons.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = \
+                    np.empty(steps_count * persons.step_size,
+                        dtype = column_by_name[entity.index_for_person_variable_name].dtype)
+                persons.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = \
+                    np.empty(steps_count * persons.step_size,
+                        dtype = column_by_name[entity.role_for_person_variable_name].dtype)
+                for member_index, member in enumerate(test_case[entity_key_plural]):
+                    for person_role, person_id in entity.iter_member_persons_role_and_id(member):
+                        person_index = person_index_by_id[person_id]
+                        for step_index in range(steps_count):
+                            person_entity_id_array[step_index * persons_step_size + person_index] \
+                                = step_index * entity_step_size + member_index
+                            person_entity_role_array[step_index * persons_step_size + person_index] = person_role
+                entity.roles_count = person_entity_role_array.max() + 1
+
+            for entity_key_plural, entity in entity_by_key_plural.iteritems():
+                used_columns_name = set(
+                    key
+                    for entity_member in test_case[entity_key_plural]
+                    for key, value in entity_member.iteritems()
+                    if value is not None and key not in (
+                        entity.index_for_person_variable_name,
+                        entity.role_for_person_variable_name,
+                        ) and key not in variables_name_to_skip
+                    )
+                for variable_name, column in column_by_name.iteritems():
+                    if column.entity == entity.symbol and variable_name in used_columns_name:
+                        variable_periods = set()
+                        for cell in (
+                                entity_member.get(variable_name)
+                                for entity_member in test_case[entity_key_plural]
+                                ):
+                            if isinstance(cell, dict):
+                                if any(value is not None for value in cell.itervalues()):
+                                    variable_periods.update(cell.iterkeys())
+                            elif cell is not None:
+                                variable_periods.add(simulation_period)
+                        holder = entity.get_or_new_holder(variable_name)
+                        variable_default_value = column.default
+                        for variable_period in variable_periods:
+                            variable_values = [
+                                variable_default_value if dated_cell is None else dated_cell
+                                for dated_cell in (
+                                    cell.get(variable_period) if isinstance(cell, dict) else (cell
+                                        if variable_period == simulation_period else None)
+                                    for cell in (
+                                        entity_member.get(variable_name)
+                                        for entity_member in test_case[entity_key_plural]
+                                        )
+                                    )
+                                ]
+                            variable_values_iter = (
+                                variable_value
+                                for step_index in range(steps_count)
+                                for variable_value in variable_values
+                                )
+                            array = np.fromiter(variable_values_iter, dtype = column.dtype) \
+                                if column.dtype is not object \
+                                else np.array(list(variable_values_iter), dtype = column.dtype)
+                            holder.set_array(variable_period, array)
+
+            if self.axes is not None:
+                if len(self.axes) == 1:
+                    parallel_axes = self.axes[0]
                     # All parallel axes have the same count, entity and period.
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
@@ -194,8 +201,32 @@ class AbstractScenario(object):
                             array = np.empty(axis_entity.count, dtype = column.dtype)
                             array.fill(column.default)
                             holder.set_array(axis_period, array)
-                        array[axis['index']:: axis_entity.step_size] = axis['min'] \
-                            + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                        array[axis['index']:: axis_entity.step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+                else:
+                    axes_linspaces = [
+                        np.linspace(0, first_axis['count'] - 1, first_axis['count'])
+                        for first_axis in (
+                            parallel_axes[0]
+                            for parallel_axes in self.axes
+                            )
+                        ]
+                    axes_meshes = np.meshgrid(*axes_linspaces)
+                    for parallel_axes, mesh in zip(self.axes, axes_meshes):
+                        # All parallel axes have the same count, entity and period.
+                        first_axis = parallel_axes[0]
+                        axis_count = first_axis['count']
+                        axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                        axis_period = first_axis['period'] or simulation_period
+                        for axis in parallel_axes:
+                            holder = simulation.get_or_new_holder(axis['name'])
+                            column = holder.column
+                            array = holder.get_array(axis_period)
+                            if array is None:
+                                array = np.empty(axis_entity.count, dtype = column.dtype)
+                                array.fill(column.default)
+                                holder.set_array(axis_period, array)
+                            array[axis['index']:: axis_entity.step_size] = axis['min'] \
+                                + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
@@ -218,14 +249,12 @@ class AbstractScenario(object):
                 conv.struct(
                     dict(
                         axes = make_json_or_python_to_axes(self.tax_benefit_system),
+                        input_variables = conv.test_isinstance(dict),  # Real test is done below, once period is known.
                         period = conv.pipe(
                             periods.json_or_python_to_period,  # TODO: Check that period is valid in params.
                             conv.not_none,
                             ),
-                        test_case = conv.pipe(
-                            conv.test_isinstance(dict),  # Real test is done below, once period is known.
-                            conv.not_none,
-                            ),
+                        test_case = conv.test_isinstance(dict),  # Real test is done below, once period is known.
                         ),
                     ),
                 )(value, state = state)
@@ -235,6 +264,7 @@ class AbstractScenario(object):
             # Second validation and conversion step
             data, error = conv.struct(
                 dict(
+                    input_variables = make_json_or_python_to_input_variables(self.tax_benefit_system, data['period']),
                     test_case = self.make_json_or_python_to_test_case(period = data['period'], repair = repair),
                     ),
                 default = conv.noop,
@@ -244,6 +274,14 @@ class AbstractScenario(object):
 
             # Third validation and conversion step
             errors = {}
+            if data['input_variables'] is not None and data['test_case'] is not None:
+                errors['input_variables'] = state._(u"Items input_variables and test_case can't both exist")
+                errors['test_case'] = state._(u"Items input_variables and test_case can't both exist")
+            elif data['axes'] is not None and data["test_case"] is None:
+                errors['axes'] = state._(u"Axes can't be used with input_variables.")
+            if errors:
+                return data, errors
+
             if data['axes'] is not None:
                 for parallel_axes_index, parallel_axes in enumerate(data['axes']):
                     first_axis = parallel_axes[0]
@@ -270,12 +308,15 @@ class AbstractScenario(object):
                             if axis['period'] != axis_period:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(u"Parallel indexes must have the same period")
-            if errors:
-                return data, errors
+                if errors:
+                    return data, errors
 
             self.axes = data['axes']
+            if data['input_variables'] is not None:
+                self.input_variables = data['input_variables']
             self.period = data['period']
-            self.test_case = data['test_case']
+            if data['test_case'] is not None:
+                self.test_case = data['test_case']
             return self, None
 
         return json_or_python_to_attributes
@@ -318,12 +359,33 @@ class AbstractScenario(object):
                 (key, getattr(self, key))
                 for key in (
                     'axes',
+                    'input_variables',
                     'period',
                     'test_case',
                     )
                 )
             if value is not None
             )
+
+
+def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, period):
+    def json_or_python_to_array_by_period_by_variable_name(value, state = None):
+        if value is None:
+            return value, None
+        if state is None:
+            state = conv.default_state
+        error_by_variable_name = {}
+        array_by_period_by_variable_name = {}
+        for variable_name, variable_value in value.iteritems():
+            column = tax_benefit_system.column_by_name[variable_name]
+            variable_array_by_period, error = column.make_json_to_array_by_period(period)(variable_value, state = state)
+            if variable_array_by_period is not None:
+                array_by_period_by_variable_name[variable_name] = variable_array_by_period
+            if error is not None:
+                error_by_variable_name[variable_name] = error
+        return array_by_period_by_variable_name, error_by_variable_name or None
+
+    return json_or_python_to_array_by_period_by_variable_name
 
 
 def make_json_or_python_to_axes(tax_benefit_system):
@@ -378,24 +440,49 @@ def make_json_or_python_to_axes(tax_benefit_system):
         )
 
 
-def make_json_or_python_to_output_by_variable_name(tax_benefit_system):
-    def json_or_python_to_output_by_variable_name(value, state = None):
+def make_json_or_python_to_input_variables(tax_benefit_system, period):
+    column_by_name = tax_benefit_system.column_by_name
+    variables_name = set(column_by_name)
+
+    def json_or_python_to_input_variables(value, state = None):
         if value is None:
             return value, None
         if state is None:
             state = conv.default_state
-        error_by_variable_name = {}
-        output_by_variable_name = {}
-        for variable_name, variable_value in value.iteritems():
-            column = tax_benefit_system.column_by_name[variable_name]
-            variable_output, error = column.json_to_python(variable_value, state = state)
-            if variable_output is not None:
-                output_by_variable_name[variable_name] = variable_output
-            if error is not None:
-                error_by_variable_name[variable_name] = error
-        return output_by_variable_name, error_by_variable_name or None
 
-    return json_or_python_to_output_by_variable_name
+        input_variables, errors = conv.pipe(
+            conv.test_isinstance(dict),
+            conv.uniform_mapping(
+                conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.test_in(variables_name),
+                    conv.not_none,
+                    ),
+                conv.noop,
+                ),
+            make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, period),
+            conv.empty_to_none,
+            )(value, state = state)
+        if errors is not None:
+            return input_variables, errors
+
+        count_by_entity_key_plural = {}
+        errors = {}
+        for variable_name, array_by_period in input_variables.iteritems():
+            column = column_by_name[variable_name]
+            entity_key_plural = column.entity_key_plural
+            entity_count = count_by_entity_key_plural.get(entity_key_plural, 0)
+            for variable_period, variable_array in array_by_period.iteritems():
+                if entity_count == 0:
+                    count_by_entity_key_plural[entity_key_plural] = entity_count = len(variable_array)
+                elif len(variable_array) != entity_count:
+                    errors[column.name] = state._(
+                        u"Array has not the same length as other variables of entity {}: {} instead of {}").format(
+                            column.name, len(variable_array, entity_count))
+
+        return input_variables, errors or None
+
+    return json_or_python_to_input_variables
 
 
 def make_json_or_python_to_test(tax_benefit_system):
@@ -429,19 +516,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
-                output_variables = conv.pipe(
-                    conv.test_isinstance(dict),
-                    conv.uniform_mapping(
-                        conv.pipe(
-                            conv.test_isinstance(basestring),
-                            conv.test_in(variables_name),
-                            conv.not_none,
-                            ),
-                        conv.noop,
-                        ),
-                    make_json_or_python_to_output_by_variable_name(tax_benefit_system),
-                    conv.empty_to_none,
-                    ),
+                output_variables = conv.test_isinstance(dict),
                 period = conv.pipe(
                     periods.json_or_python_to_period,
                     conv.not_none,
@@ -465,6 +540,16 @@ def make_json_or_python_to_test(tax_benefit_system):
         value, error = validate(value, state = state)
         if error is not None:
             return value, error
+
+        value, error = conv.struct(
+            dict(
+                output_variables = make_json_or_python_to_input_variables(tax_benefit_system, value['period']),
+                ),
+            default = conv.noop,
+            )(value, state = state)
+        if error is not None:
+            return value, error
+
         test_case = value.copy()
         axes = test_case.pop(u'axes')
         description = test_case.pop(u'description')
@@ -474,44 +559,18 @@ def make_json_or_python_to_test(tax_benefit_system):
         output_variables = test_case.pop(u'output_variables')
         period = test_case.pop(u'period')
 
-        if input_variables is not None or all(item_value is None for item_value in test_case.itervalues()):
-            # When using input_variables, always ensure that the test_case contains at least one person. Otherwise
-            # scenario validation will fail.
-            person_members = test_case[tax_benefit_system.person_key_plural]
-            if person_members is None:
-                test_case[tax_benefit_system.person_key_plural] = person_members = []
-            if not person_members:
-                person_members.append({})
+        if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
+            test_case = None
 
         scenario, error = tax_benefit_system.Scenario.make_json_to_instance(repair = True,
             tax_benefit_system = tax_benefit_system)(dict(
                 axes = axes,
+                input_variables = input_variables,
                 period = period,
                 test_case = test_case,
                 ), state = state)
         if error is not None:
             return scenario, error
-
-        if input_variables is not None:
-            # Dispatch input variables to their respective entities.
-            # When there are several entities of the same type, the first one is used.
-            error_by_variable_name = {}
-            test_case = scenario.test_case
-            for variable_name, variable_value in input_variables.iteritems():
-                column = column_by_name[variable_name]
-                entity_members = test_case[column.entity_key_plural]
-                entity_member = entity_members[0]
-                existing_value = entity_member.get(variable_name)
-                if existing_value is not None:
-                    error_by_variable_name[variable_name] = N_(
-                        u"Input variable can't override an existing value in entity")
-                    continue
-                cell, error = column.json_to_python(variable_value, state = state)
-                if error is not None:
-                    error_by_variable_name[variable_name] = error
-                entity_member[variable_name] = cell
-            if error_by_variable_name:
-                return value, error_by_variable_name
 
         return {
             key: value
