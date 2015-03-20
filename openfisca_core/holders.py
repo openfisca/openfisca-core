@@ -377,6 +377,9 @@ class Holder(object):
             self._array_by_period = array_by_period = {}
         array_by_period[period] = array
 
+    def set_input(self, period, array):
+        self.formula.set_input(period, array)
+
     def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.

@@ -85,7 +85,7 @@ class AbstractScenario(object):
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
-                        holder.set_array(period, array)
+                        holder.set_input(period, array)
 
             for entity in simulation.entity_by_key_plural.itervalues():
                 if entity.count == 0:
@@ -183,7 +183,7 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
-                            holder.set_array(variable_period, array)
+                            holder.set_input(variable_period, array)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -200,7 +200,7 @@ class AbstractScenario(object):
                         if array is None:
                             array = np.empty(axis_entity.count, dtype = column.dtype)
                             array.fill(column.default)
-                            holder.set_array(axis_period, array)
+                            holder.set_input(axis_period, array)
                         array[axis['index']:: axis_entity.step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                 else:
                     axes_linspaces = [
@@ -224,7 +224,7 @@ class AbstractScenario(object):
                             if array is None:
                                 array = np.empty(axis_entity.count, dtype = column.dtype)
                                 array.fill(column.default)
-                                holder.set_array(axis_period, array)
+                                holder.set_input(axis_period, array)
                             array[axis['index']:: axis_entity.step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
 

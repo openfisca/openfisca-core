@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
 import collections
 import datetime
 import inspect
@@ -75,6 +77,9 @@ class AbstractFormula(object):
     @property
     def real_formula(self):
         return self
+
+    def set_input(self, period, array):
+        self.holder.set_array(period, array)
 
 
 class AbstractEntityToEntity(AbstractFormula):
@@ -1083,6 +1088,35 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
+def divide_input_by_month(formula, period, array):
+    holder = formula.holder
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'month' and period_size > 1 or period_unit == u'year':
+        after_instant = period.start.offset(period_size, period_unit)
+        month = period.start.period(u'month')
+        divided_array = array / period_size if period_unit == u'month' else array / (12 * period_size)
+        while month.start < after_instant:
+            holder.set_array(month, divided_array)
+            month = month.offset(1)
+        # Also set original period and array.
+    holder.set_array(period, array)
+
+
+def duplicate_input_by_month(formula, period, array):
+    holder = formula.holder
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'month' and period_size > 1 or period_unit == u'year':
+        after_instant = period.start.offset(period_size, period_unit)
+        month = period.start.period(u'month')
+        while month.start < after_instant:
+            holder.set_array(month, array)
+            month = month.offset(1)
+        # Also set original period and array.
+    holder.set_array(period, array)
+
+
 def last_duration_last_value(formula, simulation, period):
     # This formula is used for variables that are constants between events but are period size dependent.
     # It returns the latest known value for the requested start of period but with the last period size.
@@ -1138,7 +1172,7 @@ def permanent_default_value(formula, simulation, period):
 
 
 def reference_input_variable(base_function = None, column = None, entity_class = None, is_permanent = False,
-        label = None, name = None, start_date = None, stop_date = None, update = False, url = None):
+        label = None, name = None, set_input = None, start_date = None, stop_date = None, update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
     if not isinstance(column, columns.Column):
         column = column()
@@ -1155,9 +1189,12 @@ def reference_input_variable(base_function = None, column = None, entity_class =
     name = unicode(name)
     label = name if label is None else unicode(label)
 
-    column.formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
+    column.formula_class = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
         base_function = base_function,
         ))
+    if set_input is not None:
+        formula_class.set_input = set_input
+
     if stop_date is not None:
         assert isinstance(stop_date, datetime.date)
         column.end = stop_date
