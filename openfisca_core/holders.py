@@ -178,7 +178,7 @@ class Holder(object):
         else:
             assert unit == u'year', unit
             remaining_period_months = period.size * 12
-        requested_period = period
+        requested_period = period.start.period(unit)
         while True:
             dated_holder = self.compute(accept_other_period = True, period = requested_period,
                 requested_formulas_by_period = requested_formulas_by_period)
@@ -215,11 +215,9 @@ class Holder(object):
                 dated_holder.array = array
                 return dated_holder
             if remaining_period_months % 12 == 0:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year',
-                    remaining_period_months // 12)
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year')
             else:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month',
-                    remaining_period_months)
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month')
 
     def compute_add_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
@@ -233,7 +231,7 @@ class Holder(object):
         else:
             assert unit == u'year', unit
             remaining_period_months = period.size * 12
-        requested_period = period
+        requested_period = period.start.period(unit)
         while True:
             dated_holder = self.compute(accept_other_period = True, period = requested_period,
                 requested_formulas_by_period = requested_formulas_by_period)
@@ -276,11 +274,9 @@ class Holder(object):
                         returned_period, self.column.name)
                 returned_period_months = returned_period.size * 12
             if remaining_period_months % 12 == 0:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year',
-                    remaining_period_months // 12)
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year')
             else:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month',
-                    remaining_period_months)
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month')
 
     def compute_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
