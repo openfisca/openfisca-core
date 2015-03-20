@@ -25,8 +25,6 @@
 
 from __future__ import division
 
-import math
-
 import numpy as np
 
 from . import periods
@@ -174,39 +172,54 @@ class Holder(object):
             return dated_holder
 
         array = None
-        unit = period[0]
-        year, month, day = period.start
+        unit = period.unit
         if unit == u'month':
-            for month_index in range(period.size):
-                month_period = periods.period(u'month', periods.instant((year, month, day)))
-                month_array = self.calculate(period = month_period,
-                    requested_formulas_by_period = requested_formulas_by_period)
-                if array is None:
-                    array = month_array.copy()
-                else:
-                    array += month_array
-                month += 1
-                if month > 12:
-                    month -= 12
-                    year += 1
+            remaining_period_months = period.size
         else:
             assert unit == u'year', unit
-            for year_index in range(period.size):
-                for month_index in range(12):
-                    month_period = periods.period(u'month', periods.instant((year, month, day)))
-                    month_array = self.calculate(period = month_period,
-                        requested_formulas_by_period = requested_formulas_by_period)
-                    if array is None:
-                        array = month_array.copy()
-                    else:
-                        array += month_array
-                    month += 1
-                    if month > 12:
-                        month -= 12
-                        year += 1
-        dated_holder = self.at_period(period)
-        dated_holder.array = array
-        return dated_holder
+            remaining_period_months = period.size * 12
+        requested_period = period
+        while True:
+            dated_holder = self.compute(accept_other_period = True, period = requested_period,
+                requested_formulas_by_period = requested_formulas_by_period)
+            requested_start = requested_period.start
+            returned_period = dated_holder.period
+            returned_start = returned_period.start
+            assert returned_start.day == 1
+            # Note: A dated formula may start after requested period => returned_start is not always equal to
+            # requested_period.start.
+            assert returned_start >= requested_period.start, \
+                "Period {} returned by variable {} doesn't have the same start as requested period {}.".format(
+                    returned_period, self.column.name, requested_period)
+            if returned_period.unit == u'month':
+                returned_period_months = returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.column.name)
+                returned_period_months = returned_period.size * 12
+            requested_start_months = requested_start.year * 12 + requested_start.month
+            returned_start_months = returned_start.year * 12 + returned_start.month
+            returned_period_months = returned_start_months + returned_period_months - requested_start_months
+            remaining_period_months -= returned_period_months
+            assert remaining_period_months >= 0, \
+                "Period {} returned by variable {} is larger than the requested_period {}.".format(
+                    returned_period, self.column.name, requested_period)
+            if array is None:
+                array = dated_holder.array.copy()
+            else:
+                array += dated_holder.array
+
+            if remaining_period_months <= 0:
+                dated_holder = self.at_period(period)
+                dated_holder.array = array
+                return dated_holder
+            if remaining_period_months % 12 == 0:
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year',
+                    remaining_period_months // 12)
+            else:
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month',
+                    remaining_period_months)
 
     def compute_add_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
@@ -214,85 +227,60 @@ class Holder(object):
             return dated_holder
 
         array = None
-        unit = period[0]
-        requested_period = period
+        unit = period.unit
         if unit == u'month':
             remaining_period_months = period.size
-            while True:
-                dated_holder = self.compute(accept_other_period = True, period = requested_period,
-                    requested_formulas_by_period = requested_formulas_by_period)
-                requested_start = requested_period.start
-                returned_period = dated_holder.period
-                returned_start = returned_period.start
-                assert returned_start.day == 1
-                assert returned_start <= requested_start <= returned_period.stop, \
-                    "Period {} returned by variable {} doesn't include start of requested period {}.".format(
-                        returned_period, self.column.name, requested_period)
-                requested_start_months = requested_start.year * 12 + requested_start.month
-                returned_start_months = returned_start.year * 12 + returned_start.month
-                if returned_period.unit == u'month':
-                    intersection_months = min(requested_start_months + requested_period.size,
-                        returned_start_months + returned_period.size) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_months / returned_period.size
-                else:
-                    assert returned_period.unit == u'year', \
-                        "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                            returned_period, self.column.name)
-                    intersection_months = min(requested_start_months + requested_period.size,
-                        returned_start_months + returned_period.size * 12) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
-                if array is None:
-                    array = intersection_array.copy()
-                else:
-                    array += intersection_array
-
-                remaining_period_months -= intersection_months
-                if remaining_period_months <= 0:
-                    dated_holder = self.at_period(period)
-                    dated_holder.array = array
-                    return dated_holder
-                requested_period_size = requested_period.size - intersection_months
-                requested_period = requested_start.offset(intersection_months, u'month').period(u'month',
-                    requested_period_size)
         else:
             assert unit == u'year', unit
             remaining_period_months = period.size * 12
-            while True:
-                dated_holder = self.compute(accept_other_period = True, period = requested_period,
-                    requested_formulas_by_period = requested_formulas_by_period)
-                requested_start = requested_period.start
-                returned_period = dated_holder.period
-                returned_start = returned_period.start
-                assert returned_start.day == 1
-                assert returned_start <= requested_start <= returned_period.stop, \
-                    "Period {} returned by variable {} doesn't include start of requested period {}.".format(
-                        returned_period, self.column.name, requested_period)
-                requested_start_months = requested_start.year * 12 + requested_start.month
-                returned_start_months = returned_start.year * 12 + returned_start.month
-                if returned_period.unit == u'month':
-                    intersection_months = min(requested_start_months + requested_period.size * 12,
-                        returned_start_months + returned_period.size) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_months / returned_period.size
-                else:
-                    assert returned_period.unit == u'year', \
-                        "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                            returned_period, self.column.name)
-                    intersection_months = min(requested_start_months + requested_period.size * 12,
-                        returned_start_months + returned_period.size * 12) - requested_start_months
-                    intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
-                if array is None:
-                    array = intersection_array.copy()
-                else:
-                    array += intersection_array
+        requested_period = period
+        while True:
+            dated_holder = self.compute(accept_other_period = True, period = requested_period,
+                requested_formulas_by_period = requested_formulas_by_period)
+            requested_start = requested_period.start
+            returned_period = dated_holder.period
+            returned_start = returned_period.start
+            assert returned_start.day == 1
+            # Note: A dated formula may start after requested period.
+            # assert returned_start <= requested_start <= returned_period.stop, \
+            #     "Period {} returned by variable {} doesn't include start of requested period {}.".format(
+            #         returned_period, self.column.name, requested_period)
+            requested_start_months = requested_start.year * 12 + requested_start.month
+            returned_start_months = returned_start.year * 12 + returned_start.month
+            if returned_period.unit == u'month':
+                intersection_months = min(requested_start_months + requested_period.size,
+                    returned_start_months + returned_period.size) - requested_start_months
+                intersection_array = dated_holder.array * intersection_months / returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.column.name)
+                intersection_months = min(requested_start_months + requested_period.size,
+                    returned_start_months + returned_period.size * 12) - requested_start_months
+                intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
+            if array is None:
+                array = intersection_array.copy()
+            else:
+                array += intersection_array
 
-                remaining_period_months -= intersection_months
-                if remaining_period_months <= 0:
-                    dated_holder = self.at_period(period)
-                    dated_holder.array = array
-                    return dated_holder
-                requested_period_size = requested_period.size - int(math.floor(intersection_months / 12))
-                requested_period = requested_start.offset(intersection_months, u'month').period(u'year',
-                    requested_period_size)
+            remaining_period_months -= intersection_months
+            if remaining_period_months <= 0:
+                dated_holder = self.at_period(period)
+                dated_holder.array = array
+                return dated_holder
+            if returned_period.unit == u'month':
+                returned_period_months = returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.column.name)
+                returned_period_months = returned_period.size * 12
+            if remaining_period_months % 12 == 0:
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year',
+                    remaining_period_months // 12)
+            else:
+                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month',
+                    remaining_period_months)
 
     def compute_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
