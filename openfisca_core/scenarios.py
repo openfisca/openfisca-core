@@ -382,7 +382,7 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
         if state is None:
             state = conv.default_state
         error_by_variable_name = {}
-        array_by_period_by_variable_name = {}
+        array_by_period_by_variable_name = collections.OrderedDict()
         for variable_name, variable_value in value.iteritems():
             column = tax_benefit_system.column_by_name[variable_name]
             variable_array_by_period, error = column.make_json_to_array_by_period(period)(variable_value, state = state)
