@@ -1094,35 +1094,6 @@ def dated_function(start = None, stop = None):
     return dated_function_decorator
 
 
-def divide_input_by_month(formula, period, array):
-    holder = formula.holder
-    period_size = period.size
-    period_unit = period.unit
-    if period_unit == u'month' and period_size > 1 or period_unit == u'year':
-        after_instant = period.start.offset(period_size, period_unit)
-        month = period.start.period(u'month')
-        divided_array = array / period_size if period_unit == u'month' else array / (12 * period_size)
-        while month.start < after_instant:
-            holder.set_array(month, divided_array)
-            month = month.offset(1)
-        # Also set original period and array.
-    holder.set_array(period, array)
-
-
-def duplicate_input_by_month(formula, period, array):
-    holder = formula.holder
-    period_size = period.size
-    period_unit = period.unit
-    if period_unit == u'month' and period_size > 1 or period_unit == u'year':
-        after_instant = period.start.offset(period_size, period_unit)
-        month = period.start.period(u'month')
-        while month.start < after_instant:
-            holder.set_array(month, array)
-            month = month.offset(1)
-        # Also set original period and array.
-    holder.set_array(period, array)
-
-
 def last_duration_last_value(formula, simulation, period):
     # This formula is used for variables that are constants between events but are period size dependent.
     # It returns the latest known value for the requested start of period but with the last period size.
@@ -1246,3 +1217,43 @@ def requested_period_last_value(formula, simulation, period):
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
     return period, array
+
+
+def set_input_dispatch_by_period(formula, period, array):
+    holder = formula.holder
+    holder.set_array(period, array)
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'year' or period_size > 1:
+        after_instant = period.start.offset(period_size, period_unit)
+        if period_size > 1:
+            sub_period = period.start.period(period_unit)
+            while sub_period.start < after_instant:
+                holder.set_array(sub_period, array)
+                sub_period = sub_period.offset(1)
+        if period_unit == u'year':
+            month = period.start.period(u'month')
+            while month.start < after_instant:
+                holder.set_array(month, array)
+                month = month.offset(1)
+
+
+def set_input_divide_by_period(formula, period, array):
+    holder = formula.holder
+    holder.set_array(period, array)
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'year' or period_size > 1:
+        after_instant = period.start.offset(period_size, period_unit)
+        if period_size > 1:
+            divided_array = array / period_size
+            sub_period = period.start.period(period_unit)
+            while sub_period.start < after_instant:
+                holder.set_array(sub_period, divided_array)
+                sub_period = sub_period.offset(1)
+        if period_unit == u'year':
+            divided_array = array / (12 * period_size)
+            month = period.start.period(u'month')
+            while month.start < after_instant:
+                holder.set_array(month, divided_array)
+                month = month.offset(1)
