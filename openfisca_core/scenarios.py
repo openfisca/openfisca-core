@@ -87,20 +87,27 @@ class AbstractScenario(object):
                             entity.count = len(array)
                         holder.set_input(period, array)
 
+            if persons.count == 0:
+                persons.count = 1
             for entity in simulation.entity_by_key_plural.itervalues():
-                if entity.count == 0:
-                    entity.count = 1
-                if entity is not persons:
-                    index_holder = persons.get_or_new_holder(entity.index_for_person_variable_name)
-                    index_array = index_holder.array
-                    if index_array is None:
-                        index_holder.array = np.arange(persons.count, dtype = index_holder.column.dtype)
+                if entity is persons:
+                    continue
 
-                    role_holder = persons.get_or_new_holder(entity.role_for_person_variable_name)
-                    role_array = role_holder.array
-                    if role_array is None:
-                        role_holder.array = np.zeros(persons.count, role_holder.column.dtype)
-                    entity.roles_count = 1
+                index_holder = persons.get_or_new_holder(entity.index_for_person_variable_name)
+                index_array = index_holder.array
+                if index_array is None:
+                    index_holder.array = np.arange(persons.count, dtype = index_holder.column.dtype)
+
+                role_holder = persons.get_or_new_holder(entity.role_for_person_variable_name)
+                role_array = role_holder.array
+                if role_array is None:
+                    role_holder.array = np.zeros(persons.count, role_holder.column.dtype)
+                entity.roles_count = 1
+
+                if entity.count == 0:
+                    entity.count = max(index_holder.array) + 1
+                else:
+                    assert entity.count == max(index_holder.array) + 1
         else:
             steps_count = 1
             if self.axes is not None:
