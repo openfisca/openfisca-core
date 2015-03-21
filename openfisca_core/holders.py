@@ -187,8 +187,8 @@ class Holder(object):
             returned_start = returned_period.start
             assert returned_start.day == 1
             # Note: A dated formula may start after requested period => returned_start is not always equal to
-            # requested_period.start.
-            assert returned_start >= requested_period.start, \
+            # requested_start.
+            assert returned_start >= requested_start, \
                 "Period {} returned by variable {} doesn't have the same start as requested period {}.".format(
                     returned_period, self.column.name, requested_period)
             if returned_period.unit == u'month':
@@ -215,9 +215,9 @@ class Holder(object):
                 dated_holder.array = array
                 return dated_holder
             if remaining_period_months % 12 == 0:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year')
+                requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
             else:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month')
+                requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
 
     def compute_add_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
@@ -266,17 +266,10 @@ class Holder(object):
                 dated_holder = self.at_period(period)
                 dated_holder.array = array
                 return dated_holder
-            if returned_period.unit == u'month':
-                returned_period_months = returned_period.size
-            else:
-                assert returned_period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        returned_period, self.column.name)
-                returned_period_months = returned_period.size * 12
             if remaining_period_months % 12 == 0:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'year')
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
             else:
-                requested_period = requested_period.start.offset(returned_period_months, u'month').period(u'month')
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
 
     def compute_divide(self, period = None, requested_formulas_by_period = None):
         dated_holder = self.at_period(period)
