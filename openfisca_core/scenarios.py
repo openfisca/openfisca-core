@@ -485,7 +485,7 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
                 elif len(variable_array) != entity_count:
                     errors[column.name] = state._(
                         u"Array has not the same length as other variables of entity {}: {} instead of {}").format(
-                            column.name, len(variable_array, entity_count))
+                            column.name, len(variable_array), entity_count)
 
         return input_variables, errors or None
 
