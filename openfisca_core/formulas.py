@@ -1193,6 +1193,45 @@ def reference_input_variable(base_function = None, column = None, entity_class =
     entity_column_by_name[name] = column
 
 
+def requested_period_added_value(formula, simulation, period):
+    # This formula is used for variables that can be added to match requested period.
+    holder = formula.holder
+    column = holder.column
+    period_size = period.size
+    period_unit = period.unit
+    if holder._array_by_period is not None and (period_size > 1 or period_unit == u'year'):
+        after_instant = period.start.offset(period_size, period_unit)
+        if period_size > 1:
+            array = np.empty(holder.entity.count, dtype = column.dtype)
+            sub_period = period.start.period(period_unit)
+            while sub_period.start < after_instant:
+                sub_array = holder._array_by_period.get(sub_period)
+                if sub_array is None:
+                    array = None
+                    break
+                array += sub_array
+                sub_period = sub_period.offset(1)
+            if array is not None:
+                return period, array
+        if period_unit == u'year':
+            array = np.empty(holder.entity.count, dtype = column.dtype)
+            month = period.start.period(u'month')
+            while month.start < after_instant:
+                month_array = holder._array_by_period.get(month)
+                if month_array is None:
+                    array = None
+                    break
+                array += month_array
+                month = month.offset(1)
+            if array is not None:
+                return period, array
+    if formula.function is not None:
+        return formula.function(simulation, period)
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
 def requested_period_default_value(formula, simulation, period):
     if formula.function is not None:
         return formula.function(simulation, period)
