@@ -952,6 +952,12 @@ class FormulaColumnMetaclass(type):
                 """Missing attribute "base_function" in definition of class {}""".format(name)
         formula_class_attributes['base_function'] = base_function
 
+        set_input = attributes.pop('set_input', UnboundLocalError)
+        if set_input is UnboundLocalError:
+            set_input = None if reference_column is None else reference_column.formula_class.set_input
+        if set_input is not None:
+            formula_class_attributes['set_input'] = set_input
+
         if issubclass(formula_class, DatedFormula):
             assert not is_permanent
             dated_formulas_class = []
