@@ -302,13 +302,13 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
         PARENT2])
     simulation.get_or_new_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])
     revenu_disponible = simulation.calculate('revenu_disponible')
-    assert_near(revenu_disponible, expected_revenu_disponible, error_margin = 0.005)
+    assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
     # revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
     # expected_revenu_disponible_famille = np.array([
     #     expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
     #     for i in range(0, len(expected_revenu_disponible), 2)
     #     ])
-    # assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, error_margin = 0.005)
+    # assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, absolute_error_margin = 0.005)
 
 
 def main():

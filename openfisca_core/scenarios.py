@@ -492,12 +492,17 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
     return json_or_python_to_input_variables
 
 
-def make_json_or_python_to_test(tax_benefit_system):
+def make_json_or_python_to_test(tax_benefit_system, default_absolute_error_margin = None,
+        default_relative_error_margin = None):
     column_by_name = tax_benefit_system.column_by_name
     variables_name = set(column_by_name)
     validate = conv.struct(
         dict(itertools.chain(
             dict(
+                absolute_error_margin = conv.pipe(
+                    conv.test_isinstance((float, int)),
+                    conv.test_greater_or_equal(0),
+                    ),
                 axes = make_json_or_python_to_axes(tax_benefit_system),
                 description = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -519,6 +524,18 @@ def make_json_or_python_to_test(tax_benefit_system):
                         ),
                     conv.empty_to_none,
                     ),
+                keywords = conv.pipe(
+                    conv.make_item_to_singleton(),
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        conv.pipe(
+                            conv.test_isinstance(basestring),
+                            conv.cleanup_line,
+                            ),
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    ),
                 name = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
@@ -527,6 +544,10 @@ def make_json_or_python_to_test(tax_benefit_system):
                 period = conv.pipe(
                     periods.json_or_python_to_period,
                     conv.not_none,
+                    ),
+                relative_error_margin = conv.pipe(
+                    conv.test_isinstance((float, int)),
+                    conv.test_greater_or_equal(0),
                     ),
                 ).iteritems(),
             (
@@ -558,13 +579,20 @@ def make_json_or_python_to_test(tax_benefit_system):
             return value, error
 
         test_case = value.copy()
+        absolute_error_margin = test_case.pop(u'absolute_error_margin')
         axes = test_case.pop(u'axes')
         description = test_case.pop(u'description')
         ignore = test_case.pop(u'ignore')
         input_variables = test_case.pop(u'input_variables')
+        keywords = test_case.pop(u'keywords')
         name = test_case.pop(u'name')
         output_variables = test_case.pop(u'output_variables')
         period = test_case.pop(u'period')
+        relative_error_margin = test_case.pop(u'relative_error_margin')
+
+        if absolute_error_margin is None and relative_error_margin is None:
+            absolute_error_margin = default_absolute_error_margin
+            relative_error_margin = default_relative_error_margin
 
         if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
             test_case = None
@@ -582,11 +610,14 @@ def make_json_or_python_to_test(tax_benefit_system):
         return {
             key: value
             for key, value in dict(
+                absolute_error_margin = absolute_error_margin,
                 description = description,
                 ignore = ignore,
+                keywords = keywords,
                 name = name,
                 scenario = scenario,
                 output_variables = output_variables,
+                relative_error_margin = relative_error_margin,
                 ).iteritems()
             if value is not None
             }, None

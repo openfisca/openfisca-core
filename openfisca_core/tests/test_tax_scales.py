@@ -36,17 +36,17 @@ def test_linear_average_rate_tax_scale():
     marginal_tax_scale.add_bracket(0, 0)
     marginal_tax_scale.add_bracket(1, 0.1)
     marginal_tax_scale.add_bracket(2, 0.2)
-    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], error_margin = 0)
+    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], absolute_error_margin = 0)
 
     average_tax_scale = marginal_tax_scale.to_average()
-    assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], error_margin = 0)
-    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], error_margin = 0)
-    assert_near(average_tax_scale.calc(base), [0, 0.0375, 0.1, 0.125], error_margin = 1e-10)
+    assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], absolute_error_margin = 0)
+    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], absolute_error_margin = 0)
+    assert_near(average_tax_scale.calc(base), [0, 0.0375, 0.1, 0.125], absolute_error_margin = 1e-10)
 
     new_marginal_tax_scale = average_tax_scale.to_marginal()
-    assert_near(new_marginal_tax_scale.thresholds, marginal_tax_scale.thresholds, error_margin = 0)
-    assert_near(new_marginal_tax_scale.rates, marginal_tax_scale.rates, error_margin = 0)
-    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], error_margin = 0)
+    assert_near(new_marginal_tax_scale.thresholds, marginal_tax_scale.thresholds, absolute_error_margin = 0)
+    assert_near(new_marginal_tax_scale.rates, marginal_tax_scale.rates, absolute_error_margin = 0)
+    assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], absolute_error_margin = 0)
 
 
 def test_round_marginal_tax_scale():
@@ -60,22 +60,22 @@ def test_round_marginal_tax_scale():
     assert_near(
         marginal_tax_scale.calc(base),
         [10, 10.02, 10.0002, 10.06, 10.0006, 10.05, 10.0005],
-        error_margin = 1e-10,
+        absolute_error_margin = 1e-10,
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 1),
         [10, 10., 10., 10.1, 10., 10, 10.],
-        error_margin = 1e-10,
+        absolute_error_margin = 1e-10,
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 2),
         [10, 10.02, 10., 10.06, 10.00, 10.05, 10],
-        error_margin = 1e-10,
+        absolute_error_margin = 1e-10,
         )
     assert_near(
         marginal_tax_scale.calc(base, round_base_decimals = 3),
         [10, 10.02, 10., 10.06, 10.001, 10.05, 10],
-        error_margin = 1e-10,
+        absolute_error_margin = 1e-10,
         )
 
 

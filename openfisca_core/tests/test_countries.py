@@ -477,7 +477,7 @@ def test_1_axis():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], error_margin = 0.005)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
 
 
 def test_2_parallel_axes_1_constant():
@@ -504,7 +504,7 @@ def test_2_parallel_axes_1_constant():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], error_margin = 0.005)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
 
 
 def test_2_parallel_axes_same_values():
@@ -531,7 +531,7 @@ def test_2_parallel_axes_same_values():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], error_margin = 0.005)
+    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], absolute_error_margin = 0.005)
 
 
 def test_age():
@@ -542,7 +542,7 @@ def test_age():
             birth = datetime.date(year - 40, 1, 1),
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], error_margin = 0.005)
+    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
 
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
@@ -550,7 +550,7 @@ def test_age():
             age_en_mois = 40 * 12 + 11,
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], error_margin = 0.005)
+    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
@@ -570,13 +570,13 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
         parent2 = dict(),
         ).new_simulation(debug = True)
     revenu_disponible = simulation.calculate('revenu_disponible')
-    assert_near(revenu_disponible, expected_revenu_disponible, error_margin = 0.005)
+    assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
     revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
     expected_revenu_disponible_famille = np.array([
         expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
         for i in range(0, len(expected_revenu_disponible), 2)
         ])
-    assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, error_margin = 0.005)
+    assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, absolute_error_margin = 0.005)
 
 
 def test_revenu_disponible():

@@ -41,7 +41,8 @@ class Dummy(object):
     pass
 
 
-def assert_near(value, target_value, error_margin = 1, message = ''):
+def assert_near(value, target_value, absolute_error_margin = 0, message = '', relative_error_margin = None):
+    assert absolute_error_margin is not None or relative_error_margin is not None
     if isinstance(value, (list, tuple)):
         value = np.array(value)
     if isinstance(target_value, (list, tuple)):
@@ -49,19 +50,30 @@ def assert_near(value, target_value, error_margin = 1, message = ''):
     if isinstance(message, unicode):
         message = message.encode('utf-8')
     if isinstance(value, np.ndarray):
-        if error_margin <= 0:
+        if absolute_error_margin is not None and absolute_error_margin <= 0 \
+                or relative_error_margin is not None and relative_error_margin <= 0:
             assert (target_value == value).all(), '{}{} differs from {}'.format(message, value, target_value)
         else:
-            assert (target_value - error_margin < value).all() and (value < target_value + error_margin).all(), \
-                '{}{} differs from {} with a margin {} >= {}'.format(message, value, target_value,
-                    abs(value - target_value), error_margin)
+            if absolute_error_margin is not None:
+                assert (abs(target_value - value) < absolute_error_margin).all(), \
+                    '{}{} differs from {} with an absolute margin {} >= {}'.format(message, value, target_value,
+                        abs(target_value - value), absolute_error_margin)
+            if relative_error_margin is not None:
+                assert (abs(target_value - value) < abs(relative_error_margin * target_value)).all(), \
+                    '{}{} differs from {} with a relative margin {} >= {}'.format(message, value, target_value,
+                        abs(target_value - value), abs(relative_error_margin * target_value))
+    elif absolute_error_margin is not None and absolute_error_margin <= 0 \
+            or relative_error_margin is not None and relative_error_margin <= 0:
+        assert target_value == value, '{}{} differs from {}'.format(message, value, target_value)
     else:
-        if error_margin <= 0:
-            assert target_value == value, '{}{} differs from {}'.format(message, value, target_value)
-        else:
-            assert target_value - error_margin < value < target_value + error_margin, \
-                '{}{} differs from {} with a margin {} >= {}'.format(message, value, target_value,
-                    abs(value - target_value), error_margin)
+        if absolute_error_margin is not None:
+            assert abs(target_value - value) < absolute_error_margin, \
+                '{}{} differs from {} with an absolute margin {} >= {}'.format(message, value, target_value,
+                    abs(target_value - value), absolute_error_margin)
+        if relative_error_margin is not None:
+            assert abs(target_value - value) < abs(relative_error_margin * target_value), \
+                '{}{} differs from {} with a relative margin {} >= {}'.format(message, value, target_value,
+                    abs(target_value - value), abs(relative_error_margin * target_value))
 
 
 def empty_clone(original):
