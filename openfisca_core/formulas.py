@@ -691,6 +691,8 @@ class SimpleFormula(AbstractFormula):
 
     def to_json(self, input_variables_extractor = None):
         function = self.function
+        if function is None:
+            return None
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
         source_lines, line_number = inspect.getsourcelines(function)

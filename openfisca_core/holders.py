@@ -372,9 +372,9 @@ class Holder(object):
     def to_field_json(self, input_variables_extractor = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
-        formula = self.formula
-        if formula is not None:
-            self_json['formula'] = formula.to_json(input_variables_extractor = input_variables_extractor)
+        formula_json = self.formula.to_json(input_variables_extractor = input_variables_extractor)
+        if formula_json is not None:
+            self_json['formula'] = formula_json
         if with_value:
             self_json['value'] = self.to_value_json()
         return self_json
