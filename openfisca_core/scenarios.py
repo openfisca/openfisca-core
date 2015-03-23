@@ -79,7 +79,8 @@ class AbstractScenario(object):
 
         if test_case is None:
             if self.input_variables is not None:
-                for variable_name, array_by_period in self.input_variables.iteritems():
+                # Note: For set_input to work, handle days, before months, before years => use sorted().
+                for variable_name, array_by_period in sorted(self.input_variables.iteritems()):
                     holder = simulation.get_or_new_holder(variable_name)
                     entity = holder.entity
                     for period, array in array_by_period.iteritems():
@@ -170,7 +171,8 @@ class AbstractScenario(object):
                                 variable_periods.add(simulation_period)
                         holder = entity.get_or_new_holder(variable_name)
                         variable_default_value = column.default
-                        for variable_period in variable_periods:
+                        # Note: For set_input to work, handle days, before months, before years => use sorted().
+                        for variable_period in sorted(variable_periods):
                             variable_values = [
                                 variable_default_value if dated_cell is None else dated_cell
                                 for dated_cell in (

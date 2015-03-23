@@ -1268,14 +1268,22 @@ def set_input_dispatch_by_period(formula, period, array):
         if period_size > 1:
             sub_period = period.start.period(period_unit)
             while sub_period.start < after_instant:
-                if holder.get_array(sub_period) is None:
+                existing_array = holder.get_array(sub_period)
+                if existing_array is None:
                     holder.set_array(sub_period, array)
+                else:
+                    # The array of the current sub-period is reused for the next ones.
+                    array = existing_array
                 sub_period = sub_period.offset(1)
         if period_unit == u'year':
             month = period.start.period(u'month')
             while month.start < after_instant:
-                if holder.get_array(month) is None:
+                existing_array = holder.get_array(month)
+                if existing_array is None:
                     holder.set_array(month, array)
+                else:
+                    # The array of the current sub-period is reused for the next ones.
+                    array = existing_array
                 month = month.offset(1)
 
 
@@ -1287,16 +1295,36 @@ def set_input_divide_by_period(formula, period, array):
     if period_unit == u'year' or period_size > 1:
         after_instant = period.start.offset(period_size, period_unit)
         if period_size > 1:
-            divided_array = array / period_size
+            remaining_array = array.copy()
             sub_period = period.start.period(period_unit)
+            sub_periods_count = period_size
             while sub_period.start < after_instant:
-                if holder.get_array(sub_period) is None:
-                    holder.set_array(sub_period, divided_array)
+                existing_array = holder.get_array(sub_period)
+                if existing_array is not None:
+                    remaining_array -= existing_array
+                    sub_periods_count -= 1
                 sub_period = sub_period.offset(1)
+            if sub_periods_count > 0:
+                divided_array = remaining_array / sub_periods_count
+                sub_period = period.start.period(period_unit)
+                while sub_period.start < after_instant:
+                    if holder.get_array(sub_period) is None:
+                        holder.set_array(sub_period, divided_array)
+                    sub_period = sub_period.offset(1)
         if period_unit == u'year':
-            divided_array = array / (12 * period_size)
+            remaining_array = array.copy()
             month = period.start.period(u'month')
+            months_count = 12 * period_size
             while month.start < after_instant:
-                if holder.get_array(month) is None:
-                    holder.set_array(month, divided_array)
+                existing_array = holder.get_array(month)
+                if existing_array is not None:
+                    remaining_array -= existing_array
+                    months_count -= 1
                 month = month.offset(1)
+            if months_count > 0:
+                divided_array = remaining_array / months_count
+                month = period.start.period(u'month')
+                while month.start < after_instant:
+                    if holder.get_array(month) is None:
+                        holder.set_array(month, divided_array)
+                    month = month.offset(1)
