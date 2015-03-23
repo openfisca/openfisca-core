@@ -39,7 +39,9 @@ def test_linear_average_rate_tax_scale():
     assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], absolute_error_margin = 0)
 
     average_tax_scale = marginal_tax_scale.to_average()
-    assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], absolute_error_margin = 0)
+    # Note: assert_near doesn't work for inf.
+    # assert_near(average_tax_scale.thresholds, [0, 1, 2, np.inf], absolute_error_margin = 0)
+    assert average_tax_scale.thresholds == [0, 1, 2, np.inf]
     assert_near(average_tax_scale.rates, [0, 0, 0.05, 0.2], absolute_error_margin = 0)
     assert_near(average_tax_scale.calc(base), [0, 0.0375, 0.1, 0.125], absolute_error_margin = 1e-10)
 
