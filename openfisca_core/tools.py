@@ -52,20 +52,20 @@ def assert_near(value, target_value, absolute_error_margin = 0, message = '', re
     if isinstance(value, np.ndarray):
         if absolute_error_margin is not None:
             assert (abs(target_value - value) <= absolute_error_margin).all(), \
-                '{}{} differs from {} with an absolute margin {} >= {}'.format(message, value, target_value,
+                '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), absolute_error_margin)
         if relative_error_margin is not None:
             assert (abs(target_value - value) <= abs(relative_error_margin * target_value)).all(), \
-                '{}{} differs from {} with a relative margin {} >= {}'.format(message, value, target_value,
+                '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), abs(relative_error_margin * target_value))
     else:
         if absolute_error_margin is not None:
             assert abs(target_value - value) <= absolute_error_margin, \
-                '{}{} differs from {} with an absolute margin {} >= {}'.format(message, value, target_value,
+                '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), absolute_error_margin)
         if relative_error_margin is not None:
             assert abs(target_value - value) <= abs(relative_error_margin * target_value), \
-                '{}{} differs from {} with a relative margin {} >= {}'.format(message, value, target_value,
+                '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), abs(relative_error_margin * target_value))
 
 
