@@ -938,8 +938,9 @@ class FormulaColumnMetaclass(type):
             assert base_function is UnboundLocalError
             base_function = permanent_default_value
         elif column.is_period_size_independent:
-            assert base_function is UnboundLocalError
-            base_function = requested_period_last_value
+            assert base_function in (missing_value, requested_period_last_value, UnboundLocalError)
+            if base_function is UnboundLocalError:
+                base_function = requested_period_last_value
         elif base_function is UnboundLocalError:
             base_function = requested_period_default_value
         if base_function is UnboundLocalError:
