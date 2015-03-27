@@ -50,7 +50,6 @@ class Familles(AbstractEntity):
     key_singular = 'famille'
     label = u'Famille'
     max_cardinality_by_role_key = {'parents': 2}
-    name_key = 'nom_famille'
     role_for_person_variable_name = 'role_dans_famille'
     roles_key = ['parents', 'enfants']
     label_by_role_key = {
@@ -82,7 +81,6 @@ class Individus(AbstractEntity):
     key_plural = 'individus'
     key_singular = 'individu'
     label = u'Personne'
-    name_key = 'nom_individu'
     symbol = 'ind'
 
 
