@@ -367,10 +367,10 @@ class AbstractScenario(object):
             for key, value in (
                 (key, getattr(self, key))
                 for key in (
-                    'axes',
-                    'input_variables',
                     'period',
+                    'input_variables',
                     'test_case',
+                    'axes',
                     )
                 )
             if value is not None
