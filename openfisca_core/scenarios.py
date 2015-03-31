@@ -319,7 +319,7 @@ class AbstractScenario(object):
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
                                         u"Parallel indexes must have the same period unit")
-                            if axis_period.size != first_axis_period.size:
+                            elif axis_period.size != first_axis_period.size:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
                                         u"Parallel indexes must have the same period size")
