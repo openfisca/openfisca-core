@@ -50,7 +50,6 @@ class Column(object):
     entity_key_plural = None
     formula_class = None
     function = None  # Obsolete: To remove once build_..._couple() functions are no more used.
-    info = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
@@ -62,7 +61,7 @@ class Column(object):
     url = None
     val_type = None
 
-    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
+    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None,
             is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
             val_type = None):
         if cerfa_field is not None:
@@ -74,8 +73,6 @@ class Column(object):
         self.entity = entity or 'ind'
         if function is not None:
             self.function = function
-        if info is not None:
-            self.info = info
         if is_permanent:
             self.is_permanent = True
         if law_reference is not None:
@@ -162,8 +159,6 @@ class Column(object):
             self_json['end'] = end
         if self.entity is not None:
             self_json['entity'] = self.entity
-        if self.info is not None:
-            self_json['info'] = self.info
         if self.label is not None:
             self_json['label'] = self.label
         if self.name is not None:
