@@ -116,26 +116,6 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
 
 # Legislation helpers
 
-def find_item_at_date(items, date, nearest_in_period = None):
-    """
-    Find an item (a dict with start, stop, value key) at a specific date in a list of items which have each one
-    a start date and a stop date.
-    """
-    instant = periods.instant(date)
-    instant_str = str(instant)
-    for item in items:
-        if item['start'] <= instant_str <= item['stop']:
-            return item
-    if nearest_in_period is not None and nearest_in_period.start <= instant <= nearest_in_period.stop:
-        earliest_item = min(items, key = lambda item: item['start'])
-        if instant_str < earliest_item['start']:
-            return earliest_item
-        latest_item = max(items, key = lambda item: item['stop'])
-        if instant_str > latest_item['stop']:
-            return latest_item
-    return None
-
-
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
     """
     This function is deprecated.

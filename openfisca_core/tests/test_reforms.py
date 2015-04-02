@@ -30,42 +30,6 @@ from nose.tools import assert_equal, assert_is
 from .. import periods, reforms
 
 
-def test_find_item_at_date():
-    items = [
-        {
-            "start": "2012-01-01",
-            "stop": "2013-12-31",
-            "value": 0.0,
-            },
-        ]
-    legislation_period = periods.period('year', 2006, 9)  # 2006-2014
-    assert_is(reforms.find_item_at_date(items, datetime.date(2010, 5, 21)), None)
-    assert_is(
-        reforms.find_item_at_date(items, datetime.date(2005, 12, 31), nearest_in_period = legislation_period),
-        None,
-        )
-    assert_equal(
-        reforms.find_item_at_date(items, datetime.date(2006, 1, 1), nearest_in_period = legislation_period)['value'],
-        0,
-        )
-    assert_equal(
-        reforms.find_item_at_date(items, datetime.date(2010, 5, 21), nearest_in_period = legislation_period)['value'],
-        0,
-        )
-    assert_equal(
-        reforms.find_item_at_date(items, datetime.date(2014, 12, 31), nearest_in_period = legislation_period)['value'],
-        0,
-        )
-    assert_is(
-        reforms.find_item_at_date(items, datetime.date(2015, 1, 1), nearest_in_period = legislation_period),
-        None,
-        )
-    assert_equal(reforms.find_item_at_date(items, datetime.date(2012, 1, 1))['value'], 0)
-    assert_equal(reforms.find_item_at_date(items, datetime.date(2012, 5, 21))['value'], 0)
-    assert_equal(reforms.find_item_at_date(items, datetime.date(2013, 12, 31))['value'], 0)
-    assert_is(reforms.find_item_at_date(items, datetime.date(2014, 8, 11)), None)
-
-
 def test_updated_legislation_items():
     def check_updated_legislation_items(description, items, start_instant, stop_instant, value, expected_items):
         new_items = reforms.updated_legislation_items(items, start_instant, stop_instant, value)
