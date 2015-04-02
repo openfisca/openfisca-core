@@ -812,7 +812,7 @@ class ConversionColumnMetaclass(type):
                 column = variable.empty_clone()
 
         # Ensure that all attributes defined in ConversionColumn class are used.
-        assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
+        assert not attributes, 'Unexpected attributes in definition of filled column {}: {}'.format(name,
             ', '.join(attributes.iterkeys()))
 
         formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
@@ -867,7 +867,7 @@ class FormulaColumnMetaclass(type):
             label = attributes.pop('label', UnboundLocalError),
             law_reference = attributes.pop('law_reference', UnboundLocalError),
             module = attributes.pop('__module__'),
-            name = name,
+            name = unicode(name),
             reference_column = reference_column,
             set_input = attributes.pop('set_input', UnboundLocalError),
             start_date = attributes.pop('start_date', UnboundLocalError),
@@ -955,6 +955,16 @@ def missing_value(formula, simulation, period):
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
 
 
+def neutralize_column(column):
+    """Return a new neutralized column (to be used by reforms)."""
+    return new_filled_column(
+        base_function = requested_period_default_value_neutralized,
+        label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
+        reference_column = column,
+        set_input = set_input_neutralized,
+        )
+
+
 def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLocalError, column = UnboundLocalError,
         doc = None, entity_class = UnboundLocalError, formula_class = UnboundLocalError,
         is_permanent = UnboundLocalError, label = UnboundLocalError, law_reference = UnboundLocalError, module = None,
@@ -962,35 +972,44 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
         stop_date = UnboundLocalError, url = UnboundLocalError, **specific_attributes):
     # Validate arguments.
 
-    name = unicode(name)
-
     if reference_column is not None:
         assert isinstance(reference_column, columns.Column)
+        if name is None:
+            name = reference_column.name
+
+    assert isinstance(name, unicode)
 
     if cerfa_field is UnboundLocalError:
         cerfa_field = None if reference_column is None else reference_column.cerfa_field
     elif cerfa_field is not None:
         cerfa_field = unicode(cerfa_field)
 
-    assert column is not None, """Missing attribute "column" in definition of class {}""".format(name)
+    assert column is not None, """Missing attribute "column" in definition of filled column {}""".format(name)
     if column is UnboundLocalError:
-        assert reference_column is not None, """Missing attribute "column" in definition of class {}""".format(name)
+        assert reference_column is not None, """Missing attribute "column" in definition of filled column {}""".format(
+            name)
         column = reference_column.empty_clone()
     elif not isinstance(column, columns.Column):
         column = column()
         assert isinstance(column, columns.Column)
 
-    assert entity_class is not None, """Missing attribute "entity_class" in definition of class {}""".format(name)
+    assert entity_class is not None, """Missing attribute "entity_class" in definition of filled column {}""".format(
+        name)
     if entity_class is UnboundLocalError:
         assert reference_column is not None, \
-            """Missing attribute "entity_class" in definition of class {}""".format(name)
+            """Missing attribute "entity_class" in definition of filled column {}""".format(name)
         entity_class_key_plural = reference_column.entity_key_plural
         entity_class_symbol = reference_column.entity
     else:
         entity_class_key_plural = entity_class.key_plural
         entity_class_symbol = entity_class.symbol
 
-    assert formula_class is not None, """Missing attribute "formula_class" in definition of class {}""".format(name)
+    assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
+        name)
+    if formula_class is UnboundLocalError:
+        assert reference_column is not None, \
+            """Missing attribute "formula_class" in definition of filled column {}""".format(name)
+        formula_class = reference_column.formula_class.__bases__[0]
     assert issubclass(formula_class, AbstractFormula), formula_class
 
     if is_permanent is UnboundLocalError:
@@ -1007,8 +1026,6 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
         law_reference = None if reference_column is None else reference_column.law_reference
     else:
         assert isinstance(law_reference, (basestring, list))
-
-    assert module is not None
 
     if set_input is UnboundLocalError:
         set_input = None if reference_column is None else reference_column.formula_class.set_input
@@ -1030,11 +1047,11 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
 
     # Build formula class and column.
 
-    formula_class_attributes = dict(
-        __module__ = module,
-        )
+    formula_class_attributes = {}
     if doc is not None:
         formula_class_attributes['__doc__'] = doc
+    if module is not None:
+        formula_class_attributes['__module__'] = module
 
     if is_permanent:
         assert base_function is UnboundLocalError
@@ -1048,11 +1065,11 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
     if base_function is UnboundLocalError:
         assert reference_column is not None \
             and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
-            """Missing attribute "base_function" in definition of class {}""".format(name)
+            """Missing attribute "base_function" in definition of filled column {}""".format(name)
         base_function = reference_column.formula_class.base_function
     else:
         assert base_function is not None, \
-            """Missing attribute "base_function" in definition of class {}""".format(name)
+            """Missing attribute "base_function" in definition of filled column {}""".format(name)
     formula_class_attributes['base_function'] = base_function
 
     if set_input is not None:
@@ -1127,10 +1144,11 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
             assert function is UnboundLocalError
         if function is UnboundLocalError:
             assert reference_column is not None and issubclass(reference_column.formula_class, SimpleFormula), \
-                """Missing attribute "function" in definition of class {}""".format(name)
+                """Missing attribute "function" in definition of filled column {}""".format(name)
             function = reference_column.formula_class.function
         else:
-            assert function is not None, """Missing attribute "function" in definition of class {}""".format(name)
+            assert function is not None, """Missing attribute "function" in definition of filled column {}""".format(
+                name)
         formula_class_attributes['function'] = function
 
     # Ensure that all attributes defined in ConversionColumn class are used.
@@ -1264,6 +1282,14 @@ def requested_period_default_value(formula, simulation, period):
     return period, array
 
 
+def requested_period_default_value_neutralized(formula, simulation, period):
+    holder = formula.holder
+    column = holder.column
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
 def requested_period_last_value(formula, simulation, period):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.
@@ -1350,3 +1376,7 @@ def set_input_divide_by_period(formula, period, array):
                     if holder.get_array(month) is None:
                         holder.set_array(month, divided_array)
                     month = month.offset(1)
+
+
+def set_input_neutralized(formula, period, array):
+    pass

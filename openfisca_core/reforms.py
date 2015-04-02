@@ -30,6 +30,7 @@ from . import formulas, periods, taxbenefitsystems
 
 class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
+    CURRENCY = None
     DECOMP_DIR = None
     DEFAULT_DECOMP_FILE = None
     name = None
@@ -39,11 +40,19 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
         assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
         self.Scenario = self.reference.Scenario
-        self.CURRENCY = self.reference.CURRENCY
+
+        if self.CURRENCY is None:
+            currency = getattr(self.reference, 'CURRENCY', None)
+            if currency is not None:
+                self.CURRENCY = currency
         if self.DECOMP_DIR is None:
-            self.DECOMP_DIR = self.reference.DECOMP_DIR
+            decomp_dir = getattr(self.reference, 'DECOMP_DIR', None)
+            if decomp_dir is not None:
+                self.DECOMP_DIR = decomp_dir
         if self.DEFAULT_DECOMP_FILE is None:
-            self.DEFAULT_DECOMP_FILE = self.reference.DEFAULT_DECOMP_FILE
+            default_decomp_file = getattr(self.reference, 'DEFAULT_DECOMP_FILE', None)
+            if default_decomp_file is not None:
+                self.DEFAULT_DECOMP_FILE = default_decomp_file
         super(AbstractReform, self).__init__(
             entity_class_by_key_plural = self.entity_class_by_key_plural or self.reference.entity_class_by_key_plural,
             legislation_json = self.legislation_json or self.reference.legislation_json,
@@ -115,6 +124,7 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
 
 
 # Legislation helpers
+
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
     """
