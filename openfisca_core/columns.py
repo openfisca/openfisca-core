@@ -25,6 +25,7 @@
 
 import collections
 import datetime
+import inspect
 import re
 
 from biryani import strings
@@ -161,6 +162,12 @@ class Column(object):
             self_json['entity'] = self.entity
         if self.label is not None:
             self_json['label'] = self.label
+        line_number = self.formula_class.line_number
+        if line_number is not None:
+            self_json['line_number'] = line_number
+        module = self.formula_class.__module__
+        if module is not None:
+            self_json['module'] = module
         if self.name is not None:
             self_json['name'] = self.name
         start = self.start
@@ -500,8 +507,11 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
         base_function = formulas.requested_period_last_value
     else:
         base_function = formulas.requested_period_default_value
+    caller_frame = inspect.currentframe().f_back
     column.formula_class = type(name.encode('utf-8'), (formulas.SimpleFormula,), dict(
+        __module__ = inspect.getmodule(caller_frame).__name__,
         base_function = base_function,
+        line_number = caller_frame.f_lineno,
         ))
 
     if column.label is None:
