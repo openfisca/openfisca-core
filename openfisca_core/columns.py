@@ -183,18 +183,18 @@ class Column(object):
             self_json['val_type'] = self.val_type
         return self_json
 
-    def transform_dated_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         return value
 
-    def transform_value_to_json(self, value):
+    def transform_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         if isinstance(value, dict):
             return collections.OrderedDict(
-                (str(period), self.transform_dated_value_to_json(dated_value))
+                (str(period), self.transform_dated_value_to_json(dated_value, use_label = use_label))
                 for period, dated_value in value.iteritems()
                 )
-        return self.transform_dated_value_to_json(value)
+        return self.transform_dated_value_to_json(value, use_label = use_label)
 
 
 # Level-1 Columns
@@ -264,7 +264,7 @@ class DateCol(Column):
             conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
             )
 
-    def transform_dated_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         return value.isoformat() if value is not None else value
 
@@ -482,6 +482,12 @@ class EnumCol(IntCol):
                 for label, index in self.enum
                 )
         return self_json
+
+    def transform_dated_value_to_json(self, value, use_label = False):
+        # Convert a non-NumPy Python value to JSON.
+        if use_label and self.enum is not None:
+            return self.enum._vars.get(value, value)
+        return value
 
 
 class PeriodSizeIndependentIntCol(IntCol):

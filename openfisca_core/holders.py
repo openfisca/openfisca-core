@@ -60,10 +60,10 @@ class DatedHolder(object):
     def entity(self):
         return self.holder.entity
 
-    def to_value_json(self):
+    def to_value_json(self, use_label = False):
         transform_dated_value_to_json = self.holder.column.transform_dated_value_to_json
         return [
-            transform_dated_value_to_json(cell)
+            transform_dated_value_to_json(cell, use_label = use_label)
             for cell in self.array.tolist()
             ]
 
@@ -379,7 +379,7 @@ class Holder(object):
             self_json['value'] = self.to_value_json()
         return self_json
 
-    def to_value_json(self):
+    def to_value_json(self, use_label = False):
         column = self.column
         transform_dated_value_to_json = column.transform_dated_value_to_json
         if column.is_permanent:
@@ -387,14 +387,14 @@ class Holder(object):
             if array is None:
                 return None
             return [
-                transform_dated_value_to_json(cell)
+                transform_dated_value_to_json(cell, use_label = use_label)
                 for cell in array.tolist()
                 ]
         value_json = {}
         if self._array_by_period is not None:
             for period, array in self._array_by_period.iteritems():
                 value_json[str(period)] = [
-                    transform_dated_value_to_json(cell)
+                    transform_dated_value_to_json(cell, use_label = use_label)
                     for cell in array.tolist()
                     ]
         return value_json
