@@ -127,6 +127,7 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
             "Reform being the class returned by make_reform",
             DeprecationWarning,
             )
+        assert isinstance(new_formulas, collections.Sequence)
         for new_formula in new_formulas:
             Reform.formula(new_formula)
 
