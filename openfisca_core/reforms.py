@@ -24,6 +24,7 @@
 
 
 import collections
+import warnings
 
 from . import formulas, periods, taxbenefitsystems
 
@@ -80,7 +81,11 @@ def compose_reforms(build_reform_list, base_tax_benefit_system):
 
 def make_reform(decomposition_dir_name = None, decomposition_file_name = None, legislation_json = None, name = None,
         new_formulas = None, reference = None):
-    """Return a Reform class inherited from AbstractReform."""
+    """
+    Return a Reform class inherited from AbstractReform.
+
+    new_formula is deprecated.
+    """
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
     reform_entity_class_by_key_plural = {
@@ -117,6 +122,11 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
             return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
 
     if new_formulas is not None:
+        warnings.warn(
+            "new_formulas is deprecated. Use Reform.formula decorator instead on the formula classes, "
+            "Reform being the class returned by make_reform",
+            DeprecationWarning,
+            )
         for new_formula in new_formulas:
             Reform.formula(new_formula)
 
