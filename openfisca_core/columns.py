@@ -35,7 +35,9 @@ from . import conv, periods
 from .enumerations import Enum
 
 
-N_ = lambda message: message
+def N_(message):
+    return message
+
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
 
 
@@ -92,6 +94,15 @@ class Column(object):
     def empty_clone(self):
         return self.__class__()
 
+    def is_output_formula(self):
+        """Returns true if the column (self) is an output formula."""
+        return not self.is_input_variable()
+
+    def is_input_variable(self):
+        """Returns true if the column (self) is an input variable."""
+        from . import formulas
+        return issubclass(self.formula_class, formulas.SimpleFormula) and self.formula_class.function is None
+
     def json_default(self):
         return self.default
 
@@ -145,10 +156,12 @@ class Column(object):
             self.json_to_dated_python,
             )
 
-    def to_json(self):
+    def to_json(self, get_input_variables = None):
         self_json = collections.OrderedDict((
             ('@type', self.json_type),
             ))
+        if get_input_variables is not None:
+            self_json['input_variables'] = list(get_input_variables(self))
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
         if self.default is not None:
@@ -474,8 +487,8 @@ class EnumCol(IntCol):
                 ),
             )
 
-    def to_json(self):
-        self_json = super(EnumCol, self).to_json()
+    def to_json(self, get_input_variables = None):
+        self_json = super(EnumCol, self).to_json(get_input_variables = get_input_variables)
         if self.enum is not None:
             self_json['labels'] = collections.OrderedDict(
                 (index, label)

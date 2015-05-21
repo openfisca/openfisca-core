@@ -316,7 +316,7 @@ class Holder(object):
                 return array
         return None
 
-    def graph(self, edges, input_variables_extractor, nodes, visited):
+    def graph(self, edges, get_input_variables, nodes, visited):
         column = self.column
         if self in visited:
             return
@@ -332,7 +332,7 @@ class Holder(object):
         if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
                 and column.end < period.start.date:
             return
-        formula.graph_parameters(edges, input_variables_extractor, nodes, visited)
+        formula.graph_parameters(edges, get_input_variables, nodes, visited)
 
     def new_test_case_array(self, period):
         array = self.get_array(period)
@@ -369,12 +369,14 @@ class Holder(object):
     def set_input(self, period, array):
         self.formula.set_input(period, array)
 
-    def to_field_json(self, input_variables_extractor = None, with_value = False):
+    def to_field_json(self, get_input_variables = None, with_value = False):
         self_json = self.column.to_json()
         self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
-        formula_json = self.formula.to_json(input_variables_extractor = input_variables_extractor)
+        formula_json = self.formula.to_json(get_input_variables = get_input_variables)
         if formula_json is not None:
             self_json['formula'] = formula_json
+        if self.column.is_output_formula() and get_input_variables is not None:
+            self_json['input_variables'] = list(get_input_variables(self.column))
         if with_value:
             self_json['value'] = self.to_value_json()
         return self_json

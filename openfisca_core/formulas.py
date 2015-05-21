@@ -151,18 +151,18 @@ class AbstractEntityToEntity(AbstractFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         variable_holder = self.variable_holder
-        variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+        variable_holder.graph(edges, get_input_variables, nodes, visited)
         edges.append({
             'from': variable_holder.column.name,
             'to': column.name,
             })
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables = None):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
@@ -177,7 +177,7 @@ class AbstractEntityToEntity(AbstractFormula):
             ('module', inspect.getmodule(cls).__name__),
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
-        if input_variables_extractor is not None:
+        if get_input_variables is not None:
             variables_json = [collections.OrderedDict((
                 ('entity', variable_holder.entity.key_plural),
                 ('label', variable_column.label),
@@ -280,17 +280,17 @@ class DatedFormula(AbstractGroupedFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables, nodes, visited):
         """Recursively build a graph of formulas."""
         for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, input_variables_extractor, nodes, visited)
+            dated_formula['formula'].graph_parameters(edges, get_input_variables, nodes, visited)
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables = None):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    formula = dated_formula['formula'].to_json(input_variables_extractor = input_variables_extractor),
+                    formula = dated_formula['formula'].to_json(get_input_variables = get_input_variables),
                     start_instant = str(dated_formula['start_instant']),
                     stop_instant = str(dated_formula['stop_instant']),
                     )
@@ -605,17 +605,17 @@ class SimpleFormula(AbstractFormula):
             raise
         return target_array
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        variables_name = input_variables_extractor.get_input_variables(column)
+        variables_name = get_input_variables(column)
         if variables_name is not None:
             for variable_name in sorted(variables_name):
                 variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+                variable_holder.graph(edges, get_input_variables, nodes, visited)
                 edges.append({
                     'from': variable_holder.column.name,
                     'to': column.name,
@@ -693,7 +693,7 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables = None):
         function = self.function
         if function is None:
             return None
@@ -709,12 +709,12 @@ class SimpleFormula(AbstractFormula):
             ('module', inspect.getmodule(function).__name__),
             ('source', source),
             ))
-        if input_variables_extractor is not None:
+        if get_input_variables is not None:
             holder = self.holder
             column = holder.column
             entity = holder.entity
             simulation = entity.simulation
-            variables_name = input_variables_extractor.get_input_variables(column)
+            variables_name = get_input_variables(column)
             variables_json = []
             for variable_name in sorted(variables_name):
                 variable_holder = simulation.get_or_new_holder(variable_name)
