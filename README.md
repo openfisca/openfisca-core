@@ -15,7 +15,39 @@ Please consult http://www.openfisca.fr/documentation
 
 ## Installation
 
-Please consult http://www.openfisca.fr/installation if you want to develop with OpenFisca on your computer.
+Requirements:
+
+- [Git](http://www.git-scm.com/)
+- [Python](http://www.python.org/) 2.7
+- numpy and scipy, scientific computing packages for Python.
+Since they are developed in C you should install them pre-compiled for your operating system.
+- [Python setuptools package](https://pypi.python.org/pypi/setuptools)
+- [Python pip](https://pypi.python.org/pypi/pip)
+
+
+> Microsoft Windows users should install pre-compiled packages from Christoph Gohlke page:
+> [numpy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy),
+> [scipy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy) and
+> [setuptools](http://www.lfd.uci.edu/~gohlke/pythonlibs/#setuptools).
+>
+> Moreover they should add the Python scripts directory to the system PATH: see
+> [this stackoverflow question](http://stackoverflow.com/a/20458590).
+
+Clone the OpenFisca-Core Git repository on your machine and install the Python package.
+Assuming you are in your working directory:
+
+```
+git clone https://github.com/openfisca/openfisca-core.git
+cd openfisca-core
+pip install --editable . --user
+python setup.py compile_catalog
+```
+
+Once OpenFisca-Core is installed, the next step is to install the a tax and benefit system.
+Choose one of:
+
+- [OpenFisca-France](https://github.com/openfisca/openfisca-france)
+- [OpenFisca-Tunisia](https://github.com/openfisca/openfisca-tunisia)
 
 ## Contribute
 
