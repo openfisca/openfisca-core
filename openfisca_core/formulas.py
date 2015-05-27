@@ -724,7 +724,7 @@ class SimpleFormula(AbstractFormula):
                     ('label', variable_column.label),
                     ('name', variable_column.name),
                     )))
-            self_json['variables'] = variables_json
+            self_json['variables'] = variables_json or None
         return self_json
 
 
