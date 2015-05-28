@@ -291,8 +291,10 @@ class DatedFormula(AbstractGroupedFormula):
             ('dated_formulas', [
                 dict(
                     formula = dated_formula['formula'].to_json(get_input_variables = get_input_variables),
-                    start_instant = str(dated_formula['start_instant']),
-                    stop_instant = str(dated_formula['stop_instant']),
+                    start_instant = (None if dated_formula['start_instant'] is None
+                        else str(dated_formula['start_instant'])),
+                    stop_instant = (None if dated_formula['stop_instant'] is None
+                        else str(dated_formula['stop_instant'])),
                     )
                 for dated_formula in self.dated_formulas
                 ]),
