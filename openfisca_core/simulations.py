@@ -240,8 +240,9 @@ class Simulation(object):
             self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 
-    def graph(self, column_name, edges, get_input_variables, nodes, visited):
-        self.entity_by_column_name[column_name].graph(column_name, edges, get_input_variables, nodes, visited)
+    def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
+        self.entity_by_column_name[column_name].graph(column_name, edges, get_input_variables_and_parameters, nodes,
+            visited)
 
     def legislation_at(self, instant, reference = False):
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)

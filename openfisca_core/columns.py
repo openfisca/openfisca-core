@@ -156,12 +156,14 @@ class Column(object):
             self.json_to_dated_python,
             )
 
-    def to_json(self, get_input_variables = None):
+    def to_json(self, get_input_variables_and_parameters = None):
         self_json = collections.OrderedDict((
             ('@type', self.json_type),
             ))
-        if get_input_variables is not None:
-            self_json['input_variables'] = list(get_input_variables(self))
+        if get_input_variables_and_parameters is not None:
+            input_variables, parameters = get_input_variables_and_parameters(self)
+            self_json['input_variables'] = list(input_variables)
+            self_json['parameters'] = list(parameters)
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
         if self.default is not None:
@@ -487,8 +489,9 @@ class EnumCol(IntCol):
                 ),
             )
 
-    def to_json(self, get_input_variables = None):
-        self_json = super(EnumCol, self).to_json(get_input_variables = get_input_variables)
+    def to_json(self, get_input_variables_and_parameters = None):
+        self_json = super(EnumCol, self).to_json(
+            get_input_variables_and_parameters = get_input_variables_and_parameters)
         if self.enum is not None:
             self_json['labels'] = collections.OrderedDict(
                 (index, label)
