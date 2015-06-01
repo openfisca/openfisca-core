@@ -696,7 +696,7 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self, get_input_variables_and_parameters = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         function = self.function
         if function is None:
             return None
@@ -718,16 +718,22 @@ class SimpleFormula(AbstractFormula):
             entity = holder.entity
             simulation = entity.simulation
             variables_name, parameters_name = get_input_variables_and_parameters(column)
-            variables_json = []
-            for variable_name in sorted(variables_name):
-                variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_column = variable_holder.column
-                variables_json.append(collections.OrderedDict((
-                    ('entity', variable_holder.entity.key_plural),
-                    ('label', variable_column.label),
-                    ('name', variable_column.name),
-                    )))
-            self_json['variables'] = variables_json or None
+            if variables_name:
+                if with_input_variables_details:
+                    input_variables_json = []
+                    for variable_name in sorted(variables_name):
+                        variable_holder = simulation.get_or_new_holder(variable_name)
+                        variable_column = variable_holder.column
+                        input_variables_json.append(collections.OrderedDict((
+                            ('entity', variable_holder.entity.key_plural),
+                            ('label', variable_column.label),
+                            ('name', variable_column.name),
+                            )))
+                    self_json['input_variables'] = input_variables_json
+                else:
+                    self_json['input_variables'] = list(variables_name)
+            if parameters_name:
+                self_json['parameters'] = list(parameters_name)
         return self_json
 
 
