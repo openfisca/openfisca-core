@@ -94,8 +94,8 @@ class Column(object):
     def empty_clone(self):
         return self.__class__()
 
-    def is_output_formula(self):
-        """Returns true if the column (self) is an output formula."""
+    def is_formula(self):
+        """Returns true if the column (self) is a formula."""
         return not self.is_input_variable()
 
     def is_input_variable(self):

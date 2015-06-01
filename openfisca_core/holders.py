@@ -375,7 +375,7 @@ class Holder(object):
         formula_json = self.formula.to_json(get_input_variables_and_parameters = get_input_variables_and_parameters)
         if formula_json is not None:
             self_json['formula'] = formula_json
-        if self.column.is_output_formula() and get_input_variables_and_parameters is not None:
+        if self.column.is_formula() and get_input_variables_and_parameters is not None:
             input_variables, parameters = get_input_variables_and_parameters(self.column)
             self_json['input_variables'] = list(input_variables) or None
             self_json['parameters'] = list(parameters) or None
