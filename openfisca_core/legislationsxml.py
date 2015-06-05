@@ -56,13 +56,18 @@ json_unit_by_xml_json_type = dict(
     monetary = u'currency',
     months = u'month',
     )
-N_ = lambda message: message
 xml_json_formats = (
     'bool',
     'float',
     'integer',
     'percent',
     )
+
+
+# Helper functions
+
+def N_(message):
+    return message
 
 
 # Level 1 converters
@@ -83,8 +88,8 @@ def make_validate_values_xml_json_dates(require_consecutive_dates = False):
             reverse = True)
         next_value_xml_json = sorted_values_xml_json[0]
         for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
-                + datetime.timedelta(days = 1)).isoformat()
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-'))) +
+                datetime.timedelta(days = 1)).isoformat()
             if require_consecutive_dates and next_date_str < next_value_xml_json['deb']:
                 errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
             elif next_date_str > next_value_xml_json['deb']:
