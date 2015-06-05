@@ -48,6 +48,7 @@ from . import conv
 #    VALUE = 'values',
 #    )
 
+default_format = 'float'
 log = logging.getLogger(__name__)
 json_unit_by_xml_json_type = dict(
     age = u'year',
@@ -184,6 +185,8 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                 ]
         else:
             parameter_json[key] = value
+    if parameter_json.get('format') is None:
+        parameter_json['format'] = default_format
     if comments:
         parameter_json['comment'] = u'\n\n'.join(comments)
     return parameter_xml_json['code'], parameter_json
@@ -207,6 +210,8 @@ def transform_scale_xml_json_to_json(scale_xml_json):
             scale_json['unit'] = json_unit_by_xml_json_type.get(value, value)
         else:
             scale_json[key] = value
+    if scale_json.get('format') is None:
+        scale_json['format'] = default_format
     if comments:
         scale_json['comment'] = u'\n\n'.join(comments)
     return scale_xml_json['code'], scale_json
@@ -745,7 +750,7 @@ def validate_value_xml_json(value, state = None):
             conv.cleanup_line,
             conv.test_conv(conv.anything_to_float),
             ),
-        )[container.get('format') or 'float']  # Only CODE have a "format".
+        )[container.get('format') or default_format]  # Only CODE have a "format".
     state = conv.add_ancestor_to_state(state, value)
     validated_value, errors = conv.pipe(
         conv.test_isinstance(dict),
