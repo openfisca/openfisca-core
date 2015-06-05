@@ -109,6 +109,8 @@ def translate_xml_element_to_json_item(xml_element):
         text = text.strip().strip('#').strip() or None
         if text is not None:
             json_element['text'] = text
+    json_element['start_line_number'] = xml_element.start_line_number
+    json_element['end_line_number'] = xml_element.end_line_number
     json_element.update(xml_element.attrib)
     for xml_child in xml_element:
         json_child_key, json_child = translate_xml_element_to_json_item(xml_child)
@@ -346,6 +348,7 @@ def validate_node_xml_json(node, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 NODE = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -354,6 +357,7 @@ def validate_node_xml_json(node, state = None):
                         ),
                     conv.empty_to_none,
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -413,11 +417,13 @@ def validate_parameter_xml_json(parameter, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 format = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.input_to_slug,
                     conv.test_in(xml_json_formats),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -475,6 +481,7 @@ def validate_scale_xml_json(scale, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 option = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.input_to_slug,
@@ -484,6 +491,7 @@ def validate_scale_xml_json(scale, state = None):
                         'noncontrib',
                         )),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 TRANCHE = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -541,6 +549,7 @@ def validate_bracket_xml_json(bracket, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 MONTANT = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -560,6 +569,7 @@ def validate_bracket_xml_json(bracket, state = None):
                     conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
                     conv.not_none,
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -766,6 +776,7 @@ def validate_value_xml_json(value, state = None):
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 fin = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
@@ -778,6 +789,7 @@ def validate_value_xml_json(value, state = None):
                     conv.test_in(xml_json_formats),
                     conv.test_equals(container.get('format')),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -814,6 +826,8 @@ def validate_value_xml_json(value, state = None):
 
 validate_values_holder_xml_json = conv.struct(
     dict(
+        end_line_number = conv.test_isinstance(int),
+        start_line_number = conv.test_isinstance(int),
         VALUE = conv.pipe(
             conv.test_isinstance(list),
             conv.uniform_sequence(
@@ -832,8 +846,21 @@ validate_values_holder_xml_json = conv.struct(
 
 
 def xml_legislation_file_path_to_xml(value, state = None):
+    # From # http://bugs.python.org/issue14078#msg153907
+    class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
+        def _end(self, *args, **kwargs):
+            element = super(self.__class__, self)._end(*args, **kwargs)
+            element.end_line_number = self._parser.CurrentLineNumber
+            return element
+
+        def _start_list(self, *args, **kwargs):
+            element = super(self.__class__, self)._start_list(*args, **kwargs)
+            element.start_line_number = self._parser.CurrentLineNumber
+            return element
+
+    parser = XMLParserWithLineNumbers()
     try:
-        legislation_tree = xml.etree.ElementTree.parse(value)
+        legislation_tree = xml.etree.ElementTree.parse(value, parser = parser)
     except xml.etree.ElementTree.ParseError as error:
         return value, unicode(error)
     xml_legislation = legislation_tree.getroot()
