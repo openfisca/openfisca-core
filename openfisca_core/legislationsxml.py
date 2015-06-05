@@ -867,15 +867,6 @@ def xml_legislation_file_path_to_xml(value, state = None):
     return xml_legislation, None
 
 
-def xml_legislation_str_to_xml(value, state = None):
-    value = value.encode('utf-8')
-    try:
-        xml_legislation = xml.etree.ElementTree.fromstring(value)
-    except xml.etree.ElementTree.ParseError as error:
-        return value, unicode(error)
-    return xml_legislation, None
-
-
 def xml_legislation_to_json(xml_element, state = None):
     if xml_element is None:
         return None, None
@@ -891,14 +882,6 @@ def xml_legislation_to_json(xml_element, state = None):
 
 xml_legislation_file_path_to_json = conv.pipe(
     xml_legislation_file_path_to_xml,
-    xml_legislation_to_json,
-    validate_legislation_xml_json,
-    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
-    )
-
-
-xml_legislation_str_to_json = conv.pipe(
-    xml_legislation_str_to_xml,
     xml_legislation_to_json,
     validate_legislation_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
