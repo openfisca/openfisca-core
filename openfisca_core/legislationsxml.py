@@ -216,8 +216,6 @@ def transform_scale_xml_json_to_json(scale_xml_json):
             scale_json['unit'] = json_unit_by_xml_json_type.get(value, value)
         else:
             scale_json[key] = value
-    if scale_json.get('format') is None:
-        scale_json['format'] = default_format
     if comments:
         scale_json['comment'] = u'\n\n'.join(comments)
     return scale_xml_json['code'], scale_json
