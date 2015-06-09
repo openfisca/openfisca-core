@@ -251,9 +251,8 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
     comments = []
     value_json = collections.OrderedDict()
     for key, value in value_xml_json.iteritems():
-        if key in ('code', 'format', 'type'):
-            pass
-        elif key == 'deb':
+        assert key not in ('code', 'format', 'type')
+        if key == 'deb':
             value_json['start'] = value
         elif key == 'fin':
             value_json['stop'] = value
@@ -770,10 +769,6 @@ def validate_value_xml_json(value, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                code = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    ),
                 deb = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
@@ -787,12 +782,6 @@ def validate_value_xml_json(value, state = None):
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
-                format = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in(xml_json_formats),
-                    conv.test_equals(container.get('format')),
-                    ),
                 start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -801,18 +790,6 @@ def validate_value_xml_json(value, state = None):
                 text = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
-                    ),
-                type = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in([
-                        'age',
-                        'days',
-                        'hours',
-                        'monetary',
-                        'months',
-                        ]),
-                    conv.test_equals(container.get('type')),
                     ),
                 valeur = conv.pipe(
                     value_converter,
