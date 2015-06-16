@@ -113,7 +113,7 @@ def translate_xml_element_to_json_item(xml_element):
     end_line_number = getattr(xml_element, "end_line_number", None)
     if start_line_number is not None:
         json_element['start_line_number'] = start_line_number
-    if end_line_number is not None:
+    if end_line_number is not None and end_line_number != start_line_number:
         json_element['end_line_number'] = end_line_number
     json_element.update(xml_element.attrib)
     for xml_child in xml_element:
