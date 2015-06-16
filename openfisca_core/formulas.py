@@ -162,7 +162,7 @@ class AbstractEntityToEntity(AbstractFormula):
             'to': column.name,
             })
 
-    def to_json(self, get_input_variables_and_parameters = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
@@ -178,12 +178,12 @@ class AbstractEntityToEntity(AbstractFormula):
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
         if get_input_variables_and_parameters is not None:
-            variables_json = [collections.OrderedDict((
+            input_variables_json = [collections.OrderedDict((
                 ('entity', variable_holder.entity.key_plural),
                 ('label', variable_column.label),
                 ('name', variable_column.name),
-                ))]
-            self_json['variables'] = variables_json
+                ))] if with_input_variables_details else variable_column.name
+            self_json['input_variables'] = input_variables_json
         return self_json
 
     @property
@@ -285,13 +285,15 @@ class DatedFormula(AbstractGroupedFormula):
         for dated_formula in self.dated_formulas:
             dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
-    def to_json(self, get_input_variables_and_parameters = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
                     formula = dated_formula['formula'].to_json(
-                        get_input_variables_and_parameters = get_input_variables_and_parameters),
+                        get_input_variables_and_parameters = get_input_variables_and_parameters,
+                        with_input_variables_details = with_input_variables_details,
+                        ),
                     start_instant = (None if dated_formula['start_instant'] is None
                         else str(dated_formula['start_instant'])),
                     stop_instant = (None if dated_formula['stop_instant'] is None
