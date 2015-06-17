@@ -178,12 +178,12 @@ class AbstractEntityToEntity(AbstractFormula):
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
         if get_input_variables_and_parameters is not None:
-            input_variables_json = [collections.OrderedDict((
+            input_variable_json = collections.OrderedDict((
                 ('entity', variable_holder.entity.key_plural),
                 ('label', variable_column.label),
                 ('name', variable_column.name),
-                ))] if with_input_variables_details else variable_column.name
-            self_json['input_variables'] = input_variables_json
+                )) if with_input_variables_details else variable_column.name
+            self_json['input_variables'] = [input_variable_json]
         return self_json
 
     @property
