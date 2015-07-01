@@ -28,15 +28,15 @@ import urllib
 import webbrowser
 
 
-def open_trace_tool(scenario, variables, api_url = u'http://api.openfisca.fr'):
+def open_trace_tool(scenario, variables, api_url = u'http://api.openfisca.fr',
+        trace_tool_url = u'http://www.openfisca.fr/outils/trace'):
     scenario_json = scenario.to_json()
     simulation_json = {
-        "scenarios": [scenario_json],
-        "variables": variables,
+        'scenarios': [scenario_json],
+        'variables': variables,
         }
-    trace_base_url = u"http://www.openfisca.fr/outils/trace"
-    url = trace_base_url + "?" + urllib.urlencode({
-        "simulation": json.dumps(simulation_json),
-        "api_url": api_url,
+    url = trace_tool_url + '?' + urllib.urlencode({
+        'simulation': json.dumps(simulation_json),
+        'api_url': api_url,
         })
     webbrowser.open_new_tab(url)
