@@ -35,11 +35,6 @@ from . import decompositionsxml
 def calculate(simulations, decomposition_json):
     assert decomposition_json is not None
 
-    for node in iter_decomposition_nodes(decomposition_json):
-        if node.get('children') is None:
-            for simulation in simulations:
-                simulation.calculate_add(node['code'])
-
     response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
     for node in iter_decomposition_nodes(response_json, children_first = True):
         children = node.get('children')
@@ -51,6 +46,7 @@ def calculate(simulations, decomposition_json):
         else:
             node['values'] = values = []
             for simulation in simulations:
+                simulation.calculate_add(node['code'])
                 holder = simulation.get_holder(node['code'])
                 column = holder.column
                 values.extend(
