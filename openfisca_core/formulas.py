@@ -1323,7 +1323,7 @@ def requested_period_added_value(formula, simulation, period):
     if holder._array_by_period is not None and (period_size > 1 or period_unit == u'year'):
         after_instant = period.start.offset(period_size, period_unit)
         if period_size > 1:
-            array = np.empty(holder.entity.count, dtype = column.dtype)
+            array = np.zeros(holder.entity.count, dtype = column.dtype)
             sub_period = period.start.period(period_unit)
             while sub_period.start < after_instant:
                 sub_array = holder._array_by_period.get(sub_period)
@@ -1335,7 +1335,7 @@ def requested_period_added_value(formula, simulation, period):
             if array is not None:
                 return period, array
         if period_unit == u'year':
-            array = np.empty(holder.entity.count, dtype = column.dtype)
+            array = np.zeros(holder.entity.count, dtype = column.dtype)
             month = period.start.period(u'month')
             while month.start < after_instant:
                 month_array = holder._array_by_period.get(month)
