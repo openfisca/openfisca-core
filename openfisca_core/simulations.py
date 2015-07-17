@@ -108,6 +108,16 @@ class Simulation(object):
         return self.compute_divide(column_name, period = period,
             requested_formulas_by_period = requested_formulas_by_period).array
 
+    def calculate_output(self, column_name, period = None):
+        """Calculate the value using calculate_output hooks in formula classes."""
+        if period is None:
+            period = self.period
+        elif not isinstance(period, periods.Period):
+            period = periods.period(period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.calculate_output(period)
+
     def clone(self, debug = False, debug_all = False, trace = False):
         """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
         new = empty_clone(self)

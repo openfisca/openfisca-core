@@ -46,7 +46,7 @@ def calculate(simulations, decomposition_json):
         else:
             node['values'] = values = []
             for simulation in simulations:
-                simulation.calculate_add(node['code'])
+                simulation.calculate_output(node['code'])
                 holder = simulation.get_holder(node['code'])
                 column = holder.column
                 values.extend(

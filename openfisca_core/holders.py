@@ -111,6 +111,9 @@ class Holder(object):
             requested_formulas_by_period = requested_formulas_by_period)
         return dated_holder.array
 
+    def calculate_output(self, period):
+        return self.formula.calculate_output(period)
+
     def clone(self, entity):
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = empty_clone(self)

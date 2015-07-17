@@ -62,6 +62,9 @@ class AbstractFormula(object):
         assert holder is not None
         self.holder = holder
 
+    def calculate_output(self, period):
+        return self.holder.compute(period).array
+
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
         new = empty_clone(self)
@@ -901,6 +904,7 @@ class FormulaColumnMetaclass(type):
 
         return new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
+            calculate_output = attributes.pop('calculate_output', UnboundLocalError),
             cerfa_field = attributes.pop('cerfa_field', UnboundLocalError),
             column = attributes.pop('column', UnboundLocalError),
             comments = comments,
@@ -946,6 +950,18 @@ class SimpleFormulaColumn(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     formula_class = SimpleFormula
+
+
+def calculate_output_add(formula, period):
+    return formula.holder.compute_add(period).array
+
+
+def calculate_output_add_divide(formula, period):
+    return formula.holder.compute_add_divide(period).array
+
+
+def calculate_output_divide(formula, period):
+    return formula.holder.compute_divide(period).array
 
 
 def dated_function(start = None, stop = None):
@@ -1012,12 +1028,13 @@ def neutralize_column(column):
         )
 
 
-def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLocalError, column = UnboundLocalError,
-        comments = UnboundLocalError, doc = None, entity_class = UnboundLocalError, formula_class = UnboundLocalError,
-        is_permanent = UnboundLocalError, label = UnboundLocalError, law_reference = UnboundLocalError,
-        line_number = UnboundLocalError, module = None, name = None, reference_column = None,
-        set_input = UnboundLocalError, source_code = UnboundLocalError, source_file_path = UnboundLocalError,
-        start_date = UnboundLocalError, stop_date = UnboundLocalError, url = UnboundLocalError, **specific_attributes):
+def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
+        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError, doc = None,
+        entity_class = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        label = UnboundLocalError, law_reference = UnboundLocalError, line_number = UnboundLocalError, module = None,
+        name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
+        source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
+        url = UnboundLocalError, **specific_attributes):
     # Validate arguments.
 
     if reference_column is not None:
@@ -1026,6 +1043,9 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
             name = reference_column.name
 
     assert isinstance(name, unicode)
+
+    if calculate_output is UnboundLocalError:
+        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output
 
     if cerfa_field is UnboundLocalError:
         cerfa_field = None if reference_column is None else reference_column.cerfa_field
@@ -1150,6 +1170,9 @@ def new_filled_column(base_function = UnboundLocalError, cerfa_field = UnboundLo
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
     formula_class_attributes['base_function'] = base_function
 
+    if calculate_output is not None:
+        formula_class_attributes['calculate_output'] = calculate_output
+
     if set_input is not None:
         formula_class_attributes['set_input'] = set_input
 
@@ -1266,8 +1289,9 @@ def permanent_default_value(formula, simulation, period):
     return period, array
 
 
-def reference_input_variable(base_function = None, column = None, entity_class = None, is_permanent = False,
-        label = None, name = None, set_input = None, start_date = None, stop_date = None, update = False, url = None):
+def reference_input_variable(base_function = None, calculate_output = None, column = None, entity_class = None,
+        is_permanent = False, label = None, name = None, set_input = None, start_date = None, stop_date = None,
+        update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
     if not isinstance(column, columns.Column):
         column = column()
@@ -1290,6 +1314,8 @@ def reference_input_variable(base_function = None, column = None, entity_class =
         base_function = base_function,
         line_number = caller_frame.f_lineno,
         ))
+    if calculate_output is not None:
+        formula_class.calculate_output = calculate_output
     if set_input is not None:
         formula_class.set_input = set_input
 
