@@ -273,3 +273,11 @@ class Simulation(object):
                 for input_variable_name, input_variable_period1 in input_variables_infos
                 )
             )
+
+    def to_input_variables_json(self):
+        return {
+            column_name: self.get_holder(column_name).to_value_json()
+            for entity in self.entity_by_key_plural.itervalues()
+            for column_name in entity.column_by_name.iterkeys()
+            if column_name in entity.holder_by_name
+            }
