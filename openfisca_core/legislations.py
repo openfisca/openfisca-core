@@ -34,8 +34,11 @@ import logging
 from . import conv, periods, taxscales
 
 
+def N_(message):
+    return message
+
+
 log = logging.getLogger(__name__)
-N_ = lambda message: message
 units = [
     u'currency',
     u'day',
@@ -373,8 +376,8 @@ def make_validate_values_json_dates(require_consecutive_dates = False):
         sorted_values_json = sorted(values_json, key = lambda value_json: value_json['start'], reverse = True)
         next_value_json = sorted_values_json[0]
         for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
-                + datetime.timedelta(days = 1)).isoformat()
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-'))) +
+                datetime.timedelta(days = 1)).isoformat()
             if require_consecutive_dates and next_date_str < next_value_json['start']:
                 errors.setdefault(index, {})['start'] = state._(u"Dates of values are not consecutive")
             elif next_date_str > next_value_json['start']:
