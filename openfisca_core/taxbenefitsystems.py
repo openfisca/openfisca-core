@@ -38,11 +38,12 @@ __all__ = [
 
 
 class AbstractTaxBenefitSystem(object):
-    _real_reference = None
+    _base_tax_benefit_system = None
     column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
+    legislation_json_by_reform_name_cache = None  # Used only by reforms which change their legislation_json.
     person_key_plural = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
@@ -54,6 +55,7 @@ class AbstractTaxBenefitSystem(object):
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.legislation_json_by_reform_name_cache = {}  # weakref.WeakValueDictionary()
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural
@@ -71,6 +73,29 @@ class AbstractTaxBenefitSystem(object):
             column_by_name.update(entity_class.column_by_name)
             if entity_class.is_persons_entity:
                 self.person_key_plural = entity_class.key_plural
+
+    @property
+    def base_tax_benefit_system(self):
+        base_tax_benefit_system = self._base_tax_benefit_system
+        if base_tax_benefit_system is None:
+            reference = self.reference
+            if reference is None:
+                return self
+            self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
+        return base_tax_benefit_system
+
+    def check_legislation_json(self):
+        assert self.legislation_json is not None, \
+            'check_legislation_json must be called only when TaxBenefitSystem has a legislation_json attribute'
+        conv.check(legislations.validate_legislation_json)(self.legislation_json)
+
+    @property
+    def full_name(self):
+        name = self.name
+        if self.reference is not None:
+            reference_name = getattr(self.reference, 'name', 'base')
+            name = u'.'.join([reference_name, name])
+        return name
 
     def get_compact_legislation(self, instant, traced_simulation = None):
         if traced_simulation is None:
@@ -110,16 +135,6 @@ class AbstractTaxBenefitSystem(object):
 
     def prefill_cache(self):
         pass
-
-    @property
-    def real_reference(self):
-        real_reference = self._real_reference
-        if real_reference is None:
-            reference = self.reference
-            if reference is None:
-                return self
-            self._real_reference = real_reference = reference.real_reference
-        return real_reference
 
 
 class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):

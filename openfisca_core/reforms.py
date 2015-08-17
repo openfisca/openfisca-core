@@ -24,6 +24,7 @@
 
 
 import collections
+import copy
 import warnings
 
 from . import formulas, periods, taxbenefitsystems
@@ -38,7 +39,7 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
 
     def __init__(self):
         assert self.name is not None
-        assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
+        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
         self.Scenario = self.reference.Scenario
 
@@ -56,8 +57,30 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
                 self.DEFAULT_DECOMP_FILE = default_decomp_file
         super(AbstractReform, self).__init__(
             entity_class_by_key_plural = self.entity_class_by_key_plural or self.reference.entity_class_by_key_plural,
-            legislation_json = self.legislation_json or self.reference.legislation_json,
+            legislation_json = self.reference.legislation_json,
             )
+
+    def modify_legislation_json(self, modifier_function):
+        """
+        Copy the reference TaxBenefitSystem legislation_json attribute and return it.
+        Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
+        Also store it in the cache of the reference TaxBenefitSystem (and not in the base TaxBenefitSystem
+        since reforms can be chained).
+        """
+        full_name = self.full_name
+        base_tax_benefit_system = self.base_tax_benefit_system
+        reform_legislation_json = base_tax_benefit_system.legislation_json_by_reform_name_cache.get(full_name)
+        if reform_legislation_json is None:
+            reference_legislation_json = self.reference.legislation_json
+            reform_legislation_json = copy.deepcopy(reference_legislation_json)
+            modifier_function_result = modifier_function(reform_legislation_json)
+            assert modifier_function_result is None, 'modifier_function {} in module {} must return nothing'.format(
+                modifier_function.__name__,
+                modifier_function.__module__,
+                )
+            # self.check_legislation_json()
+            base_tax_benefit_system.legislation_json_by_reform_name_cache[full_name] = reform_legislation_json
+        self.legislation_json = reform_legislation_json
 
 
 def clone_entity_class(entity_class):
@@ -79,8 +102,8 @@ def compose_reforms(build_reform_list, base_tax_benefit_system):
     return composed_reform
 
 
-def make_reform(decomposition_dir_name = None, decomposition_file_name = None, legislation_json = None, name = None,
-        new_formulas = None, reference = None):
+def make_reform(name, reference, decomposition_dir_name = None, decomposition_file_name = None,
+        legislation_json_modifier_function = None, new_formulas = None):
     """
     Return a Reform class inherited from AbstractReform.
 
@@ -96,7 +119,6 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
         entity_class.symbol: entity_class
         for entity_class in reform_entity_class_by_key_plural.itervalues()
         }
-    reform_legislation_json = legislation_json
     reform_name = name
     reform_reference = reference
 
@@ -104,7 +126,6 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
         DECOMP_DIR = decomposition_dir_name
         DEFAULT_DECOMP_FILE = decomposition_file_name
         entity_class_by_key_plural = reform_entity_class_by_key_plural
-        legislation_json = reform_legislation_json
         name = reform_name
         reference = reform_reference
 
@@ -113,7 +134,6 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
             update = True,
             ))
 
-        @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
@@ -123,15 +143,20 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
 
     if new_formulas is not None:
         warnings.warn(
-            "new_formulas is deprecated. Use Reform.formula decorator instead on the formula classes, "
-            "Reform being the class returned by make_reform",
+            "new_formulas is deprecated. Use reform.formula decorator instead on the formula classes, "
+            "reform being the object returned by make_reform",
             DeprecationWarning,
             )
         assert isinstance(new_formulas, collections.Sequence)
         for new_formula in new_formulas:
             Reform.formula(new_formula)
 
-    return Reform
+    reform = Reform()
+
+    if legislation_json_modifier_function:
+        reform.modify_legislation_json(modifier_function = legislation_json_modifier_function)
+
+    return reform
 
 
 # Legislation helpers
