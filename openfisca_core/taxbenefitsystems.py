@@ -84,11 +84,6 @@ class AbstractTaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
         return base_tax_benefit_system
 
-    def check_legislation_json(self):
-        assert self.legislation_json is not None, \
-            'check_legislation_json must be called only when TaxBenefitSystem has a legislation_json attribute'
-        conv.check(legislations.validate_legislation_json)(self.legislation_json)
-
     @property
     def full_name(self):
         name = self.name

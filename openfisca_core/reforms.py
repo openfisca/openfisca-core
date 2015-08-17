@@ -27,7 +27,7 @@ import collections
 import copy
 import warnings
 
-from . import formulas, periods, taxbenefitsystems
+from . import formulas, legislations, periods, taxbenefitsystems
 
 
 class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
@@ -72,13 +72,17 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
         reform_legislation_json = base_tax_benefit_system.legislation_json_by_reform_name_cache.get(full_name)
         if reform_legislation_json is None:
             reference_legislation_json = self.reference.legislation_json
-            reform_legislation_json = copy.deepcopy(reference_legislation_json)
-            modifier_function_result = modifier_function(reform_legislation_json)
-            assert modifier_function_result is None, 'modifier_function {} in module {} must return nothing'.format(
-                modifier_function.__name__,
-                modifier_function.__module__,
-                )
-            # self.check_legislation_json()
+            reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
+            reform_legislation_json = modifier_function(reference_legislation_json_copy)
+            assert reform_legislation_json is not None, \
+                'modifier_function {} in module {} must return the modified legislation_json'.format(
+                    modifier_function.__name__,
+                    modifier_function.__module__,
+                    )
+            reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
+            assert error is None, \
+                u'The modified legislation_json of the reform "{}" is invalid, error: {}, legislation_json: {}'.format(
+                    self.name, error, reform_legislation_json).encode('utf-8')
             base_tax_benefit_system.legislation_json_by_reform_name_cache[full_name] = reform_legislation_json
         self.legislation_json = reform_legislation_json
 
