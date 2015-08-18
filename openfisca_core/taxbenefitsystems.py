@@ -84,14 +84,6 @@ class AbstractTaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
         return base_tax_benefit_system
 
-    @property
-    def full_name(self):
-        name = self.name
-        if self.reference is not None:
-            reference_name = getattr(self.reference, 'name', 'base')
-            name = u'.'.join([reference_name, name])
-        return name
-
     def get_compact_legislation(self, instant, traced_simulation = None):
         if traced_simulation is None:
             compact_legislation = self.compact_legislation_by_instant_cache.get(instant)

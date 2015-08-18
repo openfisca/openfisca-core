@@ -60,6 +60,14 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
             legislation_json = self.reference.legislation_json,
             )
 
+    @property
+    def full_name(self):
+        name = self.name
+        if self.reference is not None:
+            reference_name = getattr(self.reference, 'name', 'base')
+            name = u'.'.join([reference_name, name])
+        return name
+
     def modify_legislation_json(self, modifier_function):
         """
         Copy the reference TaxBenefitSystem legislation_json attribute and return it.
@@ -106,8 +114,7 @@ def compose_reforms(build_reform_list, base_tax_benefit_system):
     return composed_reform
 
 
-def make_reform(name, reference, decomposition_dir_name = None, decomposition_file_name = None,
-        legislation_json_modifier_function = None, new_formulas = None):
+def make_reform(name, reference, decomposition_dir_name = None, decomposition_file_name = None, new_formulas = None):
     """
     Return a Reform class inherited from AbstractReform.
 
@@ -138,6 +145,7 @@ def make_reform(name, reference, decomposition_dir_name = None, decomposition_fi
             update = True,
             ))
 
+        @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
@@ -155,12 +163,7 @@ def make_reform(name, reference, decomposition_dir_name = None, decomposition_fi
         for new_formula in new_formulas:
             Reform.formula(new_formula)
 
-    reform = Reform()
-
-    if legislation_json_modifier_function:
-        reform.modify_legislation_json(modifier_function = legislation_json_modifier_function)
-
-    return reform
+    return Reform
 
 
 # Legislation helpers
