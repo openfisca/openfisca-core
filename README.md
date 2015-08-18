@@ -13,6 +13,10 @@ Please consult http://www.openfisca.fr/presentation
 
 Please consult http://www.openfisca.fr/documentation
 
+## See also
+
+* [reforms](docs/reforms.md)
+
 ## Installation
 
 Requirements:
