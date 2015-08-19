@@ -84,26 +84,19 @@ class AbstractTaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
         return base_tax_benefit_system
 
-    def get_compact_legislation(self, instant, traced_simulation = None):
-        if traced_simulation is None:
-            compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None and self.legislation_json is not None:
-                dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
-                compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-                self.compact_legislation_by_instant_cache[instant] = compact_legislation
-        else:
+    def get_compact_legislation(self, instant):
+        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
+        if compact_legislation is None and self.legislation_json is not None:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
-            compact_legislation = legislations.compact_dated_node_json(
-                dated_legislation_json,
-                traced_simulation = traced_simulation,
-                )
+            compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+            self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
-    def get_reference_compact_legislation(self, instant, traced_simulation = None):
+    def get_reference_compact_legislation(self, instant):
         reference = self.reference
         if reference is None:
-            return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
-        return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
+            return self.get_compact_legislation(instant)
+        return reference.get_reference_compact_legislation(instant)
 
     @classmethod
     def json_to_instance(cls, value, state = None):

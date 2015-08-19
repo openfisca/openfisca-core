@@ -227,16 +227,10 @@ class Simulation(object):
         return self.entity_by_column_name[column_name].get_array(column_name, period)
 
     def get_compact_legislation(self, instant):
-        if self.trace:
-            compact_legislation = self.tax_benefit_system.get_compact_legislation(
-                instant = instant,
-                traced_simulation = self,
-                )
-        else:
-            compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None:
-                compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
-                self.compact_legislation_by_instant_cache[instant] = compact_legislation
+        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
+        if compact_legislation is None:
+            compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
+            self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
@@ -250,16 +244,10 @@ class Simulation(object):
         return entity.get_or_new_holder(column_name)
 
     def get_reference_compact_legislation(self, instant):
-        if self.trace:
-            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(
-                instant = instant,
-                traced_simulation = self,
-                )
-        else:
-            reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
-            if reference_compact_legislation is None:
-                reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(instant)
-                self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
+        reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
+        if reference_compact_legislation is None:
+            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(instant)
+            self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):

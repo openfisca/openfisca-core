@@ -114,7 +114,7 @@ class AbstractEntityToEntity(AbstractFormula):
 
         if debug or trace:
             simulation.stack_trace.append(dict(
-                parameters_infos = [],
+                input_legislation_infos = [],
                 input_variables_infos = [],
                 ))
 
@@ -507,7 +507,7 @@ class SimpleFormula(AbstractFormula):
 
         if debug or trace:
             simulation.stack_trace.append(dict(
-                parameters_infos = [],
+                input_legislation_infos = [],
                 input_variables_infos = [],
                 ))
 

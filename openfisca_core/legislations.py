@@ -132,50 +132,10 @@ class CompactRootNode(CompactNode):
     instant = None
 
 
-class TracedCompactNode(object):
-    """A proxy for CompactNode which stores the a simulation instance. Used for simulations with trace mode enabled."""
-    compact_node = None
-    instant = None
-    name = None
-    simulation = None
-    traced_codes = None
-
-    def __init__(self, compact_node, instant, name, simulation, traced_codes):
-        self.compact_node = compact_node
-        self.instant = instant
-        self.name = name
-        self.simulation = simulation
-        self.traced_codes = traced_codes
-
-    def __getattribute__(self, code):
-        compact_node = super(TracedCompactNode, self).__getattribute__('compact_node')
-        instant = super(TracedCompactNode, self).__getattribute__('instant')
-        name = super(TracedCompactNode, self).__getattribute__('name')
-        simulation = super(TracedCompactNode, self).__getattribute__('simulation')
-        traced_codes = super(TracedCompactNode, self).__getattribute__('traced_codes')
-        value = getattr(compact_node, code)
-        if code in traced_codes:
-            # TODO Handle MarginalRateTaxScale
-            calling_frame = simulation.stack_trace[-1]
-            caller_parameters_infos = calling_frame['parameters_infos']
-            parameter_name = u'.'.join([name, code])
-            parameter_infos = (parameter_name, instant, value)
-            if parameter_infos not in caller_parameters_infos:
-                caller_parameters_infos.append(parameter_infos)
-        return value
-
-
 # Functions
 
 
-def compact_dated_node_json(dated_node_json, code = None, instant = None, parent_codes = None,
-        traced_simulation = None):
-    """
-    Compacts a dated node JSON into a hierarchy of CompactNode objects.
-
-    The "traced_simulation" argument can be used for simulations with trace mode enabled, this stores parameter values
-    in the traceback.
-    """
+def compact_dated_node_json(dated_node_json, code = None, instant = None):
     node_type = dated_node_json['@type']
     if node_type == u'Node':
         if code is None:
@@ -188,35 +148,7 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
             compact_node = CompactNode()
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
-            child_parent_codes = None
-            if traced_simulation is not None:
-                child_parent_codes = [] if parent_codes is None else parent_codes[:]
-                if code is not None:
-                    child_parent_codes += [code]
-                child_parent_codes = child_parent_codes or None
-            compact_node_dict[key] = compact_dated_node_json(
-                value,
-                code = key,
-                instant = instant,
-                parent_codes = child_parent_codes,
-                traced_simulation = traced_simulation,
-                )
-        if traced_simulation is not None:
-            traced_children_code = [
-                key
-                for key, value in dated_node_json['children'].iteritems()
-                if value['@type'] == u'Parameter'
-                ]
-            # Only trace Nodes which have at least one Parameter child.
-            if traced_children_code:
-                name = u'.'.join((parent_codes or []) + [code])
-                compact_node = TracedCompactNode(
-                    compact_node = compact_node,
-                    instant = instant,
-                    name = name,
-                    simulation = traced_simulation,
-                    traced_codes = traced_children_code,
-                    )
+            compact_node_dict[key] = compact_dated_node_json(value, code = key, instant = instant)
         return compact_node
     assert instant is not None
     if node_type == u'Parameter':
