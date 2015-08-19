@@ -229,7 +229,10 @@ class Simulation(object):
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
         if compact_legislation is None:
-            compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
+            compact_legislation = self.tax_benefit_system.get_compact_legislation(
+                instant = instant,
+                traced_simulation = self if self.trace else None,
+                )
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
@@ -246,7 +249,10 @@ class Simulation(object):
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
         if reference_compact_legislation is None:
-            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(instant)
+            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(
+                instant = instant,
+                traced_simulation = self if self.trace else None,
+                )
             self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 

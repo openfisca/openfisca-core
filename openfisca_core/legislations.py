@@ -132,10 +132,66 @@ class CompactRootNode(CompactNode):
     instant = None
 
 
+class TracedCompactNode(object):
+    """
+    A proxy for CompactNode which stores the a simulation instance. Used for simulations with trace mode enabled.
+
+    Overload __delitem__, getitem__ and __setitem__ even if __getattribute__ is defined because of:
+    http://stackoverflow.com/questions/11360020/why-is-getattribute-not-invoked-on-an-implicit-getitem-invocation
+    """
+    compact_node = None
+    full_name = None
+    instant = None
+    simulation = None
+    traced_attributes_name = None
+
+    def __init__(self, compact_node, full_name, instant, simulation, traced_attributes_name):
+        self.compact_node = compact_node
+        self.full_name = full_name
+        self.instant = instant
+        self.simulation = simulation
+        self.traced_attributes_name = traced_attributes_name
+
+    def __delitem__(self, key):
+        del self.compact_node.__dict__[key]
+
+    def __getattr__(self, name):
+        value = getattr(self.compact_node, name)
+        if name in self.traced_attributes_name:
+            calling_frame = self.simulation.stack_trace[-1]
+            caller_parameters_infos = calling_frame['parameters_infos']
+            parameter_name = u'.'.join([self.full_name, name])
+            parameter_infos = {
+                "instant": str(self.instant),
+                "name": parameter_name,
+                }
+            if isinstance(value, taxscales.AbstractTaxScale):
+                # Do not serialize value in JSON for tax scales since they are too big.
+                parameter_infos["@type"] = "Scale"
+            else:
+                parameter_infos.update({"@type": "Parameter", "value": value})
+            if parameter_infos not in caller_parameters_infos:
+                caller_parameters_infos.append(collections.OrderedDict(sorted(parameter_infos.iteritems())))
+        return value
+
+    def __getitem__(self, key):
+        return self.compact_node.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.compact_node.__dict__[key] = value
+
+
 # Functions
 
 
-def compact_dated_node_json(dated_node_json, code = None, instant = None):
+def compact_dated_node_json(dated_node_json, code = None, instant = None, parent_codes = None,
+        traced_simulation = None):
+    """
+    Compacts a dated node JSON into a hierarchy of CompactNode objects.
+
+    The "traced_simulation" argument can be used for simulations with trace mode enabled, this stores parameter values
+    in the traceback.
+    """
     node_type = dated_node_json['@type']
     if node_type == u'Node':
         if code is None:
@@ -148,7 +204,35 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
             compact_node = CompactNode()
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
-            compact_node_dict[key] = compact_dated_node_json(value, code = key, instant = instant)
+            child_parent_codes = None
+            if traced_simulation is not None:
+                child_parent_codes = [] if parent_codes is None else parent_codes[:]
+                if code is not None:
+                    child_parent_codes += [code]
+                child_parent_codes = child_parent_codes or None
+            compact_node_dict[key] = compact_dated_node_json(
+                value,
+                code = key,
+                instant = instant,
+                parent_codes = child_parent_codes,
+                traced_simulation = traced_simulation,
+                )
+        if traced_simulation is not None:
+            traced_children_code = [
+                key
+                for key, value in dated_node_json['children'].iteritems()
+                if value['@type'] != u'Node'
+                ]
+            # Only trace Nodes which have at least one Parameter child.
+            if traced_children_code:
+                full_name = u'.'.join((parent_codes or []) + [code])
+                compact_node = TracedCompactNode(
+                    compact_node = compact_node,
+                    full_name = full_name,
+                    instant = instant,
+                    simulation = traced_simulation,
+                    traced_attributes_name = traced_children_code,
+                    )
         return compact_node
     assert instant is not None
     if node_type == u'Parameter':
