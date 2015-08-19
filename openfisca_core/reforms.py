@@ -134,19 +134,30 @@ def make_reform(name, reference, decomposition_dir_name = None, decomposition_fi
     reform_reference = reference
 
     class Reform(AbstractReform):
+        _constructed = False
         DECOMP_DIR = decomposition_dir_name
         DEFAULT_DECOMP_FILE = decomposition_file_name
         entity_class_by_key_plural = reform_entity_class_by_key_plural
         name = reform_name
         reference = reform_reference
 
-        formula = staticmethod(formulas.make_reference_formula_decorator(
-            entity_class_by_symbol = reform_entity_class_by_symbol,
-            update = True,
-            ))
+        def __init__(self):
+            super(Reform, self).__init__()
+            Reform._constructed = True
+
+        @classmethod
+        def formula(cls, column):
+            assert not cls._constructed, \
+                'You are trying to add a formula to a Reform but its constructor has already been called.'
+            return formulas.make_reference_formula_decorator(
+                entity_class_by_symbol = reform_entity_class_by_symbol,
+                update = True,
+                )(column)
 
         @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
+            assert not cls._constructed, \
+                'You are trying to add an input variable to a Reform but its constructor has already been called.'
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
             assert 'update' not in kwargs
