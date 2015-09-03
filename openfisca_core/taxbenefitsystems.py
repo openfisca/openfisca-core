@@ -43,7 +43,6 @@ class AbstractTaxBenefitSystem(object):
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
-    legislation_json_by_reform_name_cache = None  # Used only by reforms which change their legislation_json.
     person_key_plural = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
@@ -55,7 +54,6 @@ class AbstractTaxBenefitSystem(object):
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.legislation_json_by_reform_name_cache = {}  # weakref.WeakValueDictionary()
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural

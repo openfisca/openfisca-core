@@ -35,9 +35,11 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     CURRENCY = None
     DECOMP_DIR = None
     DEFAULT_DECOMP_FILE = None
+    key = None
     name = None
 
     def __init__(self):
+        assert self.key is not None
         assert self.name is not None
         assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
@@ -61,37 +63,33 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
             )
 
     @property
-    def full_name(self):
-        name = self.name
+    def full_key(self):
+        key = self.key
+        assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
         if self.reference is not None:
-            reference_name = getattr(self.reference, 'name', 'base')
-            name = u'.'.join([reference_name, name])
-        return name
+            reference_key = getattr(self.reference, 'key', None)
+            if reference_key is not None:
+                key = u'.'.join([reference_key, key])
+        return key
 
     def modify_legislation_json(self, modifier_function):
         """
         Copy the reference TaxBenefitSystem legislation_json attribute and return it.
         Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
-        Also store it in the cache of the reference TaxBenefitSystem (and not in the base TaxBenefitSystem
-        since reforms can be chained).
+        Validates the new legislation.
         """
-        full_name = self.full_name
-        base_tax_benefit_system = self.base_tax_benefit_system
-        reform_legislation_json = base_tax_benefit_system.legislation_json_by_reform_name_cache.get(full_name)
-        if reform_legislation_json is None:
-            reference_legislation_json = self.reference.legislation_json
-            reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
-            reform_legislation_json = modifier_function(reference_legislation_json_copy)
-            assert reform_legislation_json is not None, \
-                'modifier_function {} in module {} must return the modified legislation_json'.format(
-                    modifier_function.__name__,
-                    modifier_function.__module__,
-                    )
-            reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
-            assert error is None, \
-                u'The modified legislation_json of the reform "{}" is invalid, error: {}, legislation_json: {}'.format(
-                    self.name, error, reform_legislation_json).encode('utf-8')
-            base_tax_benefit_system.legislation_json_by_reform_name_cache[full_name] = reform_legislation_json
+        reference_legislation_json = self.reference.legislation_json
+        reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
+        reform_legislation_json = modifier_function(reference_legislation_json_copy)
+        assert reform_legislation_json is not None, \
+            'modifier_function {} in module {} must return the modified legislation_json'.format(
+                modifier_function.__name__,
+                modifier_function.__module__,
+                )
+        reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
+        assert error is None, \
+            u'The modified legislation_json of the reform "{}" is invalid, error: {}, legislation_json: {}'.format(
+                self.key, error, reform_legislation_json).encode('utf-8')
         self.legislation_json = reform_legislation_json
 
 
@@ -102,24 +100,29 @@ def clone_entity_class(entity_class):
     return ReformEntity
 
 
-def compose_reforms(build_reform_list, base_tax_benefit_system):
+def compose_reforms(build_functions_and_keys, tax_benefit_system):
     """
     Compose reforms: the first reform is built with the given base tax-benefit system,
     then each one is built with the previous one as the reference.
     """
-    assert isinstance(build_reform_list, list)
-    composed_reform = build_reform_list[0](base_tax_benefit_system)
-    for build_reform in build_reform_list[1:]:
-        composed_reform = build_reform(composed_reform)
-    return composed_reform
+    def compose_reforms_reducer(memo, item):
+        build_reform, key = item
+        reform = build_reform(key = key, tax_benefit_system = memo)
+        assert isinstance(reform, AbstractReform), 'Reform {} returned an invalid value {!r}'.format(key, reform)
+        return reform
+    assert isinstance(build_functions_and_keys, list)
+    reform = reduce(compose_reforms_reducer, build_functions_and_keys, tax_benefit_system)
+    return reform
 
 
-def make_reform(name, reference, decomposition_dir_name = None, decomposition_file_name = None, new_formulas = None):
+def make_reform(key, name, reference, decomposition_dir_name = None, decomposition_file_name = None,
+        new_formulas = None):
     """
     Return a Reform class inherited from AbstractReform.
 
-    new_formula is deprecated.
+    Warning: new_formulas argument is deprecated.
     """
+    assert isinstance(key, basestring)
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
     reform_entity_class_by_key_plural = {
@@ -130,6 +133,7 @@ def make_reform(name, reference, decomposition_dir_name = None, decomposition_fi
         entity_class.symbol: entity_class
         for entity_class in reform_entity_class_by_key_plural.itervalues()
         }
+    reform_key = key
     reform_name = name
     reform_reference = reference
 
@@ -138,6 +142,7 @@ def make_reform(name, reference, decomposition_dir_name = None, decomposition_fi
         DECOMP_DIR = decomposition_dir_name
         DEFAULT_DECOMP_FILE = decomposition_file_name
         entity_class_by_key_plural = reform_entity_class_by_key_plural
+        key = reform_key
         name = reform_name
         reference = reform_reference
 

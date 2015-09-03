@@ -35,6 +35,7 @@ Here is how to do a reform which does nothing, for the purpose of the example:
 ```
 def build_reform(tax_benefit_system):
     Reform = reforms.make_reform(
+        key = 'empty',
         name = u'Dummy empty reform',
         reference = tax_benefit_system,
         )
@@ -54,6 +55,7 @@ Here is an example:
 ```
 def build_reform(tax_benefit_system):
     Reform = reforms.make_reform(
+        key = 'change_formula',
         name = u'Dummy reform with changed formula',
         reference = tax_benefit_system,
         )
@@ -85,7 +87,8 @@ def modify_legislation_json(reference_legislation_json_copy):
 
 def build_reform(tax_benefit_system):
     Reform = reforms.make_reform(
-        name = u'Fake reform with new legislation',
+        key = 'new_legislation',
+        name = u'Dummy reform with new legislation',
         reference = tax_benefit_system,
         )
 

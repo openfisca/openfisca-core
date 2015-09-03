@@ -32,7 +32,11 @@ from .test_countries import tax_benefit_system
 
 
 def test_formula_neutralization():
-    Reform = reforms.make_reform(name = u'Test rsa neutralization', reference = tax_benefit_system)
+    Reform = reforms.make_reform(
+        key = u'test_rsa_neutralization',
+        name = u'Test rsa neutralization',
+        reference = tax_benefit_system,
+        )
     Reform.formula(neutralize_column(tax_benefit_system.column_by_name['rsa']))
     reform = Reform()
 
@@ -57,7 +61,11 @@ def test_formula_neutralization():
 
 
 # def test_input_variable_neutralization():
-    Reform = reforms.make_reform(name = u'Test salaire_brut neutralization', reference = tax_benefit_system)
+    Reform = reforms.make_reform(
+        key = u'test_salaire_brut_neutralization',
+        name = u'Test salaire_brut neutralization',
+        reference = tax_benefit_system,
+        )
     Reform.formula(neutralize_column(tax_benefit_system.column_by_name['salaire_brut']))
     reform = Reform()
 
