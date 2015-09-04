@@ -61,7 +61,7 @@ class AbstractScenario(object):
                     )
         return value, None
 
-    def fill_simulation(self, simulation, variables_name_to_skip = None):
+    def fill_simulation(self, simulation, use_set_input_hooks = True, variables_name_to_skip = None):
         assert isinstance(simulation, simulations.Simulation)
         if variables_name_to_skip is None:
             variables_name_to_skip = set()
@@ -86,7 +86,10 @@ class AbstractScenario(object):
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
-                        holder.set_input(period, array)
+                        if use_set_input_hooks:
+                            holder.set_input(period, array)
+                        else:
+                            holder.set_array(period, array)
 
             if persons.count == 0:
                 persons.count = 1
@@ -192,25 +195,31 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
-                            holder.set_input(variable_period, array)
+                            if use_set_input_hooks:
+                                holder.set_input(variable_period, array)
+                            else:
+                                holder.set_array(variable_period, array)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
                     parallel_axes = self.axes[0]
-                    # All parallel axes have the same count, entity and period.
+                    # All parallel axes have the same count and entity.
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
                     axis_entity = simulation.entity_by_column_name[first_axis['name']]
-                    axis_period = first_axis['period'] or simulation_period
                     for axis in parallel_axes:
+                        axis_period = axis['period'] or simulation_period
                         holder = simulation.get_or_new_holder(axis['name'])
                         column = holder.column
                         array = holder.get_array(axis_period)
                         if array is None:
                             array = np.empty(axis_entity.count, dtype = column.dtype)
                             array.fill(column.default)
-                            holder.set_input(axis_period, array)
                         array[axis['index']:: axis_entity.step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+                        if use_set_input_hooks:
+                            holder.set_input(axis_period, array)
+                        else:
+                            holder.set_array(axis_period, array)
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -221,21 +230,24 @@ class AbstractScenario(object):
                         ]
                     axes_meshes = np.meshgrid(*axes_linspaces)
                     for parallel_axes, mesh in zip(self.axes, axes_meshes):
-                        # All parallel axes have the same count, entity and period.
+                        # All parallel axes have the same count and entity.
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
                         axis_entity = simulation.entity_by_column_name[first_axis['name']]
-                        axis_period = first_axis['period'] or simulation_period
                         for axis in parallel_axes:
+                            axis_period = axis['period'] or simulation_period
                             holder = simulation.get_or_new_holder(axis['name'])
                             column = holder.column
                             array = holder.get_array(axis_period)
                             if array is None:
                                 array = np.empty(axis_entity.count, dtype = column.dtype)
                                 array.fill(column.default)
-                                holder.set_input(axis_period, array)
                             array[axis['index']:: axis_entity.step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                            if use_set_input_hooks:
+                                holder.set_input(axis_period, array)
+                            else:
+                                holder.set_array(axis_period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
@@ -296,7 +308,7 @@ class AbstractScenario(object):
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
                     axis_entity_key_plural = column_by_name[first_axis['name']].entity_key_plural
-                    axis_period = first_axis['period']
+                    first_axis_period = first_axis['period'] or data['period']
                     for axis_index, axis in enumerate(parallel_axes):
                         if axis['min'] >= axis['max']:
                             errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
@@ -314,9 +326,15 @@ class AbstractScenario(object):
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
                                         u"Parallel indexes must belong to the same entity")
-                            if axis['period'] != axis_period:
+                            axis_period = axis['period'] or data['period']
+                            if axis_period.unit != first_axis_period.unit:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
-                                    axis_index, {})['period'] = state._(u"Parallel indexes must have the same period")
+                                    axis_index, {})['period'] = state._(
+                                        u"Parallel indexes must have the same period unit")
+                            elif axis_period.size != first_axis_period.size:
+                                errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
+                                    axis_index, {})['period'] = state._(
+                                        u"Parallel indexes must have the same period size")
                 if errors:
                     return data, errors
 
@@ -341,7 +359,8 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False,
+            use_set_input_hooks = True):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -358,7 +377,7 @@ class AbstractScenario(object):
             tax_benefit_system = tax_benefit_system,
             trace = trace,
             )
-        self.fill_simulation(simulation)
+        self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
         return simulation
 
     def to_json(self):

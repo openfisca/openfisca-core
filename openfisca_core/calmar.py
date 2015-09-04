@@ -241,3 +241,9 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
     pondfin_out = array(data_in[pondini], dtype = float64)
     pondfin_out[is_weight_not_null] = pondfin
     return pondfin_out, lambdasol, margins_new_dict
+
+
+def check_calmar(data_in, margins, pondini='wprm_init', pondfin_out = None, lambdasol = None, margins_new_dict = None):
+    for variable, margin in margins.iteritems():
+        if variable != 'total_population':
+            print variable, margin, abs(margin - margins_new_dict[variable]) / abs(margin)

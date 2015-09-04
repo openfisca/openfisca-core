@@ -34,8 +34,11 @@ import logging
 from . import conv, periods, taxscales
 
 
+def N_(message):
+    return message
+
+
 log = logging.getLogger(__name__)
-N_ = lambda message: message
 units = [
     u'currency',
     u'day',
@@ -129,10 +132,66 @@ class CompactRootNode(CompactNode):
     instant = None
 
 
+class TracedCompactNode(object):
+    """
+    A proxy for CompactNode which stores the a simulation instance. Used for simulations with trace mode enabled.
+
+    Overload __delitem__, getitem__ and __setitem__ even if __getattribute__ is defined because of:
+    http://stackoverflow.com/questions/11360020/why-is-getattribute-not-invoked-on-an-implicit-getitem-invocation
+    """
+    compact_node = None
+    full_name = None
+    instant = None
+    simulation = None
+    traced_attributes_name = None
+
+    def __init__(self, compact_node, full_name, instant, simulation, traced_attributes_name):
+        self.compact_node = compact_node
+        self.full_name = full_name
+        self.instant = instant
+        self.simulation = simulation
+        self.traced_attributes_name = traced_attributes_name
+
+    def __delitem__(self, key):
+        del self.compact_node.__dict__[key]
+
+    def __getattr__(self, name):
+        value = getattr(self.compact_node, name)
+        if name in self.traced_attributes_name:
+            calling_frame = self.simulation.stack_trace[-1]
+            caller_parameters_infos = calling_frame['parameters_infos']
+            parameter_name = u'.'.join([self.full_name, name])
+            parameter_infos = {
+                "instant": str(self.instant),
+                "name": parameter_name,
+                }
+            if isinstance(value, taxscales.AbstractTaxScale):
+                # Do not serialize value in JSON for tax scales since they are too big.
+                parameter_infos["@type"] = "Scale"
+            else:
+                parameter_infos.update({"@type": "Parameter", "value": value})
+            if parameter_infos not in caller_parameters_infos:
+                caller_parameters_infos.append(collections.OrderedDict(sorted(parameter_infos.iteritems())))
+        return value
+
+    def __getitem__(self, key):
+        return self.compact_node.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.compact_node.__dict__[key] = value
+
+
 # Functions
 
 
-def compact_dated_node_json(dated_node_json, code = None, instant = None):
+def compact_dated_node_json(dated_node_json, code = None, instant = None, parent_codes = None,
+        traced_simulation = None):
+    """
+    Compacts a dated node JSON into a hierarchy of CompactNode objects.
+
+    The "traced_simulation" argument can be used for simulations with trace mode enabled, this stores parameter values
+    in the traceback.
+    """
     node_type = dated_node_json['@type']
     if node_type == u'Node':
         if code is None:
@@ -145,7 +204,35 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None):
             compact_node = CompactNode()
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
-            compact_node_dict[key] = compact_dated_node_json(value, code = key, instant = instant)
+            child_parent_codes = None
+            if traced_simulation is not None:
+                child_parent_codes = [] if parent_codes is None else parent_codes[:]
+                if code is not None:
+                    child_parent_codes += [code]
+                child_parent_codes = child_parent_codes or None
+            compact_node_dict[key] = compact_dated_node_json(
+                value,
+                code = key,
+                instant = instant,
+                parent_codes = child_parent_codes,
+                traced_simulation = traced_simulation,
+                )
+        if traced_simulation is not None:
+            traced_children_code = [
+                key
+                for key, value in dated_node_json['children'].iteritems()
+                if value['@type'] != u'Node'
+                ]
+            # Only trace Nodes which have at least one Parameter child.
+            if traced_children_code:
+                full_name = u'.'.join((parent_codes or []) + [code])
+                compact_node = TracedCompactNode(
+                    compact_node = compact_node,
+                    full_name = full_name,
+                    instant = instant,
+                    simulation = traced_simulation,
+                    traced_attributes_name = traced_children_code,
+                    )
         return compact_node
     assert instant is not None
     if node_type == u'Parameter':
@@ -305,8 +392,8 @@ def make_validate_values_json_dates(require_consecutive_dates = False):
         sorted_values_json = sorted(values_json, key = lambda value_json: value_json['start'], reverse = True)
         next_value_json = sorted_values_json[0]
         for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
-                + datetime.timedelta(days = 1)).isoformat()
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-'))) +
+                datetime.timedelta(days = 1)).isoformat()
             if require_consecutive_dates and next_date_str < next_value_json['start']:
                 errors.setdefault(index, {})['start'] = state._(u"Dates of values are not consecutive")
             elif next_date_str > next_value_json['start']:
@@ -551,7 +638,8 @@ def validate_dated_value_json(value, state = None):
     if value is None:
         return None, None
     container = state.ancestors[-1]
-    value_converter = dict(
+    container_format = container.get('format')
+    value_converters = dict(
         boolean = conv.condition(
             conv.test_isinstance(int),
             conv.test_in((0, 1)),
@@ -575,7 +663,10 @@ def validate_dated_value_json(value, state = None):
             conv.anything_to_float,
             conv.test_isinstance(float),
             ),
-        )[container.get('format') or 'float']  # Only parameters have a "format".
+        )
+    value_converter = value_converters.get(container_format or 'float')  # Only parameters have a "format".
+    assert value_converter is not None, 'Wrong format "{}", allowed: {}, container: {}'.format(
+        container_format, value_converters.keys(), container)
     return value_converter(value, state = state or conv.default_state)
 
 
@@ -650,6 +741,8 @@ def validate_node_json(node, state = None):
                 conv.test_isinstance(basestring),
                 conv.cleanup_line,
                 ),
+            'end_line_number': conv.test_isinstance(int),
+            'start_line_number': conv.test_isinstance(int),
             },
         constructor = collections.OrderedDict,
         default = conv.noop,
@@ -665,6 +758,8 @@ def validate_node_json(node, state = None):
         '@type': conv.noop,
         'comment': conv.noop,
         'description': conv.noop,
+        'end_line_number': conv.noop,
+        'start_line_number': conv.noop,
         }
     node_type = validated_node['@type']
     if node_type == u'Node':
@@ -717,15 +812,6 @@ def validate_node_json(node, state = None):
     else:
         assert node_type == u'Scale'
         node_converters.update(dict(
-            option = conv.pipe(
-                conv.test_isinstance(basestring),
-                conv.input_to_slug,
-                conv.test_in((
-                    'contrib',
-                    'main-d-oeuvre',
-                    'noncontrib',
-                    )),
-                ),
             brackets = conv.pipe(
                 conv.test_isinstance(list),
                 conv.uniform_sequence(
@@ -736,6 +822,21 @@ def validate_node_json(node, state = None):
                 validate_brackets_json_dates,
                 conv.empty_to_none,
                 conv.not_none,
+                ),
+            option = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.input_to_slug,
+                conv.test_in((
+                    'contrib',
+                    'main-d-oeuvre',
+                    'noncontrib',
+                    )),
+                ),
+            rates_kind = conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.test_in((
+                    'average',
+                    )),
                 ),
             unit = conv.pipe(
                 conv.test_isinstance(basestring),
@@ -770,7 +871,9 @@ def validate_bracket_json(bracket, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 rate = validate_values_holder_json,
+                start_line_number = conv.test_isinstance(int),
                 threshold = conv.pipe(
                     validate_values_holder_json,
                     conv.not_none,
@@ -919,7 +1022,8 @@ def validate_value_json(value, state = None):
     if value is None:
         return None, None
     container = state.ancestors[-1]
-    value_converter = dict(
+    container_format = container.get('format')
+    value_converters = dict(
         boolean = conv.condition(
             conv.test_isinstance(int),
             conv.test_in((0, 1)),
@@ -943,7 +1047,10 @@ def validate_value_json(value, state = None):
             conv.anything_to_float,
             conv.test_isinstance(float),
             ),
-        )[container.get('format') or 'float']  # Only parameters have a "format".
+        )
+    value_converter = value_converters.get(container_format or 'float')  # Only parameters have a "format".
+    assert value_converter is not None, 'Wrong format "{}", allowed: {}, container: {}'.format(
+        container_format, value_converters.keys(), container)
     state = conv.add_ancestor_to_state(state, value)
     validated_value, errors = conv.pipe(
         conv.test_isinstance(dict),
@@ -953,12 +1060,14 @@ def validate_value_json(value, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
+                u'end_line_number': conv.test_isinstance(int),
                 u'start': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
+                u'start_line_number': conv.test_isinstance(int),
                 u'stop': conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,

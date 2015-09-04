@@ -38,7 +38,7 @@ __all__ = [
 
 
 class AbstractTaxBenefitSystem(object):
-    _real_reference = None
+    _base_tax_benefit_system = None
     column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
@@ -72,19 +72,36 @@ class AbstractTaxBenefitSystem(object):
             if entity_class.is_persons_entity:
                 self.person_key_plural = entity_class.key_plural
 
-    def get_compact_legislation(self, instant):
-        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-        if compact_legislation is None and self.legislation_json is not None:
+    @property
+    def base_tax_benefit_system(self):
+        base_tax_benefit_system = self._base_tax_benefit_system
+        if base_tax_benefit_system is None:
+            reference = self.reference
+            if reference is None:
+                return self
+            self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
+        return base_tax_benefit_system
+
+    def get_compact_legislation(self, instant, traced_simulation = None):
+        if traced_simulation is None:
+            compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
+            if compact_legislation is None and self.legislation_json is not None:
+                dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
+                compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+                self.compact_legislation_by_instant_cache[instant] = compact_legislation
+        else:
             dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
-            compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-            self.compact_legislation_by_instant_cache[instant] = compact_legislation
+            compact_legislation = legislations.compact_dated_node_json(
+                dated_legislation_json,
+                traced_simulation = traced_simulation,
+                )
         return compact_legislation
 
-    def get_reference_compact_legislation(self, instant):
+    def get_reference_compact_legislation(self, instant, traced_simulation = None):
         reference = self.reference
         if reference is None:
-            return self.get_compact_legislation(instant)
-        return reference.get_reference_compact_legislation(instant)
+            return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
+        return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -103,16 +120,6 @@ class AbstractTaxBenefitSystem(object):
 
     def prefill_cache(self):
         pass
-
-    @property
-    def real_reference(self):
-        real_reference = self._real_reference
-        if real_reference is None:
-            reference = self.reference
-            if reference is None:
-                return self
-            self._real_reference = real_reference = reference.real_reference
-        return real_reference
 
 
 class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):

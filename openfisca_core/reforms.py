@@ -24,30 +24,73 @@
 
 
 import collections
+import copy
+import warnings
 
-from . import formulas, periods, taxbenefitsystems
+from . import formulas, legislations, periods, taxbenefitsystems
 
 
 class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
+    CURRENCY = None
     DECOMP_DIR = None
     DEFAULT_DECOMP_FILE = None
+    key = None
     name = None
 
     def __init__(self):
+        assert self.key is not None
         assert self.name is not None
-        assert self.reference is not None, u'Reform requires a reference tax-benefit-system.'
+        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
         assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
         self.Scenario = self.reference.Scenario
-        self.CURRENCY = self.reference.CURRENCY
+
+        if self.CURRENCY is None:
+            currency = getattr(self.reference, 'CURRENCY', None)
+            if currency is not None:
+                self.CURRENCY = currency
         if self.DECOMP_DIR is None:
-            self.DECOMP_DIR = self.reference.DECOMP_DIR
+            decomp_dir = getattr(self.reference, 'DECOMP_DIR', None)
+            if decomp_dir is not None:
+                self.DECOMP_DIR = decomp_dir
         if self.DEFAULT_DECOMP_FILE is None:
-            self.DEFAULT_DECOMP_FILE = self.reference.DEFAULT_DECOMP_FILE
+            default_decomp_file = getattr(self.reference, 'DEFAULT_DECOMP_FILE', None)
+            if default_decomp_file is not None:
+                self.DEFAULT_DECOMP_FILE = default_decomp_file
         super(AbstractReform, self).__init__(
             entity_class_by_key_plural = self.entity_class_by_key_plural or self.reference.entity_class_by_key_plural,
-            legislation_json = self.legislation_json or self.reference.legislation_json,
+            legislation_json = self.reference.legislation_json,
             )
+
+    @property
+    def full_key(self):
+        key = self.key
+        assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
+        if self.reference is not None:
+            reference_key = getattr(self.reference, 'key', None)
+            if reference_key is not None:
+                key = u'.'.join([reference_key, key])
+        return key
+
+    def modify_legislation_json(self, modifier_function):
+        """
+        Copy the reference TaxBenefitSystem legislation_json attribute and return it.
+        Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
+        Validates the new legislation.
+        """
+        reference_legislation_json = self.reference.legislation_json
+        reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
+        reform_legislation_json = modifier_function(reference_legislation_json_copy)
+        assert reform_legislation_json is not None, \
+            'modifier_function {} in module {} must return the modified legislation_json'.format(
+                modifier_function.__name__,
+                modifier_function.__module__,
+                )
+        reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
+        assert error is None, \
+            u'The modified legislation_json of the reform "{}" is invalid, error: {}, legislation_json: {}'.format(
+                self.key, error, reform_legislation_json).encode('utf-8')
+        self.legislation_json = reform_legislation_json
 
 
 def clone_entity_class(entity_class):
@@ -57,21 +100,29 @@ def clone_entity_class(entity_class):
     return ReformEntity
 
 
-def compose_reforms(build_reform_list, base_tax_benefit_system):
+def compose_reforms(build_functions_and_keys, tax_benefit_system):
     """
     Compose reforms: the first reform is built with the given base tax-benefit system,
     then each one is built with the previous one as the reference.
     """
-    assert isinstance(build_reform_list, list)
-    composed_reform = build_reform_list[0](base_tax_benefit_system)
-    for build_reform in build_reform_list[1:]:
-        composed_reform = build_reform(composed_reform)
-    return composed_reform
+    def compose_reforms_reducer(memo, item):
+        build_reform, key = item
+        reform = build_reform(key = key, tax_benefit_system = memo)
+        assert isinstance(reform, AbstractReform), 'Reform {} returned an invalid value {!r}'.format(key, reform)
+        return reform
+    assert isinstance(build_functions_and_keys, list)
+    reform = reduce(compose_reforms_reducer, build_functions_and_keys, tax_benefit_system)
+    return reform
 
 
-def make_reform(decomposition_dir_name = None, decomposition_file_name = None, legislation_json = None, name = None,
-        new_formulas = None, reference = None):
-    """Return a Reform class inherited from AbstractReform."""
+def make_reform(key, name, reference, decomposition_dir_name = None, decomposition_file_name = None,
+        new_formulas = None):
+    """
+    Return a Reform class inherited from AbstractReform.
+
+    Warning: new_formulas argument is deprecated.
+    """
+    assert isinstance(key, basestring)
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
     reform_entity_class_by_key_plural = {
@@ -82,25 +133,36 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
         entity_class.symbol: entity_class
         for entity_class in reform_entity_class_by_key_plural.itervalues()
         }
-    reform_legislation_json = legislation_json
+    reform_key = key
     reform_name = name
     reform_reference = reference
 
     class Reform(AbstractReform):
+        _constructed = False
         DECOMP_DIR = decomposition_dir_name
         DEFAULT_DECOMP_FILE = decomposition_file_name
         entity_class_by_key_plural = reform_entity_class_by_key_plural
-        legislation_json = reform_legislation_json
+        key = reform_key
         name = reform_name
         reference = reform_reference
 
-        formula = staticmethod(formulas.make_reference_formula_decorator(
-            entity_class_by_symbol = reform_entity_class_by_symbol,
-            update = True,
-            ))
+        def __init__(self):
+            super(Reform, self).__init__()
+            Reform._constructed = True
+
+        @classmethod
+        def formula(cls, column):
+            assert not cls._constructed, \
+                'You are trying to add a formula to a Reform but its constructor has already been called.'
+            return formulas.make_reference_formula_decorator(
+                entity_class_by_symbol = reform_entity_class_by_symbol,
+                update = True,
+                )(column)
 
         @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
+            assert not cls._constructed, \
+                'You are trying to add an input variable to a Reform but its constructor has already been called.'
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
             assert 'update' not in kwargs
@@ -108,6 +170,12 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
             return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
 
     if new_formulas is not None:
+        warnings.warn(
+            "new_formulas is deprecated. Use reform.formula decorator instead on the formula classes, "
+            "reform being the object returned by make_reform",
+            DeprecationWarning,
+            )
+        assert isinstance(new_formulas, collections.Sequence)
         for new_formula in new_formulas:
             Reform.formula(new_formula)
 
@@ -115,25 +183,6 @@ def make_reform(decomposition_dir_name = None, decomposition_file_name = None, l
 
 
 # Legislation helpers
-
-def find_item_at_date(items, date, nearest_in_period = None):
-    """
-    Find an item (a dict with start, stop, value key) at a specific date in a list of items which have each one
-    a start date and a stop date.
-    """
-    instant = periods.instant(date)
-    instant_str = str(instant)
-    for item in items:
-        if item['start'] <= instant_str <= item['stop']:
-            return item
-    if nearest_in_period is not None and nearest_in_period.start <= instant <= nearest_in_period.stop:
-        earliest_item = min(items, key = lambda item: item['start'])
-        if instant_str < earliest_item['start']:
-            return earliest_item
-        latest_item = max(items, key = lambda item: item['stop'])
-        if instant_str > latest_item['stop']:
-            return latest_item
-    return None
 
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):

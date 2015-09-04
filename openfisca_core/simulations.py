@@ -108,6 +108,16 @@ class Simulation(object):
         return self.compute_divide(column_name, period = period,
             requested_formulas_by_period = requested_formulas_by_period).array
 
+    def calculate_output(self, column_name, period = None):
+        """Calculate the value using calculate_output hooks in formula classes."""
+        if period is None:
+            period = self.period
+        elif not isinstance(period, periods.Period):
+            period = periods.period(period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.calculate_output(period)
+
     def clone(self, debug = False, debug_all = False, trace = False):
         """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
         new = empty_clone(self)
@@ -219,7 +229,10 @@ class Simulation(object):
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
         if compact_legislation is None:
-            compact_legislation = self.tax_benefit_system.get_compact_legislation(instant)
+            compact_legislation = self.tax_benefit_system.get_compact_legislation(
+                instant = instant,
+                traced_simulation = self if self.trace else None,
+                )
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
 
@@ -236,12 +249,16 @@ class Simulation(object):
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
         if reference_compact_legislation is None:
-            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(instant)
+            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(
+                instant = instant,
+                traced_simulation = self if self.trace else None,
+                )
             self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation
 
-    def graph(self, column_name, edges, input_variables_extractor, nodes, visited):
-        self.entity_by_column_name[column_name].graph(column_name, edges, input_variables_extractor, nodes, visited)
+    def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
+        self.entity_by_column_name[column_name].graph(column_name, edges, get_input_variables_and_parameters, nodes,
+            visited)
 
     def legislation_at(self, instant, reference = False):
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
@@ -262,3 +279,11 @@ class Simulation(object):
                 for input_variable_name, input_variable_period1 in input_variables_infos
                 )
             )
+
+    def to_input_variables_json(self):
+        return {
+            column_name: self.get_holder(column_name).to_value_json()
+            for entity in self.entity_by_key_plural.itervalues()
+            for column_name in entity.column_by_name.iterkeys()
+            if column_name in entity.holder_by_name
+            }

@@ -34,7 +34,8 @@ from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, SimpleFormulaColumn)
+    make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, set_input_divide_by_period,
+    SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -331,6 +332,7 @@ reference_input_variable(
     entity_class = Individus,
     label = "Salaire brut",
     name = 'salaire_brut',
+    set_input = set_input_divide_by_period,
     )
 
 
@@ -503,6 +505,40 @@ def test_2_parallel_axes_1_constant():
         parent2 = {},
         ).new_simulation(debug = True)
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
+
+
+def test_2_parallel_axes_different_periods():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        axes = [
+            [
+                dict(
+                    count = 3,
+                    name = 'salaire_brut',
+                    max = 120000,
+                    min = 0,
+                    period = year - 1,
+                    ),
+                dict(
+                    count = 3,
+                    index = 1,
+                    name = 'salaire_brut',
+                    max = 120000,
+                    min = 0,
+                    period = year,
+                    ),
+                ],
+            ],
+        period = year,
+        parent1 = {},
+        parent2 = {},
+        ).new_simulation(debug = True)
+    assert_near(simulation.calculate('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
+    assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year - 1)), [0, 0, 5000, 0, 10000, 0],
+        absolute_error_margin = 0)
+    assert_near(simulation.calculate('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
+    assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year)), [0, 0, 0, 5000, 0, 10000],
+        absolute_error_margin = 0)
 
 
 def test_2_parallel_axes_same_values():

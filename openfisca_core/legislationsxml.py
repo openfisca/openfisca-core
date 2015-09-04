@@ -48,6 +48,7 @@ from . import conv
 #    VALUE = 'values',
 #    )
 
+default_format = 'float'
 log = logging.getLogger(__name__)
 json_unit_by_xml_json_type = dict(
     age = u'year',
@@ -56,13 +57,18 @@ json_unit_by_xml_json_type = dict(
     monetary = u'currency',
     months = u'month',
     )
-N_ = lambda message: message
 xml_json_formats = (
     'bool',
     'float',
     'integer',
     'percent',
     )
+
+
+# Helper functions
+
+def N_(message):
+    return message
 
 
 # Level 1 converters
@@ -83,8 +89,8 @@ def make_validate_values_xml_json_dates(require_consecutive_dates = False):
             reverse = True)
         next_value_xml_json = sorted_values_xml_json[0]
         for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
-                + datetime.timedelta(days = 1)).isoformat()
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-'))) +
+                datetime.timedelta(days = 1)).isoformat()
             if require_consecutive_dates and next_date_str < next_value_xml_json['deb']:
                 errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
             elif next_date_str > next_value_xml_json['deb']:
@@ -103,6 +109,12 @@ def translate_xml_element_to_json_item(xml_element):
         text = text.strip().strip('#').strip() or None
         if text is not None:
             json_element['text'] = text
+    start_line_number = getattr(xml_element, "start_line_number", None)
+    end_line_number = getattr(xml_element, "end_line_number", None)
+    if start_line_number is not None:
+        json_element['start_line_number'] = start_line_number
+    if end_line_number is not None and end_line_number != start_line_number:
+        json_element['end_line_number'] = end_line_number
     json_element.update(xml_element.attrib)
     for xml_child in xml_element:
         json_child_key, json_child = translate_xml_element_to_json_item(xml_child)
@@ -179,6 +191,8 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                 ]
         else:
             parameter_json[key] = value
+    if parameter_json.get('format') is None:
+        parameter_json['format'] = default_format
     if comments:
         parameter_json['comment'] = u'\n\n'.join(comments)
     return parameter_xml_json['code'], parameter_json
@@ -235,9 +249,8 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
     comments = []
     value_json = collections.OrderedDict()
     for key, value in value_xml_json.iteritems():
-        if key in ('code', 'format', 'type'):
-            pass
-        elif key == 'deb':
+        assert key not in ('code', 'format', 'type')
+        if key == 'deb':
             value_json['start'] = value
         elif key == 'fin':
             value_json['stop'] = value
@@ -336,6 +349,7 @@ def validate_node_xml_json(node, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 NODE = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -344,6 +358,7 @@ def validate_node_xml_json(node, state = None):
                         ),
                     conv.empty_to_none,
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -403,11 +418,13 @@ def validate_parameter_xml_json(parameter, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 format = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.input_to_slug,
                     conv.test_in(xml_json_formats),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -465,6 +482,7 @@ def validate_scale_xml_json(scale, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 option = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.input_to_slug,
@@ -474,6 +492,7 @@ def validate_scale_xml_json(scale, state = None):
                         'noncontrib',
                         )),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 TRANCHE = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -531,6 +550,7 @@ def validate_bracket_xml_json(bracket, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 MONTANT = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -550,6 +570,7 @@ def validate_bracket_xml_json(bracket, state = None):
                     conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
                     conv.not_none,
                     ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -740,34 +761,26 @@ def validate_value_xml_json(value, state = None):
             conv.cleanup_line,
             conv.test_conv(conv.anything_to_float),
             ),
-        )[container.get('format') or 'float']  # Only CODE have a "format".
+        )[container.get('format') or default_format]  # Only CODE have a "format".
     state = conv.add_ancestor_to_state(state, value)
     validated_value, errors = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                code = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.cleanup_line,
-                    ),
                 deb = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 fin = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
-                format = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in(xml_json_formats),
-                    conv.test_equals(container.get('format')),
-                    ),
+                start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
@@ -775,18 +788,6 @@ def validate_value_xml_json(value, state = None):
                 text = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
-                    ),
-                type = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_in([
-                        'age',
-                        'days',
-                        'hours',
-                        'monetary',
-                        'months',
-                        ]),
-                    conv.test_equals(container.get('type')),
                     ),
                 valeur = conv.pipe(
                     value_converter,
@@ -804,6 +805,8 @@ def validate_value_xml_json(value, state = None):
 
 validate_values_holder_xml_json = conv.struct(
     dict(
+        end_line_number = conv.test_isinstance(int),
+        start_line_number = conv.test_isinstance(int),
         VALUE = conv.pipe(
             conv.test_isinstance(list),
             conv.uniform_sequence(
@@ -822,20 +825,24 @@ validate_values_holder_xml_json = conv.struct(
 
 
 def xml_legislation_file_path_to_xml(value, state = None):
+    # From # http://bugs.python.org/issue14078#msg153907
+    class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
+        def _end(self, *args, **kwargs):
+            element = super(self.__class__, self)._end(*args, **kwargs)
+            element.end_line_number = self._parser.CurrentLineNumber
+            return element
+
+        def _start_list(self, *args, **kwargs):
+            element = super(self.__class__, self)._start_list(*args, **kwargs)
+            element.start_line_number = self._parser.CurrentLineNumber
+            return element
+
+    parser = XMLParserWithLineNumbers()
     try:
-        legislation_tree = xml.etree.ElementTree.parse(value)
+        legislation_tree = xml.etree.ElementTree.parse(value, parser = parser)
     except xml.etree.ElementTree.ParseError as error:
         return value, unicode(error)
     xml_legislation = legislation_tree.getroot()
-    return xml_legislation, None
-
-
-def xml_legislation_str_to_xml(value, state = None):
-    value = value.encode('utf-8')
-    try:
-        xml_legislation = xml.etree.ElementTree.fromstring(value)
-    except xml.etree.ElementTree.ParseError as error:
-        return value, unicode(error)
     return xml_legislation, None
 
 
@@ -854,14 +861,6 @@ def xml_legislation_to_json(xml_element, state = None):
 
 xml_legislation_file_path_to_json = conv.pipe(
     xml_legislation_file_path_to_xml,
-    xml_legislation_to_json,
-    validate_legislation_xml_json,
-    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
-    )
-
-
-xml_legislation_str_to_json = conv.pipe(
-    xml_legislation_str_to_xml,
     xml_legislation_to_json,
     validate_legislation_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),

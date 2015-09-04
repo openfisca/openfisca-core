@@ -25,6 +25,7 @@
 
 import collections
 import datetime
+import inspect
 import re
 
 from biryani import strings
@@ -34,8 +35,10 @@ from . import conv, periods
 from .enumerations import Enum
 
 
-N_ = lambda message: message
-year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
+def N_(message):
+    return message
+
+year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 
 # Base Column
@@ -49,8 +52,6 @@ class Column(object):
     entity = None  # Obsolete: To remove once build_..._couple() functions are no more used.
     entity_key_plural = None
     formula_class = None
-    function = None  # Obsolete: To remove once build_..._couple() functions are no more used.
-    info = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
     # json_type = None  # Defined in sub-classes
@@ -62,7 +63,7 @@ class Column(object):
     url = None
     val_type = None
 
-    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None, info = None,
+    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None,
             is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
             val_type = None):
         if cerfa_field is not None:
@@ -74,8 +75,6 @@ class Column(object):
         self.entity = entity or 'ind'
         if function is not None:
             self.function = function
-        if info is not None:
-            self.info = info
         if is_permanent:
             self.is_permanent = True
         if law_reference is not None:
@@ -93,6 +92,11 @@ class Column(object):
 
     def empty_clone(self):
         return self.__class__()
+
+    def is_input_variable(self):
+        """Returns true if the column (self) is an input variable."""
+        from . import formulas
+        return issubclass(self.formula_class, formulas.SimpleFormula) and self.formula_class.function is None
 
     def json_default(self):
         return self.default
@@ -161,11 +165,15 @@ class Column(object):
                 end = end.isoformat()
             self_json['end'] = end
         if self.entity is not None:
-            self_json['entity'] = self.entity
-        if self.info is not None:
-            self_json['info'] = self.info
+            self_json['entity'] = self.entity_key_plural
         if self.label is not None:
             self_json['label'] = self.label
+        line_number = self.formula_class.line_number
+        if line_number is not None:
+            self_json['line_number'] = line_number
+        module = self.formula_class.__module__
+        if module is not None:
+            self_json['module'] = module
         if self.name is not None:
             self_json['name'] = self.name
         start = self.start
@@ -181,18 +189,18 @@ class Column(object):
             self_json['val_type'] = self.val_type
         return self_json
 
-    def transform_dated_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         return value
 
-    def transform_value_to_json(self, value):
+    def transform_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         if isinstance(value, dict):
             return collections.OrderedDict(
-                (str(period), self.transform_dated_value_to_json(dated_value))
+                (str(period), self.transform_dated_value_to_json(dated_value, use_label = use_label))
                 for period, dated_value in value.iteritems()
                 )
-        return self.transform_dated_value_to_json(value)
+        return self.transform_dated_value_to_json(value, use_label = use_label)
 
 
 # Level-1 Columns
@@ -262,7 +270,7 @@ class DateCol(Column):
             conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
             )
 
-    def transform_dated_value_to_json(self, value):
+    def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         return value.isoformat() if value is not None else value
 
@@ -481,6 +489,12 @@ class EnumCol(IntCol):
                 )
         return self_json
 
+    def transform_dated_value_to_json(self, value, use_label = False):
+        # Convert a non-NumPy Python value to JSON.
+        if use_label and self.enum is not None:
+            return self.enum._vars.get(value, value)
+        return value
+
 
 class PeriodSizeIndependentIntCol(IntCol):
     is_period_size_independent = True
@@ -505,8 +519,11 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
         base_function = formulas.requested_period_last_value
     else:
         base_function = formulas.requested_period_default_value
+    caller_frame = inspect.currentframe().f_back
     column.formula_class = type(name.encode('utf-8'), (formulas.SimpleFormula,), dict(
+        __module__ = inspect.getmodule(caller_frame).__name__,
         base_function = base_function,
+        line_number = caller_frame.f_lineno,
         ))
 
     if column.label is None:

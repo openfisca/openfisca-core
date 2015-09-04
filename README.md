@@ -1,6 +1,8 @@
 # OpenFisca Core
 
-[![Build Status via Travis CI](https://travis-ci.org/openfisca/openfisca-core.svg?branch=master)](https://travis-ci.org/openfisca/openfisca-core)
+[![Build Status](https://travis-ci.org/openfisca/openfisca-core.svg?branch=master)](https://travis-ci.org/openfisca/openfisca-core)
+
+[More build status](http://www.openfisca.fr/build-status)
 
 ## Presentation
 
@@ -13,33 +15,35 @@ Please consult http://www.openfisca.fr/presentation
 
 Please consult http://www.openfisca.fr/documentation
 
+## See also
+
+* [reforms](docs/reforms.md)
+* [GNU/Linux Debian / Ubuntu](docs/gnu-linux-debian.md)
+* [Microsoft Windows](docs/microsoft-windows.md)
+
 ## Installation
+
+> GNU/Linux Debian users should read this dedicated doc: [GNU/Linux Debian / Ubuntu](docs/gnu-linux-debian.md).
+
+> Microsoft Windows users should read this dedicated doc: [Microsoft Windows](docs/microsoft-windows.md).
 
 Requirements:
 
-- [Git](http://www.git-scm.com/)
-- [Python](http://www.python.org/) 2.7
-- numpy and scipy, scientific computing packages for Python.
+* [Git](http://www.git-scm.com/)
+* [Python](http://www.python.org/) 2.7
+* numpy and scipy, scientific computing packages for Python.
 Since they are developed in C you should install them pre-compiled for your operating system.
-- [Python setuptools package](https://pypi.python.org/pypi/setuptools)
-- [Python pip](https://pypi.python.org/pypi/pip)
-
-
-> Microsoft Windows users should install pre-compiled packages from Christoph Gohlke page:
-> [numpy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy),
-> [scipy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy) and
-> [setuptools](http://www.lfd.uci.edu/~gohlke/pythonlibs/#setuptools).
->
-> Moreover they should add the Python scripts directory to the system PATH: see
-> [this stackoverflow question](http://stackoverflow.com/a/20458590).
 
 Clone the OpenFisca-Core Git repository on your machine and install the Python package.
-Assuming you are in your working directory:
+
+Assuming you are in an `openfisca` working directory:
+
 
 ```
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-pip install --editable . --user
+git checkout next
+pip install --editable . --user # Microsoft Windows users must not use the `--user` option
 python setup.py compile_catalog
 ```
 

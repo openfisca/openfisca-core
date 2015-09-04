@@ -52,11 +52,18 @@ class NaNCreationError(Exception):
 
 
 class AbstractFormula(object):
+    comments = None
     holder = None
+    line_number = None
+    source_code = None
+    source_file_path = None
 
     def __init__(self, holder = None):
         assert holder is not None
         self.holder = holder
+
+    def calculate_output(self, period):
+        return self.holder.compute(period).array
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
@@ -107,7 +114,7 @@ class AbstractEntityToEntity(AbstractFormula):
 
         if debug or trace:
             simulation.stack_trace.append(dict(
-                input_legislation_infos = [],
+                parameters_infos = [],
                 input_variables_infos = [],
                 ))
 
@@ -147,18 +154,18 @@ class AbstractEntityToEntity(AbstractFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         variable_holder = self.variable_holder
-        variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+        variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
         edges.append({
             'from': variable_holder.column.name,
             'to': column.name,
             })
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
@@ -173,13 +180,13 @@ class AbstractEntityToEntity(AbstractFormula):
             ('module', inspect.getmodule(cls).__name__),
             ('source', ''.join(source_lines).decode('utf-8')),
             ))
-        if input_variables_extractor is not None:
-            variables_json = [collections.OrderedDict((
+        if get_input_variables_and_parameters is not None:
+            input_variable_json = collections.OrderedDict((
                 ('entity', variable_holder.entity.key_plural),
                 ('label', variable_column.label),
                 ('name', variable_column.name),
-                ))]
-            self_json['variables'] = variables_json
+                )) if with_input_variables_details else variable_column.name
+            self_json['input_variables'] = [input_variable_json]
         return self_json
 
     @property
@@ -276,19 +283,24 @@ class DatedFormula(AbstractGroupedFormula):
         dated_holder.array = array
         return dated_holder
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
         for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, input_variables_extractor, nodes, visited)
+            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    formula = dated_formula['formula'].to_json(input_variables_extractor = input_variables_extractor),
-                    start_instant = str(dated_formula['start_instant']),
-                    stop_instant = str(dated_formula['stop_instant']),
+                    formula = dated_formula['formula'].to_json(
+                        get_input_variables_and_parameters = get_input_variables_and_parameters,
+                        with_input_variables_details = with_input_variables_details,
+                        ),
+                    start_instant = (None if dated_formula['start_instant'] is None
+                        else str(dated_formula['start_instant'])),
+                    stop_instant = (None if dated_formula['stop_instant'] is None
+                        else str(dated_formula['stop_instant'])),
                     )
                 for dated_formula in self.dated_formulas
                 ]),
@@ -495,7 +507,7 @@ class SimpleFormula(AbstractFormula):
 
         if debug or trace:
             simulation.stack_trace.append(dict(
-                input_legislation_infos = [],
+                parameters_infos = [],
                 input_variables_infos = [],
                 ))
 
@@ -601,17 +613,17 @@ class SimpleFormula(AbstractFormula):
             raise
         return target_array
 
-    def graph_parameters(self, edges, input_variables_extractor, nodes, visited):
+    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
         entity = holder.entity
         simulation = entity.simulation
-        variables_name = input_variables_extractor.get_input_variables(column)
+        variables_name, parameters_name = get_input_variables_and_parameters(column)
         if variables_name is not None:
             for variable_name in sorted(variables_name):
                 variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_holder.graph(edges, input_variables_extractor, nodes, visited)
+                variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
                 edges.append({
                     'from': variable_holder.column.name,
                     'to': column.name,
@@ -689,7 +701,7 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self, input_variables_extractor = None):
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         function = self.function
         if function is None:
             return None
@@ -705,22 +717,28 @@ class SimpleFormula(AbstractFormula):
             ('module', inspect.getmodule(function).__name__),
             ('source', source),
             ))
-        if input_variables_extractor is not None:
+        if get_input_variables_and_parameters is not None:
             holder = self.holder
             column = holder.column
             entity = holder.entity
             simulation = entity.simulation
-            variables_name = input_variables_extractor.get_input_variables(column)
-            variables_json = []
-            for variable_name in sorted(variables_name):
-                variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_column = variable_holder.column
-                variables_json.append(collections.OrderedDict((
-                    ('entity', variable_holder.entity.key_plural),
-                    ('label', variable_column.label),
-                    ('name', variable_column.name),
-                    )))
-            self_json['variables'] = variables_json
+            variables_name, parameters_name = get_input_variables_and_parameters(column)
+            if variables_name:
+                if with_input_variables_details:
+                    input_variables_json = []
+                    for variable_name in sorted(variables_name):
+                        variable_holder = simulation.get_or_new_holder(variable_name)
+                        variable_column = variable_holder.column
+                        input_variables_json.append(collections.OrderedDict((
+                            ('entity', variable_holder.entity.key_plural),
+                            ('label', variable_column.label),
+                            ('name', variable_column.name),
+                            )))
+                    self_json['input_variables'] = input_variables_json
+                else:
+                    self_json['input_variables'] = list(variables_name)
+            if parameters_name:
+                self_json['parameters'] = list(parameters_name)
         return self_json
 
 
@@ -744,6 +762,7 @@ class ConversionColumnMetaclass(type):
 
         cerfa_field = attributes.pop('cerfa_field', None)
         if cerfa_field is not None:
+            assert isinstance(cerfa_field, basestring), cerfa_field
             cerfa_field = unicode(cerfa_field)
 
         doc = attributes.pop('__doc__', None)
@@ -772,6 +791,27 @@ class ConversionColumnMetaclass(type):
             )
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
+
+        self = super(ConversionColumnMetaclass, cls).__new__(cls, name.encode('utf-8'), bases, attributes)
+        comments = inspect.getcomments(self)
+        if comments is not None:
+            if isinstance(comments, str):
+                comments = comments.decode('utf-8')
+            formula_class_attributes['comments'] = comments
+        source_file_path = inspect.getsourcefile(self).decode('utf-8')
+        if source_file_path is not None:
+            formula_class_attributes['source_file_path'] = source_file_path
+        try:
+            source_lines, line_number = inspect.getsourcelines(self)
+        except IOError:
+            line_number = None
+            source_code = None
+        else:
+            source_code = textwrap.dedent(''.join(source_lines).decode('utf-8'))
+        if source_code is not None:
+            formula_class_attributes['source_code'] = source_code
+        if line_number is not None:
+            formula_class_attributes['line_number'] = line_number
 
         role = attributes.pop('role', None)
         roles = attributes.pop('roles', None)
@@ -812,7 +852,7 @@ class ConversionColumnMetaclass(type):
                 column = variable.empty_clone()
 
         # Ensure that all attributes defined in ConversionColumn class are used.
-        assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
+        assert not attributes, 'Unexpected attributes in definition of filled column {}: {}'.format(name,
             ', '.join(attributes.iterkeys()))
 
         formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
@@ -847,220 +887,45 @@ class FormulaColumnMetaclass(type):
         if base_class is object:
             # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
-        name = unicode(name)
-
-        # Extract attributes.
-
-        reference_column = attributes.pop('reference', None)
-        if reference_column is not None:
-            assert isinstance(reference_column, columns.Column)
-
-        cerfa_field = attributes.pop('cerfa_field', UnboundLocalError)
-        if cerfa_field is UnboundLocalError:
-            cerfa_field = None if reference_column is None else reference_column.cerfa_field
-        elif cerfa_field is not None:
-            cerfa_field = unicode(cerfa_field)
-
-        column = attributes.pop('column', UnboundLocalError)
-        assert column is not None, """Missing attribute "column" in definition of class {}""".format(name)
-        if column is UnboundLocalError:
-            assert reference_column is not None, """Missing attribute "column" in definition of class {}""".format(name)
-            column = reference_column.empty_clone()
-        elif not isinstance(column, columns.Column):
-            column = column()
-            assert isinstance(column, columns.Column)
-
-        doc = attributes.pop('__doc__', None)
-
-        entity_class = attributes.pop('entity_class', UnboundLocalError)
-        assert entity_class is not None, """Missing attribute "entity_class" in definition of class {}""".format(name)
-        if entity_class is UnboundLocalError:
-            assert reference_column is not None, \
-                """Missing attribute "entity_class" in definition of class {}""".format(name)
-            entity_class_key_plural = reference_column.entity_key_plural
-            entity_class_symbol = reference_column.entity
-        else:
-            entity_class_key_plural = entity_class.key_plural
-            entity_class_symbol = entity_class.symbol
 
         formula_class = attributes.pop('formula_class', UnboundLocalError)
-        assert formula_class is not None, """Missing attribute "formula_class" in definition of class {}""".format(name)
+        reference_column = attributes.pop('reference', None)
+
         if formula_class is UnboundLocalError:
             formula_class = base_class.formula_class \
                 if reference_column is None or reference_column.formula_class is None \
                 else reference_column.formula_class
-        assert issubclass(formula_class, AbstractFormula), formula_class
 
-        is_permanent = attributes.pop('is_permanent', UnboundLocalError)
-        if is_permanent is UnboundLocalError:
-            is_permanent = False if reference_column is None else reference_column.is_permanent
-        else:
-            assert is_permanent in (False, True), is_permanent
+        self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
+        comments = inspect.getcomments(self)
+        source_file_path = inspect.getsourcefile(self)
+        source_lines, line_number = inspect.getsourcelines(self)
+        source_code = textwrap.dedent(''.join(source_lines))
 
-        label = attributes.pop('label', UnboundLocalError)
-        if label is UnboundLocalError:
-            label = name if reference_column is None else reference_column.label
-        else:
-            label = name if label is None else unicode(label)
-
-        law_reference = attributes.pop('law_reference', UnboundLocalError)
-        if law_reference is UnboundLocalError:
-            law_reference = None if reference_column is None else reference_column.law_reference
-        else:
-            assert isinstance(law_reference, (basestring, list))
-
-        start_date = attributes.pop('start_date', UnboundLocalError)
-        if start_date is UnboundLocalError:
-            start_date = None if reference_column is None else reference_column.start
-        elif start_date is not None:
-            assert isinstance(start_date, datetime.date)
-
-        stop_date = attributes.pop('stop_date', UnboundLocalError)
-        if stop_date is UnboundLocalError:
-            stop_date = None if reference_column is None else reference_column.end
-        elif stop_date is not None:
-            assert isinstance(stop_date, datetime.date)
-
-        url = attributes.pop('url', UnboundLocalError)
-        if url is UnboundLocalError:
-            url = None if reference_column is None else reference_column.url
-        elif url is not None:
-            url = unicode(url)
-
-        # Build formula class and column from extracted attributes.
-
-        formula_class_attributes = dict(
-            __module__ = attributes.pop('__module__'),
+        return new_filled_column(
+            base_function = attributes.pop('base_function', UnboundLocalError),
+            calculate_output = attributes.pop('calculate_output', UnboundLocalError),
+            cerfa_field = attributes.pop('cerfa_field', UnboundLocalError),
+            column = attributes.pop('column', UnboundLocalError),
+            comments = comments,
+            doc = attributes.pop('__doc__', None),
+            entity_class = attributes.pop('entity_class', UnboundLocalError),
+            formula_class = formula_class,
+            is_permanent = attributes.pop('is_permanent', UnboundLocalError),
+            label = attributes.pop('label', UnboundLocalError),
+            law_reference = attributes.pop('law_reference', UnboundLocalError),
+            line_number = line_number,
+            module = attributes.pop('__module__'),
+            name = unicode(name),
+            reference_column = reference_column,
+            set_input = attributes.pop('set_input', UnboundLocalError),
+            source_code = source_code,
+            source_file_path = source_file_path,
+            start_date = attributes.pop('start_date', UnboundLocalError),
+            stop_date = attributes.pop('stop_date', UnboundLocalError),
+            url = attributes.pop('url', UnboundLocalError),
+            **attributes
             )
-        if doc is not None:
-            formula_class_attributes['__doc__'] = doc
-
-        base_function = attributes.pop('base_function', UnboundLocalError)
-        if is_permanent:
-            assert base_function is UnboundLocalError
-            base_function = permanent_default_value
-        elif column.is_period_size_independent:
-            assert base_function in (missing_value, requested_period_last_value, UnboundLocalError)
-            if base_function is UnboundLocalError:
-                base_function = requested_period_last_value
-        elif base_function is UnboundLocalError:
-            base_function = requested_period_default_value
-        if base_function is UnboundLocalError:
-            assert reference_column is not None \
-                and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
-                """Missing attribute "base_function" in definition of class {}""".format(name)
-            base_function = reference_column.formula_class.base_function
-        else:
-            assert base_function is not None, \
-                """Missing attribute "base_function" in definition of class {}""".format(name)
-        formula_class_attributes['base_function'] = base_function
-
-        set_input = attributes.pop('set_input', UnboundLocalError)
-        if set_input is UnboundLocalError:
-            set_input = None if reference_column is None else reference_column.formula_class.set_input
-        if set_input is not None:
-            formula_class_attributes['set_input'] = set_input
-
-        if issubclass(formula_class, DatedFormula):
-            assert not is_permanent
-            dated_formulas_class = []
-            for function_name, function in attributes.copy().iteritems():
-                start_instant = getattr(function, 'start_instant', UnboundLocalError)
-                if start_instant is UnboundLocalError:
-                    # Function is not dated (and may not even be a function). Skip it.
-                    continue
-                stop_instant = function.stop_instant
-                if stop_instant is not None:
-                    assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
-                        function_name, start_instant, stop_instant)
-
-                dated_formula_class_attributes = formula_class_attributes.copy()
-                dated_formula_class_attributes['function'] = function
-                dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
-
-                del attributes[function_name]
-                dated_formulas_class.append(dict(
-                    formula_class = dated_formula_class,
-                    start_instant = start_instant,
-                    stop_instant = stop_instant,
-                    ))
-            # Sort dated formulas by start instant and add missing stop instants.
-            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-            for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
-                    itertools.islice(dated_formulas_class, 1, None)):
-                if dated_formula_class['stop_instant'] is None:
-                    dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
-                else:
-                    assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
-                        "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
-
-            # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
-            # formulas.
-            if reference_column is not None and issubclass(reference_column.formula_class, DatedFormula):
-                for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
-                    reference_dated_formula_class = reference_dated_formula_class.copy()
-                    for dated_formula_class in dated_formulas_class:
-                        if reference_dated_formula_class['start_instant'] == dated_formula_class['start_instant'] \
-                                and reference_dated_formula_class['stop_instant'] == dated_formula_class[
-                                    'stop_instant']:
-                            break
-                        if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant'] \
-                                and reference_dated_formula_class['start_instant'] < dated_formula_class[
-                                    'stop_instant']:
-                            reference_dated_formula_class['start_instant'] = dated_formula_class['stop_instant'].offset(
-                                1, 'day')
-                        if reference_dated_formula_class['stop_instant'] > dated_formula_class['start_instant'] \
-                                and reference_dated_formula_class['stop_instant'] <= dated_formula_class[
-                                    'stop_instant']:
-                            reference_dated_formula_class['stop_instant'] = dated_formula_class['start_instant'].offset(
-                                -1, 'day')
-                        if reference_dated_formula_class['start_instant'] > reference_dated_formula_class[
-                                'stop_instant']:
-                            break
-                    else:
-                        dated_formulas_class.append(reference_dated_formula_class)
-                dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-
-            formula_class_attributes['dated_formulas_class'] = dated_formulas_class
-        else:
-            assert issubclass(formula_class, SimpleFormula), formula_class
-
-            function = attributes.pop('function', UnboundLocalError)
-            if is_permanent:
-                assert function is UnboundLocalError
-            if function is UnboundLocalError:
-                assert reference_column is not None and issubclass(reference_column.formula_class, SimpleFormula), \
-                    """Missing attribute "function" in definition of class {}""".format(name)
-                function = reference_column.formula_class.function
-            else:
-                assert function is not None, """Missing attribute "function" in definition of class {}""".format(name)
-            formula_class_attributes['function'] = function
-
-        # Ensure that all attributes defined in FormulaColumn class are used.
-        assert not attributes, 'Unexpected attributes in definition of class {}: {}'.format(name,
-            ', '.join(attributes.iterkeys()))
-
-        formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
-
-        # Fill column attributes.
-        if cerfa_field is not None:
-            column.cerfa_field = cerfa_field
-        if stop_date is not None:
-            column.end = stop_date
-        column.entity = entity_class_symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-        column.entity_key_plural = entity_class_key_plural
-        column.formula_class = formula_class
-        if is_permanent:
-            column.is_permanent = True
-        column.label = label
-        column.law_reference = law_reference
-        column.name = name
-        if start_date is not None:
-            column.start = start_date
-        if url is not None:
-            column.url = url
-
-        return column
 
 
 class DatedFormulaColumn(object):
@@ -1085,6 +950,18 @@ class SimpleFormulaColumn(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     formula_class = SimpleFormula
+
+
+def calculate_output_add(formula, period):
+    return formula.holder.compute_add(period).array
+
+
+def calculate_output_add_divide(formula, period):
+    return formula.holder.compute_add_divide(period).array
+
+
+def calculate_output_divide(formula, period):
+    return formula.holder.compute_divide(period).array
 
 
 def dated_function(start = None, stop = None):
@@ -1141,6 +1018,267 @@ def missing_value(formula, simulation, period):
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
 
 
+def neutralize_column(column):
+    """Return a new neutralized column (to be used by reforms)."""
+    return new_filled_column(
+        base_function = requested_period_default_value_neutralized,
+        label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
+        reference_column = column,
+        set_input = set_input_neutralized,
+        )
+
+
+def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
+        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError, doc = None,
+        entity_class = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        label = UnboundLocalError, law_reference = UnboundLocalError, line_number = UnboundLocalError, module = None,
+        name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
+        source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
+        url = UnboundLocalError, **specific_attributes):
+    # Validate arguments.
+
+    if reference_column is not None:
+        assert isinstance(reference_column, columns.Column)
+        if name is None:
+            name = reference_column.name
+
+    assert isinstance(name, unicode)
+
+    if calculate_output is UnboundLocalError:
+        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output
+
+    if cerfa_field is UnboundLocalError:
+        cerfa_field = None if reference_column is None else reference_column.cerfa_field
+    elif cerfa_field is not None:
+        assert isinstance(cerfa_field, basestring), cerfa_field
+        cerfa_field = unicode(cerfa_field)
+
+    assert column is not None, """Missing attribute "column" in definition of filled column {}""".format(name)
+    if column is UnboundLocalError:
+        assert reference_column is not None, """Missing attribute "column" in definition of filled column {}""".format(
+            name)
+        column = reference_column.empty_clone()
+    elif not isinstance(column, columns.Column):
+        column = column()
+        assert isinstance(column, columns.Column)
+
+    if comments is UnboundLocalError:
+        comments = None if reference_column is None else reference_column.formula_class.comments
+    elif isinstance(comments, str):
+        comments = comments.decode('utf-8')
+
+    assert entity_class is not None, """Missing attribute "entity_class" in definition of filled column {}""".format(
+        name)
+    if entity_class is UnboundLocalError:
+        assert reference_column is not None, \
+            """Missing attribute "entity_class" in definition of filled column {}""".format(name)
+        entity_class_key_plural = reference_column.entity_key_plural
+        entity_class_symbol = reference_column.entity
+    else:
+        entity_class_key_plural = entity_class.key_plural
+        entity_class_symbol = entity_class.symbol
+
+    assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
+        name)
+    if formula_class is UnboundLocalError:
+        assert reference_column is not None, \
+            """Missing attribute "formula_class" in definition of filled column {}""".format(name)
+        formula_class = reference_column.formula_class.__bases__[0]
+    assert issubclass(formula_class, AbstractFormula), formula_class
+
+    if is_permanent is UnboundLocalError:
+        is_permanent = False if reference_column is None else reference_column.is_permanent
+    else:
+        assert is_permanent in (False, True), is_permanent
+
+    if label is UnboundLocalError:
+        label = name if reference_column is None else reference_column.label
+    else:
+        label = name if label is None else unicode(label)
+
+    if law_reference is UnboundLocalError:
+        law_reference = None if reference_column is None else reference_column.law_reference
+    else:
+        assert isinstance(law_reference, (basestring, list))
+
+    if line_number is UnboundLocalError:
+        line_number = None if reference_column is None else reference_column.formula_class.line_number
+    elif isinstance(line_number, str):
+        line_number = line_number.decode('utf-8')
+
+    if set_input is UnboundLocalError:
+        set_input = None if reference_column is None else reference_column.formula_class.set_input
+
+    if source_code is UnboundLocalError:
+        source_code = None if reference_column is None else reference_column.formula_class.source_code
+    elif isinstance(source_code, str):
+        source_code = source_code.decode('utf-8')
+
+    if source_file_path is UnboundLocalError:
+        source_file_path = None if reference_column is None else reference_column.formula_class.source_file_path
+    elif isinstance(source_file_path, str):
+        source_file_path = source_file_path.decode('utf-8')
+
+    if start_date is UnboundLocalError:
+        start_date = None if reference_column is None else reference_column.start
+    elif start_date is not None:
+        assert isinstance(start_date, datetime.date)
+
+    if stop_date is UnboundLocalError:
+        stop_date = None if reference_column is None else reference_column.end
+    elif stop_date is not None:
+        assert isinstance(stop_date, datetime.date)
+
+    if url is UnboundLocalError:
+        url = None if reference_column is None else reference_column.url
+    elif url is not None:
+        url = unicode(url)
+
+    # Build formula class and column.
+
+    formula_class_attributes = {}
+    if doc is not None:
+        formula_class_attributes['__doc__'] = doc
+    if module is not None:
+        assert isinstance(module, basestring)
+        formula_class_attributes['__module__'] = module
+    if comments is not None:
+        formula_class_attributes['comments'] = comments
+    if line_number is not None:
+        formula_class_attributes['line_number'] = line_number
+    if source_code is not None:
+        formula_class_attributes['source_code'] = source_code
+    if source_file_path is not None:
+        formula_class_attributes['source_file_path'] = source_file_path
+
+    if is_permanent:
+        assert base_function is UnboundLocalError
+        base_function = permanent_default_value
+    elif column.is_period_size_independent:
+        assert base_function in (missing_value, requested_period_last_value, UnboundLocalError)
+        if base_function is UnboundLocalError:
+            base_function = requested_period_last_value
+    elif base_function is UnboundLocalError:
+        base_function = requested_period_default_value
+    if base_function is UnboundLocalError:
+        assert reference_column is not None \
+            and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
+            """Missing attribute "base_function" in definition of filled column {}""".format(name)
+        base_function = reference_column.formula_class.base_function
+    else:
+        assert base_function is not None, \
+            """Missing attribute "base_function" in definition of filled column {}""".format(name)
+    formula_class_attributes['base_function'] = base_function
+
+    if calculate_output is not None:
+        formula_class_attributes['calculate_output'] = calculate_output
+
+    if set_input is not None:
+        formula_class_attributes['set_input'] = set_input
+
+    if issubclass(formula_class, DatedFormula):
+        assert not is_permanent
+        dated_formulas_class = []
+        for function_name, function in specific_attributes.copy().iteritems():
+            start_instant = getattr(function, 'start_instant', UnboundLocalError)
+            if start_instant is UnboundLocalError:
+                # Function is not dated (and may not even be a function). Skip it.
+                continue
+            stop_instant = function.stop_instant
+            if stop_instant is not None:
+                assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
+                    function_name, start_instant, stop_instant)
+
+            dated_formula_class_attributes = formula_class_attributes.copy()
+            dated_formula_class_attributes['function'] = function
+            dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
+
+            del specific_attributes[function_name]
+            dated_formulas_class.append(dict(
+                formula_class = dated_formula_class,
+                start_instant = start_instant,
+                stop_instant = stop_instant,
+                ))
+        # Sort dated formulas by start instant and add missing stop instants.
+        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+        for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
+                itertools.islice(dated_formulas_class, 1, None)):
+            if dated_formula_class['stop_instant'] is None:
+                dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
+            else:
+                assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
+                    "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
+
+        # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
+        # formulas.
+        if reference_column is not None and issubclass(reference_column.formula_class, DatedFormula):
+            for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
+                reference_dated_formula_class = reference_dated_formula_class.copy()
+                for dated_formula_class in dated_formulas_class:
+                    if reference_dated_formula_class['start_instant'] == dated_formula_class['start_instant'] \
+                            and reference_dated_formula_class['stop_instant'] == dated_formula_class[
+                                'stop_instant']:
+                        break
+                    if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant'] \
+                            and reference_dated_formula_class['start_instant'] < dated_formula_class[
+                                'stop_instant']:
+                        reference_dated_formula_class['start_instant'] = dated_formula_class['stop_instant'].offset(
+                            1, 'day')
+                    if reference_dated_formula_class['stop_instant'] > dated_formula_class['start_instant'] \
+                            and reference_dated_formula_class['stop_instant'] <= dated_formula_class[
+                                'stop_instant']:
+                        reference_dated_formula_class['stop_instant'] = dated_formula_class['start_instant'].offset(
+                            -1, 'day')
+                    if reference_dated_formula_class['start_instant'] > reference_dated_formula_class[
+                            'stop_instant']:
+                        break
+                else:
+                    dated_formulas_class.append(reference_dated_formula_class)
+            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+
+        formula_class_attributes['dated_formulas_class'] = dated_formulas_class
+    else:
+        assert issubclass(formula_class, SimpleFormula), formula_class
+
+        function = specific_attributes.pop('function', UnboundLocalError)
+        if is_permanent:
+            assert function is UnboundLocalError
+        if function is UnboundLocalError:
+            assert reference_column is not None and issubclass(reference_column.formula_class, SimpleFormula), \
+                """Missing attribute "function" in definition of filled column {}""".format(name)
+            function = reference_column.formula_class.function
+        else:
+            assert function is not None, """Missing attribute "function" in definition of filled column {}""".format(
+                name)
+        formula_class_attributes['function'] = function
+
+    # Ensure that all attributes defined in ConversionColumn class are used.
+    assert not specific_attributes, 'Unexpected attributes in definition of variable {}: {}'.format(name,
+        ', '.join(sorted(specific_attributes.iterkeys())))
+
+    formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
+
+    # Fill column attributes.
+    if cerfa_field is not None:
+        column.cerfa_field = cerfa_field
+    if stop_date is not None:
+        column.end = stop_date
+    column.entity = entity_class_symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
+    column.entity_key_plural = entity_class_key_plural
+    column.formula_class = formula_class
+    if is_permanent:
+        column.is_permanent = True
+    column.label = label
+    column.law_reference = law_reference
+    column.name = name
+    if start_date is not None:
+        column.start = start_date
+    if url is not None:
+        column.url = url
+
+    return column
+
+
 def permanent_default_value(formula, simulation, period):
     if formula.function is not None:
         return formula.function(simulation, period)
@@ -1151,8 +1289,9 @@ def permanent_default_value(formula, simulation, period):
     return period, array
 
 
-def reference_input_variable(base_function = None, column = None, entity_class = None, is_permanent = False,
-        label = None, name = None, set_input = None, start_date = None, stop_date = None, update = False, url = None):
+def reference_input_variable(base_function = None, calculate_output = None, column = None, entity_class = None,
+        is_permanent = False, label = None, name = None, set_input = None, start_date = None, stop_date = None,
+        update = False, url = None):
     """Define an input variable and add it to relevant entity class."""
     if not isinstance(column, columns.Column):
         column = column()
@@ -1169,9 +1308,14 @@ def reference_input_variable(base_function = None, column = None, entity_class =
     name = unicode(name)
     label = name if label is None else unicode(label)
 
+    caller_frame = inspect.currentframe().f_back
     column.formula_class = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
+        __module__ = inspect.getmodule(caller_frame).__name__,
         base_function = base_function,
+        line_number = caller_frame.f_lineno,
         ))
+    if calculate_output is not None:
+        formula_class.calculate_output = calculate_output
     if set_input is not None:
         formula_class.set_input = set_input
 
@@ -1205,7 +1349,7 @@ def requested_period_added_value(formula, simulation, period):
     if holder._array_by_period is not None and (period_size > 1 or period_unit == u'year'):
         after_instant = period.start.offset(period_size, period_unit)
         if period_size > 1:
-            array = np.empty(holder.entity.count, dtype = column.dtype)
+            array = np.zeros(holder.entity.count, dtype = column.dtype)
             sub_period = period.start.period(period_unit)
             while sub_period.start < after_instant:
                 sub_array = holder._array_by_period.get(sub_period)
@@ -1217,7 +1361,7 @@ def requested_period_added_value(formula, simulation, period):
             if array is not None:
                 return period, array
         if period_unit == u'year':
-            array = np.empty(holder.entity.count, dtype = column.dtype)
+            array = np.zeros(holder.entity.count, dtype = column.dtype)
             month = period.start.period(u'month')
             while month.start < after_instant:
                 month_array = holder._array_by_period.get(month)
@@ -1238,6 +1382,14 @@ def requested_period_added_value(formula, simulation, period):
 def requested_period_default_value(formula, simulation, period):
     if formula.function is not None:
         return formula.function(simulation, period)
+    holder = formula.holder
+    column = holder.column
+    array = np.empty(holder.entity.count, dtype = column.dtype)
+    array.fill(column.default)
+    return period, array
+
+
+def requested_period_default_value_neutralized(formula, simulation, period):
     holder = formula.holder
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
@@ -1331,3 +1483,7 @@ def set_input_divide_by_period(formula, period, array):
                     if holder.get_array(month) is None:
                         holder.set_array(month, divided_array)
                     month = month.offset(1)
+
+
+def set_input_neutralized(formula, period, array):
+    pass

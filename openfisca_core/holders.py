@@ -60,10 +60,10 @@ class DatedHolder(object):
     def entity(self):
         return self.holder.entity
 
-    def to_value_json(self):
+    def to_value_json(self, use_label = False):
         transform_dated_value_to_json = self.holder.column.transform_dated_value_to_json
         return [
-            transform_dated_value_to_json(cell)
+            transform_dated_value_to_json(cell, use_label = use_label)
             for cell in self.array.tolist()
             ]
 
@@ -110,6 +110,9 @@ class Holder(object):
         dated_holder = self.compute(period = period, accept_other_period = accept_other_period,
             requested_formulas_by_period = requested_formulas_by_period)
         return dated_holder.array
+
+    def calculate_output(self, period):
+        return self.formula.calculate_output(period)
 
     def clone(self, entity):
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
@@ -316,7 +319,7 @@ class Holder(object):
                 return array
         return None
 
-    def graph(self, edges, input_variables_extractor, nodes, visited):
+    def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
         column = self.column
         if self in visited:
             return
@@ -332,7 +335,7 @@ class Holder(object):
         if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
                 and column.end < period.start.date:
             return
-        formula.graph_parameters(edges, input_variables_extractor, nodes, visited)
+        formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
     def new_test_case_array(self, period):
         array = self.get_array(period)
@@ -369,17 +372,7 @@ class Holder(object):
     def set_input(self, period, array):
         self.formula.set_input(period, array)
 
-    def to_field_json(self, input_variables_extractor = None, with_value = False):
-        self_json = self.column.to_json()
-        self_json['entity'] = self.entity.key_plural  # Override entity symbol given by column. TODO: Remove.
-        formula_json = self.formula.to_json(input_variables_extractor = input_variables_extractor)
-        if formula_json is not None:
-            self_json['formula'] = formula_json
-        if with_value:
-            self_json['value'] = self.to_value_json()
-        return self_json
-
-    def to_value_json(self):
+    def to_value_json(self, use_label = False):
         column = self.column
         transform_dated_value_to_json = column.transform_dated_value_to_json
         if column.is_permanent:
@@ -387,14 +380,14 @@ class Holder(object):
             if array is None:
                 return None
             return [
-                transform_dated_value_to_json(cell)
+                transform_dated_value_to_json(cell, use_label = use_label)
                 for cell in array.tolist()
                 ]
         value_json = {}
         if self._array_by_period is not None:
             for period, array in self._array_by_period.iteritems():
                 value_json[str(period)] = [
-                    transform_dated_value_to_json(cell)
+                    transform_dated_value_to_json(cell, use_label = use_label)
                     for cell in array.tolist()
                     ]
         return value_json
