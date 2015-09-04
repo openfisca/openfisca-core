@@ -21,6 +21,7 @@ Please consult http://www.openfisca.fr/documentation
 * [GNU/Linux Debian / Ubuntu](docs/gnu-linux-debian.md)
 * [Microsoft Windows](docs/microsoft-windows.md)
 * [tests](docs/tests.md)
+* [release process](docs/release-process.md)
 
 ## Installation
 
