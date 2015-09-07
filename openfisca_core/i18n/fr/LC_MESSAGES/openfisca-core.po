@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-01-03 11:32+0100\n"
+"Project-Id-Version: OpenFisca-Core 0.5.0.dev0\n"
+"Report-Msgid-Bugs-To: contact@openfisca.fr\n"
+"POT-Creation-Date: 2015-09-07 17:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: fr <LL@li.org>\n"
@@ -16,6 +16,178 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
+
+#: openfisca_core/columns.py:242 openfisca_core/columns.py:264
+msgid "Invalid date"
+msgstr ""
+
+#: openfisca_core/conv.py:79 openfisca_core/conv.py:81
+msgid "Value must be an integer"
+msgstr ""
+
+#: openfisca_core/decompositionsxml.py:110
+msgid "Wrong number of colors in triplet."
+msgstr ""
+
+#: openfisca_core/decompositionsxml.py:172
+#: openfisca_core/legislationsxml.py:856
+msgid "Invalid root element in XML: \"{}\" instead of \"NODE\""
+msgstr ""
+
+#: openfisca_core/legislations.py:390 openfisca_core/legislationsxml.py:86
+msgid "Last date must be greater than first date"
+msgstr ""
+
+#: openfisca_core/legislations.py:398 openfisca_core/legislationsxml.py:95
+msgid "Dates of values are not consecutive"
+msgstr ""
+
+#: openfisca_core/legislations.py:400 openfisca_core/legislationsxml.py:97
+msgid "Dates of values overlap"
+msgstr ""
+
+#: openfisca_core/legislations.py:629 openfisca_core/legislations.py:1013
+msgid "A scale can't contain both amounts and bases"
+msgstr ""
+
+#: openfisca_core/legislations.py:631 openfisca_core/legislations.py:1015
+msgid "A scale can't contain both amounts and rates"
+msgstr ""
+
+#: openfisca_core/legislations.py:887
+msgid "Either amount or rate must be provided"
+msgstr ""
+
+#: openfisca_core/legislations.py:919 openfisca_core/legislationsxml.py:634
+msgid "Dates don't belong to valid dates of previous bracket"
+msgstr ""
+
+#: openfisca_core/legislations.py:960
+msgid "Dates don't belong to rate dates"
+msgstr ""
+
+#: openfisca_core/legislations.py:970 openfisca_core/legislations.py:980
+msgid "Dates don't belong to threshold dates"
+msgstr ""
+
+#: openfisca_core/legislations.py:994
+msgid "Dates don't belong to amount or rate dates"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:382
+msgid "At least one of the following items must be present: {}"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:382
+msgid ", "
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:397
+msgid "Duplicate value"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:547 openfisca_core/legislationsxml.py:561
+#: openfisca_core/legislationsxml.py:570 openfisca_core/legislationsxml.py:585
+msgid "List must contain one and only one item"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:597
+msgid "Either MONTANT or TAUX must be provided"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:684
+msgid "Dates don't belong to TAUX dates"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:696
+msgid "Dates don't belong to SEUIL dates"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:712
+msgid "Dates don't belong to TAUX or MONTANT dates"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:730
+msgid "A scale can't contain both MONTANT and ASSIETTE"
+msgstr ""
+
+#: openfisca_core/legislationsxml.py:733
+msgid "A scale can't contain both MONTANT and TAUX"
+msgstr ""
+
+#: openfisca_core/periods.py:953
+msgid "Instant string contains too much \"-\" for a year, a month or a day"
+msgstr ""
+
+#: openfisca_core/periods.py:1044
+msgid "Invalid date string"
+msgstr ""
+
+#: openfisca_core/periods.py:1055
+msgid "Invalid size for date list"
+msgstr ""
+
+#: openfisca_core/periods.py:1059
+msgid "Invalid type"
+msgstr ""
+
+#: openfisca_core/periods.py:1061
+msgid "Invalid size for date tuple"
+msgstr ""
+
+#: openfisca_core/periods.py:1152
+msgid "Invalid period tuple"
+msgstr ""
+
+#: openfisca_core/scenarios.py:299 openfisca_core/scenarios.py:300
+msgid "Items input_variables and test_case can't both exist"
+msgstr ""
+
+#: openfisca_core/scenarios.py:302
+msgid "Axes can't be used with input_variables."
+msgstr ""
+
+#: openfisca_core/scenarios.py:315
+msgid "Max value must be greater than min value"
+msgstr ""
+
+#: openfisca_core/scenarios.py:319
+msgid "Index must be lower than {}"
+msgstr ""
+
+#: openfisca_core/scenarios.py:324
+msgid "Parallel indexes must have the same count"
+msgstr ""
+
+#: openfisca_core/scenarios.py:327
+msgid "Parallel indexes must belong to the same entity"
+msgstr ""
+
+#: openfisca_core/scenarios.py:332
+msgid "Parallel indexes must have the same period unit"
+msgstr ""
+
+#: openfisca_core/scenarios.py:336
+msgid "Parallel indexes must have the same period size"
+msgstr ""
+
+#: openfisca_core/scenarios.py:469
+msgid "Invalid type for axe: integer or float expected"
+msgstr ""
+
+#: openfisca_core/scenarios.py:523
+msgid ""
+"Array has not the same length as other variables of entity {}: {} instead"
+" of {}"
+msgstr ""
+
+#: openfisca_core/tests/test_countries.py:251
+msgid "Individual is missing from {}"
+msgstr ""
+
+#: openfisca_core/tests/test_countries.py:253
+msgid " & "
+msgstr ""
 
 #~ msgid "Open a test case"
 #~ msgstr ""
@@ -913,4 +1085,3 @@ msgstr ""
 
 #~ msgid "Do you really want to remove selected path?"
 #~ msgstr ""
-
