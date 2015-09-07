@@ -29,7 +29,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '0.5.0',
+    version = '0.5.1.dev0',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
