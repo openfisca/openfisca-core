@@ -87,23 +87,35 @@ Build and [upload](https://python-packaging-user-guide.readthedocs.org/en/latest
 
     python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi
 
-<!--
-TODO
 Check if package install correctly from the PyPI test instance:
 
+    TODO: this does not work!
     pip install -i https://testpypi.python.org/pypi <package name>
--->
 
 Tag the new release and upload it to git server:
 
     (master) git tag NEW_RELEASE_NUMBER
     (master) git push origin NEW_RELEASE_NUMBER
+    (master) git push
+
+Register the package on PyPI, only the first time, but can be done many times:
+
+    python setup.py register
 
 Build and upload the package to PyPI:
 
-    (master) python setup.py sdist bdist_wheel upload -r PyPI
+    (master) python setup.py sdist bdist_wheel upload
 
-Switch back to `next` branch:
+In a new shell check if package install correctly from PyPI, using a [virtualenv](https://virtualenv.pypa.io/en/latest/):
+
+    cd ~/tmp
+    virtualenv openfisca
+    cd openfisca
+    source bin/activate
+    pip install <package name>
+    deactivate
+
+Switch back to the previous shell and checkout the `next` branch:
 
     (master) git checkout next
 
