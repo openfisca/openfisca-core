@@ -36,22 +36,31 @@ Update catalog (aka `.po` files) from `.pot` file:
 
     (next) python setup.py update_catalog
 
+Verify all strings are translated, translate them if needed (using [poedit](https://poedit.net/) for example):
+
+    (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
+
 Ensure that `Project-Id-Version` in `.pot` and `.po` files are correct.
+
+If there are modified files, commit them.
 
 Compile catalog:
 
     (next) python setup.py compile_catalog
 
-Update `CHANGELOG.md` using either:
+Update `CHANGELOG.md`:
 
-```
-(next) git log OLD_RELEASE_NUMBER..HEAD
-(next) git shortlog OLD_RELEASE_NUMBER..HEAD
-```
+* creating the next release section
+* filling the changes lists using these commands as a starting point:
 
-> OLD_RELEASE_NUMBER has to be replaced by a real value (ie `0.5.0` without "dev" suffix), assuming the corresponding git tag was set.
+  ```
+  (next) git log OLD_RELEASE_NUMBER..HEAD
+  (next) git shortlog OLD_RELEASE_NUMBER..HEAD
+  ```
 
-Edit `setup.py` to update the version number (ie remove ".dev" suffix, from "X.Y.Z.dev" to "X.Y.Z"):
+  > OLD_RELEASE_NUMBER has to be replaced by a real value (ie `0.5.0` without ".dev0" suffix), assuming the corresponding git tag was set.
+
+Edit `setup.py` to update the version number (ie remove ".dev0" suffix, from "X.Y.Z.dev0" to "X.Y.Z"):
 
 ```
 setup(
@@ -70,18 +79,25 @@ Merge the `next` branch into `master`:
     (next) git checkout master
     (master) git merge next
 
+Register the package on the [PyPI test instance](https://wiki.python.org/moin/TestPyPI), only the first time, but can be done many times:
+
+    python setup.py register -r https://testpypi.python.org/pypi
+
+Build and [upload](https://python-packaging-user-guide.readthedocs.org/en/latest/distributing.html#uploading-your-project-to-pypi) the package to the PyPI test instance:
+
+    python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi
+
+<!--
+TODO
+Check if package install correctly from the PyPI test instance:
+
+    pip install -i https://testpypi.python.org/pypi <package name>
+-->
+
 Tag the new release and upload it to git server:
 
     (master) git tag NEW_RELEASE_NUMBER
     (master) git push origin NEW_RELEASE_NUMBER
-
-Build and [upload](https://python-packaging-user-guide.readthedocs.org/en/latest/distributing.html#uploading-your-project-to-pypi) the package to [PyPI test instance](https://wiki.python.org/moin/TestPyPI):
-
-    TODO
-
-Check if package install correctly from PyPI test instance:
-
-    TODO
 
 Build and upload the package to PyPI:
 
@@ -91,12 +107,12 @@ Switch back to `next` branch:
 
     (master) git checkout next
 
-Edit `setup.py` to change version number (ie increase patch number and add ".dev" suffix):
+Edit `setup.py` to change version number (ie increase patch number and add ".dev0" suffix):
 
 ```
 setup(
     [...]
-    version = 'NEW_FUTURE_RELEASE_NUMBER.dev',
+    version = 'NEW_FUTURE_RELEASE_NUMBER.dev0',
     [...]
     )
 ```
