@@ -36,7 +36,7 @@ Update catalog (aka `.po` files) from `.pot` file:
 
     (next) python setup.py update_catalog
 
-Verify all strings are translated, translate them if needed (using [poedit](https://poedit.net/) for example):
+Translate them if needed (using [poedit](https://poedit.net/) for example):
 
     (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
 
@@ -47,6 +47,8 @@ If there are modified files, commit them.
 Compile catalog:
 
     (next) python setup.py compile_catalog
+
+Should display "(100%) translated".
 
 Update `CHANGELOG.md`:
 
@@ -81,16 +83,16 @@ Merge the `next` branch into `master`:
 
 Register the package on the [PyPI test instance](https://wiki.python.org/moin/TestPyPI), only the first time, but can be done many times:
 
-    python setup.py register -r https://testpypi.python.org/pypi
+    (master) python setup.py register -r https://testpypi.python.org/pypi
 
 Build and [upload](https://python-packaging-user-guide.readthedocs.org/en/latest/distributing.html#uploading-your-project-to-pypi) the package to the PyPI test instance:
 
-    python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi
+    (master) python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi
 
 Check if package install correctly from the PyPI test instance:
 
     TODO: this does not work!
-    pip install -i https://testpypi.python.org/pypi <package name>
+    (master) pip install -i https://testpypi.python.org/pypi <package name>
 
 Tag the new release and upload it to git server:
 
@@ -100,7 +102,7 @@ Tag the new release and upload it to git server:
 
 Register the package on PyPI, only the first time, but can be done many times:
 
-    python setup.py register
+    (master) python setup.py register
 
 Build and upload the package to PyPI:
 
@@ -112,7 +114,9 @@ In a new shell check if package install correctly from PyPI, using a [virtualenv
     virtualenv openfisca
     cd openfisca
     source bin/activate
-    pip install <package name>
+    pip install <package name> (ie OpenFisca-Core)
+    python
+    import <module name> (ie openfisca_core)
     deactivate
 
 Switch back to the previous shell and checkout the `next` branch:
