@@ -4,10 +4,11 @@
 > on the [PyPI](https://pypi.python.org/pypi) repository.
 
 Here are the steps to follow to build and release a Python package.
-Execute them on each Git repository you want to build:
-* [OpenFisca-Web-API](https://github.com/openfisca/openfisca-web-api)
-* [OpenFisca-France](https://github.com/openfisca/openfisca-france)
+Execute them on each Git repository you want to publish:
 * [OpenFisca-Core](https://github.com/openfisca/openfisca-core)
+* [OpenFisca-France](https://github.com/openfisca/openfisca-france)
+* [OpenFisca-Parsers](https://github.com/openfisca/openfisca-parsers)
+* [OpenFisca-Web-API](https://github.com/openfisca/openfisca-web-api)
 
 Each repository uses `master` and `next` git branches.
 Releasing a new version implies merging the `next` branch int `master`, but we want only *one merge commit* to appear in the `master` branch. All the pre-release related stuff is commited in the `next` branch.
