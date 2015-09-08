@@ -36,6 +36,6 @@ The repositories tested by Travis are:
 The goal is to ensure that:
 * each repository in the `master` branch state works well with all the others in the `master` branch state
 * each repository in the `next` branch state works well with all the others in the `next` branch state
-* each repository in the last release tag state works well with all the others in the same tag state
+* each repository in a release tag state works well with all the others dependent repositories in the required versions tags
 
 The OpenFisca website hosts a summary page: http://www.openfisca.fr/build-status
