@@ -27,23 +27,31 @@ See also:
 
 Execute tests and check that there is no error:
 
-    (next) make test
-    or
-    (next) nosetests
+```
+(next) make test
+or
+(next) nosetests
+```
 
 If the project is internationalized with [GNU gettext](https://www.gnu.org/software/gettext/) via [Babel](http://babel.pocoo.org/):
 
 * Extract strings to translate from source code:
 
-      (next) python setup.py extract_messages
+  ```
+  (next) python setup.py extract_messages
+  ```
 
 * Update catalog (aka `.po` files) from `.pot` file:
 
-      (next) python setup.py update_catalog
+  ```
+  (next) python setup.py update_catalog
+  ```
 
 * Translate them if needed (using [poedit](https://poedit.net/) for example):
 
-      (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
+  ```
+  (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
+  ```
 
 * Ensure that `Project-Id-Version` in `.pot` and `.po` files are correct.
 
@@ -51,7 +59,9 @@ If the project is internationalized with [GNU gettext](https://www.gnu.org/softw
 
 * Compile catalog:
 
-      (next) python setup.py compile_catalog
+  ```
+  (next) python setup.py compile_catalog
+  ```
 
 * Should display "(100%) translated".
 
@@ -59,9 +69,11 @@ Update `CHANGELOG.md`:
 
 * create the next release section, ie:
 
-      ## 0.5.1.dev0 - next release
+  ```
+  ## 0.5.1.dev0 - next release
 
-      * TODO Fill this changes list while developing
+  * TODO Fill this changes list while developing
+  ```
 
 * fill the changes lists for this release section using the following commands as a starting point:
 
