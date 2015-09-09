@@ -28,33 +28,42 @@ See also:
 Execute tests and check that there is no error:
 
     (next) make test
+    or
+    (next) nosetests
 
-Extract strings to translate from source code:
+If the project is internationalized with [GNU gettext](https://www.gnu.org/software/gettext/) via [Babel](http://babel.pocoo.org/):
 
-    (next) python setup.py extract_messages
+* Extract strings to translate from source code:
 
-Update catalog (aka `.po` files) from `.pot` file:
+      (next) python setup.py extract_messages
 
-    (next) python setup.py update_catalog
+* Update catalog (aka `.po` files) from `.pot` file:
 
-Translate them if needed (using [poedit](https://poedit.net/) for example):
+      (next) python setup.py update_catalog
 
-    (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
+* Translate them if needed (using [poedit](https://poedit.net/) for example):
 
-Ensure that `Project-Id-Version` in `.pot` and `.po` files are correct.
+      (next) poedit xxx/i18n/fr/LC_MESSAGES/yyy.po
 
-If there are modified files, commit them.
+* Ensure that `Project-Id-Version` in `.pot` and `.po` files are correct.
 
-Compile catalog:
+* If there are modified files, commit them.
 
-    (next) python setup.py compile_catalog
+* Compile catalog:
 
-Should display "(100%) translated".
+      (next) python setup.py compile_catalog
+
+* Should display "(100%) translated".
 
 Update `CHANGELOG.md`:
 
-* creating the next release section
-* filling the changes lists using these commands as a starting point:
+* create the next release section, ie:
+
+      ## 0.5.1.dev0 - next release
+
+      * TODO Fill this changes list while developing
+
+* fill the changes lists for this release section using the following commands as a starting point:
 
   ```
   (next) git log OLD_RELEASE_NUMBER..HEAD
@@ -83,6 +92,8 @@ Merge the `next` branch into `master`:
     (master) git merge next
 
 Register the package on the [PyPI test instance](https://wiki.python.org/moin/TestPyPI), only the first time, but can be done many times:
+
+> Note: this operation is protected by an authentication, as well as the other commands dealing with PyPI.
 
     (master) python setup.py register -r https://testpypi.python.org/pypi
 
@@ -134,6 +145,10 @@ setup(
     )
 ```
 
-Commit changes (message: "Update to next dev version") and push.
+Commit changes and push:
 
-Announce the new release.
+    (next) git add setup.py
+    (next) git commit -m "Update to next dev version"
+    (next) git push
+
+Announce the new release on the website news, Twitter, the mailing list and [TF1](http://www.tf1.fr/).
