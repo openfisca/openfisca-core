@@ -4,7 +4,7 @@
 > on the [PyPI](https://pypi.python.org/pypi) repository.
 
 Here are the steps to follow to build and release a Python package.
-Execute them on each Git repository you want to publish:
+Execute them on each Git repository you want to publish, in that order:
 * [OpenFisca-Core](https://github.com/openfisca/openfisca-core)
 * [OpenFisca-France](https://github.com/openfisca/openfisca-france)
 * [OpenFisca-Parsers](https://github.com/openfisca/openfisca-parsers)
@@ -63,26 +63,7 @@ If the project is internationalized with [GNU gettext](https://www.gnu.org/softw
   (next) python setup.py compile_catalog
   ```
 
-* Should display "(100%) translated".
-
-Update `CHANGELOG.md`:
-
-* create the next release section, ie:
-
-  ```
-  ## 0.5.1.dev0 - next release
-
-  * TODO Fill this changes list while developing
-  ```
-
-* fill the changes lists for this release section using the following commands as a starting point:
-
-  ```
-  (next) git log OLD_RELEASE_NUMBER..HEAD
-  (next) git shortlog OLD_RELEASE_NUMBER..HEAD
-  ```
-
-  > OLD_RELEASE_NUMBER has to be replaced by a real value (ie `0.5.0` without ".dev0" suffix), assuming the corresponding git tag was set.
+* Should display `(100%) translated`.
 
 Edit `setup.py` to update the version number (ie remove ".dev0" suffix, from "X.Y.Z.dev0" to "X.Y.Z"):
 
@@ -95,6 +76,33 @@ setup(
 ```
 
 Also check that everything is OK in `setup.py`: classifiers, keywords, requirements.
+
+Close the "next release" section in `CHANGELOG.md` and fill the changes list:
+
+  ```
+  ## NEW_RELEASE_NUMBER.dev0 - next release
+becomes
+  ## NEW_RELEASE_NUMBER
+
+delete line:
+  * TODO Fill this changes list while developing
+```
+
+> Use these commands to dig the Git history:
+
+```
+(next) git log OLD_RELEASE_NUMBER..
+(next) git shortlog OLD_RELEASE_NUMBER..
+```
+
+> OLD_RELEASE_NUMBER has to be replaced by a real value (ie `0.5.0` without ".dev0" suffix), assuming the corresponding git tag was set.
+
+Comment the dependencies installed by Git in `requirements.txt`:
+
+```
+#-e git+https://github.com/openfisca/openfisca-core.git@master#egg=OpenFisca-Core
+and others perhaps
+```
 
 Commit changes (message: "Release X.Y.Z") and push.
 
@@ -155,6 +163,23 @@ setup(
     version = 'NEW_FUTURE_RELEASE_NUMBER.dev0',
     [...]
     )
+```
+
+Create the next release section in `CHANGELOG.md`, ie:
+
+  ```
+  ## NEW_FUTURE_RELEASE_NUMBER.dev0 - next release
+
+  * TODO Fill this changes list while developing
+  ```
+
+> Keep the "TODO" list item as is.
+
+Uncomment the dependencies installed by Git in `requirements.txt`:
+
+```
+-e git+https://github.com/openfisca/openfisca-core.git@master#egg=OpenFisca-Core
+and others perhaps
 ```
 
 Commit changes and push:
