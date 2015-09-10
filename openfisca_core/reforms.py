@@ -107,7 +107,7 @@ def compose_reforms(build_functions_and_keys, tax_benefit_system):
     """
     def compose_reforms_reducer(memo, item):
         build_reform, key = item
-        reform = build_reform(key = key, tax_benefit_system = memo)
+        reform = build_reform(tax_benefit_system = memo)
         assert isinstance(reform, AbstractReform), 'Reform {} returned an invalid value {!r}'.format(key, reform)
         return reform
     assert isinstance(build_functions_and_keys, list)
