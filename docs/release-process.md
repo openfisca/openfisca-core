@@ -10,10 +10,13 @@ Execute them on each Git repository you want to publish, in that order:
 * [OpenFisca-Parsers](https://github.com/openfisca/openfisca-parsers)
 * [OpenFisca-Web-API](https://github.com/openfisca/openfisca-web-api)
 
-Each repository uses `master` and `next` git branches.
-Releasing a new version implies merging the `next` branch int `master`, but we want only *one merge commit* to appear in the `master` branch. All the pre-release related stuff is commited in the `next` branch.
+As explained in the [branching model](development-process.md#branching-model) section,
+each repository uses `master` and `next` git branches.
+Releasing a new version implies merging the `next` branch int `master`,
+but we want only *one merge commit* to appear in the `master` branch.
+All the pre-release related stuff is commited in the `next` branch.
 
-For each step we specify on which branch you should be, like that:
+For each step we specify the branch on which you should be, like that:
 
     (branch_name) command line
 
@@ -32,6 +35,8 @@ Execute tests and check that there is no error:
 or
 (next) nosetests
 ```
+
+> This first step has to be executed on all the released repositories before continuing.
 
 If the project is internationalized with [GNU gettext](https://www.gnu.org/software/gettext/) via [Babel](http://babel.pocoo.org/):
 
@@ -65,18 +70,6 @@ If the project is internationalized with [GNU gettext](https://www.gnu.org/softw
 
 * Should display `(100%) translated`.
 
-Edit `setup.py` to update the version number (ie remove ".dev0" suffix, from "X.Y.Z.dev0" to "X.Y.Z"):
-
-```
-setup(
-    [...]
-    version = 'NEW_RELEASE_NUMBER',
-    [...]
-    )
-```
-
-Also check that everything is OK in `setup.py`: classifiers, keywords, requirements.
-
 Close the "next release" section in `CHANGELOG.md` and fill the changes list:
 
   ```
@@ -96,6 +89,22 @@ delete line:
 ```
 
 > OLD_RELEASE_NUMBER has to be replaced by a real value (ie `0.5.0` without ".dev0" suffix), assuming the corresponding git tag was set.
+
+Edit `setup.py`:
+
+> Set the release version number which can be determined:
+> * by removing the ".dev0" suffix (ie from "X.Y.Z.dev0" to "X.Y.Z")
+> * and, depending on the changelog contents, by increasing the major or minor version number
+>
+> Check that everything is OK, in particular requirements (install_requires and extras_require).
+
+```
+setup(
+    [...]
+    version = 'NEW_RELEASE_NUMBER',
+    [...]
+    )
+```
 
 Comment the dependencies installed by Git in `requirements.txt`:
 
