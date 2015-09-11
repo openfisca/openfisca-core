@@ -1,4 +1,4 @@
-TESTS_DIR=openfisca_core/tests
+TESTS_DIR=openfisca_core
 
 all: flake8 test
 
