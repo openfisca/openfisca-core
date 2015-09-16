@@ -673,6 +673,29 @@ class Period(tuple):
         return self[0]
 
 
+    # Reference periods
+
+    @property
+    def last_3_months(self):
+        return self.this_month.start.period('month', 3).offset(-3)
+
+    @property
+    def last_month(self):
+        return self.this_month.offset(-1)
+
+    @property
+    def n_2(self):
+        return self.start.offset('first-of', 'year').period('year').offset(-2)
+
+    @property
+    def this_year(self):
+        return self.start.offset('first-of', 'year').period('year')
+
+    @property
+    def this_month(self):
+        return self.start.offset('first-of', 'month').period('month')
+
+
 def instant(instant):
     """Return a new instant, aka a triple of integers (year, month, day).
 
