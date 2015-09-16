@@ -11,6 +11,9 @@ check-syntax-errors:
 clean-pyc:
 	find . -name '*.pyc' -exec rm \{\} \;
 
+clean: clean-pyc
+	rm -rf build dist
+
 ctags:
 	ctags --recurse=yes .
 
