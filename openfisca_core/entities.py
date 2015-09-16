@@ -11,7 +11,7 @@
 #
 # OpenFisca is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
+# published by the Free Software Founœdation, either version 3 of the
 # License, or (at your option) any later version.
 #
 # OpenFisca is distributed in the hope that it will be useful,
@@ -35,7 +35,12 @@ class AbstractEntity(object):
     key_singular = None
     index_for_person_variable_name = None  # Class attribute. Not used for persons
     is_persons_entity = False  # Class attribute
-    roles_count = None  # Not used for persons
+
+    # Maximum number of different roles in the entity.
+    # Ex : If the biggest family have 7 members, roles_count = 7 for the entity family.
+    # Not relevant for a person
+    roles_count = None
+
     role_for_person_variable_name = None  # Class attribute. Not used for persons
     step_size = 0
     simulation = None
