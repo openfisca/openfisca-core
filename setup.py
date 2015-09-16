@@ -47,6 +47,7 @@ setup(
 
     data_files = [
         ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
+        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
     install_requires = [
         'Babel >= 0.9.4',
@@ -58,6 +59,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(),
+    packages = find_packages(exclude=['openfisca_core.tests*']),
     test_suite = 'nose.collector',
     )
