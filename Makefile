@@ -1,4 +1,4 @@
-TESTS_DIR=openfisca_core/tests
+TESTS_DIR=openfisca_core
 
 all: flake8 test
 
@@ -7,6 +7,12 @@ check-syntax-errors:
 	@# Do not analyse .gitignored files.
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
 	test -z "`flake8 --first $(shell git ls-files | grep "\.py$$") | grep E901`"
+
+clean: clean-mo clean-pyc
+	rm -rf build dist
+
+clean-mo:
+	find . -name '*.mo' -exec rm \{\} \;
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm \{\} \;

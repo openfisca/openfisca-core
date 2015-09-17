@@ -88,8 +88,8 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
                 )
         reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
         assert error is None, \
-            u'The modified legislation_json of the reform "{}" is invalid, error: {}, legislation_json: {}'.format(
-                self.key, error, reform_legislation_json).encode('utf-8')
+            u'The modified legislation_json of the reform "{}" is invalid, error: {}'.format(
+                self.key, error).encode('utf-8')
         self.legislation_json = reform_legislation_json
 
 
@@ -107,7 +107,7 @@ def compose_reforms(build_functions_and_keys, tax_benefit_system):
     """
     def compose_reforms_reducer(memo, item):
         build_reform, key = item
-        reform = build_reform(key = key, tax_benefit_system = memo)
+        reform = build_reform(tax_benefit_system = memo)
         assert isinstance(reform, AbstractReform), 'Reform {} returned an invalid value {!r}'.format(key, reform)
         return reform
     assert isinstance(build_functions_and_keys, list)

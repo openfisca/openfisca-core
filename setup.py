@@ -24,53 +24,42 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""OpenFisca -- a versatile microsimulation free software
-
-OpenFisca includes a framework to simulate any tax and social system.
-"""
-
-
 from setuptools import setup, find_packages
-
-
-classifiers = """\
-Development Status :: 2 - Pre-Alpha
-License :: OSI Approved :: GNU Affero General Public License v3
-Operating System :: POSIX
-Programming Language :: Python
-Topic :: Scientific/Engineering :: Information Analysis
-"""
-
-doc_lines = __doc__.split('\n')
 
 
 setup(
     name = 'OpenFisca-Core',
-    version = '0.5.dev0',
+    version = '0.5.2.dev0',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
-    classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
-    description = doc_lines[0],
+    classifiers = [
+        "Development Status :: 2 - Pre-Alpha",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Operating System :: POSIX",
+        "Programming Language :: Python",
+        "Topic :: Scientific/Engineering :: Information Analysis",
+        ],
+    description = u'A versatile microsimulation free software',
     keywords = 'benefit microsimulation social tax',
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
-    long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
         ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
+        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
+    include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
-        'numpy',
+        'numpy >= 1.6',
         ],
     message_extractors = {
         'openfisca_core': [
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(),
+    packages = find_packages(exclude=['openfisca_core.tests*']),
     test_suite = 'nose.collector',
-    zip_safe = False,
     )

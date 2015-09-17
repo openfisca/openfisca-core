@@ -1,12 +1,13 @@
+addons:
+  apt:
+    packages:
+    - python-numpy
+install:
+  - pip install flake8  # Not yet available in Ubuntu precise (https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise)
+  - pip install -e .
 language: python
 python: "2.7"
+script: make test-ci
+sudo: false
 virtualenv:
   system_site_packages: true
-before_install:
-  - sudo add-apt-repository ppa:pylab/stable -y  # For SciPY
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq python-scipy
-install:
-  - pip install flake8  # Not yet available in Debian stable
-  - pip install -e .
-script: make test-ci
