@@ -1293,16 +1293,11 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     else:
         assert issubclass(formula_class, SimpleFormula), formula_class
 
-        function = specific_attributes.pop('function', UnboundLocalError)
+        function = specific_attributes.pop('function', None)
         if is_permanent:
-            assert function is UnboundLocalError
-        if function is UnboundLocalError:
-            assert reference_column is not None and issubclass(reference_column.formula_class, SimpleFormula), \
-                """Missing attribute "function" in definition of filled column {}""".format(name)
+            assert function is None
+        if reference_column is not None:
             function = reference_column.formula_class.function
-        else:
-            assert function is not None, """Missing attribute "function" in definition of filled column {}""".format(
-                name)
         formula_class_attributes['function'] = function
 
     # Ensure that all attributes defined in ConversionColumn class are used.
