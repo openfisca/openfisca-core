@@ -275,10 +275,19 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
 
 
 def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str):
+    # Compute stop date of bracket (to use it has the legislation_stop_str inside bracket).
+    bracket_stop_str = legislation_stop_str
+    for key, value in bracket_json.iteritems():
+        if key in ('amount', 'base', 'rate', 'threshold'):
+            for sub_value in value:
+                sub_value_stop_str = sub_value.get('stop')
+                if sub_value_stop_str is not None and sub_value_stop_str > bracket_stop_str:
+                    bracket_stop_str = sub_value_stop_str
+
     dated_bracket_json = collections.OrderedDict()
     for key, value in bracket_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
+            dated_value = generate_dated_json_value(value, legislation_start_str, bracket_stop_str, instant_str)
             if dated_value is not None:
                 dated_bracket_json[key] = dated_value
         else:
