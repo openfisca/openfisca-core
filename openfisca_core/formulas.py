@@ -108,7 +108,7 @@ class AbstractEntityToEntity(AbstractFormula):
         keys_to_skip.add('_variable_holder')
         return super(AbstractEntityToEntity, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
@@ -126,8 +126,7 @@ class AbstractEntityToEntity(AbstractFormula):
                 ))
 
         variable_holder = self.variable_holder
-        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True,
-            requested_formulas_by_period = requested_formulas_by_period)
+        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True)
         output_period = variable_dated_holder.period
 
         array = self.transform(variable_dated_holder, roles = self.roles)
@@ -265,7 +264,7 @@ class DatedFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None):
         dated_holder = None
         stop_instant = period.stop
         for dated_formula in self.dated_formulas:
@@ -274,8 +273,7 @@ class DatedFormula(AbstractGroupedFormula):
             output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
             if output_period is None:
                 continue
-            dated_holder = dated_formula['formula'].compute(period = output_period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            dated_holder = dated_formula['formula'].compute(period = output_period)
             if dated_holder.array is None:
                 break
             self.used_formula = dated_formula['formula']
@@ -476,7 +474,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
@@ -486,6 +484,7 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
+        requested_formulas_by_period = simulation.requested_formulas_by_period
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
@@ -493,8 +492,6 @@ class SimpleFormula(AbstractFormula):
         # holder.compute().
 
         # Ensure that method is not called several times for the same period (infinite loop).
-        if requested_formulas_by_period is None:
-            requested_formulas_by_period = {}
         period_or_none = None if column.is_permanent else period
         period_requested_formulas = requested_formulas_by_period.get(period_or_none)
         if period_requested_formulas is None:

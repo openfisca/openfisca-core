@@ -106,9 +106,8 @@ class Holder(object):
     def at_period(self, period):
         return self if self.column.is_permanent else DatedHolder(self, period)
 
-    def calculate(self, period = None, accept_other_period = False, requested_formulas_by_period = None):
-        dated_holder = self.compute(period = period, accept_other_period = accept_other_period,
-            requested_formulas_by_period = requested_formulas_by_period)
+    def calculate(self, period = None, accept_other_period = False):
+        dated_holder = self.compute(period = period, accept_other_period = accept_other_period)
         return dated_holder.array
 
     def calculate_output(self, period):
@@ -135,7 +134,7 @@ class Holder(object):
 
         return new
 
-    def compute(self, period = None, accept_other_period = False, requested_formulas_by_period = None):
+    def compute(self, period = None, accept_other_period = False):
         """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
 
         The returned dated holder is always of the requested period and this method never returns None.
@@ -156,8 +155,7 @@ class Holder(object):
         column_stop_instant = periods.instant(column.end)
         if (column_start_instant is None or column_start_instant <= period.start) \
                 and (column_stop_instant is None or period.start <= column_stop_instant):
-            formula_dated_holder = self.formula.compute(period = period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            formula_dated_holder = self.formula.compute(period = period)
             assert formula_dated_holder is not None
             if not column.is_permanent:
                 assert accept_other_period or formula_dated_holder.period == period, \
@@ -169,7 +167,7 @@ class Holder(object):
         dated_holder.array = array
         return dated_holder
 
-    def compute_add(self, period = None, requested_formulas_by_period = None):
+    def compute_add(self, period = None):
         dated_holder = self.at_period(period)
         if dated_holder.array is not None:
             return dated_holder
@@ -183,8 +181,7 @@ class Holder(object):
             remaining_period_months = period.size * 12
         requested_period = period.start.period(unit)
         while True:
-            dated_holder = self.compute(accept_other_period = True, period = requested_period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            dated_holder = self.compute(accept_other_period = True, period = requested_period)
             requested_start = requested_period.start
             returned_period = dated_holder.period
             returned_start = returned_period.start
@@ -222,7 +219,7 @@ class Holder(object):
             else:
                 requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
 
-    def compute_add_divide(self, period = None, requested_formulas_by_period = None):
+    def compute_add_divide(self, period = None):
         dated_holder = self.at_period(period)
         if dated_holder.array is not None:
             return dated_holder
@@ -236,8 +233,7 @@ class Holder(object):
             remaining_period_months = period.size * 12
         requested_period = period.start.period(unit)
         while True:
-            dated_holder = self.compute(accept_other_period = True, period = requested_period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            dated_holder = self.compute(accept_other_period = True, period = requested_period)
             requested_start = requested_period.start
             returned_period = dated_holder.period
             returned_start = returned_period.start
@@ -274,7 +270,7 @@ class Holder(object):
             else:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
 
-    def compute_divide(self, period = None, requested_formulas_by_period = None):
+    def compute_divide(self, period = None):
         dated_holder = self.at_period(period)
         if dated_holder.array is not None:
             return dated_holder
@@ -283,8 +279,7 @@ class Holder(object):
         unit = period[0]
         year, month, day = period.start
         if unit == u'month':
-            dated_holder = self.compute(accept_other_period = True, period = period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            dated_holder = self.compute(accept_other_period = True, period = period)
             assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
                 "Period {} returned by variable {} doesn't include requested period {}.".format(
                     dated_holder.period, self.column.name, period)
@@ -300,7 +295,7 @@ class Holder(object):
             return dated_holder
         else:
             assert unit == u'year', unit
-            return self.compute(period = period, requested_formulas_by_period = requested_formulas_by_period)
+            return self.compute(period = period)
 
     def delete_arrays(self):
         if self._array is not None:

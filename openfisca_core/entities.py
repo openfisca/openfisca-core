@@ -75,21 +75,17 @@ class AbstractEntity(object):
 
         return new
 
-    def compute(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute(period = period, accept_other_period = accept_other_period,
-            requested_formulas_by_period = requested_formulas_by_period)
+    def compute(self, column_name, period = None, accept_other_period = False):
+        return self.get_or_new_holder(column_name).compute(period = period, accept_other_period = accept_other_period)
 
-    def compute_add(self, column_name, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute_add(period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+    def compute_add(self, column_name, period = None):
+        return self.get_or_new_holder(column_name).compute_add(period = period)
 
-    def compute_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute_add_divide(period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+    def compute_add_divide(self, column_name, period = None):
+        return self.get_or_new_holder(column_name).compute_add_divide(period = period)
 
-    def compute_divide(self, column_name, period = None, requested_formulas_by_period = None):
-        return self.get_or_new_holder(column_name).compute_divide(period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+    def compute_divide(self, column_name, period = None):
+        return self.get_or_new_holder(column_name).compute_divide(period = period)
 
     def get_array(self, column_name, period = None):
         return self.get_or_new_holder(column_name).get_array(period)

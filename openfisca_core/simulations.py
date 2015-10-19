@@ -48,6 +48,7 @@ class Simulation(object):
     def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None, trace = False):
         assert isinstance(period, periods.Period)
         self.period = period
+        self.requested_formulas_by_period = {}
         if debug:
             self.debug = True
         if debug_all:
@@ -84,29 +85,25 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
+    def calculate(self, column_name, period = None, accept_other_period = False):
         if period is None:
             period = self.period
-        return self.compute(column_name, period = period, accept_other_period = accept_other_period,
-            requested_formulas_by_period = requested_formulas_by_period).array
+        return self.compute(column_name, period = period, accept_other_period = accept_other_period).array
 
-    def calculate_add(self, column_name, period = None, requested_formulas_by_period = None):
+    def calculate_add(self, column_name, period = None):
         if period is None:
             period = self.period
-        return self.compute_add(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period).array
+        return self.compute_add(column_name, period = period).array
 
-    def calculate_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
+    def calculate_add_divide(self, column_name, period = None):
         if period is None:
             period = self.period
-        return self.compute_add_divide(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period).array
+        return self.compute_add_divide(column_name, period = period).array
 
-    def calculate_divide(self, column_name, period = None, requested_formulas_by_period = None):
+    def calculate_divide(self, column_name, period = None):
         if period is None:
             period = self.period
-        return self.compute_divide(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period).array
+        return self.compute_divide(column_name, period = period).array
 
     def calculate_output(self, column_name, period = None):
         """Calculate the value using calculate_output hooks in formula classes."""
@@ -157,7 +154,7 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
+    def compute(self, column_name, period = None, accept_other_period = False):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -169,9 +166,9 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         return self.entity_by_column_name[column_name].compute(column_name, period = period,
-            accept_other_period = accept_other_period, requested_formulas_by_period = requested_formulas_by_period)
+            accept_other_period = accept_other_period)
 
-    def compute_add(self, column_name, period = None, requested_formulas_by_period = None):
+    def compute_add(self, column_name, period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -182,10 +179,9 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_add(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+        return self.entity_by_column_name[column_name].compute_add(column_name, period = period)
 
-    def compute_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
+    def compute_add_divide(self, column_name, period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -196,10 +192,9 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_add_divide(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+        return self.entity_by_column_name[column_name].compute_add_divide(column_name, period = period)
 
-    def compute_divide(self, column_name, period = None, requested_formulas_by_period = None):
+    def compute_divide(self, column_name, period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -210,8 +205,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_divide(column_name, period = period,
-            requested_formulas_by_period = requested_formulas_by_period)
+        return self.entity_by_column_name[column_name].compute_divide(column_name, period = period)
 
     def get_array(self, column_name, period = None):
         if period is None:
