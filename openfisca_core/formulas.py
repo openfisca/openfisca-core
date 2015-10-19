@@ -498,7 +498,7 @@ class SimpleFormula(AbstractFormula):
             requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
         else:
             assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
+                'Circular definition detected while trying to compute {}<{}>. The formulas and period involved are: {}'.format(
                     column.name,
                     period,
                     u', '.join(sorted(set(
