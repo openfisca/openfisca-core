@@ -165,8 +165,10 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute(column_name, period = period,
-            accept_other_period = accept_other_period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.compute(period = period, accept_other_period = accept_other_period)
+
 
     def compute_add(self, column_name, period = None):
         if period is None:
@@ -179,7 +181,9 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_add(column_name, period = period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.compute_add(period = period, accept_other_period = accept_other_period)
 
     def compute_add_divide(self, column_name, period = None):
         if period is None:
@@ -192,7 +196,9 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_add_divide(column_name, period = period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.compute_add_divide(period = period, accept_other_period = accept_other_period)
 
     def compute_divide(self, column_name, period = None):
         if period is None:
@@ -205,7 +211,9 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].compute_divide(column_name, period = period)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
+        return holder.compute_divide(period = period, accept_other_period = accept_other_period)
 
     def get_array(self, column_name, period = None):
         if period is None:
@@ -218,7 +226,8 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.entity_by_column_name[column_name].get_array(column_name, period)
+        entity = self.entity_by_column_name[column_name]
+        return entity.get_or_new_holder(column_name).get_array(period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
