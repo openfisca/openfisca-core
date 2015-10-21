@@ -327,11 +327,11 @@ class EntityToPerson(AbstractEntityToEntity):
         array = dated_holder.array
         target_array = np.empty(persons.count, dtype = array.dtype)
         target_array.fill(dated_holder.column.default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         for role in roles:
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
@@ -359,13 +359,13 @@ class PersonToEntity(AbstractEntityToEntity):
 
         target_array = np.empty(entity.count, dtype = array.dtype)
         target_array.fill(dated_holder.column.default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is not None and len(roles) == 1:
             assert self.operation is None, 'Unexpected operation {} in formula {}'.format(self.operation,
                 holder.column.name)
             role = roles[0]
             # TODO: Cache filter.
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
@@ -382,7 +382,7 @@ class PersonToEntity(AbstractEntityToEntity):
                 array.dtype if array.dtype != np.bool else np.int16)
             for role in roles:
                 # TODO: Cache filters.
-                boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+                boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
                 target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
 
         return target_array
@@ -412,13 +412,13 @@ class SimpleFormula(AbstractFormula):
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
                 array.size)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         target_array = self.zeros(dtype = np.bool)
         for role in roles:
             # TODO Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
@@ -461,11 +461,11 @@ class SimpleFormula(AbstractFormula):
         assert not entity.is_persons_entity
         target_array = np.empty(persons.count, dtype = array.dtype)
         target_array.fill(default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         for role in roles:
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
@@ -604,11 +604,11 @@ class SimpleFormula(AbstractFormula):
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         assert isinstance(role, int)
         target_array = np.empty(entity.count, dtype = array.dtype)
         target_array.fill(default)
-        boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+        boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
         try:
             target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
         except:
@@ -657,7 +657,7 @@ class SimpleFormula(AbstractFormula):
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
             # roles = range(entity.roles_count)
@@ -666,7 +666,7 @@ class SimpleFormula(AbstractFormula):
         for role in roles:
             target_array_by_role[role] = target_array = np.empty(entity.count, dtype = array.dtype)
             target_array.fill(default)
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
@@ -695,13 +695,13 @@ class SimpleFormula(AbstractFormula):
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
                 array.size)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         target_array = self.zeros(dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
             # TODO: Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 

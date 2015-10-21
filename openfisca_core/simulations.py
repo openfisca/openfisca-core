@@ -25,7 +25,7 @@
 
 import collections
 
-from . import periods
+from . import periods, holders
 from .tools import empty_clone, stringify_array
 
 
@@ -49,6 +49,7 @@ class Simulation(object):
         assert isinstance(period, periods.Period)
         self.period = period
         self.requested_formulas_by_period = {}
+        self.holder_by_name = {}
         if debug:
             self.debug = True
         if debug_all:
@@ -111,8 +112,7 @@ class Simulation(object):
             period = self.period
         elif not isinstance(period, periods.Period):
             period = periods.period(period)
-        entity = self.entity_by_column_name[column_name]
-        holder = entity.get_or_new_holder(column_name)
+        holder = self.get_or_new_holder(column_name)
         return holder.calculate_output(period)
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -147,6 +147,10 @@ class Simulation(object):
             (entity.key_singular, entity)
             for entity in entity_by_key_plural.itervalues()
             )
+        new_dict['holder_by_name'] = {
+            name: holder.clone()
+            for name, holder in self.holder_by_name.iteritems()
+            }
         for entity in entity_by_key_plural.itervalues():
             if entity.is_persons_entity:
                 new_dict['persons'] = entity
@@ -165,8 +169,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        entity = self.entity_by_column_name[column_name]
-        holder = entity.get_or_new_holder(column_name)
+        holder = self.get_or_new_holder(column_name)
         return holder.compute(period = period, accept_other_period = accept_other_period)
 
 
@@ -181,8 +184,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        entity = self.entity_by_column_name[column_name]
-        holder = entity.get_or_new_holder(column_name)
+        holder = self.get_or_new_holder(column_name)
         return holder.compute_add(period = period, accept_other_period = accept_other_period)
 
     def compute_add_divide(self, column_name, period = None):
@@ -196,8 +198,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        entity = self.entity_by_column_name[column_name]
-        holder = entity.get_or_new_holder(column_name)
+        holder = self.get_or_new_holder(column_name)
         return holder.compute_add_divide(period = period, accept_other_period = accept_other_period)
 
     def compute_divide(self, column_name, period = None):
@@ -211,8 +212,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        entity = self.entity_by_column_name[column_name]
-        holder = entity.get_or_new_holder(column_name)
+        holder = self.get_or_new_holder(column_name)
         return holder.compute_divide(period = period, accept_other_period = accept_other_period)
 
     def get_array(self, column_name, period = None):
@@ -226,8 +226,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        entity = self.entity_by_column_name[column_name]
-        return entity.get_or_new_holder(column_name).get_array(period)
+        return self.get_or_new_holder(column_name).get_array(period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -240,14 +239,19 @@ class Simulation(object):
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
-        entity = self.entity_by_column_name[column_name]
         if default is UnboundLocalError:
-            return entity.holder_by_name[column_name]
-        return entity.holder_by_name.get(column_name, default)
+            return self.holder_by_name[column_name]
+        return self.holder_by_name.get(column_name, default)
 
     def get_or_new_holder(self, column_name):
+        holder = self.holder_by_name.get(column_name)
         entity = self.entity_by_column_name[column_name]
-        return entity.get_or_new_holder(column_name)
+        if holder is None:
+            column = entity.column_by_name[column_name]
+            self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
+            if column.formula_class is not None:
+                holder.formula = column.formula_class(holder = holder)
+        return holder
 
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
@@ -260,8 +264,7 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.entity_by_column_name[column_name].graph(column_name, edges, get_input_variables_and_parameters, nodes,
-            visited)
+        self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)

@@ -23,14 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from . import holders
 from .tools import empty_clone
 
 
 class AbstractEntity(object):
     column_by_name = None  # Class attribute. Must be overridden by subclasses with an OrderedDict.
     count = 0
-    holder_by_name = None
     key_plural = None
     key_singular = None
     index_for_person_variable_name = None  # Class attribute. Not used for persons
@@ -47,7 +45,6 @@ class AbstractEntity(object):
     symbol = None  # Class attribute. Must be overridden by subclasses.
 
     def __init__(self, simulation = None):
-        self.holder_by_name = {}
         if self.is_persons_entity:
             assert self.index_for_person_variable_name is None
             assert self.role_for_person_variable_name is None
@@ -63,29 +60,12 @@ class AbstractEntity(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('holder_by_name', 'simulation'):
+            if key != 'simulation':
                 new_dict[key] = value
 
         new_dict['simulation'] = simulation
-        # Caution: holders must be cloned after the simulation has been set into new.
-        new_dict['holder_by_name'] = {
-            name: holder.clone(new)
-            for name, holder in self.holder_by_name.iteritems()
-            }
 
         return new
-
-    def get_or_new_holder(self, column_name):
-        holder = self.holder_by_name.get(column_name)
-        if holder is None:
-            column = self.column_by_name[column_name]
-            self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = self)
-            if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)
-        return holder
-
-    def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def iter_member_persons_role_and_id(self, member):
         assert not self.is_persons_entity
