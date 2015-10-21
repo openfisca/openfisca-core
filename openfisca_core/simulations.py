@@ -185,7 +185,7 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_add(period = period, accept_other_period = accept_other_period)
+        return holder.compute_add(period = period)
 
     def compute_add_divide(self, column_name, period = None):
         if period is None:
@@ -199,7 +199,7 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_add_divide(period = period, accept_other_period = accept_other_period)
+        return holder.compute_add_divide(period = period)
 
     def compute_divide(self, column_name, period = None):
         if period is None:
@@ -213,7 +213,7 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_divide(period = period, accept_other_period = accept_other_period)
+        return holder.compute_divide(period = period)
 
     def get_array(self, column_name, period = None):
         if period is None:
