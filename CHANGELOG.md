@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3.dev0 - next release
+
+* TODO Fill this changes list while developing
+
 ## 0.5.2
 
 * Add trim option to marginal rate computation
