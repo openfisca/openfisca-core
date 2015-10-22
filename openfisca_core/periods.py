@@ -39,6 +39,8 @@ import re
 
 from . import conv
 
+YEAR = u'year'
+MONTH = u'month'
 
 N_ = lambda message: message
 # Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
@@ -589,6 +591,20 @@ class Period(tuple):
         return self[2]
 
     @property
+    def size_in_months(self):
+        """Return the size of the period in months.
+
+        >>> period('month', '2012-2-29', 4).size_in_months
+        4
+        >>> period('year', '2012', 1).size_in_months
+        12
+        """
+        if (self[0] == MONTH):
+            return self[2]
+        else:
+            return self[2] * 12
+
+    @property
     def start(self):
         """Return the first day of the period as an Instant instance.
 
@@ -671,6 +687,33 @@ class Period(tuple):
     @property
     def unit(self):
         return self[0]
+
+
+    # Reference periods
+
+    @property
+    def last_3_months(self):
+        return self.this_month.start.period('month', 3).offset(-3)
+
+    @property
+    def last_month(self):
+        return self.this_month.offset(-1)
+
+    @property
+    def last_year(self):
+        return self.start.offset('first-of', 'year').period('year').offset(-1)
+
+    @property
+    def n_2(self):
+        return self.start.offset('first-of', 'year').period('year').offset(-2)
+
+    @property
+    def this_year(self):
+        return self.start.offset('first-of', 'year').period('year')
+
+    @property
+    def this_month(self):
+        return self.start.offset('first-of', 'month').period('month')
 
 
 def instant(instant):

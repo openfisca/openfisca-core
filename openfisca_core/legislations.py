@@ -352,10 +352,21 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
             pass
         elif key == 'brackets':
             # Occurs when @type == 'Scale'.
+
+            # Compute stop date of bracket (to use it has the legislation_stop_str inside bracket).
+            bracket_stop_str = legislation_stop_str
+            for bracket_json in value:
+                for values_key, values_json in bracket_json.iteritems():
+                    if values_key in ('amount', 'base', 'rate', 'threshold'):
+                        for value_json in values_json:
+                            value_stop_str = value_json.get('stop')
+                            if value_stop_str is not None and value_stop_str > bracket_stop_str:
+                                bracket_stop_str = value_stop_str
+
             dated_brackets_json = [
                 dated_bracket_json
                 for dated_bracket_json in (
-                    generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str)
+                    generate_dated_bracket_json(bracket_json, legislation_start_str, bracket_stop_str, instant_str)
                     for bracket_json in value
                     )
                 if dated_bracket_json is not None

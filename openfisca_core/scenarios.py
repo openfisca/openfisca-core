@@ -105,8 +105,8 @@ class AbstractScenario(object):
                 role_holder = persons.get_or_new_holder(entity.role_for_person_variable_name)
                 role_array = role_holder.array
                 if role_array is None:
-                    role_holder.array = np.zeros(persons.count, role_holder.column.dtype)
-                entity.roles_count = 1
+                    role_holder.array = role_array = np.zeros(persons.count, role_holder.column.dtype)
+                entity.roles_count = role_array.max() + 1
 
                 if entity.count == 0:
                     entity.count = max(index_holder.array) + 1

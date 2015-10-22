@@ -29,7 +29,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '0.5.1',
+    version = '0.5.2',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
@@ -47,7 +47,9 @@ setup(
 
     data_files = [
         ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
+        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
+    include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
@@ -58,6 +60,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(),
+    packages = find_packages(exclude=['openfisca_core.tests*']),
     test_suite = 'nose.collector',
     )
