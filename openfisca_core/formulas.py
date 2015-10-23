@@ -88,6 +88,13 @@ class AbstractFormula(object):
     def set_input(self, period, array):
         self.holder.set_array(period, array)
 
+    def zeros(self, **kwargs):
+        '''Return a new NumPy array which length is the entity count, filled with zeros.
+
+        kwargs are forwarded to np.zeros.
+        '''
+        return np.zeros(self.holder.entity.count, **kwargs)
+
 
 class AbstractEntityToEntity(AbstractFormula):
     _variable_holder = None
