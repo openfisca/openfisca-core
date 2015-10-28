@@ -48,8 +48,11 @@ class Simulation(object):
     def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None, trace = False):
         assert isinstance(period, periods.Period)
         self.period = period
-        self.requested_formulas_by_period = {}
         self.holder_by_name = {}
+
+        # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
+        self.requested_values = {}
+
         if debug:
             self.debug = True
         if debug_all:
@@ -90,7 +93,6 @@ class Simulation(object):
         if period is None:
             period = self.period
         return self.compute(column_name, period = period, **parameters).array
-
 
     def calculate_add(self, column_name, period = None, **parameters):
         if period is None:

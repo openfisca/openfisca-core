@@ -484,30 +484,38 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
-        requested_formulas_by_period = simulation.requested_formulas_by_period
+        requested_values = simulation.requested_values
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
-        # Ensure that method is not called several times for the same period (infinite loop).
-        period_or_none = None if column.is_permanent else period
-        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
-        if period_requested_formulas is None:
-            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
-        else:
-            assert self not in period_requested_formulas, \
+        # Manage circular definitions to avoid infinite loops
+        period = None if column.is_permanent else period
+        if self in requested_values.keys():
+
+            # Pure circular definition. Raise an error.
+            assert period not in requested_values[self], \
                 'Circular definition detected while trying to compute {}<{}>. The formulas and period involved are: {}'.format(
                     column.name,
                     period,
                     u', '.join(sorted(set(
                         u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
+                        for period1, period_requested_formulas1 in requested_values.iteritems()
                         for requested_formula in period_requested_formulas1
                         ))).encode('utf-8'),
                     )
-        period_requested_formulas.add(self)
+            max_number_recursive_calls = 0 if not 'max_number_recursive_calls' in parameters else parameters['max_number_recursive_calls']
+
+            if len(requested_values[self]) > max_number_recursive_calls:
+                dated_holder = holder.at_period(period)
+                dated_holder.array = self.zeros() + self.holder.column.default
+                return dated_holder
+            requested_values[self].append(period)
+
+        else:
+            requested_values[self] = [period]
 
         if debug or trace:
             simulation.stack_trace.append(dict(
@@ -577,7 +585,11 @@ class SimpleFormula(AbstractFormula):
 
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
-        period_requested_formulas.remove(self)
+
+        requested_values[self].pop()
+        if len(requested_values[self]) == 0:
+            del requested_values[self]
+
         return dated_holder
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
