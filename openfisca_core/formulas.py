@@ -491,11 +491,13 @@ class SimpleFormula(AbstractFormula):
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
-        # Manage circular definitions to avoid infinite loops
-        period = None if column.is_permanent else period
+
+        # We keep track in requested_values of the formulas that are being calculated
+        # If self is already in there, it means this formula calls itself recursively
+        # The data structure of requested_values is: {formula: [period1, period2]}
         if self in requested_values.keys():
 
-            # Pure circular definition. Raise an error.
+            # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
             assert period not in requested_values[self], \
                 'Circular definition detected while trying to compute {}<{}>. The formulas and period involved are: {}'.format(
                     column.name,
@@ -506,6 +508,9 @@ class SimpleFormula(AbstractFormula):
                         for requested_formula in period_requested_formulas1
                         ))).encode('utf-8'),
                     )
+            # A formula can call itself with a time offset (different periods), but we want to make sure this doesn't result in an infinite race
+            # towards the dawn (or end) of time. Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
+            # is exceeded, we return the default value of the column.
             max_number_recursive_calls = 0 if not 'max_number_recursive_calls' in parameters else parameters['max_number_recursive_calls']
 
             if len(requested_values[self]) > max_number_recursive_calls:
@@ -586,6 +591,7 @@ class SimpleFormula(AbstractFormula):
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
 
+        # When the value of a formula have been computed, we remove the period from requested_values[self] and delete the latter if empty.
         requested_values[self].pop()
         if len(requested_values[self]) == 0:
             del requested_values[self]
