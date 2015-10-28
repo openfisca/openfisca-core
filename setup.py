@@ -53,7 +53,7 @@ setup(
     install_requires = [
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
-        'numpy >= 1.6 < 1.10',
+        'numpy >= 1.6,< 1.10',
         ],
     message_extractors = {
         'openfisca_core': [
