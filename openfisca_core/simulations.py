@@ -86,25 +86,26 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, period = None, accept_other_period = False):
+    def calculate(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
-        return self.compute(column_name, period = period, accept_other_period = accept_other_period).array
+        return self.compute(column_name, period = period, **parameters).array
 
-    def calculate_add(self, column_name, period = None):
-        if period is None:
-            period = self.period
-        return self.compute_add(column_name, period = period).array
 
-    def calculate_add_divide(self, column_name, period = None):
+    def calculate_add(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
-        return self.compute_add_divide(column_name, period = period).array
+        return self.compute_add(column_name, period = period, **parameters).array
 
-    def calculate_divide(self, column_name, period = None):
+    def calculate_add_divide(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
-        return self.compute_divide(column_name, period = period).array
+        return self.compute_add_divide(column_name, period = period, **parameters).array
+
+    def calculate_divide(self, column_name, period = None, **parameters):
+        if period is None:
+            period = self.period
+        return self.compute_divide(column_name, period = period, **parameters).array
 
     def calculate_output(self, column_name, period = None):
         """Calculate the value using calculate_output hooks in formula classes."""
@@ -158,7 +159,7 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period = None, accept_other_period = False):
+    def compute(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -170,10 +171,10 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute(period = period, accept_other_period = accept_other_period)
+        return holder.compute(period = period, **parameters)
 
 
-    def compute_add(self, column_name, period = None):
+    def compute_add(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -185,9 +186,9 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_add(period = period)
+        return holder.compute_add(period = period, **parameters)
 
-    def compute_add_divide(self, column_name, period = None):
+    def compute_add_divide(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -199,9 +200,9 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_add_divide(period = period)
+        return holder.compute_add_divide(period = period, **parameters)
 
-    def compute_divide(self, column_name, period = None):
+    def compute_divide(self, column_name, period = None, **parameters):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -213,7 +214,7 @@ class Simulation(object):
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
-        return holder.compute_divide(period = period)
+        return holder.compute_divide(period = period, **parameters)
 
     def get_array(self, column_name, period = None):
         if period is None:

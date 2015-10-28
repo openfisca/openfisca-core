@@ -108,7 +108,7 @@ class AbstractEntityToEntity(AbstractFormula):
         keys_to_skip.add('_variable_holder')
         return super(AbstractEntityToEntity, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, period = None):
+    def compute(self, period = None, **parameters):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
@@ -264,7 +264,7 @@ class DatedFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, period = None):
+    def compute(self, period = None, **parameters):
         dated_holder = None
         stop_instant = period.stop
         for dated_formula in self.dated_formulas:
@@ -273,7 +273,7 @@ class DatedFormula(AbstractGroupedFormula):
             output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
             if output_period is None:
                 continue
-            dated_holder = dated_formula['formula'].compute(period = output_period)
+            dated_holder = dated_formula['formula'].compute(period = output_period, **parameters)
             if dated_holder.array is None:
                 break
             self.used_formula = dated_formula['formula']
@@ -474,7 +474,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
-    def compute(self, period = None):
+    def compute(self, period = None, **parameters):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
