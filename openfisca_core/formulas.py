@@ -516,6 +516,9 @@ class SimpleFormula(AbstractFormula):
             if len(requested_values[self]) > max_number_recursive_calls:
                 dated_holder = holder.at_period(period)
                 dated_holder.array = self.zeros() + column.default
+                if debug and not max_number_recursive_calls:
+                    log.info("Recursive call detected on formula {}. Recursion is by default deactivated, default value {} will be returned for period {}. Use max_number_recursive_calls parameter in compute or calcultate to allow recursion."
+                    .format(column.name, column.default, period))
                 return dated_holder
             requested_values[self].append(period)
 
