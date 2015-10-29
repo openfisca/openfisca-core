@@ -498,7 +498,7 @@ class SimpleFormula(AbstractFormula):
         if self in requested_values.keys():
 
             # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
-            assert period not in requested_values[self], \
+            assert period not in requested_values[self] and not column.is_permanent, \
                 'Circular definition detected while trying to compute {}<{}>. The formulas and period involved are: {}'.format(
                     column.name,
                     period,
