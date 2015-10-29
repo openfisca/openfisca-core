@@ -503,9 +503,9 @@ class SimpleFormula(AbstractFormula):
                     column.name,
                     period,
                     u', '.join(sorted(set(
-                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_values.iteritems()
-                        for requested_formula in period_requested_formulas1
+                        u'{}<{}>'.format(column.name, period2)
+                        for formula, periods in requested_values.iteritems()
+                        for period2 in periods
                         ))).encode('utf-8'),
                     )
             # A formula can call itself with a time offset (different periods), but we want to make sure this doesn't result in an infinite race
