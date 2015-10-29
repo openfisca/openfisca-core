@@ -515,7 +515,7 @@ class SimpleFormula(AbstractFormula):
 
             if len(requested_values[self]) > max_number_recursive_calls:
                 dated_holder = holder.at_period(period)
-                dated_holder.array = self.zeros() + self.holder.column.default
+                dated_holder.array = self.zeros() + column.default
                 return dated_holder
             requested_values[self].append(period)
 
