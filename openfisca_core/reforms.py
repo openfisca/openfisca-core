@@ -154,7 +154,7 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
         def formula(cls, column):
             assert not cls._constructed, \
                 'You are trying to add a formula to a Reform but its constructor has already been called.'
-            return formulas.make_reference_formula_decorator(
+            return formulas.make_formula_decorator(
                 entity_class_by_symbol = reform_entity_class_by_symbol,
                 update = True,
                 )(column)

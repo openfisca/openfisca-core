@@ -997,7 +997,7 @@ def last_duration_last_value(formula, simulation, period):
     return period, array
 
 
-def make_reference_formula_decorator(entity_class_by_symbol = None, update = False):
+def make_formula_decorator(entity_class_by_symbol = None, update = False):
     assert isinstance(entity_class_by_symbol, dict)
 
     def reference_formula_decorator(column):

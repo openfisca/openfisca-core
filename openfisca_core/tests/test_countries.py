@@ -34,7 +34,7 @@ from openfisca_core import conv, periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, set_input_divide_by_period,
+    make_formula_decorator, PersonToEntityColumn, reference_input_variable, set_input_divide_by_period,
     SimpleFormulaColumn)
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
@@ -339,7 +339,7 @@ reference_input_variable(
 # Calculated variables
 
 
-reference_formula = make_reference_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
+reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
 
 @reference_formula
