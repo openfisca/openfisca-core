@@ -7,6 +7,17 @@ from openfisca_core.taxscales import MarginalRateTaxScale
 from openfisca_core.tools import assert_near
 
 
+def test_simple_linear_average_rate_tax_scale():
+    base = np.array([1, 1.5, 2, 2.5, 3.0, 4.0])
+
+    marginal_tax_scale = MarginalRateTaxScale()
+    marginal_tax_scale.add_bracket(0, 0)
+    marginal_tax_scale.add_bracket(1, 0.1)
+    marginal_tax_scale.add_bracket(2, 0.2)
+    marginal_tax_scale.add_bracket(3, 0)
+    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2, .3, .3], absolute_error_margin = 1e-10)
+
+
 def test_linear_average_rate_tax_scale():
     base = np.array([1, 1.5, 2, 2.5])
 
