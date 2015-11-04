@@ -66,10 +66,9 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     def full_key(self):
         key = self.key
         assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
-        if self.reference is not None:
-            reference_key = getattr(self.reference, 'key', None)
-            if reference_key is not None:
-                key = u'.'.join([reference_key, key])
+        if self.reference is not None and hasattr(self.reference, 'key'):
+            reference_full_key = self.reference.full_key
+            key = u'.'.join([reference_full_key, key])
         return key
 
     def modify_legislation_json(self, modifier_function):
