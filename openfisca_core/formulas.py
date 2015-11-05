@@ -81,6 +81,10 @@ class AbstractFormula(object):
 
         return new
 
+    def default_values(self):
+        '''Return a new NumPy array which length is the entity count, filled with default values.'''
+        return self.zeros() + self.holder.column.default
+
     @property
     def real_formula(self):
         return self
