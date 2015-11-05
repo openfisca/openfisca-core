@@ -499,30 +499,31 @@ class SimpleFormula(AbstractFormula):
         # We keep track in requested_values of the formulas that are being calculated
         # If self is already in there, it means this formula calls itself recursively
         # The data structure of requested_values is: {formula: [period1, period2]}
-        if self in requested_values.keys():
+        if self in requested_values:
+            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}'.format(
+                column.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(formula.holder.column.name, period2)
+                    for formula, periods in requested_values.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
 
             # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
-            assert period not in requested_values[self] and not column.is_permanent, \
-                'Circular definition detected while trying to compute {}<{}>. The formulas and period involved are: {}'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(column.name, period2)
-                        for formula, periods in requested_values.iteritems()
-                        for period2 in periods
-                        ))).encode('utf-8'),
-                    )
-            # A formula can call itself with a time offset (different periods), but we want to make sure this doesn't result in an infinite race
-            # towards the dawn (or end) of time. Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
-            # is exceeded, we return the default value of the column.
-            max_number_recursive_calls = 0 if not 'max_number_recursive_calls' in parameters else parameters['max_number_recursive_calls']
+            assert period not in requested_values[self] and not column.is_permanent, circular_definition_message
 
-            if len(requested_values[self]) > max_number_recursive_calls:
+            # A formula can't call itself (even for a different period) unless recursions have explicitelly been allowed.
+            # Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
+            # is exceeded, we return the default value of the column. If this parameter is set the zero, there will be no
+            # recursive call, but no error will be raised and default value will be returned.
+            max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
+            assert max_nb_recursive_calls is not None, circular_definition_message + \
+                'Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
+
+            if len(requested_values[self]) > max_nb_recursive_calls:
                 dated_holder = holder.at_period(period)
-                dated_holder.array = self.zeros() + column.default
-                if debug and not max_number_recursive_calls:
-                    log.info("Recursive call detected on formula {}. Recursion is by default deactivated, default value {} will be returned for period {}. Use max_number_recursive_calls parameter in compute or calcultate to allow recursion."
-                    .format(column.name, column.default, period))
+                dated_holder.array = self.default_values()
                 return dated_holder
             requested_values[self].append(period)
 
