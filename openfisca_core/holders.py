@@ -144,7 +144,7 @@ class Holder(object):
         if period is None:
             period = simulation.period
         column = self.column
-        accept_other_period = 'accept_other_period' in parameters and parameters['accept_other_period']
+        accept_other_period = parameters.get('accept_other_period', False)
 
         # First look for dated_holders covering the whole period (without hole).
         dated_holder = self.at_period(period)
