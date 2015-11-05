@@ -41,8 +41,9 @@ class Dummy(object):
     pass
 
 
-def assert_near(value, target_value, absolute_error_margin = 0, message = '', relative_error_margin = None):
-    assert absolute_error_margin is not None or relative_error_margin is not None
+def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
+    if absolute_error_margin is None and relative_error_margin is None:
+        absolute_error_margin = 0
     if isinstance(value, (list, tuple)):
         value = np.array(value)
     if isinstance(target_value, (list, tuple)):
