@@ -500,7 +500,7 @@ class SimpleFormula(AbstractFormula):
         # If self is already in there, it means this formula calls itself recursively
         # The data structure of requested_values is: {formula: [period1, period2]}
         if self in requested_values:
-            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}'.format(
+            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
                 column.name,
                 period,
                 u', '.join(sorted(set(
@@ -519,7 +519,7 @@ class SimpleFormula(AbstractFormula):
             # recursive call, but no error will be raised and default value will be returned.
             max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
             assert max_nb_recursive_calls is not None, circular_definition_message + \
-                'Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
+                ' Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
 
             if len(requested_values[self]) > max_nb_recursive_calls:
                 dated_holder = holder.at_period(period)
