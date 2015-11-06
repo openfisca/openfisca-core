@@ -66,10 +66,9 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
     def full_key(self):
         key = self.key
         assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
-        if self.reference is not None:
-            reference_key = getattr(self.reference, 'key', None)
-            if reference_key is not None:
-                key = u'.'.join([reference_key, key])
+        if self.reference is not None and hasattr(self.reference, 'key'):
+            reference_full_key = self.reference.full_key
+            key = u'.'.join([reference_full_key, key])
         return key
 
     def modify_legislation_json(self, modifier_function):
@@ -152,17 +151,17 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
 
         @classmethod
         def formula(cls, column):
-            assert not cls._constructed, \
-                'You are trying to add a formula to a Reform but its constructor has already been called.'
-            return formulas.make_reference_formula_decorator(
+            if cls._constructed:
+                print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
+            return formulas.make_formula_decorator(
                 entity_class_by_symbol = reform_entity_class_by_symbol,
                 update = True,
                 )(column)
 
         @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
-            assert not cls._constructed, \
-                'You are trying to add an input variable to a Reform but its constructor has already been called.'
+            if cls._constructed:
+                print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
             assert 'update' not in kwargs

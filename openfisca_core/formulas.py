@@ -81,6 +81,10 @@ class AbstractFormula(object):
 
         return new
 
+    def default_values(self):
+        '''Return a new NumPy array which length is the entity count, filled with default values.'''
+        return self.zeros() + self.holder.column.default
+
     @property
     def real_formula(self):
         return self
@@ -108,7 +112,7 @@ class AbstractEntityToEntity(AbstractFormula):
         keys_to_skip.add('_variable_holder')
         return super(AbstractEntityToEntity, self).clone(holder, keys_to_skip = keys_to_skip)
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, **parameters):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
@@ -126,8 +130,7 @@ class AbstractEntityToEntity(AbstractFormula):
                 ))
 
         variable_holder = self.variable_holder
-        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True,
-            requested_formulas_by_period = requested_formulas_by_period)
+        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True)
         output_period = variable_dated_holder.period
 
         array = self.transform(variable_dated_holder, roles = self.roles)
@@ -265,7 +268,7 @@ class DatedFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, **parameters):
         dated_holder = None
         stop_instant = period.stop
         for dated_formula in self.dated_formulas:
@@ -274,8 +277,7 @@ class DatedFormula(AbstractGroupedFormula):
             output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
             if output_period is None:
                 continue
-            dated_holder = dated_formula['formula'].compute(period = output_period,
-                requested_formulas_by_period = requested_formulas_by_period)
+            dated_holder = dated_formula['formula'].compute(period = output_period, **parameters)
             if dated_holder.array is None:
                 break
             self.used_formula = dated_formula['formula']
@@ -329,11 +331,11 @@ class EntityToPerson(AbstractEntityToEntity):
         array = dated_holder.array
         target_array = np.empty(persons.count, dtype = array.dtype)
         target_array.fill(dated_holder.column.default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         for role in roles:
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
@@ -361,13 +363,13 @@ class PersonToEntity(AbstractEntityToEntity):
 
         target_array = np.empty(entity.count, dtype = array.dtype)
         target_array.fill(dated_holder.column.default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is not None and len(roles) == 1:
             assert self.operation is None, 'Unexpected operation {} in formula {}'.format(self.operation,
                 holder.column.name)
             role = roles[0]
             # TODO: Cache filter.
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
@@ -384,7 +386,7 @@ class PersonToEntity(AbstractEntityToEntity):
                 array.dtype if array.dtype != np.bool else np.int16)
             for role in roles:
                 # TODO: Cache filters.
-                boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+                boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
                 target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
 
         return target_array
@@ -414,13 +416,13 @@ class SimpleFormula(AbstractFormula):
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
                 array.size)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         target_array = self.zeros(dtype = np.bool)
         for role in roles:
             # TODO Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
@@ -463,11 +465,11 @@ class SimpleFormula(AbstractFormula):
         assert not entity.is_persons_entity
         target_array = np.empty(persons.count, dtype = array.dtype)
         target_array.fill(default)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         for role in roles:
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
@@ -476,7 +478,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
-    def compute(self, period = None, requested_formulas_by_period = None):
+    def compute(self, period = None, **parameters):
         """Call the formula function (if needed) and return a dated holder containing its result."""
         assert period is not None
         holder = self.holder
@@ -486,31 +488,47 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
+        requested_values = simulation.requested_values
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
-        # Ensure that method is not called several times for the same period (infinite loop).
-        if requested_formulas_by_period is None:
-            requested_formulas_by_period = {}
-        period_or_none = None if column.is_permanent else period
-        period_requested_formulas = requested_formulas_by_period.get(period_or_none)
-        if period_requested_formulas is None:
-            requested_formulas_by_period[period_or_none] = period_requested_formulas = set()
+
+        # We keep track in requested_values of the formulas that are being calculated
+        # If self is already in there, it means this formula calls itself recursively
+        # The data structure of requested_values is: {formula: [period1, period2]}
+        if self in requested_values:
+            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                column.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(formula.holder.column.name, period2)
+                    for formula, periods in requested_values.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
+
+            # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
+            assert period not in requested_values[self] and not column.is_permanent, circular_definition_message
+
+            # A formula can't call itself (even for a different period) unless recursions have explicitelly been allowed.
+            # Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
+            # is exceeded, we return the default value of the column. If this parameter is set the zero, there will be no
+            # recursive call, but no error will be raised and default value will be returned.
+            max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
+            assert max_nb_recursive_calls is not None, circular_definition_message + \
+                ' Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
+
+            if len(requested_values[self]) > max_nb_recursive_calls:
+                dated_holder = holder.at_period(period)
+                dated_holder.array = self.default_values()
+                return dated_holder
+            requested_values[self].append(period)
+
         else:
-            assert self not in period_requested_formulas, \
-                'Infinite loop in formula {}<{}>. Missing values for columns: {}'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(requested_formula.holder.column.name, period1)
-                        for period1, period_requested_formulas1 in requested_formulas_by_period.iteritems()
-                        for requested_formula in period_requested_formulas1
-                        ))).encode('utf-8'),
-                    )
-        period_requested_formulas.add(self)
+            requested_values[self] = [period]
 
         if debug or trace:
             simulation.stack_trace.append(dict(
@@ -580,7 +598,12 @@ class SimpleFormula(AbstractFormula):
 
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
-        period_requested_formulas.remove(self)
+
+        # When the value of a formula have been computed, we remove the period from requested_values[self] and delete the latter if empty.
+        requested_values[self].pop()
+        if len(requested_values[self]) == 0:
+            del requested_values[self]
+
         return dated_holder
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
@@ -607,11 +630,11 @@ class SimpleFormula(AbstractFormula):
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         assert isinstance(role, int)
         target_array = np.empty(entity.count, dtype = array.dtype)
         target_array.fill(default)
-        boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+        boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
         try:
             target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
         except:
@@ -660,7 +683,7 @@ class SimpleFormula(AbstractFormula):
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
             # roles = range(entity.roles_count)
@@ -669,7 +692,7 @@ class SimpleFormula(AbstractFormula):
         for role in roles:
             target_array_by_role[role] = target_array = np.empty(entity.count, dtype = array.dtype)
             target_array.fill(default)
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
@@ -698,13 +721,13 @@ class SimpleFormula(AbstractFormula):
                 'utf-8')
             assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
                 array.size)
-        entity_index_array = persons.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
         target_array = self.zeros(dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
             # TODO: Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
@@ -905,10 +928,15 @@ class FormulaColumnMetaclass(type):
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
         comments = inspect.getcomments(self)
-        source_file_path = inspect.getsourcefile(self)
-        source_lines, line_number = inspect.getsourcelines(self)
-        source_code = textwrap.dedent(''.join(source_lines))
-
+        try:
+            source_file_path = inspect.getsourcefile(self)
+        except TypeError:
+            source_file_path = None
+        try:
+            source_lines, line_number = inspect.getsourcelines(self)
+            source_code = textwrap.dedent(''.join(source_lines))
+        except TypeError:
+            source_code, line_number = None, None
         return new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
             calculate_output = attributes.pop('calculate_output', UnboundLocalError),
@@ -997,7 +1025,7 @@ def last_duration_last_value(formula, simulation, period):
     return period, array
 
 
-def make_reference_formula_decorator(entity_class_by_symbol = None, update = False):
+def make_formula_decorator(entity_class_by_symbol = None, update = False):
     assert isinstance(entity_class_by_symbol, dict)
 
     def reference_formula_decorator(column):
