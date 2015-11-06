@@ -41,7 +41,7 @@ from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    make_reference_formula_decorator, PersonToEntityColumn, reference_input_variable, SimpleFormulaColumn)
+    make_formula_decorator, PersonToEntityColumn, reference_input_variable, SimpleFormulaColumn)
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -168,7 +168,7 @@ reference_input_variable(
 # Calculated variables
 
 
-reference_formula = make_reference_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
+reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
 
 @reference_formula

@@ -928,10 +928,15 @@ class FormulaColumnMetaclass(type):
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
         comments = inspect.getcomments(self)
-        source_file_path = inspect.getsourcefile(self)
-        source_lines, line_number = inspect.getsourcelines(self)
-        source_code = textwrap.dedent(''.join(source_lines))
-
+        try:
+            source_file_path = inspect.getsourcefile(self)
+        except TypeError:
+            source_file_path = None
+        try:
+            source_lines, line_number = inspect.getsourcelines(self)
+            source_code = textwrap.dedent(''.join(source_lines))
+        except TypeError:
+            source_code, line_number = None, None
         return new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
             calculate_output = attributes.pop('calculate_output', UnboundLocalError),
@@ -1020,7 +1025,7 @@ def last_duration_last_value(formula, simulation, period):
     return period, array
 
 
-def make_reference_formula_decorator(entity_class_by_symbol = None, update = False):
+def make_formula_decorator(entity_class_by_symbol = None, update = False):
     assert isinstance(entity_class_by_symbol, dict)
 
     def reference_formula_decorator(column):
