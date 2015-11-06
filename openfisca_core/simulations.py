@@ -25,7 +25,7 @@
 
 import collections
 
-from . import periods, holders
+from . import periods
 from .tools import empty_clone, stringify_array
 
 
@@ -48,11 +48,6 @@ class Simulation(object):
     def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None, trace = False):
         assert isinstance(period, periods.Period)
         self.period = period
-        self.holder_by_name = {}
-
-        # To keep track of the values (formulas and periods) being calculated to detect circular definitions. See use in formulas.py.
-        self.requested_values = {}
-
         if debug:
             self.debug = True
         if debug_all:
@@ -89,25 +84,29 @@ class Simulation(object):
                 self.persons = entity
                 break
 
-    def calculate(self, column_name, period = None, **parameters):
+    def calculate(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute(column_name, period = period, **parameters).array
+        return self.compute(column_name, period = period, accept_other_period = accept_other_period,
+            requested_formulas_by_period = requested_formulas_by_period).array
 
-    def calculate_add(self, column_name, period = None, **parameters):
+    def calculate_add(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute_add(column_name, period = period, **parameters).array
+        return self.compute_add(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period).array
 
-    def calculate_add_divide(self, column_name, period = None, **parameters):
+    def calculate_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute_add_divide(column_name, period = period, **parameters).array
+        return self.compute_add_divide(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period).array
 
-    def calculate_divide(self, column_name, period = None, **parameters):
+    def calculate_divide(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
-        return self.compute_divide(column_name, period = period, **parameters).array
+        return self.compute_divide(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period).array
 
     def calculate_output(self, column_name, period = None):
         """Calculate the value using calculate_output hooks in formula classes."""
@@ -115,7 +114,8 @@ class Simulation(object):
             period = self.period
         elif not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_or_new_holder(column_name)
+        entity = self.entity_by_column_name[column_name]
+        holder = entity.get_or_new_holder(column_name)
         return holder.calculate_output(period)
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -150,10 +150,6 @@ class Simulation(object):
             (entity.key_singular, entity)
             for entity in entity_by_key_plural.itervalues()
             )
-        new_dict['holder_by_name'] = {
-            name: holder.clone()
-            for name, holder in self.holder_by_name.iteritems()
-            }
         for entity in entity_by_key_plural.itervalues():
             if entity.is_persons_entity:
                 new_dict['persons'] = entity
@@ -161,7 +157,7 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period = None, **parameters):
+    def compute(self, column_name, period = None, accept_other_period = False, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -172,11 +168,10 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
-        return holder.compute(period = period, **parameters)
+        return self.entity_by_column_name[column_name].compute(column_name, period = period,
+            accept_other_period = accept_other_period, requested_formulas_by_period = requested_formulas_by_period)
 
-
-    def compute_add(self, column_name, period = None, **parameters):
+    def compute_add(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -187,10 +182,10 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
-        return holder.compute_add(period = period, **parameters)
+        return self.entity_by_column_name[column_name].compute_add(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
 
-    def compute_add_divide(self, column_name, period = None, **parameters):
+    def compute_add_divide(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -201,10 +196,10 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
-        return holder.compute_add_divide(period = period, **parameters)
+        return self.entity_by_column_name[column_name].compute_add_divide(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
 
-    def compute_divide(self, column_name, period = None, **parameters):
+    def compute_divide(self, column_name, period = None, requested_formulas_by_period = None):
         if period is None:
             period = self.period
         elif not isinstance(period, periods.Period):
@@ -215,8 +210,8 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
-        return holder.compute_divide(period = period, **parameters)
+        return self.entity_by_column_name[column_name].compute_divide(column_name, period = period,
+            requested_formulas_by_period = requested_formulas_by_period)
 
     def get_array(self, column_name, period = None):
         if period is None:
@@ -229,7 +224,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.get_or_new_holder(column_name).get_array(period)
+        return self.entity_by_column_name[column_name].get_array(column_name, period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -242,19 +237,14 @@ class Simulation(object):
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
+        entity = self.entity_by_column_name[column_name]
         if default is UnboundLocalError:
-            return self.holder_by_name[column_name]
-        return self.holder_by_name.get(column_name, default)
+            return entity.holder_by_name[column_name]
+        return entity.holder_by_name.get(column_name, default)
 
     def get_or_new_holder(self, column_name):
-        holder = self.holder_by_name.get(column_name)
         entity = self.entity_by_column_name[column_name]
-        if holder is None:
-            column = entity.column_by_name[column_name]
-            self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
-            if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)
-        return holder
+        return entity.get_or_new_holder(column_name)
 
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
@@ -267,7 +257,8 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+        self.entity_by_column_name[column_name].graph(column_name, edges, get_input_variables_and_parameters, nodes,
+            visited)
 
     def legislation_at(self, instant, reference = False):
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)

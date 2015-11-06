@@ -97,12 +97,12 @@ class AbstractScenario(object):
                 if entity is persons:
                     continue
 
-                index_holder = simulation.get_or_new_holder(entity.index_for_person_variable_name)
+                index_holder = persons.get_or_new_holder(entity.index_for_person_variable_name)
                 index_array = index_holder.array
                 if index_array is None:
                     index_holder.array = np.arange(persons.count, dtype = index_holder.column.dtype)
 
-                role_holder = simulation.get_or_new_holder(entity.role_for_person_variable_name)
+                role_holder = persons.get_or_new_holder(entity.role_for_person_variable_name)
                 role_array = role_holder.array
                 if role_array is None:
                     role_holder.array = role_array = np.zeros(persons.count, role_holder.column.dtype)
@@ -135,10 +135,10 @@ class AbstractScenario(object):
                 if entity.is_persons_entity:
                     continue
                 entity_step_size = entity.step_size
-                simulation.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = \
+                persons.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = \
                     np.empty(steps_count * persons.step_size,
                         dtype = column_by_name[entity.index_for_person_variable_name].dtype)
-                simulation.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = \
+                persons.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = \
                     np.empty(steps_count * persons.step_size,
                         dtype = column_by_name[entity.role_for_person_variable_name].dtype)
                 for member_index, member in enumerate(test_case[entity_key_plural]):
@@ -172,7 +172,7 @@ class AbstractScenario(object):
                                     variable_periods.update(cell.iterkeys())
                             elif cell is not None:
                                 variable_periods.add(simulation_period)
-                        holder = simulation.get_or_new_holder(variable_name)
+                        holder = entity.get_or_new_holder(variable_name)
                         variable_default_value = column.default
                         # Note: For set_input to work, handle days, before months, before years => use sorted().
                         for variable_period in sorted(variable_periods):
