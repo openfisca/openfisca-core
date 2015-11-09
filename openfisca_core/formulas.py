@@ -488,7 +488,7 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
-        requested_values = simulation.requested_values
+        requested_variables = simulation.requested_variables
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
@@ -496,39 +496,42 @@ class SimpleFormula(AbstractFormula):
         # holder.compute().
 
 
-        # We keep track in requested_values of the formulas that are being calculated
+        # We keep track in requested_variables of the formulas that are being calculated
         # If self is already in there, it means this formula calls itself recursively
-        # The data structure of requested_values is: {formula: [period1, period2]}
-        if self in requested_values:
+        # The data structure of requested_variables is: {formula: [period1, period2]}
+        if self in requested_variables:
             circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
                 column.name,
                 period,
                 u', '.join(sorted(set(
                     u'{}<{}>'.format(formula.holder.column.name, period2)
-                    for formula, periods in requested_values.iteritems()
+                    for formula, periods in requested_variables.iteritems()
                     for period2 in periods
                     ))).encode('utf-8'),
                 )
 
             # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
-            assert period not in requested_values[self] and not column.is_permanent, circular_definition_message
+            assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
 
             # A formula can't call itself (even for a different period) unless recursions have explicitelly been allowed.
             # Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
             # is exceeded, we return the default value of the column. If this parameter is set the zero, there will be no
             # recursive call, but no error will be raised and default value will be returned.
             max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
+            if max_nb_recursive_calls is None:
+                import ipdb
+                ipdb.set_trace()
             assert max_nb_recursive_calls is not None, circular_definition_message + \
                 ' Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
 
-            if len(requested_values[self]) > max_nb_recursive_calls:
+            if len(requested_variables[self]) > max_nb_recursive_calls:
                 dated_holder = holder.at_period(period)
                 dated_holder.array = self.default_values()
                 return dated_holder
-            requested_values[self].append(period)
+            requested_variables[self].append(period)
 
         else:
-            requested_values[self] = [period]
+            requested_variables[self] = [period]
 
         if debug or trace:
             simulation.stack_trace.append(dict(
@@ -599,10 +602,10 @@ class SimpleFormula(AbstractFormula):
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
 
-        # When the value of a formula have been computed, we remove the period from requested_values[self] and delete the latter if empty.
-        requested_values[self].pop()
-        if len(requested_values[self]) == 0:
-            del requested_values[self]
+        # When the value of a formula have been computed, we remove the period from requested_variables[self] and delete the latter if empty.
+        requested_variables[self].pop()
+        if len(requested_variables[self]) == 0:
+            del requested_variables[self]
 
         return dated_holder
 
