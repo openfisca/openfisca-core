@@ -36,7 +36,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
     make_formula_decorator, PersonToEntityColumn, reference_input_variable, set_input_divide_by_period,
-    SimpleFormulaColumn)
+    SimpleFormulaColumn, CycleError)
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -48,7 +48,7 @@ tax_benefit_system = TaxBenefitSystem()
 
 reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
-
+# 1 <-> 2 with same period
 @reference_formula
 class variable1(SimpleFormulaColumn):
     column = IntCol
@@ -66,14 +66,38 @@ class variable2(SimpleFormulaColumn):
     def function(self, simulation, period):
         return period, simulation.calculate('variable1', period)
 
+# 3 <-> 4 with a period offset
+@reference_formula
+class variable3(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        return period, simulation.calculate('variable4', period.last_month)
+
+@reference_formula
+class variable4(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        return period, simulation.calculate('variable3', period)
+
+
 @raises(AssertionError)
-def test_age():
+def test_pure_cycle():
     year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
-        parent1 = dict(
-            # birth = datetime.date(year - 40, 1, 1),
-            ),
+        parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable1')
 
+@raises(CycleError)
+def test_cycle_time_offset():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        ).new_simulation(debug = True)
+    simulation.calculate('variable3')
