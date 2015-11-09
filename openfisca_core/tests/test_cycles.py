@@ -48,7 +48,7 @@ tax_benefit_system = TaxBenefitSystem()
 
 reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
-# 1 <-> 2 with same period
+# 1 <--> 2 with same period
 @reference_formula
 class variable1(SimpleFormulaColumn):
     column = IntCol
@@ -66,14 +66,14 @@ class variable2(SimpleFormulaColumn):
     def function(self, simulation, period):
         return period, simulation.calculate('variable1', period)
 
-# 3 <-> 4 with a period offset, but without explicit cycle allowed
+# 3 <--> 4 with a period offset, but without explicit cycle allowed
 @reference_formula
 class variable3(SimpleFormulaColumn):
     column = IntCol
     entity_class = Individus
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable4', period.last_month)
+        return period, simulation.calculate('variable4', period.last_year)
 
 @reference_formula
 class variable4(SimpleFormulaColumn):
@@ -83,14 +83,15 @@ class variable4(SimpleFormulaColumn):
     def function(self, simulation, period):
         return period, simulation.calculate('variable3', period)
 
-# 5 <-> 6 with a period offset, with explicit cycle allowed
+# 5 -f-> 6 with a period offset, with explicit cycle allowed
+#   <---
 @reference_formula
 class variable5(SimpleFormulaColumn):
     column = IntCol
     entity_class = Individus
 
     def function(self, simulation, period):
-        variable6 = simulation.calculate('variable6', period.last_month, max_nb_recursive_calls = 0)
+        variable6 = simulation.calculate('variable6', period.last_year, max_nb_recursive_calls = 0)
         return period, 5 + variable6
 
 @reference_formula
@@ -103,28 +104,27 @@ class variable6(SimpleFormulaColumn):
         return period, 6 + variable5
 
 
+reference_period = periods.period(u'2013')
+
 @raises(AssertionError)
 def test_pure_cycle():
-    year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable1')
 
 @raises(CycleError)
 def test_cycle_time_offset():
-    year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable3')
 
 def test_allowed_cycle():
-    year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
     variable6 = simulation.calculate('variable6')
@@ -133,9 +133,8 @@ def test_allowed_cycle():
     assert_near(variable6, [0])
 
 def test_allowed_cycle_bis():
-    year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
     variable5 = simulation.calculate('variable5')
