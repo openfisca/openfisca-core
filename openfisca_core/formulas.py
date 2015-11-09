@@ -48,6 +48,9 @@ class NaNCreationError(Exception):
     pass
 
 
+class CycleError(Exception):
+    pass
+
 # Formulas
 
 
