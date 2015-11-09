@@ -66,7 +66,7 @@ class variable2(SimpleFormulaColumn):
     def function(self, simulation, period):
         return period, simulation.calculate('variable1', period)
 
-# 3 <-> 4 with a period offset
+# 3 <-> 4 with a period offset, but without explicit cycle allowed
 @reference_formula
 class variable3(SimpleFormulaColumn):
     column = IntCol
@@ -82,6 +82,25 @@ class variable4(SimpleFormulaColumn):
 
     def function(self, simulation, period):
         return period, simulation.calculate('variable3', period)
+
+# 5 <-> 6 with a period offset, with explicit cycle allowed
+@reference_formula
+class variable5(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        variable6 = simulation.calculate('variable6', period.last_month, max_nb_recursive_calls = 0)
+        return period, 5 + variable6
+
+@reference_formula
+class variable6(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        variable5 = simulation.calculate('variable5', period)
+        return period, 6 + variable5
 
 
 @raises(AssertionError)
@@ -101,3 +120,25 @@ def test_cycle_time_offset():
         parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable3')
+
+def test_allowed_cycle():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        ).new_simulation(debug = True)
+    variable6 = simulation.calculate('variable6')
+    variable5 = simulation.calculate('variable5')
+    assert_near(variable5, [5])
+    assert_near(variable6, [0])
+
+def test_allowed_cycle_bis():
+    year = 2013
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        ).new_simulation(debug = True)
+    variable5 = simulation.calculate('variable5')
+    variable6 = simulation.calculate('variable6')
+    assert_near(variable5, [5])
+    assert_near(variable6, [0])
