@@ -138,6 +138,6 @@ def test_allowed_cycle_bis():
         parent1 = dict(),
         ).new_simulation(debug = True)
     variable5 = simulation.calculate('variable5')
-    variable6 = simulation.calculate('variable6')
+    variable6_last_year = simulation.calculate('variable6', reference_period.last_year)
     assert_near(variable5, [5])
-    assert_near(variable6, [0])
+    assert_near(variable6_last_year, [0])
