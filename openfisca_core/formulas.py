@@ -492,6 +492,7 @@ class SimpleFormula(AbstractFormula):
         debug_all = simulation.debug_all
         trace = simulation.trace
         requested_variables = simulation.requested_variables
+        max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
@@ -516,22 +517,7 @@ class SimpleFormula(AbstractFormula):
             # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
             assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
 
-            # A formula can't call itself (even for a different period) unless recursions have explicitelly been allowed.
-            # Thus the number of recursion allowed must be explicitely specified as a paramater. If this number
-            # is exceeded, we return the default value of the column. If this parameter is set the zero, there will be no
-            # recursive call, but no error will be raised and default value will be returned.
-            max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
-            if max_nb_recursive_calls is None:
-                import ipdb
-                ipdb.set_trace()
-            assert max_nb_recursive_calls is not None, circular_definition_message + \
-                ' Hint: use "max_nb_recursive_calls = 0" to get default value, or "= N" to allow N recursion calls.'
-
-            if len(requested_variables[self]) > max_nb_recursive_calls:
-                dated_holder = holder.at_period(period)
-                dated_holder.array = self.default_values()
-                return dated_holder
-            requested_variables[self].append(period)
+            raise CycleError(circular_definition_message)
 
         else:
             requested_variables[self] = [period]
@@ -544,6 +530,13 @@ class SimpleFormula(AbstractFormula):
 
         try:
             formula_result = self.base_function(simulation, period)
+        except CycleError:
+            if max_nb_recursive_calls is None:
+                raise
+            if max_nb_recursive_calls == 0:
+                dated_holder = holder.at_period(period)
+                dated_holder.array = self.default_values()
+                return dated_holder
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
                 column.name, entity.key_plural, str(period), self.function.__module__,
