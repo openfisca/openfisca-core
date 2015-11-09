@@ -499,36 +499,36 @@ class SimpleFormula(AbstractFormula):
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
-
-        # We keep track in requested_variables of the formulas that are being calculated
-        # If self is already in there, it means this formula calls itself recursively
-        # The data structure of requested_variables is: {formula: [period1, period2]}
-        if self in requested_variables:
-            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
-                column.name,
-                period,
-                u', '.join(sorted(set(
-                    u'{}<{}>'.format(formula.holder.column.name, period2)
-                    for formula, periods in requested_variables.iteritems()
-                    for period2 in periods
-                    ))).encode('utf-8'),
-                )
-
-            # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
-            assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
-
-            raise CycleError(circular_definition_message)
-
-        else:
-            requested_variables[self] = [period]
-
-        if debug or trace:
-            simulation.stack_trace.append(dict(
-                parameters_infos = [],
-                input_variables_infos = [],
-                ))
-
         try:
+
+            # We keep track in requested_variables of the formulas that are being calculated
+            # If self is already in there, it means this formula calls itself recursively
+            # The data structure of requested_variables is: {formula: [period1, period2]}
+            if self in requested_variables:
+                circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                    column.name,
+                    period,
+                    u', '.join(sorted(set(
+                        u'{}<{}>'.format(formula.holder.column.name, period2)
+                        for formula, periods in requested_variables.iteritems()
+                        for period2 in periods
+                        ))).encode('utf-8'),
+                    )
+
+                # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
+                assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
+
+                raise CycleError(circular_definition_message)
+
+            else:
+                requested_variables[self] = [period]
+
+            if debug or trace:
+                simulation.stack_trace.append(dict(
+                    parameters_infos = [],
+                    input_variables_infos = [],
+                    ))
+
             formula_result = self.base_function(simulation, period)
         except CycleError:
             if max_nb_recursive_calls is None:
@@ -606,9 +606,10 @@ class SimpleFormula(AbstractFormula):
 
     def mark_as_calculated(self):
         requested_variables = self.holder.entity.simulation.requested_variables
-        requested_variables[self].pop()
-        if len(requested_variables[self]) == 0:
-            del requested_variables[self]
+        if self in requested_variables:
+            requested_variables[self].pop()
+            if len(requested_variables[self]) == 0:
+                del requested_variables[self]
 
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
