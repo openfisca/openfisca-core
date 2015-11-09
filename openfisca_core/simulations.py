@@ -51,7 +51,7 @@ class Simulation(object):
         self.holder_by_name = {}
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions. See use in formulas.py.
-        self.requested_values = {}
+        self.requested_variables = {}
 
         if debug:
             self.debug = True
