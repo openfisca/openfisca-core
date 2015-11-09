@@ -536,6 +536,7 @@ class SimpleFormula(AbstractFormula):
             if max_nb_recursive_calls == 0:
                 dated_holder = holder.at_period(period)
                 dated_holder.array = self.default_values()
+                self.mark_as_calculated()
                 return dated_holder
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
@@ -599,11 +600,16 @@ class SimpleFormula(AbstractFormula):
         dated_holder.array = array
 
         # When the value of a formula have been computed, we remove the period from requested_variables[self] and delete the latter if empty.
+        self.mark_as_calculated()
+
+        return dated_holder
+
+    def mark_as_calculated(self):
+        requested_variables = self.holder.entity.simulation.requested_variables
         requested_variables[self].pop()
         if len(requested_variables[self]) == 0:
             del requested_variables[self]
 
-        return dated_holder
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
