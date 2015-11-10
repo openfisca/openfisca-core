@@ -491,7 +491,6 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
-        requested_variables = simulation.requested_variables
         max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
         potential_cycle_declared = max_nb_recursive_calls is not None
         if potential_cycle_declared:
@@ -505,29 +504,7 @@ class SimpleFormula(AbstractFormula):
 
         try:
 
-            # We keep track in requested_variables of the formulas that are being calculated
-            # If self is already in there, it means this formula calls itself recursively
-            # The data structure of requested_variables is: {formula: [period1, period2]}
-            if self in requested_variables:
-                circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
-                    column.name,
-                    period,
-                    u', '.join(sorted(set(
-                        u'{}<{}>'.format(formula.holder.column.name, period2)
-                        for formula, periods in requested_variables.iteritems()
-                        for period2 in periods
-                        ))).encode('utf-8'),
-                    )
-
-                # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
-                assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
-
-                if simulation.max_nb_recursive_calls < len(requested_variables[self]):
-                    raise CycleError(circular_definition_message)
-                else:
-                    requested_variables[self].append(period)
-            else:
-                requested_variables[self] = [period]
+            self.check_for_cycle(period)
 
             if debug or trace:
                 simulation.stack_trace.append(dict(
@@ -605,12 +582,42 @@ class SimpleFormula(AbstractFormula):
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
 
-        # When the value of a formula have been computed, we remove the period from requested_variables[self] and delete the latter if empty.
         self.mark_as_calculated()
 
         return dated_holder
 
+    
+    def check_for_cycle(self, period):
+        simulation  = self.holder.entity.simulation
+        requested_variables = simulation.requested_variables
+        column = self.holder.column
+        # We keep track in requested_variables of the formulas that are being calculated
+        # If self is already in there, it means this formula calls itself recursively
+        # The data structure of requested_variables is: {formula: [period1, period2]}
+        if self in requested_variables:
+            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                column.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(formula.holder.column.name, period2)
+                    for formula, periods in requested_variables.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
+
+            # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
+            assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
+
+            if simulation.max_nb_recursive_calls < len(requested_variables[self]):
+                raise CycleError(circular_definition_message)
+            else:
+                requested_variables[self].append(period)
+        else:
+            requested_variables[self] = [period]
+
+
     def mark_as_calculated(self):
+        # When the value of a formula have been computed, we remove the period from requested_variables[self] and delete the latter if empty.
         requested_variables = self.holder.entity.simulation.requested_variables
         if self in requested_variables:
             requested_variables[self].pop()
