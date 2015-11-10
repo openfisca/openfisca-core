@@ -491,6 +491,7 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
+
         max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
         potential_cycle_declared = max_nb_recursive_calls is not None
         if potential_cycle_declared:
@@ -583,6 +584,8 @@ class SimpleFormula(AbstractFormula):
         dated_holder.array = array
 
         self.mark_as_calculated()
+        if potential_cycle_declared:
+            simulation.max_nb_recursive_calls = None
 
         return dated_holder
 
