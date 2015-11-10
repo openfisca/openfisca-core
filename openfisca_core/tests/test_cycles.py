@@ -83,7 +83,7 @@ class variable4(SimpleFormulaColumn):
     def function(self, simulation, period):
         return period, simulation.calculate('variable3', period)
 
-# 5 -f-> 6 with a period offset, with explicit cycle allowed
+# 5 -f-> 6 with a period offset, with cycle flagged but not allowed
 #   <---
 @reference_formula
 class variable5(SimpleFormulaColumn):
@@ -103,6 +103,38 @@ class variable6(SimpleFormulaColumn):
         variable5 = simulation.calculate('variable5', period)
         return period, 6 + variable5
 
+# december cotisation depending on november value
+@reference_formula
+class cotisation(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        period = period.this_month
+        if period.start.month == 12:
+            return period, 2 *   simulation.calculate('cotisation', period.last_month, max_nb_recursive_calls = 1)
+        else:
+            return period, self.zeros() + 1
+
+# 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
+#   <---
+@reference_formula
+class variable7(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        variable8 = simulation.calculate('variable8', period.last_year, max_nb_recursive_calls = 1)
+        return period, 7 + variable8
+
+@reference_formula
+class variable8(SimpleFormulaColumn):
+    column = IntCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        variable7 = simulation.calculate('variable7', period)
+        return period, 8 + variable7
 
 reference_period = periods.period(u'2013')
 
@@ -147,3 +179,21 @@ def test_allowed_cycle_bis():
     assert_near(variable5, [5])
     assert_near(variable6, [11])
     assert_near(variable6_last_year, [0])
+
+def test_cotisation_1_level():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = reference_period.last_month, # December
+        parent1 = dict(),
+        ).new_simulation(debug = True)
+    cotisation = simulation.calculate('cotisation')
+    assert_near(cotisation, [2])
+
+
+# def test_cycle_1_level():
+#     simulation = tax_benefit_system.new_scenario().init_single_entity(
+#         period = reference_period,
+#         parent1 = dict(),
+#         ).new_simulation(debug = True)
+#     variable7 = simulation.calculate('variable7')
+#     variable8 = simulation.calculate('variable8')
+#     assert_near(variable7, [22])

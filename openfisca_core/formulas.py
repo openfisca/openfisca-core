@@ -533,11 +533,10 @@ class SimpleFormula(AbstractFormula):
         except CycleError:
             if max_nb_recursive_calls is None:
                 raise
-            if max_nb_recursive_calls == 0:
-                dated_holder = holder.at_period(period)
-                dated_holder.array = self.default_values()
-                self.mark_as_calculated()
-                return dated_holder
+            dated_holder = holder.at_period(period)
+            dated_holder.array = self.default_values()
+            self.mark_as_calculated()
+            return dated_holder
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
                 column.name, entity.key_plural, str(period), self.function.__module__,
