@@ -512,11 +512,11 @@ class SimpleFormula(AbstractFormula):
 
             formula_result = self.base_function(simulation, period)
         except CycleError:
+            self.mark_as_calculated()
             if not potential_cycle_declared:
                 raise
             dated_holder = holder.at_period(period)
             dated_holder.array = self.default_values()
-            self.mark_as_calculated()
             simulation.max_nb_recursive_calls = None
             return dated_holder
         except:
