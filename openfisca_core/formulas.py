@@ -524,8 +524,10 @@ class SimpleFormula(AbstractFormula):
 
                 if simulation.max_nb_recursive_calls < len(requested_variables[self]):
                     raise CycleError(circular_definition_message)
-
-            requested_variables[self] = [period]
+                else:
+                    requested_variables[self].append(period)
+            else:
+                requested_variables[self] = [period]
 
             if debug or trace:
                 simulation.stack_trace.append(dict(

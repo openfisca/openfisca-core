@@ -189,11 +189,13 @@ def test_cotisation_1_level():
     assert_near(cotisation, [2])
 
 
-# def test_cycle_1_level():
-#     simulation = tax_benefit_system.new_scenario().init_single_entity(
-#         period = reference_period,
-#         parent1 = dict(),
-#         ).new_simulation(debug = True)
-#     variable7 = simulation.calculate('variable7')
-#     variable8 = simulation.calculate('variable8')
-#     assert_near(variable7, [22])
+def test_cycle_1_level():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = reference_period,
+        parent1 = dict(),
+        ).new_simulation(debug = True)
+    # import ipdb
+    # ipdb.set_trace()
+    variable7 = simulation.calculate('variable7')
+    variable8 = simulation.calculate('variable8')
+    assert_near(variable7, [22])
