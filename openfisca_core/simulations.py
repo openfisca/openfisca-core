@@ -52,6 +52,7 @@ class Simulation(object):
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions. See use in formulas.py.
         self.requested_variables = {}
+        self.max_nb_recursive_calls = None
 
         if debug:
             self.debug = True

@@ -493,6 +493,10 @@ class SimpleFormula(AbstractFormula):
         trace = simulation.trace
         requested_variables = simulation.requested_variables
         max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
+        potential_cycle_declared = max_nb_recursive_calls is not None
+        if potential_cycle_declared:
+            simulation.max_nb_recursive_calls = max_nb_recursive_calls
+
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
@@ -518,10 +522,10 @@ class SimpleFormula(AbstractFormula):
                 # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
                 assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
 
-                raise CycleError(circular_definition_message)
+                if simulation.max_nb_recursive_calls < len(requested_variables[self]):
+                    raise CycleError(circular_definition_message)
 
-            else:
-                requested_variables[self] = [period]
+            requested_variables[self] = [period]
 
             if debug or trace:
                 simulation.stack_trace.append(dict(
@@ -531,11 +535,12 @@ class SimpleFormula(AbstractFormula):
 
             formula_result = self.base_function(simulation, period)
         except CycleError:
-            if max_nb_recursive_calls is None:
+            if not potential_cycle_declared:
                 raise
             dated_holder = holder.at_period(period)
             dated_holder.array = self.default_values()
             self.mark_as_calculated()
+            simulation.max_nb_recursive_calls = None
             return dated_holder
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
