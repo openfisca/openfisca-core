@@ -153,9 +153,11 @@ def test_cycle_time_offset():
     simulation.calculate('variable3')
 
 
-# On teste en calculant variable5 et variable6 dans un ordre puis dans l'autre, pour vérifier que
-# le point d'entrée dans le cycle n'a pas d'influence sur le résultat.
 def test_allowed_cycle():
+    """
+    On teste en calculant variable5 et variable6 dans un ordre puis dans l'autre, pour vérifier que
+    le point d'entrée dans le cycle n'a pas d'influence sur le résultat.
+    """
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = reference_period,
         parent1 = dict(),
