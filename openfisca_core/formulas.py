@@ -497,16 +497,13 @@ class SimpleFormula(AbstractFormula):
         if potential_cycle_declared:
             simulation.max_nb_recursive_calls = max_nb_recursive_calls
 
-
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
         try:
-
             self.check_for_cycle(period)
-
             if debug or trace:
                 simulation.stack_trace.append(dict(
                     parameters_infos = [],
@@ -589,16 +586,16 @@ class SimpleFormula(AbstractFormula):
 
         return dated_holder
 
-    
     def check_for_cycle(self, period):
-        simulation  = self.holder.entity.simulation
+        simulation = self.holder.entity.simulation
         requested_variables = simulation.requested_variables
         column = self.holder.column
         # We keep track in requested_variables of the formulas that are being calculated
         # If self is already in there, it means this formula calls itself recursively
         # The data structure of requested_variables is: {formula: [period1, period2]}
         if self in requested_variables:
-            circular_definition_message = 'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+            circular_definition_message = u'Circular definition detected on formula {}<{}>. '
+            'Formulas and periods involved: {}.'.format(
                 column.name,
                 period,
                 u', '.join(sorted(set(
@@ -608,7 +605,8 @@ class SimpleFormula(AbstractFormula):
                     ))).encode('utf-8'),
                 )
 
-            # Make sure the formula doesn't call itself for the same period it is being called for. It would be a pure circular definition.
+            # Make sure the formula doesn't call itself for the same period it is being called for.
+            # It would be a pure circular definition.
             assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
 
             if simulation.max_nb_recursive_calls < len(requested_variables[self]):
@@ -618,15 +616,14 @@ class SimpleFormula(AbstractFormula):
         else:
             requested_variables[self] = [period]
 
-
     def mark_as_calculated(self):
-        # When the value of a formula have been computed, we remove the period from requested_variables[self] and delete the latter if empty.
+        # When the value of a formula have been computed, we remove the period from requested_variables[self]
+        # and delete the latter if empty.
         requested_variables = self.holder.entity.simulation.requested_variables
         if self in requested_variables:
             requested_variables[self].pop()
             if len(requested_variables[self]) == 0:
                 del requested_variables[self]
-
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
