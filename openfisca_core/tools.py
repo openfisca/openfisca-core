@@ -23,6 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
+import urllib
+
 import numpy as np
 
 
@@ -68,6 +71,20 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
             assert abs(target_value - value) <= abs(relative_error_margin * target_value), \
                 '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), abs(relative_error_margin * target_value))
+
+
+def get_trace_tool_link(scenario, variables, api_url = u'http://api-test.openfisca.fr',
+        trace_tool_url = u'http://www.openfisca.fr/outils/trace'):
+    scenario_json = scenario.to_json()
+    simulation_json = {
+        'scenarios': [scenario_json],
+        'variables': variables,
+        }
+    url = trace_tool_url + '?' + urllib.urlencode({
+        'simulation': json.dumps(simulation_json),
+        'api_url': api_url,
+        })
+    return url
 
 
 def empty_clone(original):
