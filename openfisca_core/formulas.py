@@ -481,8 +481,64 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
+    def check_for_cycle(self, period):
+        """
+        Return a boolean telling if the current variable has already been called without being allowed by
+        the parameter max_nb_cycles of the calculate method.
+        """
+        def get_error_message():
+            return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                column.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(variable_name, period2)
+                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
+        simulation = self.holder.entity.simulation
+        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
+        column = self.holder.column
+        variable_name = column.name
+        if variable_name in requested_periods_by_variable_name:
+            # Make sure the formula doesn't call itself for the same period it is being called for.
+            # It would be a pure circular definition.
+            requested_periods = requested_periods_by_variable_name[variable_name]
+            assert period not in requested_periods and not column.is_permanent, get_error_message()
+            if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
+                message = get_error_message()
+                if simulation.max_nb_cycles is None:
+                    message += ' Hint: use "max_nb_cycles = 0" to get a default value, or "= N" to allow N cycles.'
+                raise CycleError(message)
+            else:
+                requested_periods.append(period)
+        else:
+            requested_periods_by_variable_name[variable_name] = [period]
+
+    def clean_cycle_detection_data(self):
+        """
+        When the value of a formula have been computed, remove the period from
+        requested_periods_by_variable_name[variable_name] and delete the latter if empty.
+        """
+        simulation = self.holder.entity.simulation
+        column = self.holder.column
+        variable_name = column.name
+        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
+        if variable_name in requested_periods_by_variable_name:
+            requested_periods_by_variable_name[variable_name].pop()
+            if len(requested_periods_by_variable_name[variable_name]) == 0:
+                del requested_periods_by_variable_name[variable_name]
+
     def compute(self, period = None, **parameters):
-        """Call the formula function (if needed) and return a dated holder containing its result."""
+        """
+        Call the formula function (if needed) and return a dated holder containing its result.
+
+        If a cycle is detected, a CycleError is raised.
+        To avoid it a formula can use the nb_max_cycles parameter (int >= 0) so when the cycle is detected,
+        the exceptions mechanism rewinds up to the first variable called with max_nb_cycles != None,
+        and a default value is returned for the latter variable.
+        Then the calculation continues normally.
+        """
         assert period is not None
         holder = self.holder
         column = holder.column
@@ -492,10 +548,9 @@ class SimpleFormula(AbstractFormula):
         debug_all = simulation.debug_all
         trace = simulation.trace
 
-        max_nb_recursive_calls = parameters.get('max_nb_recursive_calls')
-        potential_cycle_declared = max_nb_recursive_calls is not None
-        if potential_cycle_declared:
-            simulation.max_nb_recursive_calls = max_nb_recursive_calls
+        max_nb_cycles = parameters.get('max_nb_cycles')
+        if max_nb_cycles is not None:
+            simulation.max_nb_cycles = max_nb_cycles
 
         # Note: Don't compute intersection with column.start & column.end, because holder already does it:
         # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
@@ -509,15 +564,15 @@ class SimpleFormula(AbstractFormula):
                     parameters_infos = [],
                     input_variables_infos = [],
                     ))
-
             formula_result = self.base_function(simulation, period)
         except CycleError:
-            self.mark_as_calculated()
-            if not potential_cycle_declared:
+            self.clean_cycle_detection_data()
+            if max_nb_cycles is None:
+                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise
             dated_holder = holder.at_period(period)
             dated_holder.array = self.default_values()
-            simulation.max_nb_recursive_calls = None
+            simulation.max_nb_cycles = None
             return dated_holder
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
@@ -580,50 +635,11 @@ class SimpleFormula(AbstractFormula):
         dated_holder = holder.at_period(output_period)
         dated_holder.array = array
 
-        self.mark_as_calculated()
-        if potential_cycle_declared:
-            simulation.max_nb_recursive_calls = None
+        self.clean_cycle_detection_data()
+        if max_nb_cycles is not None:
+            simulation.max_nb_cycles = None
 
         return dated_holder
-
-    def check_for_cycle(self, period):
-        simulation = self.holder.entity.simulation
-        requested_variables = simulation.requested_variables
-        column = self.holder.column
-        # We keep track in requested_variables of the formulas that are being calculated
-        # If self is already in there, it means this formula calls itself recursively
-        # The data structure of requested_variables is: {formula: [period1, period2]}
-        if self in requested_variables:
-            circular_definition_message = u'Circular definition detected on formula {}<{}>. '
-            'Formulas and periods involved: {}.'.format(
-                column.name,
-                period,
-                u', '.join(sorted(set(
-                    u'{}<{}>'.format(formula.holder.column.name, period2)
-                    for formula, periods in requested_variables.iteritems()
-                    for period2 in periods
-                    ))).encode('utf-8'),
-                )
-
-            # Make sure the formula doesn't call itself for the same period it is being called for.
-            # It would be a pure circular definition.
-            assert period not in requested_variables[self] and not column.is_permanent, circular_definition_message
-
-            if simulation.max_nb_recursive_calls < len(requested_variables[self]):
-                raise CycleError(circular_definition_message)
-            else:
-                requested_variables[self].append(period)
-        else:
-            requested_variables[self] = [period]
-
-    def mark_as_calculated(self):
-        # When the value of a formula have been computed, we remove the period from requested_variables[self]
-        # and delete the latter if empty.
-        requested_variables = self.holder.entity.simulation.requested_variables
-        if self in requested_variables:
-            requested_variables[self].pop()
-            if len(requested_variables[self]) == 0:
-                del requested_variables[self]
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""

@@ -50,9 +50,11 @@ class Simulation(object):
         self.period = period
         self.holder_by_name = {}
 
-        # To keep track of the values (formulas and periods) being calculated to detect circular definitions. See use in formulas.py.
-        self.requested_variables = {}
-        self.max_nb_recursive_calls = None
+        # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
+        # See use in formulas.py.
+        # The data structure of requested_periods_by_variable_name is: {variable_name: [period1, period2]}
+        self.requested_periods_by_variable_name = {}
+        self.max_nb_cycles = None
 
         if debug:
             self.debug = True
@@ -175,7 +177,6 @@ class Simulation(object):
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
         return holder.compute(period = period, **parameters)
-
 
     def compute_add(self, column_name, period = None, **parameters):
         if period is None:

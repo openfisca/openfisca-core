@@ -79,7 +79,7 @@ class variable5(SimpleFormulaColumn):
     entity_class = Individus
 
     def function(self, simulation, period):
-        variable6 = simulation.calculate('variable6', period.last_year, max_nb_recursive_calls = 0)
+        variable6 = simulation.calculate('variable6', period.last_year, max_nb_cycles = 0)
         return period, 5 + variable6
 
 
@@ -102,7 +102,7 @@ class cotisation(SimpleFormulaColumn):
     def function(self, simulation, period):
         period = period.this_month
         if period.start.month == 12:
-            return period, 2 * simulation.calculate('cotisation', period.last_month, max_nb_recursive_calls = 1)
+            return period, 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
         else:
             return period, self.zeros() + 1
 
@@ -115,7 +115,7 @@ class variable7(SimpleFormulaColumn):
     entity_class = Individus
 
     def function(self, simulation, period):
-        variable8 = simulation.calculate('variable8', period.last_year, max_nb_recursive_calls = 1)
+        variable8 = simulation.calculate('variable8', period.last_year, max_nb_cycles = 1)
         return period, 7 + variable8
 
 
@@ -155,8 +155,8 @@ def test_cycle_time_offset():
 
 def test_allowed_cycle():
     """
-    On teste en calculant variable5 et variable6 dans un ordre puis dans l'autre, pour vérifier que
-    le point d'entrée dans le cycle n'a pas d'influence sur le résultat.
+    Calculate variable5 then variable6 then in the order order, to verify that the first calculated variable
+    has no effect on the result.
     """
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = reference_period,
@@ -170,7 +170,7 @@ def test_allowed_cycle():
     assert_near(variable6_last_year, [0])
 
 
-def test_allowed_cycle_bis():
+def test_allowed_cycle_different_order():
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = reference_period,
         parent1 = dict(),
