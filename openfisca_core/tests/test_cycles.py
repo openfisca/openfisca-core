@@ -23,30 +23,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import collections
-import datetime
-import itertools
-
-import numpy as np
-from numpy.core.defchararray import startswith
 from nose.tools import raises
 
-from openfisca_core import conv, periods
-from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    make_formula_decorator, PersonToEntityColumn, reference_input_variable, set_input_divide_by_period,
-    SimpleFormulaColumn, CycleError)
-from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
-from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
+from openfisca_core import periods
+from openfisca_core.columns import IntCol
+from openfisca_core.formulas import CycleError, SimpleFormulaColumn
+from openfisca_core.tests import dummy_country
+from openfisca_core.tests.dummy_country import Individus, reference_formula
 from openfisca_core.tools import assert_near
-from openfisca_core.tests.test_countries import *
-
-# TaxBenefitSystem instance declared after formulas
-TaxBenefitSystem = init_country()
-tax_benefit_system = TaxBenefitSystem()
-
-reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
 
 # 1 <--> 2 with same period
@@ -118,9 +102,10 @@ class cotisation(SimpleFormulaColumn):
     def function(self, simulation, period):
         period = period.this_month
         if period.start.month == 12:
-            return period, 2 *   simulation.calculate('cotisation', period.last_month, max_nb_recursive_calls = 1)
+            return period, 2 * simulation.calculate('cotisation', period.last_month, max_nb_recursive_calls = 1)
         else:
             return period, self.zeros() + 1
+
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
 #   <---
@@ -133,6 +118,7 @@ class variable7(SimpleFormulaColumn):
         variable8 = simulation.calculate('variable8', period.last_year, max_nb_recursive_calls = 1)
         return period, 7 + variable8
 
+
 @reference_formula
 class variable8(SimpleFormulaColumn):
     column = IntCol
@@ -141,6 +127,10 @@ class variable8(SimpleFormulaColumn):
     def function(self, simulation, period):
         variable7 = simulation.calculate('variable7', period)
         return period, 8 + variable7
+
+
+# TaxBenefitSystem instance declared after formulas
+tax_benefit_system = dummy_country.init_tax_benefit_system()
 
 reference_period = periods.period(u'2013')
 
