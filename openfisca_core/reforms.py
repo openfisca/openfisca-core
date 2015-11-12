@@ -132,18 +132,12 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
         entity_class.symbol: entity_class
         for entity_class in reform_entity_class_by_key_plural.itervalues()
         }
-    reform_key = key
-    reform_name = name
-    reform_reference = reference
 
     class Reform(AbstractReform):
         _constructed = False
         DECOMP_DIR = decomposition_dir_name
         DEFAULT_DECOMP_FILE = decomposition_file_name
         entity_class_by_key_plural = reform_entity_class_by_key_plural
-        key = reform_key
-        name = reform_name
-        reference = reform_reference
 
         def __init__(self):
             super(Reform, self).__init__()
@@ -168,6 +162,10 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             kwargs['update'] = True
             return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
 
+    # Define class attributes after class declaration to avoid "name is not defined" exceptions.
+    Reform.key = key
+    Reform.name = name
+    Reform.reference = reference
     if new_formulas is not None:
         warnings.warn(
             "new_formulas is deprecated. Use reform.formula decorator instead on the formula classes, "
