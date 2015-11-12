@@ -114,13 +114,8 @@ def compose_reforms(build_functions_and_keys, tax_benefit_system):
     return reform
 
 
-def make_reform(key, name, reference, decomposition_dir_name = None, decomposition_file_name = None,
-        new_formulas = None):
-    """
-    Return a Reform class inherited from AbstractReform.
-
-    Warning: new_formulas argument is deprecated.
-    """
+def make_reform(key, name, reference, decomposition_dir_name = None, decomposition_file_name = None):
+    """Return a Reform class inherited from AbstractReform."""
     assert isinstance(key, basestring)
     assert isinstance(name, basestring)
     assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
@@ -141,6 +136,7 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
 
         def __init__(self):
             super(Reform, self).__init__()
+            # TODO Remove this mechanism.
             Reform._constructed = True
 
         @classmethod
@@ -166,15 +162,6 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
     Reform.key = key
     Reform.name = name
     Reform.reference = reference
-    if new_formulas is not None:
-        warnings.warn(
-            "new_formulas is deprecated. Use reform.formula decorator instead on the formula classes, "
-            "reform being the object returned by make_reform",
-            DeprecationWarning,
-            )
-        assert isinstance(new_formulas, collections.Sequence)
-        for new_formula in new_formulas:
-            Reform.formula(new_formula)
 
     return Reform
 
