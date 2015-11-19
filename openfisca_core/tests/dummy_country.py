@@ -61,6 +61,11 @@ entity_class_by_symbol = dict(
     ind = Individus,
     )
 
+entity_class_by_key_plural = {
+    entity_class.key_plural: entity_class
+    for entity_class in entity_class_by_symbol.itervalues()
+    }
+
 
 # Mandatory input variables
 
@@ -256,12 +261,10 @@ class Scenario(AbstractScenario):
 
 def init_country():
     class TaxBenefitSystem(AbstractTaxBenefitSystem):
-        entity_class_by_key_plural = {
-            entity_class.key_plural: entity_class
-            for entity_class in entity_class_by_symbol.itervalues()
-            }
+        pass
 
     # Define class attributes after class declaration to avoid "name is not defined" exceptions.
+    TaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
     TaxBenefitSystem.Scenario = Scenario
 
     return TaxBenefitSystem

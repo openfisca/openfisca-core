@@ -99,10 +99,6 @@ class AbstractTaxBenefitSystem(object):
         pass
 
 
-class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):
-    pass
-
-
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     """A tax-benefit sytem with legislation stored in a XML file."""
     legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
@@ -115,6 +111,23 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         super(XmlBasedTaxBenefitSystem, self).__init__(
+            entity_class_by_key_plural = entity_class_by_key_plural,
+            legislation_json = legislation_json,
+            )
+
+
+class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
+    """A tax-benefit sytem with legislation stored in many XML files."""
+    legislation_xml_configs = None  # class attribute or must be set before calling this __init__ method.
+    preprocess_legislation = None
+
+    def __init__(self, entity_class_by_key_plural = None):
+        state = conv.State()
+        legislation_json = conv.check(legislationsxml.xml_legislation_file_paths_to_json)(
+            self.legislation_xml_file_paths, state = state)
+        if self.preprocess_legislation is not None:
+            legislation_json = self.preprocess_legislation(legislation_json)
+        super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
             )

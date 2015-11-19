@@ -80,6 +80,21 @@ def make_validate_values_xml_json_dates(require_consecutive_dates = False):
     return validate_values_xml_json_dates
 
 
+def merge_multiple_xml_elements_into_first(xml_elements, state = None):
+    """
+    This converter merges multiple XML elements into the first.
+
+    Warning: it mutates the first XML element of `xml_elements`.
+    """
+    if xml_elements is None:
+        return xml_elements, None
+    xml_root_element = xml_elements[0]
+    for xml_element in xml_elements[1:]:
+        for xml_child in xml_element:
+            xml_root_element.append(xml_child)
+    return xml_root_element, None
+
+
 def translate_xml_element_to_json_item(xml_element):
     json_element = collections.OrderedDict()
     text = xml_element.text
@@ -839,6 +854,17 @@ def xml_legislation_to_json(xml_element, state = None):
 
 xml_legislation_file_path_to_json = conv.pipe(
     xml_legislation_file_path_to_xml,
+    xml_legislation_to_json,
+    validate_legislation_xml_json,
+    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
+    )
+
+
+xml_legislation_file_paths_to_json = conv.pipe(
+    conv.uniform_sequence(
+        xml_legislation_file_path_to_xml,
+        ),
+    merge_multiple_xml_elements_into_first,
     xml_legislation_to_json,
     validate_legislation_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
