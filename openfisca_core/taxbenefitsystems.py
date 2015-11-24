@@ -100,7 +100,7 @@ class AbstractTaxBenefitSystem(object):
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax-benefit sytem with legislation stored in a XML file."""
+    """A tax and benefit sytem with legislation stored in a XML file."""
     legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
     preprocess_legislation = None
 
@@ -117,7 +117,7 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
 
 
 class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax-benefit sytem with legislation stored in many XML files."""
+    """A tax and benefit sytem with legislation stored in many XML files."""
     legislation_xml_configs = None  # class attribute or must be set before calling this __init__ method.
     preprocess_legislation = None
 
