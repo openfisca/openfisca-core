@@ -129,7 +129,8 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
         @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
             if cls._constructed:
-                print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
+                print 'Caution: You are adding an input variable to an instantiated Reform. ' \
+                    'Reform must be reinstatiated.'
             # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
             entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
             assert 'update' not in kwargs
