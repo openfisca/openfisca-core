@@ -114,7 +114,7 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
         legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
             self.legislation_xml_file_path, state = state)
         if self.preprocess_legislation is not None:
-            self.preprocess_legislation(legislation_json)
+            legislation_json = self.preprocess_legislation(legislation_json)
         super(XmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
