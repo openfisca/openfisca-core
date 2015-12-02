@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 
 from nose.tools import assert_equal
 
 from .. import columns, periods, reforms
-from ..formulas import neutralize_column
+from ..formulas import neutralize_column, dated_function
 from ..tools import assert_near
 from .dummy_country import Familles
 from .test_countries import tax_benefit_system
@@ -211,3 +212,34 @@ def test_add_variable():
     reform_simulation = scenario.new_simulation(debug = True)
     nouvelle_variable = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
     assert_near(nouvelle_variable, 10, absolute_error_margin = 0)
+
+
+def test_add_variable():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class nouvelle_dated_variable(Reform.DatedVariable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        @dated_function(datetime.date(2010, 1, 1))
+        def function_2010(self, simulation, period):
+            return period, self.zeros() + 10
+
+        @dated_function(datetime.date(2011, 1, 1))
+        def function_apres_2011(self, simulation, period):
+            return period, self.zeros() + 15
+
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(),
+        )
+
+    reform_simulation = scenario.new_simulation(debug = True)
+    nouvelle_dated_variable = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
+    assert_near(nouvelle_dated_variable, 15, absolute_error_margin = 0)
