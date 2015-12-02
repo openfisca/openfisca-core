@@ -795,7 +795,7 @@ class ConversionColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, Variable, etc.
+            # Do nothing when creating classes DatedVariable, Variable, etc.
             return super(ConversionColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         # Extract attributes.
@@ -930,7 +930,7 @@ class FormulaColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, Variable, etc.
+            # Do nothing when creating classes DatedVariable, Variable, etc.
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         formula_class = attributes.pop('formula_class', UnboundLocalError)
@@ -987,8 +987,7 @@ class FormulaColumnMetaclass(type):
         return column
 
 
-# FIXME Rename DatedFormulaColumn to DatedVariable.
-class DatedFormulaColumn(object):
+class DatedVariable(object):
     """Syntactic sugar to generate a DatedFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     entity_class_by_key_plural = None
@@ -1027,7 +1026,7 @@ def calculate_output_divide(formula, period):
 
 
 def dated_function(start = None, stop = None):
-    """Function decorator used to give start & stop instants to a method of a function in class DatedFormulaColumn."""
+    """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
         function.start_instant = periods.instant(start)
         function.stop_instant = periods.instant(stop)

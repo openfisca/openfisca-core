@@ -18,7 +18,7 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
     make_formula_decorator, PersonToEntityColumn, reference_input_variable, Variable)
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -196,7 +196,7 @@ class revenu_disponible_famille(PersonToEntityColumn):
     variable = revenu_disponible
 
 
-class rsa(DatedFormulaColumn):
+class rsa(DatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"

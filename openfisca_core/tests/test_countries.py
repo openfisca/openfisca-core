@@ -7,7 +7,7 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
     PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, Variable)
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Familles, Individus, reference_formula
@@ -101,7 +101,7 @@ class revenu_disponible_famille(PersonToEntityColumn):
     operation = 'add'
     variable = revenu_disponible
 
-class rsa(DatedFormulaColumn):
+class rsa(DatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
