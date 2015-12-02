@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import datetime
 
 import numpy as np
@@ -54,8 +53,6 @@ reference_input_variable(
 
 # Calculated variables
 
-
-@reference_formula
 class age(SimpleFormulaColumn):
     column = IntCol
     entity_class = Individus
@@ -70,8 +67,6 @@ class age(SimpleFormulaColumn):
             birth = simulation.calculate('birth', period)
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
-
-@reference_formula
 class dom_tom(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Familles
@@ -83,15 +78,11 @@ class dom_tom(SimpleFormulaColumn):
 
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
-
-@reference_formula
 class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
-
-@reference_formula
 class revenu_disponible(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
@@ -104,16 +95,12 @@ class revenu_disponible(SimpleFormulaColumn):
 
         return period, rsa + salaire_imposable * 0.7
 
-
-@reference_formula
 class revenu_disponible_famille(PersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
     variable = revenu_disponible
 
-
-@reference_formula
 class rsa(DatedFormulaColumn):
     column = FloatCol
     entity_class = Individus
@@ -140,8 +127,6 @@ class rsa(DatedFormulaColumn):
 
         return period, (salaire_imposable < 500) * 300
 
-
-@reference_formula
 class salaire_imposable(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
@@ -154,8 +139,6 @@ class salaire_imposable(SimpleFormulaColumn):
 
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
-
-@reference_formula
 class salaire_net(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus

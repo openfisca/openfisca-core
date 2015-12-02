@@ -919,6 +919,7 @@ class ConversionColumnMetaclass(type):
         if url is not None:
             column.url = url
 
+        add_variable_to_TBS(column)
         return column
 
 
@@ -951,7 +952,7 @@ class FormulaColumnMetaclass(type):
             source_code = textwrap.dedent(''.join(source_lines))
         except TypeError:
             source_code, line_number = None, None
-        return new_filled_column(
+        column = new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
             calculate_output = attributes.pop('calculate_output', UnboundLocalError),
             cerfa_field = attributes.pop('cerfa_field', UnboundLocalError),
@@ -975,6 +976,8 @@ class FormulaColumnMetaclass(type):
             url = attributes.pop('url', UnboundLocalError),
             **attributes
             )
+        add_variable_to_TBS(column)
+        return column
 
 
 class DatedFormulaColumn(object):
