@@ -3,9 +3,10 @@
 
 from nose.tools import assert_equal
 
-from .. import periods, reforms
+from .. import columns, periods, reforms
 from ..formulas import neutralize_column
 from ..tools import assert_near
+from .dummy_country import Familles
 from .test_countries import tax_benefit_system
 
 
@@ -38,7 +39,7 @@ def test_formula_neutralization():
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
 
 
-# def test_input_variable_neutralization():
+    # def test_input_variable_neutralization():
     Reform = reforms.make_reform(
         key = u'test_salaire_brut_neutralization',
         name = u'Test salaire_brut neutralization',
@@ -73,7 +74,6 @@ def test_formula_neutralization():
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, [3600, 3600], absolute_error_margin = 0)
-
 
 def test_updated_legislation_items():
     def check_updated_legislation_items(description, items, start_instant, stop_instant, value, expected_items):
@@ -184,3 +184,30 @@ def test_updated_legislation_items():
                 },
             ],
         )
+
+def test_add_variable():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class nouvelle_variable(Reform.Variable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 10
+
+    year = 2013
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        )
+
+    assert 'nouvelle_variable' not in tax_benefit_system.column_by_name
+    reform_simulation = scenario.new_simulation(debug = True)
+    nouvelle_variable = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
+    assert_near(nouvelle_variable, 10, absolute_error_margin = 0)
