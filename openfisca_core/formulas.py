@@ -941,6 +941,13 @@ class FormulaColumnMetaclass(type):
                 if reference_column is None or reference_column.formula_class is None \
                 else reference_column.formula_class
 
+        entity_class_by_key_plural = attributes.pop('entity_class_by_key_plural', UnboundLocalError)
+        if entity_class_by_key_plural is UnboundLocalError:
+            entity_class_by_key_plural = base_class.entity_class_by_key_plural
+        entity_class = attributes.pop('entity_class', UnboundLocalError)
+        if entity_class_by_key_plural is not None:
+            entity_class = entity_class_by_key_plural[entity_class.key_plural]
+
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
         comments = inspect.getcomments(self)
         try:
@@ -959,7 +966,7 @@ class FormulaColumnMetaclass(type):
             column = attributes.pop('column', UnboundLocalError),
             comments = comments,
             doc = attributes.pop('__doc__', None),
-            entity_class = attributes.pop('entity_class', UnboundLocalError),
+            entity_class = entity_class,
             formula_class = formula_class,
             is_permanent = attributes.pop('is_permanent', UnboundLocalError),
             label = attributes.pop('label', UnboundLocalError),
@@ -980,9 +987,11 @@ class FormulaColumnMetaclass(type):
         return column
 
 
+# FIXME Rename DatedFormulaColumn to DatedVariable.
 class DatedFormulaColumn(object):
     """Syntactic sugar to generate a DatedFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
+    entity_class_by_key_plural = None
     formula_class = DatedFormula
 
 
@@ -1001,6 +1010,7 @@ class PersonToEntityColumn(object):
 class Variable(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
+    entity_class_by_key_plural = None
     formula_class = SimpleFormula
 
 

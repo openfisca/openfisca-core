@@ -142,6 +142,12 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             kwargs['update'] = True
             return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
 
+        class Variable(object):
+            """Syntactic sugar to generate a SimpleFormula class and fill its column"""
+            __metaclass__ = formulas.FormulaColumnMetaclass
+            entity_class_by_key_plural = reform_entity_class_by_key_plural
+            formula_class = formulas.SimpleFormula
+
     # Define class attributes after class declaration to avoid "name is not defined" exceptions.
     Reform.key = key
     Reform.name = name
