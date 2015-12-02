@@ -10,7 +10,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
     PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, Variable)
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Familles, Individus, reference_formula
+from openfisca_core.tests.dummy_country import Familles, Individus
 from openfisca_core.tools import assert_near
 
 
