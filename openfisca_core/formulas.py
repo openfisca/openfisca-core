@@ -919,7 +919,7 @@ class ConversionColumnMetaclass(type):
         if url is not None:
             column.url = url
 
-        add_variable_to_TBS(column)
+        add_column_to_tax_benefit_system(column)
         return column
 
 
@@ -976,7 +976,7 @@ class FormulaColumnMetaclass(type):
             url = attributes.pop('url', UnboundLocalError),
             **attributes
             )
-        add_variable_to_TBS(column)
+        add_column_to_tax_benefit_system(column)
         return column
 
 
@@ -1041,27 +1041,27 @@ def last_duration_last_value(formula, simulation, period):
     array.fill(column.default)
     return period, array
 
-
+# FIXME To delete: obsolete
 def make_formula_decorator(update = False):
 
     def reference_formula_decorator(column):
         """Class decorator used to declare a formula to the relevant entity class."""
-        add_variable_to_TBS(column, update)
+        add_column_to_tax_benefit_system(column, update)
         return column
 
     return reference_formula_decorator
 
-def add_variable_to_TBS(variable, update = False):
-        assert isinstance(variable, columns.Column)
-        assert variable.formula_class is not None
+def add_column_to_tax_benefit_system(column, update = False):
+        assert isinstance(column, columns.Column)
+        assert column.formula_class is not None
 
-        entity_column_by_name = variable.entity_class.column_by_name
-        name = variable.name
+        entity_column_by_name = column.entity_class.column_by_name
+        name = column.name
         if not update:
             assert name not in entity_column_by_name, name
-        entity_column_by_name[name] = variable
+        entity_column_by_name[name] = column
 
-        return variable
+        return column
 
 def missing_value(formula, simulation, period):
     if formula.function is not None:
