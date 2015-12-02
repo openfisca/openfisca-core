@@ -1039,25 +1039,26 @@ def last_duration_last_value(formula, simulation, period):
     return period, array
 
 
-def make_formula_decorator(entity_class_by_symbol = None, update = False):
-    assert isinstance(entity_class_by_symbol, dict)
+def make_formula_decorator(update = False):
 
     def reference_formula_decorator(column):
         """Class decorator used to declare a formula to the relevant entity class."""
-        assert isinstance(column, columns.Column)
-        assert column.formula_class is not None
-
-        entity_class = entity_class_by_symbol[column.entity]
-        entity_column_by_name = entity_class.column_by_name
-        name = column.name
-        if not update:
-            assert name not in entity_column_by_name, name
-        entity_column_by_name[name] = column
-
+        add_variable_to_TBS(column, update)
         return column
 
     return reference_formula_decorator
 
+def add_variable_to_TBS(variable, update = False):
+        assert isinstance(variable, columns.Column)
+        assert variable.formula_class is not None
+
+        entity_column_by_name = variable.entity_class.column_by_name
+        name = variable.name
+        if not update:
+            assert name not in entity_column_by_name, name
+        entity_column_by_name[name] = variable
+
+        return variable
 
 def missing_value(formula, simulation, period):
     if formula.function is not None:

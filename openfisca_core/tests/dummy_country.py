@@ -61,7 +61,7 @@ entity_class_by_symbol = dict(
     ind = Individus,
     )
 
-reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
+reference_formula = make_formula_decorator()
 
 
 # Mandatory input variables
