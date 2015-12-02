@@ -8,7 +8,7 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, SimpleFormulaColumn)
+    PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, Variable)
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Familles, Individus, reference_formula
 from openfisca_core.tools import assert_near
@@ -53,7 +53,7 @@ reference_input_variable(
 
 # Calculated variables
 
-class age(SimpleFormulaColumn):
+class age(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre d'années)"
@@ -67,7 +67,7 @@ class age(SimpleFormulaColumn):
             birth = simulation.calculate('birth', period)
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
-class dom_tom(SimpleFormulaColumn):
+class dom_tom(Variable):
     column = BoolCol
     entity_class = Familles
     label = u"La famille habite-t-elle les DOM-TOM ?"
@@ -83,7 +83,7 @@ class dom_tom_individu(EntityToPersonColumn):
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
-class revenu_disponible(SimpleFormulaColumn):
+class revenu_disponible(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible de l'individu"
@@ -127,7 +127,7 @@ class rsa(DatedFormulaColumn):
 
         return period, (salaire_imposable < 500) * 300
 
-class salaire_imposable(SimpleFormulaColumn):
+class salaire_imposable(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
@@ -139,7 +139,7 @@ class salaire_imposable(SimpleFormulaColumn):
 
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
-class salaire_net(SimpleFormulaColumn):
+class salaire_net(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"

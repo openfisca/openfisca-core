@@ -795,7 +795,7 @@ class ConversionColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
+            # Do nothing when creating classes DatedFormulaColumn, Variable, etc.
             return super(ConversionColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         # Extract attributes.
@@ -930,7 +930,7 @@ class FormulaColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
+            # Do nothing when creating classes DatedFormulaColumn, Variable, etc.
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         formula_class = attributes.pop('formula_class', UnboundLocalError)
@@ -998,7 +998,7 @@ class PersonToEntityColumn(object):
     formula_class = PersonToEntity
 
 
-class SimpleFormulaColumn(object):
+class Variable(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
     formula_class = SimpleFormula
