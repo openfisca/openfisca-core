@@ -907,6 +907,7 @@ class ConversionColumnMetaclass(type):
             column.end = variable.end
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
         column.entity_key_plural = entity_class.key_plural
+        column.entity_class = entity_class
         column.formula_class = formula_class
         if variable.is_permanent:
             column.is_permanent = True
@@ -1070,6 +1071,7 @@ def neutralize_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
+        entity_class = column.entity_class,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
         set_input = set_input_neutralized,
@@ -1313,6 +1315,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         column.end = stop_date
     column.entity = entity_class_symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_key_plural = entity_class_key_plural
+    column.entity_class = entity_class
     column.formula_class = formula_class
     if is_permanent:
         column.is_permanent = True
@@ -1372,6 +1375,7 @@ def reference_input_variable(base_function = None, calculate_output = None, colu
         column.end = stop_date
     column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_key_plural = entity_class.key_plural
+    column.entity_class = entity_class
     if is_permanent:
         column.is_permanent = True
     column.label = label
