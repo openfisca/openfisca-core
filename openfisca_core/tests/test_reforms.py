@@ -15,7 +15,7 @@ def test_formula_neutralization():
         name = u'Test rsa neutralization',
         reference = tax_benefit_system,
         )
-    Reform.formula(neutralize_column(tax_benefit_system.column_by_name['rsa']))
+    Reform.add_column(neutralize_column(tax_benefit_system.column_by_name['rsa']))
     reform = Reform()
 
     year = 2013
@@ -44,7 +44,7 @@ def test_formula_neutralization():
         name = u'Test salaire_brut neutralization',
         reference = tax_benefit_system,
         )
-    Reform.formula(neutralize_column(tax_benefit_system.column_by_name['salaire_brut']))
+    Reform.add_column(neutralize_column(tax_benefit_system.column_by_name['salaire_brut']))
     reform = Reform()
 
     year = 2013
