@@ -483,7 +483,7 @@ class PeriodSizeIndependentIntCol(IntCol):
 
 
 def build_column(name = None, column = None, entity_class_by_symbol = None):
-    # Obsolete. Use reference_input_variable instead.
+    # Obsolete. Use a Variable without a formula instead
     from . import formulas
 
     assert isinstance(name, basestring), name
