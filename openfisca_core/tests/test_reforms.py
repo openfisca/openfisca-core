@@ -211,11 +211,11 @@ def test_add_variable():
 
     assert 'nouvelle_variable' not in tax_benefit_system.column_by_name
     reform_simulation = scenario.new_simulation(debug = True)
-    nouvelle_variable = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
-    assert_near(nouvelle_variable, 10, absolute_error_margin = 0)
+    nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
+    assert_near(nouvelle_variable1, 10, absolute_error_margin = 0)
 
 
-def test_add_variable():
+def test_add_dated_variable():
     Reform = reforms.make_reform(
         key = 'test_add_variable',
         name = "Test",
@@ -242,5 +242,5 @@ def test_add_variable():
         )
 
     reform_simulation = scenario.new_simulation(debug = True)
-    nouvelle_dated_variable = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
-    assert_near(nouvelle_dated_variable, 15, absolute_error_margin = 0)
+    nouvelle_dated_variable1 = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
+    assert_near(nouvelle_dated_variable1, 15, absolute_error_margin = 0)
