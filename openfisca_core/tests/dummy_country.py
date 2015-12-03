@@ -7,7 +7,7 @@ import itertools
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import reference_input_variable
+from openfisca_core.formulas import Variable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -65,23 +65,17 @@ entity_class_by_symbol = dict(
 # Mandatory input variables
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    is_permanent = True,
-    label = u"Identifiant de la famille",
-    name = 'id_famille',
-    )
+class id_famille(Variable):
+    column = IntCol
+    entity_class = Individus
+    is_permanent = True
+    label = u"Identifiant de la famille"
 
-
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    is_permanent = True,
-    label = u"Rôle dans la famille",
-    name = 'role_dans_famille',
-    )
-
+class role_dans_famille(Variable):
+    column = IntCol
+    entity_class = Individus
+    is_permanent = True
+    label = u"Rôle dans la famille"
 
 # Scenarios
 
