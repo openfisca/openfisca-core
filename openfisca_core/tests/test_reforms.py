@@ -244,3 +244,36 @@ def test_add_dated_variable():
     reform_simulation = scenario.new_simulation(debug = True)
     nouvelle_dated_variable1 = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
     assert_near(nouvelle_dated_variable1, 15, absolute_error_margin = 0)
+
+
+def test_add_variable_with_reference():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable_with_reference',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class revenu_disponible(Reform.Variable):
+        reference = tax_benefit_system.column_by_name['revenu_disponible']
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 10
+
+    year = 2013
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        )
+
+    assert 'revenu_disponible' in tax_benefit_system.column_by_name
+    assert revenu_disponible.entity_class.key_plural == \
+        tax_benefit_system.column_by_name['revenu_disponible'].entity_class.key_plural, revenu_disponible.entity_class
+    assert revenu_disponible.name == tax_benefit_system.column_by_name['revenu_disponible'].name, \
+        revenu_disponible
+    assert revenu_disponible.label == tax_benefit_system.column_by_name['revenu_disponible'].label, \
+        revenu_disponible.label
+
+    reform_simulation = scenario.new_simulation(debug = True)
+    revenu_disponible1 = reform_simulation.calculate('revenu_disponible', period = '2013-01')
+    assert_near(revenu_disponible1, 10, absolute_error_margin = 0)
