@@ -3,7 +3,6 @@
 
 import collections
 import copy
-import warnings
 
 from . import formulas, legislations, periods, taxbenefitsystems, columns
 
@@ -101,10 +100,6 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
         key_plural: clone_entity_class(entity_class)
         for key_plural, entity_class in reference.entity_class_by_key_plural.iteritems()
         }
-    reform_entity_class_by_symbol = {
-        entity_class.symbol: entity_class
-        for entity_class in reform_entity_class_by_key_plural.itervalues()
-        }
 
     class Reform(AbstractReform):
         _constructed = False
@@ -117,7 +112,7 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             # TODO Remove this mechanism.
             Reform._constructed = True
 
-        
+
         @classmethod
         def add_column(cls, column):
             if cls._constructed:

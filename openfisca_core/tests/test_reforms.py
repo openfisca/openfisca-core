@@ -39,7 +39,6 @@ def test_formula_neutralization():
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
 
-
     # def test_input_variable_neutralization():
     Reform = reforms.make_reform(
         key = u'test_salaire_brut_neutralization',
@@ -75,6 +74,7 @@ def test_formula_neutralization():
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, [3600, 3600], absolute_error_margin = 0)
+
 
 def test_updated_legislation_items():
     def check_updated_legislation_items(description, items, start_instant, stop_instant, value, expected_items):
@@ -185,6 +185,7 @@ def test_updated_legislation_items():
                 },
             ],
         )
+
 
 def test_add_variable():
     Reform = reforms.make_reform(

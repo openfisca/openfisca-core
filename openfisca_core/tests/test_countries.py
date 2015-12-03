@@ -67,6 +67,7 @@ class age(Variable):
             birth = simulation.calculate('birth', period)
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
+
 class dom_tom(Variable):
     column = BoolCol
     entity_class = Familles
@@ -78,10 +79,12 @@ class dom_tom(Variable):
 
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
+
 class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
+
 
 class revenu_disponible(Variable):
     column = FloatCol
@@ -95,11 +98,13 @@ class revenu_disponible(Variable):
 
         return period, rsa + salaire_imposable * 0.7
 
+
 class revenu_disponible_famille(PersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
     variable = revenu_disponible
+
 
 class rsa(DatedVariable):
     column = FloatCol
@@ -127,6 +132,7 @@ class rsa(DatedVariable):
 
         return period, (salaire_imposable < 500) * 300
 
+
 class salaire_imposable(Variable):
     column = FloatCol
     entity_class = Individus
@@ -138,6 +144,7 @@ class salaire_imposable(Variable):
         salaire_net = simulation.calculate('salaire_net', period)
 
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
+
 
 class salaire_net(Variable):
     column = FloatCol
