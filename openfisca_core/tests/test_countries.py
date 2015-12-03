@@ -8,7 +8,7 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
-    PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, Variable)
+    PersonToEntityColumn, set_input_divide_by_period, Variable)
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Familles, Individus
 from openfisca_core.tools import assert_near
@@ -17,38 +17,27 @@ from openfisca_core.tools import assert_near
 # Input variables
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    label = u"Âge (en nombre de mois)",
-    name = 'age_en_mois',
-    )
+class age_en_mois(Variable):
+    column = IntCol
+    entity_class = Individus
+    label = u"Âge (en nombre de mois)"
 
+class birth(Variable):
+    column = DateCol
+    entity_class = Individus
+    label = u"Date de naissance"
 
-reference_input_variable(
-    column = DateCol,
-    entity_class = Individus,
-    label = u"Date de naissance",
-    name = 'birth',
-    )
+class depcom(Variable):
+    column = FixedStrCol(max_length = 5)
+    entity_class = Familles
+    is_permanent = True
+    label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
-
-reference_input_variable(
-    column = FixedStrCol(max_length = 5),
-    entity_class = Familles,
-    is_permanent = True,
-    label = u"""Code INSEE "depcom" de la commune de résidence de la famille""",
-    name = 'depcom',
-    )
-
-
-reference_input_variable(
-    column = FloatCol,
-    entity_class = Individus,
-    label = "Salaire brut",
-    name = 'salaire_brut',
-    set_input = set_input_divide_by_period,
-    )
+class salaire_brut(Variable):
+    column = FloatCol
+    entity_class = Individus
+    label = "Salaire brut"
+    set_input = set_input_divide_by_period
 
 
 # Calculated variables
