@@ -71,10 +71,9 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
 
 
 def clone_entity_class(entity_class):
-    class ReformEntity(entity_class):
-        pass
-    ReformEntity.column_by_name = entity_class.column_by_name.copy()
-    return ReformEntity
+    return type(entity_class.__name__, (entity_class,), dict(
+        column_by_name = entity_class.column_by_name.copy(),
+        ))
 
 
 def compose_reforms(build_functions_and_keys, tax_benefit_system):
