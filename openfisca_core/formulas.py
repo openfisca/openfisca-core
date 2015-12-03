@@ -988,7 +988,8 @@ class FormulaColumnMetaclass(type):
             url = attributes.pop('url', UnboundLocalError),
             **attributes
             )
-        add_column_to_tax_benefit_system(column)
+        update = self.entity_class_by_key_plural is not None
+        add_column_to_tax_benefit_system(column, update = update)
         return column
 
 
