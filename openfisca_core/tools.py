@@ -51,8 +51,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
                     abs(target_value - value), abs(relative_error_margin * target_value))
 
 
-def get_trace_tool_link(scenario, variables, api_url = u'http://api-test.openfisca.fr',
-        trace_tool_url = u'http://www.openfisca.fr/outils/trace'):
+def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
     scenario_json = scenario.to_json()
     simulation_json = {
         'scenarios': [scenario_json],
