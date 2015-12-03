@@ -946,6 +946,11 @@ class FormulaColumnMetaclass(type):
             entity_class_by_key_plural = base_class.entity_class_by_key_plural
         entity_class = attributes.pop('entity_class', UnboundLocalError)
         if entity_class_by_key_plural is not None:
+            # Get the entity_class cloned by the reform.
+            if entity_class is UnboundLocalError:
+                assert reference_column is not None, \
+                    'Variable must have either an entity_class or a reference attribute'
+                entity_class = reference_column.entity_class
             entity_class = entity_class_by_key_plural[entity_class.key_plural]
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
