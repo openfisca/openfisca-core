@@ -18,7 +18,7 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn, PersonToEntityColumn, reference_input_variable, Variable)
+from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn, PersonToEntityColumn, Variable)
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -91,55 +91,43 @@ def init_country():
 # Input variables
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    label = u"Âge (en nombre de mois)",
-    name = 'age_en_mois',
-    )
+class age_en_mois(Variable):
+    column = IntCol
+    entity_class = Individus
+    label = u"Âge (en nombre de mois)"
 
 
-reference_input_variable(
-    column = DateCol,
-    entity_class = Individus,
-    label = u"Date de naissance",
-    name = 'birth',
-    )
+class birth(Variable):
+    column = DateCol
+    entity_class = Individus
+    label = u"Date de naissance"
 
 
-reference_input_variable(
-    column = FixedStrCol(max_length = 5),
-    entity_class = Familles,
-    is_permanent = True,
-    label = u"""Code INSEE "depcom" de la commune de résidence de la famille""",
-    name = 'depcom',
-    )
+class depcom(Variable):
+    column = FixedStrCol(max_length = 5)
+    entity_class = Familles
+    is_permanent = True
+    label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    is_permanent = True,
-    label = u"Identifiant de la famille",
-    name = 'id_famille',
-    )
+class id_famille(Variable):
+    column = IntCol
+    entity_class = Individus
+    is_permanent = True
+    label = u"Identifiant de la famille"
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Individus,
-    is_permanent = True,
-    label = u"Rôle dans la famille",
-    name = 'role_dans_famille',
-    )
+class role_dans_famille(Variable):
+    column = IntCol
+    entity_class = Individus
+    is_permanent = True
+    label = u"Rôle dans la famille"
 
 
-reference_input_variable(
-    column = FloatCol,
-    entity_class = Individus,
-    label = "Salaire brut",
-    name = 'salaire_brut',
-    )
+class salaire_brut(Variable):
+    column = FloatCol
+    entity_class = Individus
+    label = "Salaire brut"
 
 
 # Calculated variables
