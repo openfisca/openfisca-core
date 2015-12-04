@@ -19,10 +19,10 @@ def apply_threshold(input, thresholds, choice_list):
     >>>apply_threshold(numpy.array([10]), [5, 7, 9], [10, 15, 20])
     [0]
     """
-    if(len(thresholds) == len(choice_list)):
-    	choice_list += [0] # If no choice is provided for input > highest threshold, return 0
-    assert len(thresholds) == len(choice_list) - 1, \
-    	"apply_threshold must be called with the same number of thresholds than choices, or one more choice"
-    condlist = [input <= threshold for threshold in thresholds] + [True]
+    condlist = [input <= threshold for threshold in thresholds]
+    if(len(condlist) == len(choice_list) - 1):
+        condlist += [True] # If a choice is provided for input > highest threshold, last condition must be true to return it
+    assert len(condlist) == len(choice_list), \
+        "apply_threshold must be called with the same number of thresholds than choices, or one more choice"
 
     return np.select(condlist, choice_list)
