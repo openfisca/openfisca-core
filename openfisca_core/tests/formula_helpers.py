@@ -9,7 +9,7 @@ from openfisca_core.tools import assert_near
 @raises(AssertionError)
 def test_apply_threshold_with_too_many_thresholds():
     input = numpy.array([10])
-    thresholds = [5]
+    thresholds = [5, 4]
     choice_list = [10]
     return apply_threshold(input, thresholds, choice_list)
 
@@ -26,6 +26,13 @@ def test_apply_threshold():
     choice_list = [10, 15, 20]
     result = apply_threshold(input, thresholds, choice_list)
     assert_near(result, [10, 10, 15, 15, 20])
+
+def test_apply_threshold_with_as_many_thresholds_than_choices():
+    input = numpy.array([4, 6, 8])
+    thresholds = [5, 7]
+    choice_list = [10, 20]
+    result = apply_threshold(input, thresholds, choice_list)
+    assert_near(result, [10, 20, 0])
 
 def test_apply_threshold_with_variable_threshold():
     input = numpy.array([1000, 1000, 1000])
