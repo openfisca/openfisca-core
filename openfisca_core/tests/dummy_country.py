@@ -7,7 +7,7 @@ import itertools
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import make_formula_decorator, reference_input_variable
+from openfisca_core.formulas import reference_input_variable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 
@@ -60,8 +60,6 @@ entity_class_by_symbol = dict(
     fam = Familles,
     ind = Individus,
     )
-
-reference_formula = make_formula_decorator(entity_class_by_symbol = entity_class_by_symbol)
 
 
 # Mandatory input variables

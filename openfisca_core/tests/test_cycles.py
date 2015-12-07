@@ -5,15 +5,14 @@ from nose.tools import raises
 
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
-from openfisca_core.formulas import CycleError, SimpleFormulaColumn
+from openfisca_core.formulas import CycleError, Variable
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Individus, reference_formula
+from openfisca_core.tests.dummy_country import Individus
 from openfisca_core.tools import assert_near
 
 
 # 1 <--> 2 with same period
-@reference_formula
-class variable1(SimpleFormulaColumn):
+class variable1(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -21,8 +20,7 @@ class variable1(SimpleFormulaColumn):
         return period, simulation.calculate('variable2', period)
 
 
-@reference_formula
-class variable2(SimpleFormulaColumn):
+class variable2(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -31,8 +29,7 @@ class variable2(SimpleFormulaColumn):
 
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
-@reference_formula
-class variable3(SimpleFormulaColumn):
+class variable3(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -40,8 +37,7 @@ class variable3(SimpleFormulaColumn):
         return period, simulation.calculate('variable4', period.last_year)
 
 
-@reference_formula
-class variable4(SimpleFormulaColumn):
+class variable4(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -51,8 +47,7 @@ class variable4(SimpleFormulaColumn):
 
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
 #   <---
-@reference_formula
-class variable5(SimpleFormulaColumn):
+class variable5(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -61,8 +56,7 @@ class variable5(SimpleFormulaColumn):
         return period, 5 + variable6
 
 
-@reference_formula
-class variable6(SimpleFormulaColumn):
+class variable6(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -72,8 +66,7 @@ class variable6(SimpleFormulaColumn):
 
 
 # december cotisation depending on november value
-@reference_formula
-class cotisation(SimpleFormulaColumn):
+class cotisation(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -87,8 +80,7 @@ class cotisation(SimpleFormulaColumn):
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
 #   <---
-@reference_formula
-class variable7(SimpleFormulaColumn):
+class variable7(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -97,8 +89,7 @@ class variable7(SimpleFormulaColumn):
         return period, 7 + variable8
 
 
-@reference_formula
-class variable8(SimpleFormulaColumn):
+class variable8(Variable):
     column = IntCol
     entity_class = Individus
 

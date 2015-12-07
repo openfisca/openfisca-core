@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 
 from nose.tools import assert_equal
 
-from .. import periods, reforms
-from ..formulas import neutralize_column
+from .. import columns, periods, reforms
+from ..formulas import neutralize_column, dated_function
 from ..tools import assert_near
+from .dummy_country import Familles
 from .test_countries import tax_benefit_system
 
 
@@ -15,7 +17,7 @@ def test_formula_neutralization():
         name = u'Test rsa neutralization',
         reference = tax_benefit_system,
         )
-    Reform.formula(neutralize_column(tax_benefit_system.column_by_name['rsa']))
+    Reform.add_column(neutralize_column(tax_benefit_system.column_by_name['rsa']))
     reform = Reform()
 
     year = 2013
@@ -37,14 +39,13 @@ def test_formula_neutralization():
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
 
-
-# def test_input_variable_neutralization():
+    # def test_input_variable_neutralization():
     Reform = reforms.make_reform(
         key = u'test_salaire_brut_neutralization',
         name = u'Test salaire_brut neutralization',
         reference = tax_benefit_system,
         )
-    Reform.formula(neutralize_column(tax_benefit_system.column_by_name['salaire_brut']))
+    Reform.add_column(neutralize_column(tax_benefit_system.column_by_name['salaire_brut']))
     reform = Reform()
 
     year = 2013
@@ -184,3 +185,95 @@ def test_updated_legislation_items():
                 },
             ],
         )
+
+
+def test_add_variable():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class nouvelle_variable(Reform.Variable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 10
+
+    year = 2013
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        )
+
+    assert 'nouvelle_variable' not in tax_benefit_system.column_by_name
+    reform_simulation = scenario.new_simulation(debug = True)
+    nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
+    assert_near(nouvelle_variable1, 10, absolute_error_margin = 0)
+
+
+def test_add_dated_variable():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class nouvelle_dated_variable(Reform.DatedVariable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        @dated_function(datetime.date(2010, 1, 1))
+        def function_2010(self, simulation, period):
+            return period, self.zeros() + 10
+
+        @dated_function(datetime.date(2011, 1, 1))
+        def function_apres_2011(self, simulation, period):
+            return period, self.zeros() + 15
+
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(),
+        )
+
+    reform_simulation = scenario.new_simulation(debug = True)
+    nouvelle_dated_variable1 = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
+    assert_near(nouvelle_dated_variable1, 15, absolute_error_margin = 0)
+
+
+def test_add_variable_with_reference():
+    Reform = reforms.make_reform(
+        key = 'test_add_variable_with_reference',
+        name = "Test",
+        reference = tax_benefit_system,
+        )
+
+    class revenu_disponible(Reform.Variable):
+        reference = tax_benefit_system.column_by_name['revenu_disponible']
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 10
+
+    year = 2013
+    reform = Reform()
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        )
+
+    assert 'revenu_disponible' in tax_benefit_system.column_by_name
+    assert revenu_disponible.entity_class.key_plural == \
+        tax_benefit_system.column_by_name['revenu_disponible'].entity_class.key_plural, revenu_disponible.entity_class
+    assert revenu_disponible.name == tax_benefit_system.column_by_name['revenu_disponible'].name, \
+        revenu_disponible
+    assert revenu_disponible.label == tax_benefit_system.column_by_name['revenu_disponible'].label, \
+        revenu_disponible.label
+
+    reform_simulation = scenario.new_simulation(debug = True)
+    revenu_disponible1 = reform_simulation.calculate('revenu_disponible', period = '2013-01')
+    assert_near(revenu_disponible1, 10, absolute_error_margin = 0)

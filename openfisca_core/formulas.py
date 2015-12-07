@@ -795,7 +795,7 @@ class ConversionColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
+            # Do nothing when creating classes DatedVariable, Variable, etc.
             return super(ConversionColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         # Extract attributes.
@@ -907,6 +907,7 @@ class ConversionColumnMetaclass(type):
             column.end = variable.end
         column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
         column.entity_key_plural = entity_class.key_plural
+        column.entity_class = entity_class
         column.formula_class = formula_class
         if variable.is_permanent:
             column.is_permanent = True
@@ -918,6 +919,7 @@ class ConversionColumnMetaclass(type):
         if url is not None:
             column.url = url
 
+        add_column_to_tax_benefit_system(column)
         return column
 
 
@@ -928,7 +930,7 @@ class FormulaColumnMetaclass(type):
         assert len(bases) == 1, bases
         base_class = bases[0]
         if base_class is object:
-            # Do nothing when creating classes DatedFormulaColumn, SimpleFormulaColumn, etc.
+            # Do nothing when creating classes DatedVariable, Variable, etc.
             return super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
 
         formula_class = attributes.pop('formula_class', UnboundLocalError)
@@ -938,6 +940,22 @@ class FormulaColumnMetaclass(type):
             formula_class = base_class.formula_class \
                 if reference_column is None or reference_column.formula_class is None \
                 else reference_column.formula_class
+
+        entity_class_by_key_plural = attributes.pop('entity_class_by_key_plural', UnboundLocalError)
+        if entity_class_by_key_plural is UnboundLocalError:
+            entity_class_by_key_plural = base_class.entity_class_by_key_plural
+        assert entity_class_by_key_plural is not UnboundLocalError
+
+        entity_class = attributes.pop('entity_class', UnboundLocalError)
+        # In case of a variable with a "reference" attribute, take the entity_class of the reference Variable.
+        if entity_class is UnboundLocalError:
+            assert reference_column is not None, 'Variable must have either an entity_class or a reference attribute'
+            entity_class = reference_column.entity_class
+        assert entity_class is not UnboundLocalError and entity_class is not None, entity_class
+
+        # In case of an extension, take the cloned entity_class of the same key_plural of the extension.
+        if entity_class_by_key_plural is not None:
+            entity_class = entity_class_by_key_plural[entity_class.key_plural]
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
         comments = inspect.getcomments(self)
@@ -950,14 +968,14 @@ class FormulaColumnMetaclass(type):
             source_code = textwrap.dedent(''.join(source_lines))
         except TypeError:
             source_code, line_number = None, None
-        return new_filled_column(
+        column = new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
             calculate_output = attributes.pop('calculate_output', UnboundLocalError),
             cerfa_field = attributes.pop('cerfa_field', UnboundLocalError),
             column = attributes.pop('column', UnboundLocalError),
             comments = comments,
             doc = attributes.pop('__doc__', None),
-            entity_class = attributes.pop('entity_class', UnboundLocalError),
+            entity_class = entity_class,
             formula_class = formula_class,
             is_permanent = attributes.pop('is_permanent', UnboundLocalError),
             label = attributes.pop('label', UnboundLocalError),
@@ -974,11 +992,15 @@ class FormulaColumnMetaclass(type):
             url = attributes.pop('url', UnboundLocalError),
             **attributes
             )
+        update = reference_column is not None
+        add_column_to_tax_benefit_system(column, update = update)
+        return column
 
 
-class DatedFormulaColumn(object):
+class DatedVariable(object):
     """Syntactic sugar to generate a DatedFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
+    entity_class_by_key_plural = None
     formula_class = DatedFormula
 
 
@@ -994,9 +1016,10 @@ class PersonToEntityColumn(object):
     formula_class = PersonToEntity
 
 
-class SimpleFormulaColumn(object):
+class Variable(object):
     """Syntactic sugar to generate a SimpleFormula class and fill its column"""
     __metaclass__ = FormulaColumnMetaclass
+    entity_class_by_key_plural = None
     formula_class = SimpleFormula
 
 
@@ -1013,7 +1036,7 @@ def calculate_output_divide(formula, period):
 
 
 def dated_function(start = None, stop = None):
-    """Function decorator used to give start & stop instants to a method of a function in class DatedFormulaColumn."""
+    """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
         function.start_instant = periods.instant(start)
         function.stop_instant = periods.instant(stop)
@@ -1038,24 +1061,15 @@ def last_duration_last_value(formula, simulation, period):
     return period, array
 
 
-def make_formula_decorator(entity_class_by_symbol = None, update = False):
-    assert isinstance(entity_class_by_symbol, dict)
-
-    def reference_formula_decorator(column):
-        """Class decorator used to declare a formula to the relevant entity class."""
-        assert isinstance(column, columns.Column)
-        assert column.formula_class is not None
-
-        entity_class = entity_class_by_symbol[column.entity]
-        entity_column_by_name = entity_class.column_by_name
-        name = column.name
-        if not update:
-            assert name not in entity_column_by_name, name
-        entity_column_by_name[name] = column
-
-        return column
-
-    return reference_formula_decorator
+def add_column_to_tax_benefit_system(column, update = False):
+    assert isinstance(column, columns.Column)
+    assert column.formula_class is not None
+    entity_column_by_name = column.entity_class.column_by_name
+    name = column.name
+    if not update:
+        assert name not in entity_column_by_name, name
+    entity_column_by_name[name] = column
+    return column
 
 
 def missing_value(formula, simulation, period):
@@ -1070,6 +1084,7 @@ def neutralize_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
+        entity_class = column.entity_class,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
         set_input = set_input_neutralized,
@@ -1313,6 +1328,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         column.end = stop_date
     column.entity = entity_class_symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_key_plural = entity_class_key_plural
+    column.entity_class = entity_class
     column.formula_class = formula_class
     if is_permanent:
         column.is_permanent = True
@@ -1372,6 +1388,7 @@ def reference_input_variable(base_function = None, calculate_output = None, colu
         column.end = stop_date
     column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
     column.entity_key_plural = entity_class.key_plural
+    column.entity_class = entity_class
     if is_permanent:
         column.is_permanent = True
     column.label = label

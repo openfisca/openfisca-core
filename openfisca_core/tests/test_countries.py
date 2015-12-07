@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import datetime
 
 import numpy as np
@@ -8,10 +7,10 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, SimpleFormulaColumn)
+from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
+    PersonToEntityColumn, reference_input_variable, set_input_divide_by_period, Variable)
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Familles, Individus, reference_formula
+from openfisca_core.tests.dummy_country import Familles, Individus
 from openfisca_core.tools import assert_near
 
 
@@ -54,9 +53,7 @@ reference_input_variable(
 
 # Calculated variables
 
-
-@reference_formula
-class age(SimpleFormulaColumn):
+class age(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre d'années)"
@@ -71,8 +68,7 @@ class age(SimpleFormulaColumn):
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
-@reference_formula
-class dom_tom(SimpleFormulaColumn):
+class dom_tom(Variable):
     column = BoolCol
     entity_class = Familles
     label = u"La famille habite-t-elle les DOM-TOM ?"
@@ -84,15 +80,13 @@ class dom_tom(SimpleFormulaColumn):
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
-@reference_formula
 class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
 
-@reference_formula
-class revenu_disponible(SimpleFormulaColumn):
+class revenu_disponible(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible de l'individu"
@@ -105,7 +99,6 @@ class revenu_disponible(SimpleFormulaColumn):
         return period, rsa + salaire_imposable * 0.7
 
 
-@reference_formula
 class revenu_disponible_famille(PersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
@@ -113,8 +106,7 @@ class revenu_disponible_famille(PersonToEntityColumn):
     variable = revenu_disponible
 
 
-@reference_formula
-class rsa(DatedFormulaColumn):
+class rsa(DatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
@@ -141,8 +133,7 @@ class rsa(DatedFormulaColumn):
         return period, (salaire_imposable < 500) * 300
 
 
-@reference_formula
-class salaire_imposable(SimpleFormulaColumn):
+class salaire_imposable(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
@@ -155,8 +146,7 @@ class salaire_imposable(SimpleFormulaColumn):
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
 
-@reference_formula
-class salaire_net(SimpleFormulaColumn):
+class salaire_net(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"
@@ -335,3 +325,19 @@ def test_revenu_disponible():
     yield check_revenu_disponible, 2011, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
     yield check_revenu_disponible, 2012, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
     yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0])
+
+
+# This test must stay commented since it introduces a side-effect.
+# Even initializing a new tax_benefit_system does not gets rid of the side-effect since entities are created
+# when Python modules are parsed, at a class and not instance level.
+#
+# def test_variable_with_reference():
+#     entity_class = tax_benefit_system.column_by_name['revenu_disponible'].entity_class
+#
+#     class revenu_disponible(Variable):
+#         reference = tax_benefit_system.column_by_name['revenu_disponible']
+#
+#         def function(self, simulation, period):
+#             return period, self.zeros()
+#
+#     assert revenu_disponible.entity_class == entity_class

@@ -3,9 +3,8 @@
 
 import collections
 import copy
-import warnings
 
-from . import formulas, legislations, periods, taxbenefitsystems
+from . import formulas, legislations, periods, taxbenefitsystems, columns
 
 
 class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
@@ -100,10 +99,6 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
         key_plural: clone_entity_class(entity_class)
         for key_plural, entity_class in reference.entity_class_by_key_plural.iteritems()
         }
-    reform_entity_class_by_symbol = {
-        entity_class.symbol: entity_class
-        for entity_class in reform_entity_class_by_key_plural.itervalues()
-        }
 
     class Reform(AbstractReform):
         _constructed = False
@@ -117,13 +112,16 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             Reform._constructed = True
 
         @classmethod
-        def formula(cls, column):
+        def add_column(cls, column):
             if cls._constructed:
                 print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
-            return formulas.make_formula_decorator(
-                entity_class_by_symbol = reform_entity_class_by_symbol,
-                update = True,
-                )(column)
+            assert isinstance(column, columns.Column)
+            assert column.formula_class is not None
+            entity_class = reform_entity_class_by_key_plural[column.entity_key_plural]
+            entity_column_by_name = entity_class.column_by_name
+            name = column.name
+            entity_column_by_name[name] = column
+            return column
 
         @classmethod
         def input_variable(cls, entity_class = None, **kwargs):
@@ -135,6 +133,20 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             assert 'update' not in kwargs
             kwargs['update'] = True
             return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
+
+        # Classes for inheriting from reform variables.
+
+        class DatedVariable(object):
+            """Syntactic sugar to generate a DatedFormula class and fill its column"""
+            __metaclass__ = formulas.FormulaColumnMetaclass
+            entity_class_by_key_plural = reform_entity_class_by_key_plural
+            formula_class = formulas.DatedFormula
+
+        class Variable(object):
+            """Syntactic sugar to generate a SimpleFormula class and fill its column"""
+            __metaclass__ = formulas.FormulaColumnMetaclass
+            entity_class_by_key_plural = reform_entity_class_by_key_plural
+            formula_class = formulas.SimpleFormula
 
     # Define class attributes after class declaration to avoid "name is not defined" exceptions.
     Reform.key = key
