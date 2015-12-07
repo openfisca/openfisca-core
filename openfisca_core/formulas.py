@@ -944,13 +944,17 @@ class FormulaColumnMetaclass(type):
         entity_class_by_key_plural = attributes.pop('entity_class_by_key_plural', UnboundLocalError)
         if entity_class_by_key_plural is UnboundLocalError:
             entity_class_by_key_plural = base_class.entity_class_by_key_plural
+        assert entity_class_by_key_plural is not UnboundLocalError
+
         entity_class = attributes.pop('entity_class', UnboundLocalError)
+        # In case of a variable with a "reference" attribute, take the entity_class of the reference Variable.
+        if entity_class is UnboundLocalError:
+            assert reference_column is not None, 'Variable must have either an entity_class or a reference attribute'
+            entity_class = reference_column.entity_class
+        assert entity_class is not UnboundLocalError and entity_class is not None, entity_class
+
+        # In case of an extension, take the cloned entity_class of the same key_plural of the extension.
         if entity_class_by_key_plural is not None:
-            # Get the entity_class cloned by the reform.
-            if entity_class is UnboundLocalError:
-                assert reference_column is not None, \
-                    'Variable must have either an entity_class or a reference attribute'
-                entity_class = reference_column.entity_class
             entity_class = entity_class_by_key_plural[entity_class.key_plural]
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
@@ -988,7 +992,7 @@ class FormulaColumnMetaclass(type):
             url = attributes.pop('url', UnboundLocalError),
             **attributes
             )
-        update = self.entity_class_by_key_plural is not None
+        update = reference_column is not None
         add_column_to_tax_benefit_system(column, update = update)
         return column
 
