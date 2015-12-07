@@ -1060,13 +1060,11 @@ def last_duration_last_value(formula, simulation, period):
 def add_column_to_tax_benefit_system(column, update = False):
     assert isinstance(column, columns.Column)
     assert column.formula_class is not None
-
     entity_column_by_name = column.entity_class.column_by_name
     name = column.name
     if not update:
         assert name not in entity_column_by_name, name
     entity_column_by_name[name] = column
-
     return column
 
 

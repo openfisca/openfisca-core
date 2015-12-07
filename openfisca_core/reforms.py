@@ -112,19 +112,16 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             # TODO Remove this mechanism.
             Reform._constructed = True
 
-
         @classmethod
         def add_column(cls, column):
             if cls._constructed:
                 print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
-
             assert isinstance(column, columns.Column)
             assert column.formula_class is not None
             entity_class = reform_entity_class_by_key_plural[column.entity_key_plural]
             entity_column_by_name = entity_class.column_by_name
             name = column.name
             entity_column_by_name[name] = column
-
             return column
 
         @classmethod
