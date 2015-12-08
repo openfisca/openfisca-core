@@ -70,7 +70,7 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
 
 
 def clone_entity_class(entity_class):
-    return type(entity_class.__name__, (entity_class,), dict(
+    return type(entity_class.__name__.encode('utf-8'), (entity_class,), dict(
         column_by_name = entity_class.column_by_name.copy(),
         ))
 
