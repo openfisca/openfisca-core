@@ -64,7 +64,7 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
                 )
         reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
         assert error is None, \
-            u'The modified legislation_json of the reform "{}" is invalid, error: {}'.format(
+            'The modified legislation_json of the reform "{}" is invalid, error: {}'.format(
                 self.key, error).encode('utf-8')
         self.legislation_json = reform_legislation_json
 
