@@ -123,17 +123,6 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             entity_column_by_name[name] = column
             return column
 
-        @classmethod
-        def input_variable(cls, entity_class = None, **kwargs):
-            if cls._constructed:
-                print 'Caution: You are adding an input variable to an instantiated Reform. ' \
-                    'Reform must be reinstatiated.'
-            # Ensure that entity_class belongs to reform (instead of reference tax-benefit system).
-            entity_class = cls.entity_class_by_key_plural[entity_class.key_plural]
-            assert 'update' not in kwargs
-            kwargs['update'] = True
-            return formulas.reference_input_variable(entity_class = entity_class, **kwargs)
-
         # Classes for inheriting from reform variables.
 
         class DatedVariable(object):
