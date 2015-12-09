@@ -400,11 +400,15 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
         array_by_period_by_variable_name = collections.OrderedDict()
         for variable_name, variable_value in value.iteritems():
             column = tax_benefit_system.column_by_name[variable_name]
-            variable_array_by_period, error = column.make_json_to_array_by_period(period)(variable_value, state = state)
+            if isinstance(variable_value, np.ndarray):
+                variable_array_by_period = {period: variable_value}
+            else:
+                variable_array_by_period, error = column.make_json_to_array_by_period(period)(
+                    variable_value, state = state)
+                if error is not None:
+                    error_by_variable_name[variable_name] = error
             if variable_array_by_period is not None:
                 array_by_period_by_variable_name[variable_name] = variable_array_by_period
-            if error is not None:
-                error_by_variable_name[variable_name] = error
         return array_by_period_by_variable_name, error_by_variable_name or None
 
     return json_or_python_to_array_by_period_by_variable_name
@@ -487,6 +491,8 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
             )(value, state = state)
         if errors is not None:
             return input_variables, errors
+        if input_variables is None:
+            return input_variables, None
 
         count_by_entity_key_plural = {}
         errors = {}
