@@ -29,3 +29,19 @@ def apply_thresholds(input, thresholds, choices):
     assert len(condlist) == len(choices), \
         "apply_thresholds must be called with the same number of thresholds than choices, or one more choice"
     return np.select(condlist, choices)
+
+
+def switch(conditions, value_by_condition):
+    '''
+    Reproduces a switch statement: given an array of conditions, return an array of the same size replacing each
+    condition item by the corresponding given value.
+
+    Example:
+        >>> switch(np.array([1, 1, 1, 2]), {1: 80, 2: 90})
+        array([80, 80, 80, 90])
+    '''
+    condlist = [
+        conditions == condition
+        for condition in value_by_condition.keys()
+        ]
+    return np.select(condlist, value_by_condition.values())
