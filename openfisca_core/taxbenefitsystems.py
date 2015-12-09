@@ -10,7 +10,6 @@ from . import conv, legislations, legislationsxml
 __all__ = [
     'AbstractTaxBenefitSystem',
     'LegacyTaxBenefitSystem',
-    'LegislationLessTaxBenefitSystem',
     'XmlBasedTaxBenefitSystem',
     ]
 
