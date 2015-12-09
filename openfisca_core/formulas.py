@@ -1348,58 +1348,6 @@ def permanent_default_value(formula, simulation, period):
     return period, array
 
 
-def reference_input_variable(base_function = None, calculate_output = None, column = None, entity_class = None,
-        is_permanent = False, label = None, name = None, set_input = None, start_date = None, stop_date = None,
-        update = False, url = None):
-    """Define an input variable and add it to relevant entity class."""
-    if not isinstance(column, columns.Column):
-        column = column()
-        assert isinstance(column, columns.Column)
-    if is_permanent:
-        assert base_function is None
-        base_function = permanent_default_value
-    elif column.is_period_size_independent:
-        assert base_function is None
-        base_function = requested_period_last_value
-    elif base_function is None:
-        base_function = requested_period_default_value
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-    label = name if label is None else unicode(label)
-
-    caller_frame = inspect.currentframe().f_back
-    column.formula_class = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
-        __module__ = inspect.getmodule(caller_frame).__name__,
-        base_function = base_function,
-        line_number = caller_frame.f_lineno,
-        ))
-    if calculate_output is not None:
-        formula_class.calculate_output = calculate_output
-    if set_input is not None:
-        formula_class.set_input = set_input
-
-    if stop_date is not None:
-        assert isinstance(stop_date, datetime.date)
-        column.end = stop_date
-    column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-    column.entity_key_plural = entity_class.key_plural
-    column.entity_class = entity_class
-    if is_permanent:
-        column.is_permanent = True
-    column.label = label
-    column.name = name
-    if start_date is not None:
-        assert isinstance(start_date, datetime.date)
-        column.start = start_date
-    if url is not None:
-        column.url = unicode(url)
-
-    entity_column_by_name = entity_class.column_by_name
-    if not update:
-        assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-
 def requested_period_added_value(formula, simulation, period):
     # This formula is used for variables that can be added to match requested period.
     holder = formula.holder
