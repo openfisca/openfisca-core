@@ -74,7 +74,8 @@ class AbstractFormula(object):
         self.holder.set_array(period, array)
 
     def zeros(self, **kwargs):
-        '''Return a new NumPy array which length is the entity count, filled with zeros.
+        '''
+        Return a new NumPy array which length is the entity count, filled with zeros.
 
         kwargs are forwarded to np.zeros.
         '''
