@@ -22,16 +22,19 @@ class age_en_mois(Variable):
     entity_class = Individus
     label = u"Âge (en nombre de mois)"
 
+
 class birth(Variable):
     column = DateCol
     entity_class = Individus
     label = u"Date de naissance"
+
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity_class = Familles
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
+
 
 class salaire_brut(Variable):
     column = FloatCol
@@ -277,7 +280,6 @@ def test_age():
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
-    global tax_benefit_system
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             dict(
