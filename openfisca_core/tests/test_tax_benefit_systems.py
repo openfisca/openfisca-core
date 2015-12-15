@@ -13,7 +13,7 @@ source_file_dir_name = os.path.dirname(os.path.abspath(__file__))
 
 
 class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
-    legislation_xml_file_paths = [
+    legislation_xml_info_list = [
         (
             os.path.join(source_file_dir_name, 'assets', 'param_root.xml'),
             None,

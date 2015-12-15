@@ -839,6 +839,17 @@ def xml_legislation_file_path_to_xml(value, state = None):
     return xml_legislation, None
 
 
+xml_legislation_info_list_to_xml_elements_and_paths = conv.uniform_sequence(
+    conv.struct([
+        xml_legislation_file_path_to_xml,
+        conv.pipe(
+            conv.test_isinstance((list, tuple)),
+            conv.uniform_sequence(conv.test_isinstance(basestring)),
+            ),
+        ]),
+    )
+
+
 def xml_legislation_to_json(xml_element, state = None):
     if xml_element is None:
         return None, None
@@ -852,6 +863,9 @@ def xml_legislation_to_json(xml_element, state = None):
 
 # Level 2 converters
 
+
+# Used by taxbenefitsystems.XmlBasedTaxBenefitSystem
+
 xml_legislation_file_path_to_json = conv.pipe(
     xml_legislation_file_path_to_xml,
     xml_legislation_to_json,
@@ -860,17 +874,16 @@ xml_legislation_file_path_to_json = conv.pipe(
     )
 
 
-xml_legislation_file_paths_to_json = conv.pipe(
-    conv.uniform_sequence(
-        conv.struct([
-            xml_legislation_file_path_to_xml,
-            conv.pipe(
-                conv.test_isinstance((list, tuple)),
-                conv.uniform_sequence(conv.test_isinstance(basestring)),
-                ),
-            ]),
-        ),
+xml_legislation_info_list_to_xml_element = conv.pipe(
+    xml_legislation_info_list_to_xml_elements_and_paths,
     merge_xml_elements_and_paths_into_first,
+    )
+
+
+# Used by taxbenefitsystems.MultipleXmlBasedTaxBenefitSystem
+
+xml_legislation_info_list_to_json = conv.pipe(
+    xml_legislation_info_list_to_xml_element,
     xml_legislation_to_json,
     validate_legislation_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),

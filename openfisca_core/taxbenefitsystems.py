@@ -9,6 +9,7 @@ from . import conv, legislations, legislationsxml
 
 __all__ = [
     'AbstractTaxBenefitSystem',
+    'MultipleXmlBasedTaxBenefitSystem',
     'XmlBasedTaxBenefitSystem',
     ]
 
@@ -117,13 +118,13 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
 
 class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     """A tax and benefit sytem with legislation stored in many XML files."""
-    legislation_xml_configs = None  # class attribute or must be set before calling this __init__ method.
+    legislation_xml_info_list = None  # class attribute or must be set before calling this __init__ method.
     preprocess_legislation = None
 
     def __init__(self, entity_class_by_key_plural = None):
         state = conv.State()
-        legislation_json = conv.check(legislationsxml.xml_legislation_file_paths_to_json)(
-            self.legislation_xml_file_paths, state = state)
+        legislation_json = conv.check(legislationsxml.xml_legislation_info_list_to_json)(
+            self.legislation_xml_info_list, state = state)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
