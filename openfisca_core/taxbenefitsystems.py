@@ -9,7 +9,7 @@ from . import conv, legislations, legislationsxml
 
 __all__ = [
     'AbstractTaxBenefitSystem',
-    'LegacyTaxBenefitSystem',
+    'MultipleXmlBasedTaxBenefitSystem',
     'XmlBasedTaxBenefitSystem',
     ]
 
@@ -99,12 +99,8 @@ class AbstractTaxBenefitSystem(object):
         pass
 
 
-class LegislationLessTaxBenefitSystem(AbstractTaxBenefitSystem):
-    pass
-
-
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax-benefit sytem with legislation stored in a XML file."""
+    """A tax and benefit sytem with legislation stored in a XML file."""
     legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
     preprocess_legislation = None
 
@@ -120,14 +116,18 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
             )
 
 
-class LegacyTaxBenefitSystem(XmlBasedTaxBenefitSystem):
-    """The obsolete way of creating a TaxBenefitSystem. Don't use it anymore.
+class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
+    """A tax and benefit sytem with legislation stored in many XML files."""
+    legislation_xml_info_list = None  # class attribute or must be set before calling this __init__ method.
+    preprocess_legislation = None
 
-    In this kind of tax-benefit system, a lot of attributes are defined in class.
-    """
-    check_consistency = None
-    columns_name_tree_by_entity = None
-    entities = None  # class attribute
-
-    def __init__(self):
-        super(LegacyTaxBenefitSystem, self).__init__()
+    def __init__(self, entity_class_by_key_plural = None):
+        state = conv.State()
+        legislation_json = conv.check(legislationsxml.xml_legislation_info_list_to_json)(
+            self.legislation_xml_info_list, state = state)
+        if self.preprocess_legislation is not None:
+            legislation_json = self.preprocess_legislation(legislation_json)
+        super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
+            entity_class_by_key_plural = entity_class_by_key_plural,
+            legislation_json = legislation_json,
+            )
