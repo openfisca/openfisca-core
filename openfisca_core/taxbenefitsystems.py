@@ -9,7 +9,6 @@ from . import conv, legislations, legislationsxml
 
 __all__ = [
     'AbstractTaxBenefitSystem',
-    'LegacyTaxBenefitSystem',
     'XmlBasedTaxBenefitSystem',
     ]
 
@@ -131,16 +130,3 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
             )
-
-
-class LegacyTaxBenefitSystem(XmlBasedTaxBenefitSystem):
-    """The obsolete way of creating a TaxBenefitSystem. Don't use it anymore.
-
-    In this kind of tax-benefit system, a lot of attributes are defined in class.
-    """
-    check_consistency = None
-    columns_name_tree_by_entity = None
-    entities = None  # class attribute
-
-    def __init__(self):
-        super(LegacyTaxBenefitSystem, self).__init__()
