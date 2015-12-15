@@ -457,6 +457,8 @@ def validate_dated_node_json(node, state = None):
                 conv.test_isinstance(basestring),
                 conv.cleanup_line,
                 ),
+            'end_line_number': conv.test_isinstance(int),
+            'start_line_number': conv.test_isinstance(int),
             },
         constructor = collections.OrderedDict,
         default = conv.noop,
@@ -472,6 +474,8 @@ def validate_dated_node_json(node, state = None):
         '@type': conv.noop,
         'comment': conv.noop,
         'description': conv.noop,
+        'end_line_number': conv.test_isinstance(int),
+        'start_line_number': conv.test_isinstance(int),
         }
     node_type = validated_node['@type']
     if node_type == u'Node':
@@ -579,12 +583,14 @@ def validate_dated_bracket_json(bracket, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
+                end_line_number = conv.test_isinstance(int),
                 rate = conv.item_or_sequence(
                     conv.pipe(
                         validate_dated_value_json,
                         conv.test_between(0, 1),
                         ),
                     ),
+                start_line_number = conv.test_isinstance(int),
                 threshold = conv.item_or_sequence(
                     conv.pipe(
                         validate_dated_value_json,
