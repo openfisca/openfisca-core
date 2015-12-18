@@ -960,6 +960,8 @@ class FormulaColumnMetaclass(type):
 
         self = super(FormulaColumnMetaclass, cls).__new__(cls, name, bases, attributes)
         comments = inspect.getcomments(self)
+
+        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
         try:
             source_file_path = inspect.getsourcefile(self)
         except TypeError:
@@ -967,8 +969,10 @@ class FormulaColumnMetaclass(type):
         try:
             source_lines, line_number = inspect.getsourcelines(self)
             source_code = textwrap.dedent(''.join(source_lines))
-        except TypeError:
+        except (IOError, TypeError):
             source_code, line_number = None, None
+        module = attributes.pop('__module__') if '__module__' in attributes else None
+
         column = new_filled_column(
             base_function = attributes.pop('base_function', UnboundLocalError),
             calculate_output = attributes.pop('calculate_output', UnboundLocalError),
@@ -982,7 +986,7 @@ class FormulaColumnMetaclass(type):
             label = attributes.pop('label', UnboundLocalError),
             law_reference = attributes.pop('law_reference', UnboundLocalError),
             line_number = line_number,
-            module = attributes.pop('__module__'),
+            module = module,
             name = unicode(name),
             reference_column = reference_column,
             set_input = attributes.pop('set_input', UnboundLocalError),
