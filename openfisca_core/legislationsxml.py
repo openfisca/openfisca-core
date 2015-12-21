@@ -95,6 +95,25 @@ def merge_xml_elements_and_paths_into_first(xml_elements_and_paths, state = None
     return xml_root_element, None
 
 
+def pop_fuzzy(value, state = None):
+    if value is not None:
+        value.pop('fuzzy', None)
+    return value, None
+
+
+def test_has_fuzzy_or_fin(value, state = None):
+    if value is None:
+        return value, None
+    if not value.get('fuzzy', False) and value.get('fin') is None:
+        if state is None:
+            state = conv.default_state
+        errors = dict(
+            fin = state._(u'Missing value (required when "fuzzy" attribute is not set)'),
+            )
+        return value, errors
+    return value, None
+
+
 def translate_xml_element_to_json_item(xml_element):
     json_element = collections.OrderedDict()
     text = xml_element.text
@@ -780,6 +799,12 @@ def validate_value_xml_json(value, state = None):
                     conv.date_to_iso8601_str,
                     conv.not_none,
                     ),
+                fuzzy = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.input_to_slug,
+                    conv.test_equals(u'true'),
+                    conv.set_value(True),
+                    ),
                 start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -799,6 +824,8 @@ def validate_value_xml_json(value, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
+        test_has_fuzzy_or_fin,
+        pop_fuzzy,
         )(value, state = state)
     conv.remove_ancestor_from_state(state, value)
     return validated_value, errors
