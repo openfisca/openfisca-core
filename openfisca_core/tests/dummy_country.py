@@ -4,6 +4,7 @@
 import collections
 import itertools
 import os
+import pkg_resources
 
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
@@ -13,7 +14,7 @@ from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleXmlBasedTaxBenefitSystem
 
 
-source_file_dir_name = os.path.dirname(os.path.abspath(__file__))
+openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
 
 
 # Entities
@@ -283,14 +284,15 @@ def init_tax_benefit_system():
 class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
     legislation_xml_info_list = [
         (
-            os.path.join(source_file_dir_name, 'assets', 'param_root.xml'),
+            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml'),
             None,
             ),
         (
-            os.path.join(source_file_dir_name, 'assets', 'param_more.xml'),
+            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml'),
             ('csg', 'activite'),
             ),
         ]
 
 # Define class attributes after class declaration to avoid "name is not defined" exceptions.
 DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
+DummyMultipleXmlBasedTaxBenefitSystem.Scenario = Scenario

@@ -105,7 +105,7 @@ class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     preprocess_legislation = None
 
     def __init__(self, entity_class_by_key_plural = None):
-        state = conv.State()
+        state = conv.default_state
         legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
             self.legislation_xml_file_path, state = state)
         if self.preprocess_legislation is not None:
@@ -122,12 +122,18 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     preprocess_legislation = None
 
     def __init__(self, entity_class_by_key_plural = None):
-        state = conv.State()
-        legislation_json = conv.check(legislationsxml.xml_legislation_info_list_to_json)(
-            self.legislation_xml_info_list, state = state)
-        if self.preprocess_legislation is not None:
-            legislation_json = self.preprocess_legislation(legislation_json)
+        legislation_json = self.get_legislation_json(with_source_file_infos = False)
         super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
             )
+
+    def get_legislation_json(self, with_source_file_infos):
+        state = conv.default_state
+        xml_legislation_info_list_to_json = legislationsxml.make_xml_legislation_info_list_to_json(
+            with_source_file_infos,
+            )
+        legislation_json = conv.check(xml_legislation_info_list_to_json)(self.legislation_xml_info_list, state = state)
+        if self.preprocess_legislation is not None:
+            legislation_json = self.preprocess_legislation(legislation_json)
+        return legislation_json

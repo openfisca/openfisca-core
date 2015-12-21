@@ -102,10 +102,13 @@ def translate_xml_element_to_json_item(xml_element):
         text = text.strip().strip('#').strip() or None
         if text is not None:
             json_element['text'] = text
+    xml_file_path = getattr(xml_element, "xml_file_path", None)
+    if xml_file_path is not None:
+        json_element['xml_file_path'] = xml_file_path
     start_line_number = getattr(xml_element, "start_line_number", None)
-    end_line_number = getattr(xml_element, "end_line_number", None)
     if start_line_number is not None:
         json_element['start_line_number'] = start_line_number
+    end_line_number = getattr(xml_element, "end_line_number", None)
     if end_line_number is not None and end_line_number != start_line_number:
         json_element['end_line_number'] = end_line_number
     json_element.update(xml_element.attrib)
@@ -360,6 +363,7 @@ def validate_node_xml_json(node, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
+                xml_file_path = conv.test_isinstance(basestring),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -448,6 +452,7 @@ def validate_parameter_xml_json(parameter, state = None):
                     conv.empty_to_none,
                     conv.not_none,
                     ),
+                xml_file_path = conv.test_isinstance(basestring),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -512,6 +517,7 @@ def validate_scale_xml_json(scale, state = None):
                         'monetary',
                         )),
                     ),
+                xml_file_path = conv.test_isinstance(basestring),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -581,6 +587,7 @@ def validate_bracket_xml_json(bracket, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
+                xml_file_path = conv.test_isinstance(basestring),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -786,6 +793,7 @@ def validate_value_xml_json(value, state = None):
                     value_converter,
                     conv.not_none,
                     ),
+                xml_file_path = conv.test_isinstance(basestring),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -810,6 +818,7 @@ validate_values_holder_xml_json = conv.struct(
             conv.empty_to_none,
             conv.not_none,
             ),
+        xml_file_path = conv.test_isinstance(basestring),
         ),
     constructor = collections.OrderedDict,
     drop_none_values = 'missing',
@@ -817,37 +826,47 @@ validate_values_holder_xml_json = conv.struct(
     )
 
 
-def xml_legislation_file_path_to_xml(value, state = None):
-    # From # http://bugs.python.org/issue14078#msg153907
-    class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
-        def _end(self, *args, **kwargs):
-            element = super(self.__class__, self)._end(*args, **kwargs)
-            element.end_line_number = self._parser.CurrentLineNumber
-            return element
+def make_xml_legislation_file_path_to_xml(with_source_file_infos = False):
+    def xml_legislation_file_path_to_xml(value, state = None):
+        if with_source_file_infos:
+            # From # http://bugs.python.org/issue14078#msg153907
+            class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
+                def _end(self, *args, **kwargs):
+                    element = super(self.__class__, self)._end(*args, **kwargs)
+                    element.end_line_number = self._parser.CurrentLineNumber
+                    return element
 
-        def _start_list(self, *args, **kwargs):
-            element = super(self.__class__, self)._start_list(*args, **kwargs)
-            element.start_line_number = self._parser.CurrentLineNumber
-            return element
+                def _start_list(self, *args, **kwargs):
+                    element = super(self.__class__, self)._start_list(*args, **kwargs)
+                    element.start_line_number = self._parser.CurrentLineNumber
+                    tag_name = args[0]
+                    if tag_name in ('BAREME', 'CODE', 'NODE'):
+                        element.xml_file_path = value
+                    return element
 
-    parser = XMLParserWithLineNumbers()
-    try:
-        legislation_tree = xml.etree.ElementTree.parse(value, parser = parser)
-    except xml.etree.ElementTree.ParseError as error:
-        return value, unicode(error)
-    xml_legislation = legislation_tree.getroot()
-    return xml_legislation, None
+            parser = XMLParserWithLineNumbers()
+        else:
+            parser = None
+        try:
+            legislation_tree = xml.etree.ElementTree.parse(value, parser = parser)
+        except xml.etree.ElementTree.ParseError as error:
+            return value, unicode(error)
+        xml_legislation = legislation_tree.getroot()
+        return xml_legislation, None
+
+    return xml_legislation_file_path_to_xml
 
 
-xml_legislation_info_list_to_xml_elements_and_paths = conv.uniform_sequence(
-    conv.struct([
-        xml_legislation_file_path_to_xml,
-        conv.pipe(
-            conv.test_isinstance((list, tuple)),
-            conv.uniform_sequence(conv.test_isinstance(basestring)),
-            ),
-        ]),
-    )
+def make_xml_legislation_info_list_to_xml_elements_and_paths(with_source_file_infos):
+    return conv.uniform_sequence(
+        conv.struct([
+            make_xml_legislation_file_path_to_xml(with_source_file_infos),
+            conv.pipe(
+                conv.test_isinstance((list, tuple)),
+                conv.uniform_sequence(conv.test_isinstance(basestring)),
+                ),
+            ]),
+        )
 
 
 def xml_legislation_to_json(xml_element, state = None):
@@ -867,24 +886,26 @@ def xml_legislation_to_json(xml_element, state = None):
 # Used by taxbenefitsystems.XmlBasedTaxBenefitSystem
 
 xml_legislation_file_path_to_json = conv.pipe(
-    xml_legislation_file_path_to_xml,
+    make_xml_legislation_file_path_to_xml(with_source_file_infos = False),
     xml_legislation_to_json,
     validate_legislation_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
     )
 
 
-xml_legislation_info_list_to_xml_element = conv.pipe(
-    xml_legislation_info_list_to_xml_elements_and_paths,
-    merge_xml_elements_and_paths_into_first,
-    )
+def make_xml_legislation_info_list_to_xml_element(with_source_file_infos):
+    return conv.pipe(
+        make_xml_legislation_info_list_to_xml_elements_and_paths(with_source_file_infos),
+        merge_xml_elements_and_paths_into_first,
+        )
 
 
 # Used by taxbenefitsystems.MultipleXmlBasedTaxBenefitSystem
 
-xml_legislation_info_list_to_json = conv.pipe(
-    xml_legislation_info_list_to_xml_element,
-    xml_legislation_to_json,
-    validate_legislation_xml_json,
-    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
-    )
+def make_xml_legislation_info_list_to_json(with_source_file_infos):
+    return conv.pipe(
+        make_xml_legislation_info_list_to_xml_element(with_source_file_infos),
+        xml_legislation_to_json,
+        validate_legislation_xml_json,
+        conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
+        )
