@@ -252,11 +252,11 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
     return tax_scale
 
 
-def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation_stop_str, instant_str):
+def generate_dated_bracket_json(bracket_json, instant_str):
     dated_bracket_json = collections.OrderedDict()
     for key, value in bracket_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
+            dated_value = generate_dated_json_value(value, instant_str)
             if dated_value is not None:
                 dated_bracket_json[key] = dated_value
         else:
@@ -264,49 +264,23 @@ def generate_dated_bracket_json(bracket_json, legislation_start_str, legislation
     return dated_bracket_json
 
 
-def generate_dated_json_value(values_json, legislation_start_str, legislation_stop_str, instant_str):
-    max_stop_str = None
-    max_value = None
-    min_start_str = None
-    min_value = None
+def generate_dated_json_value(values_json, instant_str):
     for value_json in values_json:
-        value_start_str = value_json['start']
-        value_stop_str = value_json['stop']
-        if value_start_str <= instant_str <= value_stop_str:
+        value_stop_str = value_json.get('stop')
+        if value_json['start'] <= instant_str and (value_stop_str is None or instant_str <= value_stop_str):
             return value_json['value']
-        if max_stop_str is None or value_stop_str > max_stop_str:
-            max_stop_str = value_stop_str
-            max_value = value_json['value']
-        if min_start_str is None or value_start_str < min_start_str:
-            min_start_str = value_start_str
-            min_value = value_json['value']
-    if instant_str > legislation_stop_str:
-        # The requested date is after the end of the legislation. Use the value of the last period, when this
-        # period ends the same day or after the legislation.
-        if max_stop_str is not None and max_stop_str >= legislation_stop_str:
-            return max_value
-    elif instant_str < legislation_start_str:
-        # The requested date is before the beginning of the legislation. Use the value of the first period, when this
-        # period begins the same day or before the legislation.
-        if min_start_str is not None and min_start_str <= legislation_start_str:
-            return min_value
     return None
 
 
 def generate_dated_legislation_json(legislation_json, instant):
     instant_str = str(periods.instant(instant))
-    dated_legislation_json = generate_dated_node_json(
-        legislation_json,
-        legislation_json['start'],
-        legislation_json['stop'],
-        instant_str,
-        )
+    dated_legislation_json = generate_dated_node_json(legislation_json, instant_str)
     dated_legislation_json['@context'] = u'http://openfisca.fr/contexts/dated-legislation.jsonld'
     dated_legislation_json['instant'] = instant_str
     return dated_legislation_json
 
 
-def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_str, instant_str):
+def generate_dated_node_json(node_json, instant_str):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
@@ -316,8 +290,7 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
                 for child_code, dated_child_json in (
                     (
                         child_code,
-                        generate_dated_node_json(child_json, legislation_start_str, legislation_stop_str,
-                            instant_str),
+                        generate_dated_node_json(child_json, instant_str),
                         )
                     for child_code, child_json in value.iteritems()
                     )
@@ -330,21 +303,10 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
             pass
         elif key == 'brackets':
             # Occurs when @type == 'Scale'.
-
-            # Compute stop date of bracket (to use it has the legislation_stop_str inside bracket).
-            bracket_stop_str = legislation_stop_str
-            for bracket_json in value:
-                for values_key, values_json in bracket_json.iteritems():
-                    if values_key in ('amount', 'base', 'rate', 'threshold'):
-                        for value_json in values_json:
-                            value_stop_str = value_json.get('stop')
-                            if value_stop_str is not None and value_stop_str > bracket_stop_str:
-                                bracket_stop_str = value_stop_str
-
             dated_brackets_json = [
                 dated_bracket_json
                 for dated_bracket_json in (
-                    generate_dated_bracket_json(bracket_json, legislation_start_str, bracket_stop_str, instant_str)
+                    generate_dated_bracket_json(bracket_json, instant_str)
                     for bracket_json in value
                     )
                 if dated_bracket_json is not None
@@ -354,7 +316,7 @@ def generate_dated_node_json(node_json, legislation_start_str, legislation_stop_
             dated_node_json[key] = dated_brackets_json
         elif key == 'values':
             # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, legislation_start_str, legislation_stop_str, instant_str)
+            dated_value = generate_dated_json_value(value, instant_str)
             if dated_value is None:
                 return None
             dated_node_json['value'] = dated_value
@@ -665,46 +627,6 @@ def validate_dated_value_json(value, state = None):
     return value_converter(value, state = state or conv.default_state)
 
 
-def validate_legislation_json(legislation, state = None):
-    if legislation is None:
-        return None, None
-    if state is None:
-        state = conv.default_state
-
-    legislation, error = conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct(
-            {
-                'start': conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    conv.not_none,
-                    ),
-                'stop': conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    conv.not_none,
-                    ),
-                },
-            constructor = collections.OrderedDict,
-            default = conv.noop,
-            drop_none_values = 'missing',
-            keep_value_order = True,
-            ),
-        )(legislation, state = state)
-    if error is not None:
-        return legislation, error
-
-    start = legislation.pop('start')
-    stop = legislation.pop('stop')
-    legislation, error = validate_node_json(legislation, state = state)
-    legislation['start'] = start
-    legislation['stop'] = stop
-    return legislation, error
-
-
 def validate_node_json(node, state = None):
     if node is None:
         return None, None
@@ -850,6 +772,8 @@ def validate_node_json(node, state = None):
 
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors
+
+validate_legislation_json = validate_node_json
 
 
 def validate_bracket_json(bracket, state = None):

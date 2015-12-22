@@ -291,44 +291,245 @@ def transform_values_holder_xml_json_to_json(values_holder_xml_json):
         ]
 
 
-def validate_legislation_xml_json(legislation, state = None):
-    if legislation is None:
+def validate_bracket_xml_json(bracket, state = None):
+    if bracket is None:
         return None, None
-    if state is None:
-        state = conv.default_state
-
-    legislation, error = conv.pipe(
+    state = conv.add_ancestor_to_state(state, bracket)
+    validated_bracket, errors = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                deb = conv.pipe(
+                ASSIETTE = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    ),
+                code = conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
+                    conv.cleanup_line,
+                    ),
+                end_line_number = conv.test_isinstance(int),
+                MONTANT = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    ),
+                SEUIL = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
                     conv.not_none,
                     ),
-                fin = conv.pipe(
+                start_line_number = conv.test_isinstance(int),
+                tail = conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    conv.not_none,
+                    conv.cleanup_text,
+                    ),
+                TAUX = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    ),
+                text = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
                     ),
                 ),
             constructor = collections.OrderedDict,
-            default = conv.noop,
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
-        )(legislation, state = state)
-    if error is not None:
-        return legislation, error
+        conv.test(lambda bracket: bool(bracket.get('MONTANT')) ^ bool(bracket.get('TAUX')),
+            error = N_(u"Either MONTANT or TAUX must be provided")),
+        )(bracket, state = state)
+    conv.remove_ancestor_from_state(state, bracket)
+    return validated_bracket, errors
 
-    deb = legislation.pop('deb')
-    fin = legislation.pop('fin')
-    legislation, error = validate_node_xml_json(legislation, state = state)
-    legislation['deb'] = deb
-    legislation['fin'] = fin
-    return legislation, error
+
+def validate_brackets_xml_json_dates(brackets, state = None):
+    if not brackets:
+        return brackets, None
+    if state is None:
+        state = conv.default_state
+    errors = {}
+
+    previous_bracket = brackets[0]
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
+        for key in ('ASSIETTE', 'MONTANT', 'SEUIL', 'TAUX'):
+            valid_segments = []
+            values_holder_xml_json = previous_bracket.get(key)
+            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+            for value_xml_json in values_xml_json:
+                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+                # Note: to_date may be None for first valid segment.
+                to_date_str = value_xml_json.get('fin')
+                to_date = None if to_date_str is None \
+                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+                if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                    valid_segments[-1] = (from_date, valid_segments[-1][1])
+                else:
+                    valid_segments.append((from_date, to_date))
+
+            values_holder_xml_json = bracket.get(key)
+            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+            for value_index, value_xml_json in enumerate(values_xml_json):
+                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+                # Note: to_date may be None for first value_xml_json.
+                to_date_str = value_xml_json.get('fin')
+                to_date = None if to_date_str is None \
+                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+                for valid_segment in valid_segments:
+                    valid_to_date = valid_segment[1]
+                    if valid_segment[0] <= from_date and (
+                            valid_to_date is None or to_date is not None and to_date <= valid_to_date):
+                        break
+                else:
+                    errors.setdefault(bracket_index, {}).setdefault(key, {}).setdefault(0, {}).setdefault('VALUE',
+                        {}).setdefault(value_index, {})['deb'] = state._(
+                        u"Dates don't belong to valid dates of previous bracket")
+        previous_bracket = bracket
+    if errors:
+        return brackets, errors
+
+    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
+        amount_segments = []
+        values_holder_xml_json = bracket.get('MONTANT')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first amount segment.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            if amount_segments and amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                amount_segments[-1] = (from_date, amount_segments[-1][1])
+            else:
+                amount_segments.append((from_date, to_date))
+
+        rate_segments = []
+        values_holder_xml_json = bracket.get('TAUX')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first rate segment.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                rate_segments[-1] = (from_date, rate_segments[-1][1])
+            else:
+                rate_segments.append((from_date, to_date))
+
+        threshold_segments = []
+        values_holder_xml_json = bracket.get('SEUIL')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_xml_json in values_xml_json:
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first threshold segment.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
+                threshold_segments[-1] = (from_date, threshold_segments[-1][1])
+            else:
+                threshold_segments.append((from_date, to_date))
+
+        values_holder_xml_json = bracket.get('ASSIETTE')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first value_xml_json.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            for rate_segment in rate_segments:
+                rate_to_date = rate_segment[1]
+                if rate_segment[0] <= from_date and (
+                        rate_to_date is None or to_date is not None and to_date <= rate_to_date):
+                    break
+            else:
+                errors.setdefault(bracket_index, {}).setdefault('ASSIETTE', {}).setdefault(0, {}).setdefault('VALUE',
+                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
+
+        values_holder_xml_json = bracket.get('TAUX')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first value_xml_json.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            for threshold_segment in threshold_segments:
+                threshold_to_date = threshold_segment[1]
+                if threshold_segment[0] <= from_date and (
+                        threshold_to_date is None or to_date is not None and to_date <= threshold_to_date):
+                    break
+            else:
+                errors.setdefault(bracket_index, {}).setdefault('TAUX', {}).setdefault(0, {}).setdefault('VALUE',
+                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to SEUIL dates")
+
+        values_holder_xml_json = bracket.get('SEUIL')
+        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
+        for value_index, value_xml_json in enumerate(values_xml_json):
+            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
+            # Note: to_date may be None for first value_xml_json.
+            to_date_str = value_xml_json.get('fin')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
+            for rate_segment in rate_segments:
+                rate_to_date = rate_segment[1]
+                if rate_segment[0] <= from_date and (
+                        rate_to_date is None or to_date is not None and to_date <= rate_to_date):
+                    break
+            else:
+                for amount_segment in amount_segments:
+                    amount_to_date = amount_segment[1]
+                    if amount_segment[0] <= from_date and (
+                            amount_to_date is None or to_date is not None and to_date <= amount_to_date):
+                        break
+                else:
+                    errors.setdefault(bracket_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
+                        {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
+    return brackets, errors or None
+
+
+def validate_brackets_xml_json_types(brackets, state = None):
+    if not brackets:
+        return brackets, None
+
+    has_amount = any(
+        'MONTANT' in bracket
+        for bracket in brackets
+        )
+    if has_amount:
+        if state is None:
+            state = conv.default_state
+        errors = {}
+        for bracket_index, bracket in enumerate(brackets):
+            if 'ASSIETTE' in bracket:
+                errors.setdefault(bracket_index, {})['ASSIETTE'] = state._(
+                    u"A scale can't contain both MONTANT and ASSIETTE")
+            if 'TAUX' in bracket:
+                errors.setdefault(bracket_index, {})['TAUX'] = state._(u"A scale can't contain both MONTANT and TAUX")
+        if errors:
+            return brackets, errors
+    return brackets, None
 
 
 def validate_node_xml_json(node, state = None):
@@ -415,6 +616,8 @@ def validate_node_xml_json(node, state = None):
                     children_code.add(child_code)
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors or None
+
+validate_legislation_xml_json = validate_node_xml_json
 
 
 def validate_parameter_xml_json(parameter, state = None):
@@ -829,6 +1032,35 @@ def validate_value_xml_json(value, state = None):
         )(value, state = state)
     conv.remove_ancestor_from_state(state, value)
     return validated_value, errors
+
+
+def validate_values_xml_json_dates(values_xml_json, state = None):
+    if not values_xml_json:
+        return values_xml_json, None
+    if state is None:
+        state = conv.default_state
+
+    errors = {}
+    for index, value_xml_json in enumerate(values_xml_json):
+        to_date_str = value_xml_json.get('fin')
+        if to_date_str is not None and value_xml_json['deb'] > to_date_str:
+            errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
+
+    sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'],
+        reverse = True)
+    next_value_xml_json = sorted_values_xml_json[0]
+    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None), 1):
+        to_date_str = value_xml_json.get('fin')
+        if to_date_str is None:
+            errors.setdefault(index, {})['fin'] = state._(u"Missing value")
+        else:
+            next_date_str = (datetime.date(*(int(fragment) for fragment in to_date_str.split('-'))) +
+                datetime.timedelta(days = 1)).isoformat()
+            if next_date_str > next_value_xml_json['deb']:
+                errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
+        next_value_xml_json = value_xml_json
+
+    return sorted_values_xml_json, errors or None
 
 
 validate_values_holder_xml_json = conv.struct(
