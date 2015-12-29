@@ -337,7 +337,8 @@ def make_validate_values_json_dates(require_consecutive_dates = False):
 
         errors = {}
         for index, value_json in enumerate(values_json):
-            if value_json['start'] > value_json['stop']:
+            stop_date_str = value_json.get('stop')
+            if stop_date_str is not None and value_json['start'] > stop_date_str:
                 errors[index] = dict(to = state._(u"Last date must be greater than first date"))
 
         sorted_values_json = sorted(values_json, key = lambda value_json: value_json['start'], reverse = True)
@@ -822,16 +823,24 @@ def validate_brackets_json_dates(brackets, state = None):
             valid_segments = []
             for value_json in (previous_bracket.get(key) or []):
                 from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-                to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+                # Note: to_date may be None for first valid segment.
+                to_date_str = value_json.get('stop')
+                to_date = None if to_date_str is None \
+                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
                 if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                     valid_segments[-1] = (from_date, valid_segments[-1][1])
                 else:
                     valid_segments.append((from_date, to_date))
             for value_index, value_json in enumerate(bracket.get(key) or []):
                 from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-                to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+                # Note: to_date may be None for first value_json.
+                to_date_str = value_json.get('stop')
+                to_date = None if to_date_str is None \
+                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
                 for valid_segment in valid_segments:
-                    if valid_segment[0] <= from_date and to_date <= valid_segment[1]:
+                    valid_to_date = valid_segment[1]
+                    if valid_segment[0] <= from_date and (
+                            valid_to_date is None or to_date is not None and to_date <= valid_to_date):
                         break
                 else:
                     errors.setdefault(bracket_index, {}).setdefault(key, {}).setdefault(value_index,
@@ -844,7 +853,10 @@ def validate_brackets_json_dates(brackets, state = None):
         amount_segments = []
         for value_json in (bracket.get('amount') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first amount segment.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             if amount_segments and amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 amount_segments[-1] = (from_date, amount_segments[-1][1])
             else:
@@ -853,7 +865,10 @@ def validate_brackets_json_dates(brackets, state = None):
         rate_segments = []
         for value_json in (bracket.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first rate segment.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 rate_segments[-1] = (from_date, rate_segments[-1][1])
             else:
@@ -862,7 +877,10 @@ def validate_brackets_json_dates(brackets, state = None):
         threshold_segments = []
         for value_json in (bracket.get('threshold') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first threshold segment.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
                 threshold_segments[-1] = (from_date, threshold_segments[-1][1])
             else:
@@ -870,9 +888,14 @@ def validate_brackets_json_dates(brackets, state = None):
 
         for value_index, value_json in enumerate(bracket.get('base') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first value_json.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             for rate_segment in rate_segments:
-                if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                rate_to_date = rate_segment[1]
+                if rate_segment[0] <= from_date and (
+                        rate_to_date is None or to_date is not None and to_date <= rate_to_date):
                     break
             else:
                 errors.setdefault(bracket_index, {}).setdefault('base', {}).setdefault(value_index,
@@ -880,9 +903,14 @@ def validate_brackets_json_dates(brackets, state = None):
 
         for value_index, value_json in enumerate(bracket.get('amount') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first value_json.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             for threshold_segment in threshold_segments:
-                if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
+                threshold_to_date = threshold_segment[1]
+                if threshold_segment[0] <= from_date and (
+                        threshold_to_date is None or to_date is not None and to_date <= threshold_to_date):
                     break
             else:
                 errors.setdefault(bracket_index, {}).setdefault('amount', {}).setdefault(value_index,
@@ -890,9 +918,14 @@ def validate_brackets_json_dates(brackets, state = None):
 
         for value_index, value_json in enumerate(bracket.get('rate') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first value_json.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             for threshold_segment in threshold_segments:
-                if threshold_segment[0] <= from_date and to_date <= threshold_segment[1]:
+                threshold_to_date = threshold_segment[1]
+                if threshold_segment[0] <= from_date and (
+                        threshold_to_date is None or to_date is not None and to_date <= threshold_to_date):
                     break
             else:
                 errors.setdefault(bracket_index, {}).setdefault('rate', {}).setdefault(value_index,
@@ -900,13 +933,20 @@ def validate_brackets_json_dates(brackets, state = None):
 
         for value_index, value_json in enumerate(bracket.get('threshold') or []):
             from_date = datetime.date(*(int(fragment) for fragment in value_json['start'].split('-')))
-            to_date = datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-')))
+            # Note: to_date may be None for first value_json.
+            to_date_str = value_json.get('stop')
+            to_date = None if to_date_str is None \
+                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
             for amount_segment in amount_segments:
-                if amount_segment[0] <= from_date and to_date <= amount_segment[1]:
+                amount_to_date = amount_segment[1]
+                if amount_segment[0] <= from_date and (
+                        amount_to_date is None or to_date is not None and to_date <= amount_to_date):
                     break
             else:
                 for rate_segment in rate_segments:
-                    if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
+                    rate_to_date = rate_segment[1]
+                    if rate_segment[0] <= from_date and (
+                            rate_to_date is None or to_date is not None and to_date <= rate_to_date):
                         break
                 else:
                     errors.setdefault(bracket_index, {}).setdefault('threshold', {}).setdefault(value_index,
@@ -991,7 +1031,6 @@ def validate_value_json(value, state = None):
                     conv.test_isinstance(basestring),
                     conv.iso8601_input_to_date,
                     conv.date_to_iso8601_str,
-                    conv.not_none,
                     ),
                 u'value': conv.pipe(
                     value_converter,
