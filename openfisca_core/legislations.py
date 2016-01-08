@@ -27,7 +27,7 @@ units = [
 
 
 class CompactNode(object):
-    # Note: Attributes come from dated_node_json and are not defined in class.
+    # Note: Attributes are set explicitely by compact_dated_node_json (ie they are not computed by a magic method).
 
     def __delitem__(self, key):
         del self.__dict__[key]
