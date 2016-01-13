@@ -138,7 +138,7 @@ class Holder(object):
             assert formula_dated_holder is not None
             if not column.is_permanent:
                 assert accept_other_period or formula_dated_holder.period == period, \
-                    u"Requested period {} differs from {} returned by variable {}".format(period,
+                    "Requested period {} differs from {} returned by variable {}".format(period,
                         formula_dated_holder.period, column.name)
             return formula_dated_holder
         array = np.empty(entity.count, dtype = column.dtype)
