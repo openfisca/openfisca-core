@@ -11,8 +11,6 @@ from . import decompositionsxml
 
 
 def calculate(simulations, decomposition_json):
-    assert decomposition_json is not None
-
     response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
     for node in iter_decomposition_nodes(response_json, children_first = True):
         children = node.get('children')
