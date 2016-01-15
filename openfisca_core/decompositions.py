@@ -6,8 +6,7 @@ import copy
 import os
 import xml
 
-from . import conv
-from . import decompositionsxml
+from . import conv, decompositionsxml, legislations
 
 
 def calculate(simulations, decomposition_json):
@@ -21,8 +20,12 @@ def calculate(simulations, decomposition_json):
                 ))
         else:
             node['values'] = values = []
-            for simulation in simulations:
-                simulation.calculate_output(node['code'])
+            for simulation_index, simulation in enumerate(simulations):
+                try:
+                    simulation.calculate_output(node['code'])
+                except legislations.ParameterNotFound as exc:
+                    exc.simulation_index = simulation_index
+                    raise
                 holder = simulation.get_holder(node['code'])
                 column = holder.column
                 values.extend(
