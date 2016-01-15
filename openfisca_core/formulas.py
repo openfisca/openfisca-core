@@ -109,7 +109,7 @@ class AbstractEntityToEntity(AbstractFormula):
             simulation.stack_trace.append(dict(
                 parameters_infos = [],
                 input_variables_infos = [],
-                variable_name = self.holder.column.name,
+                variable_name = column.name,
                 ))
 
         variable_holder = self.variable_holder
@@ -543,7 +543,7 @@ class SimpleFormula(AbstractFormula):
                 simulation.stack_trace.append(dict(
                     parameters_infos = [],
                     input_variables_infos = [],
-                    variable_name = self.holder.column.name,
+                    variable_name = column.name,
                     ))
             formula_result = self.base_function(simulation, period)
         except CycleError:
