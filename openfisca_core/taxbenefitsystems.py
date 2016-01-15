@@ -43,11 +43,7 @@ class AbstractTaxBenefitSystem(object):
         # Now that classes of entities are defined, build a column_by_name by aggregating the column_by_name of each
         # entity class.
         assert self.column_by_name is None
-        self.column_by_name = column_by_name = collections.OrderedDict()
-        for entity_class in self.entity_class_by_key_plural.itervalues():
-            column_by_name.update(entity_class.column_by_name)
-            if entity_class.is_persons_entity:
-                self.person_key_plural = entity_class.key_plural
+        self.index_columns()
 
     @property
     def base_tax_benefit_system(self):
@@ -79,6 +75,13 @@ class AbstractTaxBenefitSystem(object):
         if reference is None:
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
         return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
+
+    def index_columns(self):
+        self.column_by_name = column_by_name = collections.OrderedDict()
+        for entity_class in self.entity_class_by_key_plural.itervalues():
+            column_by_name.update(entity_class.column_by_name)
+            if entity_class.is_persons_entity:
+                self.person_key_plural = entity_class.key_plural
 
     @classmethod
     def json_to_instance(cls, value, state = None):
