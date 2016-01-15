@@ -42,11 +42,12 @@ class ParameterNotFound(Exception):
         self_json = {
             'instant': unicode(self.instant),
             'message': unicode(self),
-            'name': self.name,
+            'parameter_name': self.name,
+            'type': 'LEGISLATION_PARAMETER_NOT_FOUND'
             }
         if self.variable_name is not None:
             self_json['variable_name'] = self.variable_name
-        return self_json
+        return collections.OrderedDict(sorted(self_json.iteritems()))
 
 
 class CompactNode(object):
