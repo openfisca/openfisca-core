@@ -27,42 +27,55 @@ units = [
 
 
 class ParameterNotFound(Exception):
-    def __init__(self, full_name, instant):
-        assert full_name is not None
+    def __init__(self, name, instant, variable_name = None):
+        assert name is not None
         assert instant is not None
-        self.full_name = full_name
+        self.name = name
         self.instant = instant
-        message = u'Legislation parameter "{}" was not found at instant "{}"'.format(full_name, instant)
+        self.variable_name = variable_name
+        message = u'Legislation parameter "{}" was not found at instant "{}"'.format(name, instant)
+        if variable_name is not None:
+            message += u' by variable "{}"'.format(variable_name)
         super(ParameterNotFound, self).__init__(message)
+
+    def to_json(self):
+        self_json = {
+            'instant': unicode(self.instant),
+            'message': unicode(self),
+            'name': self.name,
+            }
+        if self.variable_name is not None:
+            self_json['variable_name'] = self.variable_name
+        return self_json
 
 
 class CompactNode(object):
     # Note: Legislation attributes are set explicitely by compact_dated_node_json
     # (ie they are not computed by a magic method).
 
-    full_name = None
     instant = None
+    name = None
 
     def __delitem__(self, key):
         del self.__dict__[key]
 
     # Reminder: __getattr__ is called only when attribute is not found.
     def __getattr__(self, key):
-        full_name = u'.'.join([self.full_name, key]) \
-            if self.full_name is not None \
+        name = u'.'.join([self.name, key]) \
+            if self.name is not None \
             else key
         raise ParameterNotFound(
-            full_name = full_name,
             instant = self.instant,
+            name = name,
             )
 
     def __getitem__(self, key):
         return self.__dict__[key]
 
-    def __init__(self, instant, full_name = None):
+    def __init__(self, instant, name = None):
         assert instant is not None
         self.instant = instant
-        self.full_name = full_name
+        self.name = name
 
     def __iter__(self):
         return self.__dict__.iterkeys()
@@ -155,13 +168,13 @@ class TracedCompactNode(object):
         del self.compact_node.__dict__[key]
 
     # Reminder: __getattr__ is called only when attribute is not found.
-    def __getattr__(self, name):
-        value = getattr(self.compact_node, name)
-        if name in self.traced_attributes_name:
+    def __getattr__(self, key):
+        value = getattr(self.compact_node, key)
+        if key in self.traced_attributes_name:
             calling_frame = self.simulation.stack_trace[-1]
             caller_parameters_infos = calling_frame['parameters_infos']
-            assert self.compact_node.full_name is not None
-            parameter_name = u'.'.join([self.compact_node.full_name, name])
+            assert self.compact_node.name is not None
+            parameter_name = u'.'.join([self.compact_node.name, key])
             parameter_infos = {
                 "instant": str(self.compact_node.instant),
                 "name": parameter_name,
@@ -200,10 +213,10 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
             assert instant is None, instant
             instant = periods.instant(dated_node_json['instant'])
         assert instant is not None
-        full_name = u'.'.join((parent_codes or []) + [code]) \
+        name = u'.'.join((parent_codes or []) + [code]) \
             if code is not None \
             else None
-        compact_node = CompactNode(full_name = full_name, instant = instant)
+        compact_node = CompactNode(instant = instant, name = name)
         for key, value in dated_node_json['children'].iteritems():
             child_parent_codes = None
             if traced_simulation is not None:

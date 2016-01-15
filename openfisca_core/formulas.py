@@ -12,7 +12,7 @@ import textwrap
 
 import numpy as np
 
-from . import columns, holders, periods
+from . import columns, holders, legislations, periods
 from .tools import empty_clone, stringify_array
 
 
@@ -555,6 +555,15 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = self.default_values()
             simulation.max_nb_cycles = None
             return dated_holder
+        except legislations.ParameterNotFound as exc:
+            if exc.variable_name is None:
+                raise legislations.ParameterNotFound(
+                    instant = exc.instant,
+                    name = exc.name,
+                    variable_name = column.name,
+                    )
+            else:
+                raise
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
                 column.name, entity.key_plural, str(period), self.function.__module__,
