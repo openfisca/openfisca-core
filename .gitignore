@@ -11,3 +11,4 @@ dist/
 /cover
 /.coverage
 /tags
+.tags*
