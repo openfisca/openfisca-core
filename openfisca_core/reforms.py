@@ -131,6 +131,16 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
             entity_class_by_key_plural = reform_entity_class_by_key_plural
             formula_class = formulas.DatedFormula
 
+        class EntityToPersonColumn(object):
+            """Syntactic sugar to generate an EntityToPerson class and fill its column"""
+            __metaclass__ = formulas.ConversionColumnMetaclass
+            formula_class = formulas.EntityToPerson
+
+        class PersonToEntityColumn(object):
+            """Syntactic sugar to generate an PersonToEntity class and fill its column"""
+            __metaclass__ = formulas.ConversionColumnMetaclass
+            formula_class = formulas.PersonToEntity
+
         class Variable(object):
             """Syntactic sugar to generate a SimpleFormula class and fill its column"""
             __metaclass__ = formulas.FormulaColumnMetaclass
