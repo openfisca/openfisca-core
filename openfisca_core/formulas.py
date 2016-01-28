@@ -12,7 +12,7 @@ import textwrap
 
 import numpy as np
 
-from . import columns, holders, periods
+from . import columns, holders, legislations, periods
 from .tools import empty_clone, stringify_array
 
 
@@ -109,6 +109,7 @@ class AbstractEntityToEntity(AbstractFormula):
             simulation.stack_trace.append(dict(
                 parameters_infos = [],
                 input_variables_infos = [],
+                variable_name = column.name,
                 ))
 
         variable_holder = self.variable_holder
@@ -542,6 +543,7 @@ class SimpleFormula(AbstractFormula):
                 simulation.stack_trace.append(dict(
                     parameters_infos = [],
                     input_variables_infos = [],
+                    variable_name = column.name,
                     ))
             formula_result = self.base_function(simulation, period)
         except CycleError:
@@ -553,6 +555,15 @@ class SimpleFormula(AbstractFormula):
             dated_holder.array = self.default_values()
             simulation.max_nb_cycles = None
             return dated_holder
+        except legislations.ParameterNotFound as exc:
+            if exc.variable_name is None:
+                raise legislations.ParameterNotFound(
+                    instant = exc.instant,
+                    name = exc.name,
+                    variable_name = column.name,
+                    )
+            else:
+                raise
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
                 column.name, entity.key_plural, str(period), self.function.__module__,
