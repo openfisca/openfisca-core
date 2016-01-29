@@ -545,7 +545,7 @@ class SimpleFormula(AbstractFormula):
                     input_variables_infos = [],
                     variable_name = column.name,
                     ))
-            formula_result = self.base_function(simulation, period)
+            formula_result = self.base_function(simulation, period, **parameters)
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
@@ -1054,12 +1054,22 @@ def calculate_output_divide(formula, period):
 def dated_function(start = None, stop = None):
     """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
-        function.start_instant = periods.instant(start)
-        function.stop_instant = periods.instant(stop)
-        return function
+        function_wrapper = get_function_wrapper(function)
+        function_wrapper.start_instant = periods.instant(start)
+        function_wrapper.stop_instant = periods.instant(stop)
+        return function_wrapper
 
     return dated_function_decorator
 
+def get_function_wrapper(function):
+    def function_wrapper(formula, simulation, period, **parameters):
+        nb_arguments = function.func_code.co_argcount
+        if (nb_arguments > 3):
+            extra_parameters_names =  function.func_code.co_varnames[3:nb_arguments]
+            filtered_parameters = {param: parameters.get(param, None) for param in extra_parameters_names}
+            return function(formula, simulation, period, **filtered_parameters)
+        return function(formula, simulation, period)
+    return function_wrapper
 
 def last_duration_last_value(formula, simulation, period):
     # This formula is used for variables that are constants between events but are period size dependent.
@@ -1070,7 +1080,7 @@ def last_duration_last_value(formula, simulation, period):
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 return periods.Period((last_period[0], period.start, last_period[2])), last_array
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
@@ -1088,9 +1098,9 @@ def add_column_to_tax_benefit_system(column, update = False):
     return column
 
 
-def missing_value(formula, simulation, period):
+def missing_value(formula, simulation, period, **parameters):
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
@@ -1324,7 +1334,10 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
             assert function is None
         if reference_column is not None and function is None:
             function = reference_column.formula_class.function
-        formula_class_attributes['function'] = function
+            formula_class_attributes['function'] = function
+        elif function is not None:
+            function_wrapper = get_function_wrapper(function)
+            formula_class_attributes['function'] = function_wrapper
 
     # Ensure that all attributes defined in ConversionColumn class are used.
     assert not specific_attributes, 'Unexpected attributes in definition of variable {}: {}'.format(name,
@@ -1354,9 +1367,9 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     return column
 
 
-def permanent_default_value(formula, simulation, period):
+def permanent_default_value(formula, simulation, period, **parameters):
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     holder = formula.holder
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
@@ -1364,7 +1377,7 @@ def permanent_default_value(formula, simulation, period):
     return period, array
 
 
-def requested_period_added_value(formula, simulation, period):
+def requested_period_added_value(formula, simulation, period, **parameters):
     # This formula is used for variables that can be added to match requested period.
     holder = formula.holder
     column = holder.column
@@ -1397,15 +1410,15 @@ def requested_period_added_value(formula, simulation, period):
             if array is not None:
                 return period, array
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
     return period, array
 
 
-def requested_period_default_value(formula, simulation, period):
+def requested_period_default_value(formula, simulation, period, **parameters):
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     holder = formula.holder
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
@@ -1413,7 +1426,7 @@ def requested_period_default_value(formula, simulation, period):
     return period, array
 
 
-def requested_period_default_value_neutralized(formula, simulation, period):
+def requested_period_default_value_neutralized(formula, simulation, period, **parameters):
     holder = formula.holder
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
@@ -1421,7 +1434,7 @@ def requested_period_default_value_neutralized(formula, simulation, period):
     return period, array
 
 
-def requested_period_last_value(formula, simulation, period):
+def requested_period_last_value(formula, simulation, period, **parameters):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.
     holder = formula.holder
@@ -1430,7 +1443,7 @@ def requested_period_last_value(formula, simulation, period):
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 return period, last_array
     if formula.function is not None:
-        return formula.function(simulation, period)
+        return formula.function(simulation, period, **parameters)
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
