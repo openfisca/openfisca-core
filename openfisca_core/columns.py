@@ -9,7 +9,7 @@ import re
 from biryani import strings
 import numpy as np
 
-from . import conv, periods
+from . import conv, periods, base_functions
 from .enumerations import Enum
 
 
@@ -493,11 +493,11 @@ def build_column(name = None, column = None, entity_class_by_symbol = None):
     column.entity_key_plural = entity_class.key_plural
 
     if column.is_permanent:
-        base_function = formulas.permanent_default_value
+        base_function = base_functions.permanent_default_value
     elif column.is_period_size_independent:
-        base_function = formulas.requested_period_last_value
+        base_function = base_functions.requested_period_last_value
     else:
-        base_function = formulas.requested_period_default_value
+        base_function = base_functions.requested_period_default_value
     caller_frame = inspect.currentframe().f_back
     column.formula_class = type(name.encode('utf-8'), (formulas.SimpleFormula,), dict(
         __module__ = inspect.getmodule(caller_frame).__name__,
