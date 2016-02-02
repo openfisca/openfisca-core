@@ -67,20 +67,29 @@ def requested_period_default_value_neutralized(formula, simulation, period):
     return period, array
 
 
-def requested_period_last_value(formula, simulation, period):
+def requested_period_last_value(formula, simulation, period, accept_future_value = False):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.
     holder = formula.holder
     if holder._array_by_period is not None:
-        for last_period, last_array in sorted(holder._array_by_period.iteritems(), reverse = True):
+        known_values = sorted(holder._array_by_period.iteritems(), reverse = True)
+        for last_period, last_array in known_values:
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 return period, last_array
+        if accept_future_value:
+            next_period, next_array = known_values[-1]
+            return period, last_array
     if formula.function is not None:
         return formula.function(simulation, period)
     column = holder.column
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
     return period, array
+
+def requested_period_last_or_next_value(formula, simulation, period):
+    # This formula is used for variables that are constants between events and period size independent.
+    # It returns the latest known value for the requested period, or the next value if there is no past value.
+    return requested_period_last_value(formula, simulation, period, accept_future_value = True)
 
 
 def last_duration_last_value(formula, simulation, period):
