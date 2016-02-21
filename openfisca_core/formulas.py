@@ -547,7 +547,10 @@ class SimpleFormula(AbstractFormula):
                     input_variables_infos = [],
                     variable_name = column.name,
                     ))
-            formula_result = self.base_function(simulation, period)
+            if parameters.get('extra_params'):
+                formula_result = self.base_function(simulation, period, *parameters.get('extra_params'))
+            else:
+                formula_result = self.base_function(simulation, period)
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
