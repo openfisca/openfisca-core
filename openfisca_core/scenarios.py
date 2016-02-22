@@ -67,7 +67,7 @@ class AbstractScenario(object):
                         if use_set_input_hooks:
                             holder.set_input(period, array)
                         else:
-                            holder.set_array(period, array)
+                            holder.put_in_cache(array, period)
 
             if persons.count == 0:
                 persons.count = 1
@@ -176,7 +176,7 @@ class AbstractScenario(object):
                             if use_set_input_hooks:
                                 holder.set_input(variable_period, array)
                             else:
-                                holder.set_array(variable_period, array)
+                                holder.put_in_cache(array, variable_period)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -197,7 +197,7 @@ class AbstractScenario(object):
                         if use_set_input_hooks:
                             holder.set_input(axis_period, array)
                         else:
-                            holder.set_array(axis_period, array)
+                            holder.put_in_cache(array, axis_period)
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -225,7 +225,7 @@ class AbstractScenario(object):
                             if use_set_input_hooks:
                                 holder.set_input(axis_period, array)
                             else:
-                                holder.set_array(axis_period, array)
+                                holder.put_in_cache(array, axis_period)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)

@@ -72,7 +72,7 @@ class AbstractFormula(object):
         return self
 
     def set_input(self, period, array):
-        self.holder.set_array(period, array)
+        self.holder.put_in_cache(array, period)
 
     def zeros(self, **kwargs):
         '''
@@ -1337,7 +1337,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
 
 def set_input_dispatch_by_period(formula, period, array):
     holder = formula.holder
-    holder.set_array(period, array)
+    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
     if period_unit == u'year' or period_size > 1:
@@ -1347,7 +1347,7 @@ def set_input_dispatch_by_period(formula, period, array):
             while sub_period.start < after_instant:
                 existing_array = holder.get_array(sub_period)
                 if existing_array is None:
-                    holder.set_array(sub_period, array)
+                    holder.put_in_cache(array, sub_period)
                 else:
                     # The array of the current sub-period is reused for the next ones.
                     array = existing_array
@@ -1357,7 +1357,7 @@ def set_input_dispatch_by_period(formula, period, array):
             while month.start < after_instant:
                 existing_array = holder.get_array(month)
                 if existing_array is None:
-                    holder.set_array(month, array)
+                    holder.put_in_cache(array, month)
                 else:
                     # The array of the current sub-period is reused for the next ones.
                     array = existing_array
@@ -1366,7 +1366,7 @@ def set_input_dispatch_by_period(formula, period, array):
 
 def set_input_divide_by_period(formula, period, array):
     holder = formula.holder
-    holder.set_array(period, array)
+    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
     if period_unit == u'year' or period_size > 1:
@@ -1386,7 +1386,7 @@ def set_input_divide_by_period(formula, period, array):
                 sub_period = period.start.period(period_unit)
                 while sub_period.start < after_instant:
                     if holder.get_array(sub_period) is None:
-                        holder.set_array(sub_period, divided_array)
+                        holder.put_in_cache(divided_array, sub_period)
                     sub_period = sub_period.offset(1)
         if period_unit == u'year':
             remaining_array = array.copy()
@@ -1403,7 +1403,7 @@ def set_input_divide_by_period(formula, period, array):
                 month = period.start.period(u'month')
                 while month.start < after_instant:
                     if holder.get_array(month) is None:
-                        holder.set_array(month, divided_array)
+                        holder.put_in_cache(divided_array, month)
                     month = month.offset(1)
 
 

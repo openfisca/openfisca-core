@@ -30,7 +30,7 @@ class DatedHolder(object):
 
     @array.setter
     def array(self, array):
-        self.holder.set_array(self.period, array, self.extra_params)
+        self.holder.put_in_cache(array, self.period, self.extra_params)
 
     @property
     def column(self):
@@ -73,7 +73,7 @@ class Holder(object):
     def array(self, array):
         simulation = self.entity.simulation
         if not self.column.is_permanent:
-            return self.set_array(simulation.period, array)
+            return self.put_in_cache(array, simulation.period)
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, None)
             step = simulation.traceback.get(variable_infos)
@@ -326,10 +326,12 @@ class Holder(object):
             return None
         return formula.real_formula
 
-    def set_array(self, period, array, extra_params = None):
+    def set_input(self, period, array):
+        self.formula.set_input(period, array)
+
+    def put_in_cache(self, value, period, extra_params = None):
         if self.column.is_permanent:
-            self.array = array
-            return
+            self.array = value
         assert period is not None
         simulation = self.entity.simulation
         if simulation.debug or simulation.trace:
@@ -343,17 +345,11 @@ class Holder(object):
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
         if extra_params is None:
-            array_by_period[period] = array
+            array_by_period[period] = value
         else:
             if array_by_period.get(period) is None:
                 array_by_period[period] = {}
-            array_by_period[period][frozenset(extra_params)] = array
-
-    def set_input(self, period, array):
-        self.formula.set_input(period, array)
-
-    def put_in_cache(self, value, period, extra_params = None):
-        self.set_array(period, value, extra_params)
+            array_by_period[period][frozenset(extra_params)] = value
         return self.at_period(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
