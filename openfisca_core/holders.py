@@ -10,25 +10,27 @@ from .tools import empty_clone
 
 
 class DatedHolder(object):
-    """A view of an holder, for a given period"""
+    """A view of an holder, for a given period (and possibly a given set of extra parameters)"""
     holder = None
     period = None
+    extra_params = None
 
-    def __init__(self, holder, period):
+    def __init__(self, holder, period, extra_params = None):
         self.holder = holder
         self.period = period
+        self.extra_params = extra_params
 
     @property
     def array(self):
-        return self.holder.get_array(self.period)
+        return self.holder.get_array(self.period, self.extra_params)
 
     @array.deleter
     def array(self):
-        self.holder.delete_array(self.period)
+        self.holder.delete_array(self.period, self.extra_params)
 
     @array.setter
     def array(self, array):
-        self.holder.set_array(self.period, array)
+        self.holder.set_array(self.period, array, self.extra_params)
 
     @property
     def column(self):
@@ -81,8 +83,8 @@ class Holder(object):
                     )
         self._array = array
 
-    def at_period(self, period):
-        return self if self.column.is_permanent else DatedHolder(self, period)
+    def at_period(self, period, extra_params = None):
+        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
 
     def calculate(self, period = None, **parameters):
         dated_holder = self.compute(period = period, **parameters)
@@ -278,15 +280,18 @@ class Holder(object):
         if self._array_by_period is not None:
             del self._array_by_period
 
-    def get_array(self, period):
+    def get_array(self, period, extra_params = None):
         if self.column.is_permanent:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
         if array_by_period is not None:
-            array = array_by_period.get(period)
-            if array is not None:
-                return array
+            values = array_by_period.get(period)
+            if values is not None:
+                if extra_params:
+                    return values.get(frozenset(extra_params))
+                else:
+                    return values
         return None
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
@@ -321,7 +326,7 @@ class Holder(object):
             return None
         return formula.real_formula
 
-    def set_array(self, period, array):
+    def set_array(self, period, array, extra_params = None):
         if self.column.is_permanent:
             self.array = array
             return
@@ -337,19 +342,22 @@ class Holder(object):
         array_by_period = self._array_by_period
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
-        array_by_period[period] = array
+        if extra_params is None:
+            array_by_period[period] = array
+        else:
+            if array_by_period.get(period) is None:
+                array_by_period[period] = {}
+            array_by_period[period][frozenset(extra_params)] = array
 
     def set_input(self, period, array):
         self.formula.set_input(period, array)
 
     def put_in_cache(self, value, period, extra_params = None):
-        dated_holder = self.at_period(period)
-        dated_holder.array = value
-
-        return dated_holder
+        self.set_array(period, value, extra_params)
+        return self.at_period(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        return self.at_period(period)
+        return self.at_period(period, extra_params)
 
     def to_value_json(self, use_label = False):
         column = self.column
