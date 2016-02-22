@@ -125,7 +125,7 @@ class Holder(object):
         accept_other_period = parameters.get('accept_other_period', False)
 
         # First look for dated_holders covering the whole period (without hole).
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
@@ -143,11 +143,10 @@ class Holder(object):
             return formula_dated_holder
         array = np.empty(entity.count, dtype = column.dtype)
         array.fill(column.default)
-        dated_holder.array = array
-        return dated_holder
+        return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -191,16 +190,14 @@ class Holder(object):
                 array += dated_holder.array
 
             if remaining_period_months <= 0:
-                dated_holder = self.at_period(period)
-                dated_holder.array = array
-                return dated_holder
+                return self.put_in_cache(array, period, parameters.get('extra_params'))
             if remaining_period_months % 12 == 0:
                 requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
             else:
                 requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
 
     def compute_add_divide(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -243,16 +240,14 @@ class Holder(object):
 
             remaining_period_months -= intersection_months
             if remaining_period_months <= 0:
-                dated_holder = self.at_period(period)
-                dated_holder.array = array
-                return dated_holder
+                return self.put_in_cache(array, period, parameters.get('extra_params'))
             if remaining_period_months % 12 == 0:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
             else:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
 
     def compute_divide(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -272,9 +267,7 @@ class Holder(object):
                     "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
                         dated_holder.period, self.column.name)
                 array = dated_holder.array * period.size / (12 * dated_holder.period.size)
-            dated_holder = self.at_period(period)
-            dated_holder.array = array
-            return dated_holder
+            return self.put_in_cache(array, period, parameters.get('extra_params'))
         else:
             assert unit == u'year', unit
             return self.compute(period = period)
@@ -348,6 +341,15 @@ class Holder(object):
 
     def set_input(self, period, array):
         self.formula.set_input(period, array)
+
+    def put_in_cache(self, value, period, extra_params = None):
+        dated_holder = self.at_period(period)
+        dated_holder.array = value
+
+        return dated_holder
+
+    def get_from_cache(self, period, extra_params = None):
+        return self.at_period(period)
 
     def to_value_json(self, use_label = False):
         column = self.column

@@ -145,9 +145,7 @@ class AbstractEntityToEntity(AbstractFormula):
                     simulation.stringify_input_variables_infos(input_variables_infos), stringify_array(array),
                     str(output_period)))
 
-        dated_holder = holder.at_period(output_period)
-        dated_holder.array = array
-        return dated_holder
+        return holder.put_in_cache(array, output_period)
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -272,10 +270,7 @@ class DatedFormula(AbstractGroupedFormula):
         column = holder.column
         array = np.empty(holder.entity.count, dtype = column.dtype)
         array.fill(column.default)
-        if dated_holder is None:
-            dated_holder = holder.at_period(period)
-        dated_holder.array = array
-        return dated_holder
+        return holder.put_in_cache(array, period, parameters.get('extra_params'))
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -531,6 +526,7 @@ class SimpleFormula(AbstractFormula):
         trace = simulation.trace
 
         max_nb_cycles = parameters.get('max_nb_cycles')
+        extra_params = parameters.get('extra_params')
         if max_nb_cycles is not None:
             simulation.max_nb_cycles = max_nb_cycles
 
@@ -547,8 +543,8 @@ class SimpleFormula(AbstractFormula):
                     input_variables_infos = [],
                     variable_name = column.name,
                     ))
-            if parameters.get('extra_params'):
-                formula_result = self.base_function(simulation, period, *parameters.get('extra_params'))
+            if extra_params:
+                formula_result = self.base_function(simulation, period, *extra_params)
             else:
                 formula_result = self.base_function(simulation, period)
         except CycleError:
@@ -556,10 +552,8 @@ class SimpleFormula(AbstractFormula):
             if max_nb_cycles is None:
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise
-            dated_holder = holder.at_period(period)
-            dated_holder.array = self.default_values()
             simulation.max_nb_cycles = None
-            return dated_holder
+            return holder.put_in_cache(self.default_values(), period, extra_params)
         except legislations.ParameterNotFound as exc:
             if exc.variable_name is None:
                 raise legislations.ParameterNotFound(
@@ -627,8 +621,7 @@ class SimpleFormula(AbstractFormula):
                     simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
                     stringify_array(array)))
 
-        dated_holder = holder.at_period(output_period)
-        dated_holder.array = array
+        dated_holder = holder.put_in_cache(array, output_period, extra_params)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
