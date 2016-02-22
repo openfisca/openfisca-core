@@ -83,8 +83,6 @@ class Holder(object):
                     )
         self._array = array
 
-    def at_period(self, period, extra_params = None):
-        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
 
     def calculate(self, period = None, **parameters):
         dated_holder = self.compute(period = period, **parameters)
@@ -350,10 +348,10 @@ class Holder(object):
             if array_by_period.get(period) is None:
                 array_by_period[period] = {}
             array_by_period[period][frozenset(extra_params)] = value
-        return self.at_period(period, extra_params)
+        return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        return self.at_period(period, extra_params)
+        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
 
     def to_value_json(self, use_label = False):
         column = self.column
