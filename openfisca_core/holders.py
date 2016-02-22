@@ -287,7 +287,7 @@ class Holder(object):
             values = array_by_period.get(period)
             if values is not None:
                 if extra_params:
-                    return values.get(frozenset(extra_params))
+                    return values.get(tuple(extra_params))
                 else:
                     return values
         return None
@@ -347,7 +347,7 @@ class Holder(object):
         else:
             if array_by_period.get(period) is None:
                 array_by_period[period] = {}
-            array_by_period[period][frozenset(extra_params)] = value
+            array_by_period[period][tuple(extra_params)] = value
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
