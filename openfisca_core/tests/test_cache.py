@@ -40,14 +40,23 @@ tax_benefit_system = dummy_country.init_tax_benefit_system()
 
 reference_period = periods.period(u'2013')
 
-
-def test_extra_parameters():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = reference_period.this_month,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    formula_1 = simulation.calculate('formula_1')
-    formula_2 = simulation.calculate('formula_2')
+formula_1 = simulation.calculate('formula_1')
+formula_2 = simulation.calculate('formula_2')
+formula_3_holder = simulation.holder_by_name['formula_3']
+
+def test_cache():
     assert_near(formula_1, [0])
     assert_near(formula_2, [1])
+
+def test_get_extra_param_names():
+    assert formula_3_holder.get_extra_param_names() == ('choice',)
+
+def test_json_conversion():
+    print(formula_3_holder.to_value_json())
+    assert str(formula_3_holder.to_value_json()) == \
+        "{'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}"
 

@@ -353,9 +353,19 @@ class Holder(object):
     def get_from_cache(self, period, extra_params = None):
         return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
 
+    def get_extra_param_names(self):
+        return self.formula.function.__func__.func_code.co_varnames[3:]
+
     def to_value_json(self, use_label = False):
         column = self.column
         transform_dated_value_to_json = column.transform_dated_value_to_json
+
+        def extra_params_to_json_key(extra_params):
+            return '{' + ', '.join(
+                ['{}: {}'.format(name, value)
+                    for name, value in zip(self.get_extra_param_names(), extra_params)]
+                ) + '}'
+
         if column.is_permanent:
             array = self._array
             if array is None:
@@ -366,9 +376,18 @@ class Holder(object):
                 ]
         value_json = {}
         if self._array_by_period is not None:
-            for period, array in self._array_by_period.iteritems():
-                value_json[str(period)] = [
-                    transform_dated_value_to_json(cell, use_label = use_label)
-                    for cell in array.tolist()
-                    ]
+            for period, array_or_dict in self._array_by_period.iteritems():
+                if type(array_or_dict) == dict:
+                    value_json[str(period)] = values_dict = {}
+                    for extra_params, array in array_or_dict.iteritems():
+                        extra_params_key = extra_params_to_json_key(extra_params)
+                        values_dict[str(extra_params_key)] = [
+                            transform_dated_value_to_json(cell, use_label = use_label)
+                            for cell in array.tolist()
+                            ]
+                else:
+                    value_json[str(period)] = [
+                        transform_dated_value_to_json(cell, use_label = use_label)
+                        for cell in array_or_dict.tolist()
+                        ]
         return value_json
