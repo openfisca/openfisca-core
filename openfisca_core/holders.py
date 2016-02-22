@@ -261,7 +261,7 @@ class Holder(object):
         year, month, day = period.start
         if unit == u'month':
             parameters['accept_other_period'] = True # We expect the compute call to return a yearly period.
-            dated_holder = self.compute(period = period, accept_other_period = True)
+            dated_holder = self.compute(period = period, **parameters)
             assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
                 "Period {} returned by variable {} doesn't include requested period {}.".format(
                     dated_holder.period, self.column.name, period)

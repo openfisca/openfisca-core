@@ -114,7 +114,8 @@ class AbstractEntityToEntity(AbstractFormula):
                 ))
 
         variable_holder = self.variable_holder
-        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True)
+        parameters["accept_other_period"] = True
+        variable_dated_holder = variable_holder.compute(period = period, **parameters)
         output_period = variable_dated_holder.period
 
         array = self.transform(variable_dated_holder, roles = self.roles)
