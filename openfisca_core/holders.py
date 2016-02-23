@@ -24,10 +24,6 @@ class DatedHolder(object):
     def array(self):
         return self.holder.get_array(self.period, self.extra_params)
 
-    @array.deleter
-    def array(self):
-        self.holder.delete_array(self.period, self.extra_params)
-
     @array.setter
     def array(self, array):
         self.holder.put_in_cache(array, self.period, self.extra_params)
