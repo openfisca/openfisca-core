@@ -10,25 +10,23 @@ from .tools import empty_clone
 
 
 class DatedHolder(object):
-    """A view of an holder, for a given period"""
+    """A view of an holder, for a given period (and possibly a given set of extra parameters)"""
     holder = None
     period = None
+    extra_params = None
 
-    def __init__(self, holder, period):
+    def __init__(self, holder, period, extra_params = None):
         self.holder = holder
         self.period = period
+        self.extra_params = extra_params
 
     @property
     def array(self):
-        return self.holder.get_array(self.period)
-
-    @array.deleter
-    def array(self):
-        self.holder.delete_array(self.period)
+        return self.holder.get_array(self.period, self.extra_params)
 
     @array.setter
     def array(self, array):
-        self.holder.set_array(self.period, array)
+        self.holder.put_in_cache(array, self.period, self.extra_params)
 
     @property
     def column(self):
@@ -71,7 +69,7 @@ class Holder(object):
     def array(self, array):
         simulation = self.entity.simulation
         if not self.column.is_permanent:
-            return self.set_array(simulation.period, array)
+            return self.put_in_cache(array, simulation.period)
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, None)
             step = simulation.traceback.get(variable_infos)
@@ -81,8 +79,6 @@ class Holder(object):
                     )
         self._array = array
 
-    def at_period(self, period):
-        return self if self.column.is_permanent else DatedHolder(self, period)
 
     def calculate(self, period = None, **parameters):
         dated_holder = self.compute(period = period, **parameters)
@@ -125,7 +121,7 @@ class Holder(object):
         accept_other_period = parameters.get('accept_other_period', False)
 
         # First look for dated_holders covering the whole period (without hole).
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
@@ -143,11 +139,10 @@ class Holder(object):
             return formula_dated_holder
         array = np.empty(entity.count, dtype = column.dtype)
         array.fill(column.default)
-        dated_holder.array = array
-        return dated_holder
+        return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -191,16 +186,14 @@ class Holder(object):
                 array += dated_holder.array
 
             if remaining_period_months <= 0:
-                dated_holder = self.at_period(period)
-                dated_holder.array = array
-                return dated_holder
+                return self.put_in_cache(array, period, parameters.get('extra_params'))
             if remaining_period_months % 12 == 0:
                 requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
             else:
                 requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
 
     def compute_add_divide(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -243,16 +236,14 @@ class Holder(object):
 
             remaining_period_months -= intersection_months
             if remaining_period_months <= 0:
-                dated_holder = self.at_period(period)
-                dated_holder.array = array
-                return dated_holder
+                return self.put_in_cache(array, period, parameters.get('extra_params'))
             if remaining_period_months % 12 == 0:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
             else:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
 
     def compute_divide(self, period = None, **parameters):
-        dated_holder = self.at_period(period)
+        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
 
@@ -261,7 +252,7 @@ class Holder(object):
         year, month, day = period.start
         if unit == u'month':
             parameters['accept_other_period'] = True # We expect the compute call to return a yearly period.
-            dated_holder = self.compute(period = period, accept_other_period = True)
+            dated_holder = self.compute(period = period, **parameters)
             assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
                 "Period {} returned by variable {} doesn't include requested period {}.".format(
                     dated_holder.period, self.column.name, period)
@@ -272,9 +263,7 @@ class Holder(object):
                     "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
                         dated_holder.period, self.column.name)
                 array = dated_holder.array * period.size / (12 * dated_holder.period.size)
-            dated_holder = self.at_period(period)
-            dated_holder.array = array
-            return dated_holder
+            return self.put_in_cache(array, period, parameters.get('extra_params'))
         else:
             assert unit == u'year', unit
             return self.compute(period = period)
@@ -285,15 +274,18 @@ class Holder(object):
         if self._array_by_period is not None:
             del self._array_by_period
 
-    def get_array(self, period):
+    def get_array(self, period, extra_params = None):
         if self.column.is_permanent:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
         if array_by_period is not None:
-            array = array_by_period.get(period)
-            if array is not None:
-                return array
+            values = array_by_period.get(period)
+            if values is not None:
+                if extra_params:
+                    return values.get(tuple(extra_params))
+                else:
+                    return values
         return None
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
@@ -328,10 +320,12 @@ class Holder(object):
             return None
         return formula.real_formula
 
-    def set_array(self, period, array):
+    def set_input(self, period, array):
+        self.formula.set_input(period, array)
+
+    def put_in_cache(self, value, period, extra_params = None):
         if self.column.is_permanent:
-            self.array = array
-            return
+            self.array = value
         assert period is not None
         simulation = self.entity.simulation
         if simulation.debug or simulation.trace:
@@ -344,14 +338,30 @@ class Holder(object):
         array_by_period = self._array_by_period
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
-        array_by_period[period] = array
+        if extra_params is None:
+            array_by_period[period] = value
+        else:
+            if array_by_period.get(period) is None:
+                array_by_period[period] = {}
+            array_by_period[period][tuple(extra_params)] = value
+        return self.get_from_cache(period, extra_params)
 
-    def set_input(self, period, array):
-        self.formula.set_input(period, array)
+    def get_from_cache(self, period, extra_params = None):
+        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
+
+    def get_extra_param_names(self):
+        return self.formula.function.__func__.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
         column = self.column
         transform_dated_value_to_json = column.transform_dated_value_to_json
+
+        def extra_params_to_json_key(extra_params):
+            return '{' + ', '.join(
+                ['{}: {}'.format(name, value)
+                    for name, value in zip(self.get_extra_param_names(), extra_params)]
+                ) + '}'
+
         if column.is_permanent:
             array = self._array
             if array is None:
@@ -362,9 +372,18 @@ class Holder(object):
                 ]
         value_json = {}
         if self._array_by_period is not None:
-            for period, array in self._array_by_period.iteritems():
-                value_json[str(period)] = [
-                    transform_dated_value_to_json(cell, use_label = use_label)
-                    for cell in array.tolist()
-                    ]
+            for period, array_or_dict in self._array_by_period.iteritems():
+                if type(array_or_dict) == dict:
+                    value_json[str(period)] = values_dict = {}
+                    for extra_params, array in array_or_dict.iteritems():
+                        extra_params_key = extra_params_to_json_key(extra_params)
+                        values_dict[str(extra_params_key)] = [
+                            transform_dated_value_to_json(cell, use_label = use_label)
+                            for cell in array.tolist()
+                            ]
+                else:
+                    value_json[str(period)] = [
+                        transform_dated_value_to_json(cell, use_label = use_label)
+                        for cell in array_or_dict.tolist()
+                        ]
         return value_json

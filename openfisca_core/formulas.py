@@ -72,7 +72,7 @@ class AbstractFormula(object):
         return self
 
     def set_input(self, period, array):
-        self.holder.set_array(period, array)
+        self.holder.put_in_cache(array, period)
 
     def zeros(self, **kwargs):
         '''
@@ -114,7 +114,8 @@ class AbstractEntityToEntity(AbstractFormula):
                 ))
 
         variable_holder = self.variable_holder
-        variable_dated_holder = variable_holder.compute(period = period, accept_other_period = True)
+        parameters["accept_other_period"] = True
+        variable_dated_holder = variable_holder.compute(period = period, **parameters)
         output_period = variable_dated_holder.period
 
         array = self.transform(variable_dated_holder, roles = self.roles)
@@ -144,9 +145,7 @@ class AbstractEntityToEntity(AbstractFormula):
                     simulation.stringify_input_variables_infos(input_variables_infos), stringify_array(array),
                     str(output_period)))
 
-        dated_holder = holder.at_period(output_period)
-        dated_holder.array = array
-        return dated_holder
+        return holder.put_in_cache(array, output_period)
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -271,10 +270,7 @@ class DatedFormula(AbstractGroupedFormula):
         column = holder.column
         array = np.empty(holder.entity.count, dtype = column.dtype)
         array.fill(column.default)
-        if dated_holder is None:
-            dated_holder = holder.at_period(period)
-        dated_holder.array = array
-        return dated_holder
+        return holder.put_in_cache(array, period, parameters.get('extra_params'))
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
@@ -530,6 +526,7 @@ class SimpleFormula(AbstractFormula):
         trace = simulation.trace
 
         max_nb_cycles = parameters.get('max_nb_cycles')
+        extra_params = parameters.get('extra_params')
         if max_nb_cycles is not None:
             simulation.max_nb_cycles = max_nb_cycles
 
@@ -546,16 +543,17 @@ class SimpleFormula(AbstractFormula):
                     input_variables_infos = [],
                     variable_name = column.name,
                     ))
-            formula_result = self.base_function(simulation, period)
+            if extra_params:
+                formula_result = self.base_function(simulation, period, *extra_params)
+            else:
+                formula_result = self.base_function(simulation, period)
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise
-            dated_holder = holder.at_period(period)
-            dated_holder.array = self.default_values()
             simulation.max_nb_cycles = None
-            return dated_holder
+            return holder.put_in_cache(self.default_values(), period, extra_params)
         except legislations.ParameterNotFound as exc:
             if exc.variable_name is None:
                 raise legislations.ParameterNotFound(
@@ -623,8 +621,7 @@ class SimpleFormula(AbstractFormula):
                     simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
                     stringify_array(array)))
 
-        dated_holder = holder.at_period(output_period)
-        dated_holder.array = array
+        dated_holder = holder.put_in_cache(array, output_period, extra_params)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
@@ -1340,7 +1337,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
 
 def set_input_dispatch_by_period(formula, period, array):
     holder = formula.holder
-    holder.set_array(period, array)
+    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
     if period_unit == u'year' or period_size > 1:
@@ -1350,7 +1347,7 @@ def set_input_dispatch_by_period(formula, period, array):
             while sub_period.start < after_instant:
                 existing_array = holder.get_array(sub_period)
                 if existing_array is None:
-                    holder.set_array(sub_period, array)
+                    holder.put_in_cache(array, sub_period)
                 else:
                     # The array of the current sub-period is reused for the next ones.
                     array = existing_array
@@ -1360,7 +1357,7 @@ def set_input_dispatch_by_period(formula, period, array):
             while month.start < after_instant:
                 existing_array = holder.get_array(month)
                 if existing_array is None:
-                    holder.set_array(month, array)
+                    holder.put_in_cache(array, month)
                 else:
                     # The array of the current sub-period is reused for the next ones.
                     array = existing_array
@@ -1369,7 +1366,7 @@ def set_input_dispatch_by_period(formula, period, array):
 
 def set_input_divide_by_period(formula, period, array):
     holder = formula.holder
-    holder.set_array(period, array)
+    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
     if period_unit == u'year' or period_size > 1:
@@ -1389,7 +1386,7 @@ def set_input_divide_by_period(formula, period, array):
                 sub_period = period.start.period(period_unit)
                 while sub_period.start < after_instant:
                     if holder.get_array(sub_period) is None:
-                        holder.set_array(sub_period, divided_array)
+                        holder.put_in_cache(divided_array, sub_period)
                     sub_period = sub_period.offset(1)
         if period_unit == u'year':
             remaining_array = array.copy()
@@ -1406,7 +1403,7 @@ def set_input_divide_by_period(formula, period, array):
                 month = period.start.period(u'month')
                 while month.start < after_instant:
                     if holder.get_array(month) is None:
-                        holder.set_array(month, divided_array)
+                        holder.put_in_cache(divided_array, month)
                     month = month.offset(1)
 
 
