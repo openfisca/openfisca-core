@@ -285,6 +285,8 @@ class Holder(object):
                 if extra_params:
                     return values.get(tuple(extra_params))
                 else:
+                    if(type(values) == dict):
+                        return values.values()[0]
                     return values
         return None
 
