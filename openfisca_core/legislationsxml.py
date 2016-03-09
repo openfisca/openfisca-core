@@ -158,6 +158,10 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
     parameter_json = collections.OrderedDict()
     parameter_json['@type'] = 'Parameter'
     xml_json_value_to_json_transformer = float
+
+    def xml_json_value_to_json_transformer_bool(xml_json_value):
+        return bool(int(xml_json_value))
+
     for key, value in parameter_xml_json.iteritems():
         if key in ('code', 'taille'):
             pass
@@ -167,7 +171,7 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                 percent = u'rate',
                 ).get(value, value)
             if value == 'bool':
-                xml_json_value_to_json_transformer = lambda xml_json_value: bool(int(xml_json_value))
+                xml_json_value_to_json_transformer = xml_json_value_to_json_transformer_bool
             elif value == 'integer':
                 xml_json_value_to_json_transformer = int
         elif key in ('tail', 'text'):

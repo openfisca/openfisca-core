@@ -11,7 +11,8 @@ import numpy as np
 from . import conv, periods, simulations
 
 
-N_ = lambda message: message
+def N_(message):
+    return message
 
 
 class AbstractScenario(object):

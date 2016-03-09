@@ -9,7 +9,8 @@ import collections
 from . import conv
 
 
-N_ = lambda message: message
+def N_(message):
+    return message
 
 
 def transform_node_xml_json_to_json(node_xml_json, root = True):

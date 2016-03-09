@@ -39,8 +39,8 @@ def logit(u, low, up):
 
 def logit_prime(u, low, up):
     a = (up - low) / ((1 - low) * (up - 1))
-    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u))
-        - (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) \
+    return ((a * up * (1 - low) * exp(a * u)) * (up - 1 + (1 - low) * exp(a * u)) -
+        (low * (up - 1) + up * (1 - low) * exp(a * u)) * (1 - low) * a * exp(a * u)) \
         / (up - 1 + (1 - low) * exp(a * u)) ** 2
 
 
@@ -102,9 +102,12 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
             raise Exception("When method is 'logit', 'up' should be strictly greater than 1")
         if parameters['lo'] >= 1:
             raise Exception("When method is 'logit', 'lo' should be strictly less than 1")
-        F = lambda x: logit(x, parameters['lo'], parameters['up'])
-        F_prime = lambda x: logit_prime(x, parameters['lo'], parameters['up'])
 
+        def F(x):
+            return logit(x, parameters['lo'], parameters['up'])
+
+        def F_prime(x):
+            return logit_prime(x, parameters['lo'], parameters['up'])
     else:
         raise Exception("method should be 'linear', 'raking ratio' or 'logit'")
     # construction observations matrix
@@ -181,8 +184,11 @@ def calmar(data_in, margins, parameters = {}, pondini='wprm_init'):
         j += 1
 
     # Résolution des équations du premier ordre
-    constraint = lambda l: dot(d * F(dot(x, l)), x) - xmargins
-    constraint_prime = lambda l: dot(d * (x.T * F_prime(dot(x, l))), x)
+    def constraint(l):
+        return dot(d * F(dot(x, l)), x) - xmargins
+
+    def constraint_prime(l):
+        return dot(d * (x.T * F_prime(dot(x, l))), x)
     # le jacobien celui ci-dessus est constraintprime = @(l) x*(d.*Fprime(x'*l)*x');
 
     tries, ier = 0, 2

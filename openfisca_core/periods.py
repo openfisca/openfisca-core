@@ -20,7 +20,11 @@ from . import conv
 YEAR = u'year'
 MONTH = u'month'
 
-N_ = lambda message: message
+
+def N_(message):
+    return message
+
+
 # Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
 date_by_instant_cache = {}
 str_by_instant_cache = {}
@@ -330,9 +334,8 @@ class Period(tuple):
         unit, start_instant, size = self
         year, month, day = start_instant
         if day == 1:
-            if month == 1 and (unit == u'day' and size == (366 if calendar.isleap(year) else 365)
-                    or unit == u'month' and size == 12
-                    or unit == u'year'):
+            if month == 1 and (unit == u'day' and size == (366 if calendar.isleap(year) else 365) or
+                    unit == u'month' and size == 12 or unit == u'year'):
                 start_instant = start_instant[:1]
                 if unit != u'year':
                     size = None
@@ -414,8 +417,8 @@ class Period(tuple):
             return self.__class__((
                 u'month',
                 intersection_start,
-                ((intersection_stop.year - intersection_start.year) * 12 + intersection_stop.month
-                    - intersection_start.month + 1),
+                ((intersection_stop.year - intersection_start.year) * 12 + intersection_stop.month -
+                    intersection_start.month + 1),
                 ))
         return self.__class__((
             u'day',
