@@ -666,7 +666,6 @@ class Period(tuple):
     def unit(self):
         return self[0]
 
-
     # Reference periods
 
     @property

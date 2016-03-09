@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
+
+
 import numpy as np
+
+from . import periods
+
 
 def permanent_default_value(formula, simulation, period, *extra_params):
     if formula.function is not None:
@@ -86,6 +92,7 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     array = np.empty(holder.entity.count, dtype = column.dtype)
     array.fill(column.default)
     return period, array
+
 
 def requested_period_last_or_next_value(formula, simulation, period, *extra_params):
     # This formula is used for variables that are constants between events and period size independent.

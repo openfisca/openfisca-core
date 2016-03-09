@@ -13,7 +13,13 @@ import textwrap
 import numpy as np
 
 from . import columns, holders, legislations, periods
-from .base_functions import requested_period_last_value, requested_period_default_value, permanent_default_value, requested_period_default_value_neutralized, requested_period_last_or_next_value
+from .base_functions import (
+    permanent_default_value,
+    requested_period_default_value_neutralized,
+    requested_period_default_value,
+    requested_period_last_or_next_value,
+    requested_period_last_value,
+    )
 from .tools import empty_clone, stringify_array
 
 
@@ -1058,6 +1064,7 @@ def dated_function(start = None, stop = None):
 
     return dated_function_decorator
 
+
 def add_column_to_tax_benefit_system(column, update = False):
     assert isinstance(column, columns.Column)
     assert column.formula_class is not None
@@ -1215,7 +1222,8 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         assert base_function is UnboundLocalError
         base_function = permanent_default_value
     elif column.is_period_size_independent:
-        assert base_function in (missing_value, requested_period_last_value,requested_period_last_or_next_value, UnboundLocalError)
+        assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value,
+            UnboundLocalError)
         if base_function is UnboundLocalError:
             base_function = requested_period_last_value
     elif base_function is UnboundLocalError:

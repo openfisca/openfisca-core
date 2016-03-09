@@ -79,7 +79,6 @@ class Holder(object):
                     )
         self._array = array
 
-
     def calculate(self, period = None, **parameters):
         dated_holder = self.compute(period = period, **parameters)
         return dated_holder.array
@@ -154,7 +153,8 @@ class Holder(object):
             assert unit == u'year', unit
             remaining_period_months = period.size * 12
         requested_period = period.start.period(unit)
-        parameters['accept_other_period'] = True # We expect the compute calls to return a period different than the requested one.
+        # We expect the compute calls to return a period different than the requested one.
+        parameters['accept_other_period'] = True
         while True:
             dated_holder = self.compute(period = requested_period, **parameters)
             requested_start = requested_period.start
@@ -205,7 +205,8 @@ class Holder(object):
             assert unit == u'year', unit
             remaining_period_months = period.size * 12
         requested_period = period.start.period(unit)
-        parameters['accept_other_period'] = True # We expect the compute calls to return a period different than the requested one.
+        # We expect the compute calls to return a period different than the requested one.
+        parameters['accept_other_period'] = True
         while True:
             dated_holder = self.compute(period = requested_period, **parameters)
             requested_start = requested_period.start
@@ -251,7 +252,8 @@ class Holder(object):
         unit = period[0]
         year, month, day = period.start
         if unit == u'month':
-            parameters['accept_other_period'] = True # We expect the compute call to return a yearly period.
+            # We expect the compute call to return a yearly period.
+            parameters['accept_other_period'] = True
             dated_holder = self.compute(period = period, **parameters)
             assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
                 "Period {} returned by variable {} doesn't include requested period {}.".format(
