@@ -732,8 +732,7 @@ class SimpleFormula(AbstractFormula):
 
     def sum_by_entity(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
-        target_entity = holder.entity
-        simulation = target_entity.simulation
+        simulation = holder.entity.simulation
         persons = simulation.persons
         if entity is None:
             entity = holder.entity
@@ -753,7 +752,7 @@ class SimpleFormula(AbstractFormula):
         entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
         if roles is None:
             roles = range(entity.roles_count)
-        target_array = self.zeros(dtype = array.dtype if array.dtype != np.bool else np.int16)
+        target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
             # TODO: Mettre les filtres en cache dans la simulation
             boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
