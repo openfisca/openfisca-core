@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.5.4.dev0 - next release
+## 0.5.4
 
-* TODO Fill this changes list while developing
+* Merge pull request #382 from openfisca/fix-sum-by-entity
+* The result size must be the targent entity'one
 
 ## 0.5.3
 
