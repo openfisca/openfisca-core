@@ -154,7 +154,7 @@ class TracedCompactNode(object):
     """
     A proxy for CompactNode which stores the a simulation instance. Used for simulations with trace mode enabled.
 
-    Overload __delitem__, getitem__ and __setitem__ even if __getattribute__ is defined because of:
+    Overload __delitem__, __getitem__ and __setitem__ even if __getattribute__ is defined because of:
     http://stackoverflow.com/questions/11360020/why-is-getattribute-not-invoked-on-an-implicit-getitem-invocation
     """
     compact_node = None
