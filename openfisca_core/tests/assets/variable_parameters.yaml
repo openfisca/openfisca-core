@@ -1,0 +1,35 @@
+- variable: participation_effort_construction
+  BAREME:
+    code: construction
+    description: Effort à la construction
+    TRANCHES:
+     -  code: tranche0
+        SEUIL:
+          VALUES:
+            - {deb: 2015-01-01, fuzzy: true, valeur: 0}
+            - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
+        TAUX:
+          VALUES:
+            - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045}
+            - {deb: 1992-01-01, fin: 2014-12-31, valeur="0.0045}
+
+
+#  BAREME:
+#    code: construction
+#    description: Effort à la construction
+#    TRANCHES:
+#     -  code: tranche0
+#        SEUIL:
+#          VALUES:
+#            VALUE: {deb: 2015-01-01, fuzzy: true, valeur: 0}
+#            VALUE: {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
+#        TAUX:
+#          VAR:
+#            CASE:
+#              condition: "effectif_entreprise >= 20"
+#              - VALUE: {deb: 2015-01-01, fuzzy: true, valeur: 0.0045}
+#              - VALUE: {deb: 1992-01-01, fin: 2014-12-31, valeur="0.0045}
+#            CASE:
+#              condition: "10 <= effectif_entreprise < 20"
+#              - VALUE: {deb: 2005-08-01, fuzzy: true, valeur: 0}
+#              - VALUE: {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.0045}

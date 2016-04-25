@@ -6,7 +6,6 @@ import collections
 
 from . import conv, legislations, legislationsxml
 
-
 __all__ = [
     'AbstractTaxBenefitSystem',
     'MultipleXmlBasedTaxBenefitSystem',
@@ -20,6 +19,7 @@ class AbstractTaxBenefitSystem(object):
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
+    parameters = None
     person_key_plural = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
@@ -29,7 +29,7 @@ class AbstractTaxBenefitSystem(object):
     Scenario = None
     cache_blacklist = None
 
-    def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
+    def __init__(self, entity_class_by_key_plural = None, legislation_json = None, parameters = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
 
@@ -40,6 +40,8 @@ class AbstractTaxBenefitSystem(object):
         if legislation_json is not None:
             self.legislation_json = legislation_json
         # Note: self.legislation_json may be None for simulators without legislation parameters.
+        if parameters is not None:
+            self.parameters = parameters
 
         # Now that classes of entities are defined, build a column_by_name by aggregating the column_by_name of each
         # entity class.
@@ -125,14 +127,20 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     legislation_xml_info_list = None  # class attribute or must be set before calling this __init__ method.
     preprocess_legislation = None
 
-    def __init__(self, entity_class_by_key_plural = None):
-        legislation_json = self.get_legislation_json(with_source_file_infos = False)
+    def __init__(self, entity_class_by_key_plural=None):
+        legislation_json = self.get_legislation_json(with_source_file_infos=False)
+        try:
+            parameters = self.get_parameters_from_yaml()
+        except AttributeError:
+            parameters = None
         super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
             entity_class_by_key_plural = entity_class_by_key_plural,
             legislation_json = legislation_json,
+            parameters = parameters,
             )
 
     def get_legislation_json(self, with_source_file_infos):
+
         state = conv.default_state
         xml_legislation_info_list_to_json = legislationsxml.make_xml_legislation_info_list_to_json(
             with_source_file_infos,
@@ -141,3 +149,13 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         return legislation_json
+
+    def get_parameters_from_yaml(self):
+        import yaml
+
+        path = self.parameters_yaml_info_list[0][0]
+
+        stream = file(path, 'r')
+        parameters = yaml.load(stream)
+        print parameters
+        return parameters

@@ -257,6 +257,9 @@ class Simulation(object):
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
 
+    def get_parameter_when(self, code, instant, variables):
+        return self.parameters
+
     def stringify_input_variables_infos(self, input_variables_infos):
         return u', '.join(
             u'{}@{}<{}>{}'.format(
