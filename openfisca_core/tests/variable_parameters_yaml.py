@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import numpy as np
 
 from nose.tools import assert_equal
 
@@ -43,16 +44,15 @@ def test_multiple_xml_based_tax_benefit_system():
     assert_equal(compact_legislation.csg.activite.deductible.taux, 0.051)
     assert_equal(compact_legislation.csg.activite.crds.activite.taux, 0.005)
 
-    def getFromDict(dataDict, mapList):
-        return reduce(lambda d, k: d[k], mapList, dataDict)
-
-    print tax_benefit_system.parameters
-    assert_equal(
-        parameters.get_parameter(
+    yo = parameters.get_parameter(
             tax_benefit_system.parameters,
             'variable_parameters',
-            'participation_effort_construction',
-            '1994-09-04',
-        ),
-        0.0045
-    )
+            'participation_effort_construction_2',
+            '2013-09-04',
+            effectif_entreprise=np.array([2, 19, 29200]),
+            type_sal=np.array([1, 2, 3])
+        )
+
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(yo)
