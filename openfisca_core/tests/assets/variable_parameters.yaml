@@ -1,6 +1,5 @@
 - variable: participation_effort_construction
   BAREME:
-    code: construction
     description: Effort à la construction
     TRANCHES:
      -  code: tranche0
@@ -11,7 +10,7 @@
         TAUX:
           VALUES:
             - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045}
-            - {deb: 1992-01-01, fin: 2014-12-31, valeur="0.0045}
+            - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.0045}
 
 
 #  BAREME:

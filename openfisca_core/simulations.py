@@ -3,7 +3,7 @@
 
 import collections
 
-from . import periods, holders
+from . import periods, holders, parameters
 from .tools import empty_clone, stringify_array
 
 
@@ -257,8 +257,8 @@ class Simulation(object):
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
 
-    def get_parameter_when(self, code, instant, variables):
-        return self.parameters
+    def get_parameter(self, collection, code, instant, variables):
+        return parameters.get_parameter(self.parameters, collection, code, instant, variables)
 
     def stringify_input_variables_infos(self, input_variables_infos):
         return u', '.join(

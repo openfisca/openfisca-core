@@ -4,7 +4,7 @@ import os
 
 from nose.tools import assert_equal
 
-from openfisca_core import legislations
+from openfisca_core import legislations, parameters
 from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
 from openfisca_core.tests.dummy_country import entity_class_by_key_plural
 
@@ -48,9 +48,11 @@ def test_multiple_xml_based_tax_benefit_system():
 
     print tax_benefit_system.parameters
     assert_equal(
-        getFromDict(
+        parameters.get_parameter(
             tax_benefit_system.parameters,
-            ['variable_parameters', 0, 'BAREME', 'TRANCHES', 0, 'TAUX', 'VALUES', 0, 'valeur']
+            'variable_parameters',
+            'participation_effort_construction',
+            '1994-09-04',
         ),
         0.0045
     )
