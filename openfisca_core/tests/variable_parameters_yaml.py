@@ -24,10 +24,7 @@ class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
     ]
 
     parameters_yaml_info_list = [
-        (
-            os.path.join(source_file_dir_name, 'assets', 'variable_parameters.yaml'),
-            None,
-        ),
+       os.path.join(source_file_dir_name, 'assets', 'variable_parameters.yaml'),
     ]
 
 
@@ -49,10 +46,11 @@ def test_multiple_xml_based_tax_benefit_system():
     def getFromDict(dataDict, mapList):
         return reduce(lambda d, k: d[k], mapList, dataDict)
 
+    print tax_benefit_system.parameters
     assert_equal(
         getFromDict(
             tax_benefit_system.parameters,
-            [0, 'BAREME', 'TRANCHES', 0, 'TAUX', 'VALUES', 0, 'valeur']
+            ['variable_parameters', 0, 'BAREME', 'TRANCHES', 0, 'TAUX', 'VALUES', 0, 'valeur']
         ),
         0.0045
     )

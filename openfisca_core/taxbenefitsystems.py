@@ -152,10 +152,9 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
 
     def get_parameters_from_yaml(self):
         import yaml
+        import os
 
-        path = self.parameters_yaml_info_list[0][0]
-
-        stream = file(path, 'r')
-        parameters = yaml.load(stream)
-        print parameters
-        return parameters
+        return dict(
+            (os.path.basename(path).split('.')[0], yaml.load(file(path, 'r')))
+            for path in self.parameters_yaml_info_list
+        )
