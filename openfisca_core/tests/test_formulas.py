@@ -49,7 +49,7 @@ scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2013,
     input_variables = {
         # 'choice': [1, 1, 1, 2],
-        'choice': np.random.randint(2, size = 1e3) + 1,
+        'choice': np.random.randint(2, size = 1000) + 1,
         },
     )
 
