@@ -29,3 +29,16 @@
               VALUES:
                 - {deb: 2005-08-01, fuzzy: true, valeur: 0.009}
                 - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.00459}
+      - SEUIL:
+          VALUES:
+            - {deb: 1990-01-01, fuzzy: true, valeur: 1}
+        TAUX:
+          VAR:
+            - condition: "20 <= effectif_entreprise"
+              VALUES:
+                - {deb: 2015-01-01, fuzzy: true, valeur: 0.23}
+                - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.1}
+            - condition: "10 <= effectif_entreprise"
+              VALUES:
+                - {deb: 2005-08-01, fuzzy: true, valeur: 0.46}
+                - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.89}

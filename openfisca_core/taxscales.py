@@ -15,9 +15,8 @@ from .tools import empty_clone
 
 log = logging.getLogger(__name__)
 
-
 #
-#                                                            AbstractTaxRate
+#                                                            AbstractTaxScale
 #
 #                                                                +     +
 #                                                                |     |
@@ -32,8 +31,6 @@ log = logging.getLogger(__name__)
 #                                 |   |
 # LinearAverageRateTaxScale    <--+   +-->      MarginalRateTaxScale
 #
-
-
 
 
 class AbstractTaxScale(object):
@@ -102,7 +99,7 @@ class AbstractRateTaxScale(AbstractTaxScale):
         else:
             i = bisect_left(self.thresholds, threshold)
             self.thresholds.insert(i, threshold)
-            self.rates.insert(i, rate)
+        self.rates.insert(i, rate)
 
     def multiply_rates(self, factor, inplace=True, new_name=None):
         if inplace:
@@ -211,16 +208,36 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base, factor=1, round_base_decimals=None):
-        base1 = np.tile(base, (len(self.thresholds), 1)).T
+    def calc(self, base, factor=1, thresholds=None, rates=None, round_base_decimals=None):
+        n = len(self.thresholds)
+        N = len(base)
+
+        # Thresholds, as well as rates can be either :
+        # 1- a list of n brackets -- we'll replicate it and work on that second form :
+        # 2- a list of n brackets for each of the N entities (personalized scales)
+        # Also, add the last, implicit column to the thresholds, infinity !
+        if thresholds is None:
+            thresholds = np.outer(factor, np.array(self.thresholds + [np.inf]))
+        else:
+            n = len(thresholds)
+            inf_matrix = np.ones((N, n+1)) * np.inf
+            inf_matrix[:, :-1] = np.transpose(thresholds)
+            thresholds = inf_matrix
+        if rates is None:
+            rates = np.tile(self.rates, (N, 1))
+
+        #TODO handle round_base_decimals
+
+        base1 = np.tile(base, (n, 1)).T
+        # factor can be a vector or a scalar. In the latter case, convert it to a vector
         if isinstance(factor, (float, int)):
-            factor = np.ones(len(base)) * factor
-        thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
+            factor = np.ones(N) * factor
+
         if round_base_decimals is not None:
-            thresholds1 = np.round(thresholds1, round_base_decimals)
-        a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
+            thresholds = np.round(thresholds, round_base_decimals)
+        a = max_(min_(base1, thresholds[:, 1:]) - thresholds[:, :-1], 0)
         if round_base_decimals is None:
-            return np.dot(self.rates, a.T)
+                return sum((a.T * np.array(rates)))
         else:
             r = np.tile(self.rates, (len(base), 1))
             b = np.round(a, round_base_decimals)

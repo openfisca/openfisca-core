@@ -1,3 +1,4 @@
+from openfisca_core import taxscales
 from . import conv
 import copy
 import numpy as np
@@ -67,13 +68,51 @@ def get_parameter(parameters, collection, variable, instant, **vector_variables)
 
     # filter VAR cases using variables
     # remember : we're working on vector variables
-    # -> there will be as many parameter objects as variable dimensions
-    # TODO :-D
-    print 'SALUT'
+    resolved_parameter = resolve_var_cases(vector_variables, parameter)
 
-    return resolve_var_cases(vector_variables, parameter)
-    #TODO generate scales and other objects
+    # TODO generate scales
+    parameter_with_scales = generate_scales(resolved_parameter)
 
+    return parameter_with_scales
+
+
+def get_parameter_value(node, attribute, default=None):
+    value = node.get(attribute)
+    if value:
+        return value['VALUE']
+    else:
+        assert default is not None
+        return default
+
+
+def to_vector(element, vector_size):
+    if isinstance(element, (int, float)):
+        vector = np.empty(vector_size)
+        vector.fill(element)
+        return vector
+    return element
+
+
+def generate_scales(parameter):
+    base = np.array([1467, 2000, 3000])
+    nb_entities = len(base)
+    thresholds = list()
+    rates = list()
+
+    bareme = parameter.get('BAREME')
+    if bareme:
+        if not bareme.get('type'):  # no type means we're in the case of MarginalRateTaxScale
+            # Construct the tax scale
+            tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
+            for tranche in bareme
+                assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
+                taux = get_parameter_value(tranche, 'TAUX')
+                seuil = get_parameter_value(tranche, 'SEUIL')
+                # transform scalar to vector
+                rates.append(to_vector(taux * assiette, nb_entities))
+                thresholds.append(to_vector(seuil, nb_entities))
+            parameter['tax_scale'] = tax_scale
+    return parameter['tax_scale'].calc(base, factor=1800, thresholds=thresholds, rates=rates)
 
 
 def resolve_var_cases(vector_variables, parameter):
@@ -88,9 +127,12 @@ def resolve_var_cases(vector_variables, parameter):
 
 
 def choose_conditional_case(cases, variables):
-    return np.sum(
-        (resolve_condition(case['condition'], variables) * case['VALUE']
-            for case in cases))
+    # The first value whose case is evaluated to true is selected (for each entity of our entity vector)
+    case_conditions = np.array([resolve_condition(case['condition'], variables) for case in cases])
+    case_values = [case['VALUE'] for case in cases]
+    return {
+        'VALUE': np.select(case_conditions, case_values)
+    }
 
 
 def resolve_condition(condition_string, variables):
