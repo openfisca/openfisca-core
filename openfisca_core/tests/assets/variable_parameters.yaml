@@ -2,8 +2,7 @@
   BAREME:
     description: Effort à la construction
     TRANCHES:
-      - code: tranche0
-        SEUIL:
+      - SEUIL:
           VALUES:
             - {deb: 2015-01-01, fuzzy: true, valeur: 0}
             - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
@@ -13,30 +12,10 @@
             - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.0045}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 - variable: participation_effort_construction_2
   BAREME:
     TRANCHES:
-      - code: tranche0
-        SEUIL:
+      - SEUIL:
           VALUES:
             - {deb: 2015-01-01, fuzzy: true, valeur: 0}
             - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}

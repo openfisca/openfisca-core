@@ -69,6 +69,7 @@ def get_parameter(parameters, collection, variable, instant, **vector_variables)
     # remember : we're working on vector variables
     # -> there will be as many parameter objects as variable dimensions
     # TODO :-D
+    print 'SALUT'
 
     return resolve_var_cases(vector_variables, parameter)
     #TODO generate scales and other objects

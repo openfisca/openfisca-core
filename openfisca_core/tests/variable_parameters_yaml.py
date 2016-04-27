@@ -53,6 +53,9 @@ def test_multiple_xml_based_tax_benefit_system():
             type_sal=np.array([1, 2, 3])
         )
 
+    print 'SALUT'
     import pprint
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(yo)
+
+    assert_equal(type(yo), object)
