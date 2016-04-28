@@ -1,44 +1,97 @@
-- variable: participation_effort_construction
-  BAREME:
-    description: Effort à la construction
-    TRANCHES:
-      - SEUIL:
-          VALUES:
-            - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-            - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
-        TAUX:
-          VALUES:
-            - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045}
-            - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.0045}
+# Use the VAR node and its condition children
+# to avoid using variations of parameter names to express conditions,
+# and compute the condition in your formula.
+
+# This is very useful for "terminal variations",
+# that is variations that happen close to the leaf nodes of the param tree
+
+# conditions use real variable names that you will pass from your formula
+# TODO or should we compute them for you ? Ideally yes, but what about period conversions ?
+
+# Regular value parameters :
+
+- variable: fillon_taux_max
+  description: Taux maximum de l'allègement général
+  format: percent
+  VAR:
+    - condition: "20 <= effectif_entreprise"
+      VALUES:
+        - {deb: 2018-01-01, fuzzy: true, valeur: .2850}
+        - {deb: 2017-01-01, fin: 2017-12-31, valeur: .2850}
+        - {deb: 2016-01-01, fin: 2016-12-31, valeur: .2842}
+        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .2835}
+        - {deb: 2005-07-01, fin: 2014-12-31, valeur: .26}
+    - condition: "effectif_entreprise < 20"
+      VALUES:
+        - {deb: 2018-01-01, fuzzy: true, valeur: .2810}
+        - {deb: 2017-01-01, fin: 2017-12-31, valeur: .2810}
+        - {deb: 2016-01-01, fin: 2016-12-31, valeur: .2802}
+        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .2795}
+        - {deb: 2007-07-01, fin: 2014-12-31, valeur: .281}
+        - {deb: 2005-07-01, fin: 2007-06-30, valeur: .26}
 
 
+# BAREME with VARs
 - variable: participation_effort_construction_2
   BAREME:
-    TRANCHES:
-      - SEUIL:
-          VALUES:
-            - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-            - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
-        TAUX:
-          VAR:
-            - condition: "20 <= effectif_entreprise"
-              VALUES:
-                - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045999}
-                - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.004599}
-            - condition: "10 <= effectif_entreprise"
-              VALUES:
-                - {deb: 2005-08-01, fuzzy: true, valeur: 0.009}
-                - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.00459}
-      - SEUIL:
-          VALUES:
-            - {deb: 1990-01-01, fuzzy: true, valeur: 1}
-        TAUX:
-          VAR:
-            - condition: "20 <= effectif_entreprise"
-              VALUES:
-                - {deb: 2015-01-01, fuzzy: true, valeur: 0.23}
-                - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.1}
-            - condition: "10 <= effectif_entreprise"
-              VALUES:
-                - {deb: 2005-08-01, fuzzy: true, valeur: 0.46}
-                - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.89}
+    - SEUIL:
+        VALUES:
+          - {deb: 2015-01-01, fuzzy: true, valeur: 0}
+          - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
+      TAUX:
+        VAR:
+          - condition: "20 <= effectif_entreprise"
+            VALUES:
+              - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045999}
+              - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.004599}
+          - condition: "10 <= effectif_entreprise"
+            VALUES:
+              - {deb: 2005-08-01, fuzzy: true, valeur: 0.009}
+              - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.00459}
+    - SEUIL:
+        VAR:
+          - condition: "1 < type_sal"
+            VALUES:
+              - {deb: 1990-01-01, fuzzy: true, valeur: 1}
+          - condition: "True"
+            VALUES:
+              - {deb: 1990-01-01, fuzzy: true, valeur: .5}
+      TAUX:
+        VAR:
+          - condition: "20 <= effectif_entreprise"
+            VALUES:
+              - {deb: 2015-01-01, fuzzy: true, valeur: 0.23}
+              - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.1}
+          - condition: "10 <= effectif_entreprise"
+            VALUES:
+              - {deb: 2005-08-01, fuzzy: true, valeur: 0.46}
+              - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.89}
+
+
+# VARs can be very useful :
+# TODO is this working ?
+# TODO enable nesting VARs ?
+
+- variable: contribution_supplementaire_apprentissage
+  description: Contribution supplémentaire d'apprentissage
+  VAR:
+    - condition: "pourcentage_alternants < 1 & effectif_entreprise > 2000"
+      VALUES:
+        - {deb: 2016-01-01, fuzzy: true, valeur: .006}
+        - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
+        - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
+    - condition: "pourcentage_alternants < 1 & effectif_entreprise > 2000"
+      VALUES:
+        - {deb: 2016-01-01, fuzzy: true, valeur: .006}
+        - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
+        - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
+    - condition: "pourcentage_alternants < 2"
+      VALUES:
+        - {deb: 2016-01-01, fuzzy: true, valeur: .002}
+        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
+        - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
+    - condition: "pourcentage_alternants < 3"
+      VALUES:
+        - {deb: 2016-01-01, fuzzy: true, valeur: .002}
+        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
+        - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}

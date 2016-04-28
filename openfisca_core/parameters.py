@@ -1,3 +1,5 @@
+# Parse YAML parameters and filter them based on the given period & variable values
+
 from openfisca_core import taxscales
 from . import conv
 import copy
@@ -5,8 +7,6 @@ import numpy as np
 
 
 # Helpers to access, set and transform dict values
-
-
 def get_from_dict(data_dict, map_list):
     return reduce(lambda d, k: d[k], map_list, data_dict)
 
@@ -52,7 +52,7 @@ def choose_value(values, instant):
 ##################
 #  MAIN FUNCTION
 ##################
-def get_parameter(parameters, collection, variable, instant, **vector_variables):
+def get(parameters, collection, variable, instant, **vector_variables):
     # Get the requested parameter from the requested collection
     parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
     if parameter is None:
@@ -100,11 +100,13 @@ def generate_scales(parameter):
     rates = list()
 
     bareme = parameter.get('BAREME')
-    if bareme:
+    if not bareme:
+        return parameter
+    else:
         if not bareme.get('type'):  # no type means we're in the case of MarginalRateTaxScale
             # Construct the tax scale
             tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
-            for tranche in bareme
+            for tranche in bareme:
                 assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
                 taux = get_parameter_value(tranche, 'TAUX')
                 seuil = get_parameter_value(tranche, 'SEUIL')
