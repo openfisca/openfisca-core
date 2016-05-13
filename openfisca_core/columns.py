@@ -3,13 +3,12 @@
 
 import collections
 import datetime
-import inspect
 import re
 
 from biryani import strings
 import numpy as np
 
-from . import conv, periods, base_functions
+from . import conv, periods
 from .enumerations import Enum
 
 
@@ -477,39 +476,3 @@ class EnumCol(IntCol):
 
 class PeriodSizeIndependentIntCol(IntCol):
     is_period_size_independent = True
-
-
-# Column couple builder
-
-
-def build_column(name = None, column = None, entity_class_by_symbol = None):
-    # Obsolete. Use a Variable without a formula instead
-    from . import formulas
-
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-
-    entity_class = entity_class_by_symbol[column.entity]
-    column.entity_key_plural = entity_class.key_plural
-
-    if column.is_permanent:
-        base_function = base_functions.permanent_default_value
-    elif column.is_period_size_independent:
-        base_function = base_functions.requested_period_last_value
-    else:
-        base_function = base_functions.requested_period_default_value
-    caller_frame = inspect.currentframe().f_back
-    column.formula_class = type(name.encode('utf-8'), (formulas.SimpleFormula,), dict(
-        __module__ = inspect.getmodule(caller_frame).__name__,
-        base_function = base_function,
-        line_number = caller_frame.f_lineno,
-        ))
-
-    if column.label is None:
-        column.label = name
-    assert column.name is None
-    column.name = name
-
-    entity_column_by_name = entity_class.column_by_name
-    assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
