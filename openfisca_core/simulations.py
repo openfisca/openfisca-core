@@ -45,8 +45,6 @@ class Simulation(object):
         if trace:
             self.trace = True
         self.opt_out_cache = opt_out_cache
-        if opt_out_cache:
-            self.cache_blacklist = set()
         if debug or trace:
             self.stack_trace = collections.deque()
             self.traceback = collections.OrderedDict()

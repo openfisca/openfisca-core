@@ -30,10 +30,11 @@ class output(Variable):
     def function(self, simulation, period):
         return period, simulation.calculate('intermediate', period)
 
-cache_blacklist = set(['intermediate'])
 
 # TaxBenefitSystem instance declared after formulas
 tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system.cache_blacklist = set(['intermediate'])
+
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2016,
     input_variables = {
@@ -49,7 +50,6 @@ def test_without_cache_opt_out():
 
 def test_with_cache_opt_out():
     simulation = scenario.new_simulation(debug = True, opt_out_cache = True)
-    simulation.cache_blacklist = cache_blacklist
     simulation.calculate('output')
     intermediate_cache = simulation.get_or_new_holder('intermediate')
     assert(intermediate_cache._array_by_period is None)
