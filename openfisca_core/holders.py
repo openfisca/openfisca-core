@@ -334,8 +334,12 @@ class Holder(object):
 
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.entity.simulation
-        if simulation.opt_out_cache and self.column.name in simulation.tax_benefit_system.cache_blacklist:
+
+        if (simulation.opt_out_cache and
+                simulation.tax_benefit_system.cache_blacklist and
+                self.column.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value = value)
+
         if self.column.is_permanent:
             self.array = value
         assert period is not None

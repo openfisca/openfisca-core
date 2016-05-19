@@ -42,14 +42,32 @@ scenario = tax_benefit_system.new_scenario().init_from_attributes(
         },
     )
 
+
 def test_without_cache_opt_out():
     simulation = scenario.new_simulation(debug = True)
     simulation.calculate('output')
     intermediate_cache = simulation.get_or_new_holder('intermediate')
     assert(len(intermediate_cache._array_by_period) > 0)
 
+
 def test_with_cache_opt_out():
     simulation = scenario.new_simulation(debug = True, opt_out_cache = True)
     simulation.calculate('output')
     intermediate_cache = simulation.get_or_new_holder('intermediate')
     assert(intermediate_cache._array_by_period is None)
+
+
+tax_benefit_system2 = dummy_country.init_tax_benefit_system()
+scenario2 = tax_benefit_system2.new_scenario().init_from_attributes(
+    period = 2016,
+    input_variables = {
+        'input': 1,
+        },
+    )
+
+
+def test_with_no_blacklist():
+    simulation = scenario2.new_simulation(debug = True, opt_out_cache = True)
+    simulation.calculate('output')
+    intermediate_cache = simulation.get_or_new_holder('intermediate')
+    assert(len(intermediate_cache._array_by_period) > 0)
