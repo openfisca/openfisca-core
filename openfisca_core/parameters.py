@@ -57,6 +57,7 @@ def choose_value(values, instant):
 ##################
 def get(parameters, collection, variable, instant, bareme_parameters=None,**vector_variables):
     # Get the requested parameter from the requested collection
+    # TODO : parse the relevant YAML collection here on the fly, cache it in tax_benefit_system
     parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
     if parameter is None:
         message = "Parameter \"{0}\" not found in collection \"{1}\"".format(variable, collection)
