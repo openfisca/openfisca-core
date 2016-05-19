@@ -49,7 +49,7 @@ def test_without_cache_opt_out():
 
 def test_with_cache_opt_out():
     simulation = scenario.new_simulation(debug = True, opt_out_cache = True)
-    simulation.add_to_cache_blacklist(cache_blacklist)
+    simulation.cache_blacklist = cache_blacklist
     simulation.calculate('output')
     intermediate_cache = simulation.get_or_new_holder('intermediate')
-    assert(len(intermediate_cache._array_by_period) == 0)
+    assert(intermediate_cache._array_by_period is None)

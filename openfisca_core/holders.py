@@ -10,23 +10,28 @@ from .tools import empty_clone
 
 
 class DatedHolder(object):
-    """A view of an holder, for a given period (and possibly a given set of extra parameters)"""
+    """A view of an holder, for a given period (and possibly a given set of extra parameters).
+    If the variable is not cached, it also contains the value of the variable for the given date."""
     holder = None
     period = None
     extra_params = None
 
-    def __init__(self, holder, period, extra_params = None):
+    def __init__(self, holder, period, extra_params = None, value = None):
         self.holder = holder
         self.period = period
         self.extra_params = extra_params
+        self.value = value
 
     @property
     def array(self):
-        return self.holder.get_array(self.period, self.extra_params)
+        return self.value if self.value else self.holder.get_array(self.period, self.extra_params)
 
     @array.setter
     def array(self, array):
-        self.holder.put_in_cache(array, self.period, self.extra_params)
+        if self.value:
+            self.value = array
+        else:
+            self.holder.put_in_cache(array, self.period, self.extra_params)
 
     @property
     def column(self):
@@ -328,10 +333,12 @@ class Holder(object):
         self.formula.set_input(period, array)
 
     def put_in_cache(self, value, period, extra_params = None):
+        simulation = self.entity.simulation
+        if simulation.opt_out_cache and self.column.name in simulation.cache_blacklist:
+            return DatedHolder(self, period, value = value)
         if self.column.is_permanent:
             self.array = value
         assert period is not None
-        simulation = self.entity.simulation
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, period)
             step = simulation.traceback.get(variable_infos)
