@@ -52,7 +52,7 @@ def choose_value(values, instant):
 ##################
 #  MAIN FUNCTION
 ##################
-def get(parameters, collection, variable, instant, **vector_variables):
+def get(parameters, collection, variable, instant, bareme_parameters=None,**vector_variables):
     # Get the requested parameter from the requested collection
     parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
     if parameter is None:
@@ -70,10 +70,10 @@ def get(parameters, collection, variable, instant, **vector_variables):
     # remember : we're working on vector variables
     resolved_parameter = resolve_var_cases(vector_variables, parameter)
 
-    # TODO generate scales
-    parameter_with_scales = generate_scales(resolved_parameter)
+    # Compute scales if it is a BAREME
+    parameter_with_scales = compute_scales(resolved_parameter, bareme_parameters)
 
-    return parameter_with_scales
+    return parameter_with_scales['VALUE']
 
 
 def get_parameter_value(node, attribute, default=None):
@@ -93,28 +93,32 @@ def to_vector(element, vector_size):
     return element
 
 
-def generate_scales(parameter):
-    base = np.array([1467, 2000, 3000])
-    nb_entities = len(base)
-    thresholds = list()
-    rates = list()
-
+def compute_scales(parameter, bareme_parameters):
     bareme = parameter.get('BAREME')
     if not bareme:
         return parameter
     else:
-        if not bareme.get('type'):  # no type means we're in the case of MarginalRateTaxScale
-            # Construct the tax scale
-            tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
-            for tranche in bareme:
-                assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
-                taux = get_parameter_value(tranche, 'TAUX')
-                seuil = get_parameter_value(tranche, 'SEUIL')
-                # transform scalar to vector
-                rates.append(to_vector(taux * assiette, nb_entities))
-                thresholds.append(to_vector(seuil, nb_entities))
-            parameter['tax_scale'] = tax_scale
-    return parameter['tax_scale'].calc(base, factor=1800, thresholds=thresholds, rates=rates)
+        assert bareme_parameters is not None
+        base = bareme_parameters.get('base')
+        factor = bareme_parameters.get('factor')
+        for element in [base, factor]:
+            assert element is not None
+
+        nb_entities = len(base)
+        thresholds = list()
+        rates = list()
+        # Only the case of the MarginalRateTaxScale is supported in YAML parameters
+        # Construct the tax scale
+        tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
+        for tranche in bareme:
+            assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
+            taux = get_parameter_value(tranche, 'TAUX')
+            seuil = get_parameter_value(tranche, 'SEUIL')
+            # transform scalar to vector
+            rates.append(to_vector(taux * assiette, nb_entities))
+            thresholds.append(to_vector(seuil, nb_entities))
+        parameter['tax_scale'] = tax_scale
+    return {'VALUE': parameter['tax_scale'].calc(base, factor, thresholds=thresholds, rates=rates)}
 
 
 def resolve_var_cases(vector_variables, parameter):

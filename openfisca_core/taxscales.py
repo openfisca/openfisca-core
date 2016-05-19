@@ -212,16 +212,20 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         n = len(self.thresholds)
         N = len(base)
 
+         # factor can be a vector or a scalar. In the latter case, convert it to a vector
+        if isinstance(factor, (float, int)):
+            factor = np.ones(N) * factor
         # Thresholds, as well as rates can be either :
         # 1- a list of n brackets -- we'll replicate it and work on that second form :
-        # 2- a list of n brackets for each of the N entities (personalized scales)
-        # Also, add the last, implicit column to the thresholds, infinity !
+        # 2- a list of n brackets for each of the N entities in the simulation (personalized scales by entity)
+
+        # Add the last, implicit column to the thresholds, infinity !
         if thresholds is None:
             thresholds = np.outer(factor, np.array(self.thresholds + [np.inf]))
         else:
             n = len(thresholds)
             inf_matrix = np.ones((N, n+1)) * np.inf
-            inf_matrix[:, :-1] = np.transpose(thresholds)
+            inf_matrix[:, :-1] = np.transpose(thresholds * factor)
             thresholds = inf_matrix
         if rates is None:
             rates = np.tile(self.rates, (N, 1))
@@ -229,9 +233,6 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         #TODO handle round_base_decimals
 
         base1 = np.tile(base, (n, 1)).T
-        # factor can be a vector or a scalar. In the latter case, convert it to a vector
-        if isinstance(factor, (float, int)):
-            factor = np.ones(N) * factor
 
         if round_base_decimals is not None:
             thresholds = np.round(thresholds, round_base_decimals)

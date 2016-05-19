@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-from nose.tools import assert_equal, raises
+from nose.tools import assert_equal, raises, assert_true
 
 from openfisca_core import legislations, parameters
 from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
@@ -61,30 +61,35 @@ def test_yaml_parameters():
         )
     unknown_parameter()
 
-
     assert_equal(
         parameters.get(
             tax_benefit_system.parameters,
             'parameters',
             'smic_horaire_brut',
-            '2014-02-06'
-        )['VALUE'],
+            '2014-02-06',
+        ),
         9.53
     )
 
-    return
-    yo = parameters.get(
+    vector1 = parameters.get(
         tax_benefit_system.parameters,
-        'variable_parameters',
-        'participation_effort_construction_2',
-        '2013-09-04',
-        effectif_entreprise=np.array([2, 19, 29200]),
-        type_sal=np.array([1, 2, 3])
+        'parameters',
+        'famille',
+        '1994-02-06',
+        bareme_parameters={'base': [2300, 1467], 'factor': 3218},
+    )
+    assert_true(
+        (vector1 == np.array([124.2, 79.218])).all()
     )
 
-    print 'SALUT'
-    import pprint
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(yo)
+    vector2 = parameters.get(
+        tax_benefit_system.parameters,
+        'parameters',
+        'agffc',
+        '2003-02-06',
+        bareme_parameters={'base': [2300, 6000], 'factor': 3218},
+    )
+    assert_true(
+        (vector2 == np.array([27.6, 74.782])).all()
+    )
 
-    assert_equal(type(yo), object)
