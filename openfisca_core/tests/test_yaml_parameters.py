@@ -51,6 +51,8 @@ DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = entity_class_
 def test_yaml_parameters():
     tax_benefit_system = DummyMultipleXmlBasedTaxBenefitSystem()
 
+    # 1) "parameters.yaml" collection
+
     @raises(legislations.ParameterNotFound)
     def unknown_parameter():
         parameters.get(
@@ -93,3 +95,29 @@ def test_yaml_parameters():
         (vector2 == np.array([27.6, 74.782])).all()
     )
 
+
+    #2) "variable-parameters.yaml" collection
+
+    vector3 = parameters.get(
+            tax_benefit_system.parameters,
+            'variable_parameters',
+            'fillon_taux_max',
+            '2015-02-06',
+            effectif_entreprise=np.array([29000, 5])
+        )
+    assert_true(
+        (vector3 == np.array([.2835, .2795])).all()
+    )
+
+    vector4 = parameters.get(
+            tax_benefit_system.parameters,
+            'variable_parameters',
+            'participation_effort_construction_2',
+            '2015-02-06',
+            bareme_parameters={'base': [2300, 2300, 6000], 'factor': 3218},
+            effectif_entreprise=np.array([2, 19, 29200]),
+            type_sal=np.array([1, 2, 3])
+        )
+    assert_true(
+        (vector4 == np.array([0, 20.7, 654.6624782])).all()
+    )

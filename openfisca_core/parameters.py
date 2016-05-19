@@ -22,7 +22,10 @@ def transform_dict_key(node, options, parentNode=None, parentKey=None):
         for key, value in node.items():
             if key == options['key_to_find']:
                 if options.get('replace_parent'):
-                    parentNode[parentKey] = options['transform'](value)
+                    if parentNode is None:
+                        node.update(options['transform'](value))
+                    else:
+                        parentNode[parentKey] = options['transform'](value)
                 elif options.get('new_key'):
                     node[options['new_key']] = options['transform'](value)
                     del node[options['key_to_find']]
