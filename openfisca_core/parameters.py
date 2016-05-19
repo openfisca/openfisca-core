@@ -1,6 +1,6 @@
 # Parse YAML parameters and filter them based on the given period & variable values
 
-from openfisca_core import taxscales
+from openfisca_core import taxscales, legislations
 from . import conv
 import copy
 import numpy as np
@@ -57,7 +57,7 @@ def get(parameters, collection, variable, instant, **vector_variables):
     parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
     if parameter is None:
         message = "Parameter \"{0}\" not found in collection \"{1}\"".format(variable, collection)
-        raise Exception(message)  # TODO don't raise general Exception !
+        raise legislations.ParameterNotFound(instant=instant, name=variable)  # TODO don't raise general Exception !
 
     # select and set the right value for this instant
     transform_dict_key(

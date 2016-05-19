@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, raises
 
 from openfisca_core import legislations, parameters
 from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
@@ -50,6 +50,17 @@ DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = entity_class_
 
 def test_yaml_parameters():
     tax_benefit_system = DummyMultipleXmlBasedTaxBenefitSystem()
+
+    @raises(legislations.ParameterNotFound)
+    def unknown_parameter():
+        parameters.get(
+            tax_benefit_system.parameters,
+            'parameters',
+            'LOL',
+            '2014-02-06'
+        )
+    unknown_parameter()
+
 
     assert_equal(
         parameters.get(
