@@ -28,10 +28,10 @@
 # ... which is annoying for this regular pattern of "base * rate"
 # TODO implement this !
 
-- variable: famille
+- variable: famille2
   description: Allocations familiales
   LIN:
-    ASSIETTE: assiette_cotisations_sociales # or alternatively pass the base to calc()
+    # ASSIETTE: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
     VALUES:
       - {deb: 2018-01-01, fuzzy: true, valeur: 0.019}
       - {deb: 2017-01-01, fin: 2017-12-31, valeur: 0.019}
@@ -42,9 +42,8 @@
 - variable: vieillesse_plafonnee
   description: Cotisation plafonnée de vieillesse
   LIN:
-    ASSIETTE: assiette_cotisations_sociales
-    PLAFOND:
-      VALUE: 1
+    # ASSIETTE: assiette_cotisations_sociales
+    PLAFOND: 1
     VALUES:
       - {deb: 2018-01-01, fuzzy: true, valeur: 0.0855}
       - {deb: 2017-01-01, fin: 2017-12-31, valeur: 0.085}

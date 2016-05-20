@@ -1,4 +1,4 @@
-# Parse YAML parameters and filter them based on the given period & variable values
+# Read YAML parameters and filter them based on the given period & variable values
 
 from openfisca_core import taxscales, legislations
 from . import conv
@@ -6,13 +6,39 @@ import copy
 import numpy as np
 
 
-# Helpers to access, set and transform dict values
-def get_from_dict(data_dict, map_list):
-    return reduce(lambda d, k: d[k], map_list, data_dict)
+##################
+#  MAIN FUNCTION
+##################
+def get(parameters, collection, variable, instant, base_options=None,**vector_variables):
+    # Get the requested parameter from the requested collection
+    # TODO : parse the relevant YAML collection here on the fly, cache it in tax_benefit_system
+    parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
+    if parameter is None:
+        message = "Parameter \"{0}\" not found in collection \"{1}\"".format(variable, collection)
+        raise legislations.ParameterNotFound(instant=instant, name=variable)  # TODO don't raise general Exception !
+
+    # select and set the right value for this instant
+    transform_dict_key(
+        parameter,
+        dict(key_to_find='VALUES', new_key='VALUE',
+             transform=lambda values: choose_value(values, instant)),
+    )
+
+    # filter VAR cases using variables
+    # remember : we're working on vector variables
+    univoque_parameter = resolve_var_cases(vector_variables, parameter)
+
+    # Now apply specific computations if any : BAREME, LIN...
+    return compute_parameter(univoque_parameter, base_options)
 
 
-def set_in_dict(data_dict, map_list, value):
-    get_from_dict(data_dict, map_list[:-1])[map_list[-1]] = value
+def compute_parameter(parameter, base_options):
+    if parameter.get('BAREME'):
+        return compute_scales(parameter, base_options)
+    if parameter.get('LIN'):
+        return compute_linear(parameter, base_options)
+    else:
+        return parameter['VALUE']
 
 
 def transform_dict_key(node, options, parentNode=None, parentKey=None):
@@ -52,34 +78,6 @@ def choose_value(values, instant):
     return None
 
 
-##################
-#  MAIN FUNCTION
-##################
-def get(parameters, collection, variable, instant, bareme_parameters=None,**vector_variables):
-    # Get the requested parameter from the requested collection
-    # TODO : parse the relevant YAML collection here on the fly, cache it in tax_benefit_system
-    parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
-    if parameter is None:
-        message = "Parameter \"{0}\" not found in collection \"{1}\"".format(variable, collection)
-        raise legislations.ParameterNotFound(instant=instant, name=variable)  # TODO don't raise general Exception !
-
-    # select and set the right value for this instant
-    transform_dict_key(
-        parameter,
-        dict(key_to_find='VALUES', new_key='VALUE',
-             transform=lambda values: choose_value(values, instant)),
-    )
-
-    # filter VAR cases using variables
-    # remember : we're working on vector variables
-    resolved_parameter = resolve_var_cases(vector_variables, parameter)
-
-    # Compute scales if it is a BAREME
-    parameter_with_scales = compute_scales(resolved_parameter, bareme_parameters)
-
-    return parameter_with_scales['VALUE']
-
-
 def get_parameter_value(node, attribute, default=None):
     value = node.get(attribute)
     if value:
@@ -97,32 +95,59 @@ def to_vector(element, vector_size):
     return element
 
 
-def compute_scales(parameter, bareme_parameters):
-    bareme = parameter.get('BAREME')
-    if not bareme:
-        return parameter
-    else:
-        assert bareme_parameters is not None
-        base = bareme_parameters.get('base')
-        factor = bareme_parameters.get('factor')
-        for element in [base, factor]:
-            assert element is not None
+def certify_base_options(base_options):
+    assert base_options is not None
+    base = base_options.get('base')
+    factor = base_options.get('factor')
+    for element in [base, factor]:
+        assert element is not None
+    return base, factor
 
-        nb_entities = len(base)
-        thresholds = list()
-        rates = list()
-        # Only the case of the MarginalRateTaxScale is supported in YAML parameters
-        # Construct the tax scale
-        tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
-        for tranche in bareme:
-            assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
-            taux = get_parameter_value(tranche, 'TAUX')
-            seuil = get_parameter_value(tranche, 'SEUIL')
-            # transform scalar to vector
-            rates.append(to_vector(taux * assiette, nb_entities))
-            thresholds.append(to_vector(seuil, nb_entities))
-        parameter['tax_scale'] = tax_scale
-    return {'VALUE': parameter['tax_scale'].calc(base, factor, thresholds=thresholds, rates=rates)}
+
+def compute_linear(parameter, base_options):
+    lin = parameter.get('LIN')
+    base, factor = certify_base_options(base_options)
+    plafond = lin.get('PLAFOND')
+
+    # Construct a taxscale (see def compute_scales)
+
+    thresholds = list()
+    rates = list()
+    nb_entities = len(base)
+    tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
+
+    # With one bracket only...
+    rates.append(to_vector(lin['VALUE'], nb_entities))
+    thresholds.append(to_vector(0, nb_entities))
+
+    # ... or two if PLAFOND is specified.
+    # This is the upper limit bracket
+    if plafond:
+        rates.append(to_vector(0, nb_entities))
+        thresholds.append(to_vector(1, nb_entities))
+
+    return tax_scale.calc(base, factor, thresholds=thresholds, rates=rates)
+
+
+
+def compute_scales(parameter, base_options):
+    bareme = parameter.get('BAREME')
+    base, factor = certify_base_options(base_options)
+
+    nb_entities = len(base)
+    thresholds = list()
+    rates = list()
+    # Only the case of the MarginalRateTaxScale is supported in YAML parameters
+    # Construct the tax scale
+    tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
+    for tranche in bareme:
+        assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
+        taux = get_parameter_value(tranche, 'TAUX')
+        seuil = get_parameter_value(tranche, 'SEUIL')
+        # transform scalar to vector
+        rates.append(to_vector(taux * assiette, nb_entities))
+        thresholds.append(to_vector(seuil, nb_entities))
+    return tax_scale.calc(base, factor, thresholds=thresholds, rates=rates)
 
 
 def resolve_var_cases(vector_variables, parameter):

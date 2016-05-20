@@ -78,7 +78,7 @@ def test_yaml_parameters():
         'parameters',
         'famille',
         '1994-02-06',
-        bareme_parameters={'base': [2300, 1467], 'factor': 3218},
+        base_options={'base': [2300, 1467], 'factor': 3218},
     )
     assert_true(
         (vector1 == np.array([124.2, 79.218])).all()
@@ -89,14 +89,36 @@ def test_yaml_parameters():
         'parameters',
         'agffc',
         '2003-02-06',
-        bareme_parameters={'base': [2300, 6000], 'factor': 3218},
+        base_options={'base': [2300, 6000], 'factor': 3218},
     )
     assert_true(
         (vector2 == np.array([27.6, 74.782])).all()
     )
 
+    # 2) LINear parameters (simpler scales)
+    assert_equal(
+        parameters.get(
+            tax_benefit_system.parameters,
+            'parameters',
+            'famille2',
+            '2016-02-06',
+            base_options={'base': [5000], 'factor': 3218},
+        ),
+        92.5
+    )
 
-    #2) "variable-parameters.yaml" collection
+    assert_equal(
+        parameters.get(
+            tax_benefit_system.parameters,
+            'parameters',
+            'vieillesse_plafonnee',
+            '2017-02-06',
+            base_options={'base': [5000], 'factor': 3218},
+        ),
+        273.53
+    )
+
+    # 3) "variable-parameters.yaml" collection
 
     vector3 = parameters.get(
             tax_benefit_system.parameters,
@@ -114,7 +136,7 @@ def test_yaml_parameters():
             'variable_parameters',
             'participation_effort_construction_2',
             '2015-02-06',
-            bareme_parameters={'base': [2300, 2300, 6000], 'factor': 3218},
+            base_options={'base': [2300, 2300, 6000], 'factor': 3218},
             effectif_entreprise=np.array([2, 19, 29200]),
             type_sal=np.array([1, 2, 3])
         )
