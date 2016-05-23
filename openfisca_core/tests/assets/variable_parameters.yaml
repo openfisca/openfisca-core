@@ -74,24 +74,26 @@
 
 - variable: contribution_supplementaire_apprentissage
   description: Contribution supplémentaire d'apprentissage
-  VAR:
-    - condition: "pourcentage_alternants < 1 & effectif_entreprise > 2000"
-      VALUES:
-        - {deb: 2016-01-01, fuzzy: true, valeur: .006}
-        - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
-        - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
-    - condition: "pourcentage_alternants < 1 & effectif_entreprise > 2000"
-      VALUES:
-        - {deb: 2016-01-01, fuzzy: true, valeur: .006}
-        - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
-        - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
-    - condition: "pourcentage_alternants < 2"
-      VALUES:
-        - {deb: 2016-01-01, fuzzy: true, valeur: .002}
-        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
-        - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
-    - condition: "pourcentage_alternants < 3"
-      VALUES:
-        - {deb: 2016-01-01, fuzzy: true, valeur: .002}
-        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
-        - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
+  # Attention, fausses valeurs !
+  LIN:
+    VAR:
+      - condition: "(pourcentage_alternants < 1) & (effectif_entreprise < 2000)"
+        VALUES:
+          - {deb: 2016-01-01, fuzzy: true, valeur: .005}
+          - {deb: 2014-01-01, fin: 2015-12-31, valeur: .004}
+          - {deb: 2013-01-01, fin: 2013-12-31, valeur: .004}
+      - condition: "(pourcentage_alternants < 1) & (effectif_entreprise >= 2000)"
+        VALUES:
+          - {deb: 2016-01-01, fuzzy: true, valeur: .006}
+          - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
+          - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
+      - condition: "pourcentage_alternants < 2"
+        VALUES:
+          - {deb: 2016-01-01, fuzzy: true, valeur: .002}
+          - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
+          - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
+      - condition: "pourcentage_alternants < 3"
+        VALUES:
+          - {deb: 2016-01-01, fuzzy: true, valeur: .002}
+          - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
+          - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}

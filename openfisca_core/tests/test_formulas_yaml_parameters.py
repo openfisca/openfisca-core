@@ -9,7 +9,7 @@ from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
 
 from openfisca_core import parameters
 from openfisca_core.columns import IntCol, FloatCol
-from openfisca_core.formulas import Variable, set_input_divide_by_period
+from openfisca_core.formulas import Variable, set_input_divide_by_period, set_input_dispatch_by_period
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
@@ -70,6 +70,34 @@ class vieillesse_salarie(Variable):
         return period, vieillesse
 
 
+class effectif_entreprise(Variable):
+    column = FloatCol
+    entity_class = Individus
+    label = "Effectif entreprise"
+    set_input = set_input_dispatch_by_period
+
+
+class pourcentage_alternants(Variable):
+    column = FloatCol
+    entity_class = Individus
+    label = "Proportion de l'effectif de l'entreprise en alternance"
+    set_input = set_input_dispatch_by_period
+
+
+class contribution_supplementaire_apprentissage(Variable):
+    column = FloatCol
+    entity_class = Individus
+
+    def function(self, simulation, period):
+        instant = period.start.period(u'month').offset('first-of').start
+        assiette = simulation.calculate('salaire_brut', period)
+
+        value = self.get_parameter(instant, base_options={'base': assiette},
+                                   effectif_entreprise=simulation.calculate('effectif_entreprise', period),
+                                   pourcentage_alternants=simulation.calculate('pourcentage_alternants', period))
+        return period, value
+
+
 test_dir_path = os.path.dirname(os.path.abspath(__file__))
 
 class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
@@ -88,7 +116,9 @@ tax_benefit_system = DummyMultipleXmlBasedTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2016,
     input_variables = {
-        'salaire_brut': np.array([1467, 2300, 8000])
+        'salaire_brut': np.array([1467, 2300, 8000]),
+        'effectif_entreprise': np.array([3, 3000, 65]),
+        'pourcentage_alternants': np.array([100/3, 0.5, 0])
         },
     )
 
@@ -107,8 +137,15 @@ def test_simply_get_yaml_parameter():
 
 def test_yaml_parameters_in_formulas():
     simulation = scenario.new_simulation(debug = True)
+
     pss = simulation.calculate('plafond_securite_sociale')
     assert_equal(pss[0], 3218)
+
     vieillesse_salarie = simulation.calculate('vieillesse_salarie')
     assert_almost_equal(vieillesse_salarie, np.array([106.36, 166.75, 250.04]), decimal=2)
 
+def test_variable_parameters_in_formulas():
+    simulation = scenario.new_simulation(debug = True)
+
+    contrib = simulation.calculate('contribution_supplementaire_apprentissage')
+    assert_almost_equal(contrib, np.array([0, .006 * 2300, .005 * 8000]), decimal=2)

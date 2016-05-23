@@ -107,18 +107,17 @@ def to_vector(element, vector_size):
     return element
 
 
-def certify_base_options(base_options):
+def certify_base(base_options):
     assert base_options is not None
-    base = base_options.get('base')
+    base = base_options.get('base', None)
     factor = base_options.get('factor')
-    for element in [base, factor]:
-        assert element is not None
+    assert base is not None
     return base, factor
 
 
 def compute_linear(parameter, base_options):
     lin = parameter.get('LIN')
-    base, factor = certify_base_options(base_options)
+    base, factor = certify_base(base_options)
     plafond = lin.get('PLAFOND')
 
     # Construct a taxscale (see def compute_scales)
@@ -144,7 +143,7 @@ def compute_linear(parameter, base_options):
 
 def compute_scales(parameter, base_options):
     bareme = parameter.get('BAREME')
-    base, factor = certify_base_options(base_options)
+    base, factor = certify_base(base_options)
 
     nb_entities = len(base)
     thresholds = list()

@@ -208,10 +208,11 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base, factor=1, thresholds=None, rates=None, round_base_decimals=None):
+    def calc(self, base, factor=None, thresholds=None, rates=None, round_base_decimals=None):
         n = len(self.thresholds)
         N = len(base)
 
+        factor = 1 if factor is None else factor
          # factor can be a vector or a scalar. In the latter case, convert it to a vector
         if isinstance(factor, (float, int)):
             factor = np.ones(N) * factor
