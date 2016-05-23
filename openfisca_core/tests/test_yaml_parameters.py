@@ -3,7 +3,8 @@
 import os
 import numpy as np
 
-from nose.tools import assert_equal, raises, assert_true
+from nose.tools import assert_equal, raises
+from numpy.testing import assert_almost_equal
 
 from openfisca_core import legislations, parameters
 from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
@@ -77,8 +78,8 @@ def test_yaml_parameters():
         '1994-02-06',
         base_options={'base': [2300, 1467], 'factor': 3218},
     )
-    assert_true(
-        (vector1 == np.array([124.2, 79.218])).all()
+    assert_almost_equal(
+        vector1, np.array([124.2, 79.218]), decimal=1
     )
 
     vector2 = parameters.get(
@@ -87,8 +88,8 @@ def test_yaml_parameters():
         '2003-02-06',
         base_options={'base': [2300, 6000], 'factor': 3218},
     )
-    assert_true(
-        (vector2 == np.array([27.6, 74.782])).all()
+    assert_almost_equal(
+        vector2, np.array([27.6, 74.782]), decimal=1
     )
 
     # 2) LINear parameters (simpler scales)
@@ -120,8 +121,8 @@ def test_yaml_parameters():
             '2015-02-06',
             effectif_entreprise=np.array([29000, 5])
         )
-    assert_true(
-        (vector3 == np.array([.2835, .2795])).all()
+    assert_almost_equal(
+        vector3, np.array([.2835, .2795]), decimal=1
     )
 
     vector4 = parameters.get(
@@ -132,6 +133,6 @@ def test_yaml_parameters():
             effectif_entreprise=np.array([2, 19, 29200]),
             type_sal=np.array([1, 2, 3])
         )
-    assert_true(
-        (vector4 == np.array([0, 20.7, 654.6624782])).all()
+    assert_almost_equal(
+        vector4, np.array([0, 20.7, 654.6624782]), decimal=1
     )
