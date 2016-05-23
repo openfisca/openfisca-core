@@ -11,6 +11,14 @@
     - {deb: 2013-01-01, fin: 2013-12-31, valeur: 9.43}
     # etc.
 
+- variable: plafond_securite_sociale
+  description: Plafond mensuel de la sécurité sociale
+  type: monetary
+  VALUES:
+    - {deb: 2017-01-01, fuzzy: true, valeur: 3218}
+    - {deb: 2016-01-01, fin: 2016-12-31, valeur: 3218}
+    - {deb: 2015-01-01, fin: 2015-12-31, valeur: 3170}
+
 # BAREME node with 1 bracket...
 - variable: famille
   description: Allocations familiales

@@ -72,7 +72,7 @@ def choose_value(values, instant):
             raise Exception(
                 'Please set a "fin" date or set "fuzzy" to true in your parameters')  # TODO don't raise general Exception !
 
-        if beginning <= instant and (end is None or instant <= end):
+        if beginning <= str(instant) and (end is None or str(instant) <= end):
             return value['valeur']
 
     return None
