@@ -257,8 +257,9 @@ class Simulation(object):
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
 
-    def get_parameter(self, collection, code, instant, variables):
-        return parameters.get_parameter(self.parameters, collection, code, instant, variables)
+    def get_parameter(self, name, instant, dimension, base_options, **vector_variables):
+        return parameters.get(self.tax_benefit_system.parameters, name, instant, dimension,
+                              base_options=base_options, **vector_variables)
 
     def stringify_input_variables_infos(self, input_variables_infos):
         return u', '.join(

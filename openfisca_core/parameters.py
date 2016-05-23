@@ -9,13 +9,21 @@ import numpy as np
 ##################
 #  MAIN FUNCTION
 ##################
-def get(parameters, collection, variable, instant, base_options=None,**vector_variables):
-    # Get the requested parameter from the requested collection
-    # TODO : parse the relevant YAML collection here on the fly, cache it in tax_benefit_system
-    parameter = next((x for x in parameters[collection] if x['variable'] == variable), None)
+def get(parameters, name, instant, dimension=None, base_options=None, **vector_variables):
+    # Get the requested parameter from the collections
+
+    # TODO : parse the relevant YAML collection here on the fly,
+    # cache it in tax_benefit_system. Collection would need to be declared somewhere
+    parameter = None
+    for _, collection in parameters.iteritems():
+        treasure = next((x for x in collection if x['variable'] == name), None)
+        if treasure is not None:
+            parameter = treasure
+            break
+
     if parameter is None:
-        message = "Parameter \"{0}\" not found in collection \"{1}\"".format(variable, collection)
-        raise legislations.ParameterNotFound(instant=instant, name=variable)  # TODO don't raise general Exception !
+        message = "Parameter \"{0}\" not found".format(name)
+        raise legislations.ParameterNotFound(instant=instant, name=name)
 
     # select and set the right value for this instant
     transform_dict_key(
@@ -29,7 +37,11 @@ def get(parameters, collection, variable, instant, base_options=None,**vector_va
     univoque_parameter = resolve_var_cases(vector_variables, parameter)
 
     # Now apply specific computations if any : BAREME, LIN...
-    return compute_parameter(univoque_parameter, base_options)
+    value = compute_parameter(univoque_parameter, base_options)
+
+    # A vector should be returned here. Explicitely build one of the right dimension
+    # in case it wasn't created (e.g. based on base_options.base)
+    return np.zeros(dimension) + value if not isinstance(value, np.ndarray) else value
 
 
 def compute_parameter(parameter, base_options):

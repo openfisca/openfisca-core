@@ -57,7 +57,6 @@ def test_yaml_parameters():
     def unknown_parameter():
         parameters.get(
             tax_benefit_system.parameters,
-            'parameters',
             'LOL',
             '2014-02-06'
         )
@@ -66,7 +65,6 @@ def test_yaml_parameters():
     assert_equal(
         parameters.get(
             tax_benefit_system.parameters,
-            'parameters',
             'smic_horaire_brut',
             '2014-02-06',
         ),
@@ -75,7 +73,6 @@ def test_yaml_parameters():
 
     vector1 = parameters.get(
         tax_benefit_system.parameters,
-        'parameters',
         'famille',
         '1994-02-06',
         base_options={'base': [2300, 1467], 'factor': 3218},
@@ -86,7 +83,6 @@ def test_yaml_parameters():
 
     vector2 = parameters.get(
         tax_benefit_system.parameters,
-        'parameters',
         'agffc',
         '2003-02-06',
         base_options={'base': [2300, 6000], 'factor': 3218},
@@ -99,7 +95,6 @@ def test_yaml_parameters():
     assert_equal(
         parameters.get(
             tax_benefit_system.parameters,
-            'parameters',
             'famille2',
             '2016-02-06',
             base_options={'base': [5000], 'factor': 3218},
@@ -110,19 +105,17 @@ def test_yaml_parameters():
     assert_equal(
         parameters.get(
             tax_benefit_system.parameters,
-            'parameters',
-            'vieillesse_plafonnee',
+            'vieillesse_plafonnee_salarie',
             '2017-02-06',
             base_options={'base': [5000], 'factor': 3218},
-        ),
-        273.53
+        )[0],
+        3218*.0690
     )
 
     # 3) "variable-parameters.yaml" collection
 
     vector3 = parameters.get(
             tax_benefit_system.parameters,
-            'variable_parameters',
             'fillon_taux_max',
             '2015-02-06',
             effectif_entreprise=np.array([29000, 5])
@@ -133,7 +126,6 @@ def test_yaml_parameters():
 
     vector4 = parameters.get(
             tax_benefit_system.parameters,
-            'variable_parameters',
             'participation_effort_construction_2',
             '2015-02-06',
             base_options={'base': [2300, 2300, 6000], 'factor': 3218},

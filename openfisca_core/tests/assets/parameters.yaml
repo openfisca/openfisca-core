@@ -47,14 +47,30 @@
 
 # LIN with PLAFOND can be introduced too:
 
-- variable: vieillesse_plafonnee
-  description: Cotisation plafonnée de vieillesse
+- variable: vieillesse_deplafonnee_salarie
+  description: Cotisation déplafonnée de vieillesse (salarié)
   LIN:
-    # ASSIETTE: assiette_cotisations_sociales
+    VALUES:
+      - {deb: 2018-01-01, fuzzy: true, valeur: .004}
+      - {deb: 2017-01-01, fin: 2017-12-31, valeur: .004}
+      - {deb: 2016-01-01, fin: 2016-12-31, valeur: .0035}
+      - {deb: 2015-01-01, fin: 2015-12-31, valeur: .003}
+      - {deb: 2014-01-01, fin: 2014-12-31, valeur: .0025}
+      - {deb: 2004-07-01, fin: 2013-12-31, valeur: .001}
+
+
+- variable: vieillesse_plafonnee_salarie
+  description: Cotisation plafonnée de vieillesse (salarié)
+  LIN:
     PLAFOND: 1
     VALUES:
-      - {deb: 2018-01-01, fuzzy: true, valeur: 0.0855}
-      - {deb: 2017-01-01, fin: 2017-12-31, valeur: 0.085}
+      - {deb: 2017-01-01, fuzzy: true, valeur: .0690}
+      - {deb: 2016-01-01, fin: 2016-12-31, valeur: .0690}
+      - {deb: 2015-01-01, fin: 2015-12-31, valeur: .0685}
+      - {deb: 2014-01-01, fin: 2014-12-31, valeur: .0680}
+      - {deb: 2012-11-01, fin: 2013-12-31, valeur: .0675}
+      - {deb: 2006-01-01, fin: 2012-10-31, valeur: .0665}
+      - {deb: 1993-07-01, fin: 2005-12-31, valeur: .0655}
 
 
 # of course real BAREMEs with multiple brackets happen :

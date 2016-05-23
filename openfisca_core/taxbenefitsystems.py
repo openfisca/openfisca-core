@@ -3,6 +3,9 @@
 
 import collections
 # import weakref
+import os
+
+import yaml
 
 from . import conv, legislations, legislationsxml
 
@@ -151,9 +154,6 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
         return legislation_json
 
     def get_parameters_from_yaml(self):
-        import yaml
-        import os
-
         return dict(
             (os.path.basename(path).split('.')[0], yaml.load(file(path, 'r')))
             for path in self.yaml_parameters_info_list
