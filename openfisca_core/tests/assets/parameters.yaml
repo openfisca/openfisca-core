@@ -41,12 +41,12 @@
   BAREME:
     - SEUIL:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-          - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
+          2015-01-01: 0
+          1992-01-01: 0
       TAUX:
         VALUES:
-          - {deb: 2014-01-01, fuzzy: true, valeur: 0.0525}
-          - {deb: 1993-07-01, fin: 2013-12-31, valeur: 0.054}
+          2014-01-01: .0525
+          1993-07-01: .054
 
 
 # ... which is annoying for this regular pattern of "base * rate"
@@ -57,9 +57,9 @@
   LIN:
     # ASSIETTE: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
     VALUES:
-      - {deb: 2018-01-01, fuzzy: true, valeur: 0.019}
-      - {deb: 2017-01-01, fin: 2017-12-31, valeur: 0.019}
-      - {deb: 2016-01-01, fin: 2016-12-31, valeur: 0.0185}
+      2018-01-01: .019
+      2017-01-01: .019
+      2016-01-01: .0185
 
 # LIN with PLAFOND can be introduced too:
 
@@ -67,12 +67,12 @@
   description: Cotisation déplafonnée de vieillesse (salarié)
   LIN:
     VALUES:
-      - {deb: 2018-01-01, fuzzy: true, valeur: .004}
-      - {deb: 2017-01-01, fin: 2017-12-31, valeur: .004}
-      - {deb: 2016-01-01, fin: 2016-12-31, valeur: .0035}
-      - {deb: 2015-01-01, fin: 2015-12-31, valeur: .003}
-      - {deb: 2014-01-01, fin: 2014-12-31, valeur: .0025}
-      - {deb: 2004-07-01, fin: 2013-12-31, valeur: .001}
+      2018-01-01: .004
+      2017-01-01: .004
+      2016-01-01: .0035
+      2015-01-01: .003
+      2014-01-01: .0025
+      2004-07-01: .001
 
 
 - variable: vieillesse_plafonnee_salarie
@@ -80,13 +80,13 @@
   LIN:
     PLAFOND: 1
     VALUES:
-      - {deb: 2017-01-01, fuzzy: true, valeur: .0690}
-      - {deb: 2016-01-01, fin: 2016-12-31, valeur: .0690}
-      - {deb: 2015-01-01, fin: 2015-12-31, valeur: .0685}
-      - {deb: 2014-01-01, fin: 2014-12-31, valeur: .0680}
-      - {deb: 2012-11-01, fin: 2013-12-31, valeur: .0675}
-      - {deb: 2006-01-01, fin: 2012-10-31, valeur: .0665}
-      - {deb: 1993-07-01, fin: 2005-12-31, valeur: .0655}
+      2017-01-01: .0690
+      2016-01-01: .0690
+      2015-01-01: .0685
+      2014-01-01: .0680
+      2012-11-01: .0675
+      2006-01-01: .0665
+      1993-07-01: .0655
 
 
 # of course real BAREMEs with multiple brackets happen :
@@ -96,29 +96,29 @@
   BAREME:
     - SEUIL:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: 0}
+          2015-01-01: 0
+          2001-04-01: 0
       TAUX:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: .016}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: .012}
+          2015-01-01: .016
+          2001-04-01: .012
 
     - SEUIL:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 1}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: 1}
+          2015-01-01: 1
+          2001-04-01: 1
       TAUX:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: .017}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: 0.013}
+          2015-01-01: .017
+          2001-04-01: .013
 
     - SEUIL:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 4}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: 4}
+          2015-01-01: 4
+          2001-04-01: 4
       TAUX:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-          - {deb: 2001-04-01, fin: 2014-12-31, valeur: 0}
+          2015-01-01: 0
+          2001-04-01: 0
 
 # Unfortunately things in this world are more complex... go check variable_parameters.yaml.

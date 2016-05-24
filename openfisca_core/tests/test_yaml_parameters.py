@@ -131,7 +131,7 @@ def test_yaml_parameters():
             effectif_entreprise=np.array([29000, 5])
         )
     assert_almost_equal(
-        vector3, np.array([.2835, .2795]), decimal=1
+        vector3, np.array([.2835, .2795]), decimal=4
     )
 
     vector4 = parameters.get(

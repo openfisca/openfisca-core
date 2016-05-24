@@ -16,19 +16,19 @@
   VAR:
     - condition: "20 <= effectif_entreprise"
       VALUES:
-        - {deb: 2018-01-01, fuzzy: true, valeur: .2850}
-        - {deb: 2017-01-01, fin: 2017-12-31, valeur: .2850}
-        - {deb: 2016-01-01, fin: 2016-12-31, valeur: .2842}
-        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .2835}
-        - {deb: 2005-07-01, fin: 2014-12-31, valeur: .26}
+        2018-01-01: .2850
+        2017-01-01: .2850
+        2016-01-01: .2842
+        2015-01-01: .2835
+        2005-07-01: .26
     - condition: "effectif_entreprise < 20"
       VALUES:
-        - {deb: 2018-01-01, fuzzy: true, valeur: .2810}
-        - {deb: 2017-01-01, fin: 2017-12-31, valeur: .2810}
-        - {deb: 2016-01-01, fin: 2016-12-31, valeur: .2802}
-        - {deb: 2015-01-01, fin: 2015-12-31, valeur: .2795}
-        - {deb: 2007-07-01, fin: 2014-12-31, valeur: .281}
-        - {deb: 2005-07-01, fin: 2007-06-30, valeur: .26}
+        2018-01-01: .2810
+        2017-01-01: .2810
+        2016-01-01: .2802
+        2015-01-01: .2795
+        2007-07-01: .281
+        2005-07-01: .26
 
 
 # BAREME with VARs
@@ -36,36 +36,36 @@
   BAREME:
     - SEUIL:
         VALUES:
-          - {deb: 2015-01-01, fuzzy: true, valeur: 0}
-          - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0}
+          2015-01-01: 0
+          1992-01-01: 0
       TAUX:
         VAR:
           - condition: "20 <= effectif_entreprise"
             VALUES:
-              - {deb: 2015-01-01, fuzzy: true, valeur: 0.0045999}
-              - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.004599}
+              2015-01-01: 0.0045999
+              1992-01-01: 0.004599
           - condition: "10 <= effectif_entreprise"
             VALUES:
-              - {deb: 2005-08-01, fuzzy: true, valeur: 0.009}
-              - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.00459}
+              2005-08-01: 0.009
+              1992-01-01: 0.00459
     - SEUIL:
         VAR:
           - condition: "1 < type_sal"
             VALUES:
-              - {deb: 1990-01-01, fuzzy: true, valeur: 1}
+              1990-01-01: 1
           - condition: "True"
             VALUES:
-              - {deb: 1990-01-01, fuzzy: true, valeur: .5}
+              1990-01-01: .5
       TAUX:
         VAR:
           - condition: "20 <= effectif_entreprise"
             VALUES:
-              - {deb: 2015-01-01, fuzzy: true, valeur: 0.23}
-              - {deb: 1992-01-01, fin: 2014-12-31, valeur: 0.1}
+              2015-01-01: 0.23
+              1992-01-01: 0.1
           - condition: "10 <= effectif_entreprise"
             VALUES:
-              - {deb: 2005-08-01, fuzzy: true, valeur: 0.46}
-              - {deb: 1992-01-01, fin: 2005-07-31, valeur: 0.89}
+              2005-08-01: 0.46
+              1992-01-01: 0.89
 
 
 # VARs can be very useful :
@@ -79,21 +79,21 @@
     VAR:
       - condition: "(pourcentage_alternants < 1) & (effectif_entreprise < 2000)"
         VALUES:
-          - {deb: 2016-01-01, fuzzy: true, valeur: .005}
-          - {deb: 2014-01-01, fin: 2015-12-31, valeur: .004}
-          - {deb: 2013-01-01, fin: 2013-12-31, valeur: .004}
+          2016-01-01: .005
+          2014-01-01: .004
+          2013-01-01: .004
       - condition: "(pourcentage_alternants < 1) & (effectif_entreprise >= 2000)"
         VALUES:
-          - {deb: 2016-01-01, fuzzy: true, valeur: .006}
-          - {deb: 2014-01-01, fin: 2015-12-31, valeur: .006}
-          - {deb: 2013-01-01, fin: 2013-12-31, valeur: .005}
+          2016-01-01: .006
+          2014-01-01: .006
+          2013-01-01: .005
       - condition: "pourcentage_alternants < 2"
         VALUES:
-          - {deb: 2016-01-01, fuzzy: true, valeur: .002}
-          - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
-          - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
+          2016-01-01: .002
+          2015-01-01: .002
+          2013-01-01: .001
       - condition: "pourcentage_alternants < 3"
         VALUES:
-          - {deb: 2016-01-01, fuzzy: true, valeur: .002}
-          - {deb: 2015-01-01, fin: 2015-12-31, valeur: .002}
-          - {deb: 2013-01-01, fin: 2014-12-31, valeur: .001}
+          2016-01-01: .002
+          2015-01-01: .002
+          2013-01-01: .001
