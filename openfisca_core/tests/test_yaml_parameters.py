@@ -72,6 +72,15 @@ def test_yaml_parameters():
         9.53
     )
 
+    assert_equal(
+        parameters.get(
+            tax_benefit_system.parameters,
+            'plafond_securite_sociale',
+            '2015-02-06',
+        ),
+        3170
+    )
+
     vector1 = parameters.get(
         tax_benefit_system.parameters,
         'famille',

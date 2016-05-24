@@ -11,13 +11,29 @@
     - {deb: 2013-01-01, fin: 2013-12-31, valeur: 9.43}
     # etc.
 
+#  Short date notation :
+#  Use it in the very common case where all VALUE leaves are consecutive
 - variable: plafond_securite_sociale
   description: Plafond mensuel de la sécurité sociale
   type: monetary
+  # Values should be written in descending ordered :
+  # what's most important today first
   VALUES:
-    - {deb: 2017-01-01, fuzzy: true, valeur: 3218}
-    - {deb: 2016-01-01, fin: 2016-12-31, valeur: 3218}
-    - {deb: 2015-01-01, fin: 2015-12-31, valeur: 3170}
+    #  Fuzzy is explicit :
+    #  to express the disparition of a variable,
+    #  you should explicitely set its last date
+    #  (which is the first in the syntax) to 0
+    2017-01-01: 3218
+    # This first line above is computationally useless.
+    # But to humans with a limited capacity for watching parameter changes,
+    # it ensures that somebody checked the law and the value had not changed in 2017.
+    2016-01-01: 3218
+    2015-01-01: 3170
+    # Asking for a parameter for the date before the last will
+    # raise a ParameterNotFound error
+    # TODO: Or should it return 0 ?
+
+
 
 # BAREME node with 1 bracket...
 - variable: famille

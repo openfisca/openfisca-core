@@ -22,14 +22,13 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
             break
 
     if parameter is None:
-        message = "Parameter \"{0}\" not found".format(name)
         raise legislations.ParameterNotFound(instant=instant, name=name)
 
     # select and set the right value for this instant
     transform_dict_key(
         parameter,
         dict(key_to_find='VALUES', new_key='VALUE',
-             transform=lambda values: choose_value(values, instant)),
+             transform=lambda values: choose_temporal_value(name, values, instant)),
     )
 
     # filter VAR cases using variables
@@ -75,20 +74,35 @@ def convert_value_date(date):
     return conv.date_to_iso8601_str(date)[0]
 
 
-def choose_value(values, instant):
-    for value in values:
-        beginning = convert_value_date(value['deb'])
-        end = convert_value_date(value['fin']) if value.get('fin') else None
+def choose_temporal_value(name, values, instant):
+    str_instant = str(instant)
 
-        if end is None and value.get('fuzzy') is None:
-            raise Exception(
-                'Please set a "fin" date or set "fuzzy" to true in your parameters')  # TODO don't raise general Exception !
+    # Prepare the error
+    error = legislations.ParameterNotFound(instant=instant, name=name)
 
-        if beginning <= str(instant) and (end is None or str(instant) <= end):
-            return value['valeur']
+    if isinstance(values, dict):
+        #  Simple object date notation
+        for raw_date in sorted(values, reverse=True):
+            date = convert_value_date(raw_date)
+            if str_instant >= date:
+                return values[raw_date]
+        raise error
 
-    return None
+    elif isinstance(values, list):
+        # Complete object list notation
 
+        for value in values:
+            beginning = convert_value_date(value['deb'])
+            end = convert_value_date(value['fin']) if value.get('fin') else None
+
+            if end is None and value.get('fuzzy') is None:
+                raise Exception(
+                    'Please set a "fin" date or set "fuzzy" to true in your parameters')  # TODO don't raise general Exception !
+
+            if beginning <= str(instant) and (end is None or str(instant) <= end):
+                return value['valeur']
+
+    raise error
 
 def get_parameter_value(node, attribute, default=None):
     value = node.get(attribute)
