@@ -23,7 +23,8 @@ class Simulation(object):
     trace = False
     traceback = None
 
-    def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None, trace = False):
+    def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None,
+    trace = False, opt_out_cache = False):
         assert isinstance(period, periods.Period)
         self.period = period
         self.holder_by_name = {}
@@ -43,6 +44,7 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         if trace:
             self.trace = True
+        self.opt_out_cache = opt_out_cache
         if debug or trace:
             self.stack_trace = collections.deque()
             self.traceback = collections.OrderedDict()

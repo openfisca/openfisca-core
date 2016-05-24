@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 – [diff](https://github.com/openfisca/openfisca-core/compare/1.0.0...1.1.0)
+
+* Implement cache opt out system
+
 ## 1.0.0 – [diff](https://github.com/openfisca/openfisca-core/compare/0.5.4...1.0.0)
 
 * Remove `build_column` obsolete function. Use `Variable` class instead.

@@ -27,6 +27,7 @@ class AbstractTaxBenefitSystem(object):
         ))
     reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     Scenario = None
+    cache_blacklist = None
 
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.

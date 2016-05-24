@@ -339,7 +339,7 @@ class AbstractScenario(object):
         return json_to_instance
 
     def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False,
-            use_set_input_hooks = True):
+            use_set_input_hooks = True, opt_out_cache = False):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -355,6 +355,7 @@ class AbstractScenario(object):
             period = self.period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,
+            opt_out_cache = opt_out_cache,
             )
         self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
         return simulation
