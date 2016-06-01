@@ -9,6 +9,7 @@ from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
     PersonToEntityColumn, set_input_divide_by_period, Variable)
+from openfisca_core.variables import NewVariable
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Familles, Individus
 from openfisca_core.tools import assert_near
@@ -17,7 +18,7 @@ from openfisca_core.tools import assert_near
 # Input variables
 
 
-class age_en_mois(Variable):
+class age_en_mois(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre de mois)"
@@ -152,7 +153,7 @@ class salaire_net(Variable):
 
 # TaxBenefitSystem instance declared after formulas
 tax_benefit_system = dummy_country.init_tax_benefit_system()
-
+tax_benefit_system.add_variable(age_en_mois)
 
 def test_1_axis():
     year = 2013

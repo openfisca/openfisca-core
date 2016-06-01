@@ -102,6 +102,16 @@ class AbstractTaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
+    def add_variable(self, variable_class):
+        name = unicode(variable_class.__name__)
+        variable_type = variable_class.__bases__[0]
+        attributes = variable_class.__dict__
+
+        variable = variable_type(name, attributes)
+        column = variable.to_column()
+
+        self.column_by_name[column.name] = column
+
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
     """A tax and benefit sytem with legislation stored in a XML file."""
