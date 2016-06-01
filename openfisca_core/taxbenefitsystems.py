@@ -105,10 +105,13 @@ class AbstractTaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
-    def add_variable(self, variable_class):
+    def add_variable(self, variable_class, update = False):
         name = unicode(variable_class.__name__)
         variable_type = variable_class.__bases__[0]
         attributes = variable_class.__dict__
+
+        if self.get_column(name) and not update:
+            raise Exception('Variable {} is already defined. Use `update = True to replace it.'.format(name))
 
         variable = variable_type(name, attributes, variable_class) # We pass the variable_class just for introspection for parsers.
         column = variable.to_column(self) # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...

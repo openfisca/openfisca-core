@@ -4,6 +4,7 @@ import datetime
 from os import path
 
 import numpy as np
+from nose.tools import raises
 
 from openfisca_core.variables import NewVariable
 from openfisca_core import periods
@@ -205,7 +206,17 @@ def test_variable_with_reference():
         def function(self, simulation, period):
             return period, self.zeros()
 
-    tax_benefit_system.add_variable(revenu_disponible)
+    tax_benefit_system.add_variable(revenu_disponible, update = True)
     revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013);
 
     assert(revenu_disponible_apres_reforme == 0)
+
+@raises(Exception)
+def test_variable_name_conflict():
+    class revenu_disponible(NewVariable):
+        reference = 'revenu_disponible'
+
+        def function(self, simulation, period):
+            return period, self.zeros()
+    tax_benefit_system.add_variable(revenu_disponible)
+
