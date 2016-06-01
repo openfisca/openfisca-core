@@ -113,7 +113,14 @@ class AbstractTaxBenefitSystem(object):
         self.column_by_name[column.name] = column
 
     def get_column(self, column_name):
-        return self.column_by_name.get(column_name)
+        column = self.column_by_name.get(column_name)
+
+        # Temporary retrocompatibility
+        if not column:
+            for entity in self.entity_class_by_key_plural.values():
+                column = entity.column_by_name.get(column_name)
+                if column: return column
+        return column
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):

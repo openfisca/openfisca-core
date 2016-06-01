@@ -227,9 +227,7 @@ class Simulation(object):
         holder = self.holder_by_name.get(column_name)
         if holder is None:
             entity = self.getVariableEntity(column_name)
-            column = self.tax_benefit_system.column_by_name.get(column_name)
-            if not column: column = entity.column_by_name[column_name]
-
+            column = self.tax_benefit_system.get_column(column_name)
             self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
             if column.formula_class is not None:
                 holder.formula = column.formula_class(holder = holder)
