@@ -185,7 +185,7 @@ class AbstractScenario(object):
                     # All parallel axes have the same count and entity.
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
-                    axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                    axis_entity = simulation.getVariableEntity(first_axis['name'])
                     for axis in parallel_axes:
                         axis_period = axis['period'] or simulation_period
                         holder = simulation.get_or_new_holder(axis['name'])
@@ -212,7 +212,7 @@ class AbstractScenario(object):
                         # All parallel axes have the same count and entity.
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
-                        axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                        axis_entity = simulation.getVariableEntity(first_axis['name'])
                         for axis in parallel_axes:
                             axis_period = axis['period'] or simulation_period
                             holder = simulation.get_or_new_holder(axis['name'])

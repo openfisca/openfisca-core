@@ -58,11 +58,6 @@ class Simulation(object):
             (key_plural, entity_class(simulation = self))
             for key_plural, entity_class in entity_class_by_key_plural.iteritems()
             )
-        self.entity_by_column_name = dict(
-            (column_name, entity)
-            for entity in entity_by_key_plural.itervalues()
-            for column_name in entity.column_by_name.iterkeys()
-            )
         self.entity_by_key_singular = dict(
             (entity.key_singular, entity)
             for entity in entity_by_key_plural.itervalues()
@@ -230,9 +225,11 @@ class Simulation(object):
 
     def get_or_new_holder(self, column_name):
         holder = self.holder_by_name.get(column_name)
-        entity = self.entity_by_column_name[column_name]
         if holder is None:
-            column = entity.column_by_name[column_name]
+            entity = self.getVariableEntity(column_name)
+            column = self.tax_benefit_system.column_by_name.get(column_name)
+            if not column: column = entity.column_by_name[column_name]
+
             self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
             if column.formula_class is not None:
                 holder.formula = column.formula_class(holder = holder)
@@ -278,3 +275,10 @@ class Simulation(object):
             for column_name in entity.column_by_name.iterkeys()
             if column_name in entity.holder_by_name
             }
+
+    def getVariableEntity(self, variable_name):
+        for entity in self.entity_by_key_plural.values():
+            if entity.column_by_name.get(variable_name):
+                return entity
+        column = self.tax_benefit_system.column_by_name.get(variable_name)
+        return self.entity_by_key_plural[column.entity_key_plural]
