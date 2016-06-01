@@ -322,14 +322,14 @@ def test_revenu_disponible():
 # This test must stay commented since it introduces a side-effect.
 # Even initializing a new tax_benefit_system does not gets rid of the side-effect since entities are created
 # when Python modules are parsed, at a class and not instance level.
-#
-# def test_variable_with_reference():
-#     entity_class = tax_benefit_system.column_by_name['revenu_disponible'].entity_class
-#
-#     class revenu_disponible(Variable):
-#         reference = tax_benefit_system.column_by_name['revenu_disponible']
-#
-#         def function(self, simulation, period):
-#             return period, self.zeros()
-#
-#     assert revenu_disponible.entity_class == entity_class
+
+def test_variable_with_reference():
+    entity_class = tax_benefit_system.column_by_name['revenu_disponible'].entity_class
+
+    class revenu_disponible(Variable):
+        reference = tax_benefit_system.column_by_name['revenu_disponible']
+
+        def function(self, simulation, period):
+            return period, self.zeros()
+
+    assert revenu_disponible.entity_class == entity_class
