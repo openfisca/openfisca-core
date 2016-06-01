@@ -10,6 +10,7 @@ from openfisca_core import conv
 from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import Variable
+from openfisca_core.variables import NewVariable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleXmlBasedTaxBenefitSystem
 
@@ -75,14 +76,14 @@ entity_class_by_key_plural = {
 # Mandatory input variables
 
 
-class id_famille(Variable):
+class id_famille(NewVariable):
     column = IntCol
     entity_class = Individus
     is_permanent = True
     label = u"Identifiant de la famille"
 
 
-class role_dans_famille(Variable):
+class role_dans_famille(NewVariable):
     column = IntCol
     entity_class = Individus
     is_permanent = True

@@ -2,6 +2,9 @@
 
 
 import collections
+from inspect import isclass
+from os import path
+from imp import find_module, load_module
 # import weakref
 
 from . import conv, legislations, legislationsxml
@@ -111,6 +114,16 @@ class AbstractTaxBenefitSystem(object):
         column = variable.to_column(self) # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
 
         self.column_by_name[column.name] = column
+
+    def add_variables_from_file(self, file):
+        module_name = path.splitext(path.basename(file))[0]
+        module_directory = path.dirname(file)
+        module = load_module(module_name, *find_module(module_name, [module_directory]))
+
+        potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
+        variables = [x for x in potential_variables if x != module.NewVariable and isclass(x) and issubclass(x, module.NewVariable)]
+        for variable in variables:
+            self.add_variable(variable)
 
     def get_column(self, column_name):
         column = self.column_by_name.get(column_name)
