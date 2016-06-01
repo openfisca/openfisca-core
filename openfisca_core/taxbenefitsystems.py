@@ -107,10 +107,13 @@ class AbstractTaxBenefitSystem(object):
         variable_type = variable_class.__bases__[0]
         attributes = variable_class.__dict__
 
-        variable = variable_type(name, attributes)
-        column = variable.to_column()
+        variable = variable_type(name, attributes, variable_class) # We pass the variable_class just for introspection for parsers.
+        column = variable.to_column(self) # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
 
         self.column_by_name[column.name] = column
+
+    def get_column(self, column_name):
+        return self.column_by_name.get(column_name)
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
