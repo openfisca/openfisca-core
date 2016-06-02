@@ -25,7 +25,7 @@ class AbstractNewVariable():
 
         return (comments, source_file_path, source_code, line_number)
 
-class NewVariable(AbstractNewVariable):
+class AbstractComputationVariable(AbstractNewVariable):
     formula_class = SimpleFormula
 
     def to_column(self, tax_benefit_system):
@@ -69,7 +69,10 @@ class NewVariable(AbstractNewVariable):
             **self.attributes
             )
 
-class NewDatedVariable(NewVariable):
+class NewVariable(AbstractComputationVariable):
+    formula_class = SimpleFormula
+
+class NewDatedVariable(AbstractComputationVariable):
     formula_class = DatedFormula
 
 class AbstractConversionVariable(AbstractNewVariable):
