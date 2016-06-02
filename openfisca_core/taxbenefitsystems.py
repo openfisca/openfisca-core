@@ -2,6 +2,7 @@
 
 
 import collections
+import glob
 from inspect import isclass
 from os import path
 from imp import find_module, load_module
@@ -130,6 +131,14 @@ class AbstractTaxBenefitSystem(object):
                  issubclass(pot_variable, AbstractVariable) and
                  pot_variable not in variables.__dict__.values())):
                 self.add_variable(pot_variable)
+
+    def add_variables_from_directory(self, directory):
+        py_files = glob.glob(path.join(directory, "*.py"))
+        for py_file in py_files:
+            self.add_variables_from_file(py_file)
+        subdirectories = glob.glob(path.join(directory, "*/"))
+        for subdirectory in subdirectories:
+            self.add_variables_from_directory(subdirectory)
 
     def add_variables(self, *variables):
         for variable in variables:
