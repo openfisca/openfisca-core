@@ -7,6 +7,22 @@ class AbstractNewVariable():
         self.attributes = { attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems() }
         self.variable_class = variable_class
 
+    def introspect(self):
+        comments = inspect.getcomments(self.variable_class)
+
+        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
+        try:
+            source_file_path = inspect.getsourcefile(self.variable_class)
+        except TypeError:
+            source_file_path = None
+        try:
+            source_lines, line_number = inspect.getsourcelines(self.variable_class)
+            source_code = textwrap.dedent(''.join(source_lines))
+        except (IOError, TypeError):
+            source_code, line_number = None, None
+
+        return (comments, source_file_path, source_code, line_number)
+
 class NewVariable(AbstractNewVariable):
 
     def to_column(self, tax_benefit_system):
@@ -51,21 +67,6 @@ class NewVariable(AbstractNewVariable):
             **self.attributes
             )
 
-    def introspect(self):
-        comments = inspect.getcomments(self.variable_class)
-
-        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
-        try:
-            source_file_path = inspect.getsourcefile(self.variable_class)
-        except TypeError:
-            source_file_path = None
-        try:
-            source_lines, line_number = inspect.getsourcelines(self.variable_class)
-            source_code = textwrap.dedent(''.join(source_lines))
-        except (IOError, TypeError):
-            source_code, line_number = None, None
-
-        return (comments, source_file_path, source_code, line_number)
 
 class NewEntityToPersonColumn(AbstractNewVariable):
     def to_column(self, tax_benefit_system):
@@ -107,21 +108,14 @@ class NewEntityToPersonColumn(AbstractNewVariable):
         if doc is not None:
             formula_class_attributes['__doc__'] = doc
 
-        comments = inspect.getcomments(self.variable_class)
+        (comments, source_file_path, source_code, line_number) = self.introspect()
+
         if comments is not None:
             if isinstance(comments, str):
                 comments = comments.decode('utf-8')
             formula_class_attributes['comments'] = comments
-        source_file_path = inspect.getsourcefile(self.variable_class).decode('utf-8')
         if source_file_path is not None:
             formula_class_attributes['source_file_path'] = source_file_path
-        try:
-            source_lines, line_number = inspect.getsourcelines(self.variable_class)
-        except IOError:
-            line_number = None
-            source_code = None
-        else:
-            source_code = textwrap.dedent(''.join(source_lines).decode('utf-8'))
         if source_code is not None:
             formula_class_attributes['source_code'] = source_code
         if line_number is not None:
