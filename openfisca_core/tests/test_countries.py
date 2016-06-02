@@ -75,7 +75,7 @@ class dom_tom(Variable):
 class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
-    variable = "dom_tom"
+    variable = dom_tom
 
 
 class revenu_disponible(Variable):
@@ -95,7 +95,7 @@ class revenu_disponible_famille(PersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
-    variable = "revenu_disponible"
+    variable = revenu_disponible
 
 
 class rsa(DatedVariable):
@@ -154,7 +154,7 @@ tax_benefit_system = dummy_country.init_tax_benefit_system()
 
 # We cannot automatically import all the variable from this file, there would be an import loop
 tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
-    dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
+    dom_tom, dom_tom_individu, revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
 
 
 def test_1_axis():

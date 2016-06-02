@@ -111,10 +111,13 @@ class AbstractConversionVariable(AbstractVariable):
         if url is not None:
             url = unicode(url)
 
-        reference_variable_name = self.attributes.pop('variable')
+        reference_variable = self.attributes.pop('variable')
+        reference_variable_name = unicode(reference_variable.__name__)
         reference_column = tax_benefit_system.get_column(reference_variable_name)
 
-        assert reference_column is not None
+        if reference_column is None:
+            reference_column = tax_benefit_system.add_variable(reference_variable)
+            tax_benefit_system.automatically_loaded_variable.add(reference_variable_name)
 
         # Build formula class and column from extracted attributes.
 

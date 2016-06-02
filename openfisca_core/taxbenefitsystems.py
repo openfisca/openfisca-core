@@ -38,6 +38,7 @@ class AbstractTaxBenefitSystem(object):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = collections.OrderedDict()
+        self.automatically_loaded_variable = set()
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural
@@ -102,14 +103,19 @@ class AbstractTaxBenefitSystem(object):
         attributes = variable_class.__dict__
 
         if self.get_column(name) and not update:
+            # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
+            if name in self.automatically_loaded_variable:
+                self.automatically_loaded_variable.remove(name)
+                return self.get_column(name)
             raise Exception('Variable {} is already defined. Use `update = True to replace it.'.format(name))
 
         # We pass the variable_class just for introspection for parsers.
         variable = variable_type(name, attributes, variable_class)
         # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
         column = variable.to_column(self)
-
         self.column_by_name[column.name] = column
+
+        return column
 
     def add_variables_from_file(self, file):
         module_name = path.splitext(path.basename(file))[0]
