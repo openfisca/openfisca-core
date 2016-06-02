@@ -4,18 +4,18 @@
 import numpy as np
 
 from openfisca_core.columns import IntCol
-from openfisca_core.variables import NewVariable
+from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 
 
-class choice(NewVariable):
+class choice(Variable):
     column = IntCol
     entity_class = Individus
 
 
-class uses_multiplication(NewVariable):
+class uses_multiplication(Variable):
     column = IntCol
     entity_class = Individus
     label = u'Variable with formula that uses multiplication'
@@ -26,7 +26,7 @@ class uses_multiplication(NewVariable):
         return period, result
 
 
-class uses_switch(NewVariable):
+class uses_switch(Variable):
     column = IntCol
     entity_class = Individus
     label = u'Variable with formula that uses switch'

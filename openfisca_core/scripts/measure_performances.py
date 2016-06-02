@@ -18,7 +18,7 @@ from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import dated_function
-from openfisca_core.variables import NewDatedVariable, NewEntityToPersonColumn, NewPersonToEntityColumn, NewVariable
+from openfisca_core.variables import DatedVariable, EntityToPersonColumn, PersonToEntityColumn, Variable
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -89,40 +89,40 @@ def init_country():
 # Input variables
 
 
-class age_en_mois(NewVariable):
+class age_en_mois(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre de mois)"
 
 
-class birth(NewVariable):
+class birth(Variable):
     column = DateCol
     entity_class = Individus
     label = u"Date de naissance"
 
 
-class depcom(NewVariable):
+class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity_class = Familles
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
-class id_famille(NewVariable):
+class id_famille(Variable):
     column = IntCol
     entity_class = Individus
     is_permanent = True
     label = u"Identifiant de la famille"
 
 
-class role_dans_famille(NewVariable):
+class role_dans_famille(Variable):
     column = IntCol
     entity_class = Individus
     is_permanent = True
     label = u"Rôle dans la famille"
 
 
-class salaire_brut(NewVariable):
+class salaire_brut(Variable):
     column = FloatCol
     entity_class = Individus
     label = "Salaire brut"
@@ -130,7 +130,7 @@ class salaire_brut(NewVariable):
 
 # Calculated variables
 
-class age(NewVariable):
+class age(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre d'années)"
@@ -145,7 +145,7 @@ class age(NewVariable):
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
-class dom_tom(NewVariable):
+class dom_tom(Variable):
     column = BoolCol
     entity_class = Familles
     label = u"La famille habite-t-elle les DOM-TOM ?"
@@ -156,13 +156,13 @@ class dom_tom(NewVariable):
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
-class dom_tom_individu(NewEntityToPersonColumn):
+class dom_tom_individu(EntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
 
-class revenu_disponible(NewVariable):
+class revenu_disponible(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible de l'individu"
@@ -174,14 +174,14 @@ class revenu_disponible(NewVariable):
         return period, rsa + salaire_imposable * 0.7
 
 
-class revenu_disponible_famille(NewPersonToEntityColumn):
+class revenu_disponible_famille(PersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
     variable = revenu_disponible
 
 
-class rsa(NewDatedVariable):
+class rsa(DatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
@@ -205,7 +205,7 @@ class rsa(NewDatedVariable):
         return period, (salaire_imposable < 500) * 300
 
 
-class salaire_imposable(NewVariable):
+class salaire_imposable(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
@@ -217,7 +217,7 @@ class salaire_imposable(NewVariable):
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
 
-class salaire_net(NewVariable):
+class salaire_net(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"

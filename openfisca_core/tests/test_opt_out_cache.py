@@ -2,18 +2,18 @@
 
 
 from openfisca_core.tests import dummy_country
-from openfisca_core.variables import NewVariable
+from openfisca_core.variables import Variable
 from openfisca_core.columns import IntCol
 from openfisca_core.tests.dummy_country import Individus
 
 
-class input(NewVariable):
+class input(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Input variable"
 
 
-class intermediate(NewVariable):
+class intermediate(Variable):
     column = IntCol
     entity_class = Individus
     label = u"Intermediate result that don't need to be cached"
@@ -22,7 +22,7 @@ class intermediate(NewVariable):
         return period, simulation.calculate('input', period)
 
 
-class output(NewVariable):
+class output(Variable):
     column = IntCol
     entity_class = Individus
     label = u'Output variable'

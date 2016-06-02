@@ -9,7 +9,7 @@ from imp import find_module, load_module
 
 from . import conv, legislations, legislationsxml
 from openfisca_core import variables
-from variables import AbstractNewVariable
+from variables import AbstractVariable
 
 
 __all__ = [
@@ -118,10 +118,10 @@ class AbstractTaxBenefitSystem(object):
 
         potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
         for pot_variable in potential_variables:
-            # We want to get the module classes that are subclasses of AbstractNewVariable,
-            # but not the ones defined in variables, e.g. NewVariable, etc.
+            # We want to get the module classes that are subclasses of AbstractVariable,
+            # but not the ones defined in variables, e.g. Variable, etc.
             if ((isclass(pot_variable) and
-                 issubclass(pot_variable, AbstractNewVariable) and
+                 issubclass(pot_variable, AbstractVariable) and
                  pot_variable not in variables.__dict__.values())):
                 self.add_variable(pot_variable)
 

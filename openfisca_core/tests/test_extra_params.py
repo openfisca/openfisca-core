@@ -3,13 +3,13 @@
 
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
-from openfisca_core.variables import NewVariable
+from openfisca_core.variables import Variable
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 from openfisca_core.tools import assert_near
 
 
-class formula_1(NewVariable):
+class formula_1(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -17,7 +17,7 @@ class formula_1(NewVariable):
         return period, simulation.calculate('formula_3', period, extra_params = [0])
 
 
-class formula_2(NewVariable):
+class formula_2(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -25,7 +25,7 @@ class formula_2(NewVariable):
         return period, simulation.calculate('formula_3', period, extra_params = [1])
 
 
-class formula_3(NewVariable):
+class formula_3(Variable):
     column = IntCol
     entity_class = Individus
 

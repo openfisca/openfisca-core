@@ -6,14 +6,14 @@ from nose.tools import raises
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
 from openfisca_core.formulas import CycleError
-from openfisca_core.variables import NewVariable
+from openfisca_core.variables import Variable
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 from openfisca_core.tools import assert_near
 
 
 # 1 <--> 2 with same period
-class variable1(NewVariable):
+class variable1(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -21,7 +21,7 @@ class variable1(NewVariable):
         return period, simulation.calculate('variable2', period)
 
 
-class variable2(NewVariable):
+class variable2(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -30,7 +30,7 @@ class variable2(NewVariable):
 
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
-class variable3(NewVariable):
+class variable3(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -38,7 +38,7 @@ class variable3(NewVariable):
         return period, simulation.calculate('variable4', period.last_year)
 
 
-class variable4(NewVariable):
+class variable4(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -48,7 +48,7 @@ class variable4(NewVariable):
 
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
 #   <---
-class variable5(NewVariable):
+class variable5(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -57,7 +57,7 @@ class variable5(NewVariable):
         return period, 5 + variable6
 
 
-class variable6(NewVariable):
+class variable6(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -67,7 +67,7 @@ class variable6(NewVariable):
 
 
 # december cotisation depending on november value
-class cotisation(NewVariable):
+class cotisation(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -81,7 +81,7 @@ class cotisation(NewVariable):
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
 #   <---
-class variable7(NewVariable):
+class variable7(Variable):
     column = IntCol
     entity_class = Individus
 
@@ -90,7 +90,7 @@ class variable7(NewVariable):
         return period, 7 + variable8
 
 
-class variable8(NewVariable):
+class variable8(Variable):
     column = IntCol
     entity_class = Individus
 
