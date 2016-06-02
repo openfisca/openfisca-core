@@ -6,7 +6,6 @@
 
 
 import argparse
-import collections
 import datetime
 import logging
 import sys
@@ -46,7 +45,6 @@ PARENT2 = 1
 
 
 class Familles(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
@@ -62,7 +60,6 @@ class Familles(AbstractEntity):
 
 
 class Individus(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     is_persons_entity = True
     key_plural = 'individus'
     key_singular = 'individu'

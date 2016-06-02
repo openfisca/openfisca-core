@@ -21,7 +21,7 @@ __all__ = [
 
 class AbstractTaxBenefitSystem(object):
     _base_tax_benefit_system = None
-    column_by_name = None  # computed at instance initialization from entities column_by_name
+    column_by_name = None
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
@@ -37,6 +37,7 @@ class AbstractTaxBenefitSystem(object):
     def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.column_by_name = collections.OrderedDict()
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural
@@ -45,11 +46,6 @@ class AbstractTaxBenefitSystem(object):
         if legislation_json is not None:
             self.legislation_json = legislation_json
         # Note: self.legislation_json may be None for simulators without legislation parameters.
-
-        # Now that classes of entities are defined, build a column_by_name by aggregating the column_by_name of each
-        # entity class.
-        assert self.column_by_name is None
-        self.index_columns()
 
     @property
     def base_tax_benefit_system(self):
@@ -81,13 +77,6 @@ class AbstractTaxBenefitSystem(object):
         if reference is None:
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
         return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
-
-    def index_columns(self):
-        self.column_by_name = column_by_name = collections.OrderedDict()
-        for entity_class in self.entity_class_by_key_plural.itervalues():
-            column_by_name.update(entity_class.column_by_name)
-            if entity_class.is_persons_entity:
-                self.person_key_plural = entity_class.key_plural
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -141,15 +130,7 @@ class AbstractTaxBenefitSystem(object):
             self.add_variable(variable)
 
     def get_column(self, column_name):
-        column = self.column_by_name.get(column_name)
-
-        # Temporary retrocompatibility
-        if not column:
-            for entity in self.entity_class_by_key_plural.values():
-                column = entity.column_by_name.get(column_name)
-                if column:
-                    return column
-        return column
+        return self.column_by_name.get(column_name)
 
 
 class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):

@@ -5,7 +5,6 @@ from .tools import empty_clone
 
 
 class AbstractEntity(object):
-    column_by_name = None  # Class attribute. Must be overridden by subclasses with an OrderedDict.
     count = 0
     key_plural = None
     key_singular = None

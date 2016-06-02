@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import collections
 import itertools
 import os
 import pkg_resources
@@ -22,7 +21,6 @@ TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 
 
 class Familles(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
@@ -54,7 +52,6 @@ class Familles(AbstractEntity):
 
 
 class Individus(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     is_persons_entity = True
     key_plural = 'individus'
     key_singular = 'individu'

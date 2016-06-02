@@ -11,7 +11,6 @@ class Simulation(object):
     compact_legislation_by_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
-    entity_by_column_name = None
     entity_by_key_plural = None
     entity_by_key_singular = None
     period = None
@@ -118,11 +117,6 @@ class Simulation(object):
         new_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
             (key_plural, entity.clone(simulation = new))
             for key_plural, entity in self.entity_by_key_plural.iteritems()
-            )
-        new_dict['entity_by_column_name'] = dict(
-            (column_name, entity)
-            for entity in entity_by_key_plural.itervalues()
-            for column_name in entity.column_by_name.iterkeys()
             )
         new_dict['entity_by_key_singular'] = dict(
             (entity.key_singular, entity)
@@ -266,17 +260,10 @@ class Simulation(object):
                 )
             )
 
+    # Fixme: to rewrite
     def to_input_variables_json(self):
-        return {
-            column_name: self.get_holder(column_name).to_value_json()
-            for entity in self.entity_by_key_plural.itervalues()
-            for column_name in entity.column_by_name.iterkeys()
-            if column_name in entity.holder_by_name
-            }
+        return None
 
     def getVariableEntity(self, variable_name):
-        for entity in self.entity_by_key_plural.values():
-            if entity.column_by_name.get(variable_name):
-                return entity
-        column = self.tax_benefit_system.column_by_name.get(variable_name)
+        column = self.tax_benefit_system.get_column(variable_name)
         return self.entity_by_key_plural[column.entity_key_plural]
