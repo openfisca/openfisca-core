@@ -2,18 +2,18 @@
 
 
 from openfisca_core.tests import dummy_country
-from openfisca_core.formulas import Variable
+from openfisca_core.variables import NewVariable
 from openfisca_core.columns import IntCol
 from openfisca_core.tests.dummy_country import Individus
 
 
-class input(Variable):
+class input(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u"Input variable"
 
 
-class intermediate(Variable):
+class intermediate(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u"Intermediate result that don't need to be cached"
@@ -22,7 +22,7 @@ class intermediate(Variable):
         return period, simulation.calculate('input', period)
 
 
-class output(Variable):
+class output(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u'Output variable'
@@ -30,9 +30,15 @@ class output(Variable):
     def function(self, simulation, period):
         return period, simulation.calculate('intermediate', period)
 
+def get_filled_tbs():
+    tax_benefit_system = dummy_country.init_tax_benefit_system()
+    tax_benefit_system.add_variables(input, intermediate, output)
+
+    return tax_benefit_system
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+
+tax_benefit_system = get_filled_tbs()
 tax_benefit_system.cache_blacklist = set(['intermediate'])
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
@@ -57,7 +63,8 @@ def test_with_cache_opt_out():
     assert(intermediate_cache._array_by_period is None)
 
 
-tax_benefit_system2 = dummy_country.init_tax_benefit_system()
+tax_benefit_system2 = get_filled_tbs()
+
 scenario2 = tax_benefit_system2.new_scenario().init_from_attributes(
     period = 2016,
     input_variables = {

@@ -3,13 +3,13 @@
 
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
-from openfisca_core.formulas import Variable
+from openfisca_core.variables import NewVariable
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 from openfisca_core.tools import assert_near
 
 
-class formula_1(Variable):
+class formula_1(NewVariable):
     column = IntCol
     entity_class = Individus
 
@@ -17,7 +17,7 @@ class formula_1(Variable):
         return period, simulation.calculate('formula_3', period, extra_params = [0])
 
 
-class formula_2(Variable):
+class formula_2(NewVariable):
     column = IntCol
     entity_class = Individus
 
@@ -25,7 +25,7 @@ class formula_2(Variable):
         return period, simulation.calculate('formula_3', period, extra_params = [1])
 
 
-class formula_3(Variable):
+class formula_3(NewVariable):
     column = IntCol
     entity_class = Individus
 
@@ -37,6 +37,7 @@ class formula_3(Variable):
 
 # TaxBenefitSystem instance declared after formulas
 tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system.add_variables(formula_1, formula_2, formula_3)
 
 reference_period = periods.period(u'2013')
 
