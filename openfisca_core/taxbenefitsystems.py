@@ -125,11 +125,10 @@ class AbstractTaxBenefitSystem(object):
 
         potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
         for pot_variable in potential_variables:
-            # We want to get the module classes that are subclasses of AbstractVariable,
-            # but not the ones defined in variables, e.g. Variable, etc.
+            # We only want to get the module classes defined in this module (not imported)
             if ((isclass(pot_variable) and
                  issubclass(pot_variable, AbstractVariable) and
-                 pot_variable not in variables.__dict__.values())):
+                 pot_variable.__module__.endswith(module_name))):
                 self.add_variable(pot_variable)
 
     def add_variables_from_directory(self, directory):
