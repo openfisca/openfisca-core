@@ -10,7 +10,6 @@ from os import path
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import Variable
 from openfisca_core.variables import NewVariable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleXmlBasedTaxBenefitSystem

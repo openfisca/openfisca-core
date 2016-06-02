@@ -16,6 +16,7 @@ from openfisca_core.tools import assert_near
 
 # Input variables
 
+
 class age_en_mois(NewVariable):
     column = IntCol
     entity_class = Individus
@@ -149,11 +150,11 @@ class salaire_net(NewVariable):
         return period, salaire_brut * 0.8
 
 
-
 tax_benefit_system = dummy_country.init_tax_benefit_system()
 
-# We cannot put the variable declarations in this file, there would be an import loop
-tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
+# We cannot automatically import all the variable from this file, there would be an import loop
+tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
+    dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
 
 
 def test_1_axis():
@@ -323,13 +324,13 @@ def test_revenu_disponible():
 def test_variable_with_reference():
     def new_simulation():
         return tax_benefit_system.new_scenario().init_single_entity(
-        period = 2013,
-        parent1 = dict(
-            salaire_brut = 4000,
-            ),
-        ).new_simulation()
+            period = 2013,
+            parent1 = dict(
+                salaire_brut = 4000,
+                ),
+            ).new_simulation()
 
-    revenu_disponible_avant_reforme = new_simulation().calculate('revenu_disponible', 2013);
+    revenu_disponible_avant_reforme = new_simulation().calculate('revenu_disponible', 2013)
     assert(revenu_disponible_avant_reforme > 0)
 
     class revenu_disponible(NewVariable):
@@ -339,9 +340,10 @@ def test_variable_with_reference():
             return period, self.zeros()
 
     tax_benefit_system.add_variable(revenu_disponible, update = True)
-    revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013);
+    revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013)
 
     assert(revenu_disponible_apres_reforme == 0)
+
 
 @raises(Exception)
 def test_variable_name_conflict():
@@ -351,4 +353,3 @@ def test_variable_name_conflict():
         def function(self, simulation, period):
             return period, self.zeros()
     tax_benefit_system.add_variable(revenu_disponible)
-

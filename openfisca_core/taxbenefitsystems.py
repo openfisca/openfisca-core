@@ -115,8 +115,10 @@ class AbstractTaxBenefitSystem(object):
         if self.get_column(name) and not update:
             raise Exception('Variable {} is already defined. Use `update = True to replace it.'.format(name))
 
-        variable = variable_type(name, attributes, variable_class) # We pass the variable_class just for introspection for parsers.
-        column = variable.to_column(self) # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
+        # We pass the variable_class just for introspection for parsers.
+        variable = variable_type(name, attributes, variable_class)
+        # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
+        column = variable.to_column(self)
 
         self.column_by_name[column.name] = column
 
@@ -127,8 +129,11 @@ class AbstractTaxBenefitSystem(object):
 
         potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
         for pot_variable in potential_variables:
-            # We want to get the module classes that are subclasses of AbstractNewVariable, but not the ones defined in variables, e.g. NewVariable, etc.
-            if isclass(pot_variable) and issubclass(pot_variable, AbstractNewVariable) and pot_variable not in variables.__dict__.values():
+            # We want to get the module classes that are subclasses of AbstractNewVariable,
+            # but not the ones defined in variables, e.g. NewVariable, etc.
+            if ((isclass(pot_variable) and
+                 issubclass(pot_variable, AbstractNewVariable) and
+                 pot_variable not in variables.__dict__.values())):
                 self.add_variable(pot_variable)
 
     def add_variables(self, *variables):
@@ -142,7 +147,8 @@ class AbstractTaxBenefitSystem(object):
         if not column:
             for entity in self.entity_class_by_key_plural.values():
                 column = entity.column_by_name.get(column_name)
-                if column: return column
+                if column:
+                    return column
         return column
 
 

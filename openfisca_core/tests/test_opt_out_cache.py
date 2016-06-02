@@ -30,6 +30,7 @@ class output(NewVariable):
     def function(self, simulation, period):
         return period, simulation.calculate('intermediate', period)
 
+
 def get_filled_tbs():
     tax_benefit_system = dummy_country.init_tax_benefit_system()
     tax_benefit_system.add_variables(input, intermediate, output)

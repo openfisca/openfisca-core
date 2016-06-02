@@ -1,12 +1,14 @@
-import inspect, textwrap
+import inspect
+import textwrap
 
 from openfisca_core.formulas import SimpleFormula, DatedFormula, EntityToPerson, PersonToEntity, new_filled_column
 from openfisca_core import columns
 
+
 class AbstractNewVariable():
     def __init__(self, name, attributes, variable_class):
         self.name = name
-        self.attributes = { attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems() }
+        self.attributes = {attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems()}
         self.variable_class = variable_class
 
     def introspect(self):
@@ -25,6 +27,7 @@ class AbstractNewVariable():
 
         return (comments, source_file_path, source_code, line_number)
 
+
 class AbstractComputationVariable(AbstractNewVariable):
     formula_class = SimpleFormula
 
@@ -42,7 +45,8 @@ class AbstractComputationVariable(AbstractNewVariable):
 
         (comments, source_file_path, source_code, line_number) = self.introspect()
 
-        if entity_class is None: raise Exception('Variable {} must have an entity_class'.format(self.name))
+        if entity_class is None:
+            raise Exception('Variable {} must have an entity_class'.format(self.name))
 
         return new_filled_column(
             name = self.name,
@@ -69,11 +73,14 @@ class AbstractComputationVariable(AbstractNewVariable):
             **self.attributes
             )
 
+
 class NewVariable(AbstractComputationVariable):
     formula_class = SimpleFormula
 
+
 class NewDatedVariable(AbstractComputationVariable):
     formula_class = DatedFormula
+
 
 class AbstractConversionVariable(AbstractNewVariable):
     formula_class = None
@@ -170,7 +177,7 @@ class AbstractConversionVariable(AbstractNewVariable):
 
         # Ensure that all attributes defined in ConversionColumn class are used.
         assert not self.attributes, 'Unexpected attributes in definition of filled column {}: {}'.format(self.name,
-            ', '.join(attributes.iterkeys()))
+            ', '.join(self.attributes.iterkeys()))
 
         formula_class = type(self.name.encode('utf-8'), (formula_class,), formula_class_attributes)
 
@@ -195,8 +202,10 @@ class AbstractConversionVariable(AbstractNewVariable):
 
         return column
 
+
 class NewEntityToPersonColumn(AbstractConversionVariable):
     formula_class = EntityToPerson
+
 
 class NewPersonToEntityColumn(AbstractConversionVariable):
     formula_class = PersonToEntity
