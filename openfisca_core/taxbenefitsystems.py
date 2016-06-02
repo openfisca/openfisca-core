@@ -131,6 +131,10 @@ class AbstractTaxBenefitSystem(object):
             if isclass(pot_variable) and issubclass(pot_variable, AbstractNewVariable) and pot_variable not in variables.__dict__.values():
                 self.add_variable(pot_variable)
 
+    def add_variables(self, *variables):
+        for variable in variables:
+            self.add_variable(variable)
+
     def get_column(self, column_name):
         column = self.column_by_name.get(column_name)
 
