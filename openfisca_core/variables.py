@@ -1,5 +1,7 @@
 import inspect, textwrap
-from openfisca_core.formulas import SimpleFormula, EntityToPerson, new_filled_column
+
+from openfisca_core.formulas import SimpleFormula, DatedFormula, EntityToPerson, PersonToEntity, new_filled_column
+from openfisca_core import columns
 
 class AbstractNewVariable():
     def __init__(self, name, attributes, variable_class):
@@ -24,10 +26,10 @@ class AbstractNewVariable():
         return (comments, source_file_path, source_code, line_number)
 
 class NewVariable(AbstractNewVariable):
+    formula_class = SimpleFormula
 
     def to_column(self, tax_benefit_system):
-
-        formula_class = SimpleFormula # To change for DatedFormulas
+        formula_class = self.__class__.formula_class
         entity_class = self.attributes.pop('entity_class', None)
 
         # Reform variable that replaces the existing reference one
@@ -67,11 +69,15 @@ class NewVariable(AbstractNewVariable):
             **self.attributes
             )
 
+class NewDatedVariable(NewVariable):
+    formula_class = DatedFormula
 
-class NewEntityToPersonColumn(AbstractNewVariable):
+class AbstractConversionVariable(AbstractNewVariable):
+    formula_class = None
+
     def to_column(self, tax_benefit_system):
 
-        formula_class = EntityToPerson # To change for PersonToEntity
+        formula_class = self.__class__.formula_class
 
         # Extract attributes.
 
@@ -186,3 +192,8 @@ class NewEntityToPersonColumn(AbstractNewVariable):
 
         return column
 
+class NewEntityToPersonColumn(AbstractConversionVariable):
+    formula_class = EntityToPerson
+
+class NewPersonToEntityColumn(AbstractConversionVariable):
+    formula_class = PersonToEntity

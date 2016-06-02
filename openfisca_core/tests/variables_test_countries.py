@@ -9,7 +9,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
     PersonToEntityColumn, set_input_divide_by_period, Variable)
 from openfisca_core.tests.dummy_country import Familles, Individus
-from openfisca_core.variables import NewVariable, NewEntityToPersonColumn
+from openfisca_core.variables import NewVariable, NewEntityToPersonColumn, NewDatedVariable, NewPersonToEntityColumn
 
 
 # Input variables
@@ -88,14 +88,14 @@ class revenu_disponible(Variable):
         return period, rsa + salaire_imposable * 0.7
 
 
-class revenu_disponible_famille(PersonToEntityColumn):
+class revenu_disponible_famille(NewPersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
-    variable = revenu_disponible
+    variable = "revenu_disponible"
 
 
-class rsa(DatedVariable):
+class rsa(NewDatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
