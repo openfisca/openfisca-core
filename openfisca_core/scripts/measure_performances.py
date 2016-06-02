@@ -18,13 +18,8 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (
-    dated_function,
-    DatedVariable,
-    EntityToPersonColumn,
-    PersonToEntityColumn,
-    Variable,
-    )
+from openfisca_core.formulas import dated_function
+from openfisca_core.variables import NewDatedVariable, NewEntityToPersonColumn, NewPersonToEntityColumn, NewVariable
 from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -97,40 +92,40 @@ def init_country():
 # Input variables
 
 
-class age_en_mois(Variable):
+class age_en_mois(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre de mois)"
 
 
-class birth(Variable):
+class birth(NewVariable):
     column = DateCol
     entity_class = Individus
     label = u"Date de naissance"
 
 
-class depcom(Variable):
+class depcom(NewVariable):
     column = FixedStrCol(max_length = 5)
     entity_class = Familles
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
-class id_famille(Variable):
+class id_famille(NewVariable):
     column = IntCol
     entity_class = Individus
     is_permanent = True
     label = u"Identifiant de la famille"
 
 
-class role_dans_famille(Variable):
+class role_dans_famille(NewVariable):
     column = IntCol
     entity_class = Individus
     is_permanent = True
     label = u"Rôle dans la famille"
 
 
-class salaire_brut(Variable):
+class salaire_brut(NewVariable):
     column = FloatCol
     entity_class = Individus
     label = "Salaire brut"
@@ -138,7 +133,7 @@ class salaire_brut(Variable):
 
 # Calculated variables
 
-class age(Variable):
+class age(NewVariable):
     column = IntCol
     entity_class = Individus
     label = u"Âge (en nombre d'années)"
@@ -153,7 +148,7 @@ class age(Variable):
         return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
-class dom_tom(Variable):
+class dom_tom(NewVariable):
     column = BoolCol
     entity_class = Familles
     label = u"La famille habite-t-elle les DOM-TOM ?"
@@ -164,13 +159,13 @@ class dom_tom(Variable):
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
-class dom_tom_individu(EntityToPersonColumn):
+class dom_tom_individu(NewEntityToPersonColumn):
     entity_class = Individus
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
 
-class revenu_disponible(Variable):
+class revenu_disponible(NewVariable):
     column = FloatCol
     entity_class = Individus
     label = u"Revenu disponible de l'individu"
@@ -182,14 +177,14 @@ class revenu_disponible(Variable):
         return period, rsa + salaire_imposable * 0.7
 
 
-class revenu_disponible_famille(PersonToEntityColumn):
+class revenu_disponible_famille(NewPersonToEntityColumn):
     entity_class = Familles
     label = u"Revenu disponible de la famille"
     operation = 'add'
     variable = revenu_disponible
 
 
-class rsa(DatedVariable):
+class rsa(NewDatedVariable):
     column = FloatCol
     entity_class = Individus
     label = u"RSA"
@@ -213,7 +208,7 @@ class rsa(DatedVariable):
         return period, (salaire_imposable < 500) * 300
 
 
-class salaire_imposable(Variable):
+class salaire_imposable(NewVariable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire imposable"
@@ -225,7 +220,7 @@ class salaire_imposable(Variable):
         return period, salaire_net * 0.9 - 100 * dom_tom_individu
 
 
-class salaire_net(Variable):
+class salaire_net(NewVariable):
     column = FloatCol
     entity_class = Individus
     label = u"Salaire net"
@@ -241,6 +236,8 @@ class salaire_net(Variable):
 
 TaxBenefitSystem = init_country()
 tax_benefit_system = TaxBenefitSystem()
+tax_benefit_system.add_variables(age_en_mois, birth, depcom, id_famille, role_dans_famille, salaire_brut, age,
+    dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
 
 
 @timeit
