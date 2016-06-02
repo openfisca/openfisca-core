@@ -5,6 +5,7 @@ import collections
 import itertools
 import os
 import pkg_resources
+from os import path
 
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
@@ -16,7 +17,7 @@ from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleX
 
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-
+TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 
 # Entities
 
@@ -279,7 +280,9 @@ def init_country():
 
 def init_tax_benefit_system():
     TaxBenefitSystem = init_country()
-    return TaxBenefitSystem()
+    tbs = TaxBenefitSystem()
+    tbs.add_variables_from_module(__file__)
+    return tbs
 
 
 class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
