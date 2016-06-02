@@ -8,6 +8,7 @@ from imp import find_module, load_module
 # import weakref
 
 from . import conv, legislations, legislationsxml
+from openfisca_core.variables import AbstractNewVariable
 
 
 __all__ = [
@@ -124,9 +125,10 @@ class AbstractTaxBenefitSystem(object):
         module = load_module(module_name, *find_module(module_name, [module_directory]))
 
         potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
-        variables = [x for x in potential_variables if x != module.NewVariable and isclass(x) and issubclass(x, module.NewVariable)]
-        for variable in variables:
-            self.add_variable(variable)
+        for pot_variable in potential_variables:
+            # We want to get the module classes that are subclasses of AbstractNewVariable but not NewVariable, etc.
+            if isclass(pot_variable) and issubclass(pot_variable, AbstractNewVariable) and pot_variable.__bases__[0] != AbstractNewVariable:
+                self.add_variable(pot_variable)
 
     def get_column(self, column_name):
         column = self.column_by_name.get(column_name)
