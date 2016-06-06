@@ -2,15 +2,13 @@
 import os
 
 import numpy as np
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal
 from numpy.testing import assert_almost_equal
 
-from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
-
 from openfisca_core import parameters
-from openfisca_core.columns import IntCol, FloatCol
+from openfisca_core.columns import FloatCol
 from openfisca_core.formulas import Variable, set_input_divide_by_period, set_input_dispatch_by_period
-from openfisca_core.formula_helpers import switch
+from openfisca_core.taxbenefitsystems import MultipleXmlBasedTaxBenefitSystem
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 
@@ -46,6 +44,7 @@ class vieillesse_deplafonnee_salarie(Variable):
         value = self.get_parameter(instant, base_options={'base': assiette, 'factor': pss})
         return period, value
 
+
 class vieillesse_plafonnee_salarie(Variable):
     column = FloatCol
     entity_class = Individus
@@ -57,6 +56,7 @@ class vieillesse_plafonnee_salarie(Variable):
 
         value = self.get_parameter(instant, base_options={'base': assiette, 'factor': pss})
         return period, value
+
 
 class vieillesse_salarie(Variable):
     column = FloatCol
@@ -100,12 +100,13 @@ class contribution_supplementaire_apprentissage(Variable):
 
 test_dir_path = os.path.dirname(os.path.abspath(__file__))
 
-class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
 
+class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
     yaml_parameters_info_list = [
         os.path.join(test_dir_path, 'assets', 'variable_parameters.yaml'),
         os.path.join(test_dir_path, 'assets', 'parameters.yaml'),
-    ]
+        ]
+
 
 # TaxBenefitSystem instance declared after formulas
 DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = dummy_country.entity_class_by_key_plural
@@ -114,14 +115,13 @@ DummyMultipleXmlBasedTaxBenefitSystem.Scenario = dummy_country.Scenario
 tax_benefit_system = DummyMultipleXmlBasedTaxBenefitSystem()
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period = 2016,
-    input_variables = {
+    period=2016,
+    input_variables={
         'salaire_brut': np.array([1467, 2300, 8000]),
         'effectif_entreprise': np.array([3, 3000, 65]),
-        'pourcentage_alternants': np.array([100/3, 0.5, 0])
+        'pourcentage_alternants': np.array([100 / 3, 0.5, 0])
         },
     )
-
 
 
 def test_simply_get_yaml_parameter():
@@ -130,13 +130,13 @@ def test_simply_get_yaml_parameter():
             tax_benefit_system.parameters,
             'smic_horaire_brut',
             '2014-02-06',
-        ),
+            ),
         9.53
-    )
+        )
 
 
 def test_yaml_parameters_in_formulas():
-    simulation = scenario.new_simulation(debug = True)
+    simulation = scenario.new_simulation(debug=True)
 
     pss = simulation.calculate('plafond_securite_sociale')
     assert_equal(pss[0], 3218)
@@ -144,8 +144,9 @@ def test_yaml_parameters_in_formulas():
     vieillesse_salarie = simulation.calculate('vieillesse_salarie')
     assert_almost_equal(vieillesse_salarie, np.array([106.36, 166.75, 250.04]), decimal=2)
 
+
 def test_variable_parameters_in_formulas():
-    simulation = scenario.new_simulation(debug = True)
+    simulation = scenario.new_simulation(debug=True)
 
     contrib = simulation.calculate('contribution_supplementaire_apprentissage')
     assert_almost_equal(contrib, np.array([0, .006 * 2300, .005 * 8000]), decimal=2)

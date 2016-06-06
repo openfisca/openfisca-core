@@ -29,7 +29,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
         parameter,
         dict(key_to_find='VALUES', new_key='VALUE',
              transform=lambda values: choose_temporal_value(name, values, instant)),
-    )
+        )
 
     # filter VAR cases using variables
     # remember : we're working on vector variables
@@ -52,17 +52,17 @@ def compute_parameter(parameter, base_options):
         return parameter['VALUE']
 
 
-def transform_dict_key(node, options, parentNode=None, parentKey=None):
+def transform_dict_key(node, options, parent_node=None, parent_key=None):
     if isinstance(node, list):
         [transform_dict_key(element, options) for element in node]
     if isinstance(node, dict):
         for key, value in node.items():
             if key == options['key_to_find']:
                 if options.get('replace_parent'):
-                    if parentNode is None:
+                    if parent_node is None:
                         node.update(options['transform'](value))
                     else:
-                        parentNode[parentKey] = options['transform'](value)
+                        parent_node[parent_key] = options['transform'](value)
                 elif options.get('new_key'):
                     node[options['new_key']] = options['transform'](value)
                     del node[options['key_to_find']]
@@ -96,13 +96,15 @@ def choose_temporal_value(name, values, instant):
             end = convert_value_date(value['fin']) if value.get('fin') else None
 
             if end is None and value.get('fuzzy') is None:
+                # TODO don't raise general Exception !
                 raise Exception(
-                    'Please set a "fin" date or set "fuzzy" to true in your parameters')  # TODO don't raise general Exception !
+                    'Please set a "fin" date or set "fuzzy" to true in your parameters')
 
             if beginning <= str(instant) and (end is None or str(instant) <= end):
                 return value['valeur']
 
     raise error
+
 
 def get_parameter_value(node, attribute, default=None):
     value = node.get(attribute)
@@ -154,7 +156,6 @@ def compute_linear(parameter, base_options):
     return tax_scale.calc(base, factor, thresholds=thresholds, rates=rates)
 
 
-
 def compute_scales(parameter, base_options):
     bareme = parameter.get('BAREME')
     base, factor = certify_base(base_options)
@@ -181,7 +182,7 @@ def resolve_var_cases(vector_variables, parameter):
         parameter_copy,
         dict(key_to_find='VAR', replace_parent=True,
              transform=lambda cases: choose_conditional_case(cases, vector_variables)),
-    )
+        )
 
     return parameter_copy
 
@@ -192,7 +193,7 @@ def choose_conditional_case(cases, variables):
     case_values = [case['VALUE'] for case in cases]
     return {
         'VALUE': np.select(case_conditions, case_values)
-    }
+        }
 
 
 def resolve_condition(condition_string, variables):

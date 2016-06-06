@@ -12,7 +12,6 @@ import textwrap
 
 import numpy as np
 
-from openfisca_core import parameters
 from . import columns, holders, legislations, periods
 from .base_functions import (
     permanent_default_value,

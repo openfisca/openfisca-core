@@ -89,8 +89,8 @@ class AbstractRateTaxScale(AbstractTaxScale):
             (
                 '- {}  {}'.format(threshold, rate)
                 for threshold, rate in itertools.izip(self.thresholds, self.rates)
-            ),
-        ))
+                ),
+            ))
 
     def add_bracket(self, threshold, rate):
         if threshold in self.thresholds:
@@ -148,8 +148,8 @@ class AmountTaxScale(AbstractTaxScale):
             (
                 '- {}  {}'.format(threshold, amount)
                 for threshold, amount in itertools.izip(self.thresholds, self.amounts)
-            ),
-        ))
+                ),
+            ))
 
     def add_bracket(self, threshold, amount):
         if threshold in self.thresholds:
@@ -213,7 +213,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         N = len(base)
 
         factor = 1 if factor is None else factor
-         # factor can be a vector or a scalar. In the latter case, convert it to a vector
+        # factor can be a vector or a scalar. In the latter case,
+        # convert it to a vector
         if isinstance(factor, (float, int)):
             factor = np.ones(N) * factor
         # Thresholds, as well as rates can be either :
@@ -225,13 +226,13 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             thresholds = np.outer(factor, np.array(self.thresholds + [np.inf]))
         else:
             n = len(thresholds)
-            inf_matrix = np.ones((N, n+1)) * np.inf
+            inf_matrix = np.ones((N, n + 1)) * np.inf
             inf_matrix[:, :-1] = np.transpose(thresholds * factor)
             thresholds = inf_matrix
         if rates is None:
             rates = np.tile(self.rates, (N, 1))
 
-        #TODO handle round_base_decimals
+        # TODO handle round_base_decimals
 
         base1 = np.tile(base, (n, 1)).T
 
