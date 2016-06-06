@@ -54,18 +54,18 @@
 
 - variable: famille2
   description: Allocations familiales
-  lin:
+  linear:
     # assiette: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
     values:
       2018-01-01: .019
       2017-01-01: .019
       2016-01-01: .0185
 
-# lin with plafond can be introduced too:
+# linear with plafond can be introduced too:
 
 - variable: vieillesse_deplafonnee_salarie
   description: Cotisation déplafonnée de vieillesse (salarié)
-  lin:
+  linear:
     values:
       2018-01-01: .004
       2017-01-01: .004
@@ -77,7 +77,7 @@
 
 - variable: vieillesse_plafonnee_salarie
   description: Cotisation plafonnée de vieillesse (salarié)
-  lin:
+  linear:
     plafond: 1
     values:
       2017-01-01: .0690

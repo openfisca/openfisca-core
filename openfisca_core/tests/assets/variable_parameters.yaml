@@ -75,7 +75,7 @@
 - variable: contribution_supplementaire_apprentissage
   description: Contribution supplémentaire d'apprentissage
   # Attention, fausses valeurs !
-  lin:
+  linear:
     var:
       - condition: "(pourcentage_alternants < 1) & (effectif_entreprise < 2000)"
         values:

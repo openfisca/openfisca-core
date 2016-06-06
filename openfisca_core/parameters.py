@@ -35,7 +35,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
     # remember : we're working on vector variables
     univoque_parameter = resolve_var_cases(vector_variables, parameter)
 
-    # Now apply specific computations if any : bareme, lin...
+    # Now apply specific computations if any : bareme, linear...
     value = compute_parameter(univoque_parameter, base_options)
 
     # A vector should be returned here. Explicitely build one of the right dimension
@@ -46,7 +46,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
 def compute_parameter(parameter, base_options):
     if parameter.get('bareme'):
         return compute_scales(parameter, base_options)
-    if parameter.get('lin'):
+    if parameter.get('linear'):
         return compute_linear(parameter, base_options)
     else:
         return parameter['value']
@@ -132,9 +132,9 @@ def certify_base(base_options):
 
 
 def compute_linear(parameter, base_options):
-    lin = parameter.get('lin')
+    linear = parameter.get('linear')
     base, factor = certify_base(base_options)
-    plafond = lin.get('plafond')
+    plafond = linear.get('plafond')
 
     # Construct a taxscale (see def compute_scales)
 
@@ -144,7 +144,7 @@ def compute_linear(parameter, base_options):
     tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
 
     # With one bracket only...
-    rates.append(to_vector(lin['value'], nb_entities))
+    rates.append(to_vector(linear['value'], nb_entities))
     thresholds.append(to_vector(0, nb_entities))
 
     # ... or two if plafond is specified.
