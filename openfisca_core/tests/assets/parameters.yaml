@@ -38,12 +38,12 @@
 # bareme node with 1 bracket...
 - variable: famille
   description: Allocations familiales
-  bareme:
-    - seuil:
+  marginalRateTaxScale:
+    - threshold:
         values:
           2015-01-01: 0
           1992-01-01: 0
-      taux:
+      rate:
         values:
           2014-01-01: .0525
           1993-07-01: .054
@@ -55,13 +55,13 @@
 - variable: famille2
   description: Allocations familiales
   linear:
-    # assiette: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
+    # base: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
     values:
       2018-01-01: .019
       2017-01-01: .019
       2016-01-01: .0185
 
-# linear with plafond can be introduced too:
+# linear with limit can be introduced too:
 
 - variable: vieillesse_deplafonnee_salarie
   description: Cotisation déplafonnée de vieillesse (salarié)
@@ -78,7 +78,7 @@
 - variable: vieillesse_plafonnee_salarie
   description: Cotisation plafonnée de vieillesse (salarié)
   linear:
-    plafond: 1
+    limit: 1
     values:
       2017-01-01: .0690
       2016-01-01: .0690
@@ -93,30 +93,30 @@
 
 - variable: agffc
   description: AGFF cadres
-  bareme:
-    - seuil:
+  marginalRateTaxScale:
+    - threshold:
         values:
           2015-01-01: 0
           2001-04-01: 0
-      taux:
+      rate:
         values:
           2015-01-01: .016
           2001-04-01: .012
 
-    - seuil:
+    - threshold:
         values:
           2015-01-01: 1
           2001-04-01: 1
-      taux:
+      rate:
         values:
           2015-01-01: .017
           2001-04-01: .013
 
-    - seuil:
+    - threshold:
         values:
           2015-01-01: 4
           2001-04-01: 4
-      taux:
+      rate:
         values:
           2015-01-01: 0
           2001-04-01: 0

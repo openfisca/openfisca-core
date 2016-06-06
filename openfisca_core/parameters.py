@@ -35,7 +35,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
     # remember : we're working on vector variables
     univoque_parameter = resolve_var_cases(vector_variables, parameter)
 
-    # Now apply specific computations if any : bareme, linear...
+    # Now apply specific computations if any : marginalRateTaxScale, linear...
     value = compute_parameter(univoque_parameter, base_options)
 
     # A vector should be returned here. Explicitely build one of the right dimension
@@ -44,12 +44,17 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
 
 
 def compute_parameter(parameter, base_options):
-    if parameter.get('bareme'):
+    if parameter.get('marginalRateTaxScale'):
         return compute_scales(parameter, base_options)
     if parameter.get('linear'):
         return compute_linear(parameter, base_options)
-    else:
+    if parameter.get('value') is not None:
         return parameter['value']
+    else:
+        # TODO don't raise general Exception !
+        raise Exception(
+            'Absent or unknown computation type for this parameter'
+            )
 
 
 def transform_dict_key(node, options, parent_node=None, parent_key=None):
@@ -134,7 +139,7 @@ def certify_base(base_options):
 def compute_linear(parameter, base_options):
     linear = parameter.get('linear')
     base, factor = certify_base(base_options)
-    plafond = linear.get('plafond')
+    limit = linear.get('limit')
 
     # Construct a taxscale (see def compute_scales)
 
@@ -147,9 +152,9 @@ def compute_linear(parameter, base_options):
     rates.append(to_vector(linear['value'], nb_entities))
     thresholds.append(to_vector(0, nb_entities))
 
-    # ... or two if plafond is specified.
+    # ... or two if limit is specified.
     # This is the upper limit bracket
-    if plafond:
+    if limit:
         rates.append(to_vector(0, nb_entities))
         thresholds.append(to_vector(1, nb_entities))
 
@@ -157,22 +162,21 @@ def compute_linear(parameter, base_options):
 
 
 def compute_scales(parameter, base_options):
-    bareme = parameter.get('bareme')
+    # Only the case of the MarginalRateTaxScale is supported in YAML parameters
+    scale = parameter.get('marginalRateTaxScale')
     base, factor = certify_base(base_options)
 
     nb_entities = len(base)
     thresholds = list()
     rates = list()
-    # Only the case of the MarginalRateTaxScale is supported in YAML parameters
     # Construct the tax scale
     tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
-    for tranche in bareme:
-        assiette = get_parameter_value(tranche, 'assiette', 1)
-        taux = get_parameter_value(tranche, 'taux')
-        seuil = get_parameter_value(tranche, 'seuil')
+    for bracket in scale:
+        rate = get_parameter_value(bracket, 'rate')
+        threshold = get_parameter_value(bracket, 'threshold')
         # transform scalar to vector
-        rates.append(to_vector(taux * assiette, nb_entities))
-        thresholds.append(to_vector(seuil, nb_entities))
+        rates.append(to_vector(rate, nb_entities))
+        thresholds.append(to_vector(threshold, nb_entities))
     return tax_scale.calc(base, factor, thresholds=thresholds, rates=rates)
 
 

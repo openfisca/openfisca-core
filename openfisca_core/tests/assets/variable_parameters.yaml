@@ -31,14 +31,14 @@
         2005-07-01: .26
 
 
-# bareme with vars
+# marginalRateTaxScale with vars
 - variable: participation_effort_construction_2
-  bareme:
-    - seuil:
+  marginalRateTaxScale:
+    - threshold:
         values:
           2015-01-01: 0
           1992-01-01: 0
-      taux:
+      rate:
         var:
           - condition: "20 <= effectif_entreprise"
             values:
@@ -48,7 +48,7 @@
             values:
               2005-08-01: 0.009
               1992-01-01: 0.00459
-    - seuil:
+    - threshold:
         var:
           - condition: "1 < type_sal"
             values:
@@ -56,7 +56,7 @@
           - condition: "True"
             values:
               1990-01-01: .5
-      taux:
+      rate:
         var:
           - condition: "20 <= effectif_entreprise"
             values:
