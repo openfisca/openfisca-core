@@ -7,7 +7,7 @@ import copy
 from . import formulas, legislations, periods, taxbenefitsystems, columns
 
 
-class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
+class AbstractReform(taxbenefitsystems.TaxBenefitSystem):
     """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
     CURRENCY = None
     DECOMP_DIR = None
@@ -19,7 +19,7 @@ class AbstractReform(taxbenefitsystems.AbstractTaxBenefitSystem):
         assert self.key is not None
         assert self.name is not None
         assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
-        assert isinstance(self.reference, taxbenefitsystems.AbstractTaxBenefitSystem)
+        assert isinstance(self.reference, taxbenefitsystems.TaxBenefitSystem)
         self.Scenario = self.reference.Scenario
 
         if self.CURRENCY is None:
@@ -94,7 +94,7 @@ def make_reform(key, name, reference, decomposition_dir_name = None, decompositi
     """Return a Reform class inherited from AbstractReform."""
     assert isinstance(key, basestring)
     assert isinstance(name, basestring)
-    assert isinstance(reference, taxbenefitsystems.AbstractTaxBenefitSystem)
+    assert isinstance(reference, taxbenefitsystems.TaxBenefitSystem)
     reform_entity_class_by_key_plural = {
         key_plural: clone_entity_class(entity_class)
         for key_plural, entity_class in reference.entity_class_by_key_plural.iteritems()

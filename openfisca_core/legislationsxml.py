@@ -911,17 +911,6 @@ def xml_legislation_to_json(xml_element, state = None):
 
 # Level 2 converters
 
-
-# Used by taxbenefitsystems.XmlBasedTaxBenefitSystem
-
-xml_legislation_file_path_to_json = conv.pipe(
-    make_xml_legislation_file_path_to_xml(with_source_file_infos = False),
-    xml_legislation_to_json,
-    validate_legislation_xml_json,
-    conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
-    )
-
-
 def make_xml_legislation_info_list_to_xml_element(with_source_file_infos):
     return conv.pipe(
         make_xml_legislation_info_list_to_xml_elements_and_paths(with_source_file_infos),

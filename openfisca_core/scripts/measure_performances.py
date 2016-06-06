@@ -19,7 +19,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.formulas import dated_function
 from openfisca_core.variables import DatedVariable, EntityToPersonColumn, PersonToEntityColumn, Variable
-from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 

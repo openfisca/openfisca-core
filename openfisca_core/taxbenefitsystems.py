@@ -9,24 +9,16 @@ from imp import find_module, load_module
 # import weakref
 
 from . import conv, legislations, legislationsxml
-from openfisca_core import variables
 from variables import AbstractVariable
 
 
-__all__ = [
-    'AbstractTaxBenefitSystem',
-    'MultipleXmlBasedTaxBenefitSystem',
-    'XmlBasedTaxBenefitSystem',
-    ]
-
-
-class AbstractTaxBenefitSystem(object):
+class TaxBenefitSystem(object):
     _base_tax_benefit_system = None
-    column_by_name = None
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
     legislation_json = None
     person_key_plural = None
+    preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -147,33 +139,9 @@ class AbstractTaxBenefitSystem(object):
         return self.column_by_name.get(column_name)
 
 
-class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax and benefit sytem with legislation stored in a XML file."""
-    legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
-    preprocess_legislation = None
-
-    def __init__(self, entity_class_by_key_plural = None):
-        state = conv.default_state
-        legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
-            self.legislation_xml_file_path, state = state)
-        if self.preprocess_legislation is not None:
-            legislation_json = self.preprocess_legislation(legislation_json)
-        super(XmlBasedTaxBenefitSystem, self).__init__(
-            entity_class_by_key_plural = entity_class_by_key_plural,
-            legislation_json = legislation_json,
-            )
 
 
-class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax and benefit sytem with legislation stored in many XML files."""
-    legislation_xml_info_list = None  # class attribute or must be set before calling this __init__ method.
-    preprocess_legislation = None
 
-    def __init__(self, entity_class_by_key_plural = None):
-        legislation_json = self.get_legislation_json(with_source_file_infos = False)
-        super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
-            entity_class_by_key_plural = entity_class_by_key_plural,
-            legislation_json = legislation_json,
             )
 
     def get_legislation_json(self, with_source_file_infos):

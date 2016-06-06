@@ -11,7 +11,7 @@ from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
 from openfisca_core.variables import Variable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
-from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleXmlBasedTaxBenefitSystem
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
