@@ -83,15 +83,15 @@ def test_yaml_parameters():
         3170
         )
 
-    vector1 = parameters.get(
-        tax_benefit_system.parameters,
-        'famille',
-        '1994-02-06',
-        base_options={'base': [2300, 1467], 'factor': 3218},
-        )
-    assert_almost_equal(
-        vector1, np.array([124.2, 79.218]), decimal=1
-        )
+    # vector1 = parameters.get(
+    #     tax_benefit_system.parameters,
+    #     'famille',
+    #     '1994-02-06',
+    #     base_options={'base': [2300, 1467], 'factor': 3218},
+    #     )
+    # assert_almost_equal(
+    #     vector1, np.array([124.2, 79.218]), decimal=1
+    #     )
 
     vector2 = parameters.get(
         tax_benefit_system.parameters,

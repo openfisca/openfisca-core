@@ -209,6 +209,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
     def calc(self, base, factor=None, thresholds=None, rates=None, round_base_decimals=None):
+        # If it takes you some time to understand this method, don't worry
         n = len(self.thresholds)
         N = len(base)
 
@@ -230,7 +231,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             inf_matrix[:, :-1] = np.transpose(thresholds * factor)
             thresholds = inf_matrix
         if rates is None:
-            rates = np.tile(self.rates, (N, 1))
+            rates = np.tile(self.rates, (N, 1)).transpose()
 
         # TODO handle round_base_decimals
 
@@ -238,7 +239,9 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
         if round_base_decimals is not None:
             thresholds = np.round(thresholds, round_base_decimals)
+        # Find the portion of the base that resides in each scale bracket
         a = max_(min_(base1, thresholds[:, 1:]) - thresholds[:, :-1], 0)
+        # Apply rates
         if round_base_decimals is None:
                 return sum((a.T * np.array(rates)))
         else:
