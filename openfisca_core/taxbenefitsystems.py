@@ -136,6 +136,15 @@ class TaxBenefitSystem(object):
         for variable in variables:
             self.add_variable(variable)
 
+    def load_extension(self, extension_directory):
+        if not path.isdir(extension_directory):
+            raise IOError(
+                "Error loading extension: the extension directory {} doesn't exist.".format(extension_directory))
+        self.add_variables_from_directory(extension_directory)
+        param_file = path.join(extension_directory, 'parameters.xml')
+        if path.isfile(param_file):
+            self.add_legislation_params(param_file)
+
     def get_column(self, column_name):
         return self.column_by_name.get(column_name)
 
