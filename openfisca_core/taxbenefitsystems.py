@@ -16,7 +16,6 @@ class TaxBenefitSystem(object):
     _base_tax_benefit_system = None
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
-    legislation_json = None
     person_key_plural = None
     preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -32,6 +31,8 @@ class TaxBenefitSystem(object):
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = collections.OrderedDict()
         self.automatically_loaded_variable = set()
+        self.legislation_xml_info_list = []
+        self._legislation_json = legislation_json
 
         if entity_class_by_key_plural is not None:
             self.entity_class_by_key_plural = entity_class_by_key_plural
@@ -52,14 +53,15 @@ class TaxBenefitSystem(object):
         return base_tax_benefit_system
 
     def get_compact_legislation(self, instant, traced_simulation = None):
+        legislation = self.get_legislation()
         if traced_simulation is None:
             compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None and self.legislation_json is not None:
-                dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
+            if compact_legislation is None and legislation is not None:
+                dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
                 compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
                 self.compact_legislation_by_instant_cache[instant] = compact_legislation
         else:
-            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
+            dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
             compact_legislation = legislations.compact_dated_node_json(
                 dated_legislation_json,
                 traced_simulation = traced_simulation,
@@ -138,13 +140,18 @@ class TaxBenefitSystem(object):
     def get_column(self, column_name):
         return self.column_by_name.get(column_name)
 
+    def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+        if path_in_legislation_tree is not None:
+            path_in_legislation_tree = path_in_legislation_tree.split('.')
 
-
-
-
+        self.legislation_xml_info_list.append(
+            (path_to_xml_file, path_in_legislation_tree)
             )
+        # New parameters have been added, the legislation will have to be recomputed next time we need it.
+        # Not very optimized, but today incremental building of the legislation is not implemented.
+        self._legislation_json = None
 
-    def get_legislation_json(self, with_source_file_infos):
+    def compute_legislation(self, with_source_file_infos = False):
         state = conv.default_state
         xml_legislation_info_list_to_json = legislationsxml.make_xml_legislation_info_list_to_json(
             with_source_file_infos,
@@ -152,4 +159,9 @@ class TaxBenefitSystem(object):
         legislation_json = conv.check(xml_legislation_info_list_to_json)(self.legislation_xml_info_list, state = state)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
-        return legislation_json
+        self._legislation_json = legislation_json
+
+    def get_legislation(self):
+        if self._legislation_json is None:
+            self.compute_legislation()
+        return self._legislation_json
