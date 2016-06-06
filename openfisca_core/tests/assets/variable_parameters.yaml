@@ -1,0 +1,99 @@
+# Use the var node and its condition children
+# to avoid using variations of parameter names to express conditions,
+# and compute the condition in your formula.
+
+# This is very useful for "terminal variations",
+# that is variations that happen close to the leaf nodes of the param tree
+
+# conditions use real variable names that you will pass from your formula
+# TODO or should we compute them for you ? Ideally yes, but what about period conversions ?
+
+# Regular value parameters :
+
+- variable: fillon_taux_max
+  description: Taux maximum de l'allègement général
+  format: percent
+  var:
+    - condition: "20 <= effectif_entreprise"
+      values:
+        2018-01-01: .2850
+        2017-01-01: .2850
+        2016-01-01: .2842
+        2015-01-01: .2835
+        2005-07-01: .26
+    - condition: "effectif_entreprise < 20"
+      values:
+        2018-01-01: .2810
+        2017-01-01: .2810
+        2016-01-01: .2802
+        2015-01-01: .2795
+        2007-07-01: .281
+        2005-07-01: .26
+
+
+# marginalRateTaxScale with vars
+- variable: participation_effort_construction_2
+  marginalRateTaxScale:
+    - threshold:
+        values:
+          2015-01-01: 0
+          1992-01-01: 0
+      rate:
+        var:
+          - condition: "20 <= effectif_entreprise"
+            values:
+              2015-01-01: 0.0045999
+              1992-01-01: 0.004599
+          - condition: "10 <= effectif_entreprise"
+            values:
+              2005-08-01: 0.009
+              1992-01-01: 0.00459
+    - threshold:
+        var:
+          - condition: "1 < type_sal"
+            values:
+              1990-01-01: 1
+          - condition: "True"
+            values:
+              1990-01-01: .5
+      rate:
+        var:
+          - condition: "20 <= effectif_entreprise"
+            values:
+              2015-01-01: 0.23
+              1992-01-01: 0.1
+          - condition: "10 <= effectif_entreprise"
+            values:
+              2005-08-01: 0.46
+              1992-01-01: 0.89
+
+
+# vars can be very useful :
+# TODO is this working ?
+# TODO enable nesting vars ?
+
+- variable: contribution_supplementaire_apprentissage
+  description: Contribution supplémentaire d'apprentissage
+  # Attention, fausses valeurs !
+  linear:
+    var:
+      - condition: "(pourcentage_alternants < 1) & (effectif_entreprise < 2000)"
+        values:
+          2016-01-01: .005
+          2014-01-01: .004
+          2013-01-01: .004
+      - condition: "(pourcentage_alternants < 1) & (effectif_entreprise >= 2000)"
+        values:
+          2016-01-01: .006
+          2014-01-01: .006
+          2013-01-01: .005
+      - condition: "pourcentage_alternants < 2"
+        values:
+          2016-01-01: .002
+          2015-01-01: .002
+          2013-01-01: .001
+      - condition: "pourcentage_alternants < 3"
+        values:
+          2016-01-01: .002
+          2015-01-01: .002
+          2013-01-01: .001

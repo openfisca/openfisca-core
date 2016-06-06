@@ -3,7 +3,7 @@
 
 import collections
 
-from . import periods, holders
+from . import periods, holders, parameters
 from .tools import empty_clone, stringify_array
 
 
@@ -256,6 +256,10 @@ class Simulation(object):
         if reference:
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
+
+    def get_parameter(self, name, instant, dimension, base_options, **vector_variables):
+        return parameters.get(self.tax_benefit_system.parameters, name, instant, dimension,
+                              base_options=base_options, **vector_variables)
 
     def stringify_input_variables_infos(self, input_variables_infos):
         return u', '.join(

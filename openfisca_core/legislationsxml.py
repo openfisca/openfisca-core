@@ -14,6 +14,9 @@ import xml.etree.ElementTree
 from . import conv
 
 
+# Following are the XML tags that can be used in parameter files,
+# and their correspondence in JSON
+
 # legislation_json_key_by_xml_tag = dict(
 #    ASSIETTE = 'base',  # "base" is singular, because a bracket has only one base.
 #    BAREME = 'scales',
@@ -511,7 +514,7 @@ def validate_brackets_xml_json_types(brackets, state = None):
     return brackets, None
 
 
-def validate_node_xml_json(node, state = None):
+def validate_node_xml_json(node, state=None):
     if node is None:
         return None, None
     state = conv.add_ancestor_to_state(state, node)
@@ -595,8 +598,6 @@ def validate_node_xml_json(node, state = None):
                     children_code.add(child_code)
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors or None
-
-validate_legislation_xml_json = validate_node_xml_json
 
 
 def validate_parameter_xml_json(parameter, state = None):
@@ -855,8 +856,8 @@ validate_values_holder_xml_json = conv.struct(
     )
 
 
-def make_xml_legislation_file_path_to_xml(with_source_file_infos = False):
-    def xml_legislation_file_path_to_xml(value, state = None):
+def make_xml_legislation_file_path_to_xml(with_source_file_infos=False):
+    def xml_legislation_file_path_to_xml(value, state=None):
         if with_source_file_infos:
             # From # http://bugs.python.org/issue14078#msg153907
             class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
@@ -915,9 +916,9 @@ def xml_legislation_to_json(xml_element, state = None):
 # Used by taxbenefitsystems.XmlBasedTaxBenefitSystem
 
 xml_legislation_file_path_to_json = conv.pipe(
-    make_xml_legislation_file_path_to_xml(with_source_file_infos = False),
+    make_xml_legislation_file_path_to_xml(),
     xml_legislation_to_json,
-    validate_legislation_xml_json,
+    validate_node_xml_json,
     conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
     )
 
@@ -935,6 +936,6 @@ def make_xml_legislation_info_list_to_json(with_source_file_infos):
     return conv.pipe(
         make_xml_legislation_info_list_to_xml_element(with_source_file_infos),
         xml_legislation_to_json,
-        validate_legislation_xml_json,
+        validate_node_xml_json,
         conv.function(lambda value: transform_node_xml_json_to_json(value)[1]),
         )

@@ -13,26 +13,43 @@ from numpy import maximum as max_, minimum as min_
 
 from .tools import empty_clone
 
-
 log = logging.getLogger(__name__)
+
+#
+#                                                            AbstractTaxScale
+#
+#                                                                +     +
+#                                                                |     |
+#                                                                |     |
+#                                                                |     |
+#                        AbstractRateTaxScale      <-------------+     +-------------->    AmountTaxScale
+#
+#
+#                                 +   +
+#                                 |   |
+#                                 |   |
+#                                 |   |
+# LinearAverageRateTaxScale    <--+   +-->      MarginalRateTaxScale
+#
 
 
 class AbstractTaxScale(object):
     """Abstract class for various types of tax scales (amount-based tax scales, rate-based tax scales)
 
     French translations:
+      * tax scale: barème
       * base: assiette
       * bracket: tranche
       * rate: taux
-      * tax scale: barème
       * threshold: seuil
+      * amount: montant
     """
     name = None
     option = None
     thresholds = None
     unit = None
 
-    def __init__(self, name = None, option = None, unit = None):
+    def __init__(self, name=None, option=None, unit=None):
         self.name = name or 'Untitled TaxScale'
         if option is not None:
             self.option = option
@@ -62,8 +79,8 @@ class AbstractRateTaxScale(AbstractTaxScale):
     """Abstract class for various types of rate-based tax scales (marginal rate, linear average rate)"""
     rates = None
 
-    def __init__(self, name = None, option = None, unit = None):
-        super(AbstractRateTaxScale, self).__init__(name = name, option = option, unit = unit)
+    def __init__(self, name=None, option=None, unit=None):
+        super(AbstractRateTaxScale, self).__init__(name=name, option=option, unit=unit)
         self.rates = []
 
     def __str__(self):
@@ -82,35 +99,35 @@ class AbstractRateTaxScale(AbstractTaxScale):
         else:
             i = bisect_left(self.thresholds, threshold)
             self.thresholds.insert(i, threshold)
-            self.rates.insert(i, rate)
+        self.rates.insert(i, rate)
 
-    def multiply_rates(self, factor, inplace = True, new_name = None):
+    def multiply_rates(self, factor, inplace=True, new_name=None):
         if inplace:
             assert new_name is None
             for i, rate in enumerate(self.rates):
                 self.rates[i] = rate * factor
             return self
 
-        new_tax_scale = self.__class__(new_name or self.name, option = self.option, unit = self.unit)
+        new_tax_scale = self.__class__(new_name or self.name, option=self.option, unit=self.unit)
         for threshold, rate in itertools.izip(self.thresholds, self.rates):
             new_tax_scale.thresholds.append(threshold)
             new_tax_scale.rates.append(rate * factor)
         return new_tax_scale
 
-    def multiply_thresholds(self, factor, decimals = None, inplace = True, new_name = None):
+    def multiply_thresholds(self, factor, decimals=None, inplace=True, new_name=None):
         if inplace:
             assert new_name is None
             for i, threshold in enumerate(self.thresholds):
                 if decimals is not None:
-                    self.thresholds[i] = np.around(threshold * factor, decimals = decimals)
+                    self.thresholds[i] = np.around(threshold * factor, decimals=decimals)
                 else:
                     self.thresholds[i] = threshold * factor
             return self
 
-        new_tax_scale = self.__class__(new_name or self.name, option = self.option, unit = self.unit)
+        new_tax_scale = self.__class__(new_name or self.name, option=self.option, unit=self.unit)
         for threshold, rate in itertools.izip(self.thresholds, self.rates):
             if decimals is not None:
-                new_tax_scale.thresholds.append(np.around(threshold * factor, decimals = decimals))
+                new_tax_scale.thresholds.append(np.around(threshold * factor, decimals=decimals))
             else:
                 new_tax_scale.thresholds.append(threshold * factor)
 
@@ -121,8 +138,8 @@ class AbstractRateTaxScale(AbstractTaxScale):
 class AmountTaxScale(AbstractTaxScale):
     amounts = None
 
-    def __init__(self, name = None, option = None, unit = None):
-        super(AmountTaxScale, self).__init__(name = name, option = option, unit = unit)
+    def __init__(self, name=None, option=None, unit=None):
+        super(AmountTaxScale, self).__init__(name=name, option=option, unit=unit)
         self.amounts = []
 
     def __str__(self):
@@ -170,7 +187,7 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
         return base * (bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope)
 
     def to_marginal(self):
-        marginal_tax_scale = MarginalRateTaxScale(name = self.name, option = self.option, unit = self.unit)
+        marginal_tax_scale = MarginalRateTaxScale(name=self.name, option=self.option, unit=self.unit)
         previous_I = 0
         previous_threshold = 0
         for threshold, rate in itertools.izip(self.thresholds[1:], self.rates[1:]):
@@ -187,34 +204,61 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
     def add_tax_scale(self, tax_scale):
         if tax_scale.thresholds > 0:  # Pour ne pas avoir de problèmes avec les barèmes vides
             for threshold_low, threshold_high, rate in itertools.izip(tax_scale.thresholds[:-1],
-                    tax_scale.thresholds[1:], tax_scale.rates):
+                                                                      tax_scale.thresholds[1:], tax_scale.rates):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base, factor = 1, round_base_decimals = None):
-        base1 = np.tile(base, (len(self.thresholds), 1)).T
-        if isinstance(factor, (float, int)):
-            factor = np.ones(len(base)) * factor
-        thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
-        if round_base_decimals is not None:
-            thresholds1 = np.round(thresholds1, round_base_decimals)
-        a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
-        if round_base_decimals is None:
-            return np.dot(self.rates, a.T)
-        else:
-            r = np.tile(self.rates, (len(base), 1))
-            b = np.round(a, round_base_decimals)
-            return np.round(r * b, round_base_decimals).sum(axis = 1)
+    def calc(self, base, factor=None, thresholds=None, rates=None, round_base_decimals=None):
+        # If it takes you some time to understand this method, don't worry
+        n = len(self.thresholds)
+        N = len(base)
 
-    def combine_bracket(self, rate, threshold_low = 0, threshold_high = False):
+        factor = 1 if factor is None else factor
+        # factor can be a vector or a scalar. In the latter case,
+        # convert it to a vector
+        if isinstance(factor, (float, int)):
+            factor = np.ones(N) * factor
+        # Thresholds, as well as rates can be either :
+        # 1- a list of n brackets -- we'll replicate it and work on that second form :
+        # 2- a list of n brackets for each of the N entities in the simulation (personalized scales by entity)
+
+        # Add the last, implicit column to the thresholds, infinity !
+        if thresholds is None:
+            thresholds = np.outer(factor, np.array(self.thresholds + [np.inf]))
+        else:
+            n = len(thresholds)
+            inf_matrix = np.ones((N, n + 1)) * np.inf
+            inf_matrix[:, :-1] = np.transpose(thresholds * factor)
+            thresholds = inf_matrix
+        if rates is None:
+            rates = np.tile(self.rates, (N, 1)).transpose()
+
+        # TODO handle round_base_decimals
+
+        base1 = np.tile(base, (n, 1)).T
+
+        if round_base_decimals is not None:
+            thresholds = np.round(thresholds, round_base_decimals)
+        # Spread the base over each scale bracket
+        a = max_(min_(base1, thresholds[:, 1:]) - thresholds[:, :-1], 0)
+        # Apply rates
+        if round_base_decimals is not None:
+            a = np.round(a, round_base_decimals)
+        a_rated = a.T * np.array(rates)
+        if round_base_decimals is None:
+            return a_rated.sum(axis=0)
+        else:
+            return np.round(a_rated, round_base_decimals).sum(axis=0)
+
+    def combine_bracket(self, rate, threshold_low=0, threshold_high=False):
         # Insert threshold_low and threshold_high without modifying rates
         if threshold_low not in self.thresholds:
             index = bisect_right(self.thresholds, threshold_low) - 1
             self.add_bracket(threshold_low, self.rates[index])
 
         if threshold_high and threshold_high not in self.thresholds:
-                index = bisect_right(self.thresholds, threshold_high) - 1
-                self.add_bracket(threshold_high, self.rates[index])
+            index = bisect_right(self.thresholds, threshold_high) - 1
+            self.add_bracket(threshold_high, self.rates[index])
 
         # Use add_bracket to add rates where they belongs
         i = self.thresholds.index(threshold_low)
@@ -240,7 +284,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 morceaux du revenu brut
         """
         # Actually 1/(1-global-rate)
-        inverse = self.__class__(name = self.name + "'", option = self.option, unit = self.unit)
+        inverse = self.__class__(name=self.name + "'", option=self.option, unit=self.unit)
         taxable_threshold = 0
         for threshold, rate in itertools.izip(self.thresholds, self.rates):
             if threshold == 0:
@@ -260,7 +304,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         return scaled_tax_scale.multiply_thresholds(factor)
 
     def to_average(self):
-        average_tax_scale = LinearAverageRateTaxScale(name = self.name, option = self.option, unit = self.unit)
+        average_tax_scale = LinearAverageRateTaxScale(name=self.name, option=self.option, unit=self.unit)
         average_tax_scale.add_bracket(0, 0)
         if self.thresholds:
             I = 0

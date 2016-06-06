@@ -50,7 +50,7 @@ class ParameterNotFound(Exception):
 
 
 class CompactNode(object):
-    # Note: Legislation attributes are set explicitely by compact_dated_node_json
+    # Note: Legislation attributes are set explicitly by compact_dated_node_json
     # (ie they are not computed by a magic method).
 
     instant = None

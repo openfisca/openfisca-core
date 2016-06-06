@@ -88,6 +88,12 @@ class AbstractFormula(object):
         '''
         return np.zeros(self.holder.entity.count, **kwargs)
 
+    def get_parameter(self, instant, name=None, base_options=None, **vector_variables):
+        simulation = self.holder.entity.simulation
+        simulation_dimension = self.holder.entity.count  # The input population vector size
+        name = self.__class__.__name__ if name is None else name
+        return simulation.get_parameter(name, instant, simulation_dimension, base_options, **vector_variables)
+
 
 class AbstractEntityToEntity(AbstractFormula):
     _variable_holder = None
