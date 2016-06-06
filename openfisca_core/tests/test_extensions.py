@@ -1,7 +1,11 @@
+from os import path
+
 from nose.tools import raises
 
-from openfisca_core.tests.dummy_country import init_tax_benefit_system
+from openfisca_core.tests.dummy_country import init_tax_benefit_system, TEST_DIRECTORY
 
+
+dummy_extension_path = path.join(TEST_DIRECTORY, 'dummy_extension')
 tbs = init_tax_benefit_system()
 
 
@@ -10,7 +14,7 @@ def test_extension_not_already_loaded():
 
 
 def test_load_extension():
-    tbs.load_extension('https://github.com/sgmap/openfisca-paris.git')
+    tbs.load_extension(dummy_extension_path)
     assert tbs.get_column('paris_logement_familles') is not None
 
 
