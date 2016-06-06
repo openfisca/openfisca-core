@@ -26,7 +26,7 @@ class TaxBenefitSystem(object):
     Scenario = None
     cache_blacklist = None
 
-    def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
+    def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = collections.OrderedDict()
@@ -34,13 +34,12 @@ class TaxBenefitSystem(object):
         self.legislation_xml_info_list = []
         self._legislation_json = legislation_json
 
-        if entity_class_by_key_plural is not None:
-            self.entity_class_by_key_plural = entity_class_by_key_plural
-        assert self.entity_class_by_key_plural is not None
-
-        if legislation_json is not None:
-            self.legislation_json = legislation_json
-        # Note: self.legislation_json may be None for simulators without legislation parameters.
+        if entities is None or len(entities) == 0:
+            raise Exception("A tax benefit sytem must have at least an entity.")
+        self.entity_class_by_key_plural = {
+            entity_class.key_plural: entity_class
+            for entity_class in entities
+            }
 
     @property
     def base_tax_benefit_system(self):
