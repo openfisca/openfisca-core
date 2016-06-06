@@ -1,4 +1,4 @@
-# Use the VAR node and its condition children
+# Use the var node and its condition children
 # to avoid using variations of parameter names to express conditions,
 # and compute the condition in your formula.
 
@@ -13,16 +13,16 @@
 - variable: fillon_taux_max
   description: Taux maximum de l'allègement général
   format: percent
-  VAR:
+  var:
     - condition: "20 <= effectif_entreprise"
-      VALUES:
+      values:
         2018-01-01: .2850
         2017-01-01: .2850
         2016-01-01: .2842
         2015-01-01: .2835
         2005-07-01: .26
     - condition: "effectif_entreprise < 20"
-      VALUES:
+      values:
         2018-01-01: .2810
         2017-01-01: .2810
         2016-01-01: .2802
@@ -31,69 +31,69 @@
         2005-07-01: .26
 
 
-# BAREME with VARs
+# bareme with vars
 - variable: participation_effort_construction_2
-  BAREME:
-    - SEUIL:
-        VALUES:
+  bareme:
+    - seuil:
+        values:
           2015-01-01: 0
           1992-01-01: 0
-      TAUX:
-        VAR:
+      taux:
+        var:
           - condition: "20 <= effectif_entreprise"
-            VALUES:
+            values:
               2015-01-01: 0.0045999
               1992-01-01: 0.004599
           - condition: "10 <= effectif_entreprise"
-            VALUES:
+            values:
               2005-08-01: 0.009
               1992-01-01: 0.00459
-    - SEUIL:
-        VAR:
+    - seuil:
+        var:
           - condition: "1 < type_sal"
-            VALUES:
+            values:
               1990-01-01: 1
           - condition: "True"
-            VALUES:
+            values:
               1990-01-01: .5
-      TAUX:
-        VAR:
+      taux:
+        var:
           - condition: "20 <= effectif_entreprise"
-            VALUES:
+            values:
               2015-01-01: 0.23
               1992-01-01: 0.1
           - condition: "10 <= effectif_entreprise"
-            VALUES:
+            values:
               2005-08-01: 0.46
               1992-01-01: 0.89
 
 
-# VARs can be very useful :
+# vars can be very useful :
 # TODO is this working ?
-# TODO enable nesting VARs ?
+# TODO enable nesting vars ?
 
 - variable: contribution_supplementaire_apprentissage
   description: Contribution supplémentaire d'apprentissage
   # Attention, fausses valeurs !
-  LIN:
-    VAR:
+  lin:
+    var:
       - condition: "(pourcentage_alternants < 1) & (effectif_entreprise < 2000)"
-        VALUES:
+        values:
           2016-01-01: .005
           2014-01-01: .004
           2013-01-01: .004
       - condition: "(pourcentage_alternants < 1) & (effectif_entreprise >= 2000)"
-        VALUES:
+        values:
           2016-01-01: .006
           2014-01-01: .006
           2013-01-01: .005
       - condition: "pourcentage_alternants < 2"
-        VALUES:
+        values:
           2016-01-01: .002
           2015-01-01: .002
           2013-01-01: .001
       - condition: "pourcentage_alternants < 3"
-        VALUES:
+        values:
           2016-01-01: .002
           2015-01-01: .002
           2013-01-01: .001

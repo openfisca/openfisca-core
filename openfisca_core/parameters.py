@@ -27,7 +27,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
     # select and set the right value for this instant
     transform_dict_key(
         parameter,
-        dict(key_to_find='VALUES', new_key='VALUE',
+        dict(key_to_find='values', new_key='value',
              transform=lambda values: choose_temporal_value(name, values, instant)),
         )
 
@@ -35,7 +35,7 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
     # remember : we're working on vector variables
     univoque_parameter = resolve_var_cases(vector_variables, parameter)
 
-    # Now apply specific computations if any : BAREME, LIN...
+    # Now apply specific computations if any : bareme, lin...
     value = compute_parameter(univoque_parameter, base_options)
 
     # A vector should be returned here. Explicitely build one of the right dimension
@@ -44,12 +44,12 @@ def get(parameters, name, instant, dimension=None, base_options=None, **vector_v
 
 
 def compute_parameter(parameter, base_options):
-    if parameter.get('BAREME'):
+    if parameter.get('bareme'):
         return compute_scales(parameter, base_options)
-    if parameter.get('LIN'):
+    if parameter.get('lin'):
         return compute_linear(parameter, base_options)
     else:
-        return parameter['VALUE']
+        return parameter['value']
 
 
 def transform_dict_key(node, options, parent_node=None, parent_key=None):
@@ -109,7 +109,7 @@ def choose_temporal_value(name, values, instant):
 def get_parameter_value(node, attribute, default=None):
     value = node.get(attribute)
     if value:
-        return value['VALUE']
+        return value['value']
     else:
         assert default is not None
         return default
@@ -132,9 +132,9 @@ def certify_base(base_options):
 
 
 def compute_linear(parameter, base_options):
-    lin = parameter.get('LIN')
+    lin = parameter.get('lin')
     base, factor = certify_base(base_options)
-    plafond = lin.get('PLAFOND')
+    plafond = lin.get('plafond')
 
     # Construct a taxscale (see def compute_scales)
 
@@ -144,10 +144,10 @@ def compute_linear(parameter, base_options):
     tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
 
     # With one bracket only...
-    rates.append(to_vector(lin['VALUE'], nb_entities))
+    rates.append(to_vector(lin['value'], nb_entities))
     thresholds.append(to_vector(0, nb_entities))
 
-    # ... or two if PLAFOND is specified.
+    # ... or two if plafond is specified.
     # This is the upper limit bracket
     if plafond:
         rates.append(to_vector(0, nb_entities))
@@ -157,7 +157,7 @@ def compute_linear(parameter, base_options):
 
 
 def compute_scales(parameter, base_options):
-    bareme = parameter.get('BAREME')
+    bareme = parameter.get('bareme')
     base, factor = certify_base(base_options)
 
     nb_entities = len(base)
@@ -167,9 +167,9 @@ def compute_scales(parameter, base_options):
     # Construct the tax scale
     tax_scale = taxscales.MarginalRateTaxScale(name=parameter.get('variable'))
     for tranche in bareme:
-        assiette = get_parameter_value(tranche, 'ASSIETTE', 1)
-        taux = get_parameter_value(tranche, 'TAUX')
-        seuil = get_parameter_value(tranche, 'SEUIL')
+        assiette = get_parameter_value(tranche, 'assiette', 1)
+        taux = get_parameter_value(tranche, 'taux')
+        seuil = get_parameter_value(tranche, 'seuil')
         # transform scalar to vector
         rates.append(to_vector(taux * assiette, nb_entities))
         thresholds.append(to_vector(seuil, nb_entities))
@@ -180,7 +180,7 @@ def resolve_var_cases(vector_variables, parameter):
     parameter_copy = copy.deepcopy(parameter)
     transform_dict_key(
         parameter_copy,
-        dict(key_to_find='VAR', replace_parent=True,
+        dict(key_to_find='var', replace_parent=True,
              transform=lambda cases: choose_conditional_case(cases, vector_variables)),
         )
 
@@ -190,9 +190,9 @@ def resolve_var_cases(vector_variables, parameter):
 def choose_conditional_case(cases, variables):
     # The first value whose case is evaluated to true is selected (for each entity of our entity vector)
     case_conditions = np.array([resolve_condition(case['condition'], variables) for case in cases])
-    case_values = [case['VALUE'] for case in cases]
+    case_values = [case['value'] for case in cases]
     return {
-        'VALUE': np.select(case_conditions, case_values)
+        'value': np.select(case_conditions, case_values)
         }
 
 

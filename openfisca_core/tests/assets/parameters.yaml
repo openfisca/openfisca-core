@@ -1,10 +1,10 @@
 
-# Regular parameter values : meta + VALUES handling variation of its value in time
+# Regular parameter values : meta + values handling variation of its value in time
 - variable: smic_horaire_brut
   description: SMIC horaire brut
   format: float
   type: monetary
-  VALUES:
+  values:
     - {deb: 2016-01-01, fuzzy: true,     valeur: 9.67}
     - {deb: 2015-01-01, fin: 2015-12-31, valeur: 9.61}
     - {deb: 2014-01-01, fin: 2014-12-31, valeur: 9.53}
@@ -18,7 +18,7 @@
   type: monetary
   # Values should be written in descending ordered :
   # what's most important today first
-  VALUES:
+  values:
     #  Fuzzy is explicit :
     #  to express the disparition of a variable,
     #  you should explicitely set its last date
@@ -35,16 +35,16 @@
 
 
 
-# BAREME node with 1 bracket...
+# bareme node with 1 bracket...
 - variable: famille
   description: Allocations familiales
-  BAREME:
-    - SEUIL:
-        VALUES:
+  bareme:
+    - seuil:
+        values:
           2015-01-01: 0
           1992-01-01: 0
-      TAUX:
-        VALUES:
+      taux:
+        values:
           2014-01-01: .0525
           1993-07-01: .054
 
@@ -54,19 +54,19 @@
 
 - variable: famille2
   description: Allocations familiales
-  LIN:
-    # ASSIETTE: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
-    VALUES:
+  lin:
+    # assiette: assiette_cotisations_sociales # TODO: retrieve this var or request it ?
+    values:
       2018-01-01: .019
       2017-01-01: .019
       2016-01-01: .0185
 
-# LIN with PLAFOND can be introduced too:
+# lin with plafond can be introduced too:
 
 - variable: vieillesse_deplafonnee_salarie
   description: Cotisation déplafonnée de vieillesse (salarié)
-  LIN:
-    VALUES:
+  lin:
+    values:
       2018-01-01: .004
       2017-01-01: .004
       2016-01-01: .0035
@@ -77,9 +77,9 @@
 
 - variable: vieillesse_plafonnee_salarie
   description: Cotisation plafonnée de vieillesse (salarié)
-  LIN:
-    PLAFOND: 1
-    VALUES:
+  lin:
+    plafond: 1
+    values:
       2017-01-01: .0690
       2016-01-01: .0690
       2015-01-01: .0685
@@ -89,35 +89,35 @@
       1993-07-01: .0655
 
 
-# of course real BAREMEs with multiple brackets happen :
+# of course real baremes with multiple brackets happen :
 
 - variable: agffc
   description: AGFF cadres
-  BAREME:
-    - SEUIL:
-        VALUES:
+  bareme:
+    - seuil:
+        values:
           2015-01-01: 0
           2001-04-01: 0
-      TAUX:
-        VALUES:
+      taux:
+        values:
           2015-01-01: .016
           2001-04-01: .012
 
-    - SEUIL:
-        VALUES:
+    - seuil:
+        values:
           2015-01-01: 1
           2001-04-01: 1
-      TAUX:
-        VALUES:
+      taux:
+        values:
           2015-01-01: .017
           2001-04-01: .013
 
-    - SEUIL:
-        VALUES:
+    - seuil:
+        values:
           2015-01-01: 4
           2001-04-01: 4
-      TAUX:
-        VALUES:
+      taux:
+        values:
           2015-01-01: 0
           2001-04-01: 0
 
