@@ -59,17 +59,6 @@ class Individus(AbstractEntity):
     symbol = 'ind'
 
 
-entity_class_by_symbol = dict(
-    fam = Familles,
-    ind = Individus,
-    )
-
-entity_class_by_key_plural = {
-    entity_class.key_plural: entity_class
-    for entity_class in entity_class_by_symbol.itervalues()
-    }
-
-
 # Mandatory input variables
 
 
@@ -262,37 +251,15 @@ class Scenario(AbstractScenario):
 
 # TaxBenefitSystems
 
-
-def init_country():
-    class TaxBenefitSystem(AbstractTaxBenefitSystem):
-        pass
-
-    # Define class attributes after class declaration to avoid "name is not defined" exceptions.
-    TaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
-    TaxBenefitSystem.Scenario = Scenario
-
-    return TaxBenefitSystem
+entities = [Familles, Individus]
+path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
+path_to_csg_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
 
 
 def init_tax_benefit_system():
-    TaxBenefitSystem = init_country()
-    tbs = TaxBenefitSystem()
+    tbs = TaxBenefitSystem(entities)
+    tbs.Scenario = Scenario
     tbs.add_variables_from_module(__file__)
+    tbs.add_legislation_params(path_to_root_params)
+    tbs.add_legislation_params(path_to_csg_params, 'csg.activite')
     return tbs
-
-
-class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
-    legislation_xml_info_list = [
-        (
-            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml'),
-            None,
-            ),
-        (
-            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml'),
-            ('csg', 'activite'),
-            ),
-        ]
-
-# Define class attributes after class declaration to avoid "name is not defined" exceptions.
-DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
-DummyMultipleXmlBasedTaxBenefitSystem.Scenario = Scenario

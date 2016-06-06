@@ -66,26 +66,6 @@ class Individus(AbstractEntity):
     label = u'Personne'
     symbol = 'ind'
 
-
-entity_class_by_symbol = dict(
-    fam = Familles,
-    ind = Individus,
-    )
-
-
-# TaxBenefitSystems
-
-
-def init_country():
-    class TaxBenefitSystem(AbstractTaxBenefitSystem):
-        entity_class_by_key_plural = {
-            entity_class.key_plural: entity_class
-            for entity_class in entity_class_by_symbol.itervalues()
-            }
-
-    return TaxBenefitSystem
-
-
 # Input variables
 
 
@@ -231,8 +211,7 @@ class salaire_net(Variable):
 # TaxBenefitSystem instance declared after formulas
 
 
-TaxBenefitSystem = init_country()
-tax_benefit_system = TaxBenefitSystem()
+tax_benefit_system = TaxBenefitSystem([Familles, Individus])
 tax_benefit_system.add_variables(age_en_mois, birth, depcom, id_famille, role_dans_famille, salaire_brut, age,
     dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
 
