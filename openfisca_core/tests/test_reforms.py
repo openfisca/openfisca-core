@@ -5,7 +5,7 @@ import datetime
 from nose.tools import assert_equal, raises
 
 from .. import columns, periods, reforms
-from ..reforms import NewReform, compose_reforms
+from ..reforms import Reform, compose_reforms
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..tools import assert_near
@@ -14,7 +14,7 @@ from .test_countries import tax_benefit_system
 
 def test_formula_neutralization():
 
-    class test_rsa_neutralization(NewReform):
+    class test_rsa_neutralization(Reform):
         def apply(self):
             self.neutralize_column('rsa')
 
@@ -41,7 +41,7 @@ def test_formula_neutralization():
 
 def test_input_variable_neutralization():
 
-    class test_salaire_brut_neutralization(NewReform):
+    class test_salaire_brut_neutralization(Reform):
         def apply(self):
             self.neutralize_column('salaire_brut')
 
@@ -144,7 +144,7 @@ def test_add_variable():
         def function(self, simulation, period):
             return period, self.zeros() + 10
 
-    class test_add_variable(NewReform):
+    class test_add_variable(Reform):
 
         def apply(self):
             self.add_variable(nouvelle_variable)
@@ -178,7 +178,7 @@ def test_add_dated_variable():
         def function_apres_2011(self, simulation, period):
             return period, self.zeros() + 15
 
-    class test_add_variable(NewReform):
+    class test_add_variable(Reform):
         def apply(self):
             self.add_variable(nouvelle_dated_variable)
 
@@ -202,7 +202,7 @@ def test_add_variable_with_reference():
         def function(self, simulation, period):
             return period, self.zeros() + 10
 
-    class test_add_variable_with_reference(NewReform):
+    class test_add_variable_with_reference(Reform):
             self.replace_variable(revenu_disponible)
         def apply(self):
 
@@ -228,7 +228,7 @@ def test_add_variable_with_reference():
 
 @raises(Exception)
 def test_wrong_reform():
-    class wrong_reform(NewReform):
+    class wrong_reform(Reform):
         # A Reform must implement an `apply` method
         pass
 
@@ -244,7 +244,7 @@ def test_compose_reforms():
         def function(self, simulation, period):
             return period, self.zeros() + 10
 
-    class first_reform(NewReform):
+    class first_reform(Reform):
         def apply(self, reference_tbs):
             self.add_variable(nouvelle_variable)
 
@@ -256,7 +256,7 @@ def test_compose_reforms():
         def function(self, simulation, period):
             return period, self.zeros() + 20
 
-    class second_reform(NewReform):
+    class second_reform(Reform):
         def apply(self, reference_tbs):
             self.replace_variable(nouvelle_variable)
 

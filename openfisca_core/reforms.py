@@ -19,14 +19,15 @@ def compose_reforms(reforms, tax_benefit_system):
     return final_tbs
 
 
-class NewReform(TaxBenefitSystem):
-    def __init__(self, reference, label = ""):
+class Reform(TaxBenefitSystem):
+    name = None
+
+    def __init__(self, reference):
         self.entity_class_by_key_plural = reference.entity_class_by_key_plural
         self._legislation_json = reference._legislation_json
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
         self.reference = reference
-        self.label = label
         self.key = unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
             raise Exception("Reform {} must define an `apply` function".format(self.key))
