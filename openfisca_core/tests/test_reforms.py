@@ -2,18 +2,23 @@
 
 import datetime
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, raises
 
 from .. import columns, periods, reforms
-from ..formulas import neutralize_column, dated_function
+from ..reforms import NewReform
+from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..tools import assert_near
 from .dummy_country import Familles
 from .test_countries import tax_benefit_system
 
 def test_formula_neutralization():
-    reform = reforms.NewReform(tax_benefit_system, 'test_rsa_neutralization')
-    reform.neutralize_column('rsa')
+
+    class test_rsa_neutralization(NewReform):
+        def apply(self):
+            self.neutralize_column('rsa')
+
+    reform = test_rsa_neutralization(tax_benefit_system)
 
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
@@ -35,8 +40,12 @@ def test_formula_neutralization():
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
 
 def test_input_variable_neutralization():
-    reform = reforms.NewReform(tax_benefit_system, 'test_salaire_brut_neutralization')
-    reform.neutralize_column('salaire_brut')
+
+    class test_salaire_brut_neutralization(NewReform):
+        def apply(self):
+            self.neutralize_column('salaire_brut')
+
+    reform = test_salaire_brut_neutralization(tax_benefit_system)
 
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
@@ -126,7 +135,6 @@ def test_updated_legislation_items():
 
 
 def test_add_variable():
-    reform = reforms.NewReform(tax_benefit_system, 'test_add_variable')
 
     class nouvelle_variable(Variable):
         column = columns.IntCol
@@ -136,7 +144,12 @@ def test_add_variable():
         def function(self, simulation, period):
             return period, self.zeros() + 10
 
-    reform.add_variable(nouvelle_variable)
+    class test_add_variable(NewReform):
+
+        def apply(self):
+            self.add_variable(nouvelle_variable)
+
+    reform = test_add_variable(tax_benefit_system)
 
     year = 2013
 
@@ -152,8 +165,6 @@ def test_add_variable():
 
 
 def test_add_dated_variable():
-    reform = reforms.NewReform(tax_benefit_system, 'test_add_variable')
-
     class nouvelle_dated_variable(DatedVariable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
@@ -167,7 +178,11 @@ def test_add_dated_variable():
         def function_apres_2011(self, simulation, period):
             return period, self.zeros() + 15
 
-    reform.add_variable(nouvelle_dated_variable)
+    class test_add_variable(NewReform):
+        def apply(self):
+            self.add_variable(nouvelle_dated_variable)
+
+    reform = test_add_variable(tax_benefit_system)
 
     scenario = reform.new_scenario().init_single_entity(
         period = 2013,
@@ -180,7 +195,6 @@ def test_add_dated_variable():
 
 
 def test_add_variable_with_reference():
-    reform = reforms.NewReform(tax_benefit_system, 'test_add_variable_with_reference')
 
     class revenu_disponible(Variable):
         reference = 'revenu_disponible'
@@ -188,7 +202,11 @@ def test_add_variable_with_reference():
         def function(self, simulation, period):
             return period, self.zeros() + 10
 
-    reform.replace_variable(revenu_disponible)
+    class test_add_variable_with_reference(NewReform):
+            self.replace_variable(revenu_disponible)
+        def apply(self):
+
+    reform = test_add_variable_with_reference(tax_benefit_system)
 
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
@@ -207,3 +225,11 @@ def test_add_variable_with_reference():
     reform_simulation = scenario.new_simulation()
     revenu_disponible1 = reform_simulation.calculate('revenu_disponible', period = '2013-01')
     assert_near(revenu_disponible1, 10, absolute_error_margin = 0)
+
+@raises(Exception)
+def test_wrong_reform():
+    class wrong_reform(NewReform):
+        # A Reform must implement an `apply` method
+        pass
+
+    reform = wrong_reform(tax_benefit_system)

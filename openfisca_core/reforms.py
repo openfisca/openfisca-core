@@ -6,7 +6,6 @@ import copy
 
 from . import formulas, legislations, periods, columns
 from taxbenefitsystems import TaxBenefitSystem
-from formulas import neutralize_column
 
 
 class AbstractReform(TaxBenefitSystem):
@@ -247,17 +246,13 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
     return sorted(new_items, key = lambda item: item['start'])
 
 class NewReform(TaxBenefitSystem):
-    def __init__(self, reference, name, label = ""):
+    def __init__(self, reference, label = ""):
         self.entity_class_by_key_plural = reference.entity_class_by_key_plural
         self._legislation_json = reference._legislation_json
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
         self.reference = reference
-        self.name = name
         self.label = label
-
-    def neutralize_column(self, column_name):
-        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
-
-    def replace_variable(self, variable):
-        self.add_variable(variable, update = True)
+        if not hasattr(self, 'apply'):
+            raise Exception("Reform {} must define an `apply` function".format(unicode(self.__class__.__name__)))
+        self.apply(reference)

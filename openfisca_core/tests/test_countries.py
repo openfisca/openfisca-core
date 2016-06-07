@@ -339,7 +339,7 @@ def test_variable_with_reference():
         def function(self, simulation, period):
             return period, self.zeros()
 
-    tax_benefit_system.add_variable(revenu_disponible, update = True)
+    tax_benefit_system.replace_variable(revenu_disponible)
     revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013)
 
     assert(revenu_disponible_apres_reforme == 0)

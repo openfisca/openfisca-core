@@ -10,6 +10,7 @@ from imp import find_module, load_module
 
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
+from formulas import neutralize_column
 
 
 class TaxBenefitSystem(object):
@@ -91,17 +92,22 @@ class TaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
-    def add_variable(self, variable_class, update = False):
+    def load_variable(self, variable_class, update = False):
         name = unicode(variable_class.__name__)
         variable_type = variable_class.__bases__[0]
         attributes = variable_class.__dict__
 
-        if self.get_column(name) and not update:
+        existing_column = self.get_column(name)
+
+        if existing_column and not update:
             # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
             if name in self.automatically_loaded_variable:
                 self.automatically_loaded_variable.remove(name)
                 return self.get_column(name)
-            raise Exception('Variable {} is already defined. Use `update = True to replace it.'.format(name))
+            raise Exception("Variable {} is already defined. Use `replace_variable` to replace it.".format(name))
+
+        if not existing_column and update:
+            raise Exception("Variable {} doesn't exist and can't be updated".format(name))
 
         # We pass the variable_class just for introspection for parsers.
         variable = variable_type(name, attributes, variable_class)
@@ -110,6 +116,12 @@ class TaxBenefitSystem(object):
         self.column_by_name[column.name] = column
 
         return column
+
+    def add_variable(self, variable_class):
+        return self.load_variable(variable_class, update = False)
+
+    def replace_variable(self, variable_class):
+        return self.load_variable(variable_class, update = True)
 
     def add_variables_from_file(self, file):
         module_name = path.splitext(path.basename(file))[0]
@@ -150,6 +162,9 @@ class TaxBenefitSystem(object):
 
     def update_column(self, column_name, new_column):
         self.column_by_name[column_name] = new_column
+
+    def neutralize_column(self, column_name):
+        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         if path_in_legislation_tree is not None:
