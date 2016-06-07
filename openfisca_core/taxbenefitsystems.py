@@ -104,7 +104,7 @@ class TaxBenefitSystem(object):
             if name in self.automatically_loaded_variable:
                 self.automatically_loaded_variable.remove(name)
                 return self.get_column(name)
-            raise Exception("Variable {} is already defined. Use `replace_variable` to replace it.".format(name))
+            raise Exception("Variable {} is already defined. Use `update_variable` to replace it.".format(name))
 
         if not existing_column and update:
             raise Exception("Variable {} doesn't exist and can't be updated".format(name))
@@ -120,7 +120,7 @@ class TaxBenefitSystem(object):
     def add_variable(self, variable_class):
         return self.load_variable(variable_class, update = False)
 
-    def replace_variable(self, variable_class):
+    def update_variable(self, variable_class):
         return self.load_variable(variable_class, update = True)
 
     def add_variables_from_file(self, file):

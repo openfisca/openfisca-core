@@ -203,8 +203,8 @@ def test_add_variable_with_reference():
             return period, self.zeros() + 10
 
     class test_add_variable_with_reference(Reform):
-            self.replace_variable(revenu_disponible)
         def apply(self):
+            self.update_variable(revenu_disponible)
 
     reform = test_add_variable_with_reference(tax_benefit_system)
 
@@ -258,6 +258,6 @@ def test_compose_reforms():
 
     class second_reform(Reform):
         def apply(self, reference_tbs):
-            self.replace_variable(nouvelle_variable)
+            self.update_variable(nouvelle_variable)
 
     reform = compose_reforms([first_reform, second_reform], tax_benefit_system)
