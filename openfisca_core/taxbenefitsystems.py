@@ -148,6 +148,9 @@ class TaxBenefitSystem(object):
     def get_column(self, column_name):
         return self.column_by_name.get(column_name)
 
+    def update_column(self, column_name, new_column):
+        self.column_by_name[column_name] = new_column
+
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         if path_in_legislation_tree is not None:
             path_in_legislation_tree = path_in_legislation_tree.split('.')

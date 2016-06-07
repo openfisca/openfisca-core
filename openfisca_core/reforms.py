@@ -4,10 +4,12 @@
 import collections
 import copy
 
-from . import formulas, legislations, periods, taxbenefitsystems, columns
+from . import formulas, legislations, periods, columns
+from taxbenefitsystems import TaxBenefitSystem
+from formulas import neutralize_column
 
 
-class AbstractReform(taxbenefitsystems.TaxBenefitSystem):
+class AbstractReform(TaxBenefitSystem):
     """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
     CURRENCY = None
     DECOMP_DIR = None
@@ -69,12 +71,6 @@ class AbstractReform(taxbenefitsystems.TaxBenefitSystem):
         self.legislation_json = reform_legislation_json
 
 
-def clone_entity_class(entity_class):
-    return type(entity_class.__name__.encode('utf-8'), (entity_class,), dict(
-        column_by_name = entity_class.column_by_name.copy(),
-        ))
-
-
 def compose_reforms(build_functions_and_keys, tax_benefit_system):
     """
     Compose reforms: the first reform is built with the given base tax-benefit system,
@@ -88,74 +84,6 @@ def compose_reforms(build_functions_and_keys, tax_benefit_system):
     assert isinstance(build_functions_and_keys, list)
     reform = reduce(compose_reforms_reducer, build_functions_and_keys, tax_benefit_system)
     return reform
-
-
-def make_reform(key, name, reference, decomposition_dir_name = None, decomposition_file_name = None):
-    """Return a Reform class inherited from AbstractReform."""
-    assert isinstance(key, basestring)
-    assert isinstance(name, basestring)
-    assert isinstance(reference, taxbenefitsystems.TaxBenefitSystem)
-    reform_entity_class_by_key_plural = {
-        key_plural: clone_entity_class(entity_class)
-        for key_plural, entity_class in reference.entity_class_by_key_plural.iteritems()
-        }
-
-    class Reform(AbstractReform):
-        _constructed = False
-        DECOMP_DIR = decomposition_dir_name
-        DEFAULT_DECOMP_FILE = decomposition_file_name
-        entity_class_by_key_plural = reform_entity_class_by_key_plural
-
-        def __init__(self):
-            super(Reform, self).__init__()
-            # TODO Remove this mechanism.
-            Reform._constructed = True
-
-        @classmethod
-        def add_column(cls, column):
-            if cls._constructed:
-                print 'Caution: You are adding a formula to an instantiated Reform. Reform must be reinstatiated.'
-            assert isinstance(column, columns.Column)
-            assert column.formula_class is not None
-            entity_class = reform_entity_class_by_key_plural[column.entity_key_plural]
-            entity_column_by_name = entity_class.column_by_name
-            name = column.name
-            entity_column_by_name[name] = column
-            return column
-
-        # Classes for inheriting from reform variables.
-
-        class DatedVariable(object):
-            """Syntactic sugar to generate a DatedFormula class and fill its column"""
-            __metaclass__ = formulas.FormulaColumnMetaclass
-            entity_class_by_key_plural = reform_entity_class_by_key_plural
-            formula_class = formulas.DatedFormula
-
-        class EntityToPersonColumn(object):
-            """Syntactic sugar to generate an EntityToPerson class and fill its column"""
-            __metaclass__ = formulas.ConversionColumnMetaclass
-            formula_class = formulas.EntityToPerson
-
-        class PersonToEntityColumn(object):
-            """Syntactic sugar to generate an PersonToEntity class and fill its column"""
-            __metaclass__ = formulas.ConversionColumnMetaclass
-            formula_class = formulas.PersonToEntity
-
-        class Variable(object):
-            """Syntactic sugar to generate a SimpleFormula class and fill its column"""
-            __metaclass__ = formulas.FormulaColumnMetaclass
-            entity_class_by_key_plural = reform_entity_class_by_key_plural
-            formula_class = formulas.SimpleFormula
-
-    # Define class attributes after class declaration to avoid "name is not defined" exceptions.
-    Reform.key = key
-    Reform.name = name
-    Reform.reference = reference
-
-    return Reform
-
-
-# Legislation helpers
 
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
@@ -317,3 +245,19 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
             continue
 
     return sorted(new_items, key = lambda item: item['start'])
+
+class NewReform(TaxBenefitSystem):
+    def __init__(self, reference, name, label = ""):
+        self.entity_class_by_key_plural = reference.entity_class_by_key_plural
+        self._legislation_json = reference._legislation_json
+        self.column_by_name = reference.column_by_name.copy()
+        self.Scenario = reference.Scenario
+        self.reference = reference
+        self.name = name
+        self.label = label
+
+    def neutralize_column(self, column_name):
+        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
+
+    def replace_variable(self, variable):
+        self.add_variable(variable, update = True)
