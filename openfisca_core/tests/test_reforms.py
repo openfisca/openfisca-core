@@ -11,7 +11,9 @@ from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..tools import assert_near
 from .dummy_country import Familles
-from .test_countries import tax_benefit_system
+from .test_countries import init_tax_benefit_system
+
+tax_benefit_system = init_tax_benefit_system()
 
 
 def test_formula_neutralization():

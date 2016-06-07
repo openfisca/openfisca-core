@@ -150,11 +150,15 @@ class salaire_net(Variable):
         return period, salaire_brut * 0.8
 
 
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+def init_tax_benefit_system():
+    tax_benefit_system = dummy_country.init_tax_benefit_system()
 
-# We cannot automatically import all the variable from this file, there would be an import loop
-tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
-    dom_tom, dom_tom_individu, revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
+    # We cannot automatically import all the variable from this file, there would be an import loop
+    tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
+        dom_tom, dom_tom_individu, revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
+    return tax_benefit_system
+
+tax_benefit_system = init_tax_benefit_system()
 
 
 def test_1_axis():
