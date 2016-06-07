@@ -24,7 +24,8 @@ class Reform(TaxBenefitSystem):
 
     def __init__(self, reference):
         self.entity_class_by_key_plural = reference.entity_class_by_key_plural
-        self._legislation_json = reference._legislation_json
+        self._legislation_json = reference.get_legislation()
+        self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
         self.reference = reference
@@ -48,7 +49,7 @@ class Reform(TaxBenefitSystem):
         Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
         Validates the new legislation.
         """
-        reference_legislation_json = self.reference.legislation_json
+        reference_legislation_json = self.reference.get_legislation()
         reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
         reform_legislation_json = modifier_function(reference_legislation_json_copy)
         assert reform_legislation_json is not None, \

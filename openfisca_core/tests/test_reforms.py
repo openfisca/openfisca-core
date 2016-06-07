@@ -9,6 +9,7 @@ from .. import columns, periods
 from ..reforms import Reform, compose_reforms, updated_legislation_items
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
+from ..periods import Instant
 from ..tools import assert_near
 from .dummy_country import Familles
 from .test_countries import init_tax_benefit_system
@@ -277,3 +278,35 @@ def test_compose_reforms():
     reform_simulation = scenario.new_simulation(debug = True)
     nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
     assert_near(nouvelle_variable1, 20, absolute_error_margin = 0)
+
+
+def test_modify_legislation():
+
+    def modify_legislation_json(reference_legislation_json_copy):
+        reform_legislation_subtree = {
+            "@type": "Node",
+            "description": "Node added to the legislation by the reform",
+            "children": {
+                "new_param": {
+                    "@type": "Parameter",
+                    "description": "New parameter",
+                    "format": "boolean",
+                    "values": [{'start': u'2000-01-01', 'stop': u'2014-12-31', 'value': True}],
+                    },
+                },
+            }
+        reference_legislation_json_copy['children']['new_node'] = reform_legislation_subtree
+        return reference_legislation_json_copy
+
+    class test_modify_legislation(Reform):
+        def apply(self):
+            self.modify_legislation_json(modifier_function = modify_legislation_json)
+
+    reform = test_modify_legislation(tax_benefit_system)
+
+    legislation_new_node = reform.get_legislation()['children']['new_node']
+    assert legislation_new_node is not None
+
+    instant = Instant((2013, 1, 1))
+    compact_legislation = reform.get_compact_legislation(instant)
+    assert compact_legislation.new_node.new_param is True
