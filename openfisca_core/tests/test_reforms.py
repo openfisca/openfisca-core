@@ -5,7 +5,7 @@ import datetime
 from nose.tools import assert_equal, raises
 
 from .. import columns, periods, reforms
-from ..reforms import NewReform
+from ..reforms import NewReform, compose_reforms
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..tools import assert_near
@@ -233,3 +233,31 @@ def test_wrong_reform():
         pass
 
     reform = wrong_reform(tax_benefit_system)
+
+def test_compose_reforms():
+
+    class nouvelle_variable(Variable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 10
+
+    class first_reform(NewReform):
+        def apply(self, reference_tbs):
+            self.add_variable(nouvelle_variable)
+
+    class nouvelle_variable(Variable):
+        column = columns.IntCol
+        label = u"Nouvelle variable introduite par la réforme"
+        entity_class = Familles
+
+        def function(self, simulation, period):
+            return period, self.zeros() + 20
+
+    class second_reform(NewReform):
+        def apply(self, reference_tbs):
+            self.replace_variable(nouvelle_variable)
+
+    reform = compose_reforms([first_reform, second_reform], tax_benefit_system)

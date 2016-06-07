@@ -1,44 +1,36 @@
 # -*- coding: utf-8 -*-
 
-
-import collections
 import copy
+import collections
 
-from . import formulas, legislations, periods, columns
+from . import legislations, periods
 from taxbenefitsystems import TaxBenefitSystem
 
 
-class AbstractReform(TaxBenefitSystem):
-    """A reform is a variant of a TaxBenefitSystem, that refers to the real TaxBenefitSystem as its reference."""
-    CURRENCY = None
-    DECOMP_DIR = None
-    DEFAULT_DECOMP_FILE = None
-    key = None
-    name = None
+def compose_reforms(reforms, tax_benefit_system):
+    """
+    Compose reforms: the first reform is built with the given base tax-benefit system,
+    then each one is built with the previous one as the reference.
+    """
+    def compose_reforms_reducer(memo, reform):
+        reformed_tbs = reform(memo)
+        return reformed_tbs
+    final_tbs = reduce(compose_reforms_reducer, reforms, tax_benefit_system)
+    return final_tbs
 
-    def __init__(self):
-        assert self.key is not None
-        assert self.name is not None
-        assert self.reference is not None, 'Reform requires a reference tax-benefit-system.'
-        assert isinstance(self.reference, taxbenefitsystems.TaxBenefitSystem)
-        self.Scenario = self.reference.Scenario
 
-        if self.CURRENCY is None:
-            currency = getattr(self.reference, 'CURRENCY', None)
-            if currency is not None:
-                self.CURRENCY = currency
-        if self.DECOMP_DIR is None:
-            decomp_dir = getattr(self.reference, 'DECOMP_DIR', None)
-            if decomp_dir is not None:
-                self.DECOMP_DIR = decomp_dir
-        if self.DEFAULT_DECOMP_FILE is None:
-            default_decomp_file = getattr(self.reference, 'DEFAULT_DECOMP_FILE', None)
-            if default_decomp_file is not None:
-                self.DEFAULT_DECOMP_FILE = default_decomp_file
-        super(AbstractReform, self).__init__(
-            entity_class_by_key_plural = self.entity_class_by_key_plural or self.reference.entity_class_by_key_plural,
-            legislation_json = self.reference.legislation_json,
-            )
+class NewReform(TaxBenefitSystem):
+    def __init__(self, reference, label = ""):
+        self.entity_class_by_key_plural = reference.entity_class_by_key_plural
+        self._legislation_json = reference._legislation_json
+        self.column_by_name = reference.column_by_name.copy()
+        self.Scenario = reference.Scenario
+        self.reference = reference
+        self.label = label
+        self.key = unicode(self.__class__.__name__)
+        if not hasattr(self, 'apply'):
+            raise Exception("Reform {} must define an `apply` function".format(self.key))
+        self.apply()
 
     @property
     def full_key(self):
@@ -67,28 +59,12 @@ class AbstractReform(TaxBenefitSystem):
         assert error is None, \
             'The modified legislation_json of the reform "{}" is invalid, error: {}'.format(
                 self.key, error).encode('utf-8')
-        self.legislation_json = reform_legislation_json
-
-
-def compose_reforms(build_functions_and_keys, tax_benefit_system):
-    """
-    Compose reforms: the first reform is built with the given base tax-benefit system,
-    then each one is built with the previous one as the reference.
-    """
-    def compose_reforms_reducer(memo, item):
-        build_reform, key = item
-        reform = build_reform(tax_benefit_system = memo)
-        assert isinstance(reform, AbstractReform), 'Reform {} returned an invalid value {!r}'.format(key, reform)
-        return reform
-    assert isinstance(build_functions_and_keys, list)
-    reform = reduce(compose_reforms_reducer, build_functions_and_keys, tax_benefit_system)
-    return reform
+        self._legislation_json = reform_legislation_json
+        self.compact_legislation_by_instant_cache = {}
 
 
 def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
     """
-    This function is deprecated.
-
     Update legislation JSON with a value defined for a specific couple of period defined by
     its start and stop instant or a period object.
 
@@ -244,15 +220,3 @@ def updated_legislation_items(items, start_instant, stop_instant, value):
             continue
 
     return sorted(new_items, key = lambda item: item['start'])
-
-class NewReform(TaxBenefitSystem):
-    def __init__(self, reference, label = ""):
-        self.entity_class_by_key_plural = reference.entity_class_by_key_plural
-        self._legislation_json = reference._legislation_json
-        self.column_by_name = reference.column_by_name.copy()
-        self.Scenario = reference.Scenario
-        self.reference = reference
-        self.label = label
-        if not hasattr(self, 'apply'):
-            raise Exception("Reform {} must define an `apply` function".format(unicode(self.__class__.__name__)))
-        self.apply(reference)
