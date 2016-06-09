@@ -3,11 +3,11 @@
 from nose.tools import assert_equal
 
 from openfisca_core import legislations
-from openfisca_core.tests.dummy_country import init_tax_benefit_system
+from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 
 
 def test_multiple_xml_based_tax_benefit_system():
-    tax_benefit_system = init_tax_benefit_system()
+    tax_benefit_system = DummyTaxBenefitSystem()
     legislation_json = tax_benefit_system.get_legislation()
     assert legislation_json is not None
     assert isinstance(legislation_json, dict), legislation_json

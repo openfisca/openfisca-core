@@ -36,7 +36,7 @@ class formula_3(Variable):
             return period, self.zeros() + 1
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(formula_1, formula_2, formula_3)
 
 reference_period = periods.period(u'2013')

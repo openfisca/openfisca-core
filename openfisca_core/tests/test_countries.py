@@ -10,8 +10,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.formulas import dated_function, set_input_divide_by_period
 from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn
 from openfisca_core import periods
-from openfisca_core.tests import dummy_country
-from dummy_country import Familles, Individus
+from dummy_country import Familles, Individus, DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 # Input variables
@@ -150,15 +149,15 @@ class salaire_net(Variable):
         return period, salaire_brut * 0.8
 
 
-def init_tax_benefit_system():
-    tax_benefit_system = dummy_country.init_tax_benefit_system()
+class TestTaxBenefitSystem(DummyTaxBenefitSystem):
+    def __init__(self):
+        DummyTaxBenefitSystem.__init__(self)
 
-    # We cannot automatically import all the variable from this file, there would be an import loop
-    tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
-        dom_tom, dom_tom_individu, revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
-    return tax_benefit_system
+        # We cannot automatically import all the variable from this file, there would be an import loop
+        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu,
+            revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
 
-tax_benefit_system = init_tax_benefit_system()
+tax_benefit_system = TestTaxBenefitSystem()
 
 
 def test_1_axis():

@@ -2,11 +2,11 @@ from os import path
 
 from nose.tools import raises
 
-from openfisca_core.tests.dummy_country import init_tax_benefit_system, TEST_DIRECTORY
+from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem, TEST_DIRECTORY
 
 
 dummy_extension_path = path.join(TEST_DIRECTORY, 'dummy_extension')
-tbs = init_tax_benefit_system()
+tbs = DummyTaxBenefitSystem()
 
 
 def test_extension_not_already_loaded():
@@ -19,7 +19,7 @@ def test_load_extension():
 
 
 def test_unload_extensions():
-    tbs = init_tax_benefit_system()
+    tbs = DummyTaxBenefitSystem()
     assert tbs.get_column('paris_logement_famille') is None
 
 

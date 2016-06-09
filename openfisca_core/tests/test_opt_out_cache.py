@@ -32,7 +32,7 @@ class output(Variable):
 
 
 def get_filled_tbs():
-    tax_benefit_system = dummy_country.init_tax_benefit_system()
+    tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
     tax_benefit_system.add_variables(input, intermediate, output)
 
     return tax_benefit_system

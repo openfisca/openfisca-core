@@ -44,7 +44,7 @@ class uses_switch(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2013,

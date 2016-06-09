@@ -253,13 +253,13 @@ class Scenario(AbstractScenario):
 
 entities = [Familles, Individus]
 path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
-path_to_csg_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
+path_to_crds_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
 
 
-def init_tax_benefit_system():
-    tbs = TaxBenefitSystem(entities)
-    tbs.Scenario = Scenario
-    tbs.add_variables_from_module(__file__)
-    tbs.add_legislation_params(path_to_root_params)
-    tbs.add_legislation_params(path_to_csg_params, 'csg.activite')
-    return tbs
+class DummyTaxBenefitSystem(TaxBenefitSystem):
+    def __init__(self):
+        TaxBenefitSystem.__init__(self, entities)
+        self.Scenario = Scenario
+        self.add_variables_from_file(__file__)
+        self.add_legislation_params(path_to_root_params)
+        self.add_legislation_params(path_to_crds_params, 'csg.activite')
