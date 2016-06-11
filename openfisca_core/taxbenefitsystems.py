@@ -106,12 +106,12 @@ class TaxBenefitSystem(object):
                 return self.get_column(name)
             raise Exception("Variable {} is already defined. Use `update_variable` to replace it.".format(name))
 
-        if not existing_column and update:
-            raise Exception("Variable {} doesn't exist and can't be updated".format(name))
+        if existing_column and update:
+            attributes['reference'] = existing_column
 
         # We pass the variable_class just for introspection for parsers.
         variable = variable_type(name, attributes, variable_class)
-        # We need the tax benefit system to identify columns mentioned by reference or PersonToEntityColumn...
+        # We need the tax benefit system to identify columns mentioned by conversion variables.
         column = variable.to_column(self)
         self.column_by_name[column.name] = column
 

@@ -35,13 +35,11 @@ class AbstractComputationVariable(AbstractVariable):
         formula_class = self.__class__.formula_class
         entity_class = self.attributes.pop('entity_class', None)
 
-        # Reform variable that replaces the existing reference one
-        reference_column = None
+        # For reform variable that replaces the existing reference one
         reference = self.attributes.pop('reference', None)
         if reference:
-            reference_column = tax_benefit_system.get_column(reference)
-            formula_class = reference_column.formula_class
-            entity_class = reference_column.entity_class
+            if not entity_class:
+                entity_class = reference.entity_class
 
         (comments, source_file_path, source_code, line_number) = self.introspect()
 
@@ -52,7 +50,7 @@ class AbstractComputationVariable(AbstractVariable):
             name = self.name,
             entity_class = entity_class,
             formula_class = formula_class,
-            reference_column = reference_column,
+            reference_column = reference,
             comments = comments,
             line_number = line_number,
             source_code = source_code,

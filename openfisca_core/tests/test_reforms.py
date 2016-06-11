@@ -203,7 +203,6 @@ def test_add_dated_variable():
 def test_add_variable_with_reference():
 
     class revenu_disponible(Variable):
-        reference = 'revenu_disponible'
 
         def function(self, simulation, period):
             return period, self.zeros() + 10
