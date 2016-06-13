@@ -95,7 +95,7 @@ class TaxBenefitSystem(object):
     def load_variable(self, variable_class, update = False):
         name = unicode(variable_class.__name__)
         variable_type = variable_class.__bases__[0]
-        attributes = variable_class.__dict__
+        attributes = dict(variable_class.__dict__)
 
         existing_column = self.get_column(name)
 

@@ -5,7 +5,7 @@ from openfisca_core.formulas import SimpleFormula, DatedFormula, EntityToPerson,
 from openfisca_core import columns
 
 
-class AbstractVariable():
+class AbstractVariable(object):
     def __init__(self, name, attributes, variable_class):
         self.name = name
         self.attributes = {attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems()}
