@@ -2,15 +2,17 @@
 
 import datetime
 
-from nose.tools import assert_equal, raises
+from nose.tools import raises
+from nose.tools import assert_equal
 
-from .. import columns, periods, reforms
-from ..reforms import Reform, compose_reforms
+from .. import columns, periods
+from ..reforms import Reform, compose_reforms, updated_legislation_items
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..tools import assert_near
 from .dummy_country import Familles
 from .test_countries import tax_benefit_system
+
 
 def test_formula_neutralization():
 
@@ -38,6 +40,7 @@ def test_formula_neutralization():
     assert_near(rsa_reform, 0, absolute_error_margin = 0)
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
+
 
 def test_input_variable_neutralization():
 
@@ -77,7 +80,7 @@ def test_input_variable_neutralization():
 
 def test_updated_legislation_items():
     def check_updated_legislation_items(description, items, start_instant, stop_instant, value, expected_items):
-        new_items = reforms.updated_legislation_items(items, start_instant, stop_instant, value)
+        new_items = updated_legislation_items(items, start_instant, stop_instant, value)
         assert_equal(map(dict, new_items), expected_items)
 
     yield(
@@ -226,38 +229,49 @@ def test_add_variable_with_reference():
     revenu_disponible1 = reform_simulation.calculate('revenu_disponible', period = '2013-01')
     assert_near(revenu_disponible1, 10, absolute_error_margin = 0)
 
+
 @raises(Exception)
 def test_wrong_reform():
     class wrong_reform(Reform):
         # A Reform must implement an `apply` method
         pass
 
-    reform = wrong_reform(tax_benefit_system)
+    wrong_reform(tax_benefit_system)
+
 
 def test_compose_reforms():
 
-    class nouvelle_variable(Variable):
-        column = columns.IntCol
-        label = u"Nouvelle variable introduite par la réforme"
-        entity_class = Familles
-
-        def function(self, simulation, period):
-            return period, self.zeros() + 10
-
     class first_reform(Reform):
-        def apply(self, reference_tbs):
-            self.add_variable(nouvelle_variable)
+        class nouvelle_variable(Variable):
+            column = columns.IntCol
+            label = u"Nouvelle variable introduite par la réforme"
+            entity_class = Familles
 
-    class nouvelle_variable(Variable):
-        column = columns.IntCol
-        label = u"Nouvelle variable introduite par la réforme"
-        entity_class = Familles
+            def function(self, simulation, period):
+                return period, self.zeros() + 10
 
-        def function(self, simulation, period):
-            return period, self.zeros() + 20
+        def apply(self):
+            self.add_variable(self.nouvelle_variable)
 
     class second_reform(Reform):
-        def apply(self, reference_tbs):
-            self.update_variable(nouvelle_variable)
+        class nouvelle_variable(Variable):
+            column = columns.IntCol
+            label = u"Nouvelle variable introduite par la réforme"
+            entity_class = Familles
+
+            def function(self, simulation, period):
+                return period, self.zeros() + 20
+
+        def apply(self):
+            self.update_variable(self.nouvelle_variable)
 
     reform = compose_reforms([first_reform, second_reform], tax_benefit_system)
+    year = 2013
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(),
+        )
+
+    reform_simulation = scenario.new_simulation(debug = True)
+    nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
+    assert_near(nouvelle_variable1, 20, absolute_error_margin = 0)
