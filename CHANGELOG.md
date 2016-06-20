@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-alpha – [diff](https://github.com/openfisca/openfisca-core/compare/1.1.0...2.0.0)
+
+* Variables are not added to the TaxBenefitSystem when the entities class are imported, but explicitely when the TaxBenefitSystem is instanciated.
+  * Metaclasses are not used anymore.
+* New API for TaxBenefitSystem
+  * Columns are now stored in the TaxBenefitSystem, not in entities.
+* New API for rerforms.
+* XmlBasedTaxBenefitSystem is deprecated, and MultipleXmlBasedTaxBenefitSystem renamed to TaxBenefitSystem
+
 ## 1.1.0 – [diff](https://github.com/openfisca/openfisca-core/compare/1.0.0...1.1.0)
 
 * Implement cache opt out system

@@ -4,15 +4,14 @@ import datetime
 
 import numpy as np
 from numpy.core.defchararray import startswith
+from nose.tools import raises
 
-from openfisca_core import periods
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.formulas import (dated_function, DatedVariable, EntityToPersonColumn,
-    PersonToEntityColumn, set_input_divide_by_period, Variable)
-from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Familles, Individus
+from openfisca_core.formulas import dated_function, set_input_divide_by_period
+from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn
+from openfisca_core import periods
+from dummy_country import Familles, Individus, DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
-
 
 # Input variables
 
@@ -150,8 +149,15 @@ class salaire_net(Variable):
         return period, salaire_brut * 0.8
 
 
-# TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+class TestTaxBenefitSystem(DummyTaxBenefitSystem):
+    def __init__(self):
+        DummyTaxBenefitSystem.__init__(self)
+
+        # We cannot automatically import all the variable from this file, there would be an import loop
+        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu,
+            revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
+
+tax_benefit_system = TestTaxBenefitSystem()
 
 
 def test_1_axis():
@@ -318,17 +324,34 @@ def test_revenu_disponible():
     yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0])
 
 
-# This test must stay commented since it introduces a side-effect.
-# Even initializing a new tax_benefit_system does not gets rid of the side-effect since entities are created
-# when Python modules are parsed, at a class and not instance level.
-#
-# def test_variable_with_reference():
-#     entity_class = tax_benefit_system.column_by_name['revenu_disponible'].entity_class
-#
-#     class revenu_disponible(Variable):
-#         reference = tax_benefit_system.column_by_name['revenu_disponible']
-#
-#         def function(self, simulation, period):
-#             return period, self.zeros()
-#
-#     assert revenu_disponible.entity_class == entity_class
+def test_variable_with_reference():
+    def new_simulation():
+        return tax_benefit_system.new_scenario().init_single_entity(
+            period = 2013,
+            parent1 = dict(
+                salaire_brut = 4000,
+                ),
+            ).new_simulation()
+
+    revenu_disponible_avant_reforme = new_simulation().calculate('revenu_disponible', 2013)
+    assert(revenu_disponible_avant_reforme > 0)
+
+    class revenu_disponible(Variable):
+
+        def function(self, simulation, period):
+            return period, self.zeros()
+
+    tax_benefit_system.update_variable(revenu_disponible)
+    revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013)
+
+    assert(revenu_disponible_apres_reforme == 0)
+
+
+@raises(Exception)
+def test_variable_name_conflict():
+    class revenu_disponible(Variable):
+        reference = 'revenu_disponible'
+
+        def function(self, simulation, period):
+            return period, self.zeros()
+    tax_benefit_system.add_variable(revenu_disponible)

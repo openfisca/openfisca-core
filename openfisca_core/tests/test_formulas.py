@@ -4,7 +4,7 @@
 import numpy as np
 
 from openfisca_core.columns import IntCol
-from openfisca_core.formulas import Variable
+from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
@@ -44,7 +44,8 @@ class uses_switch(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2013,
     input_variables = {

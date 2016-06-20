@@ -44,7 +44,7 @@ class AbstractScenario(object):
         assert isinstance(simulation, simulations.Simulation)
         if variables_name_to_skip is None:
             variables_name_to_skip = set()
-        column_by_name = self.tax_benefit_system.column_by_name
+        tbs = self.tax_benefit_system
         entity_by_key_plural = simulation.entity_by_key_plural
         simulation_period = simulation.period
         test_case = self.test_case
@@ -116,10 +116,10 @@ class AbstractScenario(object):
                 entity_step_size = entity.step_size
                 simulation.get_or_new_holder(entity.index_for_person_variable_name).array = person_entity_id_array = \
                     np.empty(steps_count * persons.step_size,
-                        dtype = column_by_name[entity.index_for_person_variable_name].dtype)
+                        dtype = tbs.get_column(entity.index_for_person_variable_name).dtype)
                 simulation.get_or_new_holder(entity.role_for_person_variable_name).array = person_entity_role_array = \
                     np.empty(steps_count * persons.step_size,
-                        dtype = column_by_name[entity.role_for_person_variable_name].dtype)
+                        dtype = tbs.get_column(entity.role_for_person_variable_name).dtype)
                 for member_index, member in enumerate(test_case[entity_key_plural]):
                     for person_role, person_id in entity.iter_member_persons_role_and_id(member):
                         person_index = person_index_by_id[person_id]
@@ -139,7 +139,7 @@ class AbstractScenario(object):
                         entity.role_for_person_variable_name,
                         ) and key not in variables_name_to_skip
                     )
-                for variable_name, column in column_by_name.iteritems():
+                for variable_name, column in tbs.column_by_name.iteritems():
                     if column.entity == entity.symbol and variable_name in used_columns_name:
                         variable_periods = set()
                         for cell in (
@@ -185,7 +185,7 @@ class AbstractScenario(object):
                     # All parallel axes have the same count and entity.
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
-                    axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                    axis_entity = simulation.get_variable_entity(first_axis['name'])
                     for axis in parallel_axes:
                         axis_period = axis['period'] or simulation_period
                         holder = simulation.get_or_new_holder(axis['name'])
@@ -212,7 +212,7 @@ class AbstractScenario(object):
                         # All parallel axes have the same count and entity.
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
-                        axis_entity = simulation.entity_by_column_name[first_axis['name']]
+                        axis_entity = simulation.get_variable_entity(first_axis['name'])
                         for axis in parallel_axes:
                             axis_period = axis['period'] or simulation_period
                             holder = simulation.get_or_new_holder(axis['name'])
@@ -233,7 +233,7 @@ class AbstractScenario(object):
         return self
 
     def make_json_or_python_to_attributes(self, repair = False):
-        column_by_name = self.tax_benefit_system.column_by_name
+        tbs = self.tax_benefit_system
 
         def json_or_python_to_attributes(value, state = None):
             if value is None:
@@ -286,13 +286,13 @@ class AbstractScenario(object):
                 for parallel_axes_index, parallel_axes in enumerate(data['axes']):
                     first_axis = parallel_axes[0]
                     axis_count = first_axis['count']
-                    axis_entity_key_plural = column_by_name[first_axis['name']].entity_key_plural
+                    axis_entity_key_plural = tbs.get_column(first_axis['name']).entity_key_plural
                     first_axis_period = first_axis['period'] or data['period']
                     for axis_index, axis in enumerate(parallel_axes):
                         if axis['min'] >= axis['max']:
                             errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                 axis_index, {})['max'] = state._(u"Max value must be greater than min value")
-                        column = column_by_name[axis['name']]
+                        column = tbs.get_column(axis['name'])
                         if axis['index'] >= len(data['test_case'][column.entity_key_plural]):
                             errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                 axis_index, {})['index'] = state._(u"Index must be lower than {}").format(
@@ -401,7 +401,7 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
         error_by_variable_name = {}
         array_by_period_by_variable_name = collections.OrderedDict()
         for variable_name, variable_value in value.iteritems():
-            column = tax_benefit_system.column_by_name[variable_name]
+            column = tax_benefit_system.get_column(variable_name)
             if isinstance(variable_value, np.ndarray):
                 variable_array_by_period = {period: variable_value}
             else:
@@ -448,7 +448,7 @@ def make_json_or_python_to_axes(tax_benefit_system):
                                 name = conv.pipe(
                                     conv.test_isinstance(basestring),
                                     conv.test_in(column_by_name),
-                                    conv.test(lambda column_name: column_by_name[column_name].dtype in (
+                                    conv.test(lambda column_name: tax_benefit_system.get_column(column_name).dtype in (
                                         np.float32, np.int16, np.int32),
                                         error = N_(u'Invalid type for axe: integer or float expected')),
                                     conv.not_none,
@@ -499,7 +499,7 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
         count_by_entity_key_plural = {}
         errors = {}
         for variable_name, array_by_period in input_variables.iteritems():
-            column = column_by_name[variable_name]
+            column = tax_benefit_system.get_column(variable_name)
             entity_key_plural = column.entity_key_plural
             entity_count = count_by_entity_key_plural.get(entity_key_plural, 0)
             for variable_period, variable_array in array_by_period.iteritems():

@@ -6,7 +6,6 @@
 
 
 import argparse
-import collections
 import datetime
 import logging
 import sys
@@ -18,14 +17,9 @@ from numpy.core.defchararray import startswith
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import (
-    dated_function,
-    DatedVariable,
-    EntityToPersonColumn,
-    PersonToEntityColumn,
-    Variable,
-    )
-from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem
+from openfisca_core.formulas import dated_function
+from openfisca_core.variables import DatedVariable, EntityToPersonColumn, PersonToEntityColumn, Variable
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 
@@ -51,7 +45,6 @@ PARENT2 = 1
 
 
 class Familles(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
@@ -67,32 +60,11 @@ class Familles(AbstractEntity):
 
 
 class Individus(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     is_persons_entity = True
     key_plural = 'individus'
     key_singular = 'individu'
     label = u'Personne'
     symbol = 'ind'
-
-
-entity_class_by_symbol = dict(
-    fam = Familles,
-    ind = Individus,
-    )
-
-
-# TaxBenefitSystems
-
-
-def init_country():
-    class TaxBenefitSystem(AbstractTaxBenefitSystem):
-        entity_class_by_key_plural = {
-            entity_class.key_plural: entity_class
-            for entity_class in entity_class_by_symbol.itervalues()
-            }
-
-    return TaxBenefitSystem
-
 
 # Input variables
 
@@ -239,8 +211,9 @@ class salaire_net(Variable):
 # TaxBenefitSystem instance declared after formulas
 
 
-TaxBenefitSystem = init_country()
-tax_benefit_system = TaxBenefitSystem()
+tax_benefit_system = TaxBenefitSystem([Familles, Individus])
+tax_benefit_system.add_variables(age_en_mois, birth, depcom, id_famille, role_dans_famille, salaire_brut, age,
+    dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
 
 
 @timeit

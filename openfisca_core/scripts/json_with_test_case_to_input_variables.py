@@ -20,8 +20,7 @@ args = None
 
 def json_with_test_case_to_input_variables(scenario_or_simulation_json):
     country_package = importlib.import_module(args.country_package_name)
-    TaxBenefitSystem = country_package.init_country()
-    tax_benefit_system = TaxBenefitSystem()
+    tax_benefit_system = country_package.init_tax_benefit_system()
     new_scenario_or_simulation_json = copy.deepcopy(scenario_or_simulation_json)
     new_scenarios_json = new_scenario_or_simulation_json['scenarios'] \
         if 'scenarios' in new_scenario_or_simulation_json \

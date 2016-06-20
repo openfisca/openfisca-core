@@ -1,27 +1,26 @@
 # -*- coding: utf-8 -*-
 
 
-import collections
 import itertools
 import os
 import pkg_resources
+from os import path
 
 from openfisca_core import conv
 from openfisca_core.columns import IntCol
 from openfisca_core.entities import AbstractEntity
-from openfisca_core.formulas import Variable
+from openfisca_core.variables import Variable
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
-from openfisca_core.taxbenefitsystems import AbstractTaxBenefitSystem, MultipleXmlBasedTaxBenefitSystem
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-
+TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 
 # Entities
 
 
 class Familles(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
@@ -53,23 +52,11 @@ class Familles(AbstractEntity):
 
 
 class Individus(AbstractEntity):
-    column_by_name = collections.OrderedDict()
     is_persons_entity = True
     key_plural = 'individus'
     key_singular = 'individu'
     label = u'Personne'
     symbol = 'ind'
-
-
-entity_class_by_symbol = dict(
-    fam = Familles,
-    ind = Individus,
-    )
-
-entity_class_by_key_plural = {
-    entity_class.key_plural: entity_class
-    for entity_class in entity_class_by_symbol.itervalues()
-    }
 
 
 # Mandatory input variables
@@ -264,35 +251,15 @@ class Scenario(AbstractScenario):
 
 # TaxBenefitSystems
 
-
-def init_country():
-    class TaxBenefitSystem(AbstractTaxBenefitSystem):
-        pass
-
-    # Define class attributes after class declaration to avoid "name is not defined" exceptions.
-    TaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
-    TaxBenefitSystem.Scenario = Scenario
-
-    return TaxBenefitSystem
+entities = [Familles, Individus]
+path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
+path_to_crds_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
 
 
-def init_tax_benefit_system():
-    TaxBenefitSystem = init_country()
-    return TaxBenefitSystem()
-
-
-class DummyMultipleXmlBasedTaxBenefitSystem(MultipleXmlBasedTaxBenefitSystem):
-    legislation_xml_info_list = [
-        (
-            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml'),
-            None,
-            ),
-        (
-            os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml'),
-            ('csg', 'activite'),
-            ),
-        ]
-
-# Define class attributes after class declaration to avoid "name is not defined" exceptions.
-DummyMultipleXmlBasedTaxBenefitSystem.entity_class_by_key_plural = entity_class_by_key_plural
-DummyMultipleXmlBasedTaxBenefitSystem.Scenario = Scenario
+class DummyTaxBenefitSystem(TaxBenefitSystem):
+    def __init__(self):
+        TaxBenefitSystem.__init__(self, entities)
+        self.Scenario = Scenario
+        self.add_variables_from_file(__file__)
+        self.add_legislation_params(path_to_root_params)
+        self.add_legislation_params(path_to_crds_params, 'csg.activite')

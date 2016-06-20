@@ -2,25 +2,23 @@
 
 
 import collections
+import glob
+from inspect import isclass
+from os import path
+from imp import find_module, load_module
 # import weakref
 
 from . import conv, legislations, legislationsxml
+from variables import AbstractVariable
+from formulas import neutralize_column
 
 
-__all__ = [
-    'AbstractTaxBenefitSystem',
-    'MultipleXmlBasedTaxBenefitSystem',
-    'XmlBasedTaxBenefitSystem',
-    ]
-
-
-class AbstractTaxBenefitSystem(object):
+class TaxBenefitSystem(object):
     _base_tax_benefit_system = None
-    column_by_name = None  # computed at instance initialization from entities column_by_name
     compact_legislation_by_instant_cache = None
     entity_class_by_key_plural = None
-    legislation_json = None
     person_key_plural = None
+    preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -29,22 +27,20 @@ class AbstractTaxBenefitSystem(object):
     Scenario = None
     cache_blacklist = None
 
-    def __init__(self, entity_class_by_key_plural = None, legislation_json = None):
+    def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.column_by_name = collections.OrderedDict()
+        self.automatically_loaded_variable = set()
+        self.legislation_xml_info_list = []
+        self._legislation_json = legislation_json
 
-        if entity_class_by_key_plural is not None:
-            self.entity_class_by_key_plural = entity_class_by_key_plural
-        assert self.entity_class_by_key_plural is not None
-
-        if legislation_json is not None:
-            self.legislation_json = legislation_json
-        # Note: self.legislation_json may be None for simulators without legislation parameters.
-
-        # Now that classes of entities are defined, build a column_by_name by aggregating the column_by_name of each
-        # entity class.
-        assert self.column_by_name is None
-        self.index_columns()
+        if entities is None or len(entities) == 0:
+            raise Exception("A tax benefit sytem must have at least an entity.")
+        self.entity_class_by_key_plural = {
+            entity_class.key_plural: entity_class
+            for entity_class in entities
+            }
 
     @property
     def base_tax_benefit_system(self):
@@ -57,14 +53,15 @@ class AbstractTaxBenefitSystem(object):
         return base_tax_benefit_system
 
     def get_compact_legislation(self, instant, traced_simulation = None):
+        legislation = self.get_legislation()
         if traced_simulation is None:
             compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None and self.legislation_json is not None:
-                dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
+            if compact_legislation is None and legislation is not None:
+                dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
                 compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
                 self.compact_legislation_by_instant_cache[instant] = compact_legislation
         else:
-            dated_legislation_json = legislations.generate_dated_legislation_json(self.legislation_json, instant)
+            dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
             compact_legislation = legislations.compact_dated_node_json(
                 dated_legislation_json,
                 traced_simulation = traced_simulation,
@@ -76,13 +73,6 @@ class AbstractTaxBenefitSystem(object):
         if reference is None:
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
         return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
-
-    def index_columns(self):
-        self.column_by_name = column_by_name = collections.OrderedDict()
-        for entity_class in self.entity_class_by_key_plural.itervalues():
-            column_by_name.update(entity_class.column_by_name)
-            if entity_class.is_persons_entity:
-                self.person_key_plural = entity_class.key_plural
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -102,37 +92,92 @@ class AbstractTaxBenefitSystem(object):
     def prefill_cache(self):
         pass
 
+    def load_variable(self, variable_class, update = False):
+        name = unicode(variable_class.__name__)
+        variable_type = variable_class.__bases__[0]
+        attributes = dict(variable_class.__dict__)
 
-class XmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax and benefit sytem with legislation stored in a XML file."""
-    legislation_xml_file_path = None  # class attribute or must be set before calling this __init__ method.
-    preprocess_legislation = None
+        existing_column = self.get_column(name)
 
-    def __init__(self, entity_class_by_key_plural = None):
-        state = conv.default_state
-        legislation_json = conv.check(legislationsxml.xml_legislation_file_path_to_json)(
-            self.legislation_xml_file_path, state = state)
-        if self.preprocess_legislation is not None:
-            legislation_json = self.preprocess_legislation(legislation_json)
-        super(XmlBasedTaxBenefitSystem, self).__init__(
-            entity_class_by_key_plural = entity_class_by_key_plural,
-            legislation_json = legislation_json,
+        if existing_column and not update:
+            # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
+            if name in self.automatically_loaded_variable:
+                self.automatically_loaded_variable.remove(name)
+                return self.get_column(name)
+            raise Exception("Variable {} is already defined. Use `update_variable` to replace it.".format(name))
+
+        if existing_column and update:
+            attributes['reference'] = existing_column
+
+        # We pass the variable_class just for introspection for parsers.
+        variable = variable_type(name, attributes, variable_class)
+        # We need the tax benefit system to identify columns mentioned by conversion variables.
+        column = variable.to_column(self)
+        self.column_by_name[column.name] = column
+
+        return column
+
+    def add_variable(self, variable_class):
+        return self.load_variable(variable_class, update = False)
+
+    def update_variable(self, variable_class):
+        return self.load_variable(variable_class, update = True)
+
+    def add_variables_from_file(self, file):
+        module_name = path.splitext(path.basename(file))[0]
+        module_directory = path.dirname(file)
+        module = load_module(module_name, *find_module(module_name, [module_directory]))
+
+        potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
+        for pot_variable in potential_variables:
+            # We only want to get the module classes defined in this module (not imported)
+            if ((isclass(pot_variable) and
+                 issubclass(pot_variable, AbstractVariable) and
+                 pot_variable.__module__.endswith(module_name))):
+                self.add_variable(pot_variable)
+
+    def add_variables_from_directory(self, directory):
+        py_files = glob.glob(path.join(directory, "*.py"))
+        for py_file in py_files:
+            self.add_variables_from_file(py_file)
+        subdirectories = glob.glob(path.join(directory, "*/"))
+        for subdirectory in subdirectories:
+            self.add_variables_from_directory(subdirectory)
+
+    def add_variables(self, *variables):
+        for variable in variables:
+            self.add_variable(variable)
+
+    def load_extension(self, extension_directory):
+        if not path.isdir(extension_directory):
+            raise IOError(
+                "Error loading extension: the extension directory {} doesn't exist.".format(extension_directory))
+        self.add_variables_from_directory(extension_directory)
+        param_file = path.join(extension_directory, 'parameters.xml')
+        if path.isfile(param_file):
+            self.add_legislation_params(param_file)
+
+    def get_column(self, column_name):
+        return self.column_by_name.get(column_name)
+
+    def update_column(self, column_name, new_column):
+        self.column_by_name[column_name] = new_column
+
+    def neutralize_column(self, column_name):
+        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
+
+    def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+        if path_in_legislation_tree is not None:
+            path_in_legislation_tree = path_in_legislation_tree.split('.')
+
+        self.legislation_xml_info_list.append(
+            (path_to_xml_file, path_in_legislation_tree)
             )
+        # New parameters have been added, the legislation will have to be recomputed next time we need it.
+        # Not very optimized, but today incremental building of the legislation is not implemented.
+        self._legislation_json = None
 
-
-class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
-    """A tax and benefit sytem with legislation stored in many XML files."""
-    legislation_xml_info_list = None  # class attribute or must be set before calling this __init__ method.
-    preprocess_legislation = None
-
-    def __init__(self, entity_class_by_key_plural = None):
-        legislation_json = self.get_legislation_json(with_source_file_infos = False)
-        super(MultipleXmlBasedTaxBenefitSystem, self).__init__(
-            entity_class_by_key_plural = entity_class_by_key_plural,
-            legislation_json = legislation_json,
-            )
-
-    def get_legislation_json(self, with_source_file_infos):
+    def compute_legislation(self, with_source_file_infos = False):
         state = conv.default_state
         xml_legislation_info_list_to_json = legislationsxml.make_xml_legislation_info_list_to_json(
             with_source_file_infos,
@@ -140,4 +185,9 @@ class MultipleXmlBasedTaxBenefitSystem(AbstractTaxBenefitSystem):
         legislation_json = conv.check(xml_legislation_info_list_to_json)(self.legislation_xml_info_list, state = state)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
-        return legislation_json
+        self._legislation_json = legislation_json
+
+    def get_legislation(self):
+        if self._legislation_json is None:
+            self.compute_legislation()
+        return self._legislation_json

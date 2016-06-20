@@ -5,7 +5,8 @@ from nose.tools import raises
 
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
-from openfisca_core.formulas import CycleError, Variable
+from openfisca_core.formulas import CycleError
+from openfisca_core.variables import Variable
 from openfisca_core.tests import dummy_country
 from openfisca_core.tests.dummy_country import Individus
 from openfisca_core.tools import assert_near
@@ -99,7 +100,9 @@ class variable8(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.init_tax_benefit_system()
+tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
+    variable5, variable6, cotisation, variable7, variable8)
 
 reference_period = periods.period(u'2013')
 
