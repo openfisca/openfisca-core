@@ -16,4 +16,21 @@ install:
   - source activate test-environment
   - pip install flake8  # Not yet available in Ubuntu precise (https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise)
   - pip install --editable .[test]
-script: make test
+script: bash run-travis-tests.sh
+before_deploy:
+- python setup.py compile_catalog
+- openssl aes-256-cbc -K $encrypted_5636fd88352f_key -iv $encrypted_5636fd88352f_iv
+  -in openfisca_bot.enc -out openfisca_bot -d
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: ./release-tag.sh
+    on:
+      branch: master
+  - provider: pypi
+    user: openfisca-bot
+    password:
+      secure: MeMIzLAYH2AkilY2/acUHrlC4jycLLNbUzmQAATthDfs1zcoZuHt6qEkQ1E1bPNjAP/0RE9iKFsk8ivgh7fpyNiqwc928se0SHj1wQn7n/Brf5F7eNHTgABRC/80TgB/6zVdyy9VkL4DjF2mJXr/pLOTAS+myOqcuToJ6wMLXkM=
+    distributions: "bdist_wheel"
+    on:
+      tags: true
