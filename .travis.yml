@@ -16,4 +16,4 @@ install:
   - source activate test-environment
   - pip install flake8  # Not yet available in Ubuntu precise (https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise)
   - pip install --editable .[test]
-script: make test
+script: bash run-travis-tests.sh
