@@ -266,4 +266,5 @@ class Simulation(object):
 
     def get_variable_entity(self, variable_name):
         column = self.tax_benefit_system.get_column(variable_name)
+        assert column is not None, '{} is not a variable of the tax-benefit-system'.format(variable_name)
         return self.entity_by_key_plural[column.entity_key_plural]
