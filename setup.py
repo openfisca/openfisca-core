@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '2.0.1',
+    version = '2.0.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -35,7 +35,7 @@ setup(
     install_requires = [
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
-        'numpy >= 1.6',
+        'numpy >= 1.11',
         ],
     message_extractors = {
         'openfisca_core': [

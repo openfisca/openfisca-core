@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.1...2.0.2)
+
+* Update numpy dependency to 1.11
+
 ## 2.0.1 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.0...2.0.1)
 
 * Force updating version number and CHANGELOG.md before merging on master
