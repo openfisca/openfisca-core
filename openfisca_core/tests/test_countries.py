@@ -9,6 +9,7 @@ from nose.tools import raises
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.formulas import dated_function, set_input_divide_by_period
 from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn
+from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from dummy_country import Familles, Individus, DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -347,7 +348,7 @@ def test_variable_with_reference():
     assert(revenu_disponible_apres_reforme == 0)
 
 
-@raises(Exception)
+@raises(VariableNameConflict)
 def test_variable_name_conflict():
     class revenu_disponible(Variable):
         reference = 'revenu_disponible'
@@ -355,3 +356,13 @@ def test_variable_name_conflict():
         def function(self, simulation, period):
             return period, self.zeros()
     tax_benefit_system.add_variable(revenu_disponible)
+
+
+@raises(VariableNotFound)
+def test_non_existing_variable():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(),
+        ).new_simulation()
+
+    simulation.calculate('non_existent_variable', 2013)

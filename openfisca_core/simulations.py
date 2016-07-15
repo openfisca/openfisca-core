@@ -220,8 +220,8 @@ class Simulation(object):
     def get_or_new_holder(self, column_name):
         holder = self.holder_by_name.get(column_name)
         if holder is None:
+            column = self.tax_benefit_system.get_column(column_name, check_existence = True)
             entity = self.get_variable_entity(column_name)
-            column = self.tax_benefit_system.get_column(column_name)
             self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
             if column.formula_class is not None:
                 holder.formula = column.formula_class(holder = holder)
@@ -265,5 +265,5 @@ class Simulation(object):
         return None
 
     def get_variable_entity(self, variable_name):
-        column = self.tax_benefit_system.get_column(variable_name)
+        column = self.tax_benefit_system.get_column(variable_name, check_existence = True)
         return self.entity_by_key_plural[column.entity_key_plural]
