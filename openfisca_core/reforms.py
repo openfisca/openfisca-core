@@ -28,6 +28,7 @@ class Reform(TaxBenefitSystem):
         self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
+        self.DEFAULT_DECOMP_FILE = reference.DEFAULT_DECOMP_FILE
         self.reference = reference
         self.key = unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
