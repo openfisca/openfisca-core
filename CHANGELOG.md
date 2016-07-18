@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.3 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.2...2.0.3)
+
+* Use DEFAULT_DECOMP_FILE attribute from reference TB system
+
 ## 2.0.2 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.1...2.0.2)
 
 * Update numpy dependency to 1.11
