@@ -6,6 +6,7 @@ import glob
 from inspect import isclass
 from os import path
 from imp import find_module, load_module
+import importlib
 # import weakref
 
 from . import conv, legislations, legislationsxml
@@ -158,10 +159,17 @@ class TaxBenefitSystem(object):
         for variable in variables:
             self.add_variable(variable)
 
-    def load_extension(self, extension_directory):
-        if not path.isdir(extension_directory):
-            raise IOError(
-                "Error loading extension: the extension directory {} doesn't exist.".format(extension_directory))
+    def load_extension(self, extension):
+        if path.isdir(extension):
+            extension_directory = extension
+        else:
+            try:
+                package = importlib.import_module(extension)
+                extension_directory = package.__path__[0]
+            except ImportError:
+                raise IOError(
+                    "Error loading extension: {} is neither a directory, nor an installed package.".format(extension))
+
         self.add_variables_from_directory(extension_directory)
         param_file = path.join(extension_directory, 'parameters.xml')
         if path.isfile(param_file):
