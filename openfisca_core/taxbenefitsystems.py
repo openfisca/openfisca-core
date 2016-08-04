@@ -6,11 +6,15 @@ import glob
 from inspect import isclass
 from os import path
 from imp import find_module, load_module
-# import weakref
+import importlib
+import logging
+from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
 from formulas import neutralize_column
+
+log = logging.getLogger(__name__)
 
 
 class VariableNotFound(Exception):
@@ -134,17 +138,21 @@ class TaxBenefitSystem(object):
         return self.load_variable(variable_class, update = True)
 
     def add_variables_from_file(self, file):
-        module_name = path.splitext(path.basename(file))[0]
-        module_directory = path.dirname(file)
-        module = load_module(module_name, *find_module(module_name, [module_directory]))
+        try:
+            module_name = path.splitext(path.basename(file))[0]
+            module_directory = path.dirname(file)
+            module = load_module(module_name, *find_module(module_name, [module_directory]))
 
-        potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
-        for pot_variable in potential_variables:
-            # We only want to get the module classes defined in this module (not imported)
-            if ((isclass(pot_variable) and
-                 issubclass(pot_variable, AbstractVariable) and
-                 pot_variable.__module__.endswith(module_name))):
-                self.add_variable(pot_variable)
+            potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
+            for pot_variable in potential_variables:
+                # We only want to get the module classes defined in this module (not imported)
+                if ((isclass(pot_variable) and
+                     issubclass(pot_variable, AbstractVariable) and
+                     pot_variable.__module__.endswith(module_name))):
+                    self.add_variable(pot_variable)
+        except:
+            log.error("Unable to load openfisca variables from file {}".format(file))
+            raise
 
     def add_variables_from_directory(self, directory):
         py_files = glob.glob(path.join(directory, "*.py"))
@@ -158,10 +166,23 @@ class TaxBenefitSystem(object):
         for variable in variables:
             self.add_variable(variable)
 
-    def load_extension(self, extension_directory):
-        if not path.isdir(extension_directory):
-            raise IOError(
-                "Error loading extension: the extension directory {} doesn't exist.".format(extension_directory))
+    def load_extension(self, extension):
+        if path.isdir(extension):
+            if find_packages(extension):
+                # Load extension from a package directory
+                extension_directory = path.join(extension, find_packages(extension)[0])
+            else:
+                # Load extension from a simple directory
+                extension_directory = extension
+        else:
+            # Load extension from installed pip package
+            try:
+                package = importlib.import_module(extension)
+                extension_directory = package.__path__[0]
+            except ImportError:
+                raise IOError(
+                    "Error loading extension: {} is neither a directory, nor an installed package.".format(extension))
+
         self.add_variables_from_directory(extension_directory)
         param_file = path.join(extension_directory, 'parameters.xml')
         if path.isfile(param_file):
