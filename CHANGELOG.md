@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0
+
+* Implement simulation.calculate `print_trace=True` argument. Options: `max_depth` and `show_default_values`
+
+  Examples:
+  ```python
+  simulation = scenario.new_simulation(trace=True)
+  simulation.calculate('irpp', 2014, print_trace=True)
+  simulation.calculate('irpp', 2014, print_trace=True, max_depth=-1)
+  simulation.calculate('irpp', 2014, print_trace=True, max_depth=-1, show_default_values=False)
+  ```
+
 ## 2.1.0 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.3...2.0.4)
 
 * Load extensions from pip packages
