@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.3...2.0.4)
+
+* Load extensions from pip packages
+
 ## 2.0.4 – [diff](https://github.com/openfisca/openfisca-core/compare/2.0.3...2.0.4)
 
 * Use DEFAULT_DECOMP_FILE attribute from reference TB system
