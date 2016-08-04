@@ -8,6 +8,7 @@ from os import path
 from imp import find_module, load_module
 import importlib
 import logging
+from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
@@ -167,8 +168,14 @@ class TaxBenefitSystem(object):
 
     def load_extension(self, extension):
         if path.isdir(extension):
-            extension_directory = extension
+            if find_packages(extension):
+                # Load extension from a package directory
+                extension_directory = path.join(extension, find_packages(extension)[0])
+            else:
+                # Load extension from a simple directory
+                extension_directory = extension
         else:
+            # Load extension from installed pip package
             try:
                 package = importlib.import_module(extension)
                 extension_directory = package.__path__[0]
