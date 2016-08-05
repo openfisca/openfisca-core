@@ -1,212 +1,184 @@
-import inspect
-import textwrap
 
-from openfisca_core.formulas import SimpleFormula, DatedFormula, EntityToPerson, PersonToEntity, new_filled_column
-from openfisca_core import columns
+import datetime
+import re
 
+from biryani import strings
 
-class AbstractVariable(object):
-    def __init__(self, name, attributes, variable_class):
-        self.name = name
-        self.attributes = {attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems()}
-        self.variable_class = variable_class
-
-    def introspect(self):
-        comments = inspect.getcomments(self.variable_class)
-
-        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
-        try:
-            source_file_path = inspect.getsourcefile(self.variable_class)
-        except TypeError:
-            source_file_path = None
-        try:
-            source_lines, line_number = inspect.getsourcelines(self.variable_class)
-            source_code = textwrap.dedent(''.join(source_lines))
-        except (IOError, TypeError):
-            source_code, line_number = None, None
-
-        return (comments, source_file_path, source_code, line_number)
+import conv
+import periods
+from .enumerations import Enum
+from .holders import DatedHolder
 
 
-class AbstractComputationVariable(AbstractVariable):
-    formula_class = SimpleFormula
+def N_(message):
+    return message
 
-    def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class
-        entity_class = self.attributes.pop('entity_class', None)
 
-        # For reform variable that replaces the existing reference one
-        reference = self.attributes.pop('reference', None)
-        if reference:
-            if not entity_class:
-                entity_class = reference.entity_class
+COLUMNS = Enum([
+    'bool',
+    'float',
+    'date',
+    'int',
+    'age',
+    'enum',
+    ])
 
-        (comments, source_file_path, source_code, line_number) = self.introspect()
+year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
-        if entity_class is None:
-            raise Exception('Variable {} must have an entity_class'.format(self.name))
+class Variable(object):
+    def __init__(self, simulation):
+        self.simulation = simulation
+        self.cache = {}     # period (+ extra params) -> value
 
-        return new_filled_column(
-            name = self.name,
-            entity_class = entity_class,
-            formula_class = formula_class,
-            reference_column = reference,
-            comments = comments,
-            line_number = line_number,
-            source_code = source_code,
-            source_file_path = source_file_path,
-            base_function = self.attributes.pop('base_function', UnboundLocalError),
-            calculate_output = self.attributes.pop('calculate_output', UnboundLocalError),
-            cerfa_field = self.attributes.pop('cerfa_field', UnboundLocalError),
-            column = self.attributes.pop('column', UnboundLocalError),
-            doc = self.attributes.pop('doc', UnboundLocalError),
-            is_permanent = self.attributes.pop('is_permanent', UnboundLocalError),
-            label = self.attributes.pop('label', UnboundLocalError),
-            law_reference = self.attributes.pop('law_reference', UnboundLocalError),
-            module = self.attributes.pop('module', UnboundLocalError),
-            set_input = self.attributes.pop('set_input', UnboundLocalError),
-            start_date = self.attributes.pop('start_date', UnboundLocalError),
-            stop_date = self.attributes.pop('stop_date', UnboundLocalError),
-            url = self.attributes.pop('url', UnboundLocalError),
-            **self.attributes
+    def calculate(self, period=None, **parameters):
+        key = frozenset([......])
+        formula_result = self.function(self.simulation, period, *parameters)
+        output_period, dated_holder = formula_result
+        return dated_holder
+
+    @classmethod
+    def json_to_python(cls):
+        return conv.condition(
+            conv.test_isinstance(dict),
+            conv.pipe(
+                # Value is a dict of (period, value) couples.
+                conv.uniform_mapping(
+                    conv.pipe(
+                        periods.json_or_python_to_period,
+                        conv.not_none,
+                        ),
+                    cls.json_to_dated_python(),
+                    ),
+                ),
+            cls.json_to_dated_python(),
             )
 
-
-class Variable(AbstractComputationVariable):
-    formula_class = SimpleFormula
-
-
-class DatedVariable(AbstractComputationVariable):
-    formula_class = DatedFormula
-
-
-class AbstractConversionVariable(AbstractVariable):
-    formula_class = None
-
-    def to_column(self, tax_benefit_system):
-
-        formula_class = self.__class__.formula_class
-
-        # Extract attributes.
-
-        cerfa_field = self.attributes.pop('cerfa_field', None)
-        if cerfa_field is not None:
-            assert isinstance(cerfa_field, basestring), cerfa_field
-            cerfa_field = unicode(cerfa_field)
-
-        doc = self.attributes.pop('doc', None)
-
-        entity_class = self.attributes.pop('entity_class')
-
-        label = self.attributes.pop('label', None)
-        label = self.name if label is None else unicode(label)
-
-        law_reference = self.attributes.pop('law_reference', None)
-        if law_reference is not None:
-            assert isinstance(law_reference, (basestring, list))
-
-        url = self.attributes.pop('url', None)
-        if url is not None:
-            url = unicode(url)
-
-        reference_variable = self.attributes.pop('variable')
-        reference_variable_name = unicode(reference_variable.__name__)
-        reference_column = tax_benefit_system.get_column(reference_variable_name)
-
-        if reference_column is None:
-            reference_column = tax_benefit_system.add_variable(reference_variable)
-            tax_benefit_system.automatically_loaded_variable.add(reference_variable_name)
-
-        # Build formula class and column from extracted attributes.
-
-        formula_class_attributes = dict(
-            __module__ = self.attributes.pop('module'),
-            )
-        if doc is not None:
-            formula_class_attributes['__doc__'] = doc
-
-        (comments, source_file_path, source_code, line_number) = self.introspect()
-
-        if comments is not None:
-            if isinstance(comments, str):
-                comments = comments.decode('utf-8')
-            formula_class_attributes['comments'] = comments
-        if source_file_path is not None:
-            formula_class_attributes['source_file_path'] = source_file_path
-        if source_code is not None:
-            formula_class_attributes['source_code'] = source_code
-        if line_number is not None:
-            formula_class_attributes['line_number'] = line_number
-
-        role = self.attributes.pop('role', None)
-        roles = self.attributes.pop('roles', None)
-        if role is None:
-            if roles is not None:
-                assert isinstance(roles, (list, tuple)) and all(isinstance(role, int) for role in roles)
-        else:
-            assert isinstance(role, int)
-            assert roles is None
-            roles = [role]
-        if roles is not None:
-            formula_class_attributes['roles'] = roles
-
-        formula_class_attributes['variable_name'] = reference_column.name
-
-        if issubclass(formula_class, EntityToPerson):
-            assert entity_class.is_persons_entity
-            column = reference_column.empty_clone()
-        else:
-            assert issubclass(formula_class, PersonToEntity)
-
-            assert not entity_class.is_persons_entity
-
-            if roles is None or len(roles) > 1:
-                operation = self.attributes.pop('operation')
-                assert operation in ('add', 'or'), 'Invalid operation: {}'.format(operation)
-                formula_class_attributes['operation'] = operation
-
-                if operation == 'add':
-                    if reference_column.__class__ is columns.BoolCol:
-                        column = columns.IntCol()
-                    else:
-                        column = reference_column.empty_clone()
-                else:
-                    assert operation == 'or'
-                    column = reference_column.empty_clone()
-            else:
-                column = reference_column.empty_clone()
-
-        # Ensure that all attributes defined in ConversionColumn class are used.
-        assert not self.attributes, 'Unexpected attributes in definition of filled column {}: {}'.format(self.name,
-            ', '.join(self.attributes.iterkeys()))
-
-        formula_class = type(self.name.encode('utf-8'), (formula_class,), formula_class_attributes)
-
-        # Fill column attributes.
-        if cerfa_field is not None:
-            column.cerfa_field = cerfa_field
-        if reference_column.end is not None:
-            column.end = reference_column.end
-        column.entity = entity_class.symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-        column.entity_key_plural = entity_class.key_plural
-        column.entity_class = entity_class
-        column.formula_class = formula_class
-        if reference_column.is_permanent:
-            column.is_permanent = True
-        column.label = label
-        column.law_reference = law_reference
-        column.name = self.name
-        if reference_column.start is not None:
-            column.start = reference_column.start
-        if url is not None:
-            column.url = url
-
-        return column
+    @classmethod
+    def json_to_dated_python(cls):
+        if cls.column_type == 'BoolCol':
+            return conv.pipe(
+                conv.test_isinstance((basestring, bool, int)),
+                conv.guess_bool,
+                )
+        elif cls.column_type == 'DateCol':
+            return conv.pipe(
+                conv.condition(
+                    conv.test_isinstance(datetime.date),
+                    conv.noop,
+                    conv.condition(
+                        conv.test_isinstance(int),
+                        conv.pipe(
+                            conv.test_between(1870, 2099),
+                            conv.function(lambda year: datetime.date(year, 1, 1)),
+                            ),
+                        conv.pipe(
+                            conv.test_isinstance(basestring),
+                            conv.test(year_or_month_or_day_re.match, error=N_(u'Invalid date')),
+                            conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
+                            conv.iso8601_input_to_date,
+                            ),
+                        ),
+                    ),
+                conv.test_between(datetime.date(1870, 1, 1), datetime.date(2099, 12, 31)),
+                )
+        elif cls.column_type == 'FixedStrCol':
+            return conv.pipe(
+                conv.condition(
+                    conv.test_isinstance((float, int)),
+                    # YAML stores strings containing only digits as numbers.
+                    conv.function(unicode),
+                    ),
+                conv.test_isinstance(basestring),
+                conv.test(lambda value: len(value) <= cls.max_length),
+                )
+        elif cls.column_type == 'FloatCol':
+            return conv.pipe(
+                conv.test_isinstance((float, int, basestring)),
+                conv.make_anything_to_float(accept_expression=True),
+                )
+        elif cls.column_type == 'IntCol':
+            return conv.pipe(
+                conv.test_isinstance((int, basestring)),
+                conv.make_anything_to_int(accept_expression=True),
+                )
+        elif cls.column_type == 'StrCol':
+            return conv.pipe(
+                conv.condition(
+                    conv.test_isinstance((float, int)),
+                    # YAML stores strings containing only digits as numbers.
+                    conv.function(unicode),
+                    ),
+                conv.test_isinstance(basestring),
+                )
+        elif cls.column_type == 'AgeCol':
+            return conv.pipe(
+                conv.test_isinstance((int, basestring)),
+                conv.make_anything_to_int(accept_expression=True),
+                conv.first_match(
+                    conv.test_greater_or_equal(0),
+                    conv.test_equals(-9999),
+                    ),
+                )
+        elif cls.column_type == 'EnumCol':
+            if not hasattr(cls, 'enum'):
+                return conv.pipe(
+                    conv.test_isinstance((basestring, int)),
+                    conv.anything_to_int,
+                    )
+            enum = cls.enum
+            return conv.pipe(
+                conv.test_isinstance((basestring, int)),
+                conv.condition(
+                    conv.anything_to_int,
+                    conv.pipe(
+                        # Verify that item index belongs to enumeration.
+                        conv.anything_to_int,
+                        conv.test_in(enum._vars),
+                        ),
+                    conv.pipe(
+                        # Convert item name to its index.
+                        conv.input_to_slug,
+                        conv.test_in(cls.index_by_slug),
+                        conv.function(lambda slug: cls.index_by_slug[slug]),
+                        ),
+                    ),
+                )
 
 
-class EntityToPersonColumn(AbstractConversionVariable):
-    formula_class = EntityToPerson
+class PersonToEntityColumn(Variable):
+    pass
 
 
-class PersonToEntityColumn(AbstractConversionVariable):
-    formula_class = PersonToEntity
+class EntityToPersonColumn(Variable):
+    pass
+
+
+class DatedVariable(Variable):
+    pass
+
+
+
+
+
+def dated_function(start=None, stop=None):
+    """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
+    def dated_function_decorator(function):
+        function.start_instant = start
+        function.stop_instant = stop
+        return function
+
+    return dated_function_decorator
+
+
+
+def calculate_output_add(variable, period):
+    return variable.calculate(period)
+
+def calculate_output_divide(variable, period):
+    return variable.calculate(period)
+
+def set_input_divide_by_period(variable, period, array):
+    return variable.set_input(array, period)
+
+def set_input_dispatch_by_period(variable, period, array):
+    return variable.set_input(array, period)

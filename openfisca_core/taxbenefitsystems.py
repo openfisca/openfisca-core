@@ -6,11 +6,14 @@ import glob
 from inspect import isclass
 from os import path
 from imp import find_module, load_module
+import inspect
 # import weakref
 
+import numpy as np
+from biryani import strings
+
 from . import conv, legislations, legislationsxml
-from variables import AbstractVariable
-from formulas import neutralize_column
+from .variables import Variable
 
 
 class VariableNotFound(Exception):
@@ -22,34 +25,26 @@ class VariableNameConflict(Exception):
 
 
 class TaxBenefitSystem(object):
-    _base_tax_benefit_system = None
     compact_legislation_by_instant_cache = None
-    entity_class_by_key_plural = None
-    person_key_plural = None
     preprocess_legislation = None
+    person_key_plural = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
         ))
-    reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
-    Scenario = None
-    cache_blacklist = None
     DEFAULT_DECOMP_FILE = None
 
-    def __init__(self, entities, legislation_json = None):
+    def __init__(self, entities, legislation_json=None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.column_by_name = collections.OrderedDict()
+        self.variable_class_by_name = collections.OrderedDict()
         self.automatically_loaded_variable = set()
         self.legislation_xml_info_list = []
         self._legislation_json = legislation_json
 
         if entities is None or len(entities) == 0:
             raise Exception("A tax benefit sytem must have at least an entity.")
-        self.entity_class_by_key_plural = {
-            entity_class.key_plural: entity_class
-            for entity_class in entities
-            }
+        self.entities = entities
 
     @property
     def base_tax_benefit_system(self):
@@ -83,101 +78,171 @@ class TaxBenefitSystem(object):
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
         return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
 
-    @classmethod
-    def json_to_instance(cls, value, state = None):
-        attributes, error = conv.pipe(
-            cls.json_to_attributes,
-            conv.default({}),
-            )(value, state = state or conv.default_state)
-        if error is not None:
-            return attributes, error
-        return cls(**attributes), None
-
-    def new_scenario(self):
-        scenario = self.Scenario()
-        scenario.tax_benefit_system = self
-        return scenario
-
-    def prefill_cache(self):
-        pass
-
-    def load_variable(self, variable_class, update = False):
+    def load_variable_class(self, variable_class, update=False):
         name = unicode(variable_class.__name__)
-        variable_type = variable_class.__bases__[0]
-        attributes = dict(variable_class.__dict__)
 
-        existing_column = self.get_column(name)
+        existing_variable_class = self.get_variable_class(name)
 
-        if existing_column and not update:
-            # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
-            if name in self.automatically_loaded_variable:
-                self.automatically_loaded_variable.remove(name)
-                return self.get_column(name)
+        if existing_variable_class and not update:
+            # Variables that are dependencies of others (trough a conversion variable) can be loaded automatically
+            if name in self.automatically_loaded_variable_class:
+                self.automatically_loaded_variable_class.remove(name)
+                return self.get_variable_class(name)
             raise VariableNameConflict(
-                "Variable {} is already defined. Use `update_variable` to replace it.".format(name))
+                "Variable {} is already defined. Use `update_variable_class` to replace it.".format(name))
 
-        if existing_column and update:
-            attributes['reference'] = existing_column
+        if existing_variable_class and update:
+            variable_class.reference = existing_variable_class
 
-        # We pass the variable_class just for introspection for parsers.
-        variable = variable_type(name, attributes, variable_class)
-        # We need the tax benefit system to identify columns mentioned by conversion variables.
-        column = variable.to_column(self)
-        self.column_by_name[column.name] = column
+        # variable class
+        assert not hasattr(variable_class, 'variable_type')
+        setattr(variable_class, 'variable_type', variable_class.__name__)
 
-        return column
+        if not hasattr(variable_class, 'cerfa_field'):
+            setattr(variable_class, 'cerfa_field', None)
+        if not hasattr(variable_class, 'default'):
+            setattr(variable_class, 'default', 0)
+        if not hasattr(variable_class, 'dtype'):
+            setattr(variable_class, 'dtype', float)
+        if not hasattr(variable_class, 'end'):
+            setattr(variable_class, 'end', None)
+        if not hasattr(variable_class, 'entity'):
+            setattr(variable_class, 'entity', None)  # Obsolete: To remove once build_..._couple() functions are no more used.
+        if not hasattr(variable_class, 'entity_key_plural'):
+            setattr(variable_class, 'entity_key_plural', None)
+        if not hasattr(variable_class, 'entity_class'):
+            setattr(variable_class, 'entity_class', None)
+        if not hasattr(variable_class, 'formula_class'):
+            setattr(variable_class, 'formula_class', None)
+        if not hasattr(variable_class, 'is_period_size_independent'):
+            setattr(variable_class, 'is_period_size_independent', False)  # When True, value of column doesn't depend from size of period (example: age)
+        if not hasattr(variable_class, 'is_permanent'):
+            setattr(variable_class, 'is_permanent', False)  # When True, value of column doesn't depend from time (example: ID, birth)
+        if not hasattr(variable_class, 'label'):
+            setattr(variable_class, 'label', None)
+        if not hasattr(variable_class, 'law_reference'):
+            setattr(variable_class, 'law_reference', None)  # Either a single reference or a list of references
+        if not hasattr(variable_class, 'name'):
+            setattr(variable_class, 'name', None)
+        if not hasattr(variable_class, 'start'):
+            setattr(variable_class, 'start', None)
+        if not hasattr(variable_class, 'survey_only'):
+            setattr(variable_class, 'survey_only', False)
+        if not hasattr(variable_class, 'url'):
+            setattr(variable_class, 'url', None)
+        if not hasattr(variable_class, 'val_type'):
+            setattr(variable_class, 'val_type', None)
 
-    def add_variable(self, variable_class):
-        return self.load_variable(variable_class, update = False)
+        # column member
+        if hasattr(variable_class, 'column'):
+            # instantiate the column if not already done
+            if inspect.isclass(variable_class.column):
+                setattr(variable_class, 'column', variable_class.column())
+
+            if variable_class.column.__class__.__name__ == 'BoolCol':
+                setattr(variable_class, 'default', False)
+                setattr(variable_class, 'dtype', np.bool)
+                setattr(variable_class, 'is_period_size_independent', True)
+                setattr(variable_class, 'json_type', 'Boolean')
+            elif variable_class.column.__class__.__name__ == 'DateCol':
+                setattr(variable_class, 'dtype', 'datetime64[D]')
+                setattr(variable_class, 'is_period_size_independent', True)
+                setattr(variable_class, 'json_type', 'Date')
+                setattr(variable_class, 'val_type', 'date')
+            elif variable_class.column.__class__.__name__ == 'FixedStrCol':
+                setattr(variable_class, 'default', u'')
+                setattr(variable_class, 'dtype', None)
+                setattr(variable_class, 'is_period_size_independent', True)
+                setattr(variable_class, 'json_type', 'String')
+                setattr(variable_class, 'max_length', None)
+            elif variable_class.column.__class__.__name__ == 'FloatCol':
+                setattr(variable_class, 'dtype', np.float32)
+                setattr(variable_class, 'json_type', 'Float')
+            elif variable_class.column.__class__.__name__ == 'IntCol':
+                setattr(variable_class, 'dtype', np.int32)
+                setattr(variable_class, 'json_type', 'Integer')
+            elif variable_class.column.__class__.__name__ == 'StrCol':
+                setattr(variable_class, 'default', u'')
+                setattr(variable_class, 'dtype', object)
+                setattr(variable_class, 'is_period_size_independent', True)
+                setattr(variable_class, 'json_type', 'String')
+
+            for k, v in variable_class.column.get_params().items():
+                setattr(variable_class, k, v)
+            assert not hasattr(variable_class, 'column_type')
+            setattr(variable_class, 'column_type', variable_class.column.__class__.__name__)
+            delattr(variable_class, 'column')
+
+        # enum (if present in column)
+        if hasattr(variable_class, 'enum'):
+            if variable_class.enum is None:
+                delattr(variable_class, 'enum')
+            else:
+                # This converters accepts either an item number or an item name.
+                setattr(variable_class, 'index_by_slug', dict(
+                    (strings.slugify(name), index)
+                    for index, name in sorted(variable_class.enum._vars.iteritems())
+                    ))
+
+        # rename 'entity_class' to 'entity'
+        assert hasattr(variable_class, 'entity_class')
+        setattr(variable_class, 'entity', variable_class.entity_class)
+        delattr(variable_class, 'entity_class')
+
+        self.variable_class_by_name[name] = variable_class
+        return variable_class
+
+    def add_variable_class(self, variable_class):
+        return self.load_variable_class(variable_class, update = False)
 
     def update_variable(self, variable_class):
-        return self.load_variable(variable_class, update = True)
+        return self.load_variable_class(variable_class, update = True)
 
-    def add_variables_from_file(self, file):
+    def add_variable_classes_from_file(self, file):
         module_name = path.splitext(path.basename(file))[0]
         module_directory = path.dirname(file)
         module = load_module(module_name, *find_module(module_name, [module_directory]))
 
-        potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
-        for pot_variable in potential_variables:
+        potential_variable_classes = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
+        for pot_variable_class in potential_variable_classes:
             # We only want to get the module classes defined in this module (not imported)
-            if ((isclass(pot_variable) and
-                 issubclass(pot_variable, AbstractVariable) and
-                 pot_variable.__module__.endswith(module_name))):
-                self.add_variable(pot_variable)
+            if ((isclass(pot_variable_class) and
+                 issubclass(pot_variable_class, Variable) and
+                 pot_variable_class.__module__.endswith(module_name))):
+                self.add_variable_class(pot_variable_class)
 
-    def add_variables_from_directory(self, directory):
+    def add_variable_classes_from_directory(self, directory):
         py_files = glob.glob(path.join(directory, "*.py"))
         for py_file in py_files:
-            self.add_variables_from_file(py_file)
+            self.add_variable_classes_from_file(py_file)
         subdirectories = glob.glob(path.join(directory, "*/"))
         for subdirectory in subdirectories:
-            self.add_variables_from_directory(subdirectory)
+            self.add_variable_classes_from_directory(subdirectory)
 
-    def add_variables(self, *variables):
-        for variable in variables:
-            self.add_variable(variable)
+    def add_variable_classes(self, *variables):
+        for variable_class in variable_classes:
+            self.add_variable_class(variable_class)
 
     def load_extension(self, extension_directory):
         if not path.isdir(extension_directory):
             raise IOError(
                 "Error loading extension: the extension directory {} doesn't exist.".format(extension_directory))
-        self.add_variables_from_directory(extension_directory)
+        self.add_variable_classes_from_directory(extension_directory)
         param_file = path.join(extension_directory, 'parameters.xml')
         if path.isfile(param_file):
             self.add_legislation_params(param_file)
 
-    def get_column(self, column_name, check_existence = False):
-        column = self.column_by_name.get(column_name)
-        if not column and check_existence:
-            raise VariableNotFound(u'Variable "{}" not found in current tax benefit system'.format(column_name))
-        return column
+    def get_variable_class(self, variable_class_name, check_existence = False):
+        variable_class = self.variable_class_by_name.get(variable_class_name)
+        if not variable_class and check_existence:
+            raise VariableNotFound(u'Variable "{}" not found in current tax benefit system'.format(variable_class_name))
+        return variable_class
 
-    def update_column(self, column_name, new_column):
-        self.column_by_name[column_name] = new_column
+    def update_variable_class(self, variable_class_name, new_variable_class):
+        self.variable_class_by_name[variable_class_name] = new_variable_class
 
-    def neutralize_column(self, column_name):
-        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
+    def neutralize_variable_class(self, variable_class_name):
+        self.update_variable_class(variable_class_name, neutralize_variable_class(self.reference.get_variable_class(variable_class_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         if path_in_legislation_tree is not None:
