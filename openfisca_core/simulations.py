@@ -128,8 +128,8 @@ class AbstractSimulation(object):
                                 = step_index * entity_step_size + member_index
                             role_array[step_index * persons_step_size + person_index] = person_role
 
-                index_variable.set_input(index_array)
-                role_variable.set_input(role_array)
+                index_variable.set_value(index_array)
+                role_variable.set_value(role_array)
 
                 entity_data[entity]['roles_count'] = role_array.max() + 1
 
@@ -227,9 +227,30 @@ class AbstractSimulation(object):
                             else:
                                 holder.put_in_cache(array, axis_period)
 
-    def calculate(self, variable_name, period=None, **parameters):
+    def calculate(self, variable_name, period=None, caller_name='calculate', **parameters):
         variable = self.variable_by_name[variable_name]
-        return variable.calculate(period=period, **parameters)
+        return variable.calculate(period=period, caller_name=caller_name, **parameters)
+
+    def calculate_add(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'calculate_add', **parameters)
+
+    def calculate_add_divide(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'calculate_add_divide', **parameters)
+
+    def calculate_divide(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'calculate_divide', **parameters)
+
+    def compute(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'compute', **parameters)
+
+    def compute_add(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'compute_add', **parameters)
+
+    def compute_add_divide(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'compute_add_divide', **parameters)
+
+    def compute_divide(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'compute_divide', **parameters)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)

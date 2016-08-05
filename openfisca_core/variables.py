@@ -7,7 +7,7 @@ from biryani import strings
 import conv
 import periods
 from .enumerations import Enum
-from .holders import DatedHolder
+from .node import Node
 
 
 def N_(message):
@@ -30,11 +30,23 @@ class Variable(object):
         self.simulation = simulation
         self.cache = {}     # period (+ extra params) -> value
 
-    def calculate(self, period=None, **parameters):
-        key = frozenset([......])
-        formula_result = self.function(self.simulation, period, *parameters)
-        output_period, dated_holder = formula_result
-        return dated_holder
+    def set_value(self, value, period=None, **extra_params):
+        if extra_params:
+            return
+
+        self.cache[period] = value
+
+    def calculate(self, period, caller_name, **parameters):
+        if self.__class__.__name__ == 'salaire_de_base':
+            raise Exception((self.cache, period))
+
+        if not parameters and period in self.cache.keys():
+            return Node(self.cache[period], self.entity, self.simulation)
+
+        output_period, node = self.function(self.simulation, period, **parameters)
+        self.set_value(output_period, **parameters)
+
+        return node
 
     @classmethod
     def json_to_python(cls):
