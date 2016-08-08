@@ -3,18 +3,8 @@ language: python
 python: 2.7
 cache: pip
 install:
-  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
-
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip nose numpy
-  - source activate test-environment
-  - pip install flake8  # Not yet available in Ubuntu precise (https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise)
+  - pip install --upgrade pip  # pip >= 8.0 needed to be compatible with "manylinux" wheels, used by numpy >= 1.11
+  - pip install flake8
   - pip install --editable .[test]
 script: bash run-travis-tests.sh
 before_deploy:

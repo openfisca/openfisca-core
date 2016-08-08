@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1
+
+* Remove conda from travis config
+
 ## 2.2.0
 
 * Implement simulation.calculate `print_trace=True` argument. Options: `max_depth` and `show_default_values`
