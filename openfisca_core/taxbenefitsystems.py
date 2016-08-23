@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+import numpy as np
 import collections
 import glob
 from inspect import isclass
@@ -9,10 +10,9 @@ from imp import find_module, load_module
 import inspect
 # import weakref
 
-import numpy as np
 from biryani import strings
 
-from . import conv, legislations, legislationsxml
+from . import conv, legislations, legislationsxml, base_functions
 from .variables import Variable
 
 
@@ -183,6 +183,16 @@ class TaxBenefitSystem(object):
                     (strings.slugify(name), index)
                     for index, name in sorted(variable_class.enum._vars.iteritems())
                     ))
+
+        # define base function
+        if not hasattr(variable_class, 'base_function'):
+            if variable_class.is_permanent:
+                setattr(variable_class, 'base_function', base_functions.permanent_default_value)
+            elif variable_class.is_period_size_independent:
+                setattr(variable_class, 'base_function', base_functions.requested_period_last_value)
+            else:
+                setattr(variable_class, 'base_function', base_functions.requested_period_default_value)
+
 
         # rename 'entity_class' to 'entity'
         assert hasattr(variable_class, 'entity_class')

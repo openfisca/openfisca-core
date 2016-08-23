@@ -128,8 +128,8 @@ class AbstractSimulation(object):
                                 = step_index * entity_step_size + member_index
                             role_array[step_index * persons_step_size + person_index] = person_role
 
-                index_variable.set_value(index_array)
-                role_variable.set_value(role_array)
+                index_variable.set_input(index_array)
+                role_variable.set_input(role_array)
 
                 entity_data[entity]['roles_count'] = role_array.max() + 1
 
@@ -177,7 +177,7 @@ class AbstractSimulation(object):
                             array = np.fromiter(variable_values_iter, dtype=variable.dtype) \
                                 if variable.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype=variable.dtype)
-                            variable.set_value(array, period=variable_period)
+                            variable.set_input(array, period=variable_period)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -194,7 +194,7 @@ class AbstractSimulation(object):
                             array = np.empty(entity_data[axis_entity]['count'], dtype=variable.dtype)
                             array.fill(variable.default)
                         array[axis['index']::entity_data[axis_entity]['step_size']] = np.linspace(axis['min'], axis['max'], axis_count)
-                        variable.set_value(array, period=axis_period)
+                        variable.set_input(array, period=axis_period)
                 else:
                     # first_axis : local binding error ?
                     raise Exception('not ready yet')
@@ -227,6 +227,9 @@ class AbstractSimulation(object):
                             else:
                                 holder.put_in_cache(array, axis_period)
 
+    def get_or_new_holder(self, variable_name):
+        return self.variable_by_name[variable_name]
+
     def calculate(self, variable_name, period=None, caller_name='calculate', **parameters):
         variable = self.variable_by_name[variable_name]
         return variable.calculate(period=period, caller_name=caller_name, **parameters)
@@ -257,7 +260,7 @@ class AbstractSimulation(object):
         if compact_legislation is None:
             compact_legislation = self.tax_benefit_system.get_compact_legislation(
                 instant = instant,
-                traced_simulation = self if self.trace else None,
+                traced_simulation = None,
                 )
             self.compact_legislation_by_instant_cache[instant] = compact_legislation
         return compact_legislation
@@ -267,7 +270,7 @@ class AbstractSimulation(object):
         if reference_compact_legislation is None:
             reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(
                 instant = instant,
-                traced_simulation = self if self.trace else None,
+                traced_simulation = None,
                 )
             self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
         return reference_compact_legislation

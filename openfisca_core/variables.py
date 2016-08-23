@@ -26,27 +26,62 @@ COLUMNS = Enum([
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 class Variable(object):
+    function = None
+
     def __init__(self, simulation):
         self.simulation = simulation
-        self.cache = {}     # period (+ extra params) -> value
+        self._array_by_period = {}     # period (+ extra params) -> value
 
-    def set_value(self, value, period=None, **extra_params):
-        if extra_params:
+    def set_input(self, array, period=None):
+        self.put_in_cache(array, period)
+
+    def put_in_cache(self, value, period, extra_params=None):
+        if self.is_permanent:
+            self.array = value
             return
 
-        self.cache[period] = value
+        assert period is not None
+        if extra_params is None:
+            self._array_by_period[period] = value
+        else:
+            if self._array_by_period.get(period) is None:
+                self._array_by_period[period] = {}
+            self._array_by_period[period][tuple(extra_params)] = value
 
-    def calculate(self, period, caller_name, **parameters):
-        if self.__class__.__name__ == 'salaire_de_base':
-            raise Exception((self.cache, period))
+        return
 
-        if not parameters and period in self.cache.keys():
-            return Node(self.cache[period], self.entity, self.simulation)
+    def get_from_cache(self, period, extra_params=None):
+        if self.is_permanent:
+            return self.array
 
-        output_period, node = self.function(self.simulation, period, **parameters)
-        self.set_value(output_period, **parameters)
+        assert period is not None
+        if self._array_by_period is not None:
+            values = self._array_by_period.get(period)
+            if values is not None:
+                if extra_params:
+                    return values.get(tuple(extra_params))
+                else:
+                    if(type(values) == dict):
+                        return values.values()[0]
+                    return values
+        return None
+
+    def get_array(self, period, extra_params=None):
+        return self.get_from_cache(period, extra_params)
+
+    def calculate(self, period, caller_name, **extra_params):
+        value = self.get_from_cache(period, extra_params)
+
+        if value:
+            return Node(value, self.entity, self.simulation)
+
+        period, node = self.base_function(self.simulation, period, **extra_params)
 
         return node
+
+    @property
+    def _array(self):
+        return Node(self.array, self.entity, self.simulation)
 
     @classmethod
     def json_to_python(cls):
@@ -169,9 +204,6 @@ class DatedVariable(Variable):
     pass
 
 
-
-
-
 def dated_function(start=None, stop=None):
     """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
@@ -182,15 +214,81 @@ def dated_function(start=None, stop=None):
     return dated_function_decorator
 
 
-
 def calculate_output_add(variable, period):
     return variable.calculate(period)
+
 
 def calculate_output_divide(variable, period):
     return variable.calculate(period)
 
-def set_input_divide_by_period(variable, period, array):
-    return variable.set_input(array, period)
 
-def set_input_dispatch_by_period(variable, period, array):
-    return variable.set_input(array, period)
+def set_input_dispatch_by_period(variable, array, period):
+    variable.put_in_cache(array, period)
+
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'year' or period_size > 1:
+        after_instant = period.start.offset(period_size, period_unit)
+        if period_size > 1:
+            sub_period = period.start.period(period_unit)
+            while sub_period.start < after_instant:
+                existing_array = variable.get_array(sub_period)
+                if existing_array is None:
+                    variable.put_in_cache(array, sub_period)
+                else:
+                    # The array of the current sub-period is reused for the next ones.
+                    array = existing_array
+                sub_period = sub_period.offset(1)
+        if period_unit == u'year':
+            month = period.start.period(u'month')
+            while month.start < after_instant:
+                existing_array = variable.get_array(month)
+                if existing_array is None:
+                    variable.put_in_cache(array, month)
+                else:
+                    # The array of the current sub-period is reused for the next ones.
+                    array = existing_array
+                month = month.offset(1)
+
+
+def set_input_divide_by_period(variable, array, period):
+    variable.put_in_cache(array, period)
+
+    period_size = period.size
+    period_unit = period.unit
+    if period_unit == u'year' or period_size > 1:
+        after_instant = period.start.offset(period_size, period_unit)
+        if period_size > 1:
+            remaining_array = array.copy()
+            sub_period = period.start.period(period_unit)
+            sub_periods_count = period_size
+            while sub_period.start < after_instant:
+                existing_array = variable.get_array(sub_period)
+                if existing_array is not None:
+                    remaining_array -= existing_array
+                    sub_periods_count -= 1
+                sub_period = sub_period.offset(1)
+            if sub_periods_count > 0:
+                divided_array = remaining_array / sub_periods_count
+                sub_period = period.start.period(period_unit)
+                while sub_period.start < after_instant:
+                    if variable.get_array(sub_period) is None:
+                        variable.put_in_cache(divided_array, sub_period)
+                    sub_period = sub_period.offset(1)
+        if period_unit == u'year':
+            remaining_array = array.copy()
+            month = period.start.period(u'month')
+            months_count = 12 * period_size
+            while month.start < after_instant:
+                existing_array = variable.get_array(month)
+                if existing_array is not None:
+                    remaining_array -= existing_array
+                    months_count -= 1
+                month = month.offset(1)
+            if months_count > 0:
+                divided_array = remaining_array / months_count
+                month = period.start.period(u'month')
+                while month.start < after_instant:
+                    if variable.get_array(month) is None:
+                        variable.put_in_cache(divided_array, month)
+                    month = month.offset(1)
