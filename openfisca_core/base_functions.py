@@ -8,7 +8,8 @@ def permanent_default_value(variable, simulation, period, *extra_params):
     if variable.function is not None:
         return variable.function(simulation, period, *extra_params)
 
-    array = np.empty(variable.entity.count, dtype=variable.dtype)
+    count = simulation.entity_data[variable.entity]['count']
+    array = np.empty(count, dtype=variable.dtype)
     array.fill(variable.default)
     return period, Node(array, variable.entity, simulation)
 

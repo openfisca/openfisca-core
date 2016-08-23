@@ -11,26 +11,39 @@ from .numpy_wrapper import Shell
 class Node(object):
     """A container for a numpy array"""
 
-    def __init__(self, value, entity, simulation):
+    def __init__(self, value, entity, simulation, default=None):
         self.value = value
         self.entity = entity
         self.simulation = simulation
+        self.default = default
 
     def override(self, other, method):
         if isinstance(other, Node):
             assert self.entity is other.entity
             assert self.simulation is other.simulation
-            other = other.value
+            other_value = other.value
 
         elif isinstance(other, Shell):
-            other = other.value
+            other_value = other.value
 
-        new_array = getattr(self.value, method)(other)
+        else:
+            other_value = other
+
+        new_array = getattr(self.value, method)(other_value)
         return Node(new_array, self.entity, self.simulation)
 
     def override_unary(self, method, *args, **kwargs):
         new_array = getattr(self.value, method)(*args, **kwargs)
-        return Node(new_array, self.entity, self.simulation)
+        return Node(new_array, self.entity, self.simulation, self.default)
+
+    def __and__(self, other):
+        return self.override(other, '__and__')
+
+    def __or__(self, other):
+        return self.override(other, '__or__')
+
+    def __truediv__(self, other):
+        return self.override(other, '__truediv__')
 
     def __div__(self, other):
         return self.override(other, '__div__')
@@ -73,3 +86,17 @@ class Node(object):
 
     def astype(self, *args, **kwargs):
         return self.override_unary('astype', *args, **kwargs)
+
+    def __neg__(self):
+        return self.override_unary('__neg__')
+
+    def __getitem__(self, key):
+        assert isinstance(key, Node)
+        new_array = self.value[key.value]
+        return Node(new_array, key.entity, self.simulation, self.default)
+
+    def __setitem__(self, key, value):
+        assert isinstance(key, Node)
+        assert isinstance(value, Node)
+        self.value[key.value] = value.value
+        return None

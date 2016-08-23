@@ -1,4 +1,4 @@
-
+import numpy as np
 import datetime
 import re
 
@@ -71,17 +71,112 @@ class Variable(object):
 
     def calculate(self, period, caller_name, **extra_params):
         value = self.get_from_cache(period, extra_params)
-
         if value:
-            return Node(value, self.entity, self.simulation)
+            return Node(value, self.entity, self.simulation, self.default)
 
-        period, node = self.base_function(self.simulation, period, **extra_params)
+        column_start_instant = periods.instant(self.start)
+        column_stop_instant = periods.instant(self.end)
+        if (column_start_instant is None or column_start_instant <= period.start) \
+                and (column_stop_instant is None or period.start <= column_stop_instant):
+            period, node = self.base_function(self.simulation, period, **extra_params)
+            node.value = node.value.astype(self.dtype)
+            node.default = self.default
+            return node
 
-        return node
+        array = np.empty(self.simulation.entity_data[self.entity]['count'], dtype=self.dtype)
+        array.fill(self.default)
+        return Node(array, self.entity, self.simulation, self.default)
 
     @property
     def _array(self):
         return Node(self.array, self.entity, self.simulation)
+
+    def split_by_roles(self, node, default=None, entity=None, roles=None):
+        """dispatch a persons array to several entity arrays (one for each role)."""
+        if entity is None:
+            entity = self.entity
+        else:
+            assert entity in self.simulation.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+        assert not 'is_persons_entity' in dict(entity)
+
+        count = self.simulation.entity_data[entity]['count']
+        assert isinstance(node, Node)
+        assert 'is_persons_entity' in dict(node.entity)
+        assert len(node.value) == count
+
+        if default is None:
+            default = node.default
+
+        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].array
+        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].array
+        if roles is None:
+            # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
+            # roles = range(entity.roles_count)
+            roles = range(max(self.simulation.entity_data[entity]['roles_count'], 11))
+        node_by_role = {}
+        for role in roles:
+            target_array = np.empty(count, dtype=node.value.dtype)
+            target_array.fill(default)
+            boolean_filter = roles_array == role
+            try:
+                target_array[entity_index_array[boolean_filter]] = node.value[boolean_filter]
+            except:
+                log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                    entity.key_singular, role, self.__class__.__name__))
+                raise
+            node_by_role[role] = Node(target_array, entity, self.simulation)
+        return node_by_role
+
+    def filter_role(self, node, default=None, entity=None, role=None):
+        node_dict = self.split_by_roles(node, default, entity, roles=[role])
+        assert len(node_dict) == 1
+        return node_dict[node_dict.keys()[0]]
+
+    def sum_by_entity(self, node, entity=None, roles=None):
+        '''takes a persons array and return an entity array, suming with the given roles'''
+        node_dict = self.split_by_roles(node, default=None, entity=entity, roles=roles)
+        first_node = node_dict[node_dict.keys()[0]]
+        first_array = first_node.value
+        array = np.zeros(len(first_array), first_array.dtype)
+        for role in node_dict.keys():
+            array += node_dict[role].value
+        return Node(array, first_node.entity, first_node.simulation)
+
+    def cast_from_entity_to_role(self, node, default=None, entity=None, role=None):
+        """Cast an entity array to a persons array, setting only cells of persons having the given role."""
+        assert isinstance(role, int)
+        return self.cast_from_entity_to_roles(node, default=default, entity=entity, roles=[role])
+
+    def cast_from_entity_to_roles(self, node, default=None, entity=None, roles=None):
+        """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
+        When no roles are given, it means "all the roles" => every cell is set.
+        """
+        if entity is None:
+            entity = node.entity
+        else:
+            assert entity == node.entity, \
+                u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key_plural,
+                    node.entity.key_plural).encode('utf-8')
+        if default is None:
+            default = node.default
+
+        assert not 'is_persons_entity' in dict(entity)
+        persons_count = self.simulation.entity_data[self.simulation.persons]['count']
+        target_array = np.empty(persons_count, dtype=node.value.dtype)
+        target_array.fill(default)
+        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].array
+        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].array
+        if roles is None:
+            roles = range(self.simulation.entity_data[entity]['roles_count'])
+        for role in roles:
+            boolean_filter = roles_array == role
+            try:
+                target_array[boolean_filter] = node.value[entity_index_array[boolean_filter]]
+            except:
+                log.error(u'An error occurred while transforming array for role {}[{}] in function {}'.format(
+                    entity.key_singular, role, self.__class__.__name__))
+                raise
+        return Node(target_array, self.simulation.persons, self.simulation)
 
     @classmethod
     def json_to_python(cls):

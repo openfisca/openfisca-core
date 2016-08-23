@@ -4,7 +4,7 @@
 """Helpers to write formulas."""
 
 
-import numpy as np
+import openfisca_core.numpy_wrapper as np
 
 
 def apply_thresholds(input, thresholds, choices):

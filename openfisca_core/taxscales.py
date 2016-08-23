@@ -12,6 +12,7 @@ import numpy as np
 from numpy import maximum as max_, minimum as min_
 
 from .tools import empty_clone
+from .node import Node
 
 
 log = logging.getLogger(__name__)
@@ -192,19 +193,23 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
     def calc(self, base, factor = 1, round_base_decimals = None):
+        base_node = base
+        base = base.value
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         if isinstance(factor, (float, int)):
             factor = np.ones(len(base)) * factor
+        else:
+            factor = factor.value
         thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
         if round_base_decimals is not None:
             thresholds1 = np.round(thresholds1, round_base_decimals)
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
         if round_base_decimals is None:
-            return np.dot(self.rates, a.T)
+            return Node(np.dot(self.rates, a.T), base_node.entity, base_node.simulation)
         else:
             r = np.tile(self.rates, (len(base), 1))
             b = np.round(a, round_base_decimals)
-            return np.round(r * b, round_base_decimals).sum(axis = 1)
+            return Node(np.round(r * b, round_base_decimals).sum(axis = 1), base_node.entity, base_node.simulation)
 
     def combine_bracket(self, rate, threshold_low = 0, threshold_high = False):
         # Insert threshold_low and threshold_high without modifying rates

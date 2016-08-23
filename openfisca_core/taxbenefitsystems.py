@@ -151,10 +151,11 @@ class TaxBenefitSystem(object):
                 setattr(variable_class, 'val_type', 'date')
             elif variable_class.column.__class__.__name__ == 'FixedStrCol':
                 setattr(variable_class, 'default', u'')
-                setattr(variable_class, 'dtype', None)
                 setattr(variable_class, 'is_period_size_independent', True)
                 setattr(variable_class, 'json_type', 'String')
-                setattr(variable_class, 'max_length', None)
+                max_length = variable_class.column.get_params().get('max_length')
+                setattr(variable_class, 'dtype', '|S{}'.format(max_length))
+
             elif variable_class.column.__class__.__name__ == 'FloatCol':
                 setattr(variable_class, 'dtype', np.float32)
                 setattr(variable_class, 'json_type', 'Float')
@@ -166,9 +167,22 @@ class TaxBenefitSystem(object):
                 setattr(variable_class, 'dtype', object)
                 setattr(variable_class, 'is_period_size_independent', True)
                 setattr(variable_class, 'json_type', 'String')
+            elif variable_class.column.__class__.__name__ == 'AgeCol':
+                setattr(variable_class, 'default', -9999)
+                setattr(variable_class, 'is_period_size_independent', True)
+            elif variable_class.column.__class__.__name__ == 'EnumCol':
+                setattr(variable_class, 'dtype', np.int16)
+                setattr(variable_class, 'enum', None)
+                setattr(variable_class, 'index_by_slug', None)
+                setattr(variable_class, 'is_period_size_independent', True)
+                setattr(variable_class, 'json_type', 'Enumeration')
 
             for k, v in variable_class.column.get_params().items():
                 setattr(variable_class, k, v)
+            if hasattr(variable_class, 'start_date'):
+                setattr(variable_class, 'start', variable_class.start_date)
+            if hasattr(variable_class, 'stop_date'):
+                setattr(variable_class, 'end', variable_class.stop_date)
             assert not hasattr(variable_class, 'column_type')
             setattr(variable_class, 'column_type', variable_class.column.__class__.__name__)
             delattr(variable_class, 'column')
