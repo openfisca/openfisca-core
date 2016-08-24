@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.2
+
+* Update travis procedures
+
 ## 2.2.1
 
 * Remove conda from travis config
