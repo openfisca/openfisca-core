@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 import inspect
 import textwrap
 
@@ -8,10 +11,10 @@ from openfisca_core import columns
 class AbstractVariable(object):
     def __init__(self, name, attributes, variable_class):
         self.name = name
-        self.attributes = {attr_name.strip('_'): attr_value for (attr_name, attr_value) in attributes.iteritems()}
+        self.attributes = attributes
         self.variable_class = variable_class
 
-    def introspect(self):
+    def get_introspection_data(self, tax_benefit_system):
         comments = inspect.getcomments(self.variable_class)
 
         # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
@@ -20,28 +23,26 @@ class AbstractVariable(object):
         except TypeError:
             source_file_path = None
         try:
-            source_lines, line_number = inspect.getsourcelines(self.variable_class)
+            source_lines, start_line_number = inspect.getsourcelines(self.variable_class)
             source_code = textwrap.dedent(''.join(source_lines))
         except (IOError, TypeError):
-            source_code, line_number = None, None
+            source_code, start_line_number = None, None
 
-        return (comments, source_file_path, source_code, line_number)
+        return comments, source_file_path, source_code, start_line_number
 
 
 class AbstractComputationVariable(AbstractVariable):
-    formula_class = SimpleFormula
+    formula_class = None  # Overridden
 
     def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class
         entity_class = self.attributes.pop('entity_class', None)
 
         # For reform variable that replaces the existing reference one
         reference = self.attributes.pop('reference', None)
-        if reference:
-            if not entity_class:
-                entity_class = reference.entity_class
+        if reference and not entity_class:
+            entity_class = reference.entity_class
 
-        (comments, source_file_path, source_code, line_number) = self.introspect()
+        comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
 
         if entity_class is None:
             raise Exception('Variable {} must have an entity_class'.format(self.name))
@@ -49,25 +50,12 @@ class AbstractComputationVariable(AbstractVariable):
         return new_filled_column(
             name = self.name,
             entity_class = entity_class,
-            formula_class = formula_class,
+            formula_class = self.formula_class,
             reference_column = reference,
             comments = comments,
-            line_number = line_number,
+            start_line_number = start_line_number,
             source_code = source_code,
             source_file_path = source_file_path,
-            base_function = self.attributes.pop('base_function', UnboundLocalError),
-            calculate_output = self.attributes.pop('calculate_output', UnboundLocalError),
-            cerfa_field = self.attributes.pop('cerfa_field', UnboundLocalError),
-            column = self.attributes.pop('column', UnboundLocalError),
-            doc = self.attributes.pop('doc', UnboundLocalError),
-            is_permanent = self.attributes.pop('is_permanent', UnboundLocalError),
-            label = self.attributes.pop('label', UnboundLocalError),
-            law_reference = self.attributes.pop('law_reference', UnboundLocalError),
-            module = self.attributes.pop('module', UnboundLocalError),
-            set_input = self.attributes.pop('set_input', UnboundLocalError),
-            start_date = self.attributes.pop('start_date', UnboundLocalError),
-            stop_date = self.attributes.pop('stop_date', UnboundLocalError),
-            url = self.attributes.pop('url', UnboundLocalError),
             **self.attributes
             )
 
@@ -81,12 +69,9 @@ class DatedVariable(AbstractComputationVariable):
 
 
 class AbstractConversionVariable(AbstractVariable):
-    formula_class = None
+    formula_class = None  # Overridden
 
     def to_column(self, tax_benefit_system):
-
-        formula_class = self.__class__.formula_class
-
         # Extract attributes.
 
         cerfa_field = self.attributes.pop('cerfa_field', None)
@@ -94,7 +79,8 @@ class AbstractConversionVariable(AbstractVariable):
             assert isinstance(cerfa_field, basestring), cerfa_field
             cerfa_field = unicode(cerfa_field)
 
-        doc = self.attributes.pop('doc', None)
+        __doc__ = self.attributes.pop('__doc__', None)
+        __module__ = self.attributes.pop('__module__', None)
 
         entity_class = self.attributes.pop('entity_class')
 
@@ -119,13 +105,13 @@ class AbstractConversionVariable(AbstractVariable):
 
         # Build formula class and column from extracted attributes.
 
-        formula_class_attributes = dict(
-            __module__ = self.attributes.pop('module'),
-            )
-        if doc is not None:
-            formula_class_attributes['__doc__'] = doc
+        formula_class_attributes = {}
+        if __doc__ is not None:
+            formula_class_attributes['__doc__'] = __doc__
+        if __module__ is not None:
+            formula_class_attributes['__module__'] = __module__
 
-        (comments, source_file_path, source_code, line_number) = self.introspect()
+        comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
 
         if comments is not None:
             if isinstance(comments, str):
@@ -135,8 +121,8 @@ class AbstractConversionVariable(AbstractVariable):
             formula_class_attributes['source_file_path'] = source_file_path
         if source_code is not None:
             formula_class_attributes['source_code'] = source_code
-        if line_number is not None:
-            formula_class_attributes['line_number'] = line_number
+        if start_line_number is not None:
+            formula_class_attributes['start_line_number'] = start_line_number
 
         role = self.attributes.pop('role', None)
         roles = self.attributes.pop('roles', None)
@@ -152,12 +138,11 @@ class AbstractConversionVariable(AbstractVariable):
 
         formula_class_attributes['variable_name'] = reference_column.name
 
-        if issubclass(formula_class, EntityToPerson):
+        if issubclass(self.formula_class, EntityToPerson):
             assert entity_class.is_persons_entity
             column = reference_column.empty_clone()
         else:
-            assert issubclass(formula_class, PersonToEntity)
-
+            assert issubclass(self.formula_class, PersonToEntity)
             assert not entity_class.is_persons_entity
 
             if roles is None or len(roles) > 1:
@@ -177,10 +162,10 @@ class AbstractConversionVariable(AbstractVariable):
                 column = reference_column.empty_clone()
 
         # Ensure that all attributes defined in ConversionColumn class are used.
-        assert not self.attributes, 'Unexpected attributes in definition of filled column {}: {}'.format(self.name,
-            ', '.join(self.attributes.iterkeys()))
+        assert not self.attributes, 'Unexpected attributes in definition of filled column "{}": {!r}'.format(
+            self.name, self.attributes.keys())
 
-        formula_class = type(self.name.encode('utf-8'), (formula_class,), formula_class_attributes)
+        formula_class = type(self.name.encode('utf-8'), (self.formula_class,), formula_class_attributes)
 
         # Fill column attributes.
         if cerfa_field is not None:

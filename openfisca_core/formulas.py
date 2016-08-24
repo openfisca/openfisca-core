@@ -8,7 +8,6 @@ import datetime
 import inspect
 import itertools
 import logging
-import textwrap
 
 import numpy as np
 
@@ -42,7 +41,7 @@ class CycleError(Exception):
 class AbstractFormula(object):
     comments = None
     holder = None
-    line_number = None
+    start_line_number = None
     source_code = None
     source_file_path = None
 
@@ -168,16 +167,12 @@ class AbstractEntityToEntity(AbstractFormula):
         cls = self.__class__
         comments = inspect.getcomments(cls)
         doc = inspect.getdoc(cls)
-        source_lines, line_number = inspect.getsourcelines(cls)
         variable_holder = self.variable_holder
         variable_column = variable_holder.column
         self_json = collections.OrderedDict((
             ('@type', cls.__bases__[0].__name__),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
-            ('line_number', line_number),
-            ('module', inspect.getmodule(cls).__name__),
-            ('source', ''.join(source_lines).decode('utf-8')),
             ))
         if get_input_variables_and_parameters is not None:
             input_variable_json = collections.OrderedDict((
@@ -765,15 +760,10 @@ class SimpleFormula(AbstractFormula):
             return None
         comments = inspect.getcomments(function)
         doc = inspect.getdoc(function)
-        source_lines, line_number = inspect.getsourcelines(function)
-        source = textwrap.dedent(''.join(source_lines).decode('utf-8'))
         self_json = collections.OrderedDict((
             ('@type', u'SimpleFormula'),
             ('comments', comments.decode('utf-8') if comments is not None else None),
             ('doc', doc.decode('utf-8') if doc is not None else None),
-            ('line_number', line_number),
-            ('module', inspect.getmodule(function).__name__),
-            ('source', source),
             ))
         if get_input_variables_and_parameters is not None:
             holder = self.holder
@@ -842,13 +832,14 @@ def neutralize_column(column):
 
 
 def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
-        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError, doc = None,
+        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
+        __doc__ = None, __module__ = None,
         entity_class = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
-        label = UnboundLocalError, law_reference = UnboundLocalError, line_number = UnboundLocalError, module = None,
+        label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
         source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
         url = UnboundLocalError, **specific_attributes):
-        # Validate arguments.
+    # Validate arguments.
 
     if reference_column is not None:
         assert isinstance(reference_column, columns.Column)
@@ -905,19 +896,19 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         assert is_permanent in (False, True), is_permanent
 
     if label is UnboundLocalError:
-        label = name if reference_column is None else reference_column.label
+        label = None if reference_column is None else reference_column.label
     else:
-        label = name if label is None else unicode(label)
+        label = None if label is None else unicode(label)
 
     if law_reference is UnboundLocalError:
         law_reference = None if reference_column is None else reference_column.law_reference
     else:
         assert isinstance(law_reference, (basestring, list))
 
-    if line_number is UnboundLocalError:
-        line_number = None if reference_column is None else reference_column.formula_class.line_number
-    elif isinstance(line_number, str):
-        line_number = line_number.decode('utf-8')
+    if start_line_number is UnboundLocalError:
+        start_line_number = None if reference_column is None else reference_column.formula_class.start_line_number
+    elif isinstance(start_line_number, str):
+        start_line_number = start_line_number.decode('utf-8')
 
     if set_input is UnboundLocalError:
         set_input = None if reference_column is None else reference_column.formula_class.set_input
@@ -950,15 +941,14 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     # Build formula class and column.
 
     formula_class_attributes = {}
-    if doc is not None:
-        formula_class_attributes['__doc__'] = doc
-    if module is not None:
-        assert isinstance(module, basestring)
-        formula_class_attributes['__module__'] = module
+    if __doc__ is not None:
+        formula_class_attributes['__doc__'] = __doc__
+    if __module__ is not None:
+        formula_class_attributes['__module__'] = __module__
     if comments is not None:
         formula_class_attributes['comments'] = comments
-    if line_number is not None:
-        formula_class_attributes['line_number'] = line_number
+    if start_line_number is not None:
+        formula_class_attributes['start_line_number'] = start_line_number
     if source_code is not None:
         formula_class_attributes['source_code'] = source_code
     if source_file_path is not None:
@@ -1062,7 +1052,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         formula_class_attributes['function'] = function
 
     # Ensure that all attributes defined in ConversionColumn class are used.
-    assert not specific_attributes, 'Unexpected attributes in definition of variable {}: {}'.format(name,
+    assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
         ', '.join(sorted(specific_attributes.iterkeys())))
 
     formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
