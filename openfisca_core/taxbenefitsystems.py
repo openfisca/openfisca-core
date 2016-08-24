@@ -111,19 +111,18 @@ class TaxBenefitSystem(object):
         attributes = dict(variable_class.__dict__)
 
         existing_column = self.get_column(name)
+        if existing_column:
+            if update:
+                attributes['reference'] = existing_column
+            else:
+                # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
+                if name in self.automatically_loaded_variable:
+                    self.automatically_loaded_variable.remove(name)
+                    return self.get_column(name)
+                raise VariableNameConflict(
+                    u'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
-        if existing_column and not update:
-            # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
-            if name in self.automatically_loaded_variable:
-                self.automatically_loaded_variable.remove(name)
-                return self.get_column(name)
-            raise VariableNameConflict(
-                "Variable {} is already defined. Use `update_variable` to replace it.".format(name))
-
-        if existing_column and update:
-            attributes['reference'] = existing_column
-
-        # We pass the variable_class just for introspection for parsers.
+        # We pass the variable_class just for introspection.
         variable = variable_type(name, attributes, variable_class)
         # We need the tax benefit system to identify columns mentioned by conversion variables.
         column = variable.to_column(self)
@@ -137,21 +136,20 @@ class TaxBenefitSystem(object):
     def update_variable(self, variable_class):
         return self.load_variable(variable_class, update = True)
 
-    def add_variables_from_file(self, file):
+    def add_variables_from_file(self, file_path):
         try:
-            module_name = path.splitext(path.basename(file))[0]
-            module_directory = path.dirname(file)
+            module_name = path.splitext(path.basename(file_path))[0]
+            module_directory = path.dirname(file_path)
             module = load_module(module_name, *find_module(module_name, [module_directory]))
-
-            potential_variables = [getattr(module, c) for c in dir(module) if not c.startswith('__')]
+            potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
-                if ((isclass(pot_variable) and
-                     issubclass(pot_variable, AbstractVariable) and
-                     pot_variable.__module__.endswith(module_name))):
+                if isclass(pot_variable) and \
+                        issubclass(pot_variable, AbstractVariable) and \
+                        pot_variable.__module__.endswith(module_name):
                     self.add_variable(pot_variable)
         except:
-            log.error("Unable to load openfisca variables from file {}".format(file))
+            log.error(u'Unable to load openfisca variables from file "{}"'.format(file_path))
             raise
 
     def add_variables_from_directory(self, directory):
@@ -221,7 +219,7 @@ class TaxBenefitSystem(object):
             legislation_json = self.preprocess_legislation(legislation_json)
         self._legislation_json = legislation_json
 
-    def get_legislation(self):
+    def get_legislation(self, with_source_file_infos = False):
         if self._legislation_json is None:
-            self.compute_legislation()
+            self.compute_legislation(with_source_file_infos = with_source_file_infos)
         return self._legislation_json
