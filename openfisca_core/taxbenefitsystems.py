@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-
-import numpy as np
+import itertools
 import collections
 import glob
+
+import numpy as np
 from inspect import isclass
 from os import path
 from imp import find_module, load_module
 import inspect
+import datetime
 # import weakref
 
 from biryani import strings
 
 from . import conv, legislations, legislationsxml, base_functions
-from .variables import Variable
+from .variables import Variable, DatedVariable
 
 
 class VariableNotFound(Exception):
@@ -94,9 +96,7 @@ class TaxBenefitSystem(object):
         if existing_variable_class and update:
             variable_class.reference = existing_variable_class
 
-        # variable class
-        assert not hasattr(variable_class, 'variable_type')
-        setattr(variable_class, 'variable_type', variable_class.__name__)
+        setattr(variable_class, 'base_class', variable_class.__bases__[0])
 
         if not hasattr(variable_class, 'cerfa_field'):
             setattr(variable_class, 'cerfa_field', None)
@@ -207,11 +207,44 @@ class TaxBenefitSystem(object):
             else:
                 setattr(variable_class, 'base_function', base_functions.requested_period_default_value)
 
-
         # rename 'entity_class' to 'entity'
         assert hasattr(variable_class, 'entity_class')
         setattr(variable_class, 'entity', variable_class.entity_class)
         delattr(variable_class, 'entity_class')
+
+        # dates...
+        functions = []
+        for function_name, function in vars(variable_class).items():
+            if (not hasattr(function, '__call__')) or (not function_name.startswith('function')):
+                continue
+
+            delattr(variable_class, function_name)
+
+            start_instant = getattr(function, 'start_instant', None)
+            if variable_class.start:
+                start_instant = max(start_instant, variable_class.start)
+            stop_instant = getattr(function, 'stop_instant', None)
+            if variable_class.end:
+                stop_instant = min(stop_instant, variable_class.end)
+
+            functions.append(dict(
+                function=function,
+                start_instant=start_instant,
+                stop_instant=stop_instant,
+                ))
+        delattr(variable_class, 'start')
+        delattr(variable_class, 'end')
+        # Sort dated formulas by start instant and add missing stop instants.
+        functions.sort(key=lambda function: function['start_instant'] or datetime.date.min)
+        for function, next_function in itertools.izip(functions,
+                itertools.islice(functions, 1, None)):
+            if function['stop_instant'] is None:
+                function['stop_instant'] = next_function['start_instant'].offset(-1, 'day')
+            else:
+                assert function['stop_instant'] < next_function['start_instant'], \
+                    "Dated formulas overlap: {} & {}".format(function, next_function)
+
+        setattr(variable_class, 'functions', functions)
 
         self.variable_class_by_name[name] = variable_class
         return variable_class

@@ -74,18 +74,29 @@ class Variable(object):
         if value:
             return Node(value, self.entity, self.simulation, self.default)
 
-        column_start_instant = periods.instant(self.start)
-        column_stop_instant = periods.instant(self.end)
-        if (column_start_instant is None or column_start_instant <= period.start) \
-                and (column_stop_instant is None or period.start <= column_stop_instant):
-            period, node = self.base_function(self.simulation, period, **extra_params)
-            node.value = node.value.astype(self.dtype)
+        if self.base_class == DatedVariable:
+            for function in self.functions:
+                if function['start_instant'] > period.stop:
+                    break
+                output_period = period.intersection(function['start_instant'], function['stop_instant'])
+                if output_period is None:
+                    continue
+                output_period2, node = function['function'].compute(period=output_period, **extra_params)
+                if node.value.dtype != self.dtype:
+                    node.value = node.value.astype(self.dtype)
+                node.default = self.default
+                return node
+
+            count = self.simulation.entity_data[self.entity]['count']
+            array = np.empty(count, dtype=self.dtype)
+            array.fill(self.default)
+            return Node(array, self.entity, self.simulation, self.default)
+        else:
+            output_period, node = self.base_function(self.simulation, period, **extra_params)
+            if node.value.dtype != self.dtype:
+                node.value = node.value.astype(self.dtype)
             node.default = self.default
             return node
-
-        array = np.empty(self.simulation.entity_data[self.entity]['count'], dtype=self.dtype)
-        array.fill(self.default)
-        return Node(array, self.entity, self.simulation, self.default)
 
     @property
     def _array(self):
