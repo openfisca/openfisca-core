@@ -80,12 +80,15 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     holder = formula.holder
     if holder._array_by_period is not None:
         known_values = sorted(holder._array_by_period.iteritems(), reverse = True)
-        for last_period, last_array in known_values:
+        for last_period, last_result in known_values:
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
-                return period, last_array
+                if type(last_result) == np.ndarray and not extra_params:
+                    return period, last_result
+                elif last_result.get(extra_params):
+                        return period, last_result.get(extra_params)
         if accept_future_value:
             next_period, next_array = known_values[-1]
-            return period, last_array
+            return period, last_result
     if formula.function is not None:
         return formula.function(simulation, period, *extra_params)
     column = holder.column
@@ -105,9 +108,13 @@ def last_duration_last_value(formula, simulation, period, *extra_params):
     # It returns the latest known value for the requested start of period but with the last period size.
     holder = formula.holder
     if holder._array_by_period is not None:
-        for last_period, last_array in sorted(holder._array_by_period.iteritems(), reverse = True):
+        for last_period, last_result in sorted(holder._array_by_period.iteritems(), reverse = True):
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
-                return periods.Period((last_period[0], period.start, last_period[2])), last_array
+                output_period = periods.Period((last_period[0], period.start, last_period[2]))
+                if type(last_result) == np.ndarray and not extra_params:
+                    return output_period, last_result
+                elif last_result.get(extra_params):
+                    return output_period, last_result.get(extra_params)
     if formula.function is not None:
         return formula.function(simulation, period, *extra_params)
     column = holder.column
