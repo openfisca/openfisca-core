@@ -14,7 +14,7 @@ import datetime
 
 from biryani import strings
 
-from . import conv, legislations, legislationsxml, base_functions
+from . import conv, legislations, legislationsxml, base_functions, periods
 from .variables import Variable, DatedVariable
 
 
@@ -96,6 +96,7 @@ class TaxBenefitSystem(object):
         if existing_variable_class and update:
             variable_class.reference = existing_variable_class
 
+        setattr(variable_class, 'name', name)
         setattr(variable_class, 'base_class', variable_class.__bases__[0])
 
         if not hasattr(variable_class, 'cerfa_field'):
@@ -180,9 +181,9 @@ class TaxBenefitSystem(object):
             for k, v in variable_class.column.get_params().items():
                 setattr(variable_class, k, v)
             if hasattr(variable_class, 'start_date'):
-                setattr(variable_class, 'start', variable_class.start_date)
+                setattr(variable_class, 'start', periods.instant(variable_class.start_date))
             if hasattr(variable_class, 'stop_date'):
-                setattr(variable_class, 'end', variable_class.stop_date)
+                setattr(variable_class, 'end', periods.instant(variable_class.stop_date))
             assert not hasattr(variable_class, 'column_type')
             setattr(variable_class, 'column_type', variable_class.column.__class__.__name__)
             delattr(variable_class, 'column')
@@ -222,20 +223,20 @@ class TaxBenefitSystem(object):
 
             start_instant = getattr(function, 'start_instant', None)
             if variable_class.start:
-                start_instant = max(start_instant, variable_class.start)
+                start_instant = variable_class.start if not start_instant else max(start_instant, variable_class.start)
             stop_instant = getattr(function, 'stop_instant', None)
             if variable_class.end:
-                stop_instant = min(stop_instant, variable_class.end)
+                stop_instant = variable_class.end if not stop_instant else min(stop_instant, variable_class.end)
 
             functions.append(dict(
                 function=function,
                 start_instant=start_instant,
                 stop_instant=stop_instant,
                 ))
-        delattr(variable_class, 'start')
-        delattr(variable_class, 'end')
+        #delattr(variable_class, 'start')
+        #delattr(variable_class, 'end')
         # Sort dated formulas by start instant and add missing stop instants.
-        functions.sort(key=lambda function: function['start_instant'] or datetime.date.min)
+        functions.sort(key=lambda function: function['start_instant'] or periods.instant(datetime.date.min))
         for function, next_function in itertools.izip(functions,
                 itertools.islice(functions, 1, None)):
             if function['stop_instant'] is None:

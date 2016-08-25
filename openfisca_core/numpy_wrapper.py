@@ -64,8 +64,11 @@ def logical_xor(x1, x2):
     return node.Node(array, x1.entity, x1.simulation)
 
 def logical_not(x):
-    array = np.logical_not(x.value)
-    return node.Node(array, x.entity, x.simulation)
+    if isinstance(x, node.Node):
+        array = np.logical_not(x.value)
+        return node.Node(array, x.entity, x.simulation)
+    else:
+        return np.logical_not(x)
 
 def round(a, decimals=0):
     if isinstance(a, node.Node):

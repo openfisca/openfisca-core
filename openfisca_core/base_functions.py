@@ -4,11 +4,19 @@ from . import periods
 from node import Node
 
 
-def permanent_default_value(function, simulation, period, *extra_params):
-    return function(simulation, period, *extra_params)
+def permanent_default_value(variable, simulation, period, *extra_params):
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return (variable.functions[0])(simulation, period, *extra_params)
+
+    count = simulation.entity_data[variable.entity]['count']
+    array = np.empty(count, dtype=variable.dtype)
+    array.fill(variable.default)
+    return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_added_value(function, simulation, period, *extra_params):
+def requested_period_added_value(variable, simulation, period, *extra_params):
     count = simulation.entity_data[variable.entity]['count']
 
     # This formula is used for variables that can be added to match requested period.
@@ -40,16 +48,20 @@ def requested_period_added_value(function, simulation, period, *extra_params):
                 month = month.offset(1)
             if array is not None:
                 return period, Node(array, variable.entity, simulation)
-    if variable.function is not None:
-        return variable.function(simulation, period, *extra_params)
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return function(variable, simulation, period, *extra_params)
     array = np.empty(count, dtype=variable.dtype)
     array.fill(variable.default)
     return period, Node(array, variable.entity, simulation)
 
 
 def requested_period_default_value(variable, simulation, period, *extra_params):
-    if variable.function is not None:
-        return variable.function(simulation, period, *extra_params)
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return function(variable, simulation, period, *extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -71,13 +83,15 @@ def requested_period_last_value(variable, simulation, period, *extra_params, **k
     if variable._array_by_period:
         known_values = sorted(variable._array_by_period.iteritems(), reverse=True)
         for last_period, last_array in known_values:
-            if last_period.start <= period.start and (variable.function is None or last_period.stop >= period.stop):
+            if last_period.start <= period.start and ((not variable.functions) or last_period.stop >= period.stop):
                 return period, Node(last_array, variable.entity, simulation)
         if accept_future_value:
             next_period, next_array = known_values[-1]
             return period, Node(last_array, variable.entity, simulation)
-    if variable.function is not None:
-        return variable.function(simulation, period, *extra_params)
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return function(variable, simulation, period, *extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -96,10 +110,12 @@ def last_duration_last_value(variable, simulation, period, *extra_params):
     # It returns the latest known value for the requested start of period but with the last period size.
     if variable._array_by_period is not None:
         for last_period, last_array in sorted(variable._array_by_period.iteritems(), reverse=True):
-            if last_period.start <= period.start and (variable.function is None or last_period.stop >= period.stop):
+            if last_period.start <= period.start and ((not variable.function) or last_period.stop >= period.stop):
                 return periods.Period((last_period[0], period.start, last_period[2])), Node(last_array, variable.entity, simulation)
-    if variable.function is not None:
-        return variable.function(simulation, period, *extra_params)
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return function(variable, simulation, period, *extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -108,7 +124,9 @@ def last_duration_last_value(variable, simulation, period, *extra_params):
 
 
 def missing_value(variable, simulation, period):
-    if variable.function is not None:
-        return variable.function(simulation, period)
+    if variable.functions:
+        assert(len(variable.functions) == 1)
+        function = variable.functions[0]['function']
+        return function(variable, simulation, period)
 
     raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))

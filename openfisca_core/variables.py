@@ -74,6 +74,8 @@ class Variable(object):
         if value:
             return Node(value, self.entity, self.simulation, self.default)
 
+        #print('Entering {}.calculate()'.format(self.name))
+
         if self.base_class == DatedVariable:
             for function in self.functions:
                 if function['start_instant'] > period.stop:
@@ -81,7 +83,7 @@ class Variable(object):
                 output_period = period.intersection(function['start_instant'], function['stop_instant'])
                 if output_period is None:
                     continue
-                output_period2, node = function['function'].compute(period=output_period, **extra_params)
+                output_period2, node = function['function'](self, self.simulation, output_period, **extra_params)
                 if node.value.dtype != self.dtype:
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
@@ -92,11 +94,20 @@ class Variable(object):
             array.fill(self.default)
             return Node(array, self.entity, self.simulation, self.default)
         else:
-            output_period, node = self.base_function(self.simulation, period, **extra_params)
-            if node.value.dtype != self.dtype:
-                node.value = node.value.astype(self.dtype)
-            node.default = self.default
-            return node
+            if (self.start is None or self.start <= period.start) \
+                    and (self.end is None or period.start <= self.end):
+                output_period, node = self.base_function(self.simulation, period, **extra_params)
+                if node.value.dtype != self.dtype:
+                    node.value = node.value.astype(self.dtype)
+                node.default = self.default
+                return node
+
+            count = self.simulation.entity_data[self.entity]['count']
+            array = np.empty(count, dtype=self.dtype)
+            array.fill(self.default)
+            return Node(array, self.entity, self.simulation, self.default)
+
+
 
     @property
     def _array(self):
@@ -313,8 +324,8 @@ class DatedVariable(Variable):
 def dated_function(start=None, stop=None):
     """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
-        function.start_instant = start
-        function.stop_instant = stop
+        function.start_instant = periods.instant(start)
+        function.stop_instant = periods.instant(stop)
         return function
 
     return dated_function_decorator
