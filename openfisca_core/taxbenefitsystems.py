@@ -105,6 +105,14 @@ class TaxBenefitSystem(object):
             setattr(variable_class, 'default', 0)
         if not hasattr(variable_class, 'dtype'):
             setattr(variable_class, 'dtype', float)
+        ''' this is useless and complicated
+        if variable_class.base_class in [PersonToEntityColumn, EntityToPersonColumn]:
+            if self.variable.__name__ not in self.variable_class_by_name:
+                self.load_variable_class(self.variable)
+
+            original_variable = self.variable_class_by_name[self.variable.__name__]
+            variable_class.dtype = original_variable.dtype
+        '''
         if not hasattr(variable_class, 'end'):
             setattr(variable_class, 'end', None)
         if not hasattr(variable_class, 'entity'):
@@ -133,6 +141,12 @@ class TaxBenefitSystem(object):
             setattr(variable_class, 'url', None)
         if not hasattr(variable_class, 'val_type'):
             setattr(variable_class, 'val_type', None)
+        if not hasattr(variable_class, 'roles'):    # For entity to entity variables
+            setattr(variable_class, 'roles', None)
+        if hasattr(variable_class, 'role'):  # For entity to entity variables
+            variable_class.roles = [variable_class.role]
+        if not hasattr(variable_class, 'operation'):    # For entity to entity variables
+            setattr(variable_class, 'operation', None)
 
         # column member
         if hasattr(variable_class, 'column'):

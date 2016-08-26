@@ -37,11 +37,11 @@ class Variable(object):
 
     def put_in_cache(self, value, period, extra_params=None):
         if self.is_permanent:
-            self.array = value
+            self.permanent_array = value
             return
 
         assert period is not None
-        if extra_params is None:
+        if not extra_params:
             self._array_by_period[period] = value
         else:
             if self._array_by_period.get(period) is None:
@@ -52,7 +52,7 @@ class Variable(object):
 
     def get_from_cache(self, period, extra_params=None):
         if self.is_permanent:
-            return self.array
+            return self.permanent_array
 
         assert period is not None
         if self._array_by_period is not None:
@@ -69,7 +69,18 @@ class Variable(object):
     def get_array(self, period, extra_params=None):
         return self.get_from_cache(period, extra_params)
 
+    def zeros(self):
+        count = self.simulation.entity_data[self.entity]['count']
+        array = np.zeros(count, dtype=self.dtype)
+        return Node(array, self.entity, self.simulation, 0)
+
     def calculate(self, period, caller_name, **extra_params):
+        if 'accept_other_period' in extra_params:
+            del extra_params['accept_other_period']
+
+        if period == None:
+            period = self.simulation.period
+
         value = self.get_from_cache(period, extra_params)
         if value:
             return Node(value, self.entity, self.simulation, self.default)
@@ -87,37 +98,114 @@ class Variable(object):
                 if node.value.dtype != self.dtype:
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
+                self.put_in_cache(node.value, period, extra_params)
                 return node
 
             count = self.simulation.entity_data[self.entity]['count']
             array = np.empty(count, dtype=self.dtype)
             array.fill(self.default)
+            self.put_in_cache(array, period, extra_params)
             return Node(array, self.entity, self.simulation, self.default)
-        else:
+        elif self.base_class == PersonToEntityColumn:
+            """Convert an array of persons to an array of non-person entities.
+            When no roles are given, it means "all the roles".
+            """
+            original_variable = self.simulation.variable_by_name[self.variable.__name__]
+
+            entity = self.entity
+            assert not 'is_persons_entity' in dict(entity)
+
+            persons = original_variable.entity
+            assert 'is_persons_entity' in dict(persons)
+
+            # Calculate the original variable
+            variable_node = self.simulation.calculate(original_variable.name, period)
+
+            count = self.simulation.entity_data[entity]['count']
+            target_array = np.empty(count, dtype=variable_node.value.dtype)
+            target_array.fill(original_variable.default)
+
+            entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
+            roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
+            if self.roles is not None and len(self.roles) == 1:
+                assert self.operation is None, 'Unexpected operation {} in formula {}'.format(self.operation,
+                    self.name)
+                role = self.roles[0]
+                # TODO: Cache filter.
+                boolean_filter = roles_array == role
+                target_array[entity_index_array[boolean_filter]] = variable_node.value[boolean_filter]
+            else:
+                operation = self.operation
+                assert operation in ('add', 'or'), 'Invalid operation {} in formula {}'.format(operation,
+                    self.name)
+                if self.roles is None:
+                    roles = range(self.simulation.entity_data[entity]['roles_count'])
+                target_array = np.zeros(count, dtype=np.bool if operation == 'or' else
+                    variable_node.value.dtype if variable_node.value.dtype != np.bool else np.int16)
+                for role in roles:
+                    # TODO: Cache filters.
+                    boolean_filter = roles_array == role
+                    target_array[entity_index_array[boolean_filter]] += variable_node.value[boolean_filter]
+
+            self.put_in_cache(target_array, period, extra_params)
+            return Node(target_array, entity, self.simulation, variable_node.default)
+        elif self.base_class == EntityToPersonColumn:
+            """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
+            When no roles are given, it means "all the roles" => every cell is set.
+            """
+            original_variable = self.simulation.variable_by_name[self.variable.__name__]
+
+            persons = self.entity
+            assert 'is_persons_entity' in dict(persons)
+
+            entity = original_variable.entity
+            assert not 'is_persons_entity' in dict(entity)
+
+            # Calculate the original variable
+            variable_node = self.simulation.calculate(original_variable.name, period)
+
+            count = self.simulation.entity_data[persons]['count']
+            target_array = np.empty(count, dtype=variable_node.value.dtype)
+            target_array.fill(original_variable.default)
+
+            entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
+            roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
+            if self.roles is None:
+                self.roles = range(self.simulation.entity_data[entity]['roles_count'])
+            for role in self.roles:
+                boolean_filter = roles_array == role
+                target_array[boolean_filter] = variable_node.value[entity_index_array[boolean_filter]]
+
+            self.put_in_cache(target_array, period, extra_params)
+            return Node(target_array, persons, self.simulation, variable_node.default)
+        elif self.base_class == Variable:
             if (self.start is None or self.start <= period.start) \
                     and (self.end is None or period.start <= self.end):
                 output_period, node = self.base_function(self.simulation, period, **extra_params)
                 if node.value.dtype != self.dtype:
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
+                self.put_in_cache(node.value, period, extra_params)
                 return node
 
             count = self.simulation.entity_data[self.entity]['count']
             array = np.empty(count, dtype=self.dtype)
             array.fill(self.default)
+            self.put_in_cache(array, period, extra_params)
             return Node(array, self.entity, self.simulation, self.default)
 
-
+        raise Exception('Unknown base class')
 
     @property
     def _array(self):
-        return Node(self.array, self.entity, self.simulation)
+        return Node(self.permanent_array, self.entity, self.simulation, self.default)
 
     def split_by_roles(self, node, default=None, entity=None, roles=None):
         """dispatch a persons array to several entity arrays (one for each role)."""
         if entity is None:
             entity = self.entity
         else:
+            entity = [ent for ent in self.simulation.entities if dict(ent)['key_singular'] == entity][0]
             assert entity in self.simulation.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
         assert not 'is_persons_entity' in dict(entity)
 
@@ -129,8 +217,8 @@ class Variable(object):
         if default is None:
             default = node.default
 
-        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].array
-        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].array
+        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
+        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
         if roles is None:
             # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
             # roles = range(entity.roles_count)
@@ -138,7 +226,11 @@ class Variable(object):
         node_by_role = {}
         for role in roles:
             target_array = np.empty(count, dtype=node.value.dtype)
-            target_array.fill(default)
+            try:
+                target_array.fill(default)
+            except:
+                from IPython.core.debugger import Tracer
+                Tracer()() #this one triggers the debugger
             boolean_filter = roles_array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = node.value[boolean_filter]
@@ -146,8 +238,30 @@ class Variable(object):
                 log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
                     entity.key_singular, role, self.__class__.__name__))
                 raise
-            node_by_role[role] = Node(target_array, entity, self.simulation)
+            node_by_role[role] = Node(target_array, entity, self.simulation, default)
         return node_by_role
+
+    def any_by_roles(self, node, entity=None, roles=None):
+        if entity is None:
+            entity = self.entity
+        else:
+            entity = [ent for ent in self.simulation.entities if dict(ent)['key_singular'] == entity][0]
+            assert entity in self.simulation.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+        assert not 'is_persons_entity' in dict(entity)
+
+        count = self.simulation.entity_data[entity]['count']
+        assert 'is_persons_entity' in dict(node.entity)
+
+        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
+        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
+        if roles is None:
+            roles = range(self.simulation.entity_data[entity]['roles_count'])
+        target_array = np.zeros(count, dtype=np.bool)
+        for role in roles:
+            # TODO Mettre les filtres en cache dans la simulation
+            boolean_filter = roles_array == role
+            target_array[entity_index_array[boolean_filter]] += node.value[boolean_filter]
+        return Node(target_array, entity, self.simulation, 0)
 
     def filter_role(self, node, default=None, entity=None, role=None):
         node_dict = self.split_by_roles(node, default, entity, roles=[role])
@@ -162,7 +276,7 @@ class Variable(object):
         array = np.zeros(len(first_array), first_array.dtype)
         for role in node_dict.keys():
             array += node_dict[role].value
-        return Node(array, first_node.entity, first_node.simulation)
+        return Node(array, first_node.entity, first_node.simulation, 0)
 
     def cast_from_entity_to_role(self, node, default=None, entity=None, role=None):
         """Cast an entity array to a persons array, setting only cells of persons having the given role."""
@@ -176,9 +290,10 @@ class Variable(object):
         if entity is None:
             entity = node.entity
         else:
+            entity = [ent for ent in self.simulation.entities if dict(ent)['key_singular'] == entity][0]
             assert entity == node.entity, \
-                u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key_plural,
-                    node.entity.key_plural).encode('utf-8')
+                u"""Holder entity "{}" and given entity "{}" don't match""".format(dict(entity)['key_plural'],
+                    dict(node.entity)['key_plural']).encode('utf-8')
         if default is None:
             default = node.default
 
@@ -186,8 +301,8 @@ class Variable(object):
         persons_count = self.simulation.entity_data[self.simulation.persons]['count']
         target_array = np.empty(persons_count, dtype=node.value.dtype)
         target_array.fill(default)
-        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].array
-        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].array
+        entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
+        roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
         if roles is None:
             roles = range(self.simulation.entity_data[entity]['roles_count'])
         for role in roles:
@@ -198,7 +313,7 @@ class Variable(object):
                 log.error(u'An error occurred while transforming array for role {}[{}] in function {}'.format(
                     entity.key_singular, role, self.__class__.__name__))
                 raise
-        return Node(target_array, self.simulation.persons, self.simulation)
+        return Node(target_array, self.simulation.persons, self.simulation, default)
 
     @classmethod
     def json_to_python(cls):

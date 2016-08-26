@@ -31,10 +31,12 @@ def mixed_type_function(function, l):
         else:
             values.append(x)
 
-    assert entity
-
     array = function(*values)
-    return node.Node(array, entity, simulation)
+
+    if entity:
+        return node.Node(array, entity, simulation)
+    else:
+        return Shell(array)
 
 
 def maximum(x1, x2):
@@ -72,54 +74,58 @@ def logical_not(x):
 
 def round(a, decimals=0):
     if isinstance(a, node.Node):
-        array = np.round(a.value, decimals)
+        array = np.round(a.value, decimals=decimals)
         return node.Node(array, a.entity, a.simulation)
     else:
         return np.round(a, decimals=decimals)
 
 def around(a, decimals=0):
-    raise Exception()
+    return round(a, decimals=decimals)
 
 def select(condlist, choicelist, default=0):
     for cond in condlist:
         assert isinstance(cond, node.Node)
 
-    array = np.select([cond.value for cond in condlist], choicelist, default)
+    array = np.select([cond.value for cond in condlist],
+        [choice.value if isinstance(choice, node.Node) else choice for choice in choicelist],
+        default.value if isinstance(default, node.Node) else default)
 
     return node.Node(array, condlist[0].entity, condlist[0].simulation)
 
+def busday_count(begindates, enddates, weekmask, holidays=[]):
+    partial_busday_count = partial(np.busday_count, weekmask=weekmask, holidays=holidays)
 
-def busday_count(begindates, enddates, weekmask):
-    assert isinstance(begindates, node.Node)
-    assert isinstance(enddates, node.Node)
-
-    array = np.busday_count(begindates.value, enddates.value, weekmask)
-    return node.Node(array, begindates.entity, begindates.simulation)
+    return mixed_type_function(partial_busday_count, [begindates, enddates])
 
 def startswith(a, prefix):
     array = np.core.defchararray.startswith(a.value, prefix)
     return node.Node(array, a.entity, a.simulation)
 
-def floor():
-    raise Exception()
+def floor(x):
+    array = np.floor(x.value)
+    return node.Node(array, x.entity, x.simulation)
 
-def ceil():
-    raise Exception()
-
-def fromiter():
-    raise Exception()
+def ceil(x):
+    array = np.ceil(x.value)
+    return node.Node(array, x.entity, x.simulation)
 
 def where(condition, x, y):
     return mixed_type_function(np.where, [condition, x, y])
 
-def take():
+def fromiter():
     raise Exception()
 
-def absolute():
-    raise Exception()
+def take(a, indices):
+    array = np.take(a, indices.value)
+    return node.Node(array, indices.entity, indices.simulation)
 
-def abs():
-    raise Exception()
+def absolute(x):
+    array = np.absolute(x.value)
+    return node.Node(array, x.entity, x.simulation)
 
-def errstate():
-    raise Exception()
+def abs(x):
+    array = np.abs(x.value)
+    return node.Node(array, x.entity, x.simulation)
+
+def errstate(**kwargs):
+    return np.errstate(**kwargs)

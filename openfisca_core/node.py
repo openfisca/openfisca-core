@@ -17,6 +17,10 @@ class Node(object):
         self.simulation = simulation
         self.default = default
 
+    @property
+    def array(self):
+        return self
+
     def override(self, other, method):
         if isinstance(other, Node):
             assert self.entity is other.entity
@@ -47,6 +51,12 @@ class Node(object):
 
     def __div__(self, other):
         return self.override(other, '__div__')
+
+    def __rdiv__(self, other):
+        return self.override(other, '__rdiv__')
+
+    def __rtruediv__(self, other):
+        return self.override(other, '__rtruediv__')
 
     def __add__(self, other):
         return self.override(other, '__add__')
@@ -87,8 +97,13 @@ class Node(object):
     def astype(self, *args, **kwargs):
         return self.override_unary('astype', *args, **kwargs)
 
+    # -x
     def __neg__(self):
         return self.override_unary('__neg__')
+
+    # ~x
+    def __invert__(self):
+        return self.override_unary('__invert__')
 
     def __getitem__(self, key):
         assert isinstance(key, Node)
@@ -100,3 +115,6 @@ class Node(object):
         assert isinstance(value, Node)
         self.value[key.value] = value.value
         return None
+
+    def any(self):
+        return self.value.any()
