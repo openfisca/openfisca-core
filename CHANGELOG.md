@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1
+
+* Adapt requested_period_last_value and last_duration_last_value to extra params
+
 ## 3.0.0
 
 * Update introspection data. This allows to enhance data served by the web API which itself feeds the Legislation Explorer.
