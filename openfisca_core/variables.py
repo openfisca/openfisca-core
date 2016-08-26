@@ -52,7 +52,10 @@ class Variable(object):
 
     def get_from_cache(self, period, extra_params=None):
         if self.is_permanent:
-            return self.permanent_array
+            if hasattr(self, 'permanent_array'):
+                return self.permanent_array
+            else:
+                return None
 
         assert period is not None
         if self._array_by_period is not None:
