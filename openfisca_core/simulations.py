@@ -4,7 +4,7 @@ import collections
 
 import numpy as np
 
-from . import periods, holders, conv
+from . import periods, conv
 
 
 def N_(message):
