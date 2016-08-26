@@ -3,15 +3,15 @@
 import datetime
 
 import numpy as np
-from numpy.core.defchararray import startswith
+from openfisca_core.numpy_wrapper import startswith, datetime64, logical_or
 from nose.tools import raises
 
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.formulas import dated_function, set_input_divide_by_period
-from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn
-from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
+from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn,  dated_function, set_input_divide_by_period
+from openfisca_core.taxbenefitsystems import VariableNameConflict
+from openfisca_core.simulations import VariableNotFound
 from openfisca_core import periods
-from dummy_country import Familles, Individus, DummyTaxBenefitSystem
+from dummy_country import Familles, Individus, DummyTaxBenefitSystem, Simulation
 from openfisca_core.tools import assert_near
 
 # Input variables
@@ -57,7 +57,7 @@ class age(Variable):
             if age_en_mois is not None:
                 return period, age_en_mois // 12
             birth = simulation.calculate('birth', period)
-        return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
+        return period, (datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
 class dom_tom(Variable):
@@ -69,7 +69,7 @@ class dom_tom(Variable):
         period = period.start.period(u'year').offset('first-of')
         depcom = simulation.calculate('depcom', period)
 
-        return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+        return period, logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
 class dom_tom_individu(EntityToPersonColumn):
@@ -155,7 +155,7 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
         DummyTaxBenefitSystem.__init__(self)
 
         # We cannot automatically import all the variable from this file, there would be an import loop
-        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu,
+        self.add_variable_classes(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu,
             revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
 
 tax_benefit_system = TestTaxBenefitSystem()
@@ -327,12 +327,12 @@ def test_revenu_disponible():
 
 def test_variable_with_reference():
     def new_simulation():
-        return tax_benefit_system.new_scenario().init_single_entity(
-            period = 2013,
-            parent1 = dict(
-                salaire_brut = 4000,
+        return Simulation(tax_benefit_system,
+            period=2013,
+            parent1=dict(
+                salaire_brut=4000,
                 ),
-            ).new_simulation()
+            )
 
     revenu_disponible_avant_reforme = new_simulation().calculate('revenu_disponible', 2013)
     assert(revenu_disponible_avant_reforme > 0)
@@ -355,14 +355,14 @@ def test_variable_name_conflict():
 
         def function(self, simulation, period):
             return period, self.zeros()
-    tax_benefit_system.add_variable(revenu_disponible)
+    tax_benefit_system.add_variable_class(revenu_disponible)
 
 
 @raises(VariableNotFound)
 def test_non_existing_variable():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = 2013,
-        parent1 = dict(),
-        ).new_simulation()
+    simulation = Simulation(tax_benefit_system,
+        period=2013,
+        parent1=dict(),
+        )
 
     simulation.calculate('non_existent_variable', 2013)

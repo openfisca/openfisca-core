@@ -18,9 +18,6 @@ from . import conv, legislations, legislationsxml, base_functions, periods
 from .variables import Variable, DatedVariable
 
 
-class VariableNotFound(Exception):
-    pass
-
 
 class VariableNameConflict(Exception):
     pass
@@ -86,10 +83,6 @@ class TaxBenefitSystem(object):
         existing_variable_class = self.get_variable_class(name)
 
         if existing_variable_class and not update:
-            # Variables that are dependencies of others (trough a conversion variable) can be loaded automatically
-            if name in self.automatically_loaded_variable_class:
-                self.automatically_loaded_variable_class.remove(name)
-                return self.get_variable_class(name)
             raise VariableNameConflict(
                 "Variable {} is already defined. Use `update_variable_class` to replace it.".format(name))
 
@@ -291,7 +284,7 @@ class TaxBenefitSystem(object):
         for subdirectory in subdirectories:
             self.add_variable_classes_from_directory(subdirectory)
 
-    def add_variable_classes(self, *variables):
+    def add_variable_classes(self, *variable_classes):
         for variable_class in variable_classes:
             self.add_variable_class(variable_class)
 
@@ -304,10 +297,8 @@ class TaxBenefitSystem(object):
         if path.isfile(param_file):
             self.add_legislation_params(param_file)
 
-    def get_variable_class(self, variable_class_name, check_existence = False):
+    def get_variable_class(self, variable_class_name):
         variable_class = self.variable_class_by_name.get(variable_class_name)
-        if not variable_class and check_existence:
-            raise VariableNotFound(u'Variable "{}" not found in current tax benefit system'.format(variable_class_name))
         return variable_class
 
     def update_variable_class(self, variable_class_name, new_variable_class):

@@ -11,6 +11,12 @@ def N_(message):
     return message
 
 
+class VariableNotFound(Exception):
+    pass
+
+
+
+
 class AbstractSimulation(object):
     compact_legislation_by_instant_cache = None
     reference_compact_legislation_by_instant_cache = None
@@ -231,6 +237,8 @@ class AbstractSimulation(object):
         return self.variable_by_name[variable_name]
 
     def calculate(self, variable_name, period=None, caller_name='calculate', **parameters):
+        if variable_name not in self.variable_by_name:
+            raise VariableNotFound(u'Variable "{}" not found'.format(variable_name))
         variable = self.variable_by_name[variable_name]
         return variable.calculate(period=period, caller_name=caller_name, **parameters)
 

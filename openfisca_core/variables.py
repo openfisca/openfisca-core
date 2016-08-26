@@ -83,6 +83,8 @@ class Variable(object):
 
         if period == None:
             period = self.simulation.period
+        elif not isinstance(period, periods.Period):
+            period = periods.period(period)
 
         value = self.get_from_cache(period, extra_params)
         if value:

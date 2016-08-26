@@ -5,7 +5,16 @@ from __future__ import division
 
 import numpy as np
 
-from .numpy_wrapper import Shell
+
+class Shell:
+    def __init__(self, value):
+        self.value = value
+
+    def __add__(self, other):
+        if isinstance(other, Shell):
+            return Shell(self.value + other.value)
+
+        raise NotImplementedError()
 
 
 class Node(object):

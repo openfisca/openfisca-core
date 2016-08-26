@@ -50,7 +50,7 @@ class AbstractTaxScale(object):
     def __str__(self):
         raise NotImplementedError('Method "__str__" is not implemented for {}'.format(self.__class__.__name__))
 
-    def calc(self, base):
+    def calc(self, base_node):
         raise NotImplementedError('Method "calc" is not implemented for {}'.format(self.__class__.__name__))
 
     def copy(self):
@@ -144,15 +144,18 @@ class AmountTaxScale(AbstractTaxScale):
             self.thresholds.insert(i, threshold)
             self.amounts.insert(i, amount)
 
-    def calc(self, base):
+    def calc(self, base_node):
+        base = base_node.value
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
-        return np.dot(self.amounts, a.T > 0)
+        return Node(np.dot(self.amounts, a.T > 0), base_node.entity, base_node.simulation, 0)
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):
-    def calc(self, base):
+    def calc(self, base_node):
+        base = base_node.value
+
         if len(self.rates) == 1:
             return base * self.rates[0]
 
@@ -168,7 +171,7 @@ class LinearAverageRateTaxScale(AbstractRateTaxScale):
         bracket_threshold = np.dot(bracket_dummy, thresholds_array[:-1])
         log.info("bracket_average_start_rate :  {}".format(bracket_average_start_rate))
         log.info("average_rate_slope:  {}".format(average_rate_slope))
-        return base * (bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope)
+        return Node(base * (bracket_average_start_rate + (base - bracket_threshold) * average_rate_slope), base_node.entity, base_node.simulation, 0)
 
     def to_marginal(self):
         marginal_tax_scale = MarginalRateTaxScale(name = self.name, option = self.option, unit = self.unit)
@@ -192,9 +195,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
                 self.combine_bracket(rate, threshold_low, threshold_high)
             self.combine_bracket(tax_scale.rates[-1], tax_scale.thresholds[-1])  # Pour traiter le dernier threshold
 
-    def calc(self, base, factor = 1, round_base_decimals = None):
-        base_node = base
-        base = base.value
+    def calc(self, base_node, factor = 1, round_base_decimals = None):
+        base = base_node.value
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         if isinstance(factor, (float, int)):
             factor = np.ones(len(base)) * factor
@@ -205,11 +207,11 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             thresholds1 = np.round(thresholds1, round_base_decimals)
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
         if round_base_decimals is None:
-            return Node(np.dot(self.rates, a.T), base_node.entity, base_node.simulation)
+            return Node(np.dot(self.rates, a.T), base_node.entity, base_node.simulation, 0)
         else:
             r = np.tile(self.rates, (len(base), 1))
             b = np.round(a, round_base_decimals)
-            return Node(np.round(r * b, round_base_decimals).sum(axis = 1), base_node.entity, base_node.simulation)
+            return Node(np.round(r * b, round_base_decimals).sum(axis = 1), base_node.entity, base_node.simulation, 0)
 
     def combine_bracket(self, rate, threshold_low = 0, threshold_high = False):
         # Insert threshold_low and threshold_high without modifying rates
