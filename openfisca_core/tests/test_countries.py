@@ -11,7 +11,7 @@ from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariab
 from openfisca_core.taxbenefitsystems import VariableNameConflict
 from openfisca_core.simulations import VariableNotFound
 from openfisca_core import periods
-from dummy_country import Familles, Individus, DummyTaxBenefitSystem, Simulation
+from openfisca_core.tests.dummy_country import Familles, Individus, DummyTaxBenefitSystem, Simulation
 from openfisca_core.tools import assert_near
 
 # Input variables

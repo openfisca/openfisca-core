@@ -4,11 +4,11 @@ from . import periods
 from node import Node
 
 
-def permanent_default_value(variable, simulation, period, *extra_params):
+def permanent_default_value(variable, simulation, period, **extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return (variable.functions[0])(simulation, period, *extra_params)
+        return (variable.functions[0])(simulation, period, **extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -16,7 +16,7 @@ def permanent_default_value(variable, simulation, period, *extra_params):
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_added_value(variable, simulation, period, *extra_params):
+def requested_period_added_value(variable, simulation, period, **extra_params):
     count = simulation.entity_data[variable.entity]['count']
 
     # This formula is used for variables that can be added to match requested period.
@@ -51,17 +51,17 @@ def requested_period_added_value(variable, simulation, period, *extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, *extra_params)
+        return function(variable, simulation, period, **extra_params)
     array = np.empty(count, dtype=variable.dtype)
     array.fill(variable.default)
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_default_value(variable, simulation, period, *extra_params):
+def requested_period_default_value(variable, simulation, period, **extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, *extra_params)
+        return function(variable, simulation, period, **extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -69,17 +69,17 @@ def requested_period_default_value(variable, simulation, period, *extra_params):
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_default_value_neutralized(variable, simulation, period, *extra_params):
+def requested_period_default_value_neutralized(variable, simulation, period, **extra_params):
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
     array.fill(variable.default)
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_last_value(variable, simulation, period, *extra_params, **kwargs):
+def requested_period_last_value(variable, simulation, period, **extra_params):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.
-    accept_future_value = kwargs.pop('accept_future_value', False)
+    accept_future_value = extra_params.pop('accept_future_value', False)
     if variable._array_by_period:
         known_values = sorted(variable._array_by_period.iteritems(), reverse=True)
         for last_period, last_array in known_values:
@@ -91,7 +91,7 @@ def requested_period_last_value(variable, simulation, period, *extra_params, **k
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, *extra_params)
+        return function(variable, simulation, period, **extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -99,13 +99,14 @@ def requested_period_last_value(variable, simulation, period, *extra_params, **k
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_last_or_next_value(variable, simulation, period, *extra_params):
+def requested_period_last_or_next_value(variable, simulation, period, **extra_params):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period, or the next value if there is no past value.
-    return requested_period_last_value(variable, simulation, period, *extra_params, accept_future_value=True)
+    extra_params['accept_future_value'] = True
+    return requested_period_last_value(variable, simulation, period, **extra_params)
 
 
-def last_duration_last_value(variable, simulation, period, *extra_params):
+def last_duration_last_value(variable, simulation, period, **extra_params):
     # This formula is used for variables that are constants between events but are period size dependent.
     # It returns the latest known value for the requested start of period but with the last period size.
     if variable._array_by_period is not None:
@@ -115,7 +116,7 @@ def last_duration_last_value(variable, simulation, period, *extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, *extra_params)
+        return function(variable, simulation, period, **extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)

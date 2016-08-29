@@ -47,51 +47,50 @@ class AbstractSimulation(object):
         assert self.persons is not None
         persons = self.persons
 
-        test_case = self.test_case
-
         self.variable_by_name = {}
         variable_by_name = self.variable_by_name
 
-        if test_case is None:   # WARNING ! not tested !
-            raise Exception('not ready yet')
+        # instantiate all the variable classes
+        for variable_name, variable_class in tbs.variable_class_by_name.items():
+            variable_by_name[variable_name] = variable_class(self)
+
+        if not hasattr(self, 'test_case'):
             if self.input_variables is not None:
                 # Note: For set_input to work, handle days, before months, before years => use sorted().
                 for variable_name, array_by_period in sorted(self.input_variables.iteritems()):
-                    holder = self.get_or_new_holder(variable_name)
-                    entity = holder.entity
+                    variable = variable_by_name[variable_name]
                     for period, array in array_by_period.iteritems():
-                        if entity_data[entity]['count'] == 0:
-                            entity.count = len(array)
-                        if use_set_input_hooks:
-                            holder.set_input(period, array)
-                        else:
-                            holder.put_in_cache(array, period)
+                        if entity_data[variable.entity]['count'] is None:
+                            entity_data[variable.entity]['count'] = len(array)
+                        variable.set_input(array, period=period)
 
-            assert self.entity_data[self.persons] is None
-            self.entity_data[self.persons]['count'] = 1
+            if entity_data[self.persons]['count'] is None:
+                self.entity_data[self.persons]['count'] = 1
+
             for entity in self.entities:
                 if entity is self.persons:
                     continue
 
-                index_holder = self.get_or_new_holder(entity.index_for_person_variable_name)
-                index_array = index_holder.array
+                index_variable = variable_by_name[dict(entity)['index_for_person_variable_name']]
+                index_array = index_variable.get_from_cache()
                 if index_array is None:
-                    index_holder.array = np.arange(self.entity_data[self.persons]['count'], dtype=index_holder.column.dtype)
+                    index_array = np.arange(self.entity_data[self.persons]['count'], dtype=index_variable.dtype)
+                    index_variable.set_input(index_array)
 
-                role_holder = self.get_or_new_holder(entity.role_for_person_variable_name)
-                role_array = role_holder.array
+                role_variable = variable_by_name[dict(entity)['role_for_person_variable_name']]
+                role_array = role_variable.get_from_cache()
                 if role_array is None:
-                    role_holder.array = role_array = np.zeros(self.entity_data[self.persons]['count'], role_holder.column.dtype)
+                    role_array = np.zeros(self.entity_data[self.persons]['count'], dtype=role_variable.dtype)
+                    role_variable.set_input(role_array)
+
                 self.entity_data[entity]['roles_count'] = role_array.max() + 1
 
-                if self.entity_data[entity]['count'] == 0:
-                    self.entity_data[entity]['count'] = max(index_holder.array) + 1
+                if self.entity_data[entity]['count'] is None:
+                    self.entity_data[entity]['count'] = max(index_array) + 1
                 else:
-                    assert self.entity_data[entity]['count'] == max(index_holder.array) + 1
+                    assert self.entity_data[entity]['count'] == max(index_array) + 1
         else:  # if test case
-            # instantiate all the variable classes
-            for variable_name, variable_class in tbs.variable_class_by_name.items():
-                variable_by_name[variable_name] = variable_class(self)
+            test_case = self.test_case
 
             steps_count = 1
             if self.axes is not None:
@@ -226,10 +225,8 @@ class AbstractSimulation(object):
                                 array.fill(column.default)
                             array[axis['index']:: axis_entity.step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            if use_set_input_hooks:
-                                holder.set_input(axis_period, array)
-                            else:
-                                holder.put_in_cache(array, axis_period)
+                            variable.set_input(axis_period, array)
+
 
     def get_or_new_holder(self, variable_name):
         return self.variable_by_name[variable_name]
@@ -461,8 +458,6 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
             return value, None
         if state is None:
             state = conv.default_state
-
-        raise Exception('boom!')
 
         input_variables, errors = conv.pipe(
             conv.test_isinstance(dict),

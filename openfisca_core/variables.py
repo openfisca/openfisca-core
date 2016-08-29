@@ -46,11 +46,11 @@ class Variable(object):
         else:
             if self._array_by_period.get(period) is None:
                 self._array_by_period[period] = {}
-            self._array_by_period[period][tuple(extra_params)] = value
+            self._array_by_period[period][tuple(extra_params.items())] = value
 
         return
 
-    def get_from_cache(self, period, extra_params=None):
+    def get_from_cache(self, period=None, extra_params=None):
         if self.is_permanent:
             if hasattr(self, 'permanent_array'):
                 return self.permanent_array
@@ -62,7 +62,7 @@ class Variable(object):
             values = self._array_by_period.get(period)
             if values is not None:
                 if extra_params:
-                    return values.get(tuple(extra_params))
+                    return values.get(tuple(extra_params.items()))
                 else:
                     if(type(values) == dict):
                         return values.values()[0]

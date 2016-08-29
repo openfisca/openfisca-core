@@ -25,7 +25,8 @@ def apply_thresholds(input, thresholds, choices):
     condlist = [input <= threshold for threshold in thresholds]
     if len(condlist) == len(choices) - 1:
         # If a choice is provided for input > highest threshold, last condition must be true to return it.
-        condlist += [True]
+        node_true = condlist[0] == condlist[0]  # ugly hask to construct a node filled with True without importing numpy
+        condlist += [node_true]
     assert len(condlist) == len(choices), \
         "apply_thresholds must be called with the same number of thresholds than choices, or one more choice"
     return np.select(condlist, choices)

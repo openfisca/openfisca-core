@@ -87,8 +87,13 @@ class role_dans_famille(Variable):
 
 class Simulation(AbstractSimulation):
     def __init__(self, tbs, axes=None, enfants=None, famille=None, parent1=None, parent2=None,
-            period=None):
+            period=None, attributes=None):
         self.tax_benefit_system = tbs
+
+        if attributes is not None:
+            conv.check(self.make_json_or_python_to_attributes(repair=False))(attributes)
+            super(Simulation, self).__init__(tbs)
+            return
 
         if enfants is None:
             enfants = []
