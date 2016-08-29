@@ -84,7 +84,7 @@ class TaxBenefitSystem(object):
 
         if existing_variable_class and not update:
             raise VariableNameConflict(
-                "Variable {} is already defined. Use `update_variable_class` to replace it.".format(name))
+                "Variable {} is already defined.".format(name))
 
         if existing_variable_class and update:
             variable_class.reference = existing_variable_class
@@ -260,9 +260,6 @@ class TaxBenefitSystem(object):
     def add_variable_class(self, variable_class):
         return self.load_variable_class(variable_class, update = False)
 
-    def update_variable(self, variable_class):
-        return self.load_variable_class(variable_class, update = True)
-
     def add_variable_classes_from_file(self, file):
         module_name = path.splitext(path.basename(file))[0]
         module_directory = path.dirname(file)
@@ -300,12 +297,6 @@ class TaxBenefitSystem(object):
     def get_variable_class(self, variable_class_name):
         variable_class = self.variable_class_by_name.get(variable_class_name)
         return variable_class
-
-    def update_variable_class(self, variable_class_name, new_variable_class):
-        self.variable_class_by_name[variable_class_name] = new_variable_class
-
-    def neutralize_variable_class(self, variable_class_name):
-        self.update_variable_class(variable_class_name, neutralize_variable_class(self.reference.get_variable_class(variable_class_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         if path_in_legislation_tree is not None:

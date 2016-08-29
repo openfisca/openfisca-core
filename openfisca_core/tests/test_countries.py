@@ -160,7 +160,7 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
 
 tax_benefit_system = TestTaxBenefitSystem()
 
-
+'''
 def test_1_axis():
     year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
@@ -265,50 +265,51 @@ def test_2_parallel_axes_same_values():
         parent2 = {},
         ).new_simulation(debug = True)
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], absolute_error_margin = 0.005)
-
+'''
 
 def test_age():
     year = 2013
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
-        parent1 = dict(
-            birth = datetime.date(year - 40, 1, 1),
+    simulation = Simulation(tax_benefit_system,
+        period=year,
+        parent1=dict(
+            birth=datetime.date(year - 40, 1, 1),
             ),
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+        )
+    assert_near(simulation.calculate('age'), [40], absolute_error_margin=0.005)
 
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
-        parent1 = dict(
-            age_en_mois = 40 * 12 + 11,
+    simulation = Simulation(tax_benefit_system,
+        period=year,
+        parent1=dict(
+            age_en_mois=40 * 12 + 11,
             ),
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+        )
+    assert_near(simulation.calculate('age'), [40], absolute_error_margin=0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        axes = [
+    simulation = Simulation(tax_benefit_system,
+        axes=[
             dict(
-                count = 3,
-                name = 'salaire_brut',
-                max = 100000,
-                min = 0,
+                count=3,
+                name='salaire_brut',
+                max=100000,
+                min=0,
                 ),
             ],
-        famille = dict(depcom = depcom),
-        period = periods.period(year),
-        parent1 = dict(),
-        parent2 = dict(),
-        ).new_simulation(debug = True)
+        famille=dict(depcom=depcom),
+        period=periods.period(year),
+        parent1=dict(),
+        parent2=dict(),
+        )
+
     revenu_disponible = simulation.calculate('revenu_disponible')
-    assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
+    assert_near(revenu_disponible.value, expected_revenu_disponible, absolute_error_margin=0.005)
     revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
     expected_revenu_disponible_famille = np.array([
         expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
         for i in range(0, len(expected_revenu_disponible), 2)
         ])
-    assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, absolute_error_margin = 0.005)
+    assert_near(revenu_disponible_famille.value, expected_revenu_disponible_famille, absolute_error_margin=0.005)
 
 
 def test_revenu_disponible():
@@ -323,29 +324,6 @@ def test_revenu_disponible():
     yield check_revenu_disponible, 2011, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
     yield check_revenu_disponible, 2012, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
     yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0])
-
-
-def test_variable_with_reference():
-    def new_simulation():
-        return Simulation(tax_benefit_system,
-            period=2013,
-            parent1=dict(
-                salaire_brut=4000,
-                ),
-            )
-
-    revenu_disponible_avant_reforme = new_simulation().calculate('revenu_disponible', 2013)
-    assert(revenu_disponible_avant_reforme > 0)
-
-    class revenu_disponible(Variable):
-
-        def function(self, simulation, period):
-            return period, self.zeros()
-
-    tax_benefit_system.update_variable(revenu_disponible)
-    revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013)
-
-    assert(revenu_disponible_apres_reforme == 0)
 
 
 @raises(VariableNameConflict)

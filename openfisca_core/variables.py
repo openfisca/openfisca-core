@@ -77,6 +77,7 @@ class Variable(object):
         array = np.zeros(count, dtype=self.dtype)
         return Node(array, self.entity, self.simulation, 0)
 
+
     def calculate(self, period, caller_name, **extra_params):
         if 'accept_other_period' in extra_params:
             del extra_params['accept_other_period']
@@ -87,8 +88,28 @@ class Variable(object):
             period = periods.period(period)
 
         value = self.get_from_cache(period, extra_params)
-        if value:
+        if value is not None:
             return Node(value, self.entity, self.simulation, self.default)
+
+        if caller_name == 'calculate':
+            output_period, node = self.calculate_one_period(period, extra_params)
+            return node
+        elif caller_name == 'calculate_add':
+            return self.calculate_and_add(period, extra_params)
+        elif caller_name == 'calculate_divide':
+            return self.calculate_and_divide(period, extra_params)
+        elif caller_name == 'add_divide':
+            return self.calculate_and_add_and_divide(period, extra_params)
+
+        raise Exception('Unknown caller_name : {}'.format(caller_name))
+
+    def calculate_one_period(self, period, extra_params):
+        if 'accept_other_period' in extra_params:
+            del extra_params['accept_other_period']
+
+        value = self.get_from_cache(period, extra_params)
+        if value is not None:
+            return period, Node(value, self.entity, self.simulation, self.default)
 
         #print('Entering {}.calculate()'.format(self.name))
 
@@ -104,13 +125,13 @@ class Variable(object):
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
                 self.put_in_cache(node.value, period, extra_params)
-                return node
+                return output_period2, node
 
             count = self.simulation.entity_data[self.entity]['count']
             array = np.empty(count, dtype=self.dtype)
             array.fill(self.default)
             self.put_in_cache(array, period, extra_params)
-            return Node(array, self.entity, self.simulation, self.default)
+            return period, Node(array, self.entity, self.simulation, self.default)
         elif self.base_class == PersonToEntityColumn:
             """Convert an array of persons to an array of non-person entities.
             When no roles are given, it means "all the roles".
@@ -153,7 +174,7 @@ class Variable(object):
                     target_array[entity_index_array[boolean_filter]] += variable_node.value[boolean_filter]
 
             self.put_in_cache(target_array, period, extra_params)
-            return Node(target_array, entity, self.simulation, variable_node.default)
+            return period, Node(target_array, entity, self.simulation, variable_node.default)
         elif self.base_class == EntityToPersonColumn:
             """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
             When no roles are given, it means "all the roles" => every cell is set.
@@ -182,7 +203,7 @@ class Variable(object):
                 target_array[boolean_filter] = variable_node.value[entity_index_array[boolean_filter]]
 
             self.put_in_cache(target_array, period, extra_params)
-            return Node(target_array, persons, self.simulation, variable_node.default)
+            return period, Node(target_array, persons, self.simulation, variable_node.default)
         elif self.base_class == Variable:
             if (self.start is None or self.start <= period.start) \
                     and (self.end is None or period.start <= self.end):
@@ -191,15 +212,133 @@ class Variable(object):
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
                 self.put_in_cache(node.value, period, extra_params)
-                return node
+                return period, node
 
             count = self.simulation.entity_data[self.entity]['count']
             array = np.empty(count, dtype=self.dtype)
             array.fill(self.default)
             self.put_in_cache(array, period, extra_params)
-            return Node(array, self.entity, self.simulation, self.default)
+            return period, Node(array, self.entity, self.simulation, self.default)
 
         raise Exception('Unknown base class')
+
+    def calculate_and_add(self, period, extra_params):
+        period_node = None
+        unit = period.unit
+        if unit == u'month':
+            remaining_period_months = period.size
+        else:
+            assert unit == u'year', unit
+            remaining_period_months = period.size * 12
+        requested_period = period.start.period(unit)
+        # We expect the compute calls to return a period different than the requested one.
+        extra_params['accept_other_period'] = True
+        while True:
+            returned_period, subperiod_node = self.calculate_one_period(requested_period, extra_params)
+            requested_start = requested_period.start
+            returned_start = returned_period.start
+            assert returned_start.day == 1
+            # Note: A dated formula may start after requested period => returned_start is not always equal to
+            # requested_start.
+            assert returned_start >= requested_start, \
+                "Period {} returned by variable {} doesn't have the same start as requested period {}.".format(
+                    returned_period, self.name, requested_period)
+            if returned_period.unit == u'month':
+                returned_period_months = returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.column.name)
+                returned_period_months = returned_period.size * 12
+            requested_start_months = requested_start.year * 12 + requested_start.month
+            returned_start_months = returned_start.year * 12 + returned_start.month
+            returned_period_months = returned_start_months + returned_period_months - requested_start_months
+            remaining_period_months -= returned_period_months
+            assert remaining_period_months >= 0, \
+                "Period {} returned by variable {} is larger than the requested_period {}.".format(
+                    returned_period, self.name, requested_period)
+            if period_node is None:
+                period_node = subperiod_node
+            else:
+                period_node.value += subperiod_node.value
+
+            if remaining_period_months <= 0:
+                self.put_in_cache(period_node.value, period, extra_params)
+                return period_node
+            if remaining_period_months % 12 == 0:
+                requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
+            else:
+                requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
+
+    def calculate_and_add_and_divide(self, period, extra_params):
+        period_node = None
+        unit = period.unit
+        if unit == u'month':
+            remaining_period_months = period.size
+        else:
+            assert unit == u'year', unit
+            remaining_period_months = period.size * 12
+        requested_period = period.start.period(unit)
+        # We expect the compute calls to return a period different than the requested one.
+        extra_params['accept_other_period'] = True
+        while True:
+            returned_period, subperiod_node = self.calculate_one_period(requested_period, extra_params)
+            requested_start = requested_period.start
+            returned_start = returned_period.start
+            assert returned_start.day == 1
+            # Note: A dated formula may start after requested period.
+            # assert returned_start <= requested_start <= returned_period.stop, \
+            #     "Period {} returned by variable {} doesn't include start of requested period {}.".format(
+            #         returned_period, self.column.name, requested_period)
+            requested_start_months = requested_start.year * 12 + requested_start.month
+            returned_start_months = returned_start.year * 12 + returned_start.month
+            if returned_period.unit == u'month':
+                intersection_months = min(requested_start_months + requested_period.size,
+                    returned_start_months + returned_period.size) - requested_start_months
+                intersection_array = subperiod_node.array * intersection_months / returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.column.name)
+                intersection_months = min(requested_start_months + requested_period.size,
+                    returned_start_months + returned_period.size * 12) - requested_start_months
+                intersection_array = subperiod_node.array * intersection_months / (returned_period.size * 12)
+            if period_node is None:
+                period_node = Node(intersection_array, subperiod_node.period, subperiod_node.simulation, subperiod_node.default)
+            else:
+                period_node.value += intersection_array
+
+            remaining_period_months -= intersection_months
+            if remaining_period_months <= 0:
+                self.put_in_cache(period_node.value, period, extra_params)
+                return period_node
+            if remaining_period_months % 12 == 0:
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
+            else:
+                requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
+
+    def calculate_and_divide(self, period, extra_params):
+        unit = period[0]
+        year, month, day = period.start
+        if unit == u'month':
+            # We expect the compute call to return a yearly period.
+            extra_params['accept_other_period'] = True
+            returned_period, subperiod_node = self.calculate_one_period(period, extra_params)
+            assert returned_period.start <= period.start and period.stop <= returned_period.stop, \
+                "Period {} returned by variable {} doesn't include requested period {}.".format(
+                    returned_period, self.name, period)
+            if returned_period.unit == u'month':
+                array = subperiod_node.value * period.size / returned_period.size
+            else:
+                assert returned_period.unit == u'year', \
+                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
+                        returned_period, self.name)
+                array = subperiod_node.value * period.size / (12 * returned_period.size)
+            self.put_in_cache(array, period, extra_params)
+            return Node(array, self.entity, self.simulation, self.default)
+        else:
+            assert unit == u'year', unit
+            return self.calculate(period, extra_params)
 
     @property
     def _array(self):

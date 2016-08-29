@@ -195,10 +195,8 @@ class AbstractSimulation(object):
                     for axis in parallel_axes:
                         axis_period = axis['period'] or self.period
                         variable = variable_by_name[axis['name']]
-                        array = holder.get_value(period=axis_period)
-                        if array is None:
-                            array = np.empty(entity_data[axis_entity]['count'], dtype=variable.dtype)
-                            array.fill(variable.default)
+                        array = np.empty(entity_data[axis_entity]['count'], dtype=variable.dtype)
+                        array.fill(variable.default)
                         array[axis['index']::entity_data[axis_entity]['step_size']] = np.linspace(axis['min'], axis['max'], axis_count)
                         variable.set_input(array, period=axis_period)
                 else:
