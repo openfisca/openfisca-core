@@ -91,14 +91,14 @@ class Variable(object):
         if value is not None:
             return Node(value, self.entity, self.simulation, self.default)
 
-        if caller_name == 'calculate':
+        if caller_name in ['calculate', 'compute']:
             output_period, node = self.calculate_one_period(period, extra_params)
             return node
-        elif caller_name == 'calculate_add':
+        elif caller_name in ['calculate_add', 'compute_add']:
             return self.calculate_and_add(period, extra_params)
-        elif caller_name == 'calculate_divide':
+        elif caller_name in ['calculate_divide', 'compute_divide']:
             return self.calculate_and_divide(period, extra_params)
-        elif caller_name == 'add_divide':
+        elif caller_name in ['calculate_add_divide', 'compute_add_divide']:
             return self.calculate_and_add_and_divide(period, extra_params)
 
         raise Exception('Unknown caller_name : {}'.format(caller_name))
@@ -295,18 +295,18 @@ class Variable(object):
             if returned_period.unit == u'month':
                 intersection_months = min(requested_start_months + requested_period.size,
                     returned_start_months + returned_period.size) - requested_start_months
-                intersection_array = subperiod_node.array * intersection_months / returned_period.size
+                intersection_node = subperiod_node * intersection_months / returned_period.size
             else:
                 assert returned_period.unit == u'year', \
                     "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
                         returned_period, self.column.name)
                 intersection_months = min(requested_start_months + requested_period.size,
                     returned_start_months + returned_period.size * 12) - requested_start_months
-                intersection_array = subperiod_node.array * intersection_months / (returned_period.size * 12)
+                intersection_node = subperiod_node * intersection_months / (returned_period.size * 12)
             if period_node is None:
-                period_node = Node(intersection_array, subperiod_node.period, subperiod_node.simulation, subperiod_node.default)
+                period_node = intersection_node
             else:
-                period_node.value += intersection_array
+                period_node.value += intersection_node.value
 
             remaining_period_months -= intersection_months
             if remaining_period_months <= 0:
