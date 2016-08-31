@@ -92,7 +92,8 @@ class Simulation(AbstractSimulation):
 
         if attributes is not None:
             conv.check(self.make_json_or_python_to_attributes(repair=False))(attributes)
-            super(Simulation, self).__init__(tbs)
+
+            self.instantiate_variables()
             return
 
         if enfants is None:
@@ -121,7 +122,7 @@ class Simulation(AbstractSimulation):
                 ),
             ))
 
-        super(Simulation, self).__init__(tbs)
+        self.instantiate_variables()
 
     def make_json_or_python_to_test_case(self, period=None, repair=False):
         assert period is not None

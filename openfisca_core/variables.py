@@ -470,14 +470,14 @@ class Variable(object):
                         periods.json_or_python_to_period,
                         conv.not_none,
                         ),
-                    cls.json_to_dated_python(),
+                    cls.make_json_to_dated_python(),
                     ),
                 ),
-            cls.json_to_dated_python(),
+            cls.make_json_to_dated_python(),
             )
 
     @classmethod
-    def json_to_dated_python(cls):
+    def make_json_to_dated_python(cls):
         if cls.column_type == 'BoolCol':
             return conv.pipe(
                 conv.test_isinstance((basestring, bool, int)),
@@ -566,6 +566,41 @@ class Variable(object):
                         ),
                     ),
                 )
+
+    @classmethod
+    def make_json_to_array_by_period(cls, period):
+        return conv.condition(
+            conv.test_isinstance(dict),
+            conv.pipe(
+                # Value is a dict of (period, value) couples.
+                conv.uniform_mapping(
+                    conv.pipe(
+                        periods.json_or_python_to_period,
+                        conv.not_none,
+                        ),
+                    conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.uniform_sequence(
+                            cls.make_json_to_dated_python(),
+                            ),
+                        conv.empty_to_none,
+                        conv.function(lambda cells_list: np.array(cells_list, dtype=cls.dtype)),
+                        ),
+                    drop_none_values=True,
+                    ),
+                conv.empty_to_none,
+                ),
+            conv.pipe(
+                conv.make_item_to_singleton(),
+                conv.uniform_sequence(
+                    cls.make_json_to_dated_python(),
+                    ),
+                conv.empty_to_none,
+                conv.function(lambda cells_list: np.array(cells_list, dtype=cls.dtype)),
+                conv.function(lambda array: {period: array}),
+                ),
+            )
+
 
 
 class PersonToEntityColumn(Variable):

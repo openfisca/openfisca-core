@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import collections
+import itertools
 
 import numpy as np
 
@@ -21,11 +22,31 @@ class AbstractSimulation(object):
     compact_legislation_by_instant_cache = None
     reference_compact_legislation_by_instant_cache = None
 
-    def __init__(self, tbs=None):
+    @classmethod
+    def init_test(cls, tax_benefit_system, test, default_absolute_error_margin=None,
+            default_relative_error_margin=None):
+        self = object.__new__(cls)
+        self.tax_benefit_system = tax_benefit_system
+
+        test, error = self.make_json_or_python_to_test(default_absolute_error_margin=None,
+                default_relative_error_margin=None)(test)
+        if error is not None:
+            embedding_error = conv.embed_error(test, u'errors', error)
+            assert embedding_error is None, embedding_error
+            raise ValueError("Error in test {}:\n{}\nYaml test content: \n{}\n".format(
+                yaml_path, error, yaml.dump(test, allow_unicode=True,
+                default_flow_style=False, indent=2, width=120)))
+
+        self.suggest()
+
+        self.instantiate_variables()
+
+        return self
+
+    def instantiate_variables(self):
         # concrete class constructor already built a test case (or input_values, not tested yet)
 
-        assert tbs is not None
-        self.tax_benefit_system = tbs
+        tbs = self.tax_benefit_system
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self.compact_legislation_by_instant_cache = {}
@@ -227,7 +248,6 @@ class AbstractSimulation(object):
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                             variable.set_input(axis_period, array)
 
-
     def get_or_new_holder(self, variable_name):
         return self.variable_by_name[variable_name]
 
@@ -397,6 +417,148 @@ class AbstractSimulation(object):
 
         return json_or_python_to_attributes
 
+    def make_json_or_python_to_test(self, default_absolute_error_margin=None,
+            default_relative_error_margin=None):
+        variable_class_by_name = self.tax_benefit_system.variable_class_by_name
+        variables_name = set(variable_class_by_name)
+        validate = conv.struct(
+            dict(itertools.chain(
+                dict(
+                    absolute_error_margin=conv.pipe(
+                        conv.test_isinstance((float, int)),
+                        conv.test_greater_or_equal(0),
+                        ),
+                    axes=make_json_or_python_to_axes(self.tax_benefit_system),
+                    description=conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        ),
+                    ignore=conv.pipe(
+                        conv.test_isinstance((bool, int)),
+                        conv.anything_to_bool,
+                        ),
+                    input_variables=conv.pipe(
+                        conv.test_isinstance(dict),
+                        conv.uniform_mapping(
+                            conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.test_in(variables_name),
+                                conv.not_none,
+                                ),
+                            conv.noop,
+                            ),
+                        conv.empty_to_none,
+                        ),
+                    keywords=conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.test_isinstance(list),
+                        conv.uniform_sequence(
+                            conv.pipe(
+                                conv.test_isinstance(basestring),
+                                conv.cleanup_line,
+                                ),
+                            drop_none_items=True,
+                            ),
+                        conv.empty_to_none,
+                        ),
+                    name=conv.pipe(
+                        conv.test_isinstance(basestring),
+                        conv.cleanup_line,
+                        ),
+                    output_variables=conv.test_isinstance(dict),
+                    period=conv.pipe(
+                        periods.json_or_python_to_period,
+                        conv.not_none,
+                        ),
+                    relative_error_margin=conv.pipe(
+                        conv.test_isinstance((float, int)),
+                        conv.test_greater_or_equal(0),
+                        ),
+                    ).iteritems(),
+                (
+                    (entity, conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.test_isinstance(list),
+                        ))
+                    for entity in self.tax_benefit_system.entities
+                    ),
+                )),
+            )
+
+        def json_or_python_to_test(value, state=None):
+            if value is None:
+                return value, None
+            if state is None:
+                state = conv.default_state
+            output_variables_name_to_ignore = set()
+            value, error = conv.pipe(
+                conv.test_isinstance(dict),
+                conv.struct(
+                    dict(
+                        output_variables=extract_output_variables_name_to_ignore(output_variables_name_to_ignore),
+                        ),
+                    default=conv.noop,
+                    ),
+                validate,
+                )(value, state=state)
+            if error is not None:
+                return value, error
+
+            value, error = conv.struct(
+                dict(
+                    output_variables=make_json_or_python_to_input_variables(self.tax_benefit_system, value['period']),
+                    ),
+                default=conv.noop,
+                )(value, state=state)
+            if error is not None:
+                return value, error
+
+            test_case = value.copy()
+            absolute_error_margin = test_case.pop(u'absolute_error_margin')
+            axes = test_case.pop(u'axes')
+            description = test_case.pop(u'description')
+            ignore = test_case.pop(u'ignore')
+            input_variables = test_case.pop(u'input_variables')
+            keywords = test_case.pop(u'keywords')
+            name = test_case.pop(u'name')
+            output_variables = test_case.pop(u'output_variables')
+            period = test_case.pop(u'period')
+            relative_error_margin = test_case.pop(u'relative_error_margin')
+
+            if absolute_error_margin is None and relative_error_margin is None:
+                absolute_error_margin = default_absolute_error_margin
+                relative_error_margin = default_relative_error_margin
+
+            if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
+                test_case = None
+
+            scenario, error = self.make_json_or_python_to_attributes(repair=True)(dict(
+                    axes=axes,
+                    input_variables=input_variables,
+                    period=period,
+                    test_case=test_case,
+                    ), state=state)
+            if error is not None:
+                return scenario, error
+
+            return {
+                key: value
+                for key, value in dict(
+                    absolute_error_margin=absolute_error_margin,
+                    description=description,
+                    ignore=ignore,
+                    keywords=keywords,
+                    name=name,
+                    output_variables=output_variables,
+                    output_variables_name_to_ignore=output_variables_name_to_ignore,
+                    relative_error_margin=relative_error_margin,
+                    scenario=scenario,
+                    ).iteritems()
+                if value is not None
+                }, None
+
+        return json_or_python_to_test
+
 
 def make_json_or_python_to_axes(tax_benefit_system):
     variable_class_by_name = tax_benefit_system.variable_class_by_name
@@ -517,6 +679,23 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
         return array_by_period_by_variable_name, error_by_variable_name or None
 
     return json_or_python_to_array_by_period_by_variable_name
+
+
+def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
+    def extract_output_variables_name_to_ignore_converter(value, state=None):
+        if value is None:
+            return value, None
+
+        new_value = collections.OrderedDict()
+        for variable_name, variable_value in value.iteritems():
+            if variable_name.startswith(u'IGNORE_'):
+                variable_name = variable_name[len(u'IGNORE_'):]
+                output_variables_name_to_ignore.add(variable_name)
+            new_value[variable_name] = variable_value
+        return new_value, None
+
+    return extract_output_variables_name_to_ignore_converter
+
 
 def set_entities_json_id(entities_json):
     for index, entity_json in enumerate(entities_json):
