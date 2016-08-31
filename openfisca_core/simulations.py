@@ -4,6 +4,7 @@ import collections
 import itertools
 
 import numpy as np
+import yaml
 
 from . import periods, conv
 
@@ -23,13 +24,13 @@ class AbstractSimulation(object):
     reference_compact_legislation_by_instant_cache = None
 
     @classmethod
-    def init_test(cls, tax_benefit_system, test, default_absolute_error_margin=None,
+    def init_test(cls, tax_benefit_system, test, yaml_path, default_absolute_error_margin=None,
             default_relative_error_margin=None):
         self = object.__new__(cls)
         self.tax_benefit_system = tax_benefit_system
 
-        test, error = self.make_json_or_python_to_test(default_absolute_error_margin=None,
-                default_relative_error_margin=None)(test)
+        test, error = self.make_json_or_python_to_test(default_absolute_error_margin,
+                default_relative_error_margin)(test)
         if error is not None:
             embedding_error = conv.embed_error(test, u'errors', error)
             assert embedding_error is None, embedding_error
@@ -75,7 +76,7 @@ class AbstractSimulation(object):
         for variable_name, variable_class in tbs.variable_class_by_name.items():
             variable_by_name[variable_name] = variable_class(self)
 
-        if not hasattr(self, 'test_case'):
+        if not (hasattr(self, 'test_case') and self.test_case):
             if self.input_variables is not None:
                 # Note: For set_input to work, handle days, before months, before years => use sorted().
                 for variable_name, array_by_period in sorted(self.input_variables.iteritems()):
@@ -513,46 +514,47 @@ class AbstractSimulation(object):
             if error is not None:
                 return value, error
 
-            test_case = value.copy()
-            absolute_error_margin = test_case.pop(u'absolute_error_margin')
-            axes = test_case.pop(u'axes')
-            description = test_case.pop(u'description')
-            ignore = test_case.pop(u'ignore')
-            input_variables = test_case.pop(u'input_variables')
-            keywords = test_case.pop(u'keywords')
-            name = test_case.pop(u'name')
-            output_variables = test_case.pop(u'output_variables')
-            period = test_case.pop(u'period')
-            relative_error_margin = test_case.pop(u'relative_error_margin')
+            self.test_case = value.copy()
+            self.absolute_error_margin = self.test_case.pop(u'absolute_error_margin')
+            self.axes = self.test_case.pop(u'axes')
+            self.description = self.test_case.pop(u'description')
+            self.ignore = self.test_case.pop(u'ignore')
+            self.input_variables = self.test_case.pop(u'input_variables')
+            self.keywords = self.test_case.pop(u'keywords')
+            self.name = self.test_case.pop(u'name')
+            self.output_variables = self.test_case.pop(u'output_variables')
+            self.period = self.test_case.pop(u'period')
+            self.relative_error_margin = self.test_case.pop(u'relative_error_margin')
+            self.output_variables_name_to_ignore = output_variables_name_to_ignore
 
-            if absolute_error_margin is None and relative_error_margin is None:
-                absolute_error_margin = default_absolute_error_margin
-                relative_error_margin = default_relative_error_margin
+            if self.absolute_error_margin is None and self.relative_error_margin is None:
+                self.absolute_error_margin = default_absolute_error_margin
+                self.relative_error_margin = default_relative_error_margin
 
-            if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
-                test_case = None
+            if self.test_case is not None and all(entity_members is None for entity_members in self.test_case.itervalues()):
+                self.test_case = None
 
-            scenario, error = self.make_json_or_python_to_attributes(repair=True)(dict(
-                    axes=axes,
-                    input_variables=input_variables,
-                    period=period,
-                    test_case=test_case,
+            simulation, error = self.make_json_or_python_to_attributes(repair=True)(dict(
+                    axes=self.axes,
+                    input_variables=self.input_variables,
+                    period=self.period,
+                    test_case=self.test_case,
                     ), state=state)
             if error is not None:
-                return scenario, error
+                return simulation, error
 
             return {
                 key: value
                 for key, value in dict(
-                    absolute_error_margin=absolute_error_margin,
-                    description=description,
-                    ignore=ignore,
-                    keywords=keywords,
-                    name=name,
-                    output_variables=output_variables,
-                    output_variables_name_to_ignore=output_variables_name_to_ignore,
-                    relative_error_margin=relative_error_margin,
-                    scenario=scenario,
+                    absolute_error_margin=self.absolute_error_margin,
+                    description=self.description,
+                    ignore=self.ignore,
+                    keywords=self.keywords,
+                    name=self.name,
+                    output_variables=self.output_variables,
+                    output_variables_name_to_ignore=self.output_variables_name_to_ignore,
+                    relative_error_margin=self.relative_error_margin,
+                    simulation=self,
                     ).iteritems()
                 if value is not None
                 }, None
