@@ -91,7 +91,7 @@ class Variable(object):
         if value is not None:
             return Node(value, self.entity, self.simulation, self.default)
 
-        if caller_name in ['calculate', 'compute']:
+        if caller_name in ['calculate', 'compute', '_array']:
             output_period, node = self.calculate_one_period(period, extra_params)
             return node
         elif caller_name in ['calculate_add', 'compute_add']:
@@ -342,7 +342,7 @@ class Variable(object):
 
     @property
     def _array(self):
-        return Node(self.permanent_array, self.entity, self.simulation, self.default)
+        return self.calculate(None, '_array')
 
     def split_by_roles(self, node, default=None, entity=None, roles=None):
         """dispatch a persons array to several entity arrays (one for each role)."""

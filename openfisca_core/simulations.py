@@ -492,6 +492,7 @@ class AbstractSimulation(object):
             if state is None:
                 state = conv.default_state
             output_variables_name_to_ignore = set()
+
             value, error = conv.pipe(
                 conv.test_isinstance(dict),
                 conv.struct(
@@ -502,7 +503,9 @@ class AbstractSimulation(object):
                     ),
                 validate,
                 )(value, state=state)
+
             if error is not None:
+                raise Exception('plop')
                 return value, error
 
             value, error = conv.struct(
