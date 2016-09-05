@@ -82,6 +82,9 @@ class Variable(object):
         if 'accept_other_period' in extra_params:
             del extra_params['accept_other_period']
 
+        if 'max_nb_cycles' in extra_params:
+            del extra_params['max_nb_cycles']
+
         if period == None:
             period = self.simulation.period
         elif not isinstance(period, periods.Period):

@@ -120,3 +120,15 @@ def abs(x):
 
 def errstate(**kwargs):
     return np.errstate(**kwargs)
+
+def vector_map(x, f):
+    assert isinstance(x, Node)
+
+    n = len(x.value)
+    input_array = x.value.reshape((n, 1))
+
+    array = np.apply_along_axis(lambda v: f(v[0]), 1, input_array)
+
+    array_output = array.reshape(n)
+
+    return Node(array_output, x.entity, x.simulation)
