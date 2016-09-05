@@ -477,11 +477,15 @@ class AbstractSimulation(object):
                         ),
                     ).iteritems(),
                 (
-                    (entity, conv.pipe(
-                        conv.make_item_to_singleton(),
-                        conv.test_isinstance(list),
-                        ))
-                    for entity in self.tax_benefit_system.entities
+                    # Gather additional keys from TBS entities, customized by each country.
+                    (
+                        dict(entity_frozenset)['key_plural'],
+                        conv.pipe(
+                            conv.make_item_to_singleton(),
+                            conv.test_isinstance(list),
+                            ),
+                        )
+                    for entity_frozenset in self.tax_benefit_system.entities
                     ),
                 )),
             )
@@ -505,7 +509,6 @@ class AbstractSimulation(object):
                 )(value, state=state)
 
             if error is not None:
-                raise Exception('plop')
                 return value, error
 
             value, error = conv.struct(
