@@ -48,6 +48,10 @@ class Variable(object):
                 self._array_by_period[period] = {}
             self._array_by_period[period][tuple(extra_params.items())] = value
 
+        if value.dtype == np.float32 and np.isnan(value[0]):
+            from IPython.core.debugger import Tracer
+            Tracer()()
+
         return
 
     def get_from_cache(self, period=None, extra_params=None):
@@ -359,10 +363,9 @@ class Variable(object):
         count = self.simulation.entity_data[entity]['count']
         assert isinstance(node, Node)
         assert 'is_persons_entity' in dict(node.entity)
-        assert len(node.value) == count
 
         if default is None:
-            default = node.default
+            default = node.default or 0.
 
         entity_index_array = self.simulation.variable_by_name[dict(entity)['index_for_person_variable_name']].permanent_array
         roles_array = self.simulation.variable_by_name[dict(entity)['role_for_person_variable_name']].permanent_array
@@ -373,11 +376,8 @@ class Variable(object):
         node_by_role = {}
         for role in roles:
             target_array = np.empty(count, dtype=node.value.dtype)
-            try:
-                target_array.fill(default)
-            except:
-                from IPython.core.debugger import Tracer
-                Tracer()() #this one triggers the debugger
+            target_array.fill(default)
+
             boolean_filter = roles_array == role
             try:
                 target_array[entity_index_array[boolean_filter]] = node.value[boolean_filter]
