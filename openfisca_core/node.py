@@ -124,8 +124,12 @@ class Node(object):
 
     def __setitem__(self, key, value):
         assert isinstance(key, Node)
-        assert isinstance(value, Node)
-        self.value[key.value] = value.value
+        if isinstance(value, Node):
+            value_2 = value.value
+        else:
+            value_2 = value
+
+        self.value[key.value] = value_2
         return None
 
     def any(self):
