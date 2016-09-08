@@ -67,6 +67,9 @@ class Node(object):
     def __rtruediv__(self, other):
         return self.override(other, '__rtruediv__')
 
+    def __floordiv__(self, other):
+        return self.override(other, '__floordiv__')
+
     def __add__(self, other):
         return self.override(other, '__add__')
 

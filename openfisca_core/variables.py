@@ -47,11 +47,7 @@ class Variable(object):
             if self._array_by_period.get(period) is None:
                 self._array_by_period[period] = {}
             self._array_by_period[period][tuple(extra_params.items())] = value
-
-        if value.dtype == np.float32 and np.isnan(value[0]):
-            from IPython.core.debugger import Tracer
-            Tracer()()
-
+            
         return
 
     def get_from_cache(self, period=None, extra_params=None):
@@ -143,7 +139,7 @@ class Variable(object):
             """Convert an array of persons to an array of non-person entities.
             When no roles are given, it means "all the roles".
             """
-            original_variable = self.simulation.variable_by_name[self.variable.__name__]
+            original_variable = self.original_variable
 
             entity = self.entity
             assert not 'is_persons_entity' in dict(entity)
@@ -186,7 +182,7 @@ class Variable(object):
             """Cast an entity array to a persons array, setting only cells of persons having one of the given roles.
             When no roles are given, it means "all the roles" => every cell is set.
             """
-            original_variable = self.simulation.variable_by_name[self.variable.__name__]
+            original_variable = self.original_variable
 
             persons = self.entity
             assert 'is_persons_entity' in dict(persons)
@@ -420,7 +416,7 @@ class Variable(object):
         node_dict = self.split_by_roles(node, default=None, entity=entity, roles=roles)
         first_node = node_dict[node_dict.keys()[0]]
         first_array = first_node.value
-        array = np.zeros(len(first_array), first_array.dtype)
+        array = np.zeros(len(first_array), dtype=node.value.dtype if node.value.dtype != np.bool else np.int16)
         for role in node_dict.keys():
             array += node_dict[role].value
         return Node(array, first_node.entity, first_node.simulation, 0)

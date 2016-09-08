@@ -15,7 +15,7 @@ import datetime
 from biryani import strings
 
 from . import conv, legislations, legislationsxml, base_functions, periods
-from .variables import Variable, DatedVariable
+from .variables import Variable, DatedVariable, PersonToEntityColumn, EntityToPersonColumn
 
 
 
@@ -44,6 +44,7 @@ class TaxBenefitSystem(object):
         if entities is None or len(entities) == 0:
             raise Exception("A tax benefit sytem must have at least an entity.")
         self.entities = entities
+        self.loaded_recursively = []    # variable classes loaded because of a EntityToEntityColumn referencing it. Remove in future versions.
 
     @property
     def base_tax_benefit_system(self):
@@ -80,6 +81,10 @@ class TaxBenefitSystem(object):
     def load_variable_class(self, variable_class, update=False):
         name = unicode(variable_class.__name__)
 
+        if name in self.loaded_recursively:
+            self.loaded_recursively.remove(name)
+            return
+
         existing_variable_class = self.get_variable_class(name)
 
         if existing_variable_class and not update:
@@ -98,14 +103,7 @@ class TaxBenefitSystem(object):
             setattr(variable_class, 'default', 0)
         if not hasattr(variable_class, 'dtype'):
             setattr(variable_class, 'dtype', float)
-        ''' this is useless and complicated
-        if variable_class.base_class in [PersonToEntityColumn, EntityToPersonColumn]:
-            if self.variable.__name__ not in self.variable_class_by_name:
-                self.load_variable_class(self.variable)
 
-            original_variable = self.variable_class_by_name[self.variable.__name__]
-            variable_class.dtype = original_variable.dtype
-        '''
         if not hasattr(variable_class, 'end'):
             setattr(variable_class, 'end', None)
         if not hasattr(variable_class, 'entity'):
@@ -194,6 +192,22 @@ class TaxBenefitSystem(object):
             assert not hasattr(variable_class, 'column_type')
             setattr(variable_class, 'column_type', variable_class.column.__class__.__name__)
             delattr(variable_class, 'column')
+        else:
+            assert variable_class.base_class in [PersonToEntityColumn, EntityToPersonColumn]
+            if variable_class.variable.__name__ not in self.variable_class_by_name:
+                self.load_variable_class(variable_class.variable)
+                self.loaded_recursively.append(variable_class.variable.__name__)
+
+            original_variable = self.variable_class_by_name[variable_class.variable.__name__]
+
+            for attr in ['dtype', 'default', 'is_period_size_independent', 'json_type', 'val_type', 'enum', 'index_by_slug', 'start', 'end', 'column_type']:
+                if not hasattr(variable_class, attr) and hasattr(original_variable, attr):
+                    setattr(variable_class, attr, getattr(original_variable, attr))
+
+            setattr(variable_class, 'original_variable', original_variable)
+            delattr(variable_class, 'variable')
+
+
 
         # enum (if present in column)
         if hasattr(variable_class, 'enum'):

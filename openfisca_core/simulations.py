@@ -373,6 +373,7 @@ class AbstractSimulation(object):
             if errors:
                 return data, errors
 
+
             if data['axes'] is not None:
                 for parallel_axes_index, parallel_axes in enumerate(data['axes']):
                     first_axis = parallel_axes[0]
