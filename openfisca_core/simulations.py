@@ -30,7 +30,7 @@ class AbstractSimulation(object):
         self.tax_benefit_system = tax_benefit_system
 
         test, error = self.make_json_or_python_to_test(default_absolute_error_margin,
-                default_relative_error_margin)(test)
+            default_relative_error_margin)(test)
         if error is not None:
             embedding_error = conv.embed_error(test, u'errors', error)
             assert embedding_error is None, embedding_error
@@ -278,6 +278,9 @@ class AbstractSimulation(object):
 
     def compute_divide(self, variable_name, period=None, **parameters):
         return self.calculate(variable_name, period, 'compute_divide', **parameters)
+
+    def calculate_output(self, variable_name, period=None, **parameters):
+        return self.calculate(variable_name, period, 'calculate_output', **parameters)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)

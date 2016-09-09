@@ -97,48 +97,6 @@ class TaxBenefitSystem(object):
         setattr(variable_class, 'name', name)
         setattr(variable_class, 'base_class', variable_class.__bases__[0])
 
-        if not hasattr(variable_class, 'cerfa_field'):
-            setattr(variable_class, 'cerfa_field', None)
-        if not hasattr(variable_class, 'default'):
-            setattr(variable_class, 'default', 0)
-        if not hasattr(variable_class, 'dtype'):
-            setattr(variable_class, 'dtype', float)
-
-        if not hasattr(variable_class, 'end'):
-            setattr(variable_class, 'end', None)
-        if not hasattr(variable_class, 'entity'):
-            setattr(variable_class, 'entity', None)  # Obsolete: To remove once build_..._couple() functions are no more used.
-        if not hasattr(variable_class, 'entity_key_plural'):
-            setattr(variable_class, 'entity_key_plural', None)
-        if not hasattr(variable_class, 'entity_class'):
-            setattr(variable_class, 'entity_class', None)
-        if not hasattr(variable_class, 'formula_class'):
-            setattr(variable_class, 'formula_class', None)
-        if not hasattr(variable_class, 'is_period_size_independent'):
-            setattr(variable_class, 'is_period_size_independent', False)  # When True, value of column doesn't depend from size of period (example: age)
-        if not hasattr(variable_class, 'is_permanent'):
-            setattr(variable_class, 'is_permanent', False)  # When True, value of column doesn't depend from time (example: ID, birth)
-        if not hasattr(variable_class, 'label'):
-            setattr(variable_class, 'label', None)
-        if not hasattr(variable_class, 'law_reference'):
-            setattr(variable_class, 'law_reference', None)  # Either a single reference or a list of references
-        if not hasattr(variable_class, 'name'):
-            setattr(variable_class, 'name', None)
-        if not hasattr(variable_class, 'start'):
-            setattr(variable_class, 'start', None)
-        if not hasattr(variable_class, 'survey_only'):
-            setattr(variable_class, 'survey_only', False)
-        if not hasattr(variable_class, 'url'):
-            setattr(variable_class, 'url', None)
-        if not hasattr(variable_class, 'val_type'):
-            setattr(variable_class, 'val_type', None)
-        if not hasattr(variable_class, 'roles'):    # For entity to entity variables
-            setattr(variable_class, 'roles', None)
-        if hasattr(variable_class, 'role'):  # For entity to entity variables
-            variable_class.roles = [variable_class.role]
-        if not hasattr(variable_class, 'operation'):    # For entity to entity variables
-            setattr(variable_class, 'operation', None)
-
         # column member
         if hasattr(variable_class, 'column'):
             # instantiate the column if not already done
@@ -192,6 +150,18 @@ class TaxBenefitSystem(object):
             assert not hasattr(variable_class, 'column_type')
             setattr(variable_class, 'column_type', variable_class.column.__class__.__name__)
             delattr(variable_class, 'column')
+
+            # enum (if present in column)
+            if hasattr(variable_class, 'enum'):
+                if variable_class.enum is None:
+                    delattr(variable_class, 'enum')
+                else:
+                    # This converters accepts either an item number or an item name.
+                    setattr(variable_class, 'index_by_slug', dict(
+                        (strings.slugify(name), index)
+                        for index, name in sorted(variable_class.enum._vars.iteritems())
+                        ))
+
         else:
             assert variable_class.base_class in [PersonToEntityColumn, EntityToPersonColumn]
             if variable_class.variable.__name__ not in self.variable_class_by_name:
@@ -207,18 +177,48 @@ class TaxBenefitSystem(object):
             setattr(variable_class, 'original_variable', original_variable)
             delattr(variable_class, 'variable')
 
+        if not hasattr(variable_class, 'cerfa_field'):
+            setattr(variable_class, 'cerfa_field', None)
+        if not hasattr(variable_class, 'default'):
+            setattr(variable_class, 'default', 0)
+        if not hasattr(variable_class, 'dtype'):
+            setattr(variable_class, 'dtype', float)
 
+        if not hasattr(variable_class, 'end'):
+            setattr(variable_class, 'end', None)
+        if not hasattr(variable_class, 'entity'):
+            setattr(variable_class, 'entity', None)  # Obsolete: To remove once build_..._couple() functions are no more used.
+        if not hasattr(variable_class, 'entity_key_plural'):
+            setattr(variable_class, 'entity_key_plural', None)
+        if not hasattr(variable_class, 'entity_class'):
+            setattr(variable_class, 'entity_class', None)
+        if not hasattr(variable_class, 'formula_class'):
+            setattr(variable_class, 'formula_class', None)
+        if not hasattr(variable_class, 'is_period_size_independent'):
+            setattr(variable_class, 'is_period_size_independent', False)  # When True, value of column doesn't depend from size of period (example: age)
+        if not hasattr(variable_class, 'is_permanent'):
+            setattr(variable_class, 'is_permanent', False)  # When True, value of column doesn't depend from time (example: ID, birth)
+        if not hasattr(variable_class, 'label'):
+            setattr(variable_class, 'label', None)
+        if not hasattr(variable_class, 'law_reference'):
+            setattr(variable_class, 'law_reference', None)  # Either a single reference or a list of references
+        if not hasattr(variable_class, 'name'):
+            setattr(variable_class, 'name', None)
+        if not hasattr(variable_class, 'start'):
+            setattr(variable_class, 'start', None)
+        if not hasattr(variable_class, 'survey_only'):
+            setattr(variable_class, 'survey_only', False)
+        if not hasattr(variable_class, 'url'):
+            setattr(variable_class, 'url', None)
+        if not hasattr(variable_class, 'val_type'):
+            setattr(variable_class, 'val_type', None)
+        if not hasattr(variable_class, 'roles'):    # For entity to entity variables
+            setattr(variable_class, 'roles', None)
+        if hasattr(variable_class, 'role'):  # For entity to entity variables
+            variable_class.roles = [variable_class.role]
+        if not hasattr(variable_class, 'operation'):    # For entity to entity variables
+            setattr(variable_class, 'operation', None)
 
-        # enum (if present in column)
-        if hasattr(variable_class, 'enum'):
-            if variable_class.enum is None:
-                delattr(variable_class, 'enum')
-            else:
-                # This converters accepts either an item number or an item name.
-                setattr(variable_class, 'index_by_slug', dict(
-                    (strings.slugify(name), index)
-                    for index, name in sorted(variable_class.enum._vars.iteritems())
-                    ))
 
         # define base function
         if not hasattr(variable_class, 'base_function'):

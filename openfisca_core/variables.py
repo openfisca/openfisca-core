@@ -47,13 +47,13 @@ class Variable(object):
             if self._array_by_period.get(period) is None:
                 self._array_by_period[period] = {}
             self._array_by_period[period][tuple(extra_params.items())] = value
-            
+
         return
 
     def get_from_cache(self, period=None, extra_params=None):
         if self.is_permanent:
             if hasattr(self, 'permanent_array'):
-                return self.permanent_array
+                return np.copy(self.permanent_array)
             else:
                 return None
 
@@ -62,11 +62,11 @@ class Variable(object):
             values = self._array_by_period.get(period)
             if values is not None:
                 if extra_params:
-                    return values.get(tuple(extra_params.items()))
+                    return np.copy(values.get(tuple(extra_params.items())))
                 else:
                     if(type(values) == dict):
-                        return values.values()[0]
-                    return values
+                        return np.copy(values.values()[0])
+                    return np.copy(values)
         return None
 
     def get_array(self, period, extra_params=None):
@@ -94,7 +94,7 @@ class Variable(object):
         if value is not None:
             return Node(value, self.entity, self.simulation, self.default)
 
-        if caller_name in ['calculate', 'compute', '_array']:
+        if caller_name in ['calculate', 'compute', '_array', 'calculate_output']:
             output_period, node = self.calculate_one_period(period, extra_params)
             return node
         elif caller_name in ['calculate_add', 'compute_add']:
@@ -518,7 +518,7 @@ class Variable(object):
                 conv.test_isinstance((float, int, basestring)),
                 conv.make_anything_to_float(accept_expression=True),
                 )
-        elif cls.column_type == 'IntCol':
+        elif cls.column_type in ['IntCol', 'PeriodSizeIndependentIntCol']:
             return conv.pipe(
                 conv.test_isinstance((int, basestring)),
                 conv.make_anything_to_int(accept_expression=True),
