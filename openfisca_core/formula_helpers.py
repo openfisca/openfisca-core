@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-"""Helpers to write formulas."""
+"""Helpers to write formulas.
+
+Similar to country-level code, formula helpers should not break the abstraction on top of numpy.
+As a result this module imports numpy_wrapper and not numpy.
+"""
 
 
 import openfisca_core.numpy_wrapper as np

@@ -1,3 +1,10 @@
+"""
+The Variable class calls coutry_level function and manages period cutting and entity-to-entity manipulations.
+
+A Variable maintains a cache of previously computed (or input) data.
+"""
+
+
 import numpy as np
 import datetime
 import re
@@ -25,6 +32,8 @@ COLUMNS = Enum([
 
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
+
+
 class Variable(object):
     function = None
 
@@ -44,9 +53,11 @@ class Variable(object):
         if not extra_params:
             self._array_by_period[period] = value
         else:
+            key = tuple(extra_params['extra_params'])
             if self._array_by_period.get(period) is None:
                 self._array_by_period[period] = {}
-            self._array_by_period[period][tuple(extra_params.items())] = value
+            else:
+                self._array_by_period[period][key] = value
 
         return
 
@@ -62,7 +73,8 @@ class Variable(object):
             values = self._array_by_period.get(period)
             if values is not None:
                 if extra_params:
-                    return np.copy(values.get(tuple(extra_params.items())))
+                    key = tuple(extra_params['extra_params'])
+                    return np.copy(values.get(key))
                 else:
                     if(type(values) == dict):
                         return np.copy(values.values()[0])
@@ -210,12 +222,13 @@ class Variable(object):
         elif self.base_class == Variable:
             if (self.start is None or self.start <= period.start) \
                     and (self.end is None or period.start <= self.end):
-                output_period, node = self.base_function(self.simulation, period, **extra_params)
+                output_period, node = self.base_function(self.simulation, period, extra_params)
                 if node.value.dtype != self.dtype:
                     node.value = node.value.astype(self.dtype)
                 node.default = self.default
+
                 self.put_in_cache(node.value, period, extra_params)
-                return period, node
+                return output_period, node
 
             count = self.simulation.entity_data[self.entity]['count']
             array = np.empty(count, dtype=self.dtype)
@@ -261,7 +274,7 @@ class Variable(object):
                 "Period {} returned by variable {} is larger than the requested_period {}.".format(
                     returned_period, self.name, requested_period)
             if period_node is None:
-                period_node = subperiod_node
+                period_node = subperiod_node.copy()
             else:
                 period_node.value += subperiod_node.value
 
@@ -307,7 +320,7 @@ class Variable(object):
                     returned_start_months + returned_period.size * 12) - requested_start_months
                 intersection_node = subperiod_node * intersection_months / (returned_period.size * 12)
             if period_node is None:
-                period_node = intersection_node
+                period_node = intersection_node.copy()
             else:
                 period_node.value += intersection_node.value
 

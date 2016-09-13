@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 
+"""
+A simulation contains an instance of each variable class defined by the country tax benefit system.
+
+The creation of a simulation follows these steps :
+* creation of the tax benefit system (loads variable classes)
+* constructor call (__init__() defined in the coutry Simluation class, or the alternative init_test() constructor used for unit tests)
+* checking and processing pipelines using biryani
+* instantiation of every variable of the tax benefit system, filled by input data
+"""
+
+
+
 import collections
 import itertools
 

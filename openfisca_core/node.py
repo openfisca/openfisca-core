@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 
+'''
+A node is a wrapper over the result of a computation.
+
+The node class overrides every operation used by coutry_level codes, including infix operators (+, *, ...). Other numpy operators are overloaded in numpy_wrapper.
+
+In this current implementation, a node contains a numpy array. Another implementation could defer the computation and contain references to parent nodes.
+
+The Shell class encapsulates non vectorial results to avoid TypeError exceptions in cases like :
+> np.datetime64('2015-01-01') - a_node_instance
+
+'''
+
 
 from __future__ import division
 
@@ -21,10 +33,13 @@ class Node(object):
     """A container for a numpy array"""
 
     def __init__(self, value, entity, simulation, default=None):
-        self.value = value
+        self.value = np.copy(value)
         self.entity = entity
         self.simulation = simulation
         self.default = default
+
+    def copy(self):
+        return Node(self.value, self.entity, self.simulation, self.default)
 
     @property
     def array(self):

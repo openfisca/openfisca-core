@@ -3,12 +3,28 @@ import numpy as np
 from . import periods
 from node import Node
 
+'''
+Base functions
 
-def permanent_default_value(variable, simulation, period, **extra_params):
+These fonctions are called by Variable.calculate_one_period() when the period is not a month or a year.
+Each function implements a different behavior (extensive, intensive, static...).
+
+This is redundant with the "caller_name" parameter of Variable.calculate().
+
+'''
+
+def call_with_extra_params(function, variable, simulation, period, extra_params):
+    if 'extra_params' in extra_params:
+        return function(variable, simulation, period, *extra_params['extra_params'])
+    else:
+        return function(variable, simulation, period)
+
+
+def permanent_default_value(variable, simulation, period, extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return (variable.functions[0])(simulation, period, **extra_params)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -16,7 +32,7 @@ def permanent_default_value(variable, simulation, period, **extra_params):
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_added_value(variable, simulation, period, **extra_params):
+def requested_period_added_value(variable, simulation, period, extra_params):
     count = simulation.entity_data[variable.entity]['count']
 
     # This formula is used for variables that can be added to match requested period.
@@ -51,17 +67,17 @@ def requested_period_added_value(variable, simulation, period, **extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, **extra_params)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
     array = np.empty(count, dtype=variable.dtype)
     array.fill(variable.default)
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_default_value(variable, simulation, period, **extra_params):
+def requested_period_default_value(variable, simulation, period, extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, **extra_params)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -76,7 +92,7 @@ def requested_period_default_value_neutralized(variable, simulation, period, **e
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_last_value(variable, simulation, period, **extra_params):
+def requested_period_last_value(variable, simulation, period, extra_params):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.
     accept_future_value = extra_params.pop('accept_future_value', False)
@@ -84,14 +100,14 @@ def requested_period_last_value(variable, simulation, period, **extra_params):
         known_values = sorted(variable._array_by_period.iteritems(), reverse=True)
         for last_period, last_array in known_values:
             if last_period.start <= period.start and ((not variable.functions) or last_period.stop >= period.stop):
-                return period, Node(last_array, variable.entity, simulation)
+                return period, Node(np.copy(last_array), variable.entity, simulation)
         if accept_future_value:
             next_period, next_array = known_values[-1]
-            return period, Node(last_array, variable.entity, simulation)
+            return period, Node(np.copy(next_array), variable.entity, simulation)
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, **extra_params)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -99,24 +115,24 @@ def requested_period_last_value(variable, simulation, period, **extra_params):
     return period, Node(array, variable.entity, simulation)
 
 
-def requested_period_last_or_next_value(variable, simulation, period, **extra_params):
+def requested_period_last_or_next_value(variable, simulation, period, extra_params):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period, or the next value if there is no past value.
     extra_params['accept_future_value'] = True
-    return requested_period_last_value(variable, simulation, period, **extra_params)
+    return requested_period_last_value(variable, simulation, period, extra_params)
 
 
-def last_duration_last_value(variable, simulation, period, **extra_params):
+def last_duration_last_value(variable, simulation, period, extra_params):
     # This formula is used for variables that are constants between events but are period size dependent.
     # It returns the latest known value for the requested start of period but with the last period size.
     if variable._array_by_period is not None:
         for last_period, last_array in sorted(variable._array_by_period.iteritems(), reverse=True):
             if last_period.start <= period.start and ((not variable.function) or last_period.stop >= period.stop):
-                return periods.Period((last_period[0], period.start, last_period[2])), Node(last_array, variable.entity, simulation)
+                return periods.Period((last_period[0], period.start, last_period[2])), Node(np.copy(last_array), variable.entity, simulation)
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period, **extra_params)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
 
     count = simulation.entity_data[variable.entity]['count']
     array = np.empty(count, dtype=variable.dtype)
@@ -124,10 +140,10 @@ def last_duration_last_value(variable, simulation, period, **extra_params):
     return period, Node(array, variable.entity, simulation)
 
 
-def missing_value(variable, simulation, period):
+def missing_value(variable, simulation, period, extra_params):
     if variable.functions:
         assert(len(variable.functions) == 1)
         function = variable.functions[0]['function']
-        return function(variable, simulation, period)
+        return call_with_extra_params(function, variable, simulation, period, extra_params)
 
     raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))
