@@ -451,7 +451,7 @@ class Variable(object):
                 u"""Holder entity "{}" and given entity "{}" don't match""".format(dict(entity)['key_plural'],
                     dict(node.entity)['key_plural']).encode('utf-8')
         if default is None:
-            default = node.default
+            default = node.default or 0.
 
         assert not 'is_persons_entity' in dict(entity)
         persons_count = self.simulation.entity_data[self.simulation.persons]['count']
