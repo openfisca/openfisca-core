@@ -56,8 +56,7 @@ class Variable(object):
             key = tuple(extra_params['extra_params'])
             if self._array_by_period.get(period) is None:
                 self._array_by_period[period] = {}
-            else:
-                self._array_by_period[period][key] = value
+            self._array_by_period[period][key] = value
 
         return
 
