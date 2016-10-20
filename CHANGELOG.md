@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.2
+
+* Move `calmar.py` to [OpenFisca-Survey-Manager](https://github.com/openfisca/openfisca-survey-manager).
+
+  No incidence on users since it was only needed for dataframes.
+
 ## 3.0.1
 
 * Adapt requested_period_last_value and last_duration_last_value to extra params
