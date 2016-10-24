@@ -76,8 +76,7 @@ class AbstractConversionVariable(AbstractVariable):
 
         cerfa_field = self.attributes.pop('cerfa_field', None)
         if cerfa_field is not None:
-            assert isinstance(cerfa_field, basestring), cerfa_field
-            cerfa_field = unicode(cerfa_field)
+            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
 
         __doc__ = self.attributes.pop('__doc__', None)
         __module__ = self.attributes.pop('__module__', None)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.3
+
+* Fix `cerfa_field` validation in `Column`, `Formula` and `AbstractConversionVariable`.
+  Previously, some variables having `cerfa_field` as a `dict` were converted to `unicode` by mistake.
+  See https://github.com/openfisca/openfisca-france/issues/543
+
 ## 3.0.2
 
 * Move `calmar.py` to [OpenFisca-Survey-Manager](https://github.com/openfisca/openfisca-survey-manager).
