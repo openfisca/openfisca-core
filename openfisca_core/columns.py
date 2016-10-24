@@ -45,6 +45,7 @@ class Column(object):
             is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
             val_type = None):
         if cerfa_field is not None:
+            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
             self.cerfa_field = cerfa_field
         if default is not None and default != self.default:
             self.default = default

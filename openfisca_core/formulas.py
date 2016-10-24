@@ -855,7 +855,6 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         cerfa_field = None if reference_column is None else reference_column.cerfa_field
     elif cerfa_field is not None:
         assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
-        cerfa_field = unicode(cerfa_field)
 
     assert column is not None, """Missing attribute "column" in definition of filled column {}""".format(name)
     if column is UnboundLocalError:
