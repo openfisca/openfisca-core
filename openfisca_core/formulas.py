@@ -451,6 +451,20 @@ class SimpleFormula(AbstractFormula):
 
         return dated_holder
 
+    # Retro-compatibility-layer
+    def exec_function(self, simulation, period, *extra_params):
+
+        if self.function.im_func.func_code.co_varnames[0] == 'self':
+            return self.function(simulation, period, *extra_params)
+        else:
+            entity = self.holder.entity
+            function = self.function.im_func
+            legislation = simulation.legislation_at
+            if self.function.im_func.func_code.co_argcount == 2:
+                return function(entity, period)
+            else:
+                return function(entity, period, legislation)
+
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
         holder = self.holder
