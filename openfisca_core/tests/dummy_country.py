@@ -7,9 +7,7 @@ import pkg_resources
 from os import path
 
 from openfisca_core import conv
-from openfisca_core.columns import IntCol
-from openfisca_core.entities import AbstractEntity
-from openfisca_core.variables import Variable
+from openfisca_core.entities import GroupEntity, PersonEntity
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
@@ -20,60 +18,29 @@ TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 # Entities
 
 
-class Familles(AbstractEntity):
-    index_for_person_variable_name = 'id_famille'
-    key_plural = 'familles'
-    key_singular = 'famille'
-    label = u'Famille'
-    max_cardinality_by_role_key = {'parents': 2}
-    role_for_person_variable_name = 'role_dans_famille'
-    roles_key = ['parents', 'enfants']
-    label_by_role_key = {
-        'enfants': u'Enfants',
-        'parents': u'Parents',
-        }
-    symbol = 'fam'
-
-    def iter_member_persons_role_and_id(self, member):
-        role = 0
-
-        parents_id = member['parents']
-        assert 1 <= len(parents_id) <= 2
-        for parent_role, parent_id in enumerate(parents_id, role):
-            assert parent_id is not None
-            yield parent_role, parent_id
-        role += 2
-
-        enfants_id = member.get('enfants')
-        if enfants_id is not None:
-            for enfant_role, enfant_id in enumerate(enfants_id, role):
-                assert enfant_id is not None
-                yield enfant_role, enfant_id
+class Familles(GroupEntity):
+    key = "famille"
+    plural = "familles"
+    label = u'Familles'
+    roles = [
+        {
+            'key': 'parents',
+            'label': u'Parents',
+            'max': 2
+            },
+        {
+            'key': 'enfants',
+            'label': u'Enfants'
+            }
+        ]
 
 
-class Individus(AbstractEntity):
-    is_persons_entity = True
-    key_plural = 'individus'
-    key_singular = 'individu'
-    label = u'Personne'
-    symbol = 'ind'
+class Individus(PersonEntity):
+    key = "individu"
+    plural = "individus"
+    label = u'Individus'
+    is_person = True
 
-
-# Mandatory input variables
-
-
-class id_famille(Variable):
-    column = IntCol
-    entity_class = Individus
-    is_permanent = True
-    label = u"Identifiant de la famille"
-
-
-class role_dans_famille(Variable):
-    column = IntCol
-    entity_class = Individus
-    is_permanent = True
-    label = u"Rôle dans la famille"
 
 # Scenarios
 
@@ -160,7 +127,7 @@ class Scenario(AbstractScenario):
                                         (
                                             (column.name, column.json_to_python)
                                             for column in column_by_name.itervalues()
-                                            if column.entity == 'fam'
+                                            if column.entity == Familles
                                             ),
                                         )),
                                     drop_none_values = True,
@@ -189,8 +156,7 @@ class Scenario(AbstractScenario):
                                         (
                                             (column.name, column.json_to_python)
                                             for column in column_by_name.itervalues()
-                                            if column.entity == 'ind' and column.name not in (
-                                                'idfam', 'idfoy', 'idmen', 'quifam', 'quifoy', 'quimen')
+                                            if column.entity == Individus
                                             ),
                                         )),
                                     drop_none_values = True,
@@ -251,7 +217,7 @@ class Scenario(AbstractScenario):
 
 # TaxBenefitSystems
 
-entities = [Familles, Individus]
+entities = [Individus, Familles]
 path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
 path_to_crds_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
 
@@ -260,6 +226,5 @@ class DummyTaxBenefitSystem(TaxBenefitSystem):
     def __init__(self):
         TaxBenefitSystem.__init__(self, entities)
         self.Scenario = Scenario
-        self.add_variables_from_file(__file__)
         self.add_legislation_params(path_to_root_params)
         self.add_legislation_params(path_to_crds_params, 'csg.activite')

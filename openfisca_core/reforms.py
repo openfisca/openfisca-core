@@ -23,11 +23,12 @@ class Reform(TaxBenefitSystem):
     name = None
 
     def __init__(self, reference):
-        self.entity_class_by_key_plural = reference.entity_class_by_key_plural
         self._legislation_json = reference.get_legislation()
         self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
+        self.entities = reference.entities
+        self.person_entity = reference.person_entity
         self.DEFAULT_DECOMP_FILE = reference.DEFAULT_DECOMP_FILE
         self.reference = reference
         self.key = unicode(self.__class__.__name__)
