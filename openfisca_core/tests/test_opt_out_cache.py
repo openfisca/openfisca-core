@@ -9,13 +9,13 @@ from openfisca_core.tests.dummy_country import Individus
 
 class input(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
     label = u"Input variable"
 
 
 class intermediate(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
     label = u"Intermediate result that don't need to be cached"
 
     def function(self, simulation, period):
@@ -24,7 +24,7 @@ class intermediate(Variable):
 
 class output(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
     label = u'Output variable'
 
     def function(self, simulation, period):

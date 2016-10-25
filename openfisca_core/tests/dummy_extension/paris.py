@@ -7,4 +7,4 @@ from openfisca_core.tests.dummy_country import Familles
 class paris_logement_familles(Variable):
     column = FloatCol
     label = u"Allocation Paris Logement Familles"
-    entity = Familles
+    entity_class = Familles

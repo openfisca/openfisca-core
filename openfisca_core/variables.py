@@ -33,7 +33,7 @@ class AbstractVariable(object):
 
     def to_column(self, tax_benefit_system):
         formula_class = self.__class__.formula_class
-        entity = self.attributes.pop('entity', None)
+        entity = self.attributes.pop('entity_class', None)
 
         # For reform variable that replaces the existing reference one
         reference = self.attributes.pop('reference', None)

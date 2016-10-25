@@ -145,7 +145,7 @@ def test_add_variable():
     class nouvelle_variable(Variable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity = Familles
+        entity_class = Familles
 
         def function(self, simulation, period):
             return period, self.zeros() + 10
@@ -174,7 +174,7 @@ def test_add_dated_variable():
     class nouvelle_dated_variable(DatedVariable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity = Familles
+        entity_class = Familles
 
         @dated_function(datetime.date(2010, 1, 1))
         def function_2010(self, simulation, period):
@@ -247,7 +247,7 @@ def test_compose_reforms():
         class nouvelle_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity = Familles
+            entity_class = Familles
 
             def function(self, simulation, period):
                 return period, self.zeros() + 10
@@ -259,7 +259,7 @@ def test_compose_reforms():
         class nouvelle_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity = Familles
+            entity_class = Familles
 
             def function(self, simulation, period):
                 return period, self.zeros() + 20

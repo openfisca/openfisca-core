@@ -12,12 +12,12 @@ from openfisca_core.tests.dummy_country import Individus
 
 class choice(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
 
 
 class uses_multiplication(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
     label = u'Variable with formula that uses multiplication'
 
     def function(self, simulation, period):
@@ -28,7 +28,7 @@ class uses_multiplication(Variable):
 
 class uses_switch(Variable):
     column = IntCol
-    entity = Individus
+    entity_class = Individus
     label = u'Variable with formula that uses switch'
 
     def function(self, simulation, period):
