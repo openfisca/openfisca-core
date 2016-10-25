@@ -163,9 +163,7 @@ class DatedFormula(AbstractGroupedFormula):
             return dated_holder
 
         holder = self.holder
-        column = holder.column
-        array = np.empty(holder.entity.count, dtype = column.dtype)
-        array.fill(column.default)
+        array = holder.default_array()
         return holder.put_in_cache(array, period, parameters.get('extra_params'))
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
@@ -198,31 +196,32 @@ class SimpleFormula(AbstractFormula):
 
     def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
-        target_entity = holder.entity
-        simulation = target_entity.simulation
+        simulation = holder.simulation
         persons = simulation.persons
         if entity is None:
             entity = holder.entity
         else:
-            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-            entity = simulation.entity_by_key_singular[entity]
-        assert not entity.is_persons_entity
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
         if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_persons_entity
+            assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
-            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
                 array.size)
-        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
         if roles is None:
             roles = range(entity.roles_count)
         target_array = self.zeros(dtype = np.bool)
         for role in roles:
             # TODO Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
@@ -237,44 +236,46 @@ class SimpleFormula(AbstractFormula):
         When no roles are given, it means "all the roles" => every cell is set.
         """
         holder = self.holder
-        target_entity = holder.entity
-        simulation = target_entity.simulation
+        simulation = holder.simulation
         persons = simulation.persons
         if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
             if entity is None:
                 entity = array_or_dated_holder.entity
             else:
-                assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-                entity = simulation.entity_by_key_singular[entity]
+                assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
                 assert entity == array_or_dated_holder.entity, \
-                    u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key_plural,
-                        array_or_dated_holder.entity.key_plural).encode('utf-8')
+                    u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key,
+                        array_or_dated_holder.column.entity.key).encode('utf-8')
             array = array_or_dated_holder.array
             if default is None:
                 default = array_or_dated_holder.column.default
         else:
-            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-            entity = simulation.entity_by_key_singular[entity]
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
-            assert array.size == entity.count, u"Expected an array of size {}. Got: {}".format(entity.count,
+            entity_count = entity.count
+            assert array.size == entity_count, u"Expected an array of size {}. Got: {}".format(entity_count,
                 array.size)
             if default is None:
                 default = 0
-        assert not entity.is_persons_entity
-        target_array = np.empty(persons.count, dtype = array.dtype)
+        assert not entity.is_person
+        persons_count = persons.count
+        target_array = np.empty(persons_count, dtype = array.dtype)
         target_array.fill(default)
-        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
         if roles is None:
             roles = range(entity.roles_count)
         for role in roles:
-            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
             try:
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
                 log.error(u'An error occurred while transforming array for role {}[{}] in function {}'.format(
-                    entity.key_singular, role, holder.column.name))
+                    entity.key, role, holder.column.name))
                 raise
         return target_array
 
@@ -293,7 +294,7 @@ class SimpleFormula(AbstractFormula):
                     for period2 in periods
                     ))).encode('utf-8'),
                 )
-        simulation = self.holder.entity.simulation
+        simulation = self.holder.simulation
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
         column = self.holder.column
         variable_name = column.name
@@ -317,7 +318,7 @@ class SimpleFormula(AbstractFormula):
         When the value of a formula have been computed, remove the period from
         requested_periods_by_variable_name[variable_name] and delete the latter if empty.
         """
-        simulation = self.holder.entity.simulation
+        simulation = self.holder.simulation
         column = self.holder.column
         variable_name = column.name
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
@@ -340,7 +341,7 @@ class SimpleFormula(AbstractFormula):
         holder = self.holder
         column = holder.column
         entity = holder.entity
-        simulation = entity.simulation
+        simulation = holder.simulation
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
@@ -385,7 +386,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
-                column.name, entity.key_plural, str(period), self.function.__module__,
+                column.name, entity.key, str(period), self.function.__module__,
                 ))
             raise
         else:
@@ -393,25 +394,26 @@ class SimpleFormula(AbstractFormula):
                 output_period, array = formula_result
             except ValueError:
                 raise ValueError(u'A formula must return "period, array": {}@{}<{}> in module {}'.format(
-                    column.name, entity.key_plural, str(period), self.function.__module__,
+                    column.name, entity.key, str(period), self.function.__module__,
                     ).encode('utf-8'))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
-            u"requested period".format(column.name, entity.key_plural, str(period), str(output_period),
+            u"requested period".format(column.name, entity.key, str(period), str(output_period),
                 stringify_array(array)).encode('utf-8')
         assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-            column.name, entity.key_plural, str(period), str(output_period), array).encode('utf-8')
-        assert array.size == entity.count, \
+            column.name, entity.key, str(period), str(output_period), array).encode('utf-8')
+        entity_count = entity.count
+        assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
-                array.size, entity.count, entity.key_singular).encode('utf-8')
+                column.name, entity.key, str(period), str(output_period), stringify_array(array),
+                array.size, entity_count, entity.key).encode('utf-8')
         if debug:
             try:
                 # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        column.name, entity.key_plural, str(period), str(output_period), stringify_array(array),
+                        column.name, entity.key, str(period), str(output_period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
@@ -437,7 +439,7 @@ class SimpleFormula(AbstractFormula):
                     )
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key_plural, str(period),
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
                     simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
                     stringify_array(array)))
 
@@ -452,16 +454,16 @@ class SimpleFormula(AbstractFormula):
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
         holder = self.holder
-        simulation = holder.entity.simulation
+        simulation = holder.simulation
         persons = simulation.persons
         if entity is None:
             entity = holder.entity
         else:
-            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-            entity = simulation.entity_by_key_singular[entity]
-        assert not entity.is_persons_entity
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
         if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_persons_entity
+            assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
                 default = array_or_dated_holder.column.default
@@ -469,20 +471,23 @@ class SimpleFormula(AbstractFormula):
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
-            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
         assert isinstance(role, int)
-        target_array = np.empty(entity.count, dtype = array.dtype)
+        entity_count = entity.count
+        target_array = np.empty(entity_count, dtype = array.dtype)
         target_array.fill(default)
-        boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
+        boolean_filter = simulation.get_entity(entity).members_legacy_role == role
         try:
             target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
         except:
             log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                entity.key_singular, role, holder.column.name))
+                entity.key, role, holder.column.name))
             raise
         return target_array
 
@@ -490,8 +495,7 @@ class SimpleFormula(AbstractFormula):
         """Recursively build a graph of formulas."""
         holder = self.holder
         column = holder.column
-        entity = holder.entity
-        simulation = entity.simulation
+        simulation = holder.simulation
         variables_name, parameters_name = get_input_variables_and_parameters(column)
         if variables_name is not None:
             for variable_name in sorted(variables_name):
@@ -505,16 +509,16 @@ class SimpleFormula(AbstractFormula):
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
         holder = self.holder
-        simulation = holder.entity.simulation
+        simulation = holder.simulation
         persons = simulation.persons
         if entity is None:
             entity = holder.entity
         else:
-            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-            entity = simulation.entity_by_key_singular[entity]
-        assert not entity.is_persons_entity
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
         if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_persons_entity
+            assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
                 default = array_or_dated_holder.column.default
@@ -522,54 +526,60 @@ class SimpleFormula(AbstractFormula):
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
-            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
                 array.size)
             if default is None:
                 default = 0
-        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
+        entity_index_array = simulation.get_entity(entity).members_entity_id
         if roles is None:
             # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
             # roles = range(entity.roles_count)
             roles = range(max(entity.roles_count, 11))
         target_array_by_role = {}
+        entity_count = entity.count
         for role in roles:
-            target_array_by_role[role] = target_array = np.empty(entity.count, dtype = array.dtype)
+            target_array_by_role[role] = target_array = np.empty(entity_count, dtype = array.dtype)
             target_array.fill(default)
-            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
+
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
             try:
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
                 log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                    entity.key_singular, role, holder.column.name))
+                    entity.key, role, holder.column.name))
                 raise
         return target_array_by_role
 
     def sum_by_entity(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
-        simulation = holder.entity.simulation
+        simulation = holder.simulation
         persons = simulation.persons
         if entity is None:
             entity = holder.entity
         else:
-            assert entity in simulation.entity_by_key_singular, u"Unknown entity: {}".format(entity).encode('utf-8')
-            entity = simulation.entity_by_key_singular[entity]
-        assert not entity.is_persons_entity
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
         if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_persons_entity
+            assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
                 'utf-8')
-            assert array.size == persons.count, u"Expected an array of size {}. Got: {}".format(persons.count,
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
                 array.size)
-        entity_index_array = persons.simulation.holder_by_name[entity.index_for_person_variable_name].array
-        if roles is None:
+
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
+        if roles is None:  # Here we assume we have only one person per role. Not true with new role.
             roles = range(entity.roles_count)
         target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
         for role in roles:
             # TODO: Mettre les filtres en cache dans la simulation
-            boolean_filter = persons.simulation.holder_by_name[entity.role_for_person_variable_name].array == role
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
@@ -587,8 +597,7 @@ class SimpleFormula(AbstractFormula):
         if get_input_variables_and_parameters is not None:
             holder = self.holder
             column = holder.column
-            entity = holder.entity
-            simulation = entity.simulation
+            simulation = holder.simulation
             variables_name, parameters_name = get_input_variables_and_parameters(column)
             if variables_name:
                 if with_input_variables_details:
@@ -597,7 +606,7 @@ class SimpleFormula(AbstractFormula):
                         variable_holder = simulation.get_or_new_holder(variable_name)
                         variable_column = variable_holder.column
                         input_variables_json.append(collections.OrderedDict((
-                            ('entity', variable_holder.entity.key_plural),
+                            ('entity', variable_holder.entity.key),
                             ('label', variable_column.label),
                             ('name', variable_column.name),
                             )))
@@ -643,7 +652,7 @@ def neutralize_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
-        entity_class = column.entity_class,
+        entity = column.entity,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
         set_input = set_input_neutralized,
@@ -653,7 +662,7 @@ def neutralize_column(column):
 def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
         __doc__ = None, __module__ = None,
-        entity_class = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
         source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
@@ -689,16 +698,12 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     elif isinstance(comments, str):
         comments = comments.decode('utf-8')
 
-    assert entity_class is not None, """Missing attribute "entity_class" in definition of filled column {}""".format(
+    assert entity is not None, """Missing attribute "entity" in definition of filled column {}""".format(
         name)
-    if entity_class is UnboundLocalError:
+    if entity is UnboundLocalError:
         assert reference_column is not None, \
-            """Missing attribute "entity_class" in definition of filled column {}""".format(name)
-        entity_class_key_plural = reference_column.entity_key_plural
-        entity_class_symbol = reference_column.entity
-    else:
-        entity_class_key_plural = entity_class.key_plural
-        entity_class_symbol = entity_class.symbol
+            """Missing attribute "entity" in definition of filled column {}""".format(name)
+        entity = reference_column.entity
 
     assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
         name)
@@ -880,9 +885,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         column.cerfa_field = cerfa_field
     if stop_date is not None:
         column.end = stop_date
-    column.entity = entity_class_symbol  # Obsolete: To remove once build_..._couple() functions are no more used.
-    column.entity_key_plural = entity_class_key_plural
-    column.entity_class = entity_class
+    column.entity = entity
     column.formula_class = formula_class
     if is_permanent:
         column.is_permanent = True

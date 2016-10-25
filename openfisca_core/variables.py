@@ -4,11 +4,12 @@
 import inspect
 import textwrap
 
-from openfisca_core.formulas import SimpleFormula, DatedFormula, EntityToPerson, PersonToEntity, new_filled_column
-from openfisca_core import columns
+from openfisca_core.formulas import SimpleFormula, DatedFormula, new_filled_column
 
 
 class AbstractVariable(object):
+    formula_class = None
+
     def __init__(self, name, attributes, variable_class):
         self.name = name
         self.attributes = attributes
@@ -30,27 +31,25 @@ class AbstractVariable(object):
 
         return comments, source_file_path, source_code, start_line_number
 
-
-class AbstractComputationVariable(AbstractVariable):
-    formula_class = None  # Overridden
-
     def to_column(self, tax_benefit_system):
-        entity_class = self.attributes.pop('entity_class', None)
+        formula_class = self.__class__.formula_class
+        entity = self.attributes.pop('entity', None)
 
         # For reform variable that replaces the existing reference one
         reference = self.attributes.pop('reference', None)
-        if reference and not entity_class:
-            entity_class = reference.entity_class
+        if reference:
+            if not entity:
+                entity = reference.entity
 
         comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
 
-        if entity_class is None:
-            raise Exception('Variable {} must have an entity_class'.format(self.name))
+        if entity is None:
+            raise Exception('Variable {} must have an entity'.format(self.name))
 
         return new_filled_column(
             name = self.name,
-            entity_class = entity_class,
-            formula_class = self.formula_class,
+            entity = entity,
+            formula_class = formula_class,
             reference_column = reference,
             comments = comments,
             start_line_number = start_line_number,
@@ -60,9 +59,9 @@ class AbstractComputationVariable(AbstractVariable):
             )
 
 
-class Variable(AbstractComputationVariable):
+class Variable(AbstractVariable):
     formula_class = SimpleFormula
 
 
-class DatedVariable(AbstractComputationVariable):
+class DatedVariable(AbstractVariable):
     formula_class = DatedFormula
