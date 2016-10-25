@@ -18,6 +18,30 @@ class Entity(object):
         self.count = 0
         self.step_size = 0
 
+    # Calculations
+
+    def check_variable_defined_for_entity(self, variable_name):
+        if not (self.simulation.get_variable_entity(variable_name) == self):
+            variable_entity = self.simulation.get_variable_entity(variable_name)
+            raise Exception(
+                "Variable {} is not defined for {} but for {}".format(
+                    variable_name, self.key, variable_entity.key)
+                )
+    def calculate(self, variable_name, period = None):
+        self.check_variable_defined_for_entity(variable_name)
+        return self.simulation.calculate(variable_name, period)
+
+    def calculate_add(self, variable_name, period = None):
+        self.check_variable_defined_for_entity(variable_name)
+        return self.simulation.calculate_add(variable_name, period)
+
+    def calculate_divide(self, variable_name, period = None):
+        self.check_variable_defined_for_entity(variable_name)
+        return self.simulation.calculate_divide(variable_name, period)
+
+    def calculate_add_divide(self, variable_name, period = None):
+        self.check_variable_defined_for_entity(variable_name)
+        return self.simulation.calculate_add_divide(variable_name, period)
 class PersonEntity(Entity):
     is_person = True
 
@@ -38,6 +62,10 @@ class GroupEntity(Entity):
         self.members_role = None
         self.members_legacy_role = None
         self.members_position = None
+
+    @property
+    def members(self):
+        return self.simulation.persons
         else:
 
 
