@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 
 from enumerations import Enum
+from formulas import ADD, DIVIDE
 
 
 class Entity(object):
@@ -32,27 +33,18 @@ class Entity(object):
         if not self.count == array.size:
             raise Exception("Input {} is not a valid value for the entity {}".format(array, self.key))
 
-    def calculate(self, variable_name, period = None):
-        self.check_variable_defined_for_entity(variable_name)
-        return self.simulation.calculate(variable_name, period)
-
-    def calculate_add(self, variable_name, period = None):
-        self.check_variable_defined_for_entity(variable_name)
-        return self.simulation.calculate_add(variable_name, period)
-
-    def calculate_divide(self, variable_name, period = None):
-        self.check_variable_defined_for_entity(variable_name)
-        return self.simulation.calculate_divide(variable_name, period)
-
-    def calculate_add_divide(self, variable_name, period = None):
-        self.check_variable_defined_for_entity(variable_name)
-        return self.simulation.calculate_add_divide(variable_name, period)
-
-    def __getitem__(self, attribute, options = []):
+    def __getitem__(self, attribute):
         self.check_variable_defined_for_entity(attribute)
 
-        def calculate(period = None):
-            return self.simulation.calculate(attribute, period)
+        def calculate(period = None, options = []):
+            if ADD in options and DIVIDE in options:
+                return self.simulation.calculate_add_divide(attribute, period)
+            elif ADD in options:
+                return self.simulation.calculate_add(attribute, period)
+            elif DIVIDE in options:
+                return self.simulation.calculate_divide(attribute, period)
+            else:
+                return self.simulation.calculate(attribute, period)
 
         return calculate
 

@@ -25,6 +25,9 @@ from .tools import empty_clone, stringify_array
 log = logging.getLogger(__name__)
 
 
+ADD = 'add'
+DIVIDE = 'divide'
+
 # Exceptions
 
 
