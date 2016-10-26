@@ -88,7 +88,7 @@ class revenu_disponible(Variable):
         period = period.start.period(u'year').offset('first-of')
         rsa = individu('rsa', period, options = [ADD])
         salaire_imposable = individu('salaire_imposable', period)
-        taux = legislation(period.start).impot.taux
+        taux = legislation(period).impot.taux
 
         return period, rsa + salaire_imposable * (1 - taux)
 
@@ -164,7 +164,7 @@ class csg(Variable):
 
     def function(individu, period, legislation):
         period = period.start.period(u'year').offset('first-of')
-        taux = legislation(period.start).csg.activite.deductible.taux
+        taux = legislation(period).csg.activite.deductible.taux
         salaire_brut = individu('salaire_brut', period)
 
         return period, taux * salaire_brut
