@@ -48,6 +48,14 @@ class Entity(object):
         self.check_variable_defined_for_entity(variable_name)
         return self.simulation.calculate_add_divide(variable_name, period)
 
+    def __getitem__(self, attribute, options = []):
+        self.check_variable_defined_for_entity(attribute)
+
+        def calculate(period = None):
+            return self.simulation.calculate(attribute, period)
+
+        return calculate
+
     # Helpers
 
     def empty_array(self):
