@@ -33,20 +33,17 @@ class Entity(object):
         if not self.count == array.size:
             raise Exception("Input {} is not a valid value for the entity {}".format(array, self.key))
 
-    def __getitem__(self, attribute):
-        self.check_variable_defined_for_entity(attribute)
+    def __call__(self, variable_name, period = None, options = []):
+        self.check_variable_defined_for_entity(variable_name)
 
-        def calculate(period = None, options = []):
-            if ADD in options and DIVIDE in options:
-                return self.simulation.calculate_add_divide(attribute, period)
-            elif ADD in options:
-                return self.simulation.calculate_add(attribute, period)
-            elif DIVIDE in options:
-                return self.simulation.calculate_divide(attribute, period)
-            else:
-                return self.simulation.calculate(attribute, period)
-
-        return calculate
+        if ADD in options and DIVIDE in options:
+            return self.simulation.calculate_add_divide(variable_name, period)
+        elif ADD in options:
+            return self.simulation.calculate_add(variable_name, period)
+        elif DIVIDE in options:
+            return self.simulation.calculate_divide(variable_name, period)
+        else:
+            return self.simulation.calculate(variable_name, period)
 
     # Helpers
 
