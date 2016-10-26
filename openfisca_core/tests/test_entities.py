@@ -46,7 +46,7 @@ def test_project():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    af = familles.calculate('af', 2013)
+    af = familles['af'](2013)
     af_projete = familles.project(af)
 
     assert_near(af_projete, [20000, 20000, 20000, 20000, 0, 0])
@@ -63,7 +63,7 @@ def test_project_on_first_person():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    af = familles.calculate('af')
+    af = familles['af']()
     af_projete = familles.project_on_first_person(af)
 
     assert_near(af_projete, [20000, 0, 0, 0, 5000, 0])
@@ -77,7 +77,7 @@ def test_share_between_members():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    af = familles.calculate('af')
+    af = familles['af']()
 
     af_shared = familles.share_between_members(af, role = PARENT)
 
@@ -94,7 +94,7 @@ def test_sum():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    salaire_net = familles.members.calculate('salaire_net')
+    salaire_net = familles.members['salaire_net']()
     salaire_total_par_famille = familles.sum(salaire_net)
 
     assert_near(salaire_total_par_famille, [2500, 3500])
@@ -109,7 +109,7 @@ def test_any():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    age = familles.members.calculate('age')
+    age = familles.members['age']()
     condition_age = (age <= 18)
     has_famille_member_with_age_inf_18 = familles.any(condition_age)
     assert_near(has_famille_member_with_age_inf_18, [True, False])
@@ -124,7 +124,7 @@ def test_all():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    age = familles.members.calculate('age')
+    age = familles.members['age']()
 
     condition_age = (age >= 18)
     all_persons_age_sup_18 = familles.all(condition_age)
@@ -139,7 +139,7 @@ def test_max():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    age = familles.members.calculate('age')
+    age = familles.members['age']()
 
     age_max = familles.max(age)
     assert_near(age_max, [40, 54])
@@ -153,7 +153,7 @@ def test_min():
     simulation = new_simulation(test_case)
     familles = simulation.get_entity(Familles)
 
-    age = familles.members.calculate('age')
+    age = familles.members['age']()
 
     age_min = familles.min(age)
     assert_near(age_min, [7, 20])
@@ -172,7 +172,7 @@ def test_swap():
     simulation = new_simulation(test_case)
     individus = simulation.get_entity(Individus)
 
-    salaire_net = individus.calculate('salaire_net')
+    salaire_net = individus['salaire_net']()
 
     salaire_conjoint = individus.value_from_partner(salaire_net, individus.famille, PARENT)
 
