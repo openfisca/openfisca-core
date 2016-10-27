@@ -55,6 +55,17 @@ def test_project():
     assert_near(af_projete_parents, [20000, 20000, 0, 0, 0, 0])
 
 
+def test_inplicit_projection():
+    test_case = deepcopy(TEST_CASE)
+    test_case['familles'][0]['af'] = 20000
+
+    simulation = new_simulation(test_case)
+    individu = simulation.get_entity(Individus)
+    af = individu.famille('af')
+
+    assert_near(af, [20000, 20000, 20000, 20000, 0, 0])
+
+
 def test_project_on_first_person():
     test_case = deepcopy(TEST_CASE)
     test_case['familles'][0]['af'] = 20000

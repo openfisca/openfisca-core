@@ -183,3 +183,16 @@ class GroupEntity(Entity):
         origin_entity.check_array_compatible_with_entity(array)
         input_projected = origin_entity.project_on_first_person(array)
         return self.sum(input_projected)
+
+
+class EntityProjector(object):
+
+    def __init__(self, entity):
+        self.entity = entity
+
+    def __getattr__(self, attribute):
+        return getattr(self.entity, attribute)
+
+    def __call__(self, *args, **kwargs):
+        result = self.entity(*args, **kwargs)
+        return self.entity.project(result)

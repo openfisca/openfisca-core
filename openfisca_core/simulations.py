@@ -7,6 +7,7 @@ import numpy as np
 
 from . import periods, holders
 from .tools import empty_clone, stringify_array
+from .entities import EntityProjector
 
 
 class Simulation(object):
@@ -63,7 +64,7 @@ class Simulation(object):
 
         for entity_key, entity in self.entities.iteritems():
             if not entity.is_person:
-                self.persons.__setattr__(entity_key, entity)
+                self.persons.__setattr__(entity_key, EntityProjector(entity))
                 self.__setattr__(entity_key, entity)
 
     def calculate(self, column_name, period = None, **parameters):

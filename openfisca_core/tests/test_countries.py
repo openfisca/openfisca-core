@@ -137,12 +137,11 @@ class salaire_imposable(Variable):
 
     def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
-        dom_tom_famille = individu.famille('dom_tom', period)  # Implicit conversion would be nice
-        dom_tom_individu = individu.famille.project(dom_tom_famille)
+        dom_tom = individu.famille('dom_tom', period)
 
         salaire_net = individu('salaire_net', period)
 
-        return period, salaire_net * 0.9 - 100 * dom_tom_individu
+        return period, salaire_net * 0.9 - 100 * dom_tom
 
 
 class salaire_net(Variable):
