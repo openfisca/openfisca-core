@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.0
+
+* Add a `DeprecationWarning` when using a `DateCol` with no `default`, but keep the default date to 1970-01-01.
+* Enforce `DateCol.default` to be a `date`.
+
 ## 3.0.3
 
 * Fix `cerfa_field` validation in `Column`, `Formula` and `AbstractConversionVariable`.
