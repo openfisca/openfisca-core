@@ -7,7 +7,7 @@ import pkg_resources
 from os import path
 
 from openfisca_core import conv
-from openfisca_core.entities import GroupEntity, PersonEntity
+from openfisca_core.entities import build_entity
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
@@ -18,10 +18,10 @@ TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 # Entities
 
 
-class Familles(GroupEntity):
-    key = "famille"
-    plural = "familles"
-    label = u'Familles'
+Familles = build_entity(
+    key = "famille",
+    plural = "familles",
+    label = u'Familles',
     roles = [
         {
             'key': 'parent',
@@ -35,13 +35,15 @@ class Familles(GroupEntity):
             'label': u'Enfants',
             }
         ]
+    )
 
 
-class Individus(PersonEntity):
-    key = "individu"
-    plural = "individus"
-    label = u'Individus'
-    is_person = True
+Individus = build_entity(
+    key = "individu",
+    plural = "individus",
+    label = u'Individus',
+    is_person = True,
+    )
 
 
 # Scenarios
