@@ -62,7 +62,7 @@ class PersonEntity(Entity):
     # Projection person -> person
 
     def has_role(self, role):
-        entity = self.simulation.get_entity(role.entity)
+        entity = self.simulation.get_entity(role.entity_class)
         if role.subroles:
             return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
         else:
@@ -201,7 +201,7 @@ class GroupEntity(Entity):
 class Role(object):
 
     def __init__(self, description, entity):
-        self.entity = entity
+        self.entity_class = entity
         self.key = description['key']
         self.label = description.get('label')
         self.plural = description.get('plural')
@@ -240,6 +240,19 @@ class FirstPersonToEntityProjector(object):
         return self.entity.value_from_first_person(result)
 
 
+class UniqueRoleToEntityProjector(object):
+    def __init__(self, entity, role):
+        self.entity = entity
+        self.role = role
+
+    def __getattr__(self, attribute):
+        return getattr(self.origin_entity.members, attribute)
+
+    def __call__(self, *args, **kwargs):
+        result = self.entity.members(*args, **kwargs)
+        return self.entity.value_from_person(result, self.role)
+
+
 class EntityToEntityProjector(object):
 
     def __init__(self, origin_entity, target_entity):
@@ -265,12 +278,12 @@ def build_entity(key, plural, label, roles = None, is_person = False):
         for role_description in roles:
             role = Role(role_description, entity_class)
             entity_class.roles.append(role)
-            setattr(entity_class, role.key, role)
+            setattr(entity_class, role.key.upper(), role)
             if role_description.get('subroles'):
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
                     subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
-                    setattr(entity_class, subrole.key, subrole)
+                    setattr(entity_class, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
 
