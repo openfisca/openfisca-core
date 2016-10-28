@@ -19,10 +19,10 @@ AGES = [40, 37, 7, 9, 54, 20]
 for (individu, age) in zip(TEST_CASE_AGES['individus'], AGES):
         individu['age'] = age
 
-DEMANDEUR = Familles.demandeur
-CONJOINT = Familles.conjoint
-PARENT = Familles.parent
-ENFANT = Familles.enfant
+DEMANDEUR = Familles.DEMANDEUR
+CONJOINT = Familles.CONJOINT
+PARENT = Familles.PARENT
+ENFANT = Familles.ENFANT
 
 
 def new_simulation(test_case):
@@ -70,7 +70,7 @@ def test_project():
     assert_near(af_projete_parents, [20000, 20000, 0, 0, 0, 0])
 
 
-def test_inplicit_projection():
+def test_implicit_projection():
     test_case = deepcopy(TEST_CASE)
     test_case['familles'][0]['af'] = 20000
 
@@ -141,7 +141,7 @@ def test_any():
     assert_near(has_famille_member_with_age_inf_18, [True, False])
 
     condition_age_2 = (age > 18)
-    has_famille_enfant_with_age_sup_18 = famille.any(condition_age_2, role = Familles.enfant)
+    has_famille_enfant_with_age_sup_18 = famille.any(condition_age_2, role = ENFANT)
     assert_near(has_famille_enfant_with_age_sup_18, [False, True])
 
 
@@ -170,7 +170,7 @@ def test_max():
     age_max = famille.max(age)
     assert_near(age_max, [40, 54])
 
-    age_max_enfants = famille.max(age, role = Familles.enfant)
+    age_max_enfants = famille.max(age, role = ENFANT)
     assert_near(age_max_enfants, [9, 20])
 
 
