@@ -68,15 +68,21 @@ class PersonEntity(Entity):
         else:
             return entity.members_role == role
 
+
     def value_from_partner(self, array, entity, role):
-        # Make sure there is only two people with the role
         self.check_array_compatible_with_entity(array)
-        entity_filter = entity.nb_persons(role) == 2
-        higher_value = entity_filter * entity.max(array, role)
-        lower_value = entity_filter * entity.min(array, role)
-        higher_value_i = entity.project(higher_value, role)
-        lower_value_i = entity.project(lower_value, role)
-        return (array == higher_value_i) * lower_value_i + (array == lower_value_i) * higher_value_i
+
+        if not role.subroles or not len(role.subroles) == 2:
+            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+
+        [subrole_1, subrole_2] = role.subroles
+        value_subrole_1 = entity.project(entity.value_from_person(array, subrole_1))
+        value_subrole_2 = entity.project(entity.value_from_person(array, subrole_2))
+
+        return np.select(
+            [self.has_role(subrole_1), self.has_role(subrole_2)],
+            [value_subrole_2, value_subrole_1],
+            )
 
 
 class GroupEntity(Entity):
@@ -164,14 +170,15 @@ class GroupEntity(Entity):
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
         role_condition = self.members.has_role(role) if role is not None else True
-        return array[self.members_entity_id] * role_condition
+        return np.where(role_condition, array[self.members_entity_id], 0)
 
+        # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
     def project_on_first_person(self, array):
         self.check_array_compatible_with_entity(array)
         entity_position_array = self.members_position
         entity_index_array = self.members_entity_id
-        boolean_filter = (entity_position_array == 0)
-        return array[entity_index_array] * boolean_filter
+        position_filter = (entity_position_array == 0)
+        return np.where(position_filter, array[entity_index_array], 0)
 
     def share_between_members(self, array, role = None):
         self.check_array_compatible_with_entity(array)
@@ -183,8 +190,8 @@ class GroupEntity(Entity):
     def transpose(self, array, origin_entity):
         origin_entity = self.simulation.get_entity(origin_entity)
         origin_entity.check_array_compatible_with_entity(array)
-        input_projected = origin_entity.project_on_first_person(array)
-        return self.sum(input_projected)  # TODO: What if it is a string ?
+        input_projected = origin_entity.project(array)
+        return self.value_from_first_person(input_projected)
 
 
 class Role(object):
