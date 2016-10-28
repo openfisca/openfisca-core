@@ -24,13 +24,15 @@ class Familles(GroupEntity):
     label = u'Familles'
     roles = [
         {
-            'key': 'parents',
+            'key': 'parent',
+            'plural': 'parents',
             'label': u'Parents',
             'max': 2
             },
         {
-            'key': 'enfants',
-            'label': u'Enfants'
+            'key': 'enfant',
+            'plural': 'enfants',
+            'label': u'Enfants',
             }
         ]
 
