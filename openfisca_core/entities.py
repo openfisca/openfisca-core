@@ -68,7 +68,6 @@ class PersonEntity(Entity):
         else:
             return entity.members_role == role
 
-
     def value_from_partner(self, array, entity, role):
         self.check_array_compatible_with_entity(array)
 
@@ -149,7 +148,12 @@ class GroupEntity(Entity):
     # Projection person -> entity
 
     def value_from_person(self, array, role, default = 0):
-        # TODO: Make sure the role is unique
+
+        if role.max != 1:
+            raise Exception(
+                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
+                .format(self.key, role.key)
+                )
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.filled_array(default)
         role_filter = self.members.has_role(role)
@@ -265,7 +269,7 @@ def build_entity(key, plural, label, roles = None, is_person = False):
             if role_description.get('subroles'):
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key}, entity_class)
+                    subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
                     setattr(entity_class, subrole.key, subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
