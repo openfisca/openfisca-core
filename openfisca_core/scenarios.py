@@ -75,8 +75,9 @@ class AbstractScenario(object):
                     entity.members_entity_id = np.arange(persons.count, dtype = np.int32)
 
                 if entity.members_role is None:
-                    entity.members_role = np.zeros(persons.count, dtype = np.int32)
-                entity.roles_count = entity.members_role.max() + 1
+                    default_role = entity.roles[0] if entity.roles[0].subroles is None else entity.roles[0].subroles[0]
+                    entity.members_role = np.full(persons.count, default_role, dtype = object)
+                entity.roles_count = len(np.unique(entity.members_role))
 
                 if entity.members_position is None:
                     entity.members_position = np.zeros(persons.count, dtype = np.int32)
@@ -690,17 +691,8 @@ def set_entities_json_id(entities_json):
 def iter_over_entity_members(entity_description, scenario_entity):
         # One by one, yield individu_position, individu_role, individu_id
         index_in_entity = 0
-        role_index = 0
-        # role_in_scenario_indexes = {}
         legacy_role_i = 0
-
         for role in entity_description.roles:
-            # if role.get('role_in_scenario'):
-            #     role_name = role['role_in_scenario']
-            #     index = role_in_scenario_indexes.get(role_name) or 0
-            #     role_in_scenario_indexes[role_name] = index + 1
-            #     individus = (len(scenario_entity[role_name]) > index) and scenario_entity[role_name][index]
-            # else:
             role_name = role.plural or role.key
             individus = scenario_entity[role_name]
 
@@ -710,8 +702,10 @@ def iter_over_entity_members(entity_description, scenario_entity):
 
                 legacy_role_j = 0
                 for individu in individus:
-                    yield index_in_entity, role, legacy_role_i + legacy_role_j, individu
+                    if role.subroles:
+                        yield index_in_entity, role.subroles[legacy_role_j], legacy_role_i + legacy_role_j, individu
+                    else:
+                        yield index_in_entity, role, legacy_role_i + legacy_role_j, individu
                     index_in_entity += 1
                     legacy_role_j += 1
-            role_index += 1
             legacy_role_i += (role.max or 1)
