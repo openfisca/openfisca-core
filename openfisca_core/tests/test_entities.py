@@ -19,6 +19,8 @@ AGES = [40, 37, 7, 9, 54, 20]
 for (individu, age) in zip(TEST_CASE_AGES['individus'], AGES):
         individu['age'] = age
 
+DEMANDEUR = Familles.demandeur
+CONJOINT = Familles.conjoint
 PARENT = Familles.parent
 ENFANT = Familles.enfant
 
@@ -32,7 +34,7 @@ def new_simulation(test_case):
 
 def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
-    assert((simulation.famille.members_role == [PARENT, PARENT, ENFANT, ENFANT, PARENT, ENFANT]).all())
+    assert((simulation.famille.members_role == [DEMANDEUR, CONJOINT, ENFANT, ENFANT, DEMANDEUR, ENFANT]).all())
     assert_near(simulation.famille.members_legacy_role, [0, 1, 2, 3, 0, 2])
     assert_near(simulation.famille.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert_near(simulation.famille.members_position, [0, 1, 2, 3, 0, 1])
@@ -41,7 +43,15 @@ def test_role_index_and_positions():
 def test_has_role():
     simulation = new_simulation(TEST_CASE)
     individu = simulation.persons
-    assert_near(individu.has_role(Familles.enfant), [False, False, True, True, False, True])
+    assert_near(individu.has_role(ENFANT), [False, False, True, True, False, True])
+
+
+def test_has_role_with_subrole():
+    simulation = new_simulation(TEST_CASE)
+    individu = simulation.persons
+    assert_near(individu.has_role(PARENT), [True, True, False, False, True, False])
+    assert_near(individu.has_role(DEMANDEUR), [True, False, False, False, True, False])
+    assert_near(individu.has_role(CONJOINT), [False, True, False, False, False, False])
 
 
 def test_project():

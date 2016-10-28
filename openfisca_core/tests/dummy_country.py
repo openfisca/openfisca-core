@@ -27,7 +27,7 @@ Familles = build_entity(
             'key': 'parent',
             'plural': 'parents',
             'label': u'Parents',
-            'max': 2
+            'subroles': ['demandeur', 'conjoint']
             },
         {
             'key': 'enfant',
@@ -44,7 +44,6 @@ Individus = build_entity(
     label = u'Individus',
     is_person = True,
     )
-
 
 # Scenarios
 

@@ -63,7 +63,10 @@ class PersonEntity(Entity):
 
     def has_role(self, role):
         entity = self.simulation.get_entity(role.entity)
-        return entity.members_role == role
+        if role.subroles:
+            return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
+        else:
+            return entity.members_role == role
 
     def value_from_partner(self, array, entity, role):
         # Make sure there is only two people with the role
@@ -93,7 +96,7 @@ class GroupEntity(Entity):
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.empty_array()
         if role is not None:
-            role_filter = (self.members_role == role)
+            role_filter = self.members.has_role(role)
 
             # Entities for which one person at least has the given role
             entity_has_role_filter = np.bincount(self.members_entity_id, weights = role_filter) > 0
@@ -110,8 +113,7 @@ class GroupEntity(Entity):
     def reduce(self, array, reducer, neutral_element, role = None):
         self.simulation.persons.check_array_compatible_with_entity(array)
         position_in_entity = self.members_position
-        role_in_entity = self.members_role
-        role_filter = (role_in_entity == role) if role is not None else True
+        role_filter = self.members.has_role(role) if role is not None else True
 
         result = self.filled_array(neutral_element)  # Neutral value that will be returned if no one with the given role exists.
 
@@ -135,7 +137,7 @@ class GroupEntity(Entity):
         return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
 
     def nb_persons(self, role = None):
-            role_condition = (self.members_role == role)
+            role_condition = self.members.has_role(role)
             return self.sum(role_condition)
 
     # Projection person -> entity
@@ -144,7 +146,7 @@ class GroupEntity(Entity):
         # TODO: Make sure the role is unique
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.filled_array(default)
-        role_filter = (self.members_role == role)
+        role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
         result[entity_filter] = array[role_filter]
@@ -161,7 +163,7 @@ class GroupEntity(Entity):
 
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
-        role_condition = (self.members_role == role) if role is not None else True
+        role_condition = self.members.has_role(role) if role is not None else True
         return array[self.members_entity_id] * role_condition
 
     def project_on_first_person(self, array):
@@ -190,9 +192,10 @@ class Role(object):
     def __init__(self, description, entity):
         self.entity = entity
         self.key = description['key']
-        self.label = description['label']
+        self.label = description.get('label')
         self.plural = description.get('plural')
         self.max = description.get('max')
+        self.subroles = None
 
 
 class EntityToPersonProjector(object):
@@ -247,8 +250,17 @@ def build_entity(key, plural, label, roles = None, is_person = False):
         entity_class = type(entity_class_name, (PersonEntity,), attributes)
     elif roles:
         entity_class = type(entity_class_name, (GroupEntity,), attributes)
-        entity_class.roles = [Role(role, entity_class) for role in roles]
-        for role in entity_class.roles:
+        entity_class.roles = []
+        for role_description in roles:
+            role = Role(role_description, entity_class)
+            entity_class.roles.append(role)
             setattr(entity_class, role.key, role)
+            if role_description.get('subroles'):
+                role.subroles = []
+                for subrole_key in role_description['subroles']:
+                    subrole = Role({'key': subrole_key}, entity_class)
+                    setattr(entity_class, subrole.key, subrole)
+                    role.subroles.append(subrole)
+                role.max = len(role.subroles)
 
     return entity_class
