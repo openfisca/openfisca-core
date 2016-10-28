@@ -61,9 +61,9 @@ class PersonEntity(Entity):
 
     # Projection person -> person
 
-    def role_in(self, entity):
+    def has_role(self, role, entity):  # if a role was not just a number, we could have only role as arg.
         entity = self.simulation.get_entity(entity)
-        return entity.members_role
+        return entity.members_role == role
 
     def value_from_partner(self, array, entity, role):
         # Make sure there is only two people with the role
