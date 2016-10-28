@@ -32,10 +32,16 @@ def new_simulation(test_case):
 
 def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
-    assert_near(simulation.get_entity(Familles).members_role, [PARENT, PARENT, ENFANT, ENFANT, PARENT, ENFANT])
-    assert_near(simulation.get_entity(Familles).members_legacy_role, [0, 1, 2, 3, 0, 2])
-    assert_near(simulation.get_entity(Familles).members_entity_id, [0, 0, 0, 0, 1, 1])
-    assert_near(simulation.get_entity(Familles).members_position, [0, 1, 2, 3, 0, 1])
+    assert((simulation.famille.members_role == [PARENT, PARENT, ENFANT, ENFANT, PARENT, ENFANT]).all())
+    assert_near(simulation.famille.members_legacy_role, [0, 1, 2, 3, 0, 2])
+    assert_near(simulation.famille.members_entity_id, [0, 0, 0, 0, 1, 1])
+    assert_near(simulation.famille.members_position, [0, 1, 2, 3, 0, 1])
+
+
+def test_has_role():
+    simulation = new_simulation(TEST_CASE)
+    individu = simulation.persons
+    assert_near(individu.has_role(Familles.enfant), [False, False, True, True, False, True])
 
 
 def test_project():
@@ -43,7 +49,7 @@ def test_project():
     test_case['familles'][0]['af'] = 20000
 
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     af = famille('af', 2013)
     af_projete = famille.project(af)
@@ -71,7 +77,7 @@ def test_project_on_first_person():
     test_case['familles'][1]['af'] = 5000
 
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     af = famille('af')
     af_projete = famille.project_on_first_person(af)
@@ -85,7 +91,7 @@ def test_share_between_members():
     test_case['familles'][1]['af'] = 5000
 
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     af = famille('af')
 
@@ -102,7 +108,7 @@ def test_sum():
     test_case['individus'][5]['salaire_net'] = 500
 
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     salaire_net = famille.members('salaire_net')
     salaire_total_par_famille = famille.sum(salaire_net)
@@ -117,7 +123,7 @@ def test_sum():
 def test_any():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     age = famille.members('age')
     condition_age = (age <= 18)
@@ -132,7 +138,7 @@ def test_any():
 def test_all():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     age = famille.members('age')
 
@@ -147,7 +153,7 @@ def test_all():
 def test_max():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     age = famille.members('age')
 
@@ -161,7 +167,7 @@ def test_max():
 def test_min():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     age = famille.members('age')
 
@@ -197,7 +203,7 @@ def test_value_from_first_person():
     test_case['individus'][5]['salaire_net'] = 500
 
     simulation = new_simulation(test_case)
-    famille = simulation.get_entity(Familles)
+    famille = simulation.famille
 
     salaires_net = famille.members('salaire_net')
     salaire_first_person = famille.value_from_first_person(salaires_net)

@@ -61,8 +61,8 @@ class PersonEntity(Entity):
 
     # Projection person -> person
 
-    def has_role(self, role, entity):  # if a role was not just a number, we could have only role as arg.
-        entity = self.simulation.get_entity(entity)
+    def has_role(self, role):
+        entity = self.simulation.get_entity(role.entity)
         return entity.members_role == role
 
     def value_from_partner(self, array, entity, role):
@@ -77,10 +77,6 @@ class PersonEntity(Entity):
 
 
 class GroupEntity(Entity):
-
-    @classmethod
-    def get_role_enum(cls):
-        return Enum(map(lambda role: role['key'], cls.roles))
 
     def __init__(self, simulation):
         Entity.__init__(self, simulation)
@@ -189,6 +185,16 @@ class GroupEntity(Entity):
         return self.sum(input_projected)  # TODO: What if it is a string ?
 
 
+class Role(object):
+
+    def __init__(self, description, entity):
+        self.entity = entity
+        self.key = description['key']
+        self.label = description['label']
+        self.plural = description.get('plural')
+        self.max = description.get('max')
+
+
 class EntityToPersonProjector(object):
 
     def __init__(self, entity):
@@ -232,3 +238,17 @@ class EntityToEntityProjector(object):
     def __call__(self, *args, **kwargs):
         result = self.origin_entity(*args, **kwargs)
         return self.target_entity.transpose(result, origin_entity = self.origin_entity)
+
+
+def build_entity(key, plural, label, roles = None, is_person = False):
+    entity_class_name = plural.title()
+    attributes = {'key': key, 'plural': plural, 'label': label}
+    if is_person:
+        entity_class = type(entity_class_name, (PersonEntity,), attributes)
+    elif roles:
+        entity_class = type(entity_class_name, (GroupEntity,), attributes)
+        entity_class.roles = [Role(role, entity_class) for role in roles]
+        for role in entity_class.roles:
+            setattr(entity_class, role.key, role)
+
+    return entity_class

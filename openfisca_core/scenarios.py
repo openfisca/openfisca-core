@@ -129,7 +129,7 @@ class AbstractScenario(object):
                         )
                     entity.members_role = np.empty(
                         steps_count * persons_step_size,
-                        dtype = np.int32
+                        dtype = object
                         )
                     entity.members_legacy_role = np.empty(
                         steps_count * persons_step_size,
@@ -691,18 +691,18 @@ def iter_over_entity_members(entity_description, scenario_entity):
         # One by one, yield individu_position, individu_role, individu_id
         index_in_entity = 0
         role_index = 0
-        role_in_scenario_indexes = {}
+        # role_in_scenario_indexes = {}
         legacy_role_i = 0
 
         for role in entity_description.roles:
-            if role.get('role_in_scenario'):
-                role_name = role['role_in_scenario']
-                index = role_in_scenario_indexes.get(role_name) or 0
-                role_in_scenario_indexes[role_name] = index + 1
-                individus = (len(scenario_entity[role_name]) > index) and scenario_entity[role_name][index]
-            else:
-                role_name = role.get('plural', role['key'])
-                individus = scenario_entity[role_name]
+            # if role.get('role_in_scenario'):
+            #     role_name = role['role_in_scenario']
+            #     index = role_in_scenario_indexes.get(role_name) or 0
+            #     role_in_scenario_indexes[role_name] = index + 1
+            #     individus = (len(scenario_entity[role_name]) > index) and scenario_entity[role_name][index]
+            # else:
+            role_name = role.plural or role.key
+            individus = scenario_entity[role_name]
 
             if individus:
                 if not type(individus) == list:
@@ -710,8 +710,8 @@ def iter_over_entity_members(entity_description, scenario_entity):
 
                 legacy_role_j = 0
                 for individu in individus:
-                    yield index_in_entity, role_index, legacy_role_i + legacy_role_j, individu
+                    yield index_in_entity, role, legacy_role_i + legacy_role_j, individu
                     index_in_entity += 1
                     legacy_role_j += 1
             role_index += 1
-            legacy_role_i += (role['max'] if role.get('max') else 1)
+            legacy_role_i += (role.max or 1)
