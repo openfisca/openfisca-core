@@ -55,6 +55,7 @@ class TaxBenefitSystem(object):
 
     def build_entities(self, entities):
         self.person_entity = [entity for entity in entities if entity.is_person][0]
+        self.group_entities = [entity for entity in entities if not entity.is_person]
 
     @property
     def base_tax_benefit_system(self):

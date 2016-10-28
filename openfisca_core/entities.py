@@ -88,10 +88,8 @@ class GroupEntity(Entity):
         self.members_role = None
         self.members_legacy_role = None
         self.members_position = None
-
-    @property
-    def members(self):
-        return self.simulation.persons
+        self.first_person = FirstPersonToEntityProjector(self)
+        self.members = self.simulation.persons
 
     #  Aggregation persons -> entity
 
@@ -157,6 +155,12 @@ class GroupEntity(Entity):
 
         return result
 
+    def value_from_first_person(self, array):
+        self.simulation.persons.check_array_compatible_with_entity(array)
+        position_filter = (self.members_position == 0)
+
+        return array[position_filter]
+
     # Projection entity -> person(s)
 
     def project(self, array, role = None):
@@ -182,10 +186,10 @@ class GroupEntity(Entity):
         origin_entity = self.simulation.get_entity(origin_entity)
         origin_entity.check_array_compatible_with_entity(array)
         input_projected = origin_entity.project_on_first_person(array)
-        return self.sum(input_projected)
+        return self.sum(input_projected)  # TODO: What if it is a string ?
 
 
-class EntityProjector(object):
+class EntityToPersonProjector(object):
 
     def __init__(self, entity):
         self.entity = entity
@@ -196,3 +200,35 @@ class EntityProjector(object):
     def __call__(self, *args, **kwargs):
         result = self.entity(*args, **kwargs)
         return self.entity.project(result)
+
+
+class FirstPersonToEntityProjector(object):
+
+    def __init__(self, entity):
+        self.entity = entity
+
+    def __getattr__(self, attribute):
+        # seulement les entities de group
+        if attribute in self.entity.simulation.entities.keys():
+            origin_entity = self.simulation.entities[attribute]
+            return EntityToEntityProjector(origin_entity, self.entity)
+
+        return getattr(self.entity.members, attribute)
+
+    def __call__(self, *args, **kwargs):
+        result = self.entity.members(*args, **kwargs)
+        return self.entity.value_from_first_person(result)
+
+
+class EntityToEntityProjector(object):
+
+    def __init__(self, origin_entity, target_entity):
+        self.origin_entity = origin_entity
+        self.target_entity = target_entity
+
+    def __getattr__(self, attribute):
+        return getattr(self.origin_entity.members, attribute)
+
+    def __call__(self, *args, **kwargs):
+        result = self.origin_entity(*args, **kwargs)
+        return self.target_entity.transpose(result, origin_entity = self.origin_entity)

@@ -7,7 +7,7 @@ import numpy as np
 
 from . import periods, holders
 from .tools import empty_clone, stringify_array
-from .entities import EntityProjector
+from .entities import EntityToPersonProjector
 
 
 class Simulation(object):
@@ -55,17 +55,14 @@ class Simulation(object):
         self.build_entities()
 
     def build_entities(self):
-        self.entities = {
-            entity_definition.key: entity_definition(self)
-            for entity_definition in self.tax_benefit_system.entities
-            }
+        self.persons = self.tax_benefit_system.person_entity(self)
+        self.entities = {self.persons.key: self.persons}
 
-        self.persons = self.get_entity(self.tax_benefit_system.person_entity)
-
-        for entity_key, entity in self.entities.iteritems():
-            if not entity.is_person:
-                self.persons.__setattr__(entity_key, EntityProjector(entity))
-                self.__setattr__(entity_key, entity)
+        for entity_definition in self.tax_benefit_system.group_entities:
+            entity = entity_definition(self)
+            self.entities[entity_definition.key] = entity
+            self.persons.__setattr__(entity.key, EntityToPersonProjector(entity))
+            self.__setattr__(entity.key, entity)
 
     def calculate(self, column_name, period = None, **parameters):
         if period is None:
