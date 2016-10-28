@@ -57,6 +57,11 @@ class TaxBenefitSystem(object):
         self.person_entity = [entity for entity in entities if entity.is_person][0]
         self.group_entities = [entity for entity in entities if not entity.is_person]
 
+        for entity in self.group_entities:
+            role_enum = entity.get_role_enum()
+            for role in entity.roles:
+                setattr(entity, role['key'], role_enum[role['key']])
+
     @property
     def base_tax_benefit_system(self):
         base_tax_benefit_system = self._base_tax_benefit_system

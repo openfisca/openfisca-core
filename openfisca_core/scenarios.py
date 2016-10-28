@@ -701,7 +701,7 @@ def iter_over_entity_members(entity_description, scenario_entity):
                 role_in_scenario_indexes[role_name] = index + 1
                 individus = (len(scenario_entity[role_name]) > index) and scenario_entity[role_name][index]
             else:
-                role_name = role['key']
+                role_name = role.get('plural', role['key'])
                 individus = scenario_entity[role_name]
 
             if individus:
