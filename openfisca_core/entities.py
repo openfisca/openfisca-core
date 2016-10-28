@@ -33,6 +33,10 @@ class Entity(object):
         if not self.count == array.size:
             raise Exception("Input {} is not a valid value for the entity {}".format(array, self.key))
 
+    def check_role_validity(self, role):
+        if role is not None and not type(role) == Role:
+            raise Exception("{} is not a valid role".format(role))
+
     def __call__(self, variable_name, period = None, options = []):
         self.check_variable_defined_for_entity(variable_name)
 
@@ -62,6 +66,7 @@ class PersonEntity(Entity):
     # Projection person -> person
 
     def has_role(self, role):
+        self.check_role_validity(role)
         entity = self.simulation.get_entity(role.entity_class)
         if role.subroles:
             return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
@@ -70,6 +75,7 @@ class PersonEntity(Entity):
 
     def value_from_partner(self, array, entity, role):
         self.check_array_compatible_with_entity(array)
+        self.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
             raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
@@ -98,6 +104,7 @@ class GroupEntity(Entity):
     #  Aggregation persons -> entity
 
     def sum(self, array, role = None):
+        self.check_role_validity(role)
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.empty_array()
         if role is not None:
@@ -117,6 +124,7 @@ class GroupEntity(Entity):
 
     def reduce(self, array, reducer, neutral_element, role = None):
         self.simulation.persons.check_array_compatible_with_entity(array)
+        self.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
 
@@ -142,13 +150,13 @@ class GroupEntity(Entity):
         return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
 
     def nb_persons(self, role = None):
-            role_condition = self.members.has_role(role)
-            return self.sum(role_condition)
+        role_condition = self.members.has_role(role)
+        return self.sum(role_condition)
 
     # Projection person -> entity
 
     def value_from_person(self, array, role, default = 0):
-
+        self.check_role_validity(role)
         if role.max != 1:
             raise Exception(
                 'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
@@ -173,6 +181,7 @@ class GroupEntity(Entity):
 
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
+        self.check_role_validity(role)
         role_condition = self.members.has_role(role) if role is not None else True
         return np.where(role_condition, array[self.members_entity_id], 0)
 
@@ -186,6 +195,7 @@ class GroupEntity(Entity):
 
     def share_between_members(self, array, role = None):
         self.check_array_compatible_with_entity(array)
+        self.check_role_validity(role)
         nb_persons_per_entity = self.nb_persons(role)
         return self.project(array / nb_persons_per_entity, role = role)
 
