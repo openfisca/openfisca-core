@@ -18,10 +18,10 @@ TEST_DIRECTORY = path.dirname(path.abspath(__file__))
 # Entities
 
 
-Familles = build_entity(
+Famille = build_entity(
     key = "famille",
     plural = "familles",
-    label = u'Familles',
+    label = u'Famille',
     roles = [
         {
             'key': 'parent',
@@ -38,10 +38,10 @@ Familles = build_entity(
     )
 
 
-Individus = build_entity(
+Individu = build_entity(
     key = "individu",
     plural = "individus",
-    label = u'Individus',
+    label = u'Individu',
     is_person = True,
     )
 
@@ -130,7 +130,7 @@ class Scenario(AbstractScenario):
                                         (
                                             (column.name, column.json_to_python)
                                             for column in column_by_name.itervalues()
-                                            if column.entity == Familles
+                                            if column.entity == Famille
                                             ),
                                         )),
                                     drop_none_values = True,
@@ -159,7 +159,7 @@ class Scenario(AbstractScenario):
                                         (
                                             (column.name, column.json_to_python)
                                             for column in column_by_name.itervalues()
-                                            if column.entity == Individus
+                                            if column.entity == Individu
                                             ),
                                         )),
                                     drop_none_values = True,
@@ -220,7 +220,7 @@ class Scenario(AbstractScenario):
 
 # TaxBenefitSystems
 
-entities = [Individus, Familles]
+entities = [Individu, Famille]
 path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
 path_to_crds_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
 

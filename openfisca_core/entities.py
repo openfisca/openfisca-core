@@ -283,7 +283,7 @@ class UniqueRoleToEntityProjector(Projector):
 
 
 def build_entity(key, plural, label, roles = None, is_person = False):
-    entity_class_name = plural.title()
+    entity_class_name = key.title()
     attributes = {'key': key, 'plural': plural, 'label': label}
     if is_person:
         entity_class = type(entity_class_name, (PersonEntity,), attributes)

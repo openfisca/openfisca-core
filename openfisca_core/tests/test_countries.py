@@ -12,7 +12,7 @@ from openfisca_core.variables import Variable, DatedVariable
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from openfisca_core.entities import ADD, DIVIDE
-from dummy_country import Familles, Individus, DummyTaxBenefitSystem
+from dummy_country import Famille, Individu, DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 # Input variables
@@ -20,31 +20,31 @@ from openfisca_core.tools import assert_near
 
 class af(Variable):
     column = FloatCol
-    entity = Familles
+    entity = Famille
 
 
 class age_en_mois(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     label = u"Âge (en nombre de mois)"
 
 
 class birth(Variable):
     column = DateCol
-    entity = Individus
+    entity = Individu
     label = u"Date de naissance"
 
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
-    entity = Familles
+    entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
 class salaire_brut(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = "Salaire brut"
     set_input = set_input_divide_by_period
 
@@ -53,7 +53,7 @@ class salaire_brut(Variable):
 
 class age(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     label = u"Âge (en nombre d'années)"
 
     def function(self, simulation, period):
@@ -68,7 +68,7 @@ class age(Variable):
 
 class dom_tom(Variable):
     column = BoolCol
-    entity = Familles
+    entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
     def function(famille, period):
@@ -81,7 +81,7 @@ class dom_tom(Variable):
 
 class revenu_disponible(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Revenu disponible de l'individu"
 
     def function(individu, period, legislation):
@@ -95,7 +95,7 @@ class revenu_disponible(Variable):
 
 class revenu_disponible_famille(Variable):
     column = FloatCol
-    entity = Familles
+    entity = Famille
     label = u"Revenu disponible de la famille"
 
     def function(famille, period):
@@ -105,7 +105,7 @@ class revenu_disponible_famille(Variable):
 
 class rsa(DatedVariable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"RSA"
 
     @dated_function(datetime.date(2010, 1, 1))
@@ -132,7 +132,7 @@ class rsa(DatedVariable):
 
 class salaire_imposable(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Salaire imposable"
 
     def function(individu, period):
@@ -146,7 +146,7 @@ class salaire_imposable(Variable):
 
 class salaire_net(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Salaire net"
 
     def function(individu, period):
@@ -158,7 +158,7 @@ class salaire_net(Variable):
 
 class csg(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"CSG payées sur le salaire"
 
     def function(individu, period, legislation):
