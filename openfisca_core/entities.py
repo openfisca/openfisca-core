@@ -3,7 +3,6 @@
 import numpy as np
 import warnings
 
-from enumerations import Enum
 from formulas import ADD, DIVIDE
 
 
@@ -11,13 +10,18 @@ class Entity(object):
     key = None
     plural = None
     label = None
-    roles = None
     is_person = False
 
     def __init__(self, simulation):
         self.simulation = simulation
         self.count = 0
         self.step_size = 0
+
+    def __getattr__(self, attribute):
+        projector = get_projector_from_shortcut(self, attribute)
+        if not projector:
+            raise Exception("Entity {} has no attribute {}".format(self.key, attribute))
+        return projector
 
     # Calculations
 
@@ -91,6 +95,8 @@ class PersonEntity(Entity):
 
 
 class GroupEntity(Entity):
+    roles = None
+    unique_roles = None
 
     def __init__(self, simulation):
         Entity.__init__(self, simulation)
@@ -98,7 +104,6 @@ class GroupEntity(Entity):
         self.members_role = None
         self.members_legacy_role = None
         self.members_position = None
-        self.first_person = FirstPersonToEntityProjector(self)
         self.members = self.simulation.persons
 
     #  Aggregation persons -> entity
@@ -219,62 +224,62 @@ class Role(object):
         self.subroles = None
 
 
-class EntityToPersonProjector(object):
-
-    def __init__(self, entity):
-        self.entity = entity
-
-    def __getattr__(self, attribute):
-        return getattr(self.entity, attribute)
-
-    def __call__(self, *args, **kwargs):
-        result = self.entity(*args, **kwargs)
-        return self.entity.project(result)
-
-
-class FirstPersonToEntityProjector(object):
-
-    def __init__(self, entity):
-        self.entity = entity
+class Projector(object):
+    reference_entity = None
+    parent = None
 
     def __getattr__(self, attribute):
-        # seulement les entities de group
-        if attribute in self.entity.simulation.entities.keys():
-            origin_entity = self.simulation.entities[attribute]
-            return EntityToEntityProjector(origin_entity, self.entity)
-
-        return getattr(self.entity.members, attribute)
+        return (get_projector_from_shortcut(self.reference_entity, attribute, parent = self) or getattr(self.reference_entity, attribute))
 
     def __call__(self, *args, **kwargs):
-        result = self.entity.members(*args, **kwargs)
-        return self.entity.value_from_first_person(result)
+        result = self.reference_entity(*args, **kwargs)
+        return self.transform_and_bubble_up(result)
+
+    def transform_and_bubble_up(self, result):
+        transformed_result = self.transform(result)
+        if self.parent is None:
+            return transformed_result
+        else:
+            return self.parent.transform_and_bubble_up(transformed_result)
+
+    def transform(self, result):
+        return NotImplementedError()
 
 
-class UniqueRoleToEntityProjector(object):
-    def __init__(self, entity, role):
-        self.entity = entity
+# For instance person.family
+class EntityToPersonProjector(Projector):
+
+    def __init__(self, entity, parent = None):
+        self.reference_entity = entity
+        self.parent = parent
+
+    def transform(self, result):
+        return self.reference_entity.project(result)
+
+
+# For instance famille.first_person
+class FirstPersonToEntityProjector(Projector):
+
+    def __init__(self, entity, parent = None):
+        self.target_entity = entity
+        self.reference_entity = entity.members
+        self.parent = parent
+
+    def transform(self, result):
+        return self.target_entity.value_from_first_person(result)
+
+
+# For instance famille.declarant_principal
+class UniqueRoleToEntityProjector(Projector):
+
+    def __init__(self, entity, role, parent = None):
+        self.target_entity = entity
+        self.reference_entity = entity.members
+        self.parent = parent
         self.role = role
 
-    def __getattr__(self, attribute):
-        return getattr(self.origin_entity.members, attribute)
-
-    def __call__(self, *args, **kwargs):
-        result = self.entity.members(*args, **kwargs)
-        return self.entity.value_from_person(result, self.role)
-
-
-class EntityToEntityProjector(object):
-
-    def __init__(self, origin_entity, target_entity):
-        self.origin_entity = origin_entity
-        self.target_entity = target_entity
-
-    def __getattr__(self, attribute):
-        return getattr(self.origin_entity.members, attribute)
-
-    def __call__(self, *args, **kwargs):
-        result = self.origin_entity(*args, **kwargs)
-        return self.target_entity.transpose(result, origin_entity = self.origin_entity)
+    def transform(self, result):
+        return self.target_entity.value_from_person(result, self.role)
 
 
 def build_entity(key, plural, label, roles = None, is_person = False):
@@ -285,6 +290,7 @@ def build_entity(key, plural, label, roles = None, is_person = False):
     elif roles:
         entity_class = type(entity_class_name, (GroupEntity,), attributes)
         entity_class.roles = []
+        entity_class.unique_roles = []
         for role_description in roles:
             role = Role(role_description, entity_class)
             entity_class.roles.append(role)
@@ -295,6 +301,22 @@ def build_entity(key, plural, label, roles = None, is_person = False):
                     subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
                     setattr(entity_class, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
+                    entity_class.unique_roles.append(subrole)
                 role.max = len(role.subroles)
+            elif role.max == 1:
+                entity_class.unique_roles.append(role)
 
     return entity_class
+
+
+def get_projector_from_shortcut(entity, shortcut, parent = None):
+    if entity.is_person:
+        if shortcut in entity.simulation.entities:
+            entity_2 = entity.simulation.entities[shortcut]
+            return EntityToPersonProjector(entity_2, parent)
+    else:
+        if shortcut == 'first_person':
+            return FirstPersonToEntityProjector(entity, parent)
+        role = next((role for role in entity.unique_roles if (role.key == shortcut)), None)
+        if role:
+            return UniqueRoleToEntityProjector(entity, role, parent)

@@ -7,7 +7,6 @@ import numpy as np
 
 from . import periods, holders
 from .tools import empty_clone, stringify_array
-from .entities import EntityToPersonProjector, UniqueRoleToEntityProjector
 
 
 class Simulation(object):
@@ -56,19 +55,13 @@ class Simulation(object):
 
     def instantiate_entities(self):
         self.persons = self.tax_benefit_system.person_entity(self)
+        setattr(self, self.persons.key, self.persons)
         self.entities = {self.persons.key: self.persons}
 
         for entity_definition in self.tax_benefit_system.group_entities:
             entity = entity_definition(self)
             self.entities[entity_definition.key] = entity
-            self.persons.__setattr__(entity.key, EntityToPersonProjector(entity))
-            for role in entity.roles:
-                if role.max == 1:
-                    entity.__setattr__(role.key, UniqueRoleToEntityProjector(entity, role))
-                elif role.subroles:
-                    for subrole in role.subroles:
-                        entity.__setattr__(subrole.key, UniqueRoleToEntityProjector(entity, subrole))
-            self.__setattr__(entity.key, entity)
+            setattr(self, entity.key, entity)
 
     def calculate(self, column_name, period = None, **parameters):
         if period is None:
