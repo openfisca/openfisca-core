@@ -97,6 +97,7 @@ class PersonEntity(Entity):
 class GroupEntity(Entity):
     roles = None
     unique_roles = None
+    roles_description = None
 
     def __init__(self, simulation):
         Entity.__init__(self, simulation)
@@ -284,7 +285,7 @@ class UniqueRoleToEntityProjector(Projector):
 
 def build_entity(key, plural, label, roles = None, is_person = False):
     entity_class_name = key.title()
-    attributes = {'key': key, 'plural': plural, 'label': label}
+    attributes = {'key': key, 'plural': plural, 'label': label, 'roles_description': roles}
     if is_person:
         entity_class = type(entity_class_name, (PersonEntity,), attributes)
     elif roles:
