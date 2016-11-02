@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 from openfisca_core.tools import assert_near
-from dummy_country import Familles, Individus
+from dummy_country import Famille, Individu
 from test_countries import tax_benefit_system
 
 TEST_CASE = {
@@ -19,10 +19,10 @@ AGES = [40, 37, 7, 9, 54, 20]
 for (individu, age) in zip(TEST_CASE_AGES['individus'], AGES):
         individu['age'] = age
 
-DEMANDEUR = Familles.DEMANDEUR
-CONJOINT = Familles.CONJOINT
-PARENT = Familles.PARENT
-ENFANT = Familles.ENFANT
+DEMANDEUR = Famille.DEMANDEUR
+CONJOINT = Famille.CONJOINT
+PARENT = Famille.PARENT
+ENFANT = Famille.ENFANT
 
 
 def new_simulation(test_case):
@@ -75,7 +75,7 @@ def test_implicit_projection():
     test_case['familles'][0]['af'] = 20000
 
     simulation = new_simulation(test_case)
-    individu = simulation.get_entity(Individus)
+    individu = simulation.get_entity(Individu)
     af = individu.famille('af')
 
     assert_near(af, [20000, 20000, 20000, 20000, 0, 0])
@@ -196,7 +196,7 @@ def test_partner():
     test_case['individus'][5]['salaire_net'] = 500
 
     simulation = new_simulation(test_case)
-    individus = simulation.get_entity(Individus)
+    individus = simulation.get_entity(Individu)
 
     salaire_net = individus('salaire_net')
 

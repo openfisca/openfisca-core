@@ -44,7 +44,7 @@ PARENT1 = 0
 PARENT2 = 1
 
 
-class Familles(AbstractEntity):
+class Famille(AbstractEntity):
     index_for_person_variable_name = 'id_famille'
     key_plural = 'familles'
     key_singular = 'famille'
@@ -59,7 +59,7 @@ class Familles(AbstractEntity):
     symbol = 'fam'
 
 
-class Individus(AbstractEntity):
+class Individu(AbstractEntity):
     is_person = True
     key_plural = 'individus'
     key_singular = 'individu'
@@ -71,40 +71,40 @@ class Individus(AbstractEntity):
 
 class age_en_mois(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     label = u"Âge (en nombre de mois)"
 
 
 class birth(Variable):
     column = DateCol
-    entity = Individus
+    entity = Individu
     label = u"Date de naissance"
 
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
-    entity = Familles
+    entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
 class id_famille(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     is_permanent = True
     label = u"Identifiant de la famille"
 
 
 class role_dans_famille(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     is_permanent = True
     label = u"Rôle dans la famille"
 
 
 class salaire_brut(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = "Salaire brut"
 
 
@@ -112,7 +112,7 @@ class salaire_brut(Variable):
 
 class age(Variable):
     column = IntCol
-    entity = Individus
+    entity = Individu
     label = u"Âge (en nombre d'années)"
 
     def function(self, simulation, period):
@@ -127,7 +127,7 @@ class age(Variable):
 
 class dom_tom(Variable):
     column = BoolCol
-    entity = Familles
+    entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
     def function(self, simulation, period):
@@ -137,14 +137,14 @@ class dom_tom(Variable):
 
 
 class dom_tom_individu(EntityToPersonColumn):
-    entity = Individus
+    entity = Individu
     label = u"La personne habite-t-elle les DOM-TOM ?"
     variable = dom_tom
 
 
 class revenu_disponible(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Revenu disponible de l'individu"
 
     def function(self, simulation, period):
@@ -155,7 +155,7 @@ class revenu_disponible(Variable):
 
 
 class revenu_disponible_famille(PersonToEntityColumn):
-    entity = Familles
+    entity = Famille
     label = u"Revenu disponible de la famille"
     operation = 'add'
     variable = revenu_disponible
@@ -163,7 +163,7 @@ class revenu_disponible_famille(PersonToEntityColumn):
 
 class rsa(DatedVariable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"RSA"
 
     @dated_function(datetime.date(2010, 1, 1))
@@ -187,7 +187,7 @@ class rsa(DatedVariable):
 
 class salaire_imposable(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Salaire imposable"
 
     def function(self, simulation, period):
@@ -199,7 +199,7 @@ class salaire_imposable(Variable):
 
 class salaire_net(Variable):
     column = FloatCol
-    entity = Individus
+    entity = Individu
     label = u"Salaire net"
 
     def function(self, simulation, period):
@@ -211,7 +211,7 @@ class salaire_net(Variable):
 # TaxBenefitSystem instance declared after formulas
 
 
-tax_benefit_system = TaxBenefitSystem([Familles, Individus])
+tax_benefit_system = TaxBenefitSystem([Famille, Individu])
 tax_benefit_system.add_variables(age_en_mois, birth, depcom, id_famille, role_dans_famille, salaire_brut, age,
     dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
 

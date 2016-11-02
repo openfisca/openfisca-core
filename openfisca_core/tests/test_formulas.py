@@ -7,17 +7,17 @@ from openfisca_core.columns import IntCol
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Individus
+from openfisca_core.tests.dummy_country import Individu
 
 
 class choice(Variable):
     column = IntCol
-    entity_class = Individus
+    entity_class = Individu
 
 
 class uses_multiplication(Variable):
     column = IntCol
-    entity_class = Individus
+    entity_class = Individu
     label = u'Variable with formula that uses multiplication'
 
     def function(self, simulation, period):
@@ -28,7 +28,7 @@ class uses_multiplication(Variable):
 
 class uses_switch(Variable):
     column = IntCol
-    entity_class = Individus
+    entity_class = Individu
     label = u'Variable with formula that uses switch'
 
     def function(self, simulation, period):
