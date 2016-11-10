@@ -388,9 +388,14 @@ class SimpleFormula(AbstractFormula):
             else:
                 raise
         except:
-            log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
-                column.name, entity.key, str(period), self.function.__module__,
-                ))
+            if self.function:
+                log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
+                    column.name, entity.key, str(period), self.function.__module__,
+                    ))
+            else:
+                log.error(u'An error occurred while calling formula {}@{}<{}>.'.format(
+                    column.name, entity.key, str(period),
+                    ))
             raise
         else:
             try:
