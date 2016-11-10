@@ -58,10 +58,10 @@ class Entity(object):
     def empty_array(self):
         return np.zeros(self.count)
 
-    def filled_array(self, value):
+    def filled_array(self, value, dtype = None):
         with warnings.catch_warnings():  # Avoid a non-relevant warning
             warnings.simplefilter("ignore")
-            return np.full(self.count, value)
+            return np.full(self.count, value, dtype)
 
 
 class PersonEntity(Entity):
@@ -169,7 +169,7 @@ class GroupEntity(Entity):
                 .format(self.key, role.key)
                 )
         self.simulation.persons.check_array_compatible_with_entity(array)
-        result = self.filled_array(default)
+        result = self.filled_array(default, dtype = array.dtype)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
@@ -191,7 +191,8 @@ class GroupEntity(Entity):
         role_condition = self.members.has_role(role) if role is not None else True
         return np.where(role_condition, array[self.members_entity_id], 0)
 
-        # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
+    # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
+    # Doesn't seem to be used, maybe should just not introduce
     def project_on_first_person(self, array):
         self.check_array_compatible_with_entity(array)
         entity_position_array = self.members_position
@@ -207,6 +208,8 @@ class GroupEntity(Entity):
 
     # Projection entity -> entity
 
+    # Doesn't seem to be used either, as we can do entity1.first_person.entity2
+    # Maybe should not introduce
     def transpose(self, array, origin_entity):
         origin_entity = self.simulation.get_entity(origin_entity)
         origin_entity.check_array_compatible_with_entity(array)
