@@ -101,6 +101,9 @@ class Simulation(object):
             if key not in ('debug', 'debug_all', 'trace'):
                 new_dict[key] = value
 
+        for entity in new.entities.itervalues():
+            entity.simulation = new
+
         if debug:
             new_dict['debug'] = True
         if debug_all:
