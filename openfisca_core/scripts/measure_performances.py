@@ -16,9 +16,9 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
-from openfisca_core.entities import AbstractEntity
+from openfisca_core.entities import build_entity
 from openfisca_core.formulas import dated_function
-from openfisca_core.variables import DatedVariable, EntityToPersonColumn, PersonToEntityColumn, Variable
+from openfisca_core.variables import DatedVariable, Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -43,28 +43,32 @@ def timeit(method):
 PARENT1 = 0
 PARENT2 = 1
 
+Famille = build_entity(
+    key = "famille",
+    plural = "familles",
+    label = u'Famille',
+    roles = [
+        {
+            'key': 'parent',
+            'plural': 'parents',
+            'label': u'Parents',
+            'subroles': ['demandeur', 'conjoint']
+            },
+        {
+            'key': 'enfant',
+            'plural': 'enfants',
+            'label': u'Enfants',
+            }
+        ]
+    )
 
-class Famille(AbstractEntity):
-    index_for_person_variable_name = 'id_famille'
-    key_plural = 'familles'
-    key_singular = 'famille'
-    label = u'Famille'
-    max_cardinality_by_role_key = {'parents': 2}
-    role_for_person_variable_name = 'role_dans_famille'
-    roles_key = ['parents', 'enfants']
-    label_by_role_key = {
-        'enfants': u'Enfants',
-        'parents': u'Parents',
-        }
-    symbol = 'fam'
 
-
-class Individu(AbstractEntity):
-    is_person = True
-    key_plural = 'individus'
-    key_singular = 'individu'
-    label = u'Personne'
-    symbol = 'ind'
+Individu = build_entity(
+    key = "individu",
+    plural = "individus",
+    label = u'Individu',
+    is_person = True,
+    )
 
 # Input variables
 
@@ -86,20 +90,6 @@ class depcom(Variable):
     entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
-
-
-class id_famille(Variable):
-    column = IntCol
-    entity = Individu
-    is_permanent = True
-    label = u"Identifiant de la famille"
-
-
-class role_dans_famille(Variable):
-    column = IntCol
-    entity = Individu
-    is_permanent = True
-    label = u"Rôle dans la famille"
 
 
 class salaire_brut(Variable):
@@ -136,12 +126,6 @@ class dom_tom(Variable):
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
-class dom_tom_individu(EntityToPersonColumn):
-    entity = Individu
-    label = u"La personne habite-t-elle les DOM-TOM ?"
-    variable = dom_tom
-
-
 class revenu_disponible(Variable):
     column = FloatCol
     entity = Individu
@@ -152,13 +136,6 @@ class revenu_disponible(Variable):
         rsa = simulation.calculate('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return period, rsa + salaire_imposable * 0.7
-
-
-class revenu_disponible_famille(PersonToEntityColumn):
-    entity = Famille
-    label = u"Revenu disponible de la famille"
-    operation = 'add'
-    variable = revenu_disponible
 
 
 class rsa(DatedVariable):
@@ -190,11 +167,11 @@ class salaire_imposable(Variable):
     entity = Individu
     label = u"Salaire imposable"
 
-    def function(self, simulation, period):
+    def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
-        dom_tom_individu = simulation.calculate('dom_tom_individu', period)
-        salaire_net = simulation.calculate('salaire_net', period)
-        return period, salaire_net * 0.9 - 100 * dom_tom_individu
+        dom_tom = individu.famille('dom_tom', period)
+        salaire_net = individu('salaire_net', period)
+        return period, salaire_net * 0.9 - 100 * dom_tom
 
 
 class salaire_net(Variable):
@@ -212,33 +189,27 @@ class salaire_net(Variable):
 
 
 tax_benefit_system = TaxBenefitSystem([Famille, Individu])
-tax_benefit_system.add_variables(age_en_mois, birth, depcom, id_famille, role_dans_famille, salaire_brut, age,
-    dom_tom, dom_tom_individu, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net)
+tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
+    dom_tom, revenu_disponible, rsa, salaire_imposable, salaire_net)
 
 
 @timeit
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
     simulation = simulations.Simulation(period = periods.period(year), tax_benefit_system = tax_benefit_system)
-    famille = simulation.entity_by_key_singular["famille"]
+    famille = simulation.entities["famille"]
     famille.count = 3
     famille.roles_count = 2
     famille.step_size = 1
-    individu = simulation.entity_by_key_singular["individu"]
+    individu = simulation.entities["individu"]
     individu.count = 6
     individu.step_size = 2
     simulation.get_or_new_holder("depcom").array = np.array([depcom, depcom, depcom])
-    simulation.get_or_new_holder("id_famille").array = np.array([0, 0, 1, 1, 2, 2])
-    simulation.get_or_new_holder("role_dans_famille").array = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
+    famille.members_entity_id = np.array([0, 0, 1, 1, 2, 2])
+    famille.members_legacy_role = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
         PARENT2])
     simulation.get_or_new_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])
     revenu_disponible = simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
-    # revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
-    # expected_revenu_disponible_famille = np.array([
-    #     expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
-    #     for i in range(0, len(expected_revenu_disponible), 2)
-    #     ])
-    # assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, absolute_error_margin = 0.005)
 
 
 def main():
