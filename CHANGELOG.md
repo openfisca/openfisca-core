@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1
+
+  * Use reference decompositons directory and files when compute decomposition for a refomed tax-benefit-system
+
 ## 3.1.0
 
 * Add a `DeprecationWarning` when using a `DateCol` with no `default`, but keep the default date to 1970-01-01.
