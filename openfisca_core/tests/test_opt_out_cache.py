@@ -39,8 +39,12 @@ def get_filled_tbs():
 
 # TaxBenefitSystem instance declared after formulas
 
+
 tax_benefit_system = get_filled_tbs()
+
+
 tax_benefit_system.cache_blacklist = set(['intermediate'])
+
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = 2016,
