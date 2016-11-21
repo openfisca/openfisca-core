@@ -176,6 +176,7 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
         # We cannot automatically import all the variable from this file, there would be an import loop
         self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net, csg, af)
 
+
 tax_benefit_system = TestTaxBenefitSystem()
 
 

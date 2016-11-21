@@ -16,6 +16,7 @@ from .enumerations import Enum
 def N_(message):
     return message
 
+
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 

@@ -37,6 +37,7 @@ def get_filled_tbs():
 
     return tax_benefit_system
 
+
 # TaxBenefitSystem instance declared after formulas
 
 tax_benefit_system = get_filled_tbs()

@@ -596,6 +596,7 @@ def validate_node_xml_json(node, state = None):
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors or None
 
+
 validate_legislation_xml_json = validate_node_xml_json
 
 
