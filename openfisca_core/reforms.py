@@ -23,17 +23,18 @@ class Reform(TaxBenefitSystem):
     name = None
 
     def __init__(self, reference):
-        self.entity_class_by_key_plural = reference.entity_class_by_key_plural
+        self.reference = reference
         self._legislation_json = reference.get_legislation()
         self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
         self.column_by_name = reference.column_by_name.copy()
         self.Scenario = reference.Scenario
-        self.DEFAULT_DECOMP_FILE = reference.DEFAULT_DECOMP_FILE
-        self.reference = reference
         self.key = unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
             raise Exception("Reform {} must define an `apply` function".format(self.key))
         self.apply()
+
+    def __getattr__(self, attribute):
+        return getattr(self.reference, attribute)
 
     @property
     def full_key(self):

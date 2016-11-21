@@ -11,7 +11,7 @@ from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..periods import Instant
 from ..tools import assert_near
-from .dummy_country import Familles
+from .dummy_country import Famille
 from .test_countries import TestTaxBenefitSystem
 
 tax_benefit_system = TestTaxBenefitSystem()
@@ -145,7 +145,7 @@ def test_add_variable():
     class nouvelle_variable(Variable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity_class = Familles
+        entity = Famille
 
         def function(self, simulation, period):
             return period, self.zeros() + 10
@@ -174,7 +174,7 @@ def test_add_dated_variable():
     class nouvelle_dated_variable(DatedVariable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity_class = Familles
+        entity = Famille
 
         @dated_function(datetime.date(2010, 1, 1))
         def function_2010(self, simulation, period):
@@ -223,7 +223,7 @@ def test_add_variable_with_reference():
     revenu_disponible_reference = tax_benefit_system.get_column('revenu_disponible')
 
     assert revenu_disponible_reform is not None
-    assert revenu_disponible_reform.entity_class.key_plural == revenu_disponible_reference.entity_class.key_plural
+    assert revenu_disponible_reform.entity == revenu_disponible_reference.entity
     assert revenu_disponible_reform.name == revenu_disponible_reference.name
     assert revenu_disponible_reform.label == revenu_disponible_reference.label
 
@@ -247,7 +247,7 @@ def test_compose_reforms():
         class nouvelle_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity_class = Familles
+            entity = Famille
 
             def function(self, simulation, period):
                 return period, self.zeros() + 10
@@ -259,7 +259,7 @@ def test_compose_reforms():
         class nouvelle_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity_class = Familles
+            entity = Famille
 
             def function(self, simulation, period):
                 return period, self.zeros() + 20
