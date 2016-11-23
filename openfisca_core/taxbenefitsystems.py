@@ -23,10 +23,16 @@ class VariableNotFound(Exception):
 
 
 class VariableNameConflict(Exception):
+    """
+    Exception raised when two variables with the same name are added to a tax and benefit system.
+    """
     pass
 
 
 class TaxBenefitSystem(object):
+    """
+    Represents the legislation.
+    """
     _base_tax_benefit_system = None
     compact_legislation_by_instant_cache = None
     person_key_plural = None
@@ -50,7 +56,7 @@ class TaxBenefitSystem(object):
 
         self.entities = entities
         if entities is None or len(entities) == 0:
-            raise Exception("A tax benefit sytem must have at least an entity.")
+            raise Exception("A tax and benefit sytem must have at least an entity.")
         self.person_entity = [entity for entity in entities if entity.is_person][0]
         self.group_entities = [entity for entity in entities if not entity.is_person]
 
@@ -124,19 +130,38 @@ class TaxBenefitSystem(object):
 
         # We pass the variable_class just for introspection.
         variable = variable_type(name, attributes, variable_class)
-        # We need the tax benefit system to identify columns mentioned by conversion variables.
+        # We need the tax and benefit system to identify columns mentioned by conversion variables.
         column = variable.to_column(self)
         self.add_column(column)
 
         return column
 
-    def add_variable(self, variable_class):
-        return self.load_variable(variable_class, update = False)
+    def add_variable(self, variable):
+        """
+        Adds an OpenFisca variable to the tax and benefit system.
 
-    def update_variable(self, variable_class):
-        return self.load_variable(variable_class, update = True)
+        :param variable: The variable to add. Must be a subclass of Variable or DatedVariable.
+
+        :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
+        """
+        return self.load_variable(variable, update = False)
+
+    def update_variable(self, variable):
+        """
+        Replaces an existing OpenFisca variable in the tax and benefit system by a new one.
+
+        The new variable must have the same name than the old one.
+
+        If no variable with the given name exists in the tax and benefit system, no error will be raised and the variable will be simply added.
+
+        :param variable: Variable to add. Must be a subclass of Variable or DatedVariable.
+        """
+        return self.load_variable(variable, update = True)
 
     def add_variables_from_file(self, file_path):
+        """
+        Adds all OpenFisca variables contained in a given file to the tax and benefit system.
+        """
         try:
             module_name = path.splitext(path.basename(file_path))[0]
             module_directory = path.dirname(file_path)
@@ -149,10 +174,13 @@ class TaxBenefitSystem(object):
                         pot_variable.__module__.endswith(module_name):
                     self.add_variable(pot_variable)
         except:
-            log.error(u'Unable to load openfisca variables from file "{}"'.format(file_path))
+            log.error(u'Unable to load OpenFisca variables from file "{}"'.format(file_path))
             raise
 
     def add_variables_from_directory(self, directory):
+        """
+        Recursively explores a directory, and adds all OpenFisca variables found there to the tax and benefit system.
+        """
         py_files = glob.glob(path.join(directory, "*.py"))
         for py_file in py_files:
             self.add_variables_from_file(py_file)
@@ -161,10 +189,16 @@ class TaxBenefitSystem(object):
             self.add_variables_from_directory(subdirectory)
 
     def add_variables(self, *variables):
+        """
+        Does the same than :any:`add_variable`, but can take several variables.
+        """
         for variable in variables:
             self.add_variable(variable)
 
     def load_extension(self, extension):
+        """
+        Loads an extension to the tax and benefit system.
+        """
         if path.isdir(extension):
             if find_packages(extension):
                 # Load extension from a package directory
@@ -192,7 +226,7 @@ class TaxBenefitSystem(object):
     def get_column(self, column_name, check_existence = False):
         column = self.column_by_name.get(column_name)
         if not column and check_existence:
-            raise VariableNotFound(u'Variable "{}" not found in current tax benefit system'.format(column_name))
+            raise VariableNotFound(u'Variable "{}" not found in current tax and benefit system'.format(column_name))
         return column
 
     def update_column(self, column_name, new_column):
@@ -202,6 +236,9 @@ class TaxBenefitSystem(object):
         self.update_column(column_name, neutralize_column(self.get_column(column_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+        """
+        Adds an xml file to the legislation parameters.
+        """
         if path_in_legislation_tree is not None:
             path_in_legislation_tree = path_in_legislation_tree.split('.')
 
