@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""
+"""
 
 import collections
 import glob
@@ -23,10 +25,16 @@ class VariableNotFound(Exception):
 
 
 class VariableNameConflict(Exception):
+    """
+    Exception raised when two variables with the same name are added to a tax benefit system.
+    """
     pass
 
 
 class TaxBenefitSystem(object):
+    """
+    Represents the legislation.
+    """
     _base_tax_benefit_system = None
     compact_legislation_by_instant_cache = None
     person_key_plural = None
@@ -130,13 +138,32 @@ class TaxBenefitSystem(object):
 
         return column
 
-    def add_variable(self, variable_class):
-        return self.load_variable(variable_class, update = False)
+    def add_variable(self, variable):
+        """
+        Adds an openfisca variable to the tax benefit system.
 
-    def update_variable(self, variable_class):
-        return self.load_variable(variable_class, update = True)
+        :param Variable variable: The variable to add. Must be a sublcass of Variable.
+
+        :raises VariableNameConflict: if a variable with the same name have previously been added to the tax benefit system.
+        """
+        return self.load_variable(variable, update = False)
+
+    def update_variable(self, variable):
+        """
+        Replaces an existing openfisca variable in the tax benefit system by a new one.
+
+        The new variable must have the same name than the old one.
+
+        If no variable with the given name exists in the tax benefit system, no error will be raised and the variable will be simply added.
+
+        :param Variable variable: Variable to add. Must be a sublcass of Variable.
+        """
+        return self.load_variable(variable, update = True)
 
     def add_variables_from_file(self, file_path):
+        """
+        Adds all openfisca variables contained in a given file to the tax benefit system.
+        """
         try:
             module_name = path.splitext(path.basename(file_path))[0]
             module_directory = path.dirname(file_path)
@@ -153,6 +180,9 @@ class TaxBenefitSystem(object):
             raise
 
     def add_variables_from_directory(self, directory):
+        """
+        Recursively explores a directory, and adds all openfisca variables found there to the tax benefit system.
+        """
         py_files = glob.glob(path.join(directory, "*.py"))
         for py_file in py_files:
             self.add_variables_from_file(py_file)
@@ -161,10 +191,16 @@ class TaxBenefitSystem(object):
             self.add_variables_from_directory(subdirectory)
 
     def add_variables(self, *variables):
+        """
+        Does the same than :any:`add_variable`, but can take several variables.
+        """
         for variable in variables:
             self.add_variable(variable)
 
     def load_extension(self, extension):
+        """
+        Loads an extension to the tax benefit system.
+        """
         if path.isdir(extension):
             if find_packages(extension):
                 # Load extension from a package directory
@@ -202,6 +238,9 @@ class TaxBenefitSystem(object):
         self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+        """
+        Adds an xml file to the legislation parameters.
+        """
         if path_in_legislation_tree is not None:
             path_in_legislation_tree = path_in_legislation_tree.split('.')
 
