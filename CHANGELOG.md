@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.0-Beta 1
+
+* Add `conflicts` and `origin` fields to xml params (needed for baremes IPP importation)
+
 ## 4.0.0-Beta 1
 
   * Refactor formula syntax
