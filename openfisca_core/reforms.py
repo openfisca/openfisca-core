@@ -2,9 +2,12 @@
 
 import copy
 import collections
+import json
 
-from . import legislations, periods
-from taxbenefitsystems import TaxBenefitSystem
+from biryani.strings import deep_encode
+
+from . import conv, legislations, periods
+from .taxbenefitsystems import TaxBenefitSystem
 
 
 def compose_reforms(reforms, tax_benefit_system):
@@ -59,168 +62,121 @@ class Reform(TaxBenefitSystem):
                 modifier_function.__name__,
                 modifier_function.__module__,
                 )
-        reform_legislation_json, error = legislations.validate_legislation_json(reform_legislation_json)
-        assert error is None, \
-            'The modified legislation_json of the reform "{}" is invalid, error: {}'.format(
-                self.key, error).encode('utf-8')
+        reform_legislation_json, errors = legislations.validate_legislation_json(reform_legislation_json)
+        if errors is not None:
+            errors = conv.embed_error(reform_legislation_json, 'errors', errors)
+            if errors is None:
+                legislation_json_str = json.dumps(
+                    deep_encode(reform_legislation_json),
+                    ensure_ascii = False,
+                    indent = 2,
+                    )
+                raise ValueError('The modified legislation_json of the reform "{}" is invalid: {}'.format(
+                    self.key.encode('utf-8'), legislation_json_str))
+            raise ValueError(u'{} for: {}'.format(
+                unicode(json.dumps(errors, ensure_ascii = False, indent = 2, sort_keys = True)),
+                unicode(json.dumps(reform_legislation_json, ensure_ascii = False, indent = 2)),
+                ).encode('utf-8'))
         self._legislation_json = reform_legislation_json
         self.compact_legislation_by_instant_cache = {}
 
 
-def update_legislation(legislation_json, path, period = None, value = None, start = None, stop = None):
+def update_legislation(legislation_json, path = None, period = None, value = None, start = None, stop = None):
     """
     Update legislation JSON with a value defined for a specific couple of period defined by
     its start and stop instant or a period object.
 
-    This function does not modify input parameters.
+    Returns the modified `legislation_json`.
+
+    This function does not modify its arguments.
     """
     assert value is not None
     if period is not None:
         assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
         start = period.start
         stop = period.stop
-    assert start is not None and stop is not None, u'start and stop must be provided, or period'
+    assert start is not None, u'start must be provided, or period'
 
-    def build_node(root_node, path_index):
-        if isinstance(root_node, collections.Sequence):
+    def build_node(node, path_index):
+        if isinstance(node, collections.Sequence):
             return [
-                build_node(node, path_index + 1) if path[path_index] == index else node
-                for index, node in enumerate(root_node)
+                build_node(child_node, path_index + 1) if path[path_index] == index else child_node
+                for index, child_node in enumerate(node)
                 ]
-        elif isinstance(root_node, collections.Mapping):
+        elif isinstance(node, collections.Mapping):
             return collections.OrderedDict((
                 (
                     key,
                     (
-                        updated_legislation_items(node, start, stop, value)
+                        update_items(child_node, start, stop, value)
                         if path_index == len(path) - 1
-                        else build_node(node, path_index + 1)
+                        else build_node(child_node, path_index + 1)
                         )
                     if path[path_index] == key
-                    else node
+                    else child_node
                     )
-                for key, node in root_node.iteritems()
+                for key, child_node in node.iteritems()
                 ))
         else:
-            raise ValueError(u'Unexpected type for node: {!r}'.format(root_node))
+            raise ValueError(u'Unexpected type for node: {!r}'.format(node))
 
     updated_legislation = build_node(legislation_json, 0)
     return updated_legislation
 
 
-def updated_legislation_items(items, start_instant, stop_instant, value):
-    """
-    This function is deprecated.
+def update_items(items, start, stop, value):
+    def is_contained_in(inner, outer):
+        '''Returns True if `inner` is contained in `outer`.'''
+        return inner['start'] >= outer['start'] and (
+            outer.get('stop') is None or inner.get('stop') is not None and inner['stop'] <= outer['stop']
+            )
+    items = sorted(items, key=lambda item: item['start'])
+    new_item = create_item(start, stop, value)
+    split_items = list(split_item_containing_instant(start, items))
+    if stop is not None:
+        split_items = list(split_item_containing_instant(stop.offset(+1, 'day'), split_items))
+    not_contained_items = list(filter(lambda item: not is_contained_in(item, new_item), split_items))
+    if not_contained_items and not_contained_items[-1].get('stop') is None \
+            and str(start) > not_contained_items[-1]['start']:
+        last_not_contained_item = not_contained_items[-1].copy()  # Copy to avoid modifying `items` argument.
+        last_not_contained_item['stop'] = str(start.offset(-1, 'day'))
+        not_contained_items[-1] = last_not_contained_item
+    new_items = sorted(not_contained_items + [new_item], key=lambda item: item['start'])
+    return new_items
 
-    Iterates items (a dict with start, stop, value key) and returns new items sorted by start date,
-    according to these rules:
-    * if the period matches no existing item, the new item is yielded as-is
-    * if the period strictly overlaps another one, the new item is yielded as-is
-    * if the period non-strictly overlaps another one, the existing item is partitioned, the period in common removed,
-      the new item is yielded as-is and the parts of the existing item are yielded
-    """
-    assert isinstance(items, collections.Sequence)
-    new_items = []
-    new_item = collections.OrderedDict((
-        ('start', start_instant),
-        ('stop', stop_instant),
-        ('value', value),
-        ))
-    inserted = False
+
+def create_item(start, stop, value):
+    dict_items = []
+    if start is not None:
+        dict_items.append(('start', str(start)))
+    if stop is not None:
+        dict_items.append(('stop', str(stop)))
+    dict_items.append(('value', value))
+    return collections.OrderedDict(dict_items)
+
+
+def split_item_containing_instant(instant, items):
+    '''
+    Returns `items` list updated so that the item containing `instant` is split.
+
+    If `instant` is contained in an item, it will be the start instant of the matching item.
+    '''
+    assert instant is not None
     for item in items:
         item_start = periods.instant(item['start'])
         item_stop = item.get('stop')
         if item_stop is not None:
             item_stop = periods.instant(item_stop)
-        if item_stop is not None and item_stop < start_instant or item_start > stop_instant:
-            # non-overlapping items are kept: add and skip
-            new_items.append(
-                collections.OrderedDict((
-                    ('start', item['start']),
-                    ('stop', item['stop'] if item_stop is not None else None),
-                    ('value', item['value']),
-                    ))
+        if item_start < instant and (item_stop is None or instant < item_stop):
+            yield create_item(
+                item['start'],
+                str(instant.offset(-1, 'day')),
+                item['value'],
                 )
-            continue
-
-        if item_stop == stop_instant and item_start == start_instant:  # exact matching: replace
-            if not inserted:
-                new_items.append(
-                    collections.OrderedDict((
-                        ('start', str(start_instant)),
-                        ('stop', str(stop_instant)),
-                        ('value', new_item['value']),
-                        ))
-                    )
-                inserted = True
-            continue
-
-        if item_start < start_instant and item_stop is not None and item_stop <= stop_instant:
-            # left edge overlapping are corrected and new_item inserted
-            new_items.append(
-                collections.OrderedDict((
-                    ('start', item['start']),
-                    ('stop', str(start_instant.offset(-1, 'day'))),
-                    ('value', item['value']),
-                    ))
+            yield create_item(
+                str(instant),
+                item.get('stop'),
+                item['value']
                 )
-            if not inserted:
-                new_items.append(
-                    collections.OrderedDict((
-                        ('start', str(start_instant)),
-                        ('stop', str(stop_instant)),
-                        ('value', new_item['value']),
-                        ))
-                    )
-                inserted = True
-
-        if item_start < start_instant and (item_stop is None or item_stop > stop_instant):
-            # new_item contained in item: divide, shrink left, insert, new, shrink right
-            new_items.append(
-                collections.OrderedDict((
-                    ('start', item['start']),
-                    ('stop', str(start_instant.offset(-1, 'day'))),
-                    ('value', item['value']),
-                    ))
-                )
-            if not inserted:
-                new_items.append(
-                    collections.OrderedDict((
-                        ('start', str(start_instant)),
-                        ('stop', str(stop_instant)),
-                        ('value', new_item['value']),
-                        ))
-                    )
-                inserted = True
-
-            new_items.append(
-                collections.OrderedDict((
-                    ('start', str(stop_instant.offset(+1, 'day'))),
-                    ('stop', item['stop'] if item_stop is not None else None),
-                    ('value', item['value']),
-                    ))
-                )
-        if item_start >= start_instant and item_stop is not None and item_stop < stop_instant:
-            # right edge overlapping are corrected
-            if not inserted:
-                new_items.append(
-                    collections.OrderedDict((
-                        ('start', str(start_instant)),
-                        ('stop', str(stop_instant)),
-                        ('value', new_item['value']),
-                        ))
-                    )
-                inserted = True
-
-            new_items.append(
-                collections.OrderedDict((
-                    ('start', str(stop_instant.offset(+1, 'day'))),
-                    ('stop', item['stop']),
-                    ('value', item['value']),
-                    ))
-                )
-        if item_start >= start_instant and item_stop is not None and item_stop <= stop_instant:
-            # drop those
-            continue
-
-    return sorted(new_items, key = lambda item: item['start'])
+        else:
+            yield item
