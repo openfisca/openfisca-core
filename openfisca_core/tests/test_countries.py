@@ -177,7 +177,6 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
         self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net, csg, af)
 
 
-
 tax_benefit_system = TestTaxBenefitSystem()
 
 
