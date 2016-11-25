@@ -65,8 +65,12 @@ def merge_xml_elements_and_paths_into_first(xml_elements_and_paths, state = None
         if path is None:
             xml_root_element.append(xml_element)
         else:
-            xpath = u'./{}'.format(u'/'.join(u'NODE[@code="{}"]'.format(fragment) for fragment in path))
+            xpath = u'/'.join(itertools.chain(
+                    [u'.'],
+                (u'NODE[@code="{}"]'.format(fragment) for fragment in path)
+                ))
             xml_root_element.find(xpath).append(xml_element)
+
     return xml_root_element, None
 
 
@@ -115,6 +119,30 @@ def translate_xml_element_to_json_item(xml_element):
         if tail is not None:
             json_element['tail'] = tail
     return xml_element.tag, json_element
+
+
+def transform_bracket_xml_json_to_json(bracket_xml_json):
+    comments = []
+    bracket_json = collections.OrderedDict()
+    for key, value in bracket_xml_json.iteritems():
+        if key == 'ASSIETTE':
+            bracket_json['base'] = transform_values_holder_xml_json_to_json(value[0])
+        elif key == 'code':
+            pass
+        elif key == 'MONTANT':
+            bracket_json['amount'] = transform_values_holder_xml_json_to_json(value[0])
+        elif key == 'SEUIL':
+            bracket_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
+        elif key in ('tail', 'text'):
+            comments.append(value)
+        elif key == 'TAUX':
+            bracket_json['rate'] = transform_values_holder_xml_json_to_json(value[0])
+
+        else:
+            bracket_json[key] = value
+    if comments:
+        bracket_json['comment'] = u'\n\n'.join(comments)
+    return bracket_json
 
 
 def transform_node_xml_json_to_json(node_xml_json, root = True):
@@ -215,30 +243,6 @@ def transform_scale_xml_json_to_json(scale_xml_json):
     return scale_xml_json['code'], scale_json
 
 
-def transform_bracket_xml_json_to_json(bracket_xml_json):
-    comments = []
-    bracket_json = collections.OrderedDict()
-    for key, value in bracket_xml_json.iteritems():
-        if key == 'ASSIETTE':
-            bracket_json['base'] = transform_values_holder_xml_json_to_json(value[0])
-        elif key == 'code':
-            pass
-        elif key == 'MONTANT':
-            bracket_json['amount'] = transform_values_holder_xml_json_to_json(value[0])
-        elif key == 'SEUIL':
-            bracket_json['threshold'] = transform_values_holder_xml_json_to_json(value[0])
-        elif key in ('tail', 'text'):
-            comments.append(value)
-        elif key == 'TAUX':
-            bracket_json['rate'] = transform_values_holder_xml_json_to_json(value[0])
-
-        else:
-            bracket_json[key] = value
-    if comments:
-        bracket_json['comment'] = u'\n\n'.join(comments)
-    return bracket_json
-
-
 def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_transformer):
     comments = []
     value_json = collections.OrderedDict()
@@ -308,7 +312,8 @@ def validate_bracket_xml_json(bracket, state = None):
                         drop_none_items = True,
                         ),
                     conv.empty_to_none,
-                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    conv.test(
+                        lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
                     conv.not_none,
                     ),
                 start_line_number = conv.test_isinstance(int),
@@ -328,6 +333,11 @@ def validate_bracket_xml_json(bracket, state = None):
                 text = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
+                    ),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
                     ),
                 ),
             constructor = collections.OrderedDict,
@@ -563,6 +573,16 @@ def validate_node_xml_json(node, state = None):
                     conv.cleanup_text,
                     ),
                 xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                conflicts = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    conv.function(lambda value: value.split(',')),
+                    ),
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -655,6 +675,16 @@ def validate_parameter_xml_json(parameter, state = None):
                     conv.not_none,
                     ),
                 xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                conflicts = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    conv.function(lambda value: value.split(',')),
+                    ),
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -720,6 +750,16 @@ def validate_scale_xml_json(scale, state = None):
                         )),
                     ),
                 xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                conflicts = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    conv.function(lambda value: value.split(',')),
+                    ),
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -793,6 +833,11 @@ def validate_value_xml_json(value, state = None):
                     conv.not_none,
                     ),
                 xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',
@@ -849,6 +894,16 @@ validate_values_holder_xml_json = conv.struct(
             conv.not_none,
             ),
         xml_file_path = conv.test_isinstance(basestring),
+        # baremes-ipp related attributes
+        conflicts = conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.empty_to_none,
+            conv.function(lambda value: value.split(',')),
+            ),
+        origin = conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.empty_to_none,
+            ),
         ),
     constructor = collections.OrderedDict,
     drop_none_values = 'missing',

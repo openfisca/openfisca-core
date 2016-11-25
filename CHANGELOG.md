@@ -1,8 +1,38 @@
 # Changelog
 
-## 3.1.1
+## 4.1.2
 
   * Use reference decompositons directory and files when compute decomposition for a refomed tax-benefit-system
+
+## 4.1.1-Beta 1
+
+* Fix update_legislation in reforms
+
+## 4.1.0-Beta 1
+
+* Add `conflicts` and `origin` fields to xml params (needed for baremes IPP importation)
+
+## 4.0.0-Beta 1
+
+  * Refactor formula syntax
+
+    - Don't use the object simulation in formula writing. The entity the variable is calculated for is now the first argument of the formula, for instance `person` or `family`.
+
+    - The `legislation` is now the (optional) third argument of a formula. It is a function that can be called with a period (or an instant) for argument, and will compute the legislation at `period.start`.
+
+    -  Don't use `calculate_add` and equivalents. Instead, `add` and `divide` are just given in the `options` argument, for instance `options = [ADD]`.
+
+    - Rename `entity_class` to `entity`.
+
+    - Don't explicitly use a `calculate` method, but the `person('salary', period)` notation instead.
+
+  * Introduce implicit conversions between entities, and improve aggregations formulas.
+
+  * Deprecate PersonToEntityColumn and EntityToPersonColumn
+
+  * Change the way entities are declared
+
+  More information on https://github.com/openfisca/openfisca-core/pull/415
 
 ## 3.1.0
 

@@ -13,10 +13,7 @@ class Simulation(object):
     compact_legislation_by_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
-    entity_by_key_plural = None
-    entity_by_key_singular = None
     period = None
-    persons = None
     reference_compact_legislation_by_instant_cache = None
     stack_trace = None
     steps_count = 1
@@ -54,19 +51,17 @@ class Simulation(object):
         self.compact_legislation_by_instant_cache = {}
         self.reference_compact_legislation_by_instant_cache = {}
 
-        entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural
-        self.entity_by_key_plural = entity_by_key_plural = dict(
-            (key_plural, entity_class(simulation = self))
-            for key_plural, entity_class in entity_class_by_key_plural.iteritems()
-            )
-        self.entity_by_key_singular = dict(
-            (entity.key_singular, entity)
-            for entity in entity_by_key_plural.itervalues()
-            )
-        for entity in entity_by_key_plural.itervalues():
-            if entity.is_persons_entity:
-                self.persons = entity
-                break
+        self.instantiate_entities()
+
+    def instantiate_entities(self):
+        self.persons = self.tax_benefit_system.person_entity(self)
+        setattr(self, self.persons.key, self.persons)
+        self.entities = {self.persons.key: self.persons}
+
+        for entity_definition in self.tax_benefit_system.group_entities:
+            entity = entity_definition(self)
+            self.entities[entity_definition.key] = entity
+            setattr(self, entity.key, entity)
 
     def calculate(self, column_name, period = None, **parameters):
         if period is None:
@@ -103,8 +98,11 @@ class Simulation(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'debug_all', 'entity_by_key_plural', 'persons', 'trace'):
+            if key not in ('debug', 'debug_all', 'trace'):
                 new_dict[key] = value
+
+        for entity in new.entities.itervalues():
+            entity.simulation = new
 
         if debug:
             new_dict['debug'] = True
@@ -116,23 +114,10 @@ class Simulation(object):
             new_dict['stack_trace'] = collections.deque()
             new_dict['traceback'] = collections.OrderedDict()
 
-        new_dict['entity_by_key_plural'] = entity_by_key_plural = dict(
-            (key_plural, entity.clone(simulation = new))
-            for key_plural, entity in self.entity_by_key_plural.iteritems()
-            )
-        new_dict['entity_by_key_singular'] = dict(
-            (entity.key_singular, entity)
-            for entity in entity_by_key_plural.itervalues()
-            )
         new_dict['holder_by_name'] = {
             name: holder.clone()
             for name, holder in self.holder_by_name.iteritems()
             }
-        for entity in entity_by_key_plural.itervalues():
-            if entity.is_persons_entity:
-                new_dict['persons'] = entity
-                break
-
         return new
 
     def compute(self, column_name, period = None, **parameters):
@@ -235,8 +220,10 @@ class Simulation(object):
         holder = self.holder_by_name.get(column_name)
         if holder is None:
             column = self.tax_benefit_system.get_column(column_name, check_existence = True)
-            entity = self.get_variable_entity(column_name)
-            self.holder_by_name[column_name] = holder = holders.Holder(column = column, entity = entity)
+            self.holder_by_name[column_name] = holder = holders.Holder(
+                self,
+                column = column,
+                )
             if column.formula_class is not None:
                 holder.formula = column.formula_class(holder = holder)
         return holder
@@ -255,6 +242,8 @@ class Simulation(object):
         self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
+        if isinstance(instant, periods.Period):
+            instant = instant.start
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
         if reference:
             return self.get_reference_compact_legislation(instant)
@@ -311,7 +300,7 @@ class Simulation(object):
         holder = self.get_holder(variable_name)
         return u'{}@{}<{}>{}'.format(
             variable_name,
-            holder.entity.key_plural,
+            holder.entity.key,
             str(period),
             stringify_array(holder.get_array(period)),
             )
@@ -331,4 +320,7 @@ class Simulation(object):
 
     def get_variable_entity(self, variable_name):
         column = self.tax_benefit_system.get_column(variable_name, check_existence = True)
-        return self.entity_by_key_plural[column.entity_key_plural]
+        return self.get_entity(column.entity)
+
+    def get_entity(self, entity_type):
+        return self.entities[entity_type.key]
