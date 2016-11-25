@@ -8,37 +8,43 @@ from nose.tools import raises
 
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.formulas import dated_function, set_input_divide_by_period
-from openfisca_core.variables import Variable, EntityToPersonColumn, DatedVariable, PersonToEntityColumn
+from openfisca_core.variables import Variable, DatedVariable
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
-from dummy_country import Familles, Individus, DummyTaxBenefitSystem
+from openfisca_core.entities import ADD, DIVIDE
+from dummy_country import Famille, Individu, DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 # Input variables
 
 
+class af(Variable):
+    column = FloatCol
+    entity = Famille
+
+
 class age_en_mois(Variable):
     column = IntCol
-    entity_class = Individus
+    entity = Individu
     label = u"Âge (en nombre de mois)"
 
 
 class birth(Variable):
     column = DateCol
-    entity_class = Individus
+    entity = Individu
     label = u"Date de naissance"
 
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
-    entity_class = Familles
+    entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 
 class salaire_brut(Variable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = "Salaire brut"
     set_input = set_input_divide_by_period
 
@@ -47,7 +53,7 @@ class salaire_brut(Variable):
 
 class age(Variable):
     column = IntCol
-    entity_class = Individus
+    entity = Individu
     label = u"Âge (en nombre d'années)"
 
     def function(self, simulation, period):
@@ -62,92 +68,105 @@ class age(Variable):
 
 class dom_tom(Variable):
     column = BoolCol
-    entity_class = Familles
+    entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
-    def function(self, simulation, period):
+    def function(famille, period):
         period = period.start.period(u'year').offset('first-of')
-        depcom = simulation.calculate('depcom', period)
+
+        depcom = famille('depcom', period)
 
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
-class dom_tom_individu(EntityToPersonColumn):
-    entity_class = Individus
-    label = u"La personne habite-t-elle les DOM-TOM ?"
-    variable = dom_tom
-
-
 class revenu_disponible(Variable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = u"Revenu disponible de l'individu"
 
-    def function(self, simulation, period):
+    def function(individu, period, legislation):
         period = period.start.period(u'year').offset('first-of')
-        rsa = simulation.calculate_add('rsa', period)
-        salaire_imposable = simulation.calculate('salaire_imposable', period)
+        rsa = individu('rsa', period, options = [ADD])
+        salaire_imposable = individu('salaire_imposable', period)
+        taux = legislation(period).impot.taux
 
-        return period, rsa + salaire_imposable * 0.7
+        return period, rsa + salaire_imposable * (1 - taux)
 
 
-class revenu_disponible_famille(PersonToEntityColumn):
-    entity_class = Familles
+class revenu_disponible_famille(Variable):
+    column = FloatCol
+    entity = Famille
     label = u"Revenu disponible de la famille"
-    operation = 'add'
-    variable = revenu_disponible
+
+    def function(famille, period):
+        revenu_disponible = famille.members('revenu_disponible', period)
+        return period, famille.sum(revenu_disponible)
 
 
 class rsa(DatedVariable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = u"RSA"
 
     @dated_function(datetime.date(2010, 1, 1))
-    def function_2010(self, simulation, period):
+    def function_2010(individu, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
+        salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
-    def function_2011_2012(self, simulation, period):
+    def function_2011_2012(individu, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
+        salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
-    def function_2013(self, simulation, period):
+    def function_2013(individu, period):
         period = period.start.period(u'month').offset('first-of')
-        salaire_imposable = simulation.calculate_divide('salaire_imposable', period)
+        salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 300
 
 
 class salaire_imposable(Variable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = u"Salaire imposable"
 
-    def function(self, simulation, period):
+    def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
-        dom_tom_individu = simulation.calculate('dom_tom_individu', period)
-        salaire_net = simulation.calculate('salaire_net', period)
+        dom_tom = individu.famille('dom_tom', period)
 
-        return period, salaire_net * 0.9 - 100 * dom_tom_individu
+        salaire_net = individu('salaire_net', period)
+
+        return period, salaire_net * 0.9 - 100 * dom_tom
 
 
 class salaire_net(Variable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = u"Salaire net"
 
-    def function(self, simulation, period):
+    def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
-        salaire_brut = simulation.calculate('salaire_brut', period)
+        salaire_brut = individu('salaire_brut', period)
 
         return period, salaire_brut * 0.8
+
+
+class csg(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"CSG payées sur le salaire"
+
+    def function(individu, period, legislation):
+        period = period.start.period(u'year').offset('first-of')
+        taux = legislation(period).csg.activite.deductible.taux
+        salaire_brut = individu('salaire_brut', period)
+
+        return period, taux * salaire_brut
 
 
 class TestTaxBenefitSystem(DummyTaxBenefitSystem):
@@ -155,10 +174,46 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
         DummyTaxBenefitSystem.__init__(self)
 
         # We cannot automatically import all the variable from this file, there would be an import loop
-        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, dom_tom_individu,
-            revenu_disponible_famille, revenu_disponible, rsa, salaire_imposable, salaire_net)
+        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net, csg, af)
+
 
 tax_benefit_system = TestTaxBenefitSystem()
+
+
+def test_input_variable():
+    year = 2016
+
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            salaire_brut = 2000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate('salaire_brut'), [2000])
+
+
+def test_basic_calculation():
+    year = 2016
+
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            salaire_brut = 2000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate('salaire_net'), [1600])
+
+
+def test_params():
+    year = 2013
+
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            salaire_brut = 2000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate('csg'), [102])
 
 
 def test_1_axis():

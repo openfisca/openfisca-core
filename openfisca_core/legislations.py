@@ -457,6 +457,16 @@ def validate_dated_node_json(node, state = None):
                 ),
             'end_line_number': conv.test_isinstance(int),
             'start_line_number': conv.test_isinstance(int),
+            # baremes-ipp related attributes
+            'conflicts': conv.pipe(
+                conv.test_isinstance(list),
+                conv.empty_to_none,
+                conv.uniform_sequence(conv.test_isinstance(basestring)),
+                ),
+            'origin': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.empty_to_none,
+                ),
             },
         constructor = collections.OrderedDict,
         default = conv.noop,
@@ -474,6 +484,9 @@ def validate_dated_node_json(node, state = None):
         'description': conv.noop,
         'end_line_number': conv.test_isinstance(int),
         'start_line_number': conv.test_isinstance(int),
+        # baremes-ipp related attributes
+        'conflicts': conv.noop,
+        'origin': conv.noop,
         }
     node_type = validated_node['@type']
     if node_type == u'Node':
@@ -696,6 +709,16 @@ def validate_node_json(node, state = None):
                 ),
             'end_line_number': conv.test_isinstance(int),
             'start_line_number': conv.test_isinstance(int),
+            # baremes-ipp related attributes
+            'conflicts': conv.pipe(
+                conv.test_isinstance(list),
+                conv.empty_to_none,
+                conv.uniform_sequence(conv.test_isinstance(basestring)),
+                ),
+            'origin': conv.pipe(
+                conv.test_isinstance(basestring),
+                conv.empty_to_none,
+                ),
             },
         constructor = collections.OrderedDict,
         default = conv.noop,
@@ -713,6 +736,9 @@ def validate_node_json(node, state = None):
         'description': conv.noop,
         'end_line_number': conv.noop,
         'start_line_number': conv.noop,
+        # baremes-ipp related attributes
+        'conflicts': conv.noop,
+        'origin': conv.noop,
         }
     node_type = validated_node['@type']
     if node_type == u'Node':
@@ -808,6 +834,7 @@ def validate_node_json(node, state = None):
 
     conv.remove_ancestor_from_state(state, node)
     return validated_node, errors
+
 
 validate_legislation_json = validate_node_json
 

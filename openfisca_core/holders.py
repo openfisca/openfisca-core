@@ -57,29 +57,28 @@ class Holder(object):
     formula = None
     formula_output_period_by_requested_period = None
 
-    def __init__(self, column = None, entity = None):
+    def __init__(self, simulation, column = None):
         assert column is not None
         assert self.column is None
         self.column = column
-        assert entity is not None
-        self.entity = entity
+        self.simulation = simulation
+        self.entity = self.simulation.entities[self.column.entity.key]
 
     @property
     def array(self):
         if not self.column.is_permanent:
-            return self.get_array(self.entity.simulation.period)
+            return self.get_array(self.simulation.period)
         return self._array
 
     @array.setter
     def array(self, array):
-        simulation = self.entity.simulation
         if not self.column.is_permanent:
-            return self.put_in_cache(array, simulation.period)
-        if simulation.debug or simulation.trace:
+            return self.put_in_cache(array, self.simulation.period)
+        if self.simulation.debug or self.simulation.trace:
             variable_infos = (self.column.name, None)
-            step = simulation.traceback.get(variable_infos)
+            step = self.simulation.traceback.get(variable_infos)
             if step is None:
-                simulation.traceback[variable_infos] = dict(
+                self.simulation.traceback[variable_infos] = dict(
                     holder = self,
                     )
         self._array = array
@@ -117,10 +116,8 @@ class Holder(object):
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
-        entity = self.entity
-        simulation = entity.simulation
         if period is None:
-            period = simulation.period
+            period = self.simulation.period
         column = self.column
         accept_other_period = parameters.get('accept_other_period', False)
 
@@ -141,8 +138,7 @@ class Holder(object):
                     "Requested period {} differs from {} returned by variable {}".format(period,
                         formula_dated_holder.period, column.name)
             return formula_dated_holder
-        array = np.empty(entity.count, dtype = column.dtype)
-        array.fill(column.default)
+        array = self.default_array()
         return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
@@ -304,11 +300,11 @@ class Holder(object):
         visited.add(self)
         nodes.append(dict(
             id = column.name,
-            group = self.entity.key_plural,
+            group = self.entity.key,
             label = column.name,
             title = column.label,
             ))
-        period = self.entity.simulation.period
+        period = self.simulation.period
         formula = self.formula
         if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
                 and column.end < period.start.date:
@@ -319,8 +315,8 @@ class Holder(object):
         array = self.get_array(period)
         if array is None:
             return None
-        entity = self.entity
-        return array.reshape([entity.simulation.steps_count, entity.step_size]).sum(1)
+        entity_step_size = self.entity.step_size
+        return array.reshape([self.simulation.steps_count, entity_step_size]).sum(1)
 
     @property
     def real_formula(self):
@@ -333,7 +329,7 @@ class Holder(object):
         self.formula.set_input(period, array)
 
     def put_in_cache(self, value, period, extra_params = None):
-        simulation = self.entity.simulation
+        simulation = self.simulation
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
@@ -402,3 +398,9 @@ class Holder(object):
                         for cell in array_or_dict.tolist()
                         ]
         return value_json
+
+    def default_array(self):
+        array_size = self.entity.count
+        array = np.empty(array_size, dtype = self.column.dtype)
+        array.fill(self.column.default)
+        return array

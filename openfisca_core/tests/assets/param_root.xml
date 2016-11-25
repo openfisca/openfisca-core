@@ -28,4 +28,10 @@
       </NODE>
     </NODE>
   </NODE>
+  <NODE code="impot">
+    <CODE code="taux" description="taux d'impôt sur les salaires" format="percent">
+      <VALUE deb="1998-01-01" fin="2014-12-31" valeur="0.3" />
+    </CODE>
+  </NODE>
+
 </NODE>

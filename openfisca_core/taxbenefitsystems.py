@@ -8,6 +8,7 @@ from os import path
 from imp import find_module, load_module
 import importlib
 import logging
+
 from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
@@ -28,7 +29,6 @@ class VariableNameConflict(Exception):
 class TaxBenefitSystem(object):
     _base_tax_benefit_system = None
     compact_legislation_by_instant_cache = None
-    entity_class_by_key_plural = None
     person_key_plural = None
     preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -48,12 +48,11 @@ class TaxBenefitSystem(object):
         self.legislation_xml_info_list = []
         self._legislation_json = legislation_json
 
+        self.entities = entities
         if entities is None or len(entities) == 0:
             raise Exception("A tax benefit sytem must have at least an entity.")
-        self.entity_class_by_key_plural = {
-            entity_class.key_plural: entity_class
-            for entity_class in entities
-            }
+        self.person_entity = [entity for entity in entities if entity.is_person][0]
+        self.group_entities = [entity for entity in entities if not entity.is_person]
 
     @property
     def base_tax_benefit_system(self):
@@ -115,7 +114,8 @@ class TaxBenefitSystem(object):
             if update:
                 attributes['reference'] = existing_column
             else:
-                # Variables that are dependencies of others (trough a conversion column)can be loaded automatically
+                # Variables that are dependencies of others (trough a conversion column) can be loaded automatically
+                # Is it still necessary ?
                 if name in self.automatically_loaded_variable:
                     self.automatically_loaded_variable.remove(name)
                     return self.get_column(name)
@@ -126,7 +126,7 @@ class TaxBenefitSystem(object):
         variable = variable_type(name, attributes, variable_class)
         # We need the tax benefit system to identify columns mentioned by conversion variables.
         column = variable.to_column(self)
-        self.column_by_name[column.name] = column
+        self.add_column(column)
 
         return column
 
@@ -185,6 +185,9 @@ class TaxBenefitSystem(object):
         param_file = path.join(extension_directory, 'parameters.xml')
         if path.isfile(param_file):
             self.add_legislation_params(param_file)
+
+    def add_column(self, column):
+        self.column_by_name[column.name] = column
 
     def get_column(self, column_name, check_existence = False):
         column = self.column_by_name.get(column_name)
