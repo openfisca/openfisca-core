@@ -30,11 +30,7 @@ class Reform(TaxBenefitSystem):
         self._legislation_json = reference.get_legislation()
         self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
         self.column_by_name = reference.column_by_name.copy()
-        self.decomposition_file_path = (
-            None
-            if reference.decomposition_file_path is None
-            else reference.decomposition_file_path.copy()
-            )
+        self.decomposition_file_path = reference.decomposition_file_path
         self.Scenario = reference.Scenario
         self.key = unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
