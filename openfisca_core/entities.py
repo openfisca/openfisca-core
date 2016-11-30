@@ -96,16 +96,37 @@ class PersonEntity(Entity):
 
 class GroupEntity(Entity):
     roles = None
-    unique_roles = None
+    flattened_roles = None
     roles_description = None
 
     def __init__(self, simulation):
         Entity.__init__(self, simulation)
         self.members_entity_id = None
-        self.members_role = None
+        self._members_role = None
+        self._members_position = None
         self.members_legacy_role = None
-        self.members_position = None
         self.members = self.simulation.persons
+
+    @property
+    def members_role(self):
+        if self._members_role is None and self.members_legacy_role is not None:
+            self._members_role = np.asarray([
+                self.flattened_roles[legacy_role] if legacy_role < len(self.flattened_roles) else self.flattened_roles[-1]
+                for legacy_role in self.members_legacy_role
+                ])
+        return self._members_role
+
+    @property
+    def members_position(self):
+        if self._members_position is None and self.members_entity_id is not None:
+            self._members_position = np.asarray(
+                sum([range(nb_pers) for nb_pers in self.nb_persons()], [])
+                )
+        return self._members_position
+
+    @members_role.setter
+    def members_role(self, members_role):
+        self._members_role = members_role
 
     #  Aggregation persons -> entity
 
@@ -156,8 +177,11 @@ class GroupEntity(Entity):
         return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
 
     def nb_persons(self, role = None):
-        role_condition = self.members.has_role(role)
-        return self.sum(role_condition)
+        if role:
+            role_condition = self.members.has_role(role)
+            return self.sum(role_condition)
+        else:
+            return np.bincount(self.members_entity_id)
 
     # Projection person -> entity
 
@@ -294,7 +318,6 @@ def build_entity(key, plural, label, roles = None, is_person = False):
     elif roles:
         entity_class = type(entity_class_name, (GroupEntity,), attributes)
         entity_class.roles = []
-        entity_class.unique_roles = []
         for role_description in roles:
             role = Role(role_description, entity_class)
             entity_class.roles.append(role)
@@ -305,10 +328,8 @@ def build_entity(key, plural, label, roles = None, is_person = False):
                     subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
                     setattr(entity_class, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
-                    entity_class.unique_roles.append(subrole)
                 role.max = len(role.subroles)
-            elif role.max == 1:
-                entity_class.unique_roles.append(role)
+        entity_class.flattened_roles = sum([role2.subroles or [role2] for role2 in entity_class.roles], [])
 
     return entity_class
 
@@ -321,6 +342,6 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
     else:
         if shortcut == 'first_person':
             return FirstPersonToEntityProjector(entity, parent)
-        role = next((role for role in entity.unique_roles if (role.key == shortcut)), None)
+        role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return UniqueRoleToEntityProjector(entity, role, parent)
