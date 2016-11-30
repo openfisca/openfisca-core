@@ -3,7 +3,6 @@
 
 import collections
 import copy
-import os
 import xml
 
 from . import conv, decompositionsxml, legislations
