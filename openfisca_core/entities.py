@@ -102,10 +102,31 @@ class GroupEntity(Entity):
     def __init__(self, simulation):
         Entity.__init__(self, simulation)
         self.members_entity_id = None
-        self.members_role = None
+        self._members_role = None
+        self._members_position = None
         self.members_legacy_role = None
-        self.members_position = None
         self.members = self.simulation.persons
+
+    @property
+    def members_role(self):
+        if self._members_role is None and self.members_legacy_role is not None:
+            self._members_role = np.asarray([
+                self.flattened_roles[legacy_role] if legacy_role < len(self.flattened_roles) else self.flattened_roles[-1]
+                for legacy_role in self.members_legacy_role
+                ])
+        return self._members_role
+
+    @property
+    def members_position(self):
+        if self._members_position is None and self.members_entity_id is not None:
+            self._members_position = np.asarray(
+                sum([range(nb_pers) for nb_pers in self.nb_persons()], [])
+                )
+        return self._members_position
+
+    @members_role.setter
+    def members_role(self, members_role):
+        self._members_role = members_role
 
     #  Aggregation persons -> entity
 

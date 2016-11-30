@@ -79,9 +79,6 @@ class AbstractScenario(object):
                     entity.members_role = np.full(persons.count, default_role, dtype = object)
                 entity.roles_count = len(np.unique(entity.members_role))
 
-                if entity.members_position is None:
-                    entity.members_position = np.zeros(persons.count, dtype = np.int32)
-
                 if entity.members_legacy_role is None:
                     entity.members_legacy_role = np.zeros(persons.count, dtype = np.int32)
 
@@ -136,13 +133,9 @@ class AbstractScenario(object):
                         steps_count * persons_step_size,
                         dtype = np.int32
                         )
-                    entity.members_position = np.empty(
-                        steps_count * persons_step_size,
-                        dtype = np.int32
-                        )
 
                     for scenario_entity_index, scenario_entity in enumerate(test_case[entity.plural]):
-                        for person_position, person_role, person_legacy_role, person_id in iter_over_entity_members(entity, scenario_entity):
+                        for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, scenario_entity):
                             person_index = person_index_by_id[person_id]
                             for step_index in range(steps_count):
                                 individu_index = step_index * persons_step_size + person_index
@@ -150,7 +143,6 @@ class AbstractScenario(object):
                                 entity.members_entity_id[individu_index] = step_index * entity_step_size + scenario_entity_index
                                 entity.members_role[individu_index] = person_role
                                 entity.members_legacy_role[individu_index] = person_legacy_role
-                                entity.members_position[individu_index] = person_position
                     entity.roles_count = entity.members_legacy_role.max() + 1
 
                 for variable_name, column in tbs.column_by_name.iteritems():
@@ -689,8 +681,7 @@ def set_entities_json_id(entities_json):
 
 
 def iter_over_entity_members(entity_description, scenario_entity):
-        # One by one, yield individu_position, individu_role, individu_id
-        index_in_entity = 0
+        # One by one, yield individu_role, individy_legacy_role, individu_id
         legacy_role_i = 0
         for role in entity_description.roles:
             role_name = role.plural or role.key
@@ -703,9 +694,8 @@ def iter_over_entity_members(entity_description, scenario_entity):
                 legacy_role_j = 0
                 for individu in individus:
                     if role.subroles:
-                        yield index_in_entity, role.subroles[legacy_role_j], legacy_role_i + legacy_role_j, individu
+                        yield role.subroles[legacy_role_j], legacy_role_i + legacy_role_j, individu
                     else:
-                        yield index_in_entity, role, legacy_role_i + legacy_role_j, individu
-                    index_in_entity += 1
+                        yield role, legacy_role_i + legacy_role_j, individu
                     legacy_role_j += 1
             legacy_role_i += (role.max or 1)
