@@ -96,7 +96,7 @@ class PersonEntity(Entity):
 
 class GroupEntity(Entity):
     roles = None
-    unique_roles = None
+    flattened_roles = None
     roles_description = None
 
     def __init__(self, simulation):
@@ -294,7 +294,6 @@ def build_entity(key, plural, label, roles = None, is_person = False):
     elif roles:
         entity_class = type(entity_class_name, (GroupEntity,), attributes)
         entity_class.roles = []
-        entity_class.unique_roles = []
         for role_description in roles:
             role = Role(role_description, entity_class)
             entity_class.roles.append(role)
@@ -305,10 +304,8 @@ def build_entity(key, plural, label, roles = None, is_person = False):
                     subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
                     setattr(entity_class, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
-                    entity_class.unique_roles.append(subrole)
                 role.max = len(role.subroles)
-            elif role.max == 1:
-                entity_class.unique_roles.append(role)
+        entity_class.flattened_roles = sum([role2.subroles or [role2] for role2 in entity_class.roles], [])
 
     return entity_class
 
@@ -321,6 +318,6 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
     else:
         if shortcut == 'first_person':
             return FirstPersonToEntityProjector(entity, parent)
-        role = next((role for role in entity.unique_roles if (role.key == shortcut)), None)
+        role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return UniqueRoleToEntityProjector(entity, role, parent)
