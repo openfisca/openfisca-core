@@ -49,6 +49,12 @@ class salaire_brut(Variable):
     set_input = set_input_divide_by_period
 
 
+class a_charge_fiscale(Variable):
+    column = BoolCol
+    entity = Individu
+    label = u"La personne n'est pas fiscalement indépendante"
+
+
 # Calculated variables
 
 class age(Variable):
@@ -174,7 +180,7 @@ class TestTaxBenefitSystem(DummyTaxBenefitSystem):
         DummyTaxBenefitSystem.__init__(self)
 
         # We cannot automatically import all the variable from this file, there would be an import loop
-        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net, csg, af)
+        self.add_variables(age_en_mois, birth, depcom, salaire_brut, age, dom_tom, revenu_disponible, revenu_disponible_famille, rsa, salaire_imposable, salaire_net, csg, af, a_charge_fiscale)
 
 
 tax_benefit_system = TestTaxBenefitSystem()
