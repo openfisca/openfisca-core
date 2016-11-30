@@ -1,18 +1,24 @@
 # Changelog
 
-## 4.1.2
+## 4.1.3-Beta
 
   * Use reference decompositons directory and files when compute decomposition for a refomed tax-benefit-system
 
-## 4.1.1-Beta 1
+## 4.1.2-Beta
+
+* Enable simulation initialization with only legacy roles
+  * New roles are in this case automatically infered
+  * Positions are always infered from persons entity id
+
+## 4.1.1-Beta
 
 * Fix update_legislation in reforms
 
-## 4.1.0-Beta 1
+## 4.1.0-Beta
 
 * Add `conflicts` and `origin` fields to xml params (needed for baremes IPP importation)
 
-## 4.0.0-Beta 1
+## 4.0.0-Beta
 
   * Refactor formula syntax
 
