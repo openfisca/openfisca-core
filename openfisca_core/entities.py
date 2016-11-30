@@ -156,8 +156,11 @@ class GroupEntity(Entity):
         return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
 
     def nb_persons(self, role = None):
-        role_condition = self.members.has_role(role)
-        return self.sum(role_condition)
+        if role:
+            role_condition = self.members.has_role(role)
+            return self.sum(role_condition)
+        else:
+            return np.bincount(self.members_entity_id)
 
     # Projection person -> entity
 
