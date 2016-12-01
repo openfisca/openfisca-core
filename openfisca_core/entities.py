@@ -165,13 +165,13 @@ class GroupEntity(Entity):
         return result
 
     def all(self, array, role = None):
-        return self.reduce(array, neutral_element = True, reducer = np.logical_and, role = role)
+        return self.reduce(array, reducer = np.logical_and, neutral_element = True, role = role)
 
     def max(self, array, role = None):
-        return self.reduce(array, neutral_element = - np.infty, reducer = np.maximum, role = role)
+        return self.reduce(array, reducer = np.maximum, neutral_element = - np.infty, role = role)
 
     def min(self, array, role = None):
-        return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
+        return self.reduce(array, reducer = np.minimum, neutral_element = np.infty, role = role)
 
     def nb_persons(self, role = None):
         if role:
