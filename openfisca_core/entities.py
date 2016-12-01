@@ -119,9 +119,16 @@ class GroupEntity(Entity):
     @property
     def members_position(self):
         if self._members_position is None and self.members_entity_id is not None:
-            self._members_position = np.asarray(
-                sum([range(nb_pers) for nb_pers in self.nb_persons()], [])
-                )
+            # We could use self.count and self.members.count , but with the current initilization, we are not sure count will be set before members_position is called
+            nb_entities = np.max(self.members_entity_id) + 1
+            nb_persons = len(self.members_entity_id)
+            self._members_position = np.empty_like(self.members_entity_id)
+            counter_by_entity = np.zeros(nb_entities)
+            for k in range(nb_persons):
+                entity_index = self.members_entity_id[k]
+                self._members_position[k] = counter_by_entity[entity_index]
+                counter_by_entity[entity_index] += 1
+
         return self._members_position
 
     @members_role.setter
