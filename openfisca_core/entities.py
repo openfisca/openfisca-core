@@ -133,17 +133,14 @@ class GroupEntity(Entity):
     def sum(self, array, role = None):
         self.check_role_validity(role)
         self.simulation.persons.check_array_compatible_with_entity(array)
-        result = self.empty_array()
         if role is not None:
             role_filter = self.members.has_role(role)
-
-            # Entities for which one person at least has the given role
-            entity_has_role_filter = np.bincount(self.members_entity_id, weights = role_filter) > 0
-
-            result[entity_has_role_filter] += np.bincount(self.members_entity_id[role_filter], weights = array[role_filter])
+            return np.bincount(
+                self.members_entity_id[role_filter],
+                weights = array[role_filter],
+                minlength = self.count)
         else:
-            result += np.bincount(self.members_entity_id, weights = array)
-        return result
+            return np.bincount(self.members_entity_id, weights = array)
 
     def any(self, array, role = None):
         sum_in_entity = self.sum(array, role = role)
@@ -168,13 +165,13 @@ class GroupEntity(Entity):
         return result
 
     def all(self, array, role = None):
-        return self.reduce(array, neutral_element = True, reducer = np.logical_and, role = role)
+        return self.reduce(array, reducer = np.logical_and, neutral_element = True, role = role)
 
     def max(self, array, role = None):
-        return self.reduce(array, neutral_element = - np.infty, reducer = np.maximum, role = role)
+        return self.reduce(array, reducer = np.maximum, neutral_element = - np.infty, role = role)
 
     def min(self, array, role = None):
-        return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
+        return self.reduce(array, reducer = np.minimum, neutral_element = np.infty, role = role)
 
     def nb_persons(self, role = None):
         if role:
