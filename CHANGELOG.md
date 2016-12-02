@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.1.4-Beta
+
+* Fixup 4.1.2:
+  * When building positions, handle cases where persons belonging to an entity are not grouped by entity in the persons array.
+
 ## 4.1.3-Beta
 
 * Fix bug in entity.sum
