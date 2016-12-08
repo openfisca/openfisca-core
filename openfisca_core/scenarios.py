@@ -180,6 +180,7 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
+                            variable_period = periods.period(variable_period)
                             if use_set_input_hooks:
                                 holder.set_input(variable_period, array)
                             else:
