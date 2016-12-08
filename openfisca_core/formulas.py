@@ -389,7 +389,7 @@ class SimpleFormula(AbstractFormula):
                 raise
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
-                column.name, entity.key, str(period), self.function.__module__,
+                column.name, entity.key, str(period), '',
                 ))
             raise
         else:
@@ -397,7 +397,7 @@ class SimpleFormula(AbstractFormula):
                 output_period, array = formula_result
             except ValueError:
                 raise ValueError(u'A formula must return "period, array": {}@{}<{}> in module {}'.format(
-                    column.name, entity.key, str(period), self.function.__module__,
+                    column.name, entity.key, str(period), '',
                     ).encode('utf-8'))
         assert output_period[1] <= period[1] <= output_period.stop, \
             u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
