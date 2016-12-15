@@ -335,7 +335,7 @@ class SimpleFormula(AbstractFormula):
         Call the formula function (if needed) and return a dated holder containing its result.
 
         If a cycle is detected, a CycleError is raised.
-        To avoid it a formula can use the nb_max_cycles parameter (int >= 0) so when the cycle is detected,
+        To avoid it a formula can use the max_nb_cycles parameter (int >= 0) so when the cycle is detected,
         the exceptions mechanism rewinds up to the first variable called with max_nb_cycles != None,
         and a default value is returned for the latter variable.
         Then the calculation continues normally.
