@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.5
+
+* Enable `extra_params` in formulas with new syntax.
+
 ## 4.1.4-Beta
 
 * Fixup 4.1.2:
