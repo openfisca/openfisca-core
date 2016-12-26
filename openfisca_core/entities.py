@@ -41,17 +41,17 @@ class Entity(object):
         if role is not None and not type(role) == Role:
             raise Exception("{} is not a valid role".format(role))
 
-    def __call__(self, variable_name, period = None, options = []):
+    def __call__(self, variable_name, period = None, options = [], **parameters):
         self.check_variable_defined_for_entity(variable_name)
 
         if ADD in options and DIVIDE in options:
-            return self.simulation.calculate_add_divide(variable_name, period)
+            return self.simulation.calculate_add_divide(variable_name, period, **parameters)
         elif ADD in options:
-            return self.simulation.calculate_add(variable_name, period)
+            return self.simulation.calculate_add(variable_name, period, **parameters)
         elif DIVIDE in options:
-            return self.simulation.calculate_divide(variable_name, period)
+            return self.simulation.calculate_divide(variable_name, period, **parameters)
         else:
-            return self.simulation.calculate(variable_name, period)
+            return self.simulation.calculate(variable_name, period, **parameters)
 
     # Helpers
 
@@ -119,9 +119,16 @@ class GroupEntity(Entity):
     @property
     def members_position(self):
         if self._members_position is None and self.members_entity_id is not None:
-            self._members_position = np.asarray(
-                sum([range(nb_pers) for nb_pers in self.nb_persons()], [])
-                )
+            # We could use self.count and self.members.count , but with the current initilization, we are not sure count will be set before members_position is called
+            nb_entities = np.max(self.members_entity_id) + 1
+            nb_persons = len(self.members_entity_id)
+            self._members_position = np.empty_like(self.members_entity_id)
+            counter_by_entity = np.zeros(nb_entities)
+            for k in range(nb_persons):
+                entity_index = self.members_entity_id[k]
+                self._members_position[k] = counter_by_entity[entity_index]
+                counter_by_entity[entity_index] += 1
+
         return self._members_position
 
     @members_role.setter
@@ -133,17 +140,14 @@ class GroupEntity(Entity):
     def sum(self, array, role = None):
         self.check_role_validity(role)
         self.simulation.persons.check_array_compatible_with_entity(array)
-        result = self.empty_array()
         if role is not None:
             role_filter = self.members.has_role(role)
-
-            # Entities for which one person at least has the given role
-            entity_has_role_filter = np.bincount(self.members_entity_id, weights = role_filter) > 0
-
-            result[entity_has_role_filter] += np.bincount(self.members_entity_id[role_filter], weights = array[role_filter])
+            return np.bincount(
+                self.members_entity_id[role_filter],
+                weights = array[role_filter],
+                minlength = self.count)
         else:
-            result += np.bincount(self.members_entity_id, weights = array)
-        return result
+            return np.bincount(self.members_entity_id, weights = array)
 
     def any(self, array, role = None):
         sum_in_entity = self.sum(array, role = role)
@@ -168,13 +172,13 @@ class GroupEntity(Entity):
         return result
 
     def all(self, array, role = None):
-        return self.reduce(array, neutral_element = True, reducer = np.logical_and, role = role)
+        return self.reduce(array, reducer = np.logical_and, neutral_element = True, role = role)
 
     def max(self, array, role = None):
-        return self.reduce(array, neutral_element = - np.infty, reducer = np.maximum, role = role)
+        return self.reduce(array, reducer = np.maximum, neutral_element = - np.infty, role = role)
 
     def min(self, array, role = None):
-        return self.reduce(array, neutral_element = np.infty, reducer = np.minimum, role = role)
+        return self.reduce(array, reducer = np.minimum, neutral_element = np.infty, role = role)
 
     def nb_persons(self, role = None):
         if role:

@@ -219,3 +219,47 @@ def test_value_from_first_person():
     salaire_first_person = famille.value_from_first_person(salaires_net)
 
     assert_near(salaire_first_person, [1000, 3000])
+
+
+def test_sum_following_bug_ipp_1():
+    test_case = {
+        'individus': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}],
+        'familles': [
+            {'parents': ['ind0']},
+            {'parents': ['ind1'], 'enfants': ['ind2', 'ind3']}
+            ],
+        }
+    test_case['individus'][0]['a_charge_fiscale'] = False
+    test_case['individus'][1]['a_charge_fiscale'] = False
+    test_case['individus'][2]['a_charge_fiscale'] = True
+    test_case['individus'][3]['a_charge_fiscale'] = True
+
+    simulation = new_simulation(test_case)
+    famille = simulation.famille
+
+    elibible_i = famille.members('a_charge_fiscale')
+    nb_a_charge_fiscales_par_famille = famille.sum(elibible_i, role = ENFANT)
+
+    assert_near(nb_a_charge_fiscales_par_famille, [0, 2])
+
+
+def test_sum_following_bug_ipp_2():
+    test_case = {
+        'individus': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}],
+        'familles': [
+            {'parents': ['ind1'], 'enfants': ['ind2', 'ind3']},
+            {'parents': ['ind0']}
+            ],
+        }
+    test_case['individus'][0]['a_charge_fiscale'] = False
+    test_case['individus'][1]['a_charge_fiscale'] = False
+    test_case['individus'][2]['a_charge_fiscale'] = True
+    test_case['individus'][3]['a_charge_fiscale'] = True
+
+    simulation = new_simulation(test_case)
+    famille = simulation.famille
+
+    elibible_i = famille.members('a_charge_fiscale')
+    nb_eligibles_par_famille = famille.sum(elibible_i, role = ENFANT)
+
+    assert_near(nb_eligibles_par_famille, [2, 0])

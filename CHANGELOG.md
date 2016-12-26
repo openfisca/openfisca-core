@@ -1,8 +1,21 @@
 # Changelog
 
+## 4.1.6
+
+  * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
+
+## 4.1.5
+
+* Enable `extra_params` in formulas with new syntax.
+
+## 4.1.4-Beta
+
+* Fixup 4.1.2:
+  * When building positions, handle cases where persons belonging to an entity are not grouped by entity in the persons array.
+
 ## 4.1.3-Beta
 
-  * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the deomposition_file_path from the reference TaxBenefitSystem
+* Fix bug in entity.sum
 
 ## 4.1.2-Beta
 
