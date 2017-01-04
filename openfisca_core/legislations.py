@@ -90,9 +90,12 @@ class CompactNode(object):
         """Combine all the MarginalRateTaxScales in the node into a single MarginalRateTaxScale."""
         combined_tax_scales = None
         for name, child in self.iteritems():
+            if name == 'name' or name == 'instant':
+                continue
             if not isinstance(child, taxscales.AbstractTaxScale):
                 log.info(u'Skipping {} with value {} because it is not a tax scale'.format(name, child))
                 continue
+
             if combined_tax_scales is None:
                 combined_tax_scales = taxscales.MarginalRateTaxScale(name = name)
                 combined_tax_scales.add_bracket(0, 0)
