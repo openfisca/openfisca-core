@@ -23,6 +23,16 @@ class Entity(object):
             raise Exception("Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
+    @classmethod
+    def to_json(cls):
+        return {
+            'isPersonsEntity': cls.is_person,
+            'key': cls.key,
+            'label': cls.label,
+            'plural': cls.plural,
+            'roles': cls.roles_description,
+            }
+
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
