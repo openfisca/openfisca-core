@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.1.0
+
+* Add `Entity.to_json` method. Used by OpenFisca-Web-API in `/entity` endpoint in particular.
+
 ## 7.0.1
 
 * Declare `Openfisca-Parsers` as an optional dependency of `Openfisca-Core`.
