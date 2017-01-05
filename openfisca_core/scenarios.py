@@ -389,6 +389,9 @@ class AbstractScenario(object):
             if value is not None
             )
 
+    def suggest(self):
+        pass  # To reimplement by child classes
+
 
 def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
     def extract_output_variables_name_to_ignore_converter(value, state = None):
