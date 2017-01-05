@@ -36,6 +36,7 @@ setup(
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11',
+        'PyYAML >= 3.10',
         ],
     message_extractors = {
         'openfisca_core': [

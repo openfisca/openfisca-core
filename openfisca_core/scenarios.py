@@ -532,8 +532,7 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
     return json_or_python_to_input_variables
 
 
-def make_json_or_python_to_test(tax_benefit_system, default_absolute_error_margin = None,
-        default_relative_error_margin = None):
+def make_json_or_python_to_test(tax_benefit_system):
     column_by_name = tax_benefit_system.column_by_name
     variables_name = set(column_by_name)
     validate = conv.struct(
@@ -639,10 +638,6 @@ def make_json_or_python_to_test(tax_benefit_system, default_absolute_error_margi
         output_variables = test_case.pop(u'output_variables')
         period = test_case.pop(u'period')
         relative_error_margin = test_case.pop(u'relative_error_margin')
-
-        if absolute_error_margin is None and relative_error_margin is None:
-            absolute_error_margin = default_absolute_error_margin
-            relative_error_margin = default_relative_error_margin
 
         if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
             test_case = None
