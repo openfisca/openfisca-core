@@ -1,7 +1,7 @@
 import numpy as np
 from openfisca_core.tools import assert_near
 
-from dummy_country import Famille, Individu
+from dummy_country.entities import Famille, Individu
 
 DEMANDEUR = Famille.DEMANDEUR
 CONJOINT = Famille.CONJOINT
