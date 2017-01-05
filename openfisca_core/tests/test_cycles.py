@@ -7,8 +7,9 @@ from openfisca_core import periods
 from openfisca_core.columns import IntCol
 from openfisca_core.formulas import CycleError
 from openfisca_core.variables import Variable
+
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Individu
+from openfisca_core.tests.dummy_country.entities import Individu
 from openfisca_core.tools import assert_near
 
 

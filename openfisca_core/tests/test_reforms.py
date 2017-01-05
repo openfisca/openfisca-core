@@ -11,10 +11,10 @@ from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..periods import Instant
 from ..tools import assert_near
-from .dummy_country import Famille
-from .test_countries import TestTaxBenefitSystem
+from .dummy_country.entities import Famille
+from .dummy_country import DummyTaxBenefitSystem
 
-tax_benefit_system = TestTaxBenefitSystem()
+tax_benefit_system = DummyTaxBenefitSystem()
 
 
 def test_formula_neutralization():
