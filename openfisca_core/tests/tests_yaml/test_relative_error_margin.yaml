@@ -1,0 +1,16 @@
+- name: "Result within relative error margin"
+  period: 2015
+  relative_error_margin: 0.05
+  input_variables:
+    salaire_brut: 2000
+  output_variables:
+    salaire_net: 1680 # 1600
+
+- name: "Result out of relative error margin (ignored by default)"
+  ignore: True
+  period: 2015
+  relative_error_margin: 0.05
+  input_variables:
+    salaire_brut: 2000
+  output_variables:
+    salaire_net: 1700
