@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.6
+
+* Decrease verbosity of `combine_tax_scales`
+
 ## 4.1.5
 
 * Enable `extra_params` in formulas with new syntax.
