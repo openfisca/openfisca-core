@@ -48,15 +48,16 @@ config_yaml(yaml)
 
 # Runner
 
-def run_tests_from_yaml_file(tax_benefit_system, yaml_path, options = {}):
+def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     force = options.get('force')
     name_filter = options.get('name_filter')
+    if isinstance(name_filter, str):
+        name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
 
-    tests = build_tests_from_yaml(tax_benefit_system, yaml_path)
+    tests = build_tests_from_yaml(tax_benefit_system, path_to_file)
 
-    tests_found = False
-    for test_index, (yaml_path, name, period_str, test) in enumerate(tests, 1):
+    for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
 
         if not force and test.get(u'ignore', False):
             continue
@@ -68,7 +69,7 @@ def run_tests_from_yaml_file(tax_benefit_system, yaml_path, options = {}):
         keywords = test.get('keywords', [])
         title = "Test {}: {} {}{} - {}".format(
             test_index,
-            yaml_path,
+            path_to_file,
             u'[{}] '.format(u', '.join(keywords)).encode('utf-8') if keywords else '',
             name.encode('utf-8'),
             period_str,
@@ -77,9 +78,17 @@ def run_tests_from_yaml_file(tax_benefit_system, yaml_path, options = {}):
         print(title)
         print("=" * len(title))
         run_test(period_str, test, verbose, options)
-        tests_found = True
-    if not tests_found:
-        print("No test found!")
+
+
+def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+    yaml_paths = [
+        os.path.join(path_to_dir, filename)
+        for filename in sorted(os.listdir(path_to_dir))
+        if filename.endswith('.yaml')
+        ]
+
+    for yaml_path in yaml_paths:
+        run_tests_from_file(tax_benefit_system, yaml_path, options)
 
 
 def build_tests_from_yaml(tax_benefit_system, yaml_path):
