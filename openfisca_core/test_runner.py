@@ -49,6 +49,7 @@ config_yaml(yaml)
 # Runner
 
 def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+    filename = os.path.splitext(os.path.basename(path_to_file))[0]
     force = options.get('force')
     name_filter = options.get('name_filter')
     if isinstance(name_filter, str):
@@ -57,11 +58,12 @@ def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
 
     tests = build_tests_from_yaml(tax_benefit_system, path_to_file)
 
+    nb_tests = 0
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
 
         if not force and test.get(u'ignore', False):
             continue
-        if name_filter is not None and name_filter not in filename_core \
+        if name_filter is not None and name_filter not in filename \
                 and name_filter not in (test.get('name', u'')) \
                 and name_filter not in (test.get('keywords', [])):
             continue
@@ -78,6 +80,9 @@ def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         print(title)
         print("=" * len(title))
         run_test(period_str, test, verbose, options)
+        nb_tests += 1
+
+    return nb_tests # Nb of sucessful tests
 
 
 def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
@@ -87,12 +92,14 @@ def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
         if filename.endswith('.yaml')
         ]
 
+    nb_tests = 0
     for yaml_path in yaml_paths:
-        run_tests_from_file(tax_benefit_system, yaml_path, options)
+        nb_tests += run_tests_from_file(tax_benefit_system, yaml_path, options)
+    return nb_tests
 
 
 def build_tests_from_yaml(tax_benefit_system, yaml_path):
-    filename_core = os.path.splitext(os.path.basename(yaml_path))[0]
+    filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         tests = yaml.load(yaml_file)
 
@@ -122,7 +129,7 @@ def build_tests_from_yaml(tax_benefit_system, yaml_path):
                 yaml_path, error, yaml.dump(test, allow_unicode = True,
                 default_flow_style = False, indent = 2, width = 120)))
 
-        yield yaml_path, test.get('name') or filename_core, unicode(test['scenario'].period), test
+        yield yaml_path, test.get('name') or filename, unicode(test['scenario'].period), test
 
 
 def run_test(period_str, test, verbose = False, options = {}):
