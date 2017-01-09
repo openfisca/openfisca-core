@@ -70,7 +70,20 @@ def test_round_marginal_tax_scale():
         )
 
 
+def test_inverse_marginal_tax_scale():
+    marginal_tax_scale = MarginalRateTaxScale()
+    marginal_tax_scale.add_bracket(0, 0)
+    marginal_tax_scale.add_bracket(1, 0.1)
+    marginal_tax_scale.add_bracket(3, 0.05)
+
+    brut = np.array([1, 2, 3, 4, 5, 3.28976, 8764])
+    net = brut - marginal_tax_scale.calc(brut)
+    inverse = marginal_tax_scale.inverse()
+    assert_near(brut, inverse.calc(net), 1e-15)
+
+
 if __name__ == '__main__':
     import logging
     import sys
     logging.basicConfig(level = logging.ERROR, stream = sys.stdout)
+    test_inverse_marginal_tax_scale()
