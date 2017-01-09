@@ -9,19 +9,17 @@ import copy
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 
+
 def config_yaml(yaml):
 
     class folded_unicode(unicode):
         pass
 
-
     class literal_unicode(unicode):
         pass
 
-
     def dict_constructor(loader, node):
         return collections.OrderedDict(loader.construct_pairs(node))
-
 
     yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, dict_constructor)
 
@@ -46,9 +44,8 @@ def config_yaml(yaml):
     return yaml
 config_yaml(yaml)
 
-# Runner
 
-def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+def generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
     force = options.get('force')
     name_filter = options.get('name_filter')
@@ -58,7 +55,6 @@ def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
 
     tests = build_tests_from_yaml(tax_benefit_system, path_to_file)
 
-    nb_tests = 0
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
 
         if not force and test.get(u'ignore', False):
@@ -78,23 +74,43 @@ def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         print("=" * len(title))
         print(title)
         print("=" * len(title))
-        run_test(period_str, test, verbose, options)
-        nb_tests += 1
 
-    return nb_tests # Nb of sucessful tests
+        def check():
+            run_test(period_str, test, verbose, options)
+
+        yield check
 
 
-def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+def generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):  # Should be recursive ?
     yaml_paths = [
         os.path.join(path_to_dir, filename)
         for filename in sorted(os.listdir(path_to_dir))
         if filename.endswith('.yaml')
         ]
 
-    nb_tests = 0
     for yaml_path in yaml_paths:
-        nb_tests += run_tests_from_file(tax_benefit_system, yaml_path, options)
-    return nb_tests
+        for test in generate_tests_from_file(tax_benefit_system, yaml_path, options):
+            yield test
+
+
+def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+
+    nb_tests = 0
+    for test in generate_tests_from_file(tax_benefit_system, path_to_file, options):
+        test()
+        nb_tests += 1
+
+    return nb_tests  # Nb of sucessful tests
+
+
+def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+
+    nb_tests = 0
+    for test in generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
+        test()
+        nb_tests += 1
+
+    return nb_tests  # Nb of sucessful tests
 
 
 def build_tests_from_yaml(tax_benefit_system, yaml_path):

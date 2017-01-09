@@ -4,7 +4,7 @@ import pkg_resources
 import os
 from nose.tools import nottest, raises
 
-from openfisca_core.test_runner import run_tests_from_file, run_tests_from_directory
+from openfisca_core.test_runner import run_tests_from_file, run_tests_from_directory, generate_tests_from_directory
 
 from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 
@@ -15,10 +15,14 @@ yamls_tests_dir = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 't
 
 nottest(run_tests_from_file)
 nottest(run_tests_from_directory)
+nottest(generate_tests_from_directory)
+
+
 @nottest
 def run_yaml_test(file_name, options = {}):
     yaml_path = os.path.join(yamls_tests_dir, '{}.yaml'.format(file_name))
     return run_tests_from_file(tax_benefit_system, yaml_path, options)
+
 
 def test_success():
     run_yaml_test('test_success')
@@ -76,3 +80,9 @@ def test_name_filter():
         )
 
     assert nb_tests == 3
+
+
+def test_nose_style():
+    dir_path = os.path.join(yamls_tests_dir, 'directory')
+    for test in generate_tests_from_directory(tax_benefit_system, dir_path):
+        yield test
