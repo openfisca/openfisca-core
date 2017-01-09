@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
     parser.add_argument('-c', '--country_package', action = 'store')
+    parser.add_argument('-e', '--extensions', action = 'store', help = 'extensions to load, separated by commas (e.g -e "extension_1, extension_2"')
     parser.add_argument('-f', '--force', action = 'store_true', default = False,
         help = 'force testing of tests with "ignore" flag and formulas belonging to "ignore_output_variables" list')
     parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute")
@@ -38,6 +39,11 @@ def main():
 
 
     tax_benefit_system = country_package.CountryTaxBenefitSystem()
+
+    if args.extensions:
+        extensions = [name.strip(' ') for name in args.extensions.split(',')]
+        for extension in extensions:
+            tax_benefit_system.load_extension(extension)
 
     options = {
         'verbose': args.verbose,
