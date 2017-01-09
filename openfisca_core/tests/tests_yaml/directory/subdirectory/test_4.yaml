@@ -1,0 +1,6 @@
+- name: "Basic test 3"
+  period: 2015
+  input_variables:
+    salaire_brut: 7000
+  output_variables:
+    salaire_net: 7000 * 0.8

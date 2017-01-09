@@ -63,7 +63,7 @@ def test_absolute_error_margin_fail():
 
 def test_run_tests_from_directory():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    assert run_tests_from_directory(tax_benefit_system, dir_path) == 4
+    assert run_tests_from_directory(tax_benefit_system, dir_path) == 5
 
 
 @raises(AssertionError)

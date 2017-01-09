@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import collections
+import copy
+import glob
 import os
 import yaml
-import collections
 import numpy as np
-import copy
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
@@ -81,15 +82,16 @@ def generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         yield check
 
 
-def generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):  # Should be recursive ?
-    yaml_paths = [
-        os.path.join(path_to_dir, filename)
-        for filename in sorted(os.listdir(path_to_dir))
-        if filename.endswith('.yaml')
-        ]
+def generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+    yaml_paths = glob.glob(os.path.join(path_to_dir, "*.yaml"))
+    subdirectories = glob.glob(os.path.join(path_to_dir, "*/"))
 
     for yaml_path in yaml_paths:
         for test in generate_tests_from_file(tax_benefit_system, yaml_path, options):
+            yield test
+
+    for subdirectory in subdirectories:
+        for test in generate_tests_from_directory(tax_benefit_system, subdirectory, options):
             yield test
 
 
