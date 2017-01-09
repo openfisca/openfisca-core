@@ -25,7 +25,7 @@ def test_linear_average_rate_tax_scale():
     marginal_tax_scale.add_bracket(0, 0)
     marginal_tax_scale.add_bracket(1, 0.1)
     marginal_tax_scale.add_bracket(2, 0.2)
-    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], absolute_error_margin = 0)
+    assert_near(marginal_tax_scale.calc(base), [0, .05, .1, .2], absolute_error_margin = 1e-16)
 
     average_tax_scale = marginal_tax_scale.to_average()
     # Note: assert_near doesn't work for inf.
