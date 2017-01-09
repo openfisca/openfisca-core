@@ -26,6 +26,9 @@ setup(
         ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
+    entry_points = {
+        'console_scripts': ['openfisca-run-test=openfisca_core.scripts.run_test:main'],
+        },
     extras_require = {
         'test': [
             'nose',
