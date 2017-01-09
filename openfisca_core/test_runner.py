@@ -11,7 +11,7 @@ from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 
 
-def config_yaml(yaml):
+def _config_yaml(yaml):
 
     class folded_unicode(unicode):
         pass
@@ -43,10 +43,10 @@ def config_yaml(yaml):
     yaml.add_representer(unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
 
     return yaml
-config_yaml(yaml)
+_config_yaml(yaml)
 
 
-def generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
     force = options.get('force')
     name_filter = options.get('name_filter')
@@ -54,7 +54,7 @@ def generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
 
-    tests = build_tests_from_yaml(tax_benefit_system, path_to_file)
+    tests = _parse_yaml_file(tax_benefit_system, path_to_file)
 
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
 
@@ -77,45 +77,42 @@ def generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         print("=" * len(title))
 
         def check():
-            run_test(period_str, test, verbose, options)
+            _run_test(period_str, test, verbose, options)
 
         yield check
 
 
-def generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
     yaml_paths = glob.glob(os.path.join(path_to_dir, "*.yaml"))
     subdirectories = glob.glob(os.path.join(path_to_dir, "*/"))
 
     for yaml_path in yaml_paths:
-        for test in generate_tests_from_file(tax_benefit_system, yaml_path, options):
+        for test in _generate_tests_from_file(tax_benefit_system, yaml_path, options):
             yield test
 
     for subdirectory in subdirectories:
-        for test in generate_tests_from_directory(tax_benefit_system, subdirectory, options):
+        for test in _generate_tests_from_directory(tax_benefit_system, subdirectory, options):
             yield test
 
 
-def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+def generate_tests(tax_benefit_system, path, options = {}):
+    if os.path.isdir(path):
+        return _generate_tests_from_directory(tax_benefit_system, path, options)
+    else:
+        return _generate_tests_from_file(tax_benefit_system, path, options)
+
+
+def run_tests(tax_benefit_system, path, options = {}):
 
     nb_tests = 0
-    for test in generate_tests_from_file(tax_benefit_system, path_to_file, options):
+    for test in generate_tests(tax_benefit_system, path, options):
         test()
         nb_tests += 1
 
     return nb_tests  # Nb of sucessful tests
 
 
-def run_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
-
-    nb_tests = 0
-    for test in generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
-        test()
-        nb_tests += 1
-
-    return nb_tests  # Nb of sucessful tests
-
-
-def build_tests_from_yaml(tax_benefit_system, yaml_path):
+def _parse_yaml_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         tests = yaml.load(yaml_file)
@@ -149,7 +146,7 @@ def build_tests_from_yaml(tax_benefit_system, yaml_path):
         yield yaml_path, test.get('name') or filename, unicode(test['scenario'].period), test
 
 
-def run_test(period_str, test, verbose = False, options = {}):
+def _run_test(period_str, test, verbose = False, options = {}):
     absolute_error_margin = None
     relative_error_margin = None
     if test.get('absolute_error_margin') is not None:
