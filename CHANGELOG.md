@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.7
+
+* Improve docstring of `MarginalTaxRate.inverse` and add test
+
 ## 4.1.6
 
 * Decrease verbosity of `combine_tax_scales`
