@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-import json
-import urllib
-
-import numpy as np
-
-
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
+    import numpy as np
+
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
     if isinstance(value, (list, tuple)):
@@ -37,6 +33,9 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
+    import json
+    import urllib
+
     scenario_json = scenario.to_json()
     simulation_json = {
         'scenarios': [scenario_json],
@@ -47,3 +46,21 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         'api_url': api_url,
         })
     return url
+
+
+def detect_country_packages():
+    from pip import get_installed_distributions
+    from setuptools import find_packages
+    from importlib import import_module
+
+    result = []
+
+    for distribution in get_installed_distributions():
+        if distribution.key.lower().find('openfisca') >= 0:
+            packages = find_packages(distribution.location)
+            main_package = packages[0]
+            module = import_module(main_package)
+            if hasattr(module, 'CountryTaxBenefitSystem'):
+                result.append(main_package)
+
+    return result
