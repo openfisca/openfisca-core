@@ -195,7 +195,9 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         if isinstance(factor, (float, int)):
             factor = np.ones(len(base)) * factor
-        thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
+        # thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
+        # changed to below to avoind NaN creation
+        thresholds1 = np.outer(factor + np.finfo(np.float).eps, np.array(self.thresholds + [np.inf]))
         if round_base_decimals is not None:
             thresholds1 = np.round(thresholds1, round_base_decimals)
         a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
