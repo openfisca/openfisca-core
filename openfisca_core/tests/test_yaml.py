@@ -4,7 +4,7 @@ import pkg_resources
 import os
 from nose.tools import nottest, raises
 
-from openfisca_core.test_runner import run_tests, generate_tests
+from openfisca_core.tools.test_runner import run_tests, generate_tests
 
 from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 

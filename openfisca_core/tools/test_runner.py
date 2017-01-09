@@ -43,6 +43,8 @@ def _config_yaml(yaml):
     yaml.add_representer(unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
 
     return yaml
+
+
 _config_yaml(yaml)
 
 
