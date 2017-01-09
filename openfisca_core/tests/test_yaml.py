@@ -4,7 +4,7 @@ import pkg_resources
 import os
 from nose.tools import nottest, raises
 
-from openfisca_core.test_runner import run_tests_from_file, run_tests_from_directory, generate_tests_from_directory
+from openfisca_core.test_runner import run_tests, generate_tests
 
 from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 
@@ -13,15 +13,15 @@ tax_benefit_system = DummyTaxBenefitSystem()
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
 yamls_tests_dir = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'tests_yaml')
 
-nottest(run_tests_from_file)
-nottest(run_tests_from_directory)
-nottest(generate_tests_from_directory)
+# Declare that these two functions are not tests to run with nose
+nottest(run_tests)
+nottest(generate_tests)
 
 
 @nottest
 def run_yaml_test(file_name, options = {}):
     yaml_path = os.path.join(yamls_tests_dir, '{}.yaml'.format(file_name))
-    return run_tests_from_file(tax_benefit_system, yaml_path, options)
+    return run_tests(tax_benefit_system, yaml_path, options)
 
 
 def test_success():
@@ -63,17 +63,17 @@ def test_absolute_error_margin_fail():
 
 def test_run_tests_from_directory():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    assert run_tests_from_directory(tax_benefit_system, dir_path) == 5
+    assert run_tests(tax_benefit_system, dir_path) == 5
 
 
 @raises(AssertionError)
 def test_run_tests_from_directory_fail():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    run_tests_from_directory(tax_benefit_system, dir_path, options = {'force': True})
+    run_tests(tax_benefit_system, dir_path, options = {'force': True})
 
 
 def test_name_filter():
-    nb_tests = run_tests_from_directory(
+    nb_tests = run_tests(
         tax_benefit_system,
         yamls_tests_dir,
         options = {'name_filter': 'success'}
@@ -84,5 +84,5 @@ def test_name_filter():
 
 def test_nose_style():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    for test in generate_tests_from_directory(tax_benefit_system, dir_path):
+    for test in generate_tests(tax_benefit_system, dir_path):
         yield test
