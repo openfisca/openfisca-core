@@ -11,8 +11,7 @@ import itertools
 import numpy as np
 from numpy import maximum as max_, minimum as min_
 
-from .tools import empty_clone
-
+from .commons import empty_clone
 
 log = logging.getLogger(__name__)
 

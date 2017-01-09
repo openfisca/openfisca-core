@@ -7,21 +7,6 @@ import urllib
 import numpy as np
 
 
-__all__ = [
-    'assert_near',
-    'empty_clone',
-    'stringify_array',
-    ]
-
-
-class Dummy(object):
-    """A class that does nothing
-
-    Used by function ``empty_clone`` to create an empty instance from an existing object.
-    """
-    pass
-
-
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
@@ -62,21 +47,3 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         'api_url': api_url,
         })
     return url
-
-
-def empty_clone(original):
-    """Create a new empty instance of the same class of the original object."""
-    new = Dummy()
-    new.__class__ = original.__class__
-    return new
-
-
-def stringify_array(array):
-    """Generate a clean string representation of a NumPY array.
-
-    This function exists, because str(array) sucks for logs, etc.
-    """
-    return u'[{}]'.format(u', '.join(
-        unicode(cell)
-        for cell in array
-        )) if array is not None else u'None'
