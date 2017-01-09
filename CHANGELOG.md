@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.7
+
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
+
 ## 4.1.6
 
 * Decrease verbosity of `combine_tax_scales`
