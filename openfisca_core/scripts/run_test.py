@@ -6,12 +6,14 @@ import sys
 import os
 import importlib
 
-from openfisca_core.test_runner import run_tests
+from openfisca_core.tools.test_runner import run_tests
+from openfisca_core.tools import detect_country_packages
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
-    parser.add_argument('-c', '--country_package', action = 'store', required = True)
+    parser.add_argument('-c', '--country_package', action = 'store')
     parser.add_argument('-f', '--force', action = 'store_true', default = False,
         help = 'force testing of tests with "ignore" flag and formulas belonging to "ignore_output_variables" list')
     parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute")
@@ -21,12 +23,21 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
 
-    try:
-        country_package = importlib.import_module(args.country_package)
-        tax_benefit_system = country_package.CountryTaxBenefitSystem()
-    except:
-        print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(args.country_package))
-        sys.exit(1)
+    if args.country_package:
+        try:
+            country_package = importlib.import_module(args.country_package)
+        except:
+            print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(args.country_package))
+            sys.exit(1)
+    else:
+        installed_country_packages = detect_country_packages()
+        country_package_name = installed_country_packages[0]
+        country_package = importlib.import_module(country_package_name)
+        if len(installed_country_packages) > 1:
+            print('WARNING: Several country packages detected : {}. Using {} by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), country_package_name))
+
+
+    tax_benefit_system = country_package.CountryTaxBenefitSystem()
 
     options = {
         'verbose': args.verbose,
@@ -34,7 +45,7 @@ def main():
         'name_filter': args.name_filter,
         'default_relative_error_margin': args.relative_error_margin,
         'default_absolute_error_margin': args.absolute_error_margin,
-    }
+        }
 
     tests_found = False
 
@@ -48,6 +59,8 @@ def main():
         sys.exit(1)
 
     sys.exit(0)
+
+
 
 if __name__ == "__main__":
     main()
