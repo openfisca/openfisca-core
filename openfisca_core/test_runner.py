@@ -69,9 +69,8 @@ def run_tests_from_file(tax_benefit_system, path_to_file, options = {}):
             continue
 
         keywords = test.get('keywords', [])
-        title = "Test {}: {} {}{} - {}".format(
-            test_index,
-            path_to_file,
+        title = "{}: {}{} - {}".format(
+            os.path.basename(path_to_file),
             u'[{}] '.format(u', '.join(keywords)).encode('utf-8') if keywords else '',
             name.encode('utf-8'),
             period_str,
