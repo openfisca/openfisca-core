@@ -1,12 +1,21 @@
 # Changelog
 
+## 4.1.9
+
+* Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
+
+## 4.1.8
+
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
+
+
 ## 4.1.7
 
 * Improve docstring of `MarginalTaxRate.inverse` and add test
 
 ## 4.1.6
 
-  * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
+* Decrease verbosity of `combine_tax_scales`
 
 ## 4.1.5
 
