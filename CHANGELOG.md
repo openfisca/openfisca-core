@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.7
+
+* Improve docstring of `MarginalTaxRate.inverse` and add test
+
 ## 4.1.6
 
   * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
