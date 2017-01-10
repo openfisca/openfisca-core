@@ -229,26 +229,26 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
     def inverse(self):
         """Returns a new instance of MarginalRateTaxScale
 
-        Inverse un barème: étant donné des seuils et des taux exprimés en fonction
-        du brut, renvoie un barème avec les seuils et les taux exprimés en net.
-          si revnet  = revbrut - BarmMar(revbrut, B)
-          alors revbrut = BarmMar(revnet, B.inverse())
-        threshold : threshold de revenu brut
-        taxable threshold imposable : threshold de revenu imposable/déclaré
-        theta : ordonnée à l'origine des segments des différents seuils dans une
-                représentation du revenu imposable comme fonction linéaire par
-                morceaux du revenu brut
+        Invert a taxscale:
+            Assume tax_scale composed of bracket which thresholds are expressed in term of brut revenue.
+            The inverse is another MarginalTaxSclae which thresholds are expressed in terms of net revenue.
+            If net  = revbrut - tax_scale.calc(revbrut) then brut = tax_scale.inverse().calc(net)
         """
-        # Actually 1/(1-global-rate)
+        # threshold : threshold of brut revenue
+        # net_threshold: threshold of net revenue
+        # theta : ordonnée à l'origine des segments des différents seuils dans une
+        #         représentation du revenu imposable comme fonction linéaire par
+        #         morceaux du revenu brut
+        # Actually 1 / (1- global_rate)
         inverse = self.__class__(name = self.name + "'", option = self.option, unit = self.unit)
-        taxable_threshold = 0
+        net_threshold = 0
         for threshold, rate in itertools.izip(self.thresholds, self.rates):
             if threshold == 0:
                 previous_rate = 0
                 theta = 0
             # On calcule le seuil de revenu imposable de la tranche considérée.
-            taxable_threshold = (1 - previous_rate) * threshold + theta
-            inverse.add_bracket(taxable_threshold, 1 / (1 - rate))
+            net_threshold = (1 - previous_rate) * threshold + theta
+            inverse.add_bracket(net_threshold, 1 / (1 - rate))
             theta = (rate - previous_rate) * threshold + theta
             previous_rate = rate
         return inverse
