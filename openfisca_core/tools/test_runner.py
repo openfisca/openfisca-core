@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+A module to run openfisca yaml tests
+"""
+
 import collections
 import copy
 import glob
@@ -10,6 +14,8 @@ import numpy as np
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 
+
+# Yaml module configuration
 
 def _config_yaml(yaml):
 
@@ -47,6 +53,66 @@ def _config_yaml(yaml):
 
 _config_yaml(yaml)
 
+
+# Exposed methods
+
+def generate_tests(tax_benefit_system, path, options = {}):
+    """
+    Generates a lazy iterator of all the YAML tests contained in a file or a directory.
+
+    :parameters: Same as :meth:`run_tests`
+
+    :return: a generator of YAML tests
+
+    """
+
+    if os.path.isdir(path):
+        return _generate_tests_from_directory(tax_benefit_system, path, options)
+    else:
+        return _generate_tests_from_file(tax_benefit_system, path, options)
+
+
+def run_tests(tax_benefit_system, path, options = {}):
+    """
+    Runs all the YAML tests contained in a file or a directory.
+
+    If `path` is a directory, subdirectories will be recursively explored.
+
+    :param TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
+    :param str path: the path towards the file or directory containing thes tests. If it is a directory, subdirectories will be recursively explored.
+    :param dict options: See more details below.
+
+    :raises AssertionError: if a test does not pass
+
+    :return: the number of sucessful tests excecuted
+
+    **Testing options**:
+
+    +-------------------------------+-----------+-------------------------------------------+
+    | Key                           | Type      | Role                                      |
+    +===============================+===========+===========================================+
+    | force                         | ``bool``  |                                           |
+    +-------------------------------+-----------+                                           +
+    | verbose                       | ``bool``  |                                           |
+    +-------------------------------+-----------+                                           +
+    | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
+    +-------------------------------+-----------+                                           +
+    | default_absolute_error_margin | ``float`` |                                           |
+    +-------------------------------+-----------+                                           +
+    | default_relative_error_margin | ``float`` |                                           |
+    +-------------------------------+-----------+-------------------------------------------+
+
+    """
+
+    nb_tests = 0
+    for test in generate_tests(tax_benefit_system, path, options):
+        test()
+        nb_tests += 1
+
+    return nb_tests  # Nb of sucessful tests
+
+
+# Internal methods
 
 def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
@@ -95,23 +161,6 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}
     for subdirectory in subdirectories:
         for test in _generate_tests_from_directory(tax_benefit_system, subdirectory, options):
             yield test
-
-
-def generate_tests(tax_benefit_system, path, options = {}):
-    if os.path.isdir(path):
-        return _generate_tests_from_directory(tax_benefit_system, path, options)
-    else:
-        return _generate_tests_from_file(tax_benefit_system, path, options)
-
-
-def run_tests(tax_benefit_system, path, options = {}):
-
-    nb_tests = 0
-    for test in generate_tests(tax_benefit_system, path, options):
-        test()
-        nb_tests += 1
-
-    return nb_tests  # Nb of sucessful tests
 
 
 def _parse_yaml_file(tax_benefit_system, yaml_path):
