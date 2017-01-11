@@ -38,6 +38,9 @@ def main():
             sys.exit(1)
     else:
         installed_country_packages = detect_country_packages()
+        if len(installed_country_packages) == 0:
+            print('ERROR: No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
+            sys.exit(1)
         country_package_name = installed_country_packages[0]
         country_package = importlib.import_module(country_package_name)
         if len(installed_country_packages) > 1:
