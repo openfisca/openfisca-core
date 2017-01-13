@@ -11,4 +11,4 @@ flake8:
 	flake8 `git ls-files | grep "\.py$$"`
 
 test: flake8
-	nosetests openfisca_core --exe --with-doctest
+	nosetests openfisca_core/tests --exe --with-doctest

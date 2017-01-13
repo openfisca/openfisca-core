@@ -1,51 +1,11 @@
 # -*- coding: utf-8 -*-
 
-
 import itertools
-import os
-import pkg_resources
-from os import path
 
 from openfisca_core import conv
-from openfisca_core.entities import build_entity
 from openfisca_core.scenarios import AbstractScenario, set_entities_json_id
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
-
-openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-TEST_DIRECTORY = path.dirname(path.abspath(__file__))
-
-# Entities
-
-
-Famille = build_entity(
-    key = "famille",
-    plural = "familles",
-    label = u'Famille',
-    roles = [
-        {
-            'key': 'parent',
-            'plural': 'parents',
-            'label': u'Parents',
-            'subroles': ['demandeur', 'conjoint']
-            },
-        {
-            'key': 'enfant',
-            'plural': 'enfants',
-            'label': u'Enfants',
-            }
-        ]
-    )
-
-
-Individu = build_entity(
-    key = "individu",
-    plural = "individus",
-    label = u'Individu',
-    is_person = True,
-    )
-
-# Scenarios
+from openfisca_core.tests.dummy_country.entities import Famille, Individu
 
 
 class Scenario(AbstractScenario):
@@ -216,18 +176,3 @@ class Scenario(AbstractScenario):
             return test_case, error
 
         return json_or_python_to_test_case
-
-
-# TaxBenefitSystems
-
-entities = [Individu, Famille]
-path_to_root_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_root.xml')
-path_to_crds_params = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'assets', 'param_more.xml')
-
-
-class DummyTaxBenefitSystem(TaxBenefitSystem):
-    def __init__(self):
-        TaxBenefitSystem.__init__(self, entities)
-        self.Scenario = Scenario
-        self.add_legislation_params(path_to_root_params)
-        self.add_legislation_params(path_to_crds_params, 'csg.activite')

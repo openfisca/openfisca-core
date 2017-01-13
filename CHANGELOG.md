@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.2.0
+
+* Introduce a YAML test runner in openfisca_core
+  - Introduce command line tool `openfisca-run-test`
+
+* Refactor the dummy tax benefit system included in openfisca-core
+  - Make the dummy country look like a real one
+  - Split defining the country from testing
+
 ## 4.1.7
 
 * Improve docstring of `MarginalTaxRate.inverse` and add test

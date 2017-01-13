@@ -3,10 +3,10 @@
 
 from nose.tools import raises
 
-from openfisca_core.tests.test_countries import TestTaxBenefitSystem
+from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 
 
-tax_benefit_system = TestTaxBenefitSystem()
+tax_benefit_system = DummyTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario().init_single_entity(
     parent1=dict(),
     period=2014,

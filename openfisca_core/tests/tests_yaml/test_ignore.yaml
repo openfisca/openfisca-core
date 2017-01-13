@@ -1,0 +1,14 @@
+- name: "Basic test"
+  period: 2015
+  input_variables:
+    salaire_brut: 2000
+  output_variables:
+    salaire_net: 2000 * 0.8
+
+- name: "Ignored test"
+  ignore: True
+  period: 2015
+  input_variables:
+    salaire_brut: 2000
+  output_variables:
+    salaire_net: 4000

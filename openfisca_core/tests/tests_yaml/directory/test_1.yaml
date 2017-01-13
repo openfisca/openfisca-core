@@ -1,0 +1,20 @@
+- name: "Basic test"
+  period: 2015
+  input_variables:
+    salaire_brut: 4000
+  output_variables:
+    salaire_net: 4000 * 0.8
+
+- name: "Basic test 2"
+  period: 2015
+  input_variables:
+    salaire_brut: 5000
+  output_variables:
+    salaire_net: 5000 * 0.8
+
+- name: "Basic test 3"
+  period: 2015
+  input_variables:
+    salaire_brut: 6000
+  output_variables:
+    salaire_net: 6000 * 0.8
