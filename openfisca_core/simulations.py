@@ -288,7 +288,6 @@ class Simulation(object):
         for _, _, line in infos:
             print(line.rjust(100))
 
-
     def print_trace(self, variable_name, period, max_depth=3, show_default_values=True):
         """
         Print the dependencies of all the variables computed since the creation of the simulation.
