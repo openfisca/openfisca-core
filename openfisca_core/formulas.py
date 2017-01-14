@@ -672,6 +672,7 @@ def neutralize_column(column):
         entity = column.entity,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
+        scalar = True,
         set_input = set_input_neutralized,
         )
 
@@ -681,9 +682,9 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         __doc__ = None, __module__ = None,
         entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
-        name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
-        source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
-        url = UnboundLocalError, **specific_attributes):
+        name = None, reference_column = None, scalar = UnboundLocalError, set_input = UnboundLocalError,
+        source_code = UnboundLocalError, source_file_path = UnboundLocalError, start_date = UnboundLocalError,
+        stop_date = UnboundLocalError, url = UnboundLocalError, **specific_attributes):
     # Validate arguments.
 
     if reference_column is not None:
@@ -744,6 +745,11 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         law_reference = None if reference_column is None else reference_column.law_reference
     else:
         assert isinstance(law_reference, (basestring, list))
+
+    if scalar is UnboundLocalError:
+        scalar = False if reference_column is None else reference_column.scalar
+    else:
+        assert scalar in (False, True), scalar
 
     if start_line_number is UnboundLocalError:
         start_line_number = None if reference_column is None else reference_column.formula_class.start_line_number
@@ -909,6 +915,8 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     column.label = label
     column.law_reference = law_reference
     column.name = name
+    if scalar:
+        column.scalar = True
     if start_date is not None:
         column.start = start_date
     if url is not None:
