@@ -258,6 +258,37 @@ class Simulation(object):
         step = self.traceback.get((variable_name, period))
         return step
 
+    def memory_usage(self):
+        infos = []
+        for column_name in self.tax_benefit_system.column_by_name.iterkeys():
+            holder = self.holder_by_name.get(column_name)
+            if holder is not None:
+                if holder._array is not None:
+                    # Only used when column.is_permanent
+                    array = holder._array
+                    infos.append((array.nbytes, column_name, "{}: {} cells * item size {} ({}) = {}".format(
+                        column_name,
+                        np.prod(array.shape),
+                        array.itemsize,
+                        array.dtype,
+                        array.nbytes,
+                        )))
+                elif holder._array_by_period is not None:
+                    periods = sorted(holder._array_by_period.keys())
+                    array = holder._array_by_period[periods[0]]
+                    infos.append((len(periods) * array.nbytes, column_name, "{}: {} periods * {} cells * item size {} ({}) = {}".format(
+                        column_name,
+                        len(periods),
+                        np.prod(array.shape),
+                        array.itemsize,
+                        array.dtype,
+                        len(periods) * array.nbytes,
+                        )))
+        infos.sort()
+        for _, _, line in infos:
+            print(line.rjust(100))
+
+
     def print_trace(self, variable_name, period, max_depth=3, show_default_values=True):
         """
         Print the dependencies of all the variables computed since the creation of the simulation.
