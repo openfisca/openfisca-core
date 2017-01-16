@@ -28,6 +28,7 @@ class birth(Variable):
     column = DateCol
     entity = Individu
     label = u"Date de naissance"
+    is_permanent = True  # Ne change jamais au cours du temps
 
 
 class depcom(Variable):

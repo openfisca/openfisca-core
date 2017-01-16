@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.1
+
+  Fix permanent and period size independent variables neutralization
+
 ## 4.2.0
 
 * Introduce a YAML test runner in openfisca_core
