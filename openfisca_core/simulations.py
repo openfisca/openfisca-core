@@ -258,10 +258,12 @@ class Simulation(object):
         step = self.traceback.get((variable_name, period))
         return step
 
-    def memory_usage(self):
+    def print_memory_usage(self):
+        """
+        Print the memory used by all the variables computed since the creation of the simulation.
+        """
         infos = []
-        for column_name in self.tax_benefit_system.column_by_name.iterkeys():
-            holder = self.holder_by_name.get(column_name)
+        for column_name, holder in self.holder_by_name.iteritems():
             if holder is not None:
                 if holder._array is not None:
                     # Only used when column.is_permanent
