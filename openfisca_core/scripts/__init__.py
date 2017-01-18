@@ -3,12 +3,6 @@
 import importlib
 import sys
 
-def parse_coma_separated_args(input):
-    if input:
-        return [name.strip(' ') for name in input.split(',')]
-    else:
-        return []
-
 
 TAX_BENEFIT_SYSTEM_OPTIONS = {
     'country_package': {
@@ -17,11 +11,13 @@ TAX_BENEFIT_SYSTEM_OPTIONS = {
         },
     'extensions': {
         'short': 'e',
-        'help': 'extensions to load, separated by commas (e.g -e "extension_1, extension_2")',
+        'help': 'extensions to load',
+        'nargs': '*'
         },
     'reforms': {
         'short': 'r',
-        'help': 'reforms to apply to the country package, separated by commas (e.g -r openfisca_france.reforms.some_reform)',
+        'help': 'reforms to apply to the country package',
+        'nargs': '*'
         }
 }
 
@@ -32,7 +28,9 @@ def add_tax_benefit_system_arguments(parser):
             '-{}'.format(properties['short']),
             '--{}'.format(option),
             action = 'store',
-            help = properties['help'])
+            help = properties['help'],
+            nargs = properties.get('nargs')
+            )
 
     return parser
 

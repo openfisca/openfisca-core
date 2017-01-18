@@ -7,7 +7,7 @@ import os
 import importlib
 
 from openfisca_core.tools.test_runner import run_tests
-from openfisca_core.scripts import add_tax_benefit_system_arguments, detect_country_package, parse_coma_separated_args
+from openfisca_core.scripts import add_tax_benefit_system_arguments, detect_country_package
 
 
 def build_parser():
@@ -37,20 +37,20 @@ def build_tax_benefit_sytem(country_package, extensions, reforms):
 
     tax_benefit_system = country_package.CountryTaxBenefitSystem()
 
-    extensions = parse_coma_separated_args(extensions)
-    for extension in extensions:
-        tax_benefit_system.load_extension(extension)
+    if extensions:
+        for extension in extensions:
+            tax_benefit_system.load_extension(extension)
 
-    reforms = parse_coma_separated_args(reforms)
-    for reform_path in reforms:
-        try:
-            [reform_package, reform_name] = reform_path.rsplit('.', 1)
-            reform_module = importlib.import_module(reform_package)
-            reform = getattr(reform_module, reform_name)
-            tax_benefit_system = reform(tax_benefit_system)
-        except:
-            print('ERROR: `{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
-            raise
+    if reforms:
+        for reform_path in reforms:
+            try:
+                [reform_package, reform_name] = reform_path.rsplit('.', 1)
+                reform_module = importlib.import_module(reform_package)
+                reform = getattr(reform_module, reform_name)
+                tax_benefit_system = reform(tax_benefit_system)
+            except:
+                print('ERROR: `{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
+                raise
 
     return tax_benefit_system
 
