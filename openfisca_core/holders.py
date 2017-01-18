@@ -71,8 +71,9 @@ class Holder(object):
         array = self._array
         if array is not None and self.column.scalar:
             assert array.shape == ()
-            array = np.empty(self.entity.count, dtype = array.dtype)
-            array.fill(array[0])
+            scalar_array = array
+            array = np.empty(self.entity.count, dtype = scalar_array.dtype)
+            array.fill(scalar_array)
         return array
 
     @array.setter
@@ -306,8 +307,9 @@ class Holder(object):
                         array = values
         if array is not None and self.column.scalar:
             assert array.shape == ()
-            array = np.empty(self.entity.count, dtype = array.dtype)
-            array.fill(array[0])
+            scalar_array = array
+            array = np.empty(self.entity.count, dtype = scalar_array.dtype)
+            array.fill(scalar_array)
         return array
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):

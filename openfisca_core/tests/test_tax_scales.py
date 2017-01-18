@@ -81,6 +81,37 @@ def test_inverse_marginal_tax_scale():
     inverse = marginal_tax_scale.inverse()
     assert_near(brut, inverse.calc(net), 1e-15)
 
+    marginal_tax_scale.add_bracket(4, 0)
+    net = brut - marginal_tax_scale.calc(brut)
+    inverse = marginal_tax_scale.inverse()
+    assert_near(brut, inverse.calc(net), 1e-15)
+
+
+def test_inverse_scaled_marginal_tax_scale():
+    marginal_tax_scale = MarginalRateTaxScale()
+    marginal_tax_scale.add_bracket(0, 0)
+    marginal_tax_scale.add_bracket(1, 0.1)
+    marginal_tax_scale.add_bracket(3, 0.05)
+
+    brut = np.array([1, 2, 3, 4, 5, 6])
+    net = brut - marginal_tax_scale.calc(brut)
+    inverse = marginal_tax_scale.inverse()
+    assert_near(brut, inverse.calc(net), 1e-15)
+
+    brut = np.array([1, 2, 3, 4, 5, 6])
+    brut_scale = 12.345
+    brut_scaled = brut * brut_scale
+    scaled_marginal_tax_scale = marginal_tax_scale.scale_tax_scales(brut_scale)
+    net_scaled = (brut_scaled - scaled_marginal_tax_scale.calc(brut_scaled))
+    scaled_inverse = scaled_marginal_tax_scale.inverse()
+    assert_near(brut_scaled, scaled_inverse.calc(net_scaled), 1e-13)
+
+    inverse = marginal_tax_scale.inverse()
+    inversed_net = inverse.calc(net)
+    net_scale = brut_scale
+    inversed_net_scaled = inversed_net * net_scale
+    assert_near(brut_scaled, inversed_net_scaled, 1e-13)
+
 
 if __name__ == '__main__':
     import logging
