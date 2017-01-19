@@ -6,7 +6,7 @@ import collections
 import numpy as np
 
 from . import periods, holders
-from .tools import empty_clone, stringify_array
+from .commons import empty_clone, stringify_array
 
 
 class Simulation(object):
