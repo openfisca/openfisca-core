@@ -6,7 +6,7 @@ import collections
 import numpy as np
 
 from . import periods, holders
-from .commons import empty_clone, stringify_array
+from .tools import empty_clone, stringify_array
 
 
 class Simulation(object):
@@ -257,38 +257,6 @@ class Simulation(object):
             period = None
         step = self.traceback.get((variable_name, period))
         return step
-
-    def print_memory_usage(self):
-        """
-        Print the memory used by all the variables computed since the creation of the simulation.
-        """
-        infos = []
-        for column_name, holder in self.holder_by_name.iteritems():
-            if holder is not None:
-                if holder._array is not None:
-                    # Only used when column.is_permanent
-                    array = holder._array
-                    infos.append((array.nbytes, column_name, "{}: {} cells * item size {} ({}) = {}".format(
-                        column_name,
-                        np.prod(array.shape),
-                        array.itemsize,
-                        array.dtype,
-                        array.nbytes,
-                        )))
-                elif holder._array_by_period is not None:
-                    periods = sorted(holder._array_by_period.keys())
-                    array = holder._array_by_period[periods[0]]
-                    infos.append((len(periods) * array.nbytes, column_name, "{}: {} periods * {} cells * item size {} ({}) = {}".format(
-                        column_name,
-                        len(periods),
-                        np.prod(array.shape),
-                        array.itemsize,
-                        array.dtype,
-                        len(periods) * array.nbytes,
-                        )))
-        infos.sort()
-        for _, _, line in infos:
-            print(line.rjust(100))
 
     def print_trace(self, variable_name, period, max_depth=3, show_default_values=True):
         """

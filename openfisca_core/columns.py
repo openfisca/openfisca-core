@@ -36,13 +36,14 @@ class Column(object):
     label = None
     law_reference = None  # Either a single reference or a list of references
     name = None
+    scalar = False  # When True the vector is single valued (mono valued variable to optimize memory)
     start = None
     survey_only = False
     url = None
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None,
-            is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
+            is_permanent = False, label = None, law_reference = None, scalar = False, start = None, survey_only = False, url = None,
             val_type = None):
         if cerfa_field is not None:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
@@ -59,6 +60,8 @@ class Column(object):
             self.law_reference = law_reference
         if label is not None:
             self.label = label
+        if scalar:
+            self.scalar = True
         if start is not None:
             self.start = start
         if survey_only:
