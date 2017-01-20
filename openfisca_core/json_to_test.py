@@ -16,28 +16,28 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
     """
 
     def build_role_parser(role):
-            if role.max == 1:
-                return conv.test_isinstance((basestring, int))
-            else:
-                return conv.pipe(
-                    conv.make_item_to_singleton(),
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        conv.test_isinstance((basestring, int)),
-                        drop_none_items = True,
-                        ),
-                    conv.default([]),
-                    )
+        if role.max == 1:
+            return role.key, conv.test_isinstance((basestring, int))
+        else:
+            return role.plural, conv.pipe(
+                conv.make_item_to_singleton(),
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    conv.test_isinstance((basestring, int)),
+                    drop_none_items = True,
+                    ),
+                conv.default([]),
+                )
 
 
     def get_role_parsing_dict(entity):
         if entity.is_person:
             return {}
         else:
-            return {
-                role.plural: build_role_parser(role)
+            return dict(
+                build_role_parser(role)
                 for role in entity.roles
-            }
+            )
 
 
     def get_entity_parsing_dict(tax_benefit_system):
