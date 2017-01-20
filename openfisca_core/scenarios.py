@@ -390,9 +390,13 @@ class AbstractScenario(object):
 
             # We try to attribute groupless individus to entities, according to rules defined by each country
             if repair:
-                test_case, groupless_persons = self.repair(test_case, groupless_persons)
+                test_case = self.attribute_groupless_persons_to_entities(test_case, period, groupless_persons)
 
-            test_case, error = json_to_test.check_each_person_has_entities(test_case, self.tax_benefit_system, state, groupless_persons)
+            test_case, error = json_to_test.check_each_person_has_entities(test_case, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            test_case, error = self.post_process_test_case(test_case, period, state)
 
             return test_case, error
 
@@ -416,13 +420,19 @@ class AbstractScenario(object):
     def suggest(self):
         pass  # To be reimplemented
 
-
-    def repair(self, test_case, groupless_persons):
+    def attribute_groupless_persons_to_entities(self, test_case, groupless_persons):
         """
             Tries to reattribute persons who don't have an entity of each kind.
             Reimplemented by country packages
         """
         return test_case
+
+    def post_process_test_case(self, test_case, period, state):
+        """
+            Country package custom treatment applied to the test case after the commons ones.
+            Reimplemented by country packages
+        """
+        return test_case, None
 
 
 def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
