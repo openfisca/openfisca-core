@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import importlib
 import sys
 import importlib
 
@@ -20,7 +19,7 @@ TAX_BENEFIT_SYSTEM_OPTIONS = {
         'help': 'reforms to apply to the country package',
         'nargs': '*'
         }
-}
+    }
 
 
 def add_tax_benefit_system_arguments(parser):
@@ -68,19 +67,17 @@ def build_tax_benefit_sytem(country_package, extensions, reforms):
 
 
 def detect_country_package():
-    from pip import get_installed_distributions
-    from setuptools import find_packages
+    import pkgutil
     from importlib import import_module
 
     installed_country_packages = []
 
-    for distribution in get_installed_distributions():
-        if distribution.key.lower().find('openfisca') >= 0:
-            packages = find_packages(distribution.location)
-            main_package = packages[0]
-            module = import_module(main_package)
+    for module_description in pkgutil.iter_modules():
+        module_name = module_description[1]
+        if 'openfisca' in module_name.lower():
+            module = import_module(module_name)
             if hasattr(module, 'CountryTaxBenefitSystem'):
-                installed_country_packages.append(main_package)
+                installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
         print('ERROR: No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
