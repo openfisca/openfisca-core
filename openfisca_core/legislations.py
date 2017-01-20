@@ -220,7 +220,7 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
         assert instant is not None
         name = u'.'.join((parent_codes or []) + [code]) \
             if code is not None \
-            else None
+            else ''
         compact_node = CompactNode(instant = instant, name = name)
         for key, value in dated_node_json['children'].iteritems():
             child_parent_codes = None
