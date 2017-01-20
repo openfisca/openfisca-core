@@ -374,6 +374,85 @@ class AbstractScenario(object):
         self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
         return simulation
 
+    def make_json_or_python_to_test_case(self, period, repair = False):
+
+        def build_role_parser(role):
+                if role.max == 1:
+                    return conv.test_isinstance((basestring, int))
+                else:
+                    return conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.test_isinstance(list),
+                        conv.uniform_sequence(
+                            conv.test_isinstance((basestring, int)),
+                            drop_none_items = True,
+                            ),
+                        conv.default([]),
+                        )
+
+
+        def get_role_parsing_dict(entity):
+            if entity.is_person:
+                return {}
+            else:
+                return {
+                    role.plural: build_role_parser(role)
+                    for role in entity.roles
+                }
+
+
+        def get_entity_parsing_dict(tax_benefit_system):
+            column_by_name = tax_benefit_system.column_by_name
+            return {
+                entity.plural : conv.pipe(
+                            conv.make_item_to_singleton(),
+                            conv.test_isinstance(list),
+                            conv.uniform_sequence(
+                                conv.test_isinstance(dict),
+                                drop_none_items = True,
+                                ),
+                            conv.function(set_entities_json_id),
+                            conv.uniform_sequence(
+                                conv.struct(
+                                    dict(itertools.chain(
+                                        dict(
+                                            id = conv.pipe(
+                                                conv.test_isinstance((basestring, int)),
+                                                conv.not_none,
+                                                ),
+                                            ).iteritems(),
+                                        get_role_parsing_dict(entity).iteritems(),
+                                        (
+                                            (column.name, column.json_to_python)
+                                            for column in column_by_name.itervalues()
+                                            if column.entity == entity
+                                            ),
+                                        )),
+                                    drop_none_values = True,
+                                    ),
+                                drop_none_items = True,
+                                ),
+                            conv.default([]),
+                            )
+                for entity in tax_benefit_system.entities
+            }
+
+
+        def json_or_python_to_test_case(value, state = None):
+            if value is None:
+                return value, None
+            if state is None:
+                state = conv.default_state
+
+            test_case, error = conv.pipe(
+                conv.test_isinstance(dict),
+                conv.struct(get_entity_parsing_dict(self.tax_benefit_system)),
+                )(value, state = state)
+
+            return test_case, error
+
+        return json_or_python_to_test_case
+
     def to_json(self):
         return collections.OrderedDict(
             (key, value)
