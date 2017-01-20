@@ -380,7 +380,20 @@ class AbstractScenario(object):
             if state is None:
                 state = conv.default_state
 
-            test_case, error = json_to_test.parse_entities(value, self.tax_benefit_system, state)
+            test_case, error = json_to_test.check_entities_and_role(value, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            test_case, error, groupless_persons = json_to_test.check_entities_consistency(test_case, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            # We try to attribute groupless individus to entities, according to rules defined by each country
+            if repair:
+                test_case, groupless_persons = self.repair(test_case, groupless_persons)
+
+            test_case, error = json_to_test.check_each_person_has_entities(test_case, self.tax_benefit_system, state, groupless_persons)
+
             return test_case, error
 
         return json_or_python_to_test_case
@@ -402,6 +415,14 @@ class AbstractScenario(object):
 
     def suggest(self):
         pass  # To be reimplemented
+
+
+    def repair(self, test_case, groupless_persons):
+        """
+            Tries to reattribute persons who don't have an entity of each kind.
+            Reimplemented by country packages
+        """
+        return test_case
 
 
 def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
