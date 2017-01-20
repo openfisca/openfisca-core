@@ -26,7 +26,7 @@ def memory_usage(simulation):
                 array = holder._array_by_period[periods[0]]
                 infos_by_variable[column_name] = dict(
                     periods = periods,
-                    ncells = np.prod(array.shape),  # per period
+                    ncells = np.prod(array.shape),  # per period
                     item_size = array.itemsize,
                     dtype = array.dtype,
                     nbytes = array.nbytes * len(periods),
@@ -55,8 +55,7 @@ def print_memory_usage_old(simulation):
     for column_name in simulation.tax_benefit_system.column_by_name.iterkeys():
         holder = simulation.holder_by_name.get(column_name)
         if holder is not None:
-            if holder._array is not None:
-                # Only used when column.is_permanent
+            if holder._array is not None:  # Only used when column.is_permanent
                 array = holder._array
                 infos.append((array.nbytes, column_name, "{}: {} cells * item size {} ({}) = {}".format(
                     column_name,
