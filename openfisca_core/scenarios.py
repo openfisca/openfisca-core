@@ -403,19 +403,38 @@ class AbstractScenario(object):
         return json_or_python_to_test_case
 
     def to_json(self):
-        return collections.OrderedDict(
-            (key, value)
-            for key, value in (
-                (key, getattr(self, key))
-                for key in (
-                    'period',
-                    'input_variables',
-                    'test_case',
-                    'axes',
-                    )
-                )
-            if value is not None
-            )
+        self_json = {}
+        if self.axes is not None:
+            self_json['axes'] = self.axes
+        if self.period is not None:
+            self_json['period'] = str(self.period)
+
+        test_case = self.test_case
+        if test_case is not None:
+            column_by_name = self.tax_benefit_system.column_by_name
+            test_case_json = {}
+
+            for entity_type in self.tax_benefit_system.entities:
+                entities_json = []
+                for entity in (test_case.get(entity_type.plural) or []):
+                    entity_json = {}
+                    entity_json['id'] = entity['id']
+                    if not entity_type.is_person:
+                        for role in entity_type.roles:
+                            if entity.get(role.plural or role.key):
+                                entity_json[role.plural or role.key] = entity.get(role.plural or role.key)
+                    for column_name, variable_value in entity.iteritems():
+                        column = column_by_name.get(column_name)
+                        if column is not None and column.entity == entity_type:
+                            variable_value_json = column.transform_value_to_json(variable_value)
+                            if variable_value_json is not None:
+                                entity_json[column_name] = variable_value_json
+                    entities_json.append(entity_json)
+                if entities_json:
+                    test_case_json[entity_type.plural] = entities_json
+
+            self_json['test_case'] = test_case_json
+        return self_json
 
     def suggest(self):
         pass  # To be reimplemented
