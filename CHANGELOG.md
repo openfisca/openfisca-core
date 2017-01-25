@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.4
+
+* Always name a `CompactNode`, as otherwise traced simulations crash if a `BAREME` is directly under the root node of the xml parameteres file.
+
 ## 4.3.3
 
 * Use the actual TaxBenefitSystem and not its reference when neutralizing a column.
