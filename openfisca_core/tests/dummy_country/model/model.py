@@ -51,6 +51,12 @@ class a_charge_fiscale(Variable):
     label = u"La personne n'est pas fiscalement indépendante"
 
 
+class rempli_obligation_scolaire(Variable):
+    column = BoolCol(default = True)
+    entity = Individu
+    label = u"La personne rempli ses obligations scolaires"
+
+
 # Calculated variables
 
 class age(Variable):

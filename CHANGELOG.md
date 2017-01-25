@@ -2,7 +2,9 @@
 
 ## 4.2.1
 
-  Fix permanent and period size independent variables neutralization
+*  Fix permanent and period size independent variables neutralization
+
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
 
 ## 4.2.0
 
