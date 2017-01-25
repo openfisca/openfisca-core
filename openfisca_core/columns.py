@@ -485,5 +485,9 @@ class EnumCol(IntCol):
         return value
 
 
+class PeriodSizeIndependentFloatCol(FloatCol):
+    is_period_size_independent = True
+
+
 class PeriodSizeIndependentIntCol(IntCol):
     is_period_size_independent = True
