@@ -676,9 +676,10 @@ def neutralize_column(column):
         )
 
 
-def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
+def new_filled_column(__doc__ = None, __module__ = None,
+        base_function = UnboundLocalError, calculate_output = UnboundLocalError,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
-        __doc__ = None, __module__ = None,
+        default = UnboundLocalError,
         entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
@@ -714,6 +715,9 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         comments = None if reference_column is None else reference_column.formula_class.comments
     elif isinstance(comments, str):
         comments = comments.decode('utf-8')
+
+    if default is UnboundLocalError:
+        default = column.default if reference_column is None else reference_column.default
 
     assert entity is not None, """Missing attribute "entity" in definition of filled column {}""".format(
         name)
@@ -902,6 +906,8 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     # Fill column attributes.
     if cerfa_field is not None:
         column.cerfa_field = cerfa_field
+    if default != column.default:
+        column.default = default
     if stop_date is not None:
         column.end = stop_date
     column.entity = entity
