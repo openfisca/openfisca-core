@@ -694,7 +694,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     assert isinstance(name, unicode)
 
     if calculate_output is UnboundLocalError:
-        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output
+        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output.im_func
 
     if cerfa_field is UnboundLocalError:
         cerfa_field = None if reference_column is None else reference_column.cerfa_field
@@ -751,7 +751,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         start_line_number = start_line_number.decode('utf-8')
 
     if set_input is UnboundLocalError:
-        set_input = None if reference_column is None else reference_column.formula_class.set_input
+        set_input = None if reference_column is None else reference_column.formula_class.set_input.im_func
 
     if source_code is UnboundLocalError:
         source_code = None if reference_column is None else reference_column.formula_class.source_code
