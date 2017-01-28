@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.1
+
+* Fix `set_input` and `default` setting in `new_filled_column`
+
 ## 4.3.0
 
 * Add reference documentation
