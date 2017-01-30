@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.3.2
+
+* Fix `to_value_json` for `DatedVariable` with extra parameters.
+
+This was causing a crash when calculating intermediate variables with the API.
+
+Unlike simple formulas, a `DatedVariable` have several functions. We thus need to select the right one according to the period before doing parameters introspection.
+
 ## 4.3.1
 
 * Fix `set_input` and `default` setting in `new_filled_column`

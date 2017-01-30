@@ -360,17 +360,27 @@ class Holder(object):
     def get_from_cache(self, period, extra_params = None):
         return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
 
-    def get_extra_param_names(self):
-        return self.formula.function.__func__.func_code.co_varnames[3:]
+    def get_extra_param_names(self, period):
+        from .formulas import DatedFormula
+        if isinstance(self.formula, DatedFormula):
+            # Get the function that matches the period
+            formula = [
+                formula for formula in self.formula.dated_formulas
+                if (not formula['start_instant'] or formula['start_instant'] < period.stop) and (not formula['stop_instant'] or formula['stop_instant'] > period.start)
+                ][0]['formula'].function
+        else:
+            formula = self.formula.function
+
+        return formula.__func__.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
         column = self.column
         transform_dated_value_to_json = column.transform_dated_value_to_json
 
-        def extra_params_to_json_key(extra_params):
+        def extra_params_to_json_key(extra_params, period):
             return '{' + ', '.join(
                 ['{}: {}'.format(name, value)
-                    for name, value in zip(self.get_extra_param_names(), extra_params)]
+                    for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
         if column.is_permanent:
@@ -387,7 +397,7 @@ class Holder(object):
                 if type(array_or_dict) == dict:
                     value_json[str(period)] = values_dict = {}
                     for extra_params, array in array_or_dict.iteritems():
-                        extra_params_key = extra_params_to_json_key(extra_params)
+                        extra_params_key = extra_params_to_json_key(extra_params, period)
                         values_dict[str(extra_params_key)] = [
                             transform_dated_value_to_json(cell, use_label = use_label)
                             for cell in array.tolist()
