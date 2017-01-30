@@ -1,8 +1,14 @@
 # Changelog
 
+## 4.2.2
+
+* Fix `to_value_json` for `DatedVariable` with extra parameters.
+
+This was causing a crash when calculating intermediate variables with the API.
+
 ## 4.2.1
 
-  Fix permanent and period size independent variables neutralization
+* Fix permanent and period size independent variables neutralization
 
 ## 4.2.0
 
