@@ -1,8 +1,12 @@
 # Changelog
 
+## 4.3.0
+
+* Add reference documentation
+
 ## 4.2.1
 
-  Fix permanent and period size independent variables neutralization
+* Fix permanent and period size independent variables neutralization
 
 ## 4.2.0
 
