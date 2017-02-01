@@ -140,11 +140,11 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
             name.encode('utf-8'),
             period_str,
             )
-        print("=" * len(title))
-        print(title)
-        print("=" * len(title))
 
         def check():
+            print("=" * len(title))
+            print(title)
+            print("=" * len(title))
             _run_test(period_str, test, verbose, options)
 
         yield check
