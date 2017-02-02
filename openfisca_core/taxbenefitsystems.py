@@ -199,7 +199,7 @@ class TaxBenefitSystem(object):
         self.column_by_name[column_name] = new_column
 
     def neutralize_column(self, column_name):
-        self.update_column(column_name, neutralize_column(self.reference.get_column(column_name)))
+        self.update_column(column_name, neutralize_column(self.get_column(column_name)))
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         if path_in_legislation_tree is not None:

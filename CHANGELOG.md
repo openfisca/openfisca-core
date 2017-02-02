@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.3
+
+* Use the actual TaxBenefitSystem and not its reference when neutralizing a column.
+
 ## 4.3.2
 
 * Fix `to_value_json` for `DatedVariable` with extra parameters.
