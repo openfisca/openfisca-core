@@ -73,7 +73,7 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     if holder._array_by_period is not None:
         known_values = sorted(holder._array_by_period.iteritems(), reverse = True)
         for last_period, last_result in known_values:
-            if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
+            if last_period.start <= period.start and (formula.function is None or last_period.contains(period)):
                 if type(last_result) == np.ndarray and not extra_params:
                     return period, last_result
                 elif last_result.get(extra_params):

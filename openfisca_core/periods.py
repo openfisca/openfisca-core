@@ -562,6 +562,9 @@ class Period(tuple):
         """
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
 
+    def contains(self, other):
+        return other.start <= self.start and other.stop >= self.stop
+
     @property
     def size(self):
         """Return the size of the period.
