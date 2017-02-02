@@ -807,7 +807,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
             requested_period_default_value_neutralized, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         if base_function is UnboundLocalError:
-            base_function = requested_period_last_value
+            base_function = requested_period_last_or_next_value
     elif base_function is UnboundLocalError:
         base_function = requested_period_default_value
     if base_function is UnboundLocalError:
