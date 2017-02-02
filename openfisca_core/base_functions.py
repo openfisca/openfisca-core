@@ -79,8 +79,12 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
                 elif last_result.get(extra_params):
                         return period, last_result.get(extra_params)
         if accept_future_value:
-            next_period, next_array = known_values[-1]
-            return period, last_result
+            next_period, next_result = known_values[-1]
+            if formula.function is None:
+                if type(next_result) == np.ndarray and not extra_params:
+                    return period, next_result
+                elif next_result.get(extra_params):
+                    return period, next_result.get(extra_params)
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
