@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import conv, periods, simulations
+from . import conv, periods, simulations, json_to_test
 
 
 def N_(message):
@@ -352,8 +352,7 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False,
-            use_set_input_hooks = True, opt_out_cache = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, use_set_input_hooks = True, opt_out_cache = False):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -374,23 +373,85 @@ class AbstractScenario(object):
         self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
         return simulation
 
+    def make_json_or_python_to_test_case(self, period, repair = False):
+        def json_or_python_to_test_case(value, state = None):
+            if value is None:
+                return value, None
+            if state is None:
+                state = conv.default_state
+
+            test_case, error = json_to_test.check_entities_and_role(value, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            test_case, error, groupless_persons = json_to_test.check_entities_consistency(test_case, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            # We try to attribute groupless individus to entities, according to rules defined by each country
+            if repair:
+                test_case = self.attribute_groupless_persons_to_entities(test_case, period, groupless_persons)
+
+            test_case, error = json_to_test.check_each_person_has_entities(test_case, self.tax_benefit_system, state)
+            if error is not None:
+                return test_case, error
+
+            test_case, error = self.post_process_test_case(test_case, period, state)
+
+            return test_case, error
+
+        return json_or_python_to_test_case
+
     def to_json(self):
-        return collections.OrderedDict(
-            (key, value)
-            for key, value in (
-                (key, getattr(self, key))
-                for key in (
-                    'period',
-                    'input_variables',
-                    'test_case',
-                    'axes',
-                    )
-                )
-            if value is not None
-            )
+        self_json = {}
+        if self.axes is not None:
+            self_json['axes'] = self.axes
+        if self.period is not None:
+            self_json['period'] = str(self.period)
+
+        test_case = self.test_case
+        if test_case is not None:
+            column_by_name = self.tax_benefit_system.column_by_name
+            test_case_json = {}
+
+            for entity_type in self.tax_benefit_system.entities:
+                entities_json = []
+                for entity in (test_case.get(entity_type.plural) or []):
+                    entity_json = {}
+                    entity_json['id'] = entity['id']
+                    if not entity_type.is_person:
+                        for role in entity_type.roles:
+                            if entity.get(role.plural or role.key):
+                                entity_json[role.plural or role.key] = entity.get(role.plural or role.key)
+                    for column_name, variable_value in entity.iteritems():
+                        column = column_by_name.get(column_name)
+                        if column is not None and column.entity == entity_type:
+                            variable_value_json = column.transform_value_to_json(variable_value)
+                            if variable_value_json is not None:
+                                entity_json[column_name] = variable_value_json
+                    entities_json.append(entity_json)
+                if entities_json:
+                    test_case_json[entity_type.plural] = entities_json
+
+            self_json['test_case'] = test_case_json
+        return self_json
 
     def suggest(self):
         pass  # To be reimplemented
+
+    def attribute_groupless_persons_to_entities(self, test_case, groupless_persons):
+        """
+            Tries to reattribute persons who don't have an entity of each kind.
+            Reimplemented by country packages
+        """
+        return test_case
+
+    def post_process_test_case(self, test_case, period, state):
+        """
+            Country package custom treatment applied to the test case after the commons ones.
+            Reimplemented by country packages
+        """
+        return test_case, None
 
 
 def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
@@ -669,13 +730,6 @@ def make_json_or_python_to_test(tax_benefit_system):
             }, None
 
     return json_or_python_to_test
-
-
-def set_entities_json_id(entities_json):
-    for index, entity_json in enumerate(entities_json):
-        if 'id' not in entity_json:
-            entity_json['id'] = index
-    return entities_json
 
 
 def iter_over_entity_members(entity_description, scenario_entity):

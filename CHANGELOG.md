@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.0
+
+* Move `json_or_python_to_test_case` from country packages to core
+* Breaking change : `scenarios.set_entities_json_id` has been moved, and should not be considered a public function.
+
 ## 4.3.4
 
 * Always name a `CompactNode`, as otherwise traced simulations crash if a `BAREME` is directly under the root node of the xml parameteres file.
