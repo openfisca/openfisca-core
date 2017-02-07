@@ -19,7 +19,7 @@ from .base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from .tools import empty_clone, stringify_array
+from .commons import empty_clone, stringify_array
 
 
 log = logging.getLogger(__name__)
@@ -676,9 +676,10 @@ def neutralize_column(column):
         )
 
 
-def new_filled_column(base_function = UnboundLocalError, calculate_output = UnboundLocalError,
+def new_filled_column(__doc__ = None, __module__ = None,
+        base_function = UnboundLocalError, calculate_output = UnboundLocalError,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
-        __doc__ = None, __module__ = None,
+        default = UnboundLocalError,
         entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
@@ -694,7 +695,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     assert isinstance(name, unicode)
 
     if calculate_output is UnboundLocalError:
-        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output
+        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output.im_func
 
     if cerfa_field is UnboundLocalError:
         cerfa_field = None if reference_column is None else reference_column.cerfa_field
@@ -714,6 +715,9 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         comments = None if reference_column is None else reference_column.formula_class.comments
     elif isinstance(comments, str):
         comments = comments.decode('utf-8')
+
+    if default is UnboundLocalError:
+        default = column.default if reference_column is None else reference_column.default
 
     assert entity is not None, """Missing attribute "entity" in definition of filled column {}""".format(
         name)
@@ -751,7 +755,7 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         start_line_number = start_line_number.decode('utf-8')
 
     if set_input is UnboundLocalError:
-        set_input = None if reference_column is None else reference_column.formula_class.set_input
+        set_input = None if reference_column is None else reference_column.formula_class.set_input.im_func
 
     if source_code is UnboundLocalError:
         source_code = None if reference_column is None else reference_column.formula_class.source_code
@@ -795,11 +799,13 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
         formula_class_attributes['source_file_path'] = source_file_path
 
     if is_permanent:
-        assert base_function is UnboundLocalError
+        assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
+            'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
     elif column.is_period_size_independent:
         assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value,
-            UnboundLocalError)
+            requested_period_default_value_neutralized, UnboundLocalError), \
+            'Unexpected base_function {}'.format(base_function)
         if base_function is UnboundLocalError:
             base_function = requested_period_last_value
     elif base_function is UnboundLocalError:
@@ -900,6 +906,8 @@ def new_filled_column(base_function = UnboundLocalError, calculate_output = Unbo
     # Fill column attributes.
     if cerfa_field is not None:
         column.cerfa_field = cerfa_field
+    if default != column.default:
+        column.default = default
     if stop_date is not None:
         column.end = stop_date
     column.entity = entity

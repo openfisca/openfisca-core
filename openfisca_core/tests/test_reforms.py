@@ -11,10 +11,10 @@ from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
 from ..periods import Instant
 from ..tools import assert_near
-from .dummy_country import Famille
-from .test_countries import TestTaxBenefitSystem
+from .dummy_country.entities import Famille
+from .dummy_country import DummyTaxBenefitSystem
 
-tax_benefit_system = TestTaxBenefitSystem()
+tax_benefit_system = DummyTaxBenefitSystem()
 
 
 def test_formula_neutralization():
@@ -79,6 +79,29 @@ def test_input_variable_neutralization():
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
     revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible_reform, [3600, 3600], absolute_error_margin = 0)
+
+
+def test_permanent_variable_neutralization():
+
+    class test_date_naissance_neutralization(Reform):
+        def apply(self):
+            self.neutralize_column('birth')
+
+    reform = test_date_naissance_neutralization(tax_benefit_system)
+
+    year = 2013
+    scenario = reform.new_scenario().init_single_entity(
+        period = year,
+        famille = dict(depcom = '75101'),
+        parent1 = dict(
+            birth = '1980-01-01',
+            salaire_brut = 120000,
+            ),
+        )
+    simulation = scenario.new_simulation(reference = True)
+    reform_simulation = scenario.new_simulation()
+    assert str(simulation.calculate('birth')[0]) == '1980-01-01'
+    assert str(reform_simulation.calculate('birth')[0]) == '1970-01-01'
 
 
 def test_split_item_containing_instant():

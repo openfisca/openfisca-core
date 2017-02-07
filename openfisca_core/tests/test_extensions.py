@@ -1,11 +1,12 @@
-from os import path
+import pkg_resources
+import os
 
 from nose.tools import raises
 
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem, TEST_DIRECTORY
+from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
 
-
-dummy_extension_path = path.join(TEST_DIRECTORY, 'dummy_extension')
+openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
+dummy_extension_path = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'dummy_extension')
 tbs = DummyTaxBenefitSystem()
 
 

@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '4.1.8',
+    version = '4.3.4',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -26,6 +26,9 @@ setup(
         ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
+    entry_points = {
+        'console_scripts': ['openfisca-run-test=openfisca_core.scripts.run_test:main'],
+        },
     extras_require = {
         'test': [
             'nose',
@@ -36,6 +39,7 @@ setup(
         'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11',
+        'PyYAML >= 3.10',
         ],
     message_extractors = {
         'openfisca_core': [
