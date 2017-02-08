@@ -2,7 +2,8 @@
 
 ## 4.3.5
 
-* Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
+* Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem.
+  This does not require changing anything from the caller, which should use the `decompositions.get_decomposition_json` function instead of those attributes.
 
 ## 4.3.4
 
