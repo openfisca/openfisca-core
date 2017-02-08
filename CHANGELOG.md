@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.4
+
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
+
 ## 4.3.3
 
 * Use the actual TaxBenefitSystem and not its reference when neutralizing a column.
