@@ -3,7 +3,6 @@
 
 import collections
 import copy
-import os
 import xml
 
 from . import conv, decompositionsxml, legislations
@@ -37,7 +36,7 @@ def calculate(simulations, decomposition_json):
 
 def get_decomposition_json(tax_benefit_system, xml_file_path = None):
     if xml_file_path is None:
-        xml_file_path = os.path.join(tax_benefit_system.DECOMP_DIR, tax_benefit_system.DEFAULT_DECOMP_FILE)
+        xml_file_path = tax_benefit_system.decomposition_file_path
     decomposition_tree = xml.etree.ElementTree.parse(xml_file_path)
     decomposition_xml_json = conv.check(decompositionsxml.xml_decomposition_to_json)(decomposition_tree.getroot(),
         state = conv.State)
