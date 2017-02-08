@@ -405,9 +405,6 @@ class SimpleFormula(AbstractFormula):
                 stringify_array(array)).encode('utf-8')
         assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
             column.name, entity.key, str(period), str(output_period), array).encode('utf-8')
-        if isinstance(column, columns.FloatCol) or isinstance(column, columns.IntCol):
-            assert not np.isnan(np.sum(array)), u"Function {}@{}<{}> returned nan values : {}".format(
-            column.name, entity.key, str(period), array).encode('utf-8')
         entity_count = entity.count
         assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
