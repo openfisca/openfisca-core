@@ -5,7 +5,7 @@ from openfisca_core import periods
 from openfisca_core.columns import IntCol, BoolCol
 from openfisca_core.variables import Variable
 from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country import Individu
+from openfisca_core.tests.dummy_country.entities import Individu
 from openfisca_core.tools import assert_near
 from openfisca_core.base_functions import requested_period_last_value
 
@@ -65,7 +65,7 @@ def test_cache():
 
 
 def test_get_extra_param_names():
-    assert formula_3_holder.get_extra_param_names() == ('choice',)
+    assert formula_3_holder.get_extra_param_names(period = None) == ('choice',)
 
 
 def test_json_conversion():

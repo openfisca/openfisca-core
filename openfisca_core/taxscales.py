@@ -11,8 +11,7 @@ import itertools
 import numpy as np
 from numpy import maximum as max_, minimum as min_
 
-from .tools import empty_clone
-
+from .commons import empty_clone
 
 log = logging.getLogger(__name__)
 
@@ -195,8 +194,7 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         if isinstance(factor, (float, int)):
             factor = np.ones(len(base)) * factor
-        # thresholds1 = np.outer(factor, np.array(self.thresholds + [np.inf]))
-        # changed to below to avoind NaN creation
+        # np.finfo(np.float).eps is used to avoid np.nan = 0 * np.inf creation
         thresholds1 = np.outer(factor + np.finfo(np.float).eps, np.array(self.thresholds + [np.inf]))
         if round_base_decimals is not None:
             thresholds1 = np.round(thresholds1, round_base_decimals)

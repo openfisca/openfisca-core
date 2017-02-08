@@ -1,13 +1,45 @@
 # Changelog
 
-## 4.1.9
+## 4.3.5
 
 * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem
 
-## 4.1.8
+## 4.3.4
 
 * Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
 
+## 4.3.3
+
+* Use the actual TaxBenefitSystem and not its reference when neutralizing a column.
+
+## 4.3.2
+
+* Fix `to_value_json` for `DatedVariable` with extra parameters.
+
+This was causing a crash when calculating intermediate variables with the API.
+
+Unlike simple formulas, a `DatedVariable` have several functions. We thus need to select the right one according to the period before doing parameters introspection.
+
+## 4.3.1
+
+* Fix `set_input` and `default` setting in `new_filled_column`
+
+## 4.3.0
+
+* Add reference documentation
+
+## 4.2.1
+
+* Fix permanent and period size independent variables neutralization
+
+## 4.2.0
+
+* Introduce a YAML test runner in openfisca_core
+  - Introduce command line tool `openfisca-run-test`
+
+* Refactor the dummy tax benefit system included in openfisca-core
+  - Make the dummy country look like a real one
+  - Split defining the country from testing
 
 ## 4.1.7
 
