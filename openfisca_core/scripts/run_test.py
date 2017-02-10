@@ -47,7 +47,13 @@ def main():
         if len(installed_country_packages) > 1:
             print('WARNING: Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), country_package_name))
 
-    tax_benefit_system = country_package.CountryTaxBenefitSystem()
+    try:
+        tax_benefit_system = country_package.CountryTaxBenefitSystem()
+    except AttributeError:
+        print('{}_tax_benefit_system'.format(country_package.__name__[10:]))
+        tax_benefit_system = getattr(
+            country_package, '{}_tax_benefit_system'.format(country_package.__name__[10:])
+            )
 
     if args.extensions:
         extensions = [name.strip(' ') for name in args.extensions.split(',')]
