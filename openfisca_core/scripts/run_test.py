@@ -50,10 +50,7 @@ def main():
     try:
         tax_benefit_system = country_package.CountryTaxBenefitSystem()
     except AttributeError:
-        print('{}_tax_benefit_system'.format(country_package.__name__[10:]))
-        tax_benefit_system = getattr(
-            country_package, '{}_tax_benefit_system'.format(country_package.__name__[10:])
-            )
+        tax_benefit_system = country_package.country_tax_benefit_system
 
     if args.extensions:
         extensions = [name.strip(' ') for name in args.extensions.split(',')]

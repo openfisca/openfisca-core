@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.6
+
+* Extend `run_test` to use `CountryTaxBenefiSystem` _or_ `country_tax_benefit_system` from country openfisca package
+
 ## 4.3.5
 
 * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem.
