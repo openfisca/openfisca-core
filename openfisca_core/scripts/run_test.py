@@ -53,7 +53,7 @@ def main():
         tax_benefit_system = country_package.country_tax_benefit_system
     else:
         print('ERROR: Cannot find CountryTaxBenefitSystem nor country_tax_benefit_system in `{}` __init__ file.\n\
-            On of them should be present for this package to be a valid Openfisca country package.'.format(args.country_package))
+            One of them should be present for this package to be a valid OpenFisca country package.'.format(args.country_package))
         sys.exit(1)
 
     if args.extensions:
