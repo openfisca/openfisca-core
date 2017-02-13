@@ -2,7 +2,8 @@
 
 ## 4.3.6
 
-* Extend `run_test` to use `CountryTaxBenefiSystem` _or_ `country_tax_benefit_system` from country openfisca package
+* Extend `run_test` to use `CountryTaxBenefiSystem` _or_ `country_tax_benefit_system` from country openfisca package.
+This is useful when your country pakcage doesn't provide a `CountryTaxBenefiSystem` class but a `country_tax_benefit_system` instance.
 
 ## 4.3.5
 
