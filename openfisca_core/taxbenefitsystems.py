@@ -38,7 +38,7 @@ class TaxBenefitSystem(object):
     reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     Scenario = None
     cache_blacklist = None
-    DEFAULT_DECOMP_FILE = None
+    decomposition_file_path = None
 
     def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.

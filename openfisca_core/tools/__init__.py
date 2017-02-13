@@ -60,7 +60,7 @@ def detect_country_packages():
             packages = find_packages(distribution.location)
             main_package = packages[0]
             module = import_module(main_package)
-            if hasattr(module, 'CountryTaxBenefitSystem'):
+            if hasattr(module, 'CountryTaxBenefitSystem') or hasattr(module, 'country_tax_benefit_system'):
                 result.append(main_package)
 
     return result

@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.3.6
+
+* Extend `run_test` to use `CountryTaxBenefiSystem` _or_ `country_tax_benefit_system` from country openfisca package.
+This is useful when your country pakcage doesn't provide a `CountryTaxBenefiSystem` class but a `country_tax_benefit_system` instance.
+
+## 4.3.5
+
+* Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem.
+  This does not require changing anything from the caller, which should use the `decompositions.get_decomposition_json` function instead of those attributes.
+
+## 4.3.4
+
+* Fix occasionnal `NaN` creation in `MarginalRateTaxScale.calc` resulting from `0 * np.inf`
+
 ## 4.3.3
 
 * Use the actual TaxBenefitSystem and not its reference when neutralizing a column.
