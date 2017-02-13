@@ -47,10 +47,14 @@ def main():
         if len(installed_country_packages) > 1:
             print('WARNING: Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), country_package_name))
 
-    try:
+    if hasattr(country_package, 'CountryTaxBenefitSystem'):
         tax_benefit_system = country_package.CountryTaxBenefitSystem()
-    except AttributeError:
+    elif hasattr(country_package, 'country_tax_benefit_system'):
         tax_benefit_system = country_package.country_tax_benefit_system
+    else:
+        print('ERROR: Cannot find CountryTaxBenefitSystem nor country_tax_benefit_system in `{}` __init__ file.\n\
+            On of them should be present for this package to be a valid Openfisca country package.'.format(args.country_package))
+        sys.exit(1)
 
     if args.extensions:
         extensions = [name.strip(' ') for name in args.extensions.split(',')]
