@@ -60,12 +60,6 @@ def requested_period_default_value(formula, simulation, period, *extra_params):
     return array
 
 
-def requested_period_default_value_neutralized(formula, simulation, period, *extra_params):
-    holder = formula.holder
-    array = holder.default_array()
-    return array
-
-
 def requested_period_last_value(formula, simulation, period, *extra_params, **kwargs):
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period.

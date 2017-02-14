@@ -16,7 +16,6 @@ from . import columns, holders, legislations, periods
 from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
-    requested_period_default_value_neutralized,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
@@ -658,7 +657,6 @@ def missing_value(formula, simulation, period):
 def get_neutralized_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
-        base_function = requested_period_default_value_neutralized,
         entity = column.entity,
         is_neutralized = True,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
@@ -808,12 +806,10 @@ def new_filled_column(
         formula_class_attributes['source_file_path'] = source_file_path
 
     if column.definition_period == ETERNITY:
-        assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
-            'Unexpected base_function {}'.format(base_function)
+        assert base_function == UnboundLocalError, 'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
     elif column.is_period_size_independent:
-        assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value,
-            requested_period_default_value_neutralized, UnboundLocalError), \
+        assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         if base_function is UnboundLocalError:
             base_function = requested_period_last_value
