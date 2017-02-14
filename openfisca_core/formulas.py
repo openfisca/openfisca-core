@@ -667,16 +667,31 @@ def get_neutralized_column(column):
         )
 
 
-def new_filled_column(__doc__ = None, __module__ = None,
-        base_function = UnboundLocalError, calculate_output = UnboundLocalError,
-        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
+def new_filled_column(
+        __doc__ = None,
+        __module__ = None,
+        base_function = UnboundLocalError,
+        calculate_output = UnboundLocalError,
+        cerfa_field = UnboundLocalError,
+        column = UnboundLocalError,
+        comments = UnboundLocalError,
         default = UnboundLocalError,
-        entity = UnboundLocalError, formula_class = UnboundLocalError,
         definition_period = UnboundLocalError,
-        label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
-        name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
-        source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
-        url = UnboundLocalError, **specific_attributes):
+        entity = UnboundLocalError,
+        formula_class = UnboundLocalError,
+        label = UnboundLocalError,
+        law_reference = UnboundLocalError,
+        name = None,
+        reference_column = None,
+        set_input = UnboundLocalError,
+        source_code = UnboundLocalError,
+        source_file_path = UnboundLocalError,
+        start_date = UnboundLocalError,
+        start_line_number = UnboundLocalError,
+        stop_date = UnboundLocalError,
+        url = UnboundLocalError,
+        **specific_attributes
+        ):
     # Validate arguments.
 
     if reference_column is not None:
