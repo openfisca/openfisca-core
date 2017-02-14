@@ -11,5 +11,5 @@ flake8:
 	flake8 `git ls-files | grep "\.py$$"`
 
 test: flake8
-	# nosetests options are defined in setup.cfg
+	@# nosetests options are defined in setup.cfg
 	nosetests
