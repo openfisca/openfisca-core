@@ -11,4 +11,5 @@ flake8:
 	flake8 `git ls-files | grep "\.py$$"`
 
 test: flake8
-	nosetests openfisca_core/tests --exe --with-doctest
+	@# nosetests options are defined in setup.cfg
+	nosetests
