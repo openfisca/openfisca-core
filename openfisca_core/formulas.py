@@ -660,6 +660,7 @@ def get_neutralized_column(column):
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
         entity = column.entity,
+        is_neutralized = True,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
         definition_period = column.definition_period,
@@ -679,6 +680,7 @@ def new_filled_column(
         definition_period = UnboundLocalError,
         entity = UnboundLocalError,
         formula_class = UnboundLocalError,
+        is_neutralized = False,
         label = UnboundLocalError,
         law_reference = UnboundLocalError,
         name = None,
@@ -920,6 +922,7 @@ def new_filled_column(
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period
+    column.is_neutralized = is_neutralized
     column.label = label
     column.law_reference = law_reference
     column.name = name

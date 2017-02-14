@@ -76,6 +76,7 @@ class Column(object):
             self.url = url
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
+        self.is_neutralized = False
 
     def empty_clone(self):
         return self.__class__()
