@@ -1,1 +1,4 @@
 recursive-include openfisca_core/scripts *
+recursive-include openfisca_core/i18n *.mo
+include *.md
+include LICENSE
