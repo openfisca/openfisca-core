@@ -17,6 +17,7 @@ class af(Variable):
     column = FloatCol
     entity = Famille
     period_behavior = MONTH
+    set_input = set_input_divide_by_period
 
 
 class age_en_mois(Variable):
@@ -46,8 +47,8 @@ class salaire_brut(Variable):
     column = FloatCol
     entity = Individu
     label = "Salaire brut"
-    set_input = set_input_divide_by_period
     period_behavior = MONTH
+    set_input = set_input_divide_by_period
 
 
 class a_charge_fiscale(Variable):
@@ -163,6 +164,7 @@ class salaire_net(Variable):
     entity = Individu
     label = u"Salaire net"
     period_behavior = MONTH
+    set_input = set_input_divide_by_period
 
     def function(individu, period):
         period = period.start.period(u'month').offset('first-of')
