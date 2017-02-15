@@ -123,10 +123,10 @@ def test_2_parallel_axes_different_periods():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
+    assert_near(simulation.calculate_add('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
     assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year - 1)), [0, 0, 5000, 0, 10000, 0],
         absolute_error_margin = 0)
-    assert_near(simulation.calculate('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
+    assert_near(simulation.calculate_add('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
     assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year)), [0, 0, 0, 5000, 0, 10000],
         absolute_error_margin = 0)
 
@@ -138,6 +138,7 @@ def test_2_parallel_axes_same_values():
             [
                 dict(
                     count = 3,
+                    index = 0,
                     name = 'salaire_brut',
                     max = 100000,
                     min = 0,
@@ -155,26 +156,28 @@ def test_2_parallel_axes_same_values():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
+    print(simulation.calculate_add('salaire_brut'))
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], absolute_error_margin = 0.005)
 
 
 def test_age():
     year = 2013
+    month = '2013-01'
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
         parent1 = dict(
             birth = datetime.date(year - 40, 1, 1),
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', '2013-01'), [40], absolute_error_margin = 0.005)
 
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = month,
         parent1 = dict(
             age_en_mois = 40 * 12 + 11,
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', '2013-01'), [40], absolute_error_margin = 0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
