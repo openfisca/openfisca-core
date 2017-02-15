@@ -220,7 +220,7 @@ def _run_test(period_str, test, verbose = False, options = {}):
             if isinstance(expected_value, dict):
                 for requested_period, expected_value_at_period in expected_value.iteritems():
                     assert_near(
-                        simulation.calculate(variable_name, requested_period),
+                        simulation.calculate_add(variable_name, requested_period),
                         expected_value_at_period,
                         absolute_error_margin = absolute_error_margin,
                         message = u'{}@{}: '.format(variable_name, requested_period),

@@ -39,7 +39,7 @@ class variable3(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable4', period.last_year)
+        return period, simulation.calculate('variable4', period.last_month)
 
 
 class variable4(Variable):
@@ -59,7 +59,7 @@ class variable5(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        variable6 = simulation.calculate('variable6', period.last_year, max_nb_cycles = 0)
+        variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
         return period, 5 + variable6
 
 
@@ -95,7 +95,7 @@ class variable7(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        variable8 = simulation.calculate('variable8', period.last_year, max_nb_cycles = 1)
+        variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
         return period, 7 + variable8
 
 
@@ -114,7 +114,7 @@ tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
     variable5, variable6, cotisation, variable7, variable8)
 
-reference_period = periods.period(u'2013')
+reference_period = periods.period(u'2013-01')
 
 
 @raises(AssertionError)
@@ -146,10 +146,10 @@ def test_allowed_cycle():
         ).new_simulation(debug = True)
     variable6 = simulation.calculate('variable6')
     variable5 = simulation.calculate('variable5')
-    variable6_last_year = simulation.calculate('variable6', reference_period.last_year)
+    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
-    assert_near(variable6_last_year, [0])
+    assert_near(variable6_last_month, [0])
 
 
 def test_allowed_cycle_different_order():
@@ -159,10 +159,10 @@ def test_allowed_cycle_different_order():
         ).new_simulation(debug = True)
     variable5 = simulation.calculate('variable5')
     variable6 = simulation.calculate('variable6')
-    variable6_last_year = simulation.calculate('variable6', reference_period.last_year)
+    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
-    assert_near(variable6_last_year, [0])
+    assert_near(variable6_last_month, [0])
 
 
 def test_cotisation_1_level():

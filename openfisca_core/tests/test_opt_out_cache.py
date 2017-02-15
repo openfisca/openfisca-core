@@ -51,7 +51,7 @@ tax_benefit_system.cache_blacklist = set(['intermediate'])
 
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period = 2016,
+    period = '2016-05',
     input_variables = {
         'input': 1,
         },
@@ -75,7 +75,7 @@ def test_with_cache_opt_out():
 tax_benefit_system2 = get_filled_tbs()
 
 scenario2 = tax_benefit_system2.new_scenario().init_from_attributes(
-    period = 2016,
+    period = '2016-09',
     input_variables = {
         'input': 1,
         },

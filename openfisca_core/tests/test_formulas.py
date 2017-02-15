@@ -50,7 +50,7 @@ class uses_switch(Variable):
 tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period = 2013,
+    period = '2013-01',
     input_variables = {
         # 'choice': [1, 1, 1, 2],
         'choice': np.random.randint(2, size = 1000) + 1,
