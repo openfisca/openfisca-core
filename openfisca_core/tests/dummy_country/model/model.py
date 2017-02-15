@@ -153,7 +153,7 @@ class salaire_imposable(Variable):
         period = period.start.period(u'year').offset('first-of')
         dom_tom = individu.famille('dom_tom', period)
 
-        salaire_net = individu('salaire_net', period)
+        salaire_net = individu('salaire_net', period, options=[ADD])
 
         return period, salaire_net * 0.9 - 100 * dom_tom
 
@@ -162,10 +162,10 @@ class salaire_net(Variable):
     column = FloatCol
     entity = Individu
     label = u"Salaire net"
-    period_behavior = YEAR
+    period_behavior = MONTH
 
     def function(individu, period):
-        period = period.start.period(u'year').offset('first-of')
+        period = period.start.period(u'month').offset('first-of')
         salaire_brut = individu('salaire_brut', period)
 
         return period, salaire_brut * 0.8
@@ -180,6 +180,6 @@ class csg(Variable):
     def function(individu, period, legislation):
         period = period.start.period(u'year').offset('first-of')
         taux = legislation(period).csg.activite.deductible.taux
-        salaire_brut = individu('salaire_brut', period)
+        salaire_brut = individu('salaire_brut', period, options=[ADD])
 
         return period, taux * salaire_brut

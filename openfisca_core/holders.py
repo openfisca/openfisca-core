@@ -233,31 +233,21 @@ class Holder(object):
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
 
     def compute_divide(self, period = None, **parameters):
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
+        # Check that the requested period matches period_behavior
+        if self.column.period_behavior != YEAR:
+            raise ValueError('Holder.compute_divide must be used on yearly variables. This is not the case for {}'.format(
+                self.column.name
+                ))
+        if period.unit != periods.MONTH:
+            raise ValueError('Holder.compute_divide must be used on a month. This is not the case for {}'.format(
+                period
+                ))
 
-        array = None
-        unit = period[0]
-        year, month, day = period.start
-        if unit == u'month':
-            # We expect the compute call to return a yearly period.
-            parameters['accept_other_period'] = True
-            dated_holder = self.compute(period = period, **parameters)
-            assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
-                "Period {} returned by variable {} doesn't include requested period {}.".format(
-                    dated_holder.period, self.column.name, period)
-            if dated_holder.period.unit == u'month':
-                array = dated_holder.array * period.size / dated_holder.period.size
-            else:
-                assert dated_holder.period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        dated_holder.period, self.column.name)
-                array = dated_holder.array * period.size / (12 * dated_holder.period.size)
-            return self.put_in_cache(array, period, parameters.get('extra_params'))
-        else:
-            assert unit == u'year', unit
-            return self.compute(period = period)
+        computation_period = period.this_year
+        dated_holder = self.compute(period = computation_period, **parameters)
+        array = dated_holder.array / 12.
+        return DatedHolder(self, period, array, parameters.get('extra_params'))
+
 
     def delete_arrays(self):
         if self._array is not None:
