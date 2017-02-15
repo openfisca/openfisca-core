@@ -40,7 +40,7 @@ class AbstractScenario(object):
                     )
         return value, None
 
-    def fill_simulation(self, simulation, use_set_input_hooks = True, variables_name_to_skip = None):
+    def fill_simulation(self, simulation, variables_name_to_skip = None):
         assert isinstance(simulation, simulations.Simulation)
         if variables_name_to_skip is None:
             variables_name_to_skip = set()
@@ -59,10 +59,7 @@ class AbstractScenario(object):
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
-                        if use_set_input_hooks:
-                            holder.set_input(period, array)
-                        else:
-                            holder.put_in_cache(array, period)
+                        holder.set_input(period, array)
 
             if persons.count == 0:
                 persons.count = 1
@@ -180,10 +177,7 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
-                            if use_set_input_hooks:
-                                holder.set_input(variable_period, array)
-                            else:
-                                holder.put_in_cache(array, variable_period)
+                            holder.set_input(variable_period, array)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -203,10 +197,7 @@ class AbstractScenario(object):
                             array = np.empty(axis_entity_count, dtype = column.dtype)
                             array.fill(column.default)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-                        if use_set_input_hooks:
-                            holder.set_input(axis_period, array)
-                        else:
-                            holder.put_in_cache(array, axis_period)
+                        holder.set_input(axis_period, array)
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -230,10 +221,7 @@ class AbstractScenario(object):
                                 array = holder.default_array()
                             array[axis['index']:: axis_entity.step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            if use_set_input_hooks:
-                                holder.set_input(axis_period, array)
-                            else:
-                                holder.put_in_cache(array, axis_period)
+                            holder.set_input(axis_period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
@@ -352,7 +340,7 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, use_set_input_hooks = True, opt_out_cache = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, opt_out_cache = False):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -370,7 +358,7 @@ class AbstractScenario(object):
             trace = trace,
             opt_out_cache = opt_out_cache,
             )
-        self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
+        self.fill_simulation(simulation)
         return simulation
 
     def make_json_or_python_to_test_case(self, period, repair = False):
