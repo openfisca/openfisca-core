@@ -974,7 +974,7 @@ def set_input_divide_by_period(formula, period, array):
         cached_period_unit = periods.YEAR
     else:
         ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
-    
+
     after_instant = period.start.offset(period_size, period_unit)
     remaining_array = array.copy()
     sub_period = period.start.period(cached_period_unit)
@@ -994,7 +994,7 @@ def set_input_divide_by_period(formula, period, array):
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
     else:
-        pass # TODO : assert that remaining_array is close to 0
+        pass  # TODO : assert that remaining_array is close to 0
 
 
 def set_input_neutralized(formula, period, array):

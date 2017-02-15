@@ -47,7 +47,6 @@ class DatedHolder(object):
             ]
 
 
-
 class Holder(object):
     _array = None  # Only used when column.is_permanent
     _array_by_period = None  # Only used when not column.is_permanent
@@ -110,7 +109,6 @@ class Holder(object):
 
         return new
 
-
     def compute(self, period = None, **parameters):
         """Compute array if needed and return a dated holder containing it.
 
@@ -123,7 +121,7 @@ class Holder(object):
         # Check that the requested period matches period_behavior
         if not self.column.period_behavior == PERMANENT:
             if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
-                (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
+                    (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
                     self.column.name,
                     period.unit, self.column.period_behavior))
@@ -152,7 +150,6 @@ class Holder(object):
         array = self.default_array()
         return self.put_in_cache(array, period)
 
-
     def compute_add(self, period = None, **parameters):
         # Check that the requested period matches period_behavior
         if self.column.period_behavior == YEAR and period.unit == periods.MONTH:
@@ -179,7 +176,6 @@ class Holder(object):
             sub_period = sub_period.offset(1)
 
         return DatedHolder(self, period, array, parameters.get('extra_params'))
-
 
     def compute_add_divide(self, period = None, **parameters):
         dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
@@ -247,7 +243,6 @@ class Holder(object):
         dated_holder = self.compute(period = computation_period, **parameters)
         array = dated_holder.array / 12.
         return DatedHolder(self, period, array, parameters.get('extra_params'))
-
 
     def delete_arrays(self):
         if self._array is not None:
