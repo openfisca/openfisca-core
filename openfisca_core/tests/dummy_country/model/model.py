@@ -7,7 +7,7 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core.formulas import dated_function, set_input_divide_by_period
 from openfisca_core.entities import ADD, DIVIDE
-from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
+from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, MONTH, YEAR, PERMANENT
 from openfisca_core.variables import Variable, DatedVariable
 
 from openfisca_core.tests.dummy_country.entities import Famille, Individu
@@ -16,12 +16,14 @@ from openfisca_core.tests.dummy_country.entities import Famille, Individu
 class af(Variable):
     column = FloatCol
     entity = Famille
+    period_behavior = MONTH
 
 
 class age_en_mois(Variable):
     column = IntCol
     entity = Individu
     label = u"Âge (en nombre de mois)"
+    period_behavior = MONTH
 
 
 class birth(Variable):
@@ -29,6 +31,7 @@ class birth(Variable):
     entity = Individu
     label = u"Date de naissance"
     is_permanent = True  # Ne change jamais au cours du temps
+    period_behavior = PERMANENT
 
 
 class depcom(Variable):
@@ -36,6 +39,7 @@ class depcom(Variable):
     entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
+    period_behavior = PERMANENT
 
 
 class salaire_brut(Variable):
@@ -43,12 +47,14 @@ class salaire_brut(Variable):
     entity = Individu
     label = "Salaire brut"
     set_input = set_input_divide_by_period
+    period_behavior = MONTH
 
 
 class a_charge_fiscale(Variable):
     column = BoolCol
     entity = Individu
     label = u"La personne n'est pas fiscalement indépendante"
+    period_behavior = MONTH
 
 
 # Calculated variables
@@ -57,6 +63,7 @@ class age(Variable):
     column = IntCol
     entity = Individu
     label = u"Âge (en nombre d'années)"
+    period_behavior = MONTH
 
     def function(self, simulation, period):
         birth = simulation.get_array('birth', period)
@@ -72,6 +79,7 @@ class dom_tom(Variable):
     column = BoolCol
     entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
+    period_behavior = PERMANENT
 
     def function(famille, period):
         period = period.start.period(u'year').offset('first-of')
@@ -85,6 +93,7 @@ class revenu_disponible(Variable):
     column = FloatCol
     entity = Individu
     label = u"Revenu disponible de l'individu"
+    period_behavior = YEAR
 
     def function(individu, period, legislation):
         period = period.start.period(u'year').offset('first-of')
@@ -99,6 +108,7 @@ class revenu_disponible_famille(Variable):
     column = FloatCol
     entity = Famille
     label = u"Revenu disponible de la famille"
+    period_behavior = YEAR
 
     def function(famille, period):
         revenu_disponible = famille.members('revenu_disponible', period)
@@ -109,6 +119,7 @@ class rsa(DatedVariable):
     column = FloatCol
     entity = Individu
     label = u"RSA"
+    period_behavior = MONTH
 
     @dated_function(datetime.date(2010, 1, 1))
     def function_2010(individu, period):
@@ -136,6 +147,7 @@ class salaire_imposable(Variable):
     column = FloatCol
     entity = Individu
     label = u"Salaire imposable"
+    period_behavior = YEAR
 
     def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
@@ -150,6 +162,7 @@ class salaire_net(Variable):
     column = FloatCol
     entity = Individu
     label = u"Salaire net"
+    period_behavior = YEAR
 
     def function(individu, period):
         period = period.start.period(u'year').offset('first-of')
@@ -162,6 +175,7 @@ class csg(Variable):
     column = FloatCol
     entity = Individu
     label = u"CSG payées sur le salaire"
+    period_behavior = YEAR
 
     def function(individu, period, legislation):
         period = period.start.period(u'year').offset('first-of')

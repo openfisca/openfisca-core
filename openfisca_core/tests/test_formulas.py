@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from openfisca_core.columns import IntCol
+from openfisca_core.columns import IntCol, MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
@@ -13,12 +13,14 @@ from openfisca_core.tests.dummy_country.entities import Individu
 class choice(Variable):
     column = IntCol
     entity = Individu
+    period_behavior = MONTH
 
 
 class uses_multiplication(Variable):
     column = IntCol
     entity = Individu
     label = u'Variable with formula that uses multiplication'
+    period_behavior = MONTH
 
     def function(self, simulation, period):
         choice = simulation.calculate('choice', period)
@@ -30,6 +32,7 @@ class uses_switch(Variable):
     column = IntCol
     entity = Individu
     label = u'Variable with formula that uses switch'
+    period_behavior = MONTH
 
     def function(self, simulation, period):
         choice = simulation.calculate('choice', period)

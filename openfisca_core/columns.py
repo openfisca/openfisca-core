@@ -19,6 +19,11 @@ def N_(message):
 
 year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
+# Possible values for period_behavior
+MONTH = u'month'
+YEAR = u'year'
+PERMANENT = u'permanent'
+
 
 # Base Column
 
@@ -32,6 +37,7 @@ class Column(object):
     formula_class = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
+    period_behavior = None
     # json_type = None  # Defined in sub-classes
     label = None
     law_reference = None  # Either a single reference or a list of references

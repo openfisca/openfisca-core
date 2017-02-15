@@ -12,6 +12,7 @@ import logging
 import numpy as np
 
 from . import columns, holders, legislations, periods
+from columns import MONTH, YEAR, PERMANENT
 from .base_functions import (
     permanent_default_value,
     requested_period_default_value_neutralized,
@@ -672,6 +673,7 @@ def neutralize_column(column):
         entity = column.entity,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
+        period_behavior = column.period_behavior,
         set_input = set_input_neutralized,
         )
 
@@ -681,6 +683,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
         default = UnboundLocalError,
         entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        period_behavior = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
         source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
@@ -738,6 +741,11 @@ def new_filled_column(__doc__ = None, __module__ = None,
         is_permanent = False if reference_column is None else reference_column.is_permanent
     else:
         assert is_permanent in (False, True), is_permanent
+
+    if period_behavior is UnboundLocalError:
+        raise ValueError('period_behavior missing in {}'.format(name))
+    if period_behavior not in (MONTH, YEAR, PERMANENT):
+        raise ValueError('Incorrect period_behavior ({}) in {}'.format(period_behavior, name))
 
     if label is UnboundLocalError:
         label = None if reference_column is None else reference_column.label
@@ -914,6 +922,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     column.formula_class = formula_class
     if is_permanent:
         column.is_permanent = True
+    column.period_behavior = period_behavior
     column.label = label
     column.law_reference = law_reference
     column.name = name

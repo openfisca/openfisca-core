@@ -3,7 +3,7 @@
 
 from openfisca_core.tests import dummy_country
 from openfisca_core.variables import Variable
-from openfisca_core.columns import IntCol
+from openfisca_core.columns import IntCol, MONTH
 from openfisca_core.tests.dummy_country.entities import Individu
 
 
@@ -11,12 +11,14 @@ class input(Variable):
     column = IntCol
     entity = Individu
     label = u"Input variable"
+    period_behavior = MONTH
 
 
 class intermediate(Variable):
     column = IntCol
     entity = Individu
     label = u"Intermediate result that don't need to be cached"
+    period_behavior = MONTH
 
     def function(self, simulation, period):
         return period, simulation.calculate('input', period)
@@ -26,6 +28,7 @@ class output(Variable):
     column = IntCol
     entity = Individu
     label = u'Output variable'
+    period_behavior = MONTH
 
     def function(self, simulation, period):
         return period, simulation.calculate('intermediate', period)

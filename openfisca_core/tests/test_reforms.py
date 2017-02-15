@@ -6,6 +6,7 @@ from nose.tools import raises
 from nose.tools import assert_equal
 
 from .. import columns, periods, reforms
+from ..columns import MONTH
 from ..reforms import Reform
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
@@ -396,6 +397,7 @@ def test_add_variable():
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
         entity = Famille
+        period_behavior = MONTH
 
         def function(self, simulation, period):
             return period, self.zeros() + 10
@@ -425,6 +427,7 @@ def test_add_dated_variable():
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
         entity = Famille
+        period_behavior = MONTH
 
         @dated_function(datetime.date(2010, 1, 1))
         def function_2010(self, simulation, period):
@@ -453,6 +456,7 @@ def test_add_dated_variable():
 def test_add_variable_with_reference():
 
     class revenu_disponible(Variable):
+        period_behavior = MONTH
 
         def function(self, simulation, period):
             return period, self.zeros() + 10
@@ -498,6 +502,7 @@ def test_compose_reforms():
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
             entity = Famille
+            period_behavior = MONTH
 
             def function(self, simulation, period):
                 return period, self.zeros() + 10
@@ -510,6 +515,7 @@ def test_compose_reforms():
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
             entity = Famille
+            period_behavior = MONTH
 
             def function(self, simulation, period):
                 return period, self.zeros() + 20
