@@ -7,6 +7,7 @@ import numpy as np
 
 from . import periods
 from .commons import empty_clone
+from .columns import MONTH, YEAR, PERMANENT
 
 
 class DatedHolder(object):
@@ -331,6 +332,14 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
+        if not self.column.period_behavior == PERMANENT:
+            assert periods is not None
+            if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
+               (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
+                raise ValueError('Wrong period unit during cache write for variable {} ({} instead of {})'.format(
+                    self.column.name,
+                    period.unit, self.column.period_behavior))
+
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.column.name in simulation.tax_benefit_system.cache_blacklist):
@@ -338,7 +347,7 @@ class Holder(object):
 
         if self.column.is_permanent:
             self.array = value
-        assert period is not None
+
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, period)
             step = simulation.traceback.get(variable_infos)
