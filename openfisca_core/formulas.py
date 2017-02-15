@@ -994,7 +994,7 @@ def set_input_divide_by_period(formula, period, array):
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
     else:
-        pass  # TODO : assert that remaining_array is close to 0
+        raise ValueError('Values for variable {} are already set on period {}.'.format(holder.column.name, period))
 
 
 def set_input_neutralized(formula, period, array):
