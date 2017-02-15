@@ -965,45 +965,36 @@ def set_input_dispatch_by_period(formula, period, array):
 
 def set_input_divide_by_period(formula, period, array):
     holder = formula.holder
-    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
-    if period_unit == u'year' or period_size > 1:
-        after_instant = period.start.offset(period_size, period_unit)
-        if period_size > 1:
-            remaining_array = array.copy()
-            sub_period = period.start.period(period_unit)
-            sub_periods_count = period_size
-            while sub_period.start < after_instant:
-                existing_array = holder.get_array(sub_period)
-                if existing_array is not None:
-                    remaining_array -= existing_array
-                    sub_periods_count -= 1
-                sub_period = sub_period.offset(1)
-            if sub_periods_count > 0:
-                divided_array = remaining_array / sub_periods_count
-                sub_period = period.start.period(period_unit)
-                while sub_period.start < after_instant:
-                    if holder.get_array(sub_period) is None:
-                        holder.put_in_cache(divided_array, sub_period)
-                    sub_period = sub_period.offset(1)
-        if period_unit == u'year':
-            remaining_array = array.copy()
-            month = period.start.period(u'month')
-            months_count = 12 * period_size
-            while month.start < after_instant:
-                existing_array = holder.get_array(month)
-                if existing_array is not None:
-                    remaining_array -= existing_array
-                    months_count -= 1
-                month = month.offset(1)
-            if months_count > 0:
-                divided_array = remaining_array / months_count
-                month = period.start.period(u'month')
-                while month.start < after_instant:
-                    if holder.get_array(month) is None:
-                        holder.put_in_cache(divided_array, month)
-                    month = month.offset(1)
+
+    if formula.holder.column.period_behavior == MONTH:
+        cached_period_unit = periods.MONTH
+    elif formula.holder.column.period_behavior == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+    
+    after_instant = period.start.offset(period_size, period_unit)
+    remaining_array = array.copy()
+    sub_period = period.start.period(cached_period_unit)
+    sub_periods_count = 0
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is not None:
+            remaining_array -= existing_array
+        else:
+            sub_periods_count += 1
+        sub_period = sub_period.offset(1)
+    if sub_periods_count > 0:
+        divided_array = remaining_array / sub_periods_count
+        sub_period = period.start.period(cached_period_unit)
+        while sub_period.start < after_instant:
+            if holder.get_array(sub_period) is None:
+                holder.put_in_cache(divided_array, sub_period)
+            sub_period = sub_period.offset(1)
+    else:
+        pass # TODO : assert that remaining_array is close to 0
 
 
 def set_input_neutralized(formula, period, array):
