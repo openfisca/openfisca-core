@@ -113,21 +113,31 @@ class Holder(object):
         return new
 
     def compute(self, period = None, **parameters):
-        """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
+        """Compute array if needed and return a dated holder containing it.
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
         if period is None:
             period = self.simulation.period
         column = self.column
-        accept_other_period = parameters.get('accept_other_period', False)
 
-        # First look for dated_holders covering the whole period (without hole).
+        if not self.column.period_behavior == PERMANENT:
+            if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
+                (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
+                raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
+                    self.column.name,
+                    period.unit, self.column.period_behavior))
+        if period.size != 1:
+            raise ValueError('Computation requested for complex period {} for variable {}'.format(
+                period, self.column.name))
+
+        # First look for a value already cached
         dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
             return dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
+        # Request a computation
         column_start_instant = periods.instant(column.start)
         column_stop_instant = periods.instant(column.end)
         if (column_start_instant is None or column_start_instant <= period.start) \
@@ -135,7 +145,7 @@ class Holder(object):
             formula_dated_holder = self.formula.compute(period = period, **parameters)
             assert formula_dated_holder is not None
             if not column.is_permanent:
-                assert accept_other_period or formula_dated_holder.period == period, \
+                assert formula_dated_holder.period == period, \
                     "Requested period {} differs from {} returned by variable {}".format(period,
                         formula_dated_holder.period, column.name)
             return formula_dated_holder
