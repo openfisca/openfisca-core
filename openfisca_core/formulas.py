@@ -29,6 +29,11 @@ log = logging.getLogger(__name__)
 ADD = 'add'
 DIVIDE = 'divide'
 
+SET_INPUT_FILL = u'set_input_fill'
+SET_INPUT_REPLACE = u'set_input_replace'
+SET_INPUT_ADD = u'set_input_add'
+
+
 # Exceptions
 
 
@@ -80,7 +85,7 @@ class AbstractFormula(object):
     def real_formula(self):
         return self
 
-    def set_input(self, period, array):
+    def set_input(self, period, array, behavior=None):
         self.holder.put_in_cache(array, period)
 
     def zeros(self, **kwargs):
@@ -934,7 +939,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     return column
 
 
-def set_input_dispatch_by_period(formula, period, array):
+def set_input_dispatch_by_period(formula, period, array, behavior=None):
     holder = formula.holder
     holder.put_in_cache(array, period)
     period_size = period.size
@@ -963,7 +968,7 @@ def set_input_dispatch_by_period(formula, period, array):
                 month = month.offset(1)
 
 
-def set_input_divide_by_period(formula, period, array):
+def set_input_divide_by_period(formula, period, array, behavior=None):
     holder = formula.holder
     period_size = period.size
     period_unit = period.unit
@@ -976,26 +981,71 @@ def set_input_divide_by_period(formula, period, array):
         ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
 
     after_instant = period.start.offset(period_size, period_unit)
-    remaining_array = array.copy()
-    sub_period = period.start.period(cached_period_unit)
-    sub_periods_count = 0
-    while sub_period.start < after_instant:
-        existing_array = holder.get_array(sub_period)
-        if existing_array is not None:
-            remaining_array -= existing_array
+
+    if behavior is None:
+        behavior = SET_INPUT_FILL
+
+    if behavior == SET_INPUT_FILL:
+        # Count the number of elementary periods to change, and the difference with what is already known.
+        remaining_array = array.copy()
+        sub_period = period.start.period(cached_period_unit)
+        sub_periods_count = 0
+        while sub_period.start < after_instant:
+            existing_array = holder.get_array(sub_period)
+            if existing_array is not None:
+                remaining_array -= existing_array
+            else:
+                sub_periods_count += 1
+            sub_period = sub_period.offset(1)
+
+        # Cache the input data
+        if sub_periods_count > 0:
+            divided_array = remaining_array / sub_periods_count
+            sub_period = period.start.period(cached_period_unit)
+            while sub_period.start < after_instant:
+                if holder.get_array(sub_period) is None:
+                    holder.put_in_cache(divided_array, sub_period)
+                sub_period = sub_period.offset(1)
         else:
+            raise ValueError('Values for variable {} are already set on period {}.'.format(holder.column.name, period))
+
+    elif behavior == SET_INPUT_REPLACE:
+        # Count the number of elementary periods to change
+        sub_period = period.start.period(cached_period_unit)
+        sub_periods_count = 0
+        while sub_period.start < after_instant:
             sub_periods_count += 1
-        sub_period = sub_period.offset(1)
-    if sub_periods_count > 0:
-        divided_array = remaining_array / sub_periods_count
+            sub_period = sub_period.offset(1)
+
+        # Cache the input data
+        divided_array = array / sub_periods_count
         sub_period = period.start.period(cached_period_unit)
         while sub_period.start < after_instant:
-            if holder.get_array(sub_period) is None:
-                holder.put_in_cache(divided_array, sub_period)
+            holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
+
+    elif behavior == SET_INPUT_ADD:
+        # Count the number of elementary periods to change
+        sub_period = period.start.period(cached_period_unit)
+        sub_periods_count = 0
+        while sub_period.start < after_instant:
+            sub_periods_count += 1
+            sub_period = sub_period.offset(1)
+
+        # Cache the input data
+        divided_array = array / sub_periods_count
+        sub_period = period.start.period(cached_period_unit)
+        while sub_period.start < after_instant:
+            old_array = holder.get_array(sub_period)
+            if old_array is None:
+                holder.put_in_cache(divided_array, sub_period)
+            else:
+                holder.put_in_cache(divided_array + old_array, sub_period)
+            sub_period = sub_period.offset(1)
+
     else:
-        pass  # TODO : assert that remaining_array is close to 0
+        raise ValueError('Unknown behavior {}'.format(behavior))
 
 
-def set_input_neutralized(formula, period, array):
+def set_input_neutralized(formula, period, array, behavior=None):
     pass

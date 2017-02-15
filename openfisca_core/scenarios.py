@@ -9,6 +9,7 @@ import itertools
 import numpy as np
 
 from . import conv, periods, simulations, json_to_test_case
+from formulas import SET_INPUT_ADD
 
 
 def N_(message):
@@ -197,7 +198,7 @@ class AbstractScenario(object):
                             array = np.empty(axis_entity_count, dtype = column.dtype)
                             array.fill(column.default)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-                        holder.set_input(axis_period, array)
+                        holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -221,7 +222,7 @@ class AbstractScenario(object):
                                 array = holder.default_array()
                             array[axis['index']:: axis_entity.step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            holder.set_input(axis_period, array)
+                            holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)

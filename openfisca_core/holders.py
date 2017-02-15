@@ -298,8 +298,9 @@ class Holder(object):
             return None
         return formula.real_formula
 
-    def set_input(self, period, array):
-        self.formula.set_input(period, array)
+    def set_input(self, period, array, behavior=None):
+        print(behavior)
+        self.formula.set_input(period, array, behavior=behavior)
 
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
