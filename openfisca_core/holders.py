@@ -110,6 +110,7 @@ class Holder(object):
 
         return new
 
+
     def compute(self, period = None, **parameters):
         """Compute array if needed and return a dated holder containing it.
 
@@ -119,6 +120,7 @@ class Holder(object):
             period = self.simulation.period
         column = self.column
 
+        # Check that the requested period matches period_behavior
         if not self.column.period_behavior == PERMANENT:
             if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
                 (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
@@ -150,57 +152,34 @@ class Holder(object):
         array = self.default_array()
         return self.put_in_cache(array, period)
 
-    def compute_add(self, period = None, **parameters):
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
 
-        array = None
-        unit = period.unit
-        if unit == u'month':
-            remaining_period_months = period.size
+    def compute_add(self, period = None, **parameters):
+        # Check that the requested period matches period_behavior
+        if self.column.period_behavior == YEAR and period.unit == periods.MONTH:
+            raise ValueError('Computation on period {} impossible on yearly variable {}'.format(
+                period, self.column.name
+                ))
+
+        if self.column.period_behavior == MONTH:
+            variable_period_unit = periods.MONTH
+        elif self.column.period_behavior == YEAR:
+            variable_period_unit = periods.YEAR
         else:
-            assert unit == u'year', unit
-            remaining_period_months = period.size * 12
-        requested_period = period.start.period(unit)
-        # We expect the compute calls to return a period different than the requested one.
-        parameters['accept_other_period'] = True
-        while True:
-            dated_holder = self.compute(period = requested_period, **parameters)
-            requested_start = requested_period.start
-            returned_period = dated_holder.period
-            returned_start = returned_period.start
-            assert returned_start.day == 1
-            # Note: A dated formula may start after requested period => returned_start is not always equal to
-            # requested_start.
-            assert returned_start >= requested_start, \
-                "Period {} returned by variable {} doesn't have the same start as requested period {}.".format(
-                    returned_period, self.column.name, requested_period)
-            if returned_period.unit == u'month':
-                returned_period_months = returned_period.size
-            else:
-                assert returned_period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        returned_period, self.column.name)
-                returned_period_months = returned_period.size * 12
-            requested_start_months = requested_start.year * 12 + requested_start.month
-            returned_start_months = returned_start.year * 12 + returned_start.month
-            returned_period_months = returned_start_months + returned_period_months - requested_start_months
-            remaining_period_months -= returned_period_months
-            assert remaining_period_months >= 0, \
-                "Period {} returned by variable {} is larger than the requested_period {}.".format(
-                    returned_period, self.column.name, requested_period)
+            ValueError('compute_add can be used only for yearly or monthly variables.')
+
+        after_instant = period.start.offset(period.size, period.unit)
+        sub_period = period.start.period(variable_period_unit)
+        array = None
+        while sub_period.start < after_instant:
+            dated_holder = self.compute(period = sub_period, **parameters)
             if array is None:
                 array = dated_holder.array.copy()
             else:
                 array += dated_holder.array
+            sub_period = sub_period.offset(1)
 
-            if remaining_period_months <= 0:
-                return self.put_in_cache(array, period, parameters.get('extra_params'))
-            if remaining_period_months % 12 == 0:
-                requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
-            else:
-                requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
+        return DatedHolder(self, period, array, parameters.get('extra_params'))
+
 
     def compute_add_divide(self, period = None, **parameters):
         dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
