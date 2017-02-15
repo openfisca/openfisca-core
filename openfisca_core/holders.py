@@ -11,13 +11,13 @@ from .columns import MONTH, YEAR, PERMANENT
 
 
 class DatedHolder(object):
-    """A view of an holder, for a given period (and possibly a given set of extra parameters).
-    If the variable is not cached, it also contains the value of the variable for the given date."""
+    """A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
+    """
     holder = None
     period = None
     extra_params = None
 
-    def __init__(self, holder, period, extra_params = None, value = None):
+    def __init__(self, holder, period, value, extra_params = None):
         self.holder = holder
         self.period = period
         self.extra_params = extra_params
@@ -25,14 +25,11 @@ class DatedHolder(object):
 
     @property
     def array(self):
-        return self.value if self.value else self.holder.get_array(self.period, self.extra_params)
+        return self.value
 
     @array.setter
     def array(self, array):
-        if self.value:
-            self.value = array
-        else:
-            self.holder.put_in_cache(array, self.period, self.extra_params)
+        raise ValueError('Impossible to modify DatedHolder.array. Please use Holder.put_in_cache.')
 
     @property
     def column(self):
@@ -48,6 +45,7 @@ class DatedHolder(object):
             transform_dated_value_to_json(cell, use_label = use_label)
             for cell in self.array.tolist()
             ]
+
 
 
 class Holder(object):
@@ -353,7 +351,7 @@ class Holder(object):
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.column.name in simulation.tax_benefit_system.cache_blacklist):
-            return DatedHolder(self, period, value = value)
+            return DatedHolder(self, period, value, extra_params)
 
         if self.column.is_permanent:
             self.array = value
@@ -377,7 +375,11 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
+        if self.column.is_permanent:
+            return self
+
+        value = self.get_array(period, extra_params)
+        return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
         from .formulas import DatedFormula
