@@ -374,9 +374,9 @@ class SimpleFormula(AbstractFormula):
                     variable_name = column.name,
                     ))
             if extra_params:
-                formula_result = self.base_function(simulation, period, *extra_params)
+                array = self.base_function(simulation, period, *extra_params)
             else:
-                formula_result = self.base_function(simulation, period)
+                array = self.base_function(simulation, period)
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
@@ -398,23 +398,13 @@ class SimpleFormula(AbstractFormula):
                 column.name, entity.key, str(period), self.function.__module__,
                 ))
             raise
-        else:
-            try:
-                output_period, array = formula_result
-            except ValueError:
-                raise ValueError(u'A formula must return "period, array": {}@{}<{}> in module {}'.format(
-                    column.name, entity.key, str(period), self.function.__module__,
-                    ).encode('utf-8'))
-        assert output_period[1] <= period[1] <= output_period.stop, \
-            u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
-            u"requested period".format(column.name, entity.key, str(period), str(output_period),
-                stringify_array(array)).encode('utf-8')
+
         assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-            column.name, entity.key, str(period), str(output_period), array).encode('utf-8')
+            column.name, entity.key, str(period), str(period), array).encode('utf-8')
         entity_count = entity.count
         assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                column.name, entity.key, str(period), str(output_period), stringify_array(array),
+                column.name, entity.key, str(period), str(period), stringify_array(array),
                 array.size, entity_count, entity.key).encode('utf-8')
         if debug:
             try:
@@ -422,7 +412,7 @@ class SimpleFormula(AbstractFormula):
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        column.name, entity.key, str(period), str(output_period), stringify_array(array),
+                        column.name, entity.key, str(period), str(period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
@@ -430,7 +420,7 @@ class SimpleFormula(AbstractFormula):
             array = array.astype(column.dtype)
 
         if debug or trace:
-            variable_infos = (column.name, output_period)
+            variable_infos = (column.name, period)
             step = simulation.traceback.get(variable_infos)
             if step is None:
                 simulation.traceback[variable_infos] = step = dict(
@@ -449,10 +439,10 @@ class SimpleFormula(AbstractFormula):
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
                 log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
-                    simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
+                    simulation.stringify_input_variables_infos(input_variables_infos), str(period),
                     stringify_array(array)))
 
-        dated_holder = holder.put_in_cache(array, output_period, extra_params)
+        dated_holder = holder.put_in_cache(array, period, extra_params)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
@@ -479,7 +469,7 @@ class SimpleFormula(AbstractFormula):
             raise ValueError('The formula {} should not change the input period.'.format(
                 self.holder.column.name))
 
-        return result
+        return array
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
