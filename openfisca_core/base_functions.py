@@ -10,7 +10,7 @@ def permanent_default_value(formula, simulation, period, *extra_params):
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
     array = holder.default_array()
-    return period, array
+    return array
 
 
 def requested_period_added_value(formula, simulation, period, *extra_params):
@@ -32,7 +32,7 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
                 array += sub_array
                 sub_period = sub_period.offset(1)
             if array is not None:
-                return period, array
+                return array
         if period_unit == u'year':
             array = formula.zeros(dtype = column.dtype)
             month = period.start.period(u'month')
@@ -48,7 +48,7 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
-    return period, array
+    return array
 
 
 def requested_period_default_value(formula, simulation, period, *extra_params):
@@ -56,13 +56,13 @@ def requested_period_default_value(formula, simulation, period, *extra_params):
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
     array = holder.default_array()
-    return period, array
+    return array
 
 
 def requested_period_default_value_neutralized(formula, simulation, period, *extra_params):
     holder = formula.holder
     array = holder.default_array()
-    return period, array
+    return array
 
 
 def requested_period_last_value(formula, simulation, period, *extra_params, **kwargs):
@@ -77,14 +77,14 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
                 if type(last_result) == np.ndarray and not extra_params:
                     return period, last_result
                 elif last_result.get(extra_params):
-                        return period, last_result.get(extra_params)
+                        return last_result.get(extra_params)
         if accept_future_value:
             next_period, next_array = known_values[-1]
             return period, last_result
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
-    return period, array
+    return array
 
 
 def requested_period_last_or_next_value(formula, simulation, period, *extra_params):
@@ -101,11 +101,12 @@ def last_duration_last_value(formula, simulation, period, *extra_params):
         for last_period, last_result in sorted(holder._array_by_period.iteritems(), reverse = True):
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 output_period = periods.Period((last_period[0], period.start, last_period[2]))
+                assert output_period == period
                 if type(last_result) == np.ndarray and not extra_params:
-                    return output_period, last_result
+                    return last_result
                 elif last_result.get(extra_params):
-                    return output_period, last_result.get(extra_params)
+                    return last_result.get(extra_params)
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
-    return period, array
+    return array
