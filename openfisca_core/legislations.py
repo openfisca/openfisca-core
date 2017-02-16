@@ -178,8 +178,9 @@ class TracedCompactNode(object):
         if key in self.traced_attributes_name:
             calling_frame = self.simulation.stack_trace[-1]
             caller_parameters_infos = calling_frame['parameters_infos']
-            assert self.compact_node.name is not None
-            parameter_name = u'.'.join([self.compact_node.name, key])
+            parameter_name = u'.'.join([self.compact_node.name, key]) \
+                if self.compact_node.name is not None \
+                else key
             parameter_infos = {
                 "instant": str(self.compact_node.instant),
                 "name": parameter_name,

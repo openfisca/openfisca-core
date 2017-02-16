@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.6
+
+* Bug fix : handle the case when CompactNode.name is None.
+
 ## 4.3.5
 
 * Refactor decomposition TaxBenefitSystem attributes. Reform inherit the decomposition_file_path from the reference TaxBenefitSystem.
