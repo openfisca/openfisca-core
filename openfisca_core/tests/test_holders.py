@@ -19,10 +19,10 @@ def test_new_test_case_array():
                 min = axis_min,
                 ),
             ],
-        period = 2014,
+        period = '2014-01',
         parent1 = {},
         ).new_simulation(debug = True)
-    simulation.calculate('salaire_brut')
+    simulation.calculate_add('salaire_brut')
     salaire_brut = simulation.get_holder('salaire_brut').new_test_case_array(simulation.period)
     assert (salaire_brut - numpy.linspace(axis_min, axis_max, axis_count) == 0).all(), \
         u'salaire_brut: {}'.format(salaire_brut)
