@@ -3,8 +3,6 @@
 
 import collections
 
-import numpy as np
-
 from . import periods, holders
 from .commons import empty_clone, stringify_array
 
@@ -125,15 +123,6 @@ class Simulation(object):
             period = self.period
         elif not isinstance(period, periods.Period):
             period = periods.period(period)
-        print_trace = parameters.pop('print_trace', False)
-        if print_trace:
-            print_trace_kwargs = {}
-            max_depth = parameters.pop('max_depth', None)
-            if max_depth is not None:
-                print_trace_kwargs['max_depth'] = max_depth
-            show_default_values = parameters.pop('show_default_values', None)
-            if show_default_values is not None:
-                print_trace_kwargs['show_default_values'] = show_default_values
         if (self.debug or self.trace) and self.stack_trace:
             variable_infos = (column_name, period)
             calling_frame = self.stack_trace[-1]
@@ -142,8 +131,6 @@ class Simulation(object):
                 caller_input_variables_infos.append(variable_infos)
         holder = self.get_or_new_holder(column_name)
         result = holder.compute(period = period, **parameters)
-        if print_trace:
-            self.print_trace(variable_name=column_name, period=period, **print_trace_kwargs)
         return result
 
     def compute_add(self, column_name, period = None, **parameters):
@@ -257,44 +244,6 @@ class Simulation(object):
             period = None
         step = self.traceback.get((variable_name, period))
         return step
-
-    def print_trace(self, variable_name, period, max_depth=3, show_default_values=True):
-        """
-        Print the dependencies of all the variables computed since the creation of the simulation.
-
-        The `max_depth` parameter tells how much levels of the printed tree to show. Use -1 to disable limit.
-
-        The simulation must have been initialized with `trace=True` argument.
-        """
-        def traverse(current_variable_name, current_period, depth):
-            step = self.find_traceback_step(current_variable_name, current_period)
-            assert step is not None
-            holder = self.get_holder(current_variable_name)
-            has_default_value = np.all(holder.get_array(current_period) == holder.column.default)
-            if depth == 0 or (show_default_values or not has_default_value):
-                indent = u'|     ' * (depth - 1) + u'|---> ' \
-                    if depth > 0 \
-                    else ''
-                print(indent + self.stringify_variable_for_period_with_array(current_variable_name, current_period))
-            input_variables_infos = step.get('input_variables_infos')
-            if (max_depth == -1 or depth < max_depth) and input_variables_infos is not None:
-                    for index, (child_variable_name, child_period) in enumerate(input_variables_infos):
-                        traverse(child_variable_name, child_period, depth + 1)
-        if not isinstance(max_depth, int) or max_depth < -1:
-            raise ValueError(u'`max_depth` argument must be >= -1')
-        if not self.trace:
-            raise ValueError(u'This simulation has not been initialized with `trace=True` so the computation '
-                'did not collect any trace information.')
-        assert self.traceback is not None
-        if not isinstance(period, periods.Period):
-            period = periods.period(period)
-        step = self.find_traceback_step(variable_name, period)
-        if step is None:
-            raise ValueError(u'The given `variable_name` "{0}" was not calculated for the given `period` "{1}". '
-                u'It is therefore not possible to display the trace. '
-                u'You should do `simulation.calculate({0!r}, {1}, print_trace=True)`.'.format(
-                    variable_name, period))
-        traverse(variable_name, period, depth=0)
 
     def stringify_variable_for_period_with_array(self, variable_name, period):
         holder = self.get_holder(variable_name)
