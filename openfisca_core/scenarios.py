@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import conv, periods, simulations, json_to_test
+from . import conv, periods, simulations, json_to_test_case
 
 
 def N_(message):
@@ -380,11 +380,11 @@ class AbstractScenario(object):
             if state is None:
                 state = conv.default_state
 
-            test_case, error = json_to_test.check_entities_and_role(value, self.tax_benefit_system, state)
+            test_case, error = json_to_test_case.check_entities_and_role(value, self.tax_benefit_system, state)
             if error is not None:
                 return test_case, error
 
-            test_case, error, groupless_persons = json_to_test.check_entities_consistency(test_case, self.tax_benefit_system, state)
+            test_case, error, groupless_persons = json_to_test_case.check_entities_consistency(test_case, self.tax_benefit_system, state)
             if error is not None:
                 return test_case, error
 
@@ -392,7 +392,7 @@ class AbstractScenario(object):
             if repair:
                 test_case = self.attribute_groupless_persons_to_entities(test_case, period, groupless_persons)
 
-            test_case, error = json_to_test.check_each_person_has_entities(test_case, self.tax_benefit_system, state)
+            test_case, error = json_to_test_case.check_each_person_has_entities(test_case, self.tax_benefit_system, state)
             if error is not None:
                 return test_case, error
 
