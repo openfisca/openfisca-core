@@ -66,7 +66,7 @@ def test_input_variable_neutralization():
             ),
         )
     simulation = scenario.new_simulation(reference = True)
-    salaire_brut_annuel = simulation.calculate('salaire_brut')
+    salaire_brut_annuel = simulation.calculate_add('salaire_brut')
     assert_near(salaire_brut_annuel, [120000, 60000], absolute_error_margin = 0)
     salaire_brut_mensuel = simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel, [10000, 5000], absolute_error_margin = 0)
@@ -74,7 +74,7 @@ def test_input_variable_neutralization():
     assert_near(revenu_disponible, [60480, 30240], absolute_error_margin = 0)
 
     reform_simulation = scenario.new_simulation()
-    salaire_brut_annuel_reform = reform_simulation.calculate('salaire_brut')
+    salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut')
     assert_near(salaire_brut_annuel_reform, [0, 0], absolute_error_margin = 0)
     salaire_brut_mensuel_reform = reform_simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
