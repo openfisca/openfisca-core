@@ -464,15 +464,22 @@ class SimpleFormula(AbstractFormula):
     def exec_function(self, simulation, period, *extra_params):
 
         if self.function.im_func.func_code.co_varnames[0] == 'self':
-            return self.function(simulation, period, *extra_params)
+            result = self.function(simulation, period, *extra_params)
         else:
             entity = self.holder.entity
             function = self.function.im_func
             legislation = simulation.legislation_at
             if self.function.im_func.func_code.co_argcount == 2:
-                return function(entity, period)
+                result = function(entity, period)
             else:
-                return function(entity, period, legislation, *extra_params)
+                result = function(entity, period, legislation, *extra_params)
+
+        output_period, array = result
+        if output_period != period:
+            raise ValueError('The formula {} should not change the input period.'.format(
+                self.holder.column.name))
+
+        return result
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
