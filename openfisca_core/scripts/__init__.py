@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import importlib
+import logging
+import sys
+
+log = logging.getLogger(__name__)
+logging.basicConfig(format='%(levelname)s: %(message)s')
 
 
 def add_tax_benefit_system_arguments(parser):
@@ -18,7 +22,7 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
             country_package = importlib.import_module(country_package_name)
             assert hasattr(country_package, 'CountryTaxBenefitSystem')
         except (ImportError, AssertionError):
-            print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
+            log.error('`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
             sys.exit(1)
     else:
         country_package_name = detect_country_package()
@@ -38,7 +42,7 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
                 reform = getattr(reform_module, reform_name)
                 tax_benefit_system = reform(tax_benefit_system)
             except:
-                print('ERROR: `{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
+                log.error('`{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
                 raise
 
     return tax_benefit_system
@@ -58,8 +62,8 @@ def detect_country_package():
                 installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
-        print('ERROR: No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
+        log.error('No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
         sys.exit(1)
     if len(installed_country_packages) > 1:
-        print('WARNING: Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
+        log.warning('Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
     return installed_country_packages[0]
