@@ -938,31 +938,29 @@ def new_filled_column(__doc__ = None, __module__ = None,
 
 def set_input_dispatch_by_period(formula, period, array, behavior=None):
     holder = formula.holder
-    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
-    if period_unit == u'year' or period_size > 1:
-        after_instant = period.start.offset(period_size, period_unit)
-        if period_size > 1:
-            sub_period = period.start.period(period_unit)
-            while sub_period.start < after_instant:
-                existing_array = holder.get_array(sub_period)
-                if existing_array is None:
-                    holder.put_in_cache(array, sub_period)
-                else:
-                    # The array of the current sub-period is reused for the next ones.
-                    array = existing_array
-                sub_period = sub_period.offset(1)
-        if period_unit == u'year':
-            month = period.start.period(u'month')
-            while month.start < after_instant:
-                existing_array = holder.get_array(month)
-                if existing_array is None:
-                    holder.put_in_cache(array, month)
-                else:
-                    # The array of the current sub-period is reused for the next ones.
-                    array = existing_array
-                month = month.offset(1)
+
+    if formula.holder.column.period_behavior == MONTH:
+        cached_period_unit = periods.MONTH
+    elif formula.holder.column.period_behavior == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+
+    after_instant = period.start.offset(period_size, period_unit)
+
+    # Cache the input data
+    sub_period = period.start.period(cached_period_unit)
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is None:
+            holder.put_in_cache(array, sub_period)
+        else:
+            # The array of the current sub-period is reused for the next ones.
+            # TODO: refactor or document this behavior
+            array = existing_array
+        sub_period = sub_period.offset(1)
 
 
 def set_input_divide_by_period(formula, period, array, behavior=None):
