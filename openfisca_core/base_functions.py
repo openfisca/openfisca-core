@@ -44,7 +44,7 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
                 array += month_array
                 month = month.offset(1)
             if array is not None:
-                return period, array
+                return array
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
@@ -75,12 +75,12 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
         for last_period, last_result in known_values:
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 if type(last_result) == np.ndarray and not extra_params:
-                    return period, last_result
+                    return last_result
                 elif last_result.get(extra_params):
                         return last_result.get(extra_params)
         if accept_future_value:
             next_period, next_array = known_values[-1]
-            return period, last_result
+            return last_result
     if formula.function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
