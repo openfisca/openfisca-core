@@ -6,6 +6,7 @@ Modules:
 .. toctree::
    :maxdepth: 1
 
+   tax-benefit-system
    test_runner
 
 Scripts:
