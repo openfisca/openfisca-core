@@ -662,7 +662,8 @@ def dated_function(start = None, stop = None):
 
 def missing_value(formula, simulation, period):
     if formula.function is not None:
-        return formula.function(simulation, period)
+        period, array = formula.function(simulation, period)
+        return array
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
