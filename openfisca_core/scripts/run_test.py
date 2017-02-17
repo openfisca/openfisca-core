@@ -4,10 +4,9 @@ import argparse
 import logging
 import sys
 import os
-import importlib
 
 from openfisca_core.tools.test_runner import run_tests
-from openfisca_core.scripts import add_tax_benefit_system_arguments, detect_country_package
+from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_sytem
 
 
 def build_parser():
@@ -22,37 +21,6 @@ def build_parser():
     parser.add_argument('-M', '--default_absolute_error_margin', help = u"absolute error margin to use for tests that don't define any", action = 'store', type = float)
 
     return parser
-
-
-def build_tax_benefit_sytem(country_package, extensions, reforms):
-    if country_package:
-        try:
-            country_package = importlib.import_module(country_package)
-        except:
-            print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(country_package))
-            sys.exit(1)
-    else:
-        country_package_name = detect_country_package()
-        country_package = importlib.import_module(country_package_name)
-
-    tax_benefit_system = country_package.CountryTaxBenefitSystem()
-
-    if extensions:
-        for extension in extensions:
-            tax_benefit_system.load_extension(extension)
-
-    if reforms:
-        for reform_path in reforms:
-            try:
-                [reform_package, reform_name] = reform_path.rsplit('.', 1)
-                reform_module = importlib.import_module(reform_package)
-                reform = getattr(reform_module, reform_name)
-                tax_benefit_system = reform(tax_benefit_system)
-            except:
-                print('ERROR: `{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
-                raise
-
-    return tax_benefit_system
 
 
 def main():
