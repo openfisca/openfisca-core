@@ -4,33 +4,10 @@ import sys
 import importlib
 
 
-TAX_BENEFIT_SYSTEM_OPTIONS = {
-    'country_package': {
-        'short': 'c',
-        'help': 'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".'
-        },
-    'extensions': {
-        'short': 'e',
-        'help': 'extensions to load',
-        'nargs': '*'
-        },
-    'reforms': {
-        'short': 'r',
-        'help': 'reforms to apply to the country package',
-        'nargs': '*'
-        }
-    }
-
-
 def add_tax_benefit_system_arguments(parser):
-    for option, properties in TAX_BENEFIT_SYSTEM_OPTIONS.iteritems():
-        parser.add_argument(
-            '-{}'.format(properties['short']),
-            '--{}'.format(option),
-            action = 'store',
-            help = properties['help'],
-            nargs = properties.get('nargs')
-            )
+    parser.add_argument('-c', '--country_package', action = 'store', help = 'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
+    parser.add_argument('-e', '--extensions', action = 'store', help = 'extensions to load', nargs = '*')
+    parser.add_argument('-r', '--reforms', action = 'store', help = 'reforms to apply to the country package', nargs = '*')
 
     return parser
 
