@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.0.1
+
+* Improve `openfisca-run-test` script
+  - Make country package detection more robust (it only worked for packages installed in editable mode)
+  - Use spaces instead of commas as separator in the script arguments when loading several extensions or reforms (this is more standard)
+* Refactor the `scripts` module to seperate the logic specific to yaml test running from the one that can be re-used by any script which needs to build a tax and benefit system.
+
 ## 5.0.0
 
 * Move `json_or_python_to_test_case` from country packages to core
