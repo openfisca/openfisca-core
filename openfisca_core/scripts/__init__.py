@@ -12,12 +12,13 @@ def add_tax_benefit_system_arguments(parser):
     return parser
 
 
-def build_tax_benefit_sytem(country_package, extensions, reforms):
-    if country_package:
+def build_tax_benefit_sytem(country_package_name, extensions, reforms):
+    if country_package_name:
         try:
-            country_package = importlib.import_module(country_package)
-        except:
-            print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(country_package))
+            country_package = importlib.import_module(country_package_name)
+            assert hasattr(country_package, 'CountryTaxBenefitSystem')
+        except (ImportError, AssertionError):
+            print('ERROR: `{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
             sys.exit(1)
     else:
         country_package_name = detect_country_package()
