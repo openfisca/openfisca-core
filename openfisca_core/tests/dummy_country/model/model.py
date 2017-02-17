@@ -80,11 +80,9 @@ class dom_tom(Variable):
     column = BoolCol
     entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
-    period_behavior = PERMANENT
+    period_behavior = YEAR
 
     def function(famille, period):
-        period = period.start.period(u'year').offset('first-of')
-
         depcom = famille('depcom', period)
 
         return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
@@ -97,7 +95,6 @@ class revenu_disponible(Variable):
     period_behavior = YEAR
 
     def function(individu, period, legislation):
-        period = period.start.period(u'year').offset('first-of')
         rsa = individu('rsa', period, options = [ADD])
         salaire_imposable = individu('salaire_imposable', period)
         taux = legislation(period).impot.taux
@@ -124,21 +121,18 @@ class rsa(DatedVariable):
 
     @dated_function(datetime.date(2010, 1, 1))
     def function_2010(individu, period):
-        period = period.start.period(u'month').offset('first-of')
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
     def function_2011_2012(individu, period):
-        period = period.start.period(u'month').offset('first-of')
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
     def function_2013(individu, period):
-        period = period.start.period(u'month').offset('first-of')
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
         return period, (salaire_imposable < 500) * 300
@@ -151,7 +145,6 @@ class salaire_imposable(Variable):
     period_behavior = YEAR
 
     def function(individu, period):
-        period = period.start.period(u'year').offset('first-of')
         dom_tom = individu.famille('dom_tom', period)
 
         salaire_net = individu('salaire_net', period, options=[ADD])
@@ -167,7 +160,6 @@ class salaire_net(Variable):
     set_input = set_input_divide_by_period
 
     def function(individu, period):
-        period = period.start.period(u'month').offset('first-of')
         salaire_brut = individu('salaire_brut', period)
 
         return period, salaire_brut * 0.8
@@ -180,7 +172,6 @@ class csg(Variable):
     period_behavior = YEAR
 
     def function(individu, period, legislation):
-        period = period.start.period(u'year').offset('first-of')
         taux = legislation(period).csg.activite.deductible.taux
         salaire_brut = individu('salaire_brut', period, options=[ADD])
 
