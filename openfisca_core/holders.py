@@ -177,6 +177,7 @@ class Holder(object):
 
         return DatedHolder(self, period, array, parameters.get('extra_params'))
 
+    '''
     def compute_add_divide(self, period = None, **parameters):
         dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
         if dated_holder.array is not None:
@@ -227,6 +228,7 @@ class Holder(object):
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
             else:
                 requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
+    '''
 
     def compute_divide(self, period = None, **parameters):
         # Check that the requested period matches period_behavior
