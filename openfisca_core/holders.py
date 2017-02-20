@@ -286,13 +286,6 @@ class Holder(object):
             return
         formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
-    def new_test_case_array(self, period):
-        array = self.get_array(period)
-        if array is None:
-            return None
-        entity_step_size = self.entity.step_size
-        return array.reshape([self.simulation.steps_count, entity_step_size]).sum(1)
-
     @property
     def real_formula(self):
         formula = self.formula

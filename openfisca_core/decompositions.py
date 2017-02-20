@@ -6,7 +6,12 @@ import copy
 import xml
 
 from . import conv, decompositionsxml, legislations
+from columns import YEAR, MONTH
 
+def new_test_case_array(dated_holder):
+    array = dated_holder.value
+    entity_step_size = dated_holder.holder.entity.step_size
+    return array.reshape([dated_holder.holder.simulation.steps_count, entity_step_size]).sum(1)
 
 def calculate(simulations, decomposition_json):
     response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
@@ -20,16 +25,21 @@ def calculate(simulations, decomposition_json):
         else:
             node['values'] = values = []
             for simulation_index, simulation in enumerate(simulations):
+                variable_beriod_behavior = simulation.get_or_new_holder(node['code']).column.period_behavior
                 try:
-                    simulation.calculate_output(node['code'])
+                    if variable_beriod_behavior == MONTH and simulation.period.unit == u'year':
+                        dated_holder = simulation.compute_add(node['code'], simulation.period)
+                    elif variable_beriod_behavior == YEAR and simulation.period.unit == u'month':
+                        dated_holder = simulation.compute_divide(node['code'], simulation.period)
+                    else:
+                        dated_holder = simulation.compute(node['code'])
                 except legislations.ParameterNotFound as exc:
                     exc.simulation_index = simulation_index
                     raise
-                holder = simulation.get_holder(node['code'])
-                column = holder.column
+                column = dated_holder.column
                 values.extend(
                     column.transform_value_to_json(value)
-                    for value in holder.new_test_case_array(simulation.period).tolist()
+                    for value in new_test_case_array(dated_holder).tolist()
                     )
     return response_json
 
