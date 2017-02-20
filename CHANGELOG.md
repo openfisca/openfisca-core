@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.2
+
+* Add `TaxBenefitSystem` doc to the reference doc
+  - This is transparent for all users
+
 ## 5.0.1
 
 * Improve `openfisca-run-test` script
