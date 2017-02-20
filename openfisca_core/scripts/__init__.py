@@ -25,18 +25,16 @@ def add_tax_benefit_system_arguments(parser):
 
 
 def build_tax_benefit_sytem(country_package_name, extensions, reforms):
-
-    if country_package_name:
-        try:
-            country_package = importlib.import_module(country_package_name)
-        except ImportError:
-            handle_error(u'Could not import module `{}`. Make sure it is installed in your environment.'.format(country_package_name))
-        if not hasattr(country_package, 'CountryTaxBenefitSystem'):
-            handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
-    else:
+    if country_package_name is None:
         country_package_name = detect_country_package()
+    try:
         country_package = importlib.import_module(country_package_name)
+    except ImportError:
+        handle_error(u'Could not import module `{}`. Make sure it is installed in your environment.'.format(country_package_name))
+    if not hasattr(country_package, 'CountryTaxBenefitSystem'):
+        handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
 
+    country_package = importlib.import_module(country_package_name)
     tax_benefit_system = country_package.CountryTaxBenefitSystem()
 
     if extensions:
