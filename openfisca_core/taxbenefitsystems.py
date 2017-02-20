@@ -239,7 +239,15 @@ class TaxBenefitSystem(object):
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         """
-        Adds an xml file to the legislation parameters.
+        Adds an XML file to the legislation parameters.
+
+        :param path_to_xml_file: Absolute path towards the XML legislation file.
+        :param path_in_legislation_tree: Legislation path where the legislation node is added.
+
+        Exemples:
+
+        >>> self.add_legislation_params('/path/to/parameters/root.xml')
+        >>> self.add_legislation_params('/path/to/parameters/taxes/income_tax.xml', 'taxes.income_tax')
         """
         if path_in_legislation_tree is not None:
             path_in_legislation_tree = path_in_legislation_tree.split('.')
