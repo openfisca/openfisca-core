@@ -69,7 +69,7 @@ def test_1_axis():
         ).new_simulation(debug = True)
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
 
-'''
+
 def test_2_parallel_axes_1_constant():
     year = 2013
     simulation = tax_benefit_system.new_scenario().init_single_entity(
@@ -262,4 +262,3 @@ def test_non_existing_variable():
         ).new_simulation()
 
     simulation.calculate('non_existent_variable', 2013)
-'''
