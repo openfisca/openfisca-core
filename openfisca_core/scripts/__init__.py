@@ -2,6 +2,7 @@
 
 import importlib
 import logging
+import pkgutil
 import sys
 
 from openfisca_core.reforms import Reform
@@ -64,15 +65,11 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
 
 
 def detect_country_package():
-    import pkgutil
-    from importlib import import_module
-
     installed_country_packages = []
-
     for module_description in pkgutil.iter_modules():
         module_name = module_description[1]
         if 'openfisca' in module_name.lower():
-            module = import_module(module_name)
+            module = importlib.import_module(module_name)
             if hasattr(module, 'CountryTaxBenefitSystem'):
                 installed_country_packages.append(module_name)
 
