@@ -17,9 +17,9 @@ def handle_error(error_message):
 
 
 def add_tax_benefit_system_arguments(parser):
-    parser.add_argument('-c', '--country_package', action = 'store', help = 'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
-    parser.add_argument('-e', '--extensions', action = 'store', help = 'extensions to load', nargs = '*')
-    parser.add_argument('-r', '--reforms', action = 'store', help = 'reforms to apply to the country package', nargs = '*')
+    parser.add_argument('-c', '--country_package', action = 'store', help = u'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
+    parser.add_argument('-e', '--extensions', action = 'store', help = u'extensions to load', nargs = '*')
+    parser.add_argument('-r', '--reforms', action = 'store', help = u'reforms to apply to the country package', nargs = '*')
 
     return parser
 
@@ -30,9 +30,9 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
         try:
             country_package = importlib.import_module(country_package_name)
         except ImportError:
-            handle_error('Could not import module `{}`. Make sure it is installed in your environment.'.format(country_package_name))
+            handle_error(u'Could not import module `{}`. Make sure it is installed in your environment.'.format(country_package_name))
         if not hasattr(country_package, 'CountryTaxBenefitSystem'):
-            handle_error('`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
+            handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
     else:
         country_package_name = detect_country_package()
         country_package = importlib.import_module(country_package_name)
@@ -48,17 +48,17 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
             try:
                 reform_package, reform_name = reform_path.rsplit('.', 1)
             except ValueError:
-                handle_error('`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path))
+                handle_error(u'`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path))
             try:
                 reform_module = importlib.import_module(reform_package)
             except ImportError:
-                handle_error('Could not import `{}`.'.format(reform_package))
+                handle_error(u'Could not import `{}`.'.format(reform_package))
             try:
                 reform = getattr(reform_module, reform_name)
             except AttributeError:
-                handle_error('{} has no attribute {}'.format(reform_package, reform_name))
+                handle_error(u'{} has no attribute {}'.format(reform_package, reform_name))
             if not isinstance(reform, Reform):
-                handle_error('`{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
+                handle_error(u'`{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
             tax_benefit_system = reform(tax_benefit_system)
 
     return tax_benefit_system
@@ -74,7 +74,7 @@ def detect_country_package():
                 installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
-        handle_error('No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
+        handle_error(u'No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
     if len(installed_country_packages) > 1:
-        log.warning('Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
+        log.warning(u'Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
     return installed_country_packages[0]
