@@ -190,7 +190,9 @@ class TaxBenefitSystem(object):
 
     def add_variables(self, *variables):
         """
-        Does the same than :any:`add_variable`, but can take several variables.
+        Adds a list of OpenFisca Variables to the `TaxBenefitSystem`.
+
+        See also :any:`add_variable`
         """
         for variable in variables:
             self.add_variable(variable)
