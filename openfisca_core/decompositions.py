@@ -8,10 +8,12 @@ import xml
 from . import conv, decompositionsxml, legislations
 from columns import YEAR, MONTH
 
+
 def new_test_case_array(dated_holder):
     array = dated_holder.value
     entity_step_size = dated_holder.holder.entity.step_size
     return array.reshape([dated_holder.holder.simulation.steps_count, entity_step_size]).sum(1)
+
 
 def calculate(simulations, decomposition_json):
     response_json = copy.deepcopy(decomposition_json)  # Use decomposition as a skeleton for response.
