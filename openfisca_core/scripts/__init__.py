@@ -53,9 +53,8 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
                 reform_module = importlib.import_module(reform_package)
             except ImportError:
                 handle_error(u'Could not import `{}`.'.format(reform_package))
-            try:
-                reform = getattr(reform_module, reform_name)
-            except AttributeError:
+            reform = getattr(reform_module, reform_name, None)
+            if reform is None:
                 handle_error(u'{} has no attribute {}'.format(reform_package, reform_name))
             if not isinstance(reform, Reform):
                 handle_error(u'`{}` does not seem to be a valid Openfisca reform for `{}`.'.format(reform_path, country_package.__name__))
