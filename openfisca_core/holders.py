@@ -236,15 +236,19 @@ class Holder(object):
             raise ValueError('Holder.compute_divide must be used on yearly variables. This is not the case for {}'.format(
                 self.column.name
                 ))
-        if period.unit != periods.MONTH:
-            raise ValueError('Holder.compute_divide must be used on a month. This is not the case for {}'.format(
-                period
-                ))
 
-        computation_period = period.this_year
-        dated_holder = self.compute(period = computation_period, **parameters)
-        array = dated_holder.array / 12.
-        return DatedHolder(self, period, array, parameters.get('extra_params'))
+        if period.unit == periods.MONTH:
+            computation_period = period.this_year
+            dated_holder = self.compute(period = computation_period, **parameters)
+            array = dated_holder.array / 12.
+            return DatedHolder(self, period, array, parameters.get('extra_params'))
+        elif period.unit == periods.YEAR:
+            return self.compute(period, **parameters)
+
+        raise ValueError('Holder.compute_divide must be used on a month or a year. This is not the case for {} for variable {}'.format(
+            period, self.column.name
+            ))
+
 
     def delete_arrays(self):
         if self._array is not None:
