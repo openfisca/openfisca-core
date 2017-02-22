@@ -650,6 +650,11 @@ def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
 
+def calculate_output_first_month(formula, period):
+    period = period.this_month
+    return formula.holder.compute(period).array
+
+
 def dated_function(start = None, stop = None):
     """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
     def dated_function_decorator(function):
