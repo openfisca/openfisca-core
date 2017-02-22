@@ -68,7 +68,13 @@ class Holder(object):
     def array(self):
         if not self.column.is_permanent:
             return self.get_array(self.simulation.period)
-        return self._array
+        array = self._array
+        if array is not None and self.column.scalar:
+            assert array.shape == ()
+            scalar_array = array
+            array = np.empty(self.entity.count, dtype = scalar_array.dtype)
+            array.fill(scalar_array)
+        return array
 
     @array.setter
     def array(self, array):
@@ -81,6 +87,9 @@ class Holder(object):
                 self.simulation.traceback[variable_infos] = dict(
                     holder = self,
                     )
+        if self.column.scalar:
+            assert np.all(array == array[0]), "Non scalar column: {}".format(self.column.name)
+            array = np.array(array[0], array.dtype)
         self._array = array
 
     def calculate(self, period = None, **parameters):
@@ -282,16 +291,26 @@ class Holder(object):
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
-        if array_by_period is not None:
+        if array_by_period is None:
+            array = None
+        else:
             values = array_by_period.get(period)
-            if values is not None:
+            if values is None:
+                array = None
+            else:
                 if extra_params:
-                    return values.get(tuple(extra_params))
+                    array = values.get(tuple(extra_params))
                 else:
                     if(type(values) == dict):
-                        return values.values()[0]
-                    return values
-        return None
+                        array = values.values()[0]
+                    else:
+                        array = values
+        if array is not None and self.column.scalar:
+            assert array.shape == ()
+            scalar_array = array
+            array = np.empty(self.entity.count, dtype = scalar_array.dtype)
+            array.fill(scalar_array)
+        return array
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
         column = self.column
@@ -339,6 +358,11 @@ class Holder(object):
         if self.column.is_permanent:
             self.array = value
         assert period is not None
+
+        if self.column.scalar:
+            assert np.all(value == value[0]), "Non scalar column: {}".format(self.column.name)
+            value = np.array(value[0], value.dtype)
+
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, period)
             step = simulation.traceback.get(variable_infos)
