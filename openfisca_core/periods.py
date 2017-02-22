@@ -358,6 +358,41 @@ class Period(tuple):
             if fragment is not None
             )
 
+    def __cmp__(self, other):
+        unit_a, start_a, size_a = self
+        unit_b, start_b, size_b = other
+
+        if unit_a != unit_b:
+            unit_weights = {
+                u'day': 1,
+                u'month': 2,
+                u'year': 3,
+                }
+            return cmp(unit_weights[unit_a], unit_weights[unit_b])
+
+        if size_a != size_b:
+            return cmp(size_a, size_b)
+
+        return cmp(start_a, start_b)
+
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
+
+    def __le__(self, other):
+        return self.__cmp__(other) <= 0
+
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+    def __ne__(self, other):
+        return self.__cmp__(other) != 0
+
+    def __gt__(self, other):
+        return self.__cmp__(other) > 0
+
+    def __ge__(self, other):
+        return self.__cmp__(other) >= 0
+
     @property
     def date(self):
         assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)
