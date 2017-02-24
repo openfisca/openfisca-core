@@ -2,8 +2,6 @@
 
 import numpy as np
 
-from . import periods
-
 
 def permanent_default_value(formula, simulation, period, *extra_params):
     if formula.function is not None:
