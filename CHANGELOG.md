@@ -1,5 +1,23 @@
 # Changelog
 
+## 6.0.0
+
+* Breaking change : Add attribute `period_behavior` to variables
+* Breaking change : Variable functions return only an array
+* Breaking change : Remove `print_trace`
+* Cache only results corresponding to the variable `period_behavior` attribute
+* Remove `*_add_divide`
+* Implement several behaviors for `set_input_divide_by_period`
+* Use `calculate_output` in test runner
+* Add hook `calculate_output_first_month`
+  - This is needed to solve period mismatch in test runner
+* Change periods ordering
+  - This is transparent for all users
+* DatedHolder are only a wrapper on a variable and no more a view
+  - This is transparent for all users
+* Move `new_test_case_array` from `holders.py` to `decompositions.py`
+  - This is transparent for all users
+
 ## 5.0.2
 
 * Add `TaxBenefitSystem` doc to the reference doc
