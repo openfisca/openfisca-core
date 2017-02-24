@@ -11,7 +11,7 @@ from .columns import MONTH, YEAR, PERMANENT
 
 
 class DatedHolder(object):
-    """The value of a variable for given a period (and possibly a given set of extra parameters).
+    """A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
     """
     holder = None
     period = None
