@@ -91,22 +91,3 @@ def requested_period_last_or_next_value(formula, simulation, period, *extra_para
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period, or the next value if there is no past value.
     return requested_period_last_value(formula, simulation, period, *extra_params, accept_future_value = True)
-
-
-def last_duration_last_value(formula, simulation, period, *extra_params):
-    # This formula is used for variables that are constants between events but are period size dependent.
-    # It returns the latest known value for the requested start of period but with the last period size.
-    holder = formula.holder
-    if holder._array_by_period is not None:
-        for last_period, last_result in sorted(holder._array_by_period.iteritems(), reverse = True):
-            if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
-                output_period = periods.Period((last_period[0], period.start, last_period[2]))
-                assert output_period == period
-                if type(last_result) == np.ndarray and not extra_params:
-                    return last_result
-                elif last_result.get(extra_params):
-                    return last_result.get(extra_params)
-    if formula.function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    array = holder.default_array()
-    return array
