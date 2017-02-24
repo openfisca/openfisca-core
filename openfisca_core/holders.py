@@ -142,10 +142,6 @@ class Holder(object):
                 and (column_stop_instant is None or period.start <= column_stop_instant):
             formula_dated_holder = self.formula.compute(period = period, **parameters)
             assert formula_dated_holder is not None
-            if not column.is_permanent:
-                assert formula_dated_holder.period == period, \
-                    "Requested period {} differs from {} returned by variable {}".format(period,
-                        formula_dated_holder.period, column.name)
             return formula_dated_holder
         array = self.default_array()
         return self.put_in_cache(array, period)
