@@ -635,10 +635,6 @@ def calculate_output_add(formula, period):
     return formula.holder.compute_add(period).array
 
 
-def calculate_output_add_divide(formula, period):
-    return formula.holder.compute_add_divide(period).array
-
-
 def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
