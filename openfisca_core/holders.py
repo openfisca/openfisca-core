@@ -249,7 +249,6 @@ class Holder(object):
             period, self.column.name
             ))
 
-
     def delete_arrays(self):
         if self._array is not None:
             del self._array
