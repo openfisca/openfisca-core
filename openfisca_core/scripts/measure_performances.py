@@ -110,9 +110,9 @@ class age(Variable):
         if birth is None:
             age_en_mois = simulation.get_array('age_en_mois', period)
             if age_en_mois is not None:
-                return period, age_en_mois // 12
+                return age_en_mois // 12
             birth = simulation.calculate('birth', period)
-        return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
+        return (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
 class dom_tom(Variable):
@@ -123,7 +123,7 @@ class dom_tom(Variable):
     def function(self, simulation, period):
         period = period.start.period('year').offset('first-of')
         depcom = simulation.calculate('depcom', period)
-        return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+        return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
 class revenu_disponible(Variable):
@@ -135,7 +135,7 @@ class revenu_disponible(Variable):
         period = period.start.period(u'year').offset('first-of')
         rsa = simulation.calculate('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
-        return period, rsa + salaire_imposable * 0.7
+        return rsa + salaire_imposable * 0.7
 
 
 class rsa(DatedVariable):
@@ -147,19 +147,19 @@ class rsa(DatedVariable):
     def function_2010(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
-        return period, (salaire_imposable < 500) * 100.0
+        return (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
     def function_2011_2012(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
-        return period, (salaire_imposable < 500) * 200.0
+        return (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
     def function_2013(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
-        return period, (salaire_imposable < 500) * 300
+        return (salaire_imposable < 500) * 300
 
 
 class salaire_imposable(Variable):
@@ -171,7 +171,7 @@ class salaire_imposable(Variable):
         period = period.start.period(u'year').offset('first-of')
         dom_tom = individu.famille('dom_tom', period)
         salaire_net = individu('salaire_net', period)
-        return period, salaire_net * 0.9 - 100 * dom_tom
+        return salaire_net * 0.9 - 100 * dom_tom
 
 
 class salaire_net(Variable):
@@ -182,7 +182,7 @@ class salaire_net(Variable):
     def function(self, simulation, period):
         period = period.start.period(u'year').offset('first-of')
         salaire_brut = simulation.calculate('salaire_brut', period)
-        return period, salaire_brut * 0.8
+        return salaire_brut * 0.8
 
 
 # TaxBenefitSystem instance declared after formulas

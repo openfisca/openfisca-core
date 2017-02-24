@@ -25,7 +25,7 @@ class uses_multiplication(Variable):
     def function(self, simulation, period):
         choice = simulation.calculate('choice', period)
         result = (choice == 1) * 80 + (choice == 2) * 90
-        return period, result
+        return result
 
 
 class uses_switch(Variable):
@@ -43,7 +43,7 @@ class uses_switch(Variable):
                 2: 90,
                 },
             )
-        return period, result
+        return result
 
 
 # TaxBenefitSystem instance declared after formulas
