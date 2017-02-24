@@ -5,7 +5,7 @@ import datetime
 import numpy as np
 from numpy.core.defchararray import startswith
 
-from openfisca_core.formulas import dated_function, set_input_divide_by_period
+from openfisca_core.formulas import dated_function, set_input_divide_by_period, calculate_output_add
 from openfisca_core.entities import ADD, DIVIDE
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, MONTH, YEAR, PERMANENT
 from openfisca_core.variables import Variable, DatedVariable
@@ -158,6 +158,7 @@ class salaire_net(Variable):
     label = u"Salaire net"
     period_behavior = MONTH
     set_input = set_input_divide_by_period
+    calculate_output = calculate_output_add
 
     def function(individu, period):
         salaire_brut = individu('salaire_brut', period)
