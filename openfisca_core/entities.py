@@ -45,7 +45,7 @@ class Entity(object):
         self.check_variable_defined_for_entity(variable_name)
 
         if ADD in options and DIVIDE in options:
-            return self.simulation.calculate_add_divide(variable_name, period, **parameters)
+            raise ValueError('Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name))
         elif ADD in options:
             return self.simulation.calculate_add(variable_name, period, **parameters)
         elif DIVIDE in options:
