@@ -454,22 +454,16 @@ class SimpleFormula(AbstractFormula):
     def exec_function(self, simulation, period, *extra_params):
 
         if self.function.im_func.func_code.co_varnames[0] == 'self':
-            result = self.function(simulation, period, *extra_params)
+            return self.function(simulation, period, *extra_params)
         else:
             entity = self.holder.entity
             function = self.function.im_func
             legislation = simulation.legislation_at
             if self.function.im_func.func_code.co_argcount == 2:
-                result = function(entity, period)
+                return function(entity, period)
             else:
-                result = function(entity, period, legislation, *extra_params)
+                return function(entity, period, legislation, *extra_params)
 
-        output_period, array = result
-        if output_period != period:
-            raise ValueError('The formula {} should not change the input period.'.format(
-                self.holder.column.name))
-
-        return array
 
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
@@ -667,8 +661,7 @@ def dated_function(start = None, stop = None):
 
 def missing_value(formula, simulation, period):
     if formula.function is not None:
-        period, array = formula.function(simulation, period)
-        return array
+        return formula.function(simulation, period)
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
