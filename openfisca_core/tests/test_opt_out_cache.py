@@ -21,7 +21,7 @@ class intermediate(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('input', period)
+        return simulation.calculate('input', period)
 
 
 class output(Variable):
@@ -31,7 +31,7 @@ class output(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('intermediate', period)
+        return simulation.calculate('intermediate', period)
 
 
 def get_filled_tbs():

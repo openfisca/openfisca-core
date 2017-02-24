@@ -16,7 +16,7 @@ class formula_1(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('formula_3', period, extra_params = [0])
+        return simulation.calculate('formula_3', period, extra_params = [0])
 
 
 class formula_2(Variable):
@@ -25,7 +25,7 @@ class formula_2(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('formula_3', period, extra_params = [1])
+        return simulation.calculate('formula_3', period, extra_params = [1])
 
 
 class formula_3(Variable):
@@ -34,7 +34,7 @@ class formula_3(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period, choice):
-        return period, self.zeros() + choice
+        return self.zeros() + choice
 
 
 class formula_4(Variable):
@@ -44,7 +44,7 @@ class formula_4(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period, choice):
-        return period, self.zeros() + choice
+        return self.zeros() + choice
 
 
 # TaxBenefitSystem instance declared after formulas

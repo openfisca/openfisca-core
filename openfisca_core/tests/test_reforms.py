@@ -400,7 +400,7 @@ def test_add_variable():
         period_behavior = MONTH
 
         def function(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
     class test_add_variable(Reform):
 
@@ -431,11 +431,11 @@ def test_add_dated_variable():
 
         @dated_function(datetime.date(2010, 1, 1))
         def function_2010(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
         @dated_function(datetime.date(2011, 1, 1))
         def function_apres_2011(self, simulation, period):
-            return period, self.zeros() + 15
+            return self.zeros() + 15
 
     class test_add_variable(Reform):
         def apply(self):
@@ -459,7 +459,7 @@ def test_add_variable_with_reference():
         period_behavior = MONTH
 
         def function(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
     class test_add_variable_with_reference(Reform):
         def apply(self):
@@ -505,7 +505,7 @@ def test_compose_reforms():
             period_behavior = MONTH
 
             def function(self, simulation, period):
-                return period, self.zeros() + 10
+                return self.zeros() + 10
 
         def apply(self):
             self.add_variable(self.nouvelle_variable)
@@ -518,7 +518,7 @@ def test_compose_reforms():
             period_behavior = MONTH
 
             def function(self, simulation, period):
-                return period, self.zeros() + 20
+                return self.zeros() + 20
 
         def apply(self):
             self.update_variable(self.nouvelle_variable)

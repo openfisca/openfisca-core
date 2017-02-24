@@ -71,9 +71,9 @@ class age(Variable):
         if birth is None:
             age_en_mois = simulation.get_array('age_en_mois', period)
             if age_en_mois is not None:
-                return period, age_en_mois // 12
+                return age_en_mois // 12
             birth = simulation.calculate('birth', period)
-        return period, (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
+        return (np.datetime64(period.date) - birth).astype('timedelta64[Y]')
 
 
 class dom_tom(Variable):
@@ -85,7 +85,7 @@ class dom_tom(Variable):
     def function(famille, period):
         depcom = famille('depcom', period)
 
-        return period, np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+        return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
 
 
 class revenu_disponible(Variable):
@@ -99,7 +99,7 @@ class revenu_disponible(Variable):
         salaire_imposable = individu('salaire_imposable', period)
         taux = legislation(period).impot.taux
 
-        return period, rsa + salaire_imposable * (1 - taux)
+        return rsa + salaire_imposable * (1 - taux)
 
 
 class revenu_disponible_famille(Variable):
@@ -110,7 +110,7 @@ class revenu_disponible_famille(Variable):
 
     def function(famille, period):
         revenu_disponible = famille.members('revenu_disponible', period)
-        return period, famille.sum(revenu_disponible)
+        return famille.sum(revenu_disponible)
 
 
 class rsa(DatedVariable):
@@ -123,19 +123,19 @@ class rsa(DatedVariable):
     def function_2010(individu, period):
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
-        return period, (salaire_imposable < 500) * 100.0
+        return (salaire_imposable < 500) * 100.0
 
     @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
     def function_2011_2012(individu, period):
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
-        return period, (salaire_imposable < 500) * 200.0
+        return (salaire_imposable < 500) * 200.0
 
     @dated_function(datetime.date(2013, 1, 1))
     def function_2013(individu, period):
         salaire_imposable = individu('salaire_imposable', period, options = [DIVIDE])
 
-        return period, (salaire_imposable < 500) * 300
+        return (salaire_imposable < 500) * 300
 
 
 class salaire_imposable(Variable):
@@ -149,7 +149,7 @@ class salaire_imposable(Variable):
 
         salaire_net = individu('salaire_net', period, options=[ADD])
 
-        return period, salaire_net * 0.9 - 100 * dom_tom
+        return salaire_net * 0.9 - 100 * dom_tom
 
 
 class salaire_net(Variable):
@@ -163,7 +163,7 @@ class salaire_net(Variable):
     def function(individu, period):
         salaire_brut = individu('salaire_brut', period)
 
-        return period, salaire_brut * 0.8
+        return salaire_brut * 0.8
 
 
 class csg(Variable):
@@ -176,4 +176,4 @@ class csg(Variable):
         taux = legislation(period).csg.activite.deductible.taux
         salaire_brut = individu('salaire_brut', period, options=[ADD])
 
-        return period, taux * salaire_brut
+        return taux * salaire_brut

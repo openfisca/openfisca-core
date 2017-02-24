@@ -20,7 +20,7 @@ class variable1(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable2', period)
+        return simulation.calculate('variable2', period)
 
 
 class variable2(Variable):
@@ -29,7 +29,7 @@ class variable2(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable1', period)
+        return simulation.calculate('variable1', period)
 
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
@@ -39,7 +39,7 @@ class variable3(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable4', period.last_month)
+        return simulation.calculate('variable4', period.last_month)
 
 
 class variable4(Variable):
@@ -48,7 +48,7 @@ class variable4(Variable):
     period_behavior = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable3', period)
+        return simulation.calculate('variable3', period)
 
 
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
@@ -60,7 +60,7 @@ class variable5(Variable):
 
     def function(self, simulation, period):
         variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
-        return period, 5 + variable6
+        return 5 + variable6
 
 
 class variable6(Variable):
@@ -70,7 +70,7 @@ class variable6(Variable):
 
     def function(self, simulation, period):
         variable5 = simulation.calculate('variable5', period)
-        return period, 6 + variable5
+        return 6 + variable5
 
 
 # december cotisation depending on november value
@@ -82,9 +82,9 @@ class cotisation(Variable):
     def function(self, simulation, period):
         period = period.this_month
         if period.start.month == 12:
-            return period, 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
+            return 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
         else:
-            return period, self.zeros() + 1
+            return self.zeros() + 1
 
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
@@ -96,7 +96,7 @@ class variable7(Variable):
 
     def function(self, simulation, period):
         variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
-        return period, 7 + variable8
+        return 7 + variable8
 
 
 class variable8(Variable):
@@ -106,7 +106,7 @@ class variable8(Variable):
 
     def function(self, simulation, period):
         variable7 = simulation.calculate('variable7', period)
-        return period, 8 + variable7
+        return 8 + variable7
 
 
 # TaxBenefitSystem instance declared after formulas
