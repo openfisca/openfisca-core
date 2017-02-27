@@ -119,20 +119,20 @@ class Holder(object):
         column = self.column
 
         # Check that the requested period matches period_behavior
-        if not self.column.period_behavior == PERMANENT:
-            if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
-                    (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
+        if not column.period_behavior == PERMANENT:
+            if ((column.period_behavior == MONTH and period.unit != periods.MONTH) or
+                    (column.period_behavior == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
-                    self.column.name,
-                    period.unit, self.column.period_behavior))
+                    column.name,
+                    period.unit, column.period_behavior))
         if period.size != 1:
             raise ValueError('Computation requested for complex period {} for variable {}'.format(
-                period, self.column.name))
+                period, column.name))
 
         # First look for a value already cached
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
+        holder_or_dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
+        if holder_or_dated_holder.array is not None:
+            return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
