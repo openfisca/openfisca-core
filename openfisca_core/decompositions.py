@@ -8,10 +8,9 @@ import xml
 from . import conv, decompositionsxml, legislations
 
 
-def new_test_case_array(dated_holder):
-    array = dated_holder.value
-    entity_step_size = dated_holder.holder.entity.step_size
-    return array.reshape([dated_holder.holder.simulation.steps_count, entity_step_size]).sum(1)
+def new_test_case_array(holder, array):
+    entity_step_size = holder.entity.step_size
+    return array.reshape([holder.simulation.steps_count, entity_step_size]).sum(1)
 
 
 def calculate(simulations, decomposition_json):
@@ -27,14 +26,15 @@ def calculate(simulations, decomposition_json):
             node['values'] = values = []
             for simulation_index, simulation in enumerate(simulations):
                 try:
-                    dated_holder = simulation.calculate_output(node['code'], simulation.period)
+                    array = simulation.calculate_output(node['code'], simulation.period)
+                    holder = simulation.get_holder(node['code'])
+                    column = holder.column
                 except legislations.ParameterNotFound as exc:
                     exc.simulation_index = simulation_index
                     raise
-                column = dated_holder.column
                 values.extend(
                     column.transform_value_to_json(value)
-                    for value in new_test_case_array(dated_holder).tolist()
+                    for value in new_test_case_array(holder, array).tolist()
                     )
     return response_json
 
