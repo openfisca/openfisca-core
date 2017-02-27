@@ -6,7 +6,6 @@ import copy
 import xml
 
 from . import conv, decompositionsxml, legislations
-from columns import YEAR, MONTH
 
 
 def new_test_case_array(dated_holder):
@@ -27,14 +26,8 @@ def calculate(simulations, decomposition_json):
         else:
             node['values'] = values = []
             for simulation_index, simulation in enumerate(simulations):
-                variable_beriod_behavior = simulation.get_or_new_holder(node['code']).column.period_behavior
                 try:
-                    if variable_beriod_behavior == MONTH and simulation.period.unit == u'year':
-                        dated_holder = simulation.compute_add(node['code'], simulation.period)
-                    elif variable_beriod_behavior == YEAR and simulation.period.unit == u'month':
-                        dated_holder = simulation.compute_divide(node['code'], simulation.period)
-                    else:
-                        dated_holder = simulation.compute(node['code'])
+                    dated_holder = simulation.calculate_output(node['code'], simulation.period)
                 except legislations.ParameterNotFound as exc:
                     exc.simulation_index = simulation_index
                     raise
