@@ -246,7 +246,7 @@ class Holder(object):
         simulation = self.simulation
 
         if not self.column.period_behavior == PERMANENT:
-            assert periods is not None
+            assert period is not None
             if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
                (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Wrong period unit during cache write for variable {} ({} instead of {})'.format(
