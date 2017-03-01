@@ -3,7 +3,7 @@
 import datetime
 
 import numpy as np
-from nose.tools import raises
+from nose.tools import raises, assert_raises, assert_equal
 
 from openfisca_core.variables import Variable
 from openfisca_core.columns import YEAR
@@ -262,3 +262,20 @@ def test_non_existing_variable():
         ).new_simulation()
 
     simulation.calculate('non_existent_variable', 2013)
+
+
+def test_calculate_variable_with_wrong_period_unit():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            salaire_brut = 4000,
+            ),
+        ).new_simulation()
+
+    with assert_raises(ValueError) as error:
+        simulation.calculate('rsa', 2013)
+
+    error_message = str(error.exception)
+    expected_error_message = 'Computation requested with wrong period unit for variable rsa (year instead of month)'
+
+    assert_equal(error_message, expected_error_message)
