@@ -8,4 +8,4 @@ class paris_logement_familles(Variable):
     column = FloatCol
     label = u"Allocation Paris Logement Famille"
     entity = Famille
-    period_behavior = MONTH
+    period_unit = MONTH

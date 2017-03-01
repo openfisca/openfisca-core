@@ -118,13 +118,13 @@ class Holder(object):
             period = self.simulation.period
         column = self.column
 
-        # Check that the requested period matches period_behavior
-        if not column.period_behavior == PERMANENT:
-            if ((column.period_behavior == MONTH and period.unit != periods.MONTH) or
-                    (column.period_behavior == YEAR and period.unit != periods.YEAR)):
+        # Check that the requested period matches period_unit
+        if not column.period_unit == PERMANENT:
+            if ((column.period_unit == MONTH and period.unit != periods.MONTH) or
+                    (column.period_unit == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
                     column.name,
-                    period.unit, column.period_behavior))
+                    period.unit, column.period_unit))
         if period.size != 1:
             raise ValueError('Computation requested for complex period {} for variable {}'.format(
                 period, column.name))
@@ -147,15 +147,15 @@ class Holder(object):
         return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
-        # Check that the requested period matches period_behavior
-        if self.column.period_behavior == YEAR and period.unit == periods.MONTH:
+        # Check that the requested period matches period_unit
+        if self.column.period_unit == YEAR and period.unit == periods.MONTH:
             raise ValueError('Computation on period {} impossible on yearly variable {}'.format(
                 period, self.column.name
                 ))
 
-        if self.column.period_behavior == MONTH:
+        if self.column.period_unit == MONTH:
             variable_period_unit = periods.MONTH
-        elif self.column.period_behavior == YEAR:
+        elif self.column.period_unit == YEAR:
             variable_period_unit = periods.YEAR
         else:
             ValueError('compute_add can be used only for yearly or monthly variables.')
@@ -174,8 +174,8 @@ class Holder(object):
         return DatedHolder(self, period, array, parameters.get('extra_params'))
 
     def compute_divide(self, period = None, **parameters):
-        # Check that the requested period matches period_behavior
-        if self.column.period_behavior != YEAR:
+        # Check that the requested period matches period_unit
+        if self.column.period_unit != YEAR:
             raise ValueError('Holder.compute_divide must be used on yearly variables. This is not the case for {}'.format(
                 self.column.name
                 ))
@@ -245,13 +245,13 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
-        if not self.column.period_behavior == PERMANENT:
+        if not self.column.period_unit == PERMANENT:
             assert period is not None
-            if ((self.column.period_behavior == MONTH and period.unit != periods.MONTH) or
-               (self.column.period_behavior == YEAR and period.unit != periods.YEAR)):
+            if ((self.column.period_unit == MONTH and period.unit != periods.MONTH) or
+               (self.column.period_unit == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Wrong period unit during cache write for variable {} ({} instead of {})'.format(
                     self.column.name,
-                    period.unit, self.column.period_behavior))
+                    period.unit, self.column.period_unit))
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and

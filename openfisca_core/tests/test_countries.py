@@ -232,7 +232,7 @@ def test_variable_with_reference():
     assert(revenu_disponible_avant_reforme > 0)
 
     class revenu_disponible(Variable):
-        period_behavior = YEAR
+        period_unit = YEAR
 
         def function(self, simulation, period):
             return self.zeros()
@@ -247,7 +247,7 @@ def test_variable_with_reference():
 def test_variable_name_conflict():
     class revenu_disponible(Variable):
         reference = 'revenu_disponible'
-        period_behavior = YEAR
+        period_unit = YEAR
 
         def function(self, simulation, period):
             return self.zeros()
