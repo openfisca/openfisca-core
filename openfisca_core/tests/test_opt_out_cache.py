@@ -11,14 +11,14 @@ class input(Variable):
     column = IntCol
     entity = Individu
     label = u"Input variable"
-    period_behavior = MONTH
+    period_unit = MONTH
 
 
 class intermediate(Variable):
     column = IntCol
     entity = Individu
     label = u"Intermediate result that don't need to be cached"
-    period_behavior = MONTH
+    period_unit = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('input', period)
@@ -28,7 +28,7 @@ class output(Variable):
     column = IntCol
     entity = Individu
     label = u'Output variable'
-    period_behavior = MONTH
+    period_unit = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('intermediate', period)

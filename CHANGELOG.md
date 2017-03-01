@@ -2,11 +2,11 @@
 
 ## 6.0.0
 
-* Breaking change : Add attribute `period_behavior` to variables
+* Breaking change : Add attribute `period_unit` to variables
 * Breaking change : Variable functions return only an array
 * Breaking change : Remove `print_trace`
 * Remove `*_add_divide` and `last_duration_last_value`
-* Cache only results corresponding to the variable `period_behavior` attribute
+* Cache only results corresponding to the variable `period_unit` attribute
 * Implement several behaviors for `set_input_divide_by_period`
 * Use `calculate_output` in test runner
 * Add hook `calculate_output_first_month`
