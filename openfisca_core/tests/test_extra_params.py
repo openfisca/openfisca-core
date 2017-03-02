@@ -55,7 +55,7 @@ tax_benefit_system.add_variables(formula_1, formula_2, formula_3, formula_4)
 reference_period = periods.period(u'2013-01')
 
 simulation = tax_benefit_system.new_scenario().init_single_entity(
-    period = reference_period.this_month,
+    period = reference_period.first_month,
     parent1 = dict(),
     ).new_simulation(debug = True)
 formula_1_result = simulation.calculate('formula_1')

@@ -690,11 +690,11 @@ class Period(tuple):
 
     @property
     def last_3_months(self):
-        return self.this_month.start.period('month', 3).offset(-3)
+        return self.first_month.start.period('month', 3).offset(-3)
 
     @property
     def last_month(self):
-        return self.this_month.offset(-1)
+        return self.first_month.offset(-1)
 
     @property
     def last_year(self):
@@ -709,7 +709,7 @@ class Period(tuple):
         return self.start.offset('first-of', 'year').period('year')
 
     @property
-    def this_month(self):
+    def first_month(self):
         return self.start.offset('first-of', 'month').period('month')
 
 

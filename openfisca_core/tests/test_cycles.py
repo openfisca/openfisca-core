@@ -81,7 +81,6 @@ class cotisation(Variable):
     definition_period = MONTH
 
     def function(self, simulation, period):
-        period = period.this_month
         if period.start.month == 12:
             return 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
         else:

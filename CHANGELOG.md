@@ -16,6 +16,7 @@
   - This is transparent for all users
 * Move `new_test_case_array` from `holders.py` to `decompositions.py`
   - This is transparent for all users
+* Rename `period.this_month` to `period.first_month`
 
 ## 5.0.2
 
