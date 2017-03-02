@@ -3,7 +3,7 @@
 import datetime
 
 import numpy as np
-from nose.tools import raises, assert_raises, assert_equal
+from nose.tools import raises, assert_raises
 
 from openfisca_core.variables import Variable
 from openfisca_core.periods import YEAR
@@ -276,6 +276,7 @@ def test_calculate_variable_with_wrong_definition_period():
         simulation.calculate('rsa', 2013)
 
     error_message = str(error.exception)
-    expected_error_message = 'Computation requested with wrong period unit for variable rsa (year instead of month)'
+    expected_words = ['period', '2013', 'month', 'rsa']
 
-    assert_equal(error_message, expected_error_message)
+    for word in expected_words:
+        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)

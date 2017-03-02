@@ -119,15 +119,23 @@ class Holder(object):
         column = self.column
 
         # Check that the requested period matches definition_period
-        if not column.definition_period == ETERNITY:
-            if ((column.definition_period == MONTH and period.unit != periods.MONTH) or
-                    (column.definition_period == YEAR and period.unit != periods.YEAR)):
-                raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
+        if column.definition_period != ETERNITY:
+            if column.definition_period == MONTH and period.unit != periods.MONTH:
+                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole month. You can use the option DIVIDE or use period.this_month'.format(
                     column.name,
-                    period.unit, column.definition_period))
-        if period.size != 1:
-            raise ValueError('Computation requested for complex period {} for variable {}'.format(
-                period, column.name))
+                    period,
+                    column.name))
+            if column.definition_period == YEAR and period.unit != periods.YEAR:
+                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole year. You can use the option ADD.'.format(
+                    column.name,
+                    period,
+                    column.name))
+            if period.size != 1:
+                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole {}. You can use the option ADD.'.format(
+                    column.name,
+                    period,
+                    column.name,
+                    'month' if column.definition_period == MONTH else 'year'))
 
         # First look for a value already cached
         holder_or_dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
@@ -149,16 +157,19 @@ class Holder(object):
     def compute_add(self, period = None, **parameters):
         # Check that the requested period matches definition_period
         if self.column.definition_period == YEAR and period.unit == periods.MONTH:
-            raise ValueError('Computation on period {} impossible on yearly variable {}'.format(
-                period, self.column.name
-                ))
+            raise ValueError('Unable to compute variable {} for period {} : {} can only be computed on year-long periods.'.format(
+                self.column.name,
+                period,
+                self.column.name))
 
         if self.column.definition_period == MONTH:
             variable_definition_period = periods.MONTH
         elif self.column.definition_period == YEAR:
             variable_definition_period = periods.YEAR
         else:
-            ValueError('compute_add can be used only for yearly or monthly variables.')
+            raise ValueError('Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
+                self.column.name,
+                period))
 
         after_instant = period.start.offset(period.size, period.unit)
         sub_period = period.start.period(variable_definition_period)
@@ -176,9 +187,9 @@ class Holder(object):
     def compute_divide(self, period = None, **parameters):
         # Check that the requested period matches definition_period
         if self.column.definition_period != YEAR:
-            raise ValueError('Holder.compute_divide must be used on yearly variables. This is not the case for {}'.format(
-                self.column.name
-                ))
+            raise ValueError('Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
+                self.column.name,
+                period))
 
         if period.unit == periods.MONTH:
             computation_period = period.this_year
@@ -188,9 +199,9 @@ class Holder(object):
         elif period.unit == periods.YEAR:
             return self.compute(period, **parameters)
 
-        raise ValueError('Holder.compute_divide must be used on a month or a year. This is not the case for {} for variable {}'.format(
-            period, self.column.name
-            ))
+        raise ValueError('Unable to divide the value of {} to match the period {}.'.format(
+            self.column.name,
+            period))
 
     def delete_arrays(self):
         if self._array is not None:
