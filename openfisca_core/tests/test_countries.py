@@ -292,6 +292,5 @@ def test_wrong_use_of_divide_option():
             ),
         ).new_simulation()
 
-
     quarter = periods.period('2013-12').last_3_months
     simulation.individu('revenu_disponible', quarter, options = [DIVIDE])

@@ -126,12 +126,12 @@ class Holder(object):
                     period
                     ))
             if column.definition_period == YEAR and period.unit != periods.YEAR:
-                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} proportionnally to the requested period length, or change the requested period to "period.this_year".'.format(
+                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
                     column.name,
                     period
                     ))
             if period.size != 1:
-                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period,.'.format(
+                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
                     column.name,
                     period,
                     'month' if column.definition_period == MONTH else 'year'))
@@ -156,10 +156,10 @@ class Holder(object):
     def compute_add(self, period = None, **parameters):
         # Check that the requested period matches definition_period
         if self.column.definition_period == YEAR and period.unit == periods.MONTH:
-            raise ValueError('Unable to compute variable {} for period {} : {} can only be computed on year-long periods.'.format(
+            raise ValueError('Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
                 self.column.name,
                 period,
-                self.column.name))
+                ))
 
         if self.column.definition_period == MONTH:
             variable_definition_period = periods.MONTH
@@ -191,7 +191,7 @@ class Holder(object):
                 period))
 
         if period.size != 1:
-            raise ValueError("DIVIDE option can only be used for a one-year or one-month requested period")
+            raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
 
         if period.unit == periods.MONTH:
             computation_period = period.this_year
