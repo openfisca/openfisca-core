@@ -9,7 +9,6 @@ import itertools
 import numpy as np
 
 from . import conv, periods, simulations, json_to_test_case
-from formulas import SET_INPUT_ADD
 
 
 def N_(message):
@@ -89,11 +88,22 @@ class AbstractScenario(object):
         else:
             steps_count = 1
             if self.axes is not None:
+                # See set_input function comment below
+                # defaultdict(dict) is like dict but returns {} when calling d[k] if d[k] is not yet defined
+                cache_buffer = collections.defaultdict(dict)
                 for parallel_axes in self.axes:
                     # All parallel axes have the same count, entity and period.
                     axis = parallel_axes[0]
                     steps_count *= axis['count']
             simulation.steps_count = steps_count
+
+            # When we use axes, we use a buffer for the cache, to avoid collisions between several calls of holder.set_input.
+            def set_input(variable_name, period, value):
+                if self.axes is not None:
+                    cache_buffer[variable_name][period] = value
+                else:
+                    holder = simulation.get_or_new_holder(variable_name)
+                    holder.set_input(period, value)
 
             for entity in simulation.entities.itervalues():
                 step_size = len(test_case[entity.plural])
@@ -157,7 +167,6 @@ class AbstractScenario(object):
                                     variable_periods.update(cell.iterkeys())
                             elif cell is not None:
                                 variable_periods.add(simulation_period)
-                        holder = simulation.get_or_new_holder(variable_name)
                         variable_default_value = column.default
                         # Note: For set_input to work, handle days, before months, before years => use sorted().
                         for variable_period in sorted(variable_periods, cmp = compare_periods):
@@ -180,7 +189,7 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
-                            holder.set_input(variable_period, array)
+                            set_input(variable_name, variable_period, array)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -193,14 +202,14 @@ class AbstractScenario(object):
                     axis_entity_step_size = axis_entity.step_size
                     for axis in parallel_axes:
                         axis_period = axis['period'] or simulation_period
-                        holder = simulation.get_or_new_holder(axis['name'])
-                        column = holder.column
-                        array = holder.get_array(axis_period)
+                        axis_name = axis['name']
+                        array = cache_buffer[axis_name].get(axis_period)
                         if array is None:
+                            column = tbs.column_by_name[axis_name]
                             array = np.empty(axis_entity_count, dtype = column.dtype)
                             array.fill(column.default)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-                        holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
+                        cache_buffer[axis_name][axis_period] = array
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -215,16 +224,25 @@ class AbstractScenario(object):
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
                         axis_entity = simulation.get_variable_entity(first_axis['name'])
+                        axis_entity_count = axis_entity.count
+                        axis_entity_step_size = axis_entity.step_size
                         for axis in parallel_axes:
                             axis_period = axis['period'] or simulation_period
-                            holder = simulation.get_or_new_holder(axis['name'])
-                            column = holder.column
-                            array = holder.get_array(axis_period)
+                            axis_name = axis['name']
+                            array = cache_buffer[axis_name].get(axis_period)
                             if array is None:
-                                array = holder.default_array()
-                            array[axis['index']:: axis_entity.step_size] = axis['min'] \
+                                column = tbs.column_by_name[axis_name]
+                                array = np.empty(axis_entity_count, dtype = column.dtype)
+                                array.fill(column.default)
+                            array[axis['index']:: axis_entity_step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
+                            cache_buffer[axis_name][axis_period] = array
+
+                # We pour the buffer in the real cache
+                for variable, values in cache_buffer.iteritems():
+                    holder = simulation.get_or_new_holder(variable)
+                    for period, array in values.iteritems():
+                        holder.set_input(period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
