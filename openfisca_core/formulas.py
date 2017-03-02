@@ -311,7 +311,7 @@ class SimpleFormula(AbstractFormula):
             # Make sure the formula doesn't call itself for the same period it is being called for.
             # It would be a pure circular definition.
             requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and not column.is_permanent, get_error_message()
+            assert period not in requested_periods and (column.period_unit is not ETERNITY), get_error_message()
             if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
                 message = get_error_message()
                 if simulation.max_nb_cycles is None:
@@ -678,7 +678,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         base_function = UnboundLocalError, calculate_output = UnboundLocalError,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
         default = UnboundLocalError,
-        entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        entity = UnboundLocalError, formula_class = UnboundLocalError,
         period_unit = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
@@ -732,11 +732,6 @@ def new_filled_column(__doc__ = None, __module__ = None,
             """Missing attribute "formula_class" in definition of filled column {}""".format(name)
         formula_class = reference_column.formula_class.__bases__[0]
     assert issubclass(formula_class, AbstractFormula), formula_class
-
-    if is_permanent is UnboundLocalError:
-        is_permanent = False if reference_column is None else reference_column.is_permanent
-    else:
-        assert is_permanent in (False, True), is_permanent
 
     if period_unit is UnboundLocalError:
         raise ValueError('period_unit missing in {}'.format(name))
@@ -802,7 +797,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     if source_file_path is not None:
         formula_class_attributes['source_file_path'] = source_file_path
 
-    if is_permanent:
+    if column.period_unit is ETERNITY:
         assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
@@ -831,7 +826,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class_attributes['set_input'] = set_input
 
     if issubclass(formula_class, DatedFormula):
-        assert not is_permanent
+        assert column.period_unit is not ETERNITY
         dated_formulas_class = []
         for function_name, function in specific_attributes.copy().iteritems():
             start_instant = getattr(function, 'start_instant', UnboundLocalError)
@@ -895,7 +890,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         assert issubclass(formula_class, SimpleFormula), formula_class
 
         function = specific_attributes.pop('function', None)
-        if is_permanent:
+        if column.period_unit is ETERNITY:
             assert function is None
         if reference_column is not None and function is None:
             function = reference_column.formula_class.function
@@ -916,8 +911,6 @@ def new_filled_column(__doc__ = None, __module__ = None,
         column.end = stop_date
     column.entity = entity
     column.formula_class = formula_class
-    if is_permanent:
-        column.is_permanent = True
     column.period_unit = period_unit
     column.label = label
     column.law_reference = law_reference

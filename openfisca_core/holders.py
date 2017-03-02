@@ -48,8 +48,8 @@ class DatedHolder(object):
 
 
 class Holder(object):
-    _array = None  # Only used when column.is_permanent
-    _array_by_period = None  # Only used when not column.is_permanent
+    _array = None  # Only used when column.period_unit is ETERNITY
+    _array_by_period = None  # Only used when column.period_unit is not ETERNITY
     column = None
     entity = None
     formula = None
@@ -64,13 +64,13 @@ class Holder(object):
 
     @property
     def array(self):
-        if not self.column.is_permanent:
+        if self.column.period_unit is not ETERNITY:
             return self.get_array(self.simulation.period)
         return self._array
 
     @array.setter
     def array(self, array):
-        if not self.column.is_permanent:
+        if self.column.period_unit is not ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
         if self.simulation.debug or self.simulation.trace:
             variable_infos = (self.column.name, None)
@@ -199,7 +199,7 @@ class Holder(object):
             del self._array_by_period
 
     def get_array(self, period, extra_params = None):
-        if self.column.is_permanent:
+        if self.column.period_unit is ETERNITY:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
@@ -258,7 +258,7 @@ class Holder(object):
                 self.column.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        if self.column.is_permanent:
+        if self.column.period_unit is ETERNITY:
             self.array = value
 
         if simulation.debug or simulation.trace:
@@ -280,7 +280,7 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        if self.column.is_permanent:
+        if self.column.period_unit is ETERNITY:
             return self
 
         value = self.get_array(period, extra_params)
@@ -309,7 +309,7 @@ class Holder(object):
                     for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
-        if column.is_permanent:
+        if column.period_unit is ETERNITY:
             array = self._array
             if array is None:
                 return None
