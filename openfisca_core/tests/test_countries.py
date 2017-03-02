@@ -276,7 +276,7 @@ def test_calculate_variable_with_wrong_definition_period():
         simulation.calculate('rsa', 2013)
 
     error_message = str(error.exception)
-    expected_words = ['period', '2013', 'month', 'rsa']
+    expected_words = ['period', '2013', 'month', 'rsa', 'ADD']
 
     for word in expected_words:
         assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)

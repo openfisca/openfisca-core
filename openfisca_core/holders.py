@@ -121,20 +121,19 @@ class Holder(object):
         # Check that the requested period matches definition_period
         if column.definition_period != ETERNITY:
             if column.definition_period == MONTH and period.unit != periods.MONTH:
-                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole month. You can use the option DIVIDE or use period.first_month'.format(
+                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
                     column.name,
-                    period,
-                    column.name))
+                    period
+                    ))
             if column.definition_period == YEAR and period.unit != periods.YEAR:
-                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole year. You can use the option ADD.'.format(
+                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} proportionnally to the requested period length, or change the requested period to "period.this_year".'.format(
                     column.name,
-                    period,
-                    column.name))
+                    period
+                    ))
             if period.size != 1:
-                raise ValueError('Unable to compute variable {} for period {} : {} must be computed for a whole {}. You can use the option ADD.'.format(
+                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period,.'.format(
                     column.name,
                     period,
-                    column.name,
                     'month' if column.definition_period == MONTH else 'year'))
 
         # First look for a value already cached
