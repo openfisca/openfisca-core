@@ -1,6 +1,6 @@
 - name: "Basic test"
   ignore: True
-  period: 2015
+  period: 2015-01
   input_variables:
     salaire_brut: 6000
   output_variables:

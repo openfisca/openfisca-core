@@ -1,5 +1,5 @@
 - name: "Result within absolute error margin"
-  period: 2015
+  period: 2015-01
   absolute_error_margin: 50
   input_variables:
     salaire_brut: 2000
@@ -8,7 +8,7 @@
 
 - name: "Result out of absolute error margin (ignored by default)"
   ignore: True
-  period: 2015
+  period: 2015-01
   absolute_error_margin: 50
   input_variables:
     salaire_brut: 2000
