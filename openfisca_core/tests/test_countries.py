@@ -9,6 +9,7 @@ from openfisca_core.variables import Variable
 from openfisca_core.periods import YEAR
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
+from openfisca_core.formulas import DIVIDE
 from dummy_country import DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -280,3 +281,17 @@ def test_calculate_variable_with_wrong_definition_period():
 
     for word in expected_words:
         assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)
+
+
+@raises(ValueError)
+def test_wrong_use_of_divide_option():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            revenu_disponible = 12000,
+            ),
+        ).new_simulation()
+
+
+    quarter = periods.period('2013-12').last_3_months
+    simulation.individu('revenu_disponible', quarter, options = [DIVIDE])

@@ -190,6 +190,9 @@ class Holder(object):
                 self.column.name,
                 period))
 
+        if period.size != 1:
+            raise ValueError("DIVIDE option can only be used for a one-year or one-month requested period")
+
         if period.unit == periods.MONTH:
             computation_period = period.this_year
             dated_holder = self.compute(period = computation_period, **parameters)
