@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from openfisca_core.columns import IntCol, MONTH
+from openfisca_core.columns import IntCol
+from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country

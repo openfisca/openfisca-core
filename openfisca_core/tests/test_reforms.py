@@ -6,7 +6,7 @@ from nose.tools import raises
 from nose.tools import assert_equal
 
 from .. import columns, periods, reforms
-from ..columns import MONTH
+from ..periods import MONTH
 from ..reforms import Reform
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable

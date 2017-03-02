@@ -7,7 +7,7 @@ import numpy as np
 
 from . import periods
 from .commons import empty_clone
-from .columns import MONTH, YEAR, PERMANENT
+from .periods import MONTH, YEAR, ETERNITY
 
 
 class DatedHolder(object):
@@ -119,7 +119,7 @@ class Holder(object):
         column = self.column
 
         # Check that the requested period matches period_unit
-        if not column.period_unit == PERMANENT:
+        if not column.period_unit == ETERNITY:
             if ((column.period_unit == MONTH and period.unit != periods.MONTH) or
                     (column.period_unit == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
@@ -245,7 +245,7 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
-        if not self.column.period_unit == PERMANENT:
+        if not self.column.period_unit == ETERNITY:
             assert period is not None
             if ((self.column.period_unit == MONTH and period.unit != periods.MONTH) or
                (self.column.period_unit == YEAR and period.unit != periods.YEAR)):

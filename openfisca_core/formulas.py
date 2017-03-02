@@ -12,7 +12,7 @@ import logging
 import numpy as np
 
 from . import columns, holders, legislations, periods
-from columns import MONTH, YEAR, PERMANENT
+from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
     requested_period_default_value_neutralized,
@@ -740,7 +740,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
 
     if period_unit is UnboundLocalError:
         raise ValueError('period_unit missing in {}'.format(name))
-    if period_unit not in (MONTH, YEAR, PERMANENT):
+    if period_unit not in (MONTH, YEAR, ETERNITY):
         raise ValueError('Incorrect period_unit ({}) in {}'.format(period_unit, name))
 
     if label is UnboundLocalError:

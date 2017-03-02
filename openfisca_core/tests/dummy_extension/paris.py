@@ -1,4 +1,5 @@
-from openfisca_core.columns import FloatCol, MONTH
+from openfisca_core.columns import FloatCol
+from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 
 from openfisca_core.tests.dummy_country.entities import Famille

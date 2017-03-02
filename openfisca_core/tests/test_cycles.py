@@ -4,7 +4,8 @@
 from nose.tools import raises
 
 from openfisca_core import periods
-from openfisca_core.columns import IntCol, MONTH
+from openfisca_core.columns import IntCol
+from openfisca_core.periods import MONTH
 from openfisca_core.formulas import CycleError
 from openfisca_core.variables import Variable
 

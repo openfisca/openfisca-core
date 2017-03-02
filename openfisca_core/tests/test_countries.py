@@ -6,7 +6,7 @@ import numpy as np
 from nose.tools import raises, assert_raises, assert_equal
 
 from openfisca_core.variables import Variable
-from openfisca_core.columns import YEAR
+from openfisca_core.periods import YEAR
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from dummy_country import DummyTaxBenefitSystem
