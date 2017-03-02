@@ -311,7 +311,7 @@ class SimpleFormula(AbstractFormula):
             # Make sure the formula doesn't call itself for the same period it is being called for.
             # It would be a pure circular definition.
             requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and (column.period_unit is not ETERNITY), get_error_message()
+            assert period not in requested_periods and (column.period_unit != ETERNITY), get_error_message()
             if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
                 message = get_error_message()
                 if simulation.max_nb_cycles is None:
@@ -792,7 +792,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     if source_file_path is not None:
         formula_class_attributes['source_file_path'] = source_file_path
 
-    if column.period_unit is ETERNITY:
+    if column.period_unit == ETERNITY:
         assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
@@ -821,7 +821,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class_attributes['set_input'] = set_input
 
     if issubclass(formula_class, DatedFormula):
-        assert column.period_unit is not ETERNITY
+        assert column.period_unit != ETERNITY
         dated_formulas_class = []
         for function_name, function in specific_attributes.copy().iteritems():
             start_instant = getattr(function, 'start_instant', UnboundLocalError)
@@ -885,7 +885,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         assert issubclass(formula_class, SimpleFormula), formula_class
 
         function = specific_attributes.pop('function', None)
-        if column.period_unit is ETERNITY:
+        if column.period_unit == ETERNITY:
             assert function is None
         if reference_column is not None and function is None:
             function = reference_column.formula_class.function
