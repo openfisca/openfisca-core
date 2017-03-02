@@ -16,6 +16,7 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
+from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import build_entity
 from openfisca_core.formulas import dated_function
 from openfisca_core.variables import DatedVariable, Variable
@@ -88,7 +89,7 @@ class birth(Variable):
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity = Famille
-    is_permanent = True
+    column.period_unit = ETERNITY
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 

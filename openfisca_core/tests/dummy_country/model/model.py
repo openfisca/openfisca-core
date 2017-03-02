@@ -32,14 +32,12 @@ class birth(Variable):
     column = DateCol
     entity = Individu
     label = u"Date de naissance"
-    is_permanent = True  # Ne change jamais au cours du temps
     period_unit = ETERNITY
 
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity = Famille
-    is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
     period_unit = ETERNITY
 
