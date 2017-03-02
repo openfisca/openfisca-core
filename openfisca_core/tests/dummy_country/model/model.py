@@ -7,7 +7,8 @@ from numpy.core.defchararray import startswith
 
 from openfisca_core.formulas import dated_function, set_input_divide_by_period, calculate_output_add
 from openfisca_core.entities import ADD, DIVIDE
-from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol, MONTH, YEAR, PERMANENT
+from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.variables import Variable, DatedVariable
 
 from openfisca_core.tests.dummy_country.entities import Famille, Individu
@@ -32,7 +33,7 @@ class birth(Variable):
     entity = Individu
     label = u"Date de naissance"
     is_permanent = True  # Ne change jamais au cours du temps
-    period_unit = PERMANENT
+    period_unit = ETERNITY
 
 
 class depcom(Variable):
@@ -40,7 +41,7 @@ class depcom(Variable):
     entity = Famille
     is_permanent = True
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
-    period_unit = PERMANENT
+    period_unit = ETERNITY
 
 
 class salaire_brut(Variable):

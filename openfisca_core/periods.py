@@ -17,8 +17,10 @@ import re
 
 from . import conv
 
-YEAR = u'year'
+
 MONTH = u'month'
+YEAR = u'year'
+ETERNITY = u'eternity'
 
 
 def N_(message):
