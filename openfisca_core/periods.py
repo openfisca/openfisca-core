@@ -361,39 +361,19 @@ class Period(tuple):
             )
 
     def __cmp__(self, other):
-        unit_a, start_a, size_a = self
-        unit_b, start_b, size_b = other
-
-        if unit_a != unit_b:
-            unit_weights = {
-                u'day': 1,
-                u'month': 2,
-                u'year': 3,
-                }
-            return cmp(unit_weights[unit_a], unit_weights[unit_b])
-
-        if size_a != size_b:
-            return cmp(size_a, size_b)
-
-        return cmp(start_a, start_b)
+        raise NotImplementedError('No unique order exist for periods.')
 
     def __lt__(self, other):
-        return self.__cmp__(other) < 0
+        raise NotImplementedError('No unique order exist for periods.')
 
     def __le__(self, other):
-        return self.__cmp__(other) <= 0
-
-    def __eq__(self, other):
-        return self.__cmp__(other) == 0
-
-    def __ne__(self, other):
-        return self.__cmp__(other) != 0
+        raise NotImplementedError('No unique order exist for periods.')
 
     def __gt__(self, other):
-        return self.__cmp__(other) > 0
+        raise NotImplementedError('No unique order exist for periods.')
 
     def __ge__(self, other):
-        return self.__cmp__(other) >= 0
+        raise NotImplementedError('No unique order exist for periods.')
 
     @property
     def date(self):
@@ -915,6 +895,32 @@ def period(value, start = None, size = None):
         if size is None:
             size = 1
     return Period((unit, start, size))
+
+
+def compare_period_size(a, b):
+    unit_a, start_a, size_a = a
+    unit_b, start_b, size_b = b
+
+    if (unit_a is ETERNITY) or (unit_b is ETERNITY):
+        raise ValueError('ETERNITY cannot be compared to another period.')
+
+    if unit_a is not unit_b:
+        unit_weights = {
+            u'day': 1,
+            u'month': 2,
+            u'year': 3,
+            }
+
+        return cmp(unit_weights[unit_a], unit_weights[unit_b])
+
+    return cmp(size_a, size_b)
+
+
+def compare_period_start(a, b):
+    unit_a, start_a, size_a = a
+    unit_b, start_b, size_b = b
+
+    return cmp(start_a, start_b)
 
 
 # Level-1 converters

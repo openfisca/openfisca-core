@@ -2,6 +2,15 @@
 
 import numpy as np
 
+from . import periods
+
+
+def compare_periods(x, y):
+    a = x[0]
+    b = y[0]
+    
+    return periods.compare_period_start(a, b) or periods.compare_period_size(a, b)
+
 
 def permanent_default_value(formula, simulation, period, *extra_params):
     if formula.function is not None:
@@ -69,7 +78,7 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     accept_future_value = kwargs.pop('accept_future_value', False)
     holder = formula.holder
     if holder._array_by_period is not None:
-        known_values = sorted(holder._array_by_period.iteritems(), reverse = True)
+        known_values = sorted(holder._array_by_period.iteritems(), cmp = compare_periods, reverse = True)
         for last_period, last_result in known_values:
             if last_period.start <= period.start and (formula.function is None or last_period.stop >= period.stop):
                 if type(last_result) == np.ndarray and not extra_params:
