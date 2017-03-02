@@ -9,7 +9,7 @@ import itertools
 import numpy as np
 
 from . import conv, periods, simulations, json_to_test_case
-from formulas import SET_INPUT_ADD
+from formulas import SET_INPUT_FILL
 
 
 def N_(message):
@@ -179,6 +179,9 @@ class AbstractScenario(object):
                             holder.set_input(variable_period, array)
 
             if self.axes is not None:
+                # defaultdict(dict) returns {} when calling d[k] if d[k] is not yet defined
+                cache_buffer = collections.defaultdict(dict)
+
                 if len(self.axes) == 1:
                     parallel_axes = self.axes[0]
                     # All parallel axes have the same count and entity.
@@ -187,16 +190,20 @@ class AbstractScenario(object):
                     axis_entity = simulation.get_variable_entity(first_axis['name'])
                     axis_entity_count = axis_entity.count
                     axis_entity_step_size = axis_entity.step_size
-                    for axis in parallel_axes:
+                    # ici rien n'a encore été défini (sauf pour l'enfant)
+                    for axis in parallel_axes: # BUG si deux axes sont les mêmes
                         axis_period = axis['period'] or simulation_period
-                        holder = simulation.get_or_new_holder(axis['name'])
-                        column = holder.column
-                        array = holder.get_array(axis_period)
+                        axis_name = axis['name']
+                        # holder = simulation.get_or_new_holder(axis['name'])
+                        # column = holder.column
+                        # array = holder.get_array(axis_period)
+                        array = cache_buffer[axis_name].get(axis_period)
                         if array is None:
-                            array = np.empty(axis_entity_count, dtype = column.dtype)
+                            array = np.empty(axis_entity_count)#, dtype = column.dtype)
                             array.fill(column.default)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-                        holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
+                        cache_buffer[axis_name][axis_period] = array
+                        # holder.set_input(axis_period, array, behavior=SET_INPUT_FILL)
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -211,16 +218,26 @@ class AbstractScenario(object):
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
                         axis_entity = simulation.get_variable_entity(first_axis['name'])
+                        axis_entity_count = axis_entity.count
+                        axis_entity_step_size = axis_entity.step_size
                         for axis in parallel_axes:
                             axis_period = axis['period'] or simulation_period
-                            holder = simulation.get_or_new_holder(axis['name'])
-                            column = holder.column
-                            array = holder.get_array(axis_period)
+                            axis_name = axis['name']
+                            # holder = simulation.get_or_new_holder(axis['name'])
+                            # column = holder.column
+                            # array = holder.get_array(axis_period)
+                            array = cache_buffer[axis_name].get(axis_period)
                             if array is None:
-                                array = holder.default_array()
-                            array[axis['index']:: axis_entity.step_size] = axis['min'] \
+                                array = np.empty(axis_entity_count)
+                            array[axis['index']:: axis_entity_count] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            holder.set_input(axis_period, array, behavior=SET_INPUT_ADD)
+                            cache_buffer[axis_name][axis_period] = array
+                            # holder.set_input(axis_period, array, behavior=SET_INPUT_FILL)
+
+                for variable, values in cache_buffer.iteritems():
+                    holder = simulation.get_or_new_holder(variable)
+                    for period, array in values.iteritems():
+                        holder.set_input(period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
