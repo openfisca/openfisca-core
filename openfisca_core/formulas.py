@@ -976,7 +976,7 @@ def set_input_divide_by_period(formula, period, array):
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
     else:
-        pass  # raise ValueError('Values for variable {} are already set on period {}.'.format(holder.column.name, period))
+        raise ValueError("Variable {} have already been set for all months contained in period {}. You can't both set a variable values for a year and for **all** the months contained in this year. This error is also thrown if you try to call set_input twice for the same variable and period".format(holder.column.name, period))
 
 
 def set_input_neutralized(formula, period, array):
