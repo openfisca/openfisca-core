@@ -17,7 +17,7 @@ from openfisca_core.tests.dummy_country.entities import Famille, Individu
 class af(Variable):
     column = FloatCol
     entity = Famille
-    period_unit = MONTH
+    definition_period = MONTH
     set_input = set_input_divide_by_period
 
 
@@ -25,28 +25,28 @@ class age_en_mois(Variable):
     column = IntCol
     entity = Individu
     label = u"Âge (en nombre de mois)"
-    period_unit = MONTH
+    definition_period = MONTH
 
 
 class birth(Variable):
     column = DateCol
     entity = Individu
     label = u"Date de naissance"
-    period_unit = ETERNITY
+    definition_period = ETERNITY
 
 
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity = Famille
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
-    period_unit = ETERNITY
+    definition_period = ETERNITY
 
 
 class salaire_brut(Variable):
     column = FloatCol
     entity = Individu
     label = "Salaire brut"
-    period_unit = MONTH
+    definition_period = MONTH
     set_input = set_input_divide_by_period
 
 
@@ -54,7 +54,7 @@ class a_charge_fiscale(Variable):
     column = BoolCol
     entity = Individu
     label = u"La personne n'est pas fiscalement indépendante"
-    period_unit = MONTH
+    definition_period = MONTH
 
 
 # Calculated variables
@@ -63,7 +63,7 @@ class age(Variable):
     column = IntCol
     entity = Individu
     label = u"Âge (en nombre d'années)"
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         birth = simulation.get_array('birth', period)
@@ -79,7 +79,7 @@ class dom_tom(Variable):
     column = BoolCol
     entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
-    period_unit = YEAR
+    definition_period = YEAR
 
     def function(famille, period):
         depcom = famille('depcom', period)
@@ -91,7 +91,7 @@ class revenu_disponible(Variable):
     column = FloatCol
     entity = Individu
     label = u"Revenu disponible de l'individu"
-    period_unit = YEAR
+    definition_period = YEAR
 
     def function(individu, period, legislation):
         rsa = individu('rsa', period, options = [ADD])
@@ -105,7 +105,7 @@ class revenu_disponible_famille(Variable):
     column = FloatCol
     entity = Famille
     label = u"Revenu disponible de la famille"
-    period_unit = YEAR
+    definition_period = YEAR
 
     def function(famille, period):
         revenu_disponible = famille.members('revenu_disponible', period)
@@ -116,7 +116,7 @@ class rsa(DatedVariable):
     column = FloatCol
     entity = Individu
     label = u"RSA"
-    period_unit = MONTH
+    definition_period = MONTH
 
     @dated_function(datetime.date(2010, 1, 1))
     def function_2010(individu, period):
@@ -141,7 +141,7 @@ class salaire_imposable(Variable):
     column = FloatCol
     entity = Individu
     label = u"Salaire imposable"
-    period_unit = YEAR
+    definition_period = YEAR
 
     def function(individu, period):
         dom_tom = individu.famille('dom_tom', period)
@@ -155,7 +155,7 @@ class salaire_net(Variable):
     column = FloatCol
     entity = Individu
     label = u"Salaire net"
-    period_unit = MONTH
+    definition_period = MONTH
     set_input = set_input_divide_by_period
     calculate_output = calculate_output_add
 
@@ -169,7 +169,7 @@ class csg(Variable):
     column = FloatCol
     entity = Individu
     label = u"CSG payées sur le salaire"
-    period_unit = YEAR
+    definition_period = YEAR
 
     def function(individu, period, legislation):
         taux = legislation(period).csg.activite.deductible.taux

@@ -48,8 +48,8 @@ class DatedHolder(object):
 
 
 class Holder(object):
-    _array = None  # Only used when column.period_unit == ETERNITY
-    _array_by_period = None  # Only used when column.period_unit != ETERNITY
+    _array = None  # Only used when column.definition_period == ETERNITY
+    _array_by_period = None  # Only used when column.definition_period != ETERNITY
     column = None
     entity = None
     formula = None
@@ -64,13 +64,13 @@ class Holder(object):
 
     @property
     def array(self):
-        if self.column.period_unit != ETERNITY:
+        if self.column.definition_period != ETERNITY:
             return self.get_array(self.simulation.period)
         return self._array
 
     @array.setter
     def array(self, array):
-        if self.column.period_unit != ETERNITY:
+        if self.column.definition_period != ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
         if self.simulation.debug or self.simulation.trace:
             variable_infos = (self.column.name, None)
@@ -118,13 +118,13 @@ class Holder(object):
             period = self.simulation.period
         column = self.column
 
-        # Check that the requested period matches period_unit
-        if not column.period_unit == ETERNITY:
-            if ((column.period_unit == MONTH and period.unit != periods.MONTH) or
-                    (column.period_unit == YEAR and period.unit != periods.YEAR)):
+        # Check that the requested period matches definition_period
+        if not column.definition_period == ETERNITY:
+            if ((column.definition_period == MONTH and period.unit != periods.MONTH) or
+                    (column.definition_period == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Computation requested with wrong period unit for variable {} ({} instead of {})'.format(
                     column.name,
-                    period.unit, column.period_unit))
+                    period.unit, column.definition_period))
         if period.size != 1:
             raise ValueError('Computation requested for complex period {} for variable {}'.format(
                 period, column.name))
@@ -147,21 +147,21 @@ class Holder(object):
         return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
-        # Check that the requested period matches period_unit
-        if self.column.period_unit == YEAR and period.unit == periods.MONTH:
+        # Check that the requested period matches definition_period
+        if self.column.definition_period == YEAR and period.unit == periods.MONTH:
             raise ValueError('Computation on period {} impossible on yearly variable {}'.format(
                 period, self.column.name
                 ))
 
-        if self.column.period_unit == MONTH:
-            variable_period_unit = periods.MONTH
-        elif self.column.period_unit == YEAR:
-            variable_period_unit = periods.YEAR
+        if self.column.definition_period == MONTH:
+            variable_definition_period = periods.MONTH
+        elif self.column.definition_period == YEAR:
+            variable_definition_period = periods.YEAR
         else:
             ValueError('compute_add can be used only for yearly or monthly variables.')
 
         after_instant = period.start.offset(period.size, period.unit)
-        sub_period = period.start.period(variable_period_unit)
+        sub_period = period.start.period(variable_definition_period)
         array = None
         while sub_period.start < after_instant:
             dated_holder = self.compute(period = sub_period, **parameters)
@@ -174,8 +174,8 @@ class Holder(object):
         return DatedHolder(self, period, array, parameters.get('extra_params'))
 
     def compute_divide(self, period = None, **parameters):
-        # Check that the requested period matches period_unit
-        if self.column.period_unit != YEAR:
+        # Check that the requested period matches definition_period
+        if self.column.definition_period != YEAR:
             raise ValueError('Holder.compute_divide must be used on yearly variables. This is not the case for {}'.format(
                 self.column.name
                 ))
@@ -199,7 +199,7 @@ class Holder(object):
             del self._array_by_period
 
     def get_array(self, period, extra_params = None):
-        if self.column.period_unit == ETERNITY:
+        if self.column.definition_period == ETERNITY:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
@@ -245,20 +245,20 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
-        if not self.column.period_unit == ETERNITY:
+        if not self.column.definition_period == ETERNITY:
             assert period is not None
-            if ((self.column.period_unit == MONTH and period.unit != periods.MONTH) or
-               (self.column.period_unit == YEAR and period.unit != periods.YEAR)):
+            if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
+               (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Wrong period unit during cache write for variable {} ({} instead of {})'.format(
                     self.column.name,
-                    period.unit, self.column.period_unit))
+                    period.unit, self.column.definition_period))
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.column.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        if self.column.period_unit == ETERNITY:
+        if self.column.definition_period == ETERNITY:
             self.array = value
 
         if simulation.debug or simulation.trace:
@@ -280,7 +280,7 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        if self.column.period_unit == ETERNITY:
+        if self.column.definition_period == ETERNITY:
             return self
 
         value = self.get_array(period, extra_params)
@@ -309,7 +309,7 @@ class Holder(object):
                     for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
-        if column.period_unit == ETERNITY:
+        if column.definition_period == ETERNITY:
             array = self._array
             if array is None:
                 return None

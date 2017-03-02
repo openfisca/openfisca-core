@@ -31,7 +31,7 @@ class Column(object):
     entity = None
     formula_class = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
-    period_unit = None
+    definition_period = None
     # json_type = None  # Defined in sub-classes
     label = None
     law_reference = None  # Either a single reference or a list of references

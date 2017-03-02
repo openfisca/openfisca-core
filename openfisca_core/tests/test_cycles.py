@@ -18,7 +18,7 @@ from openfisca_core.tools import assert_near
 class variable1(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('variable2', period)
@@ -27,7 +27,7 @@ class variable1(Variable):
 class variable2(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('variable1', period)
@@ -37,7 +37,7 @@ class variable2(Variable):
 class variable3(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('variable4', period.last_month)
@@ -46,7 +46,7 @@ class variable3(Variable):
 class variable4(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('variable3', period)
@@ -57,7 +57,7 @@ class variable4(Variable):
 class variable5(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
@@ -67,7 +67,7 @@ class variable5(Variable):
 class variable6(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable5 = simulation.calculate('variable5', period)
@@ -78,7 +78,7 @@ class variable6(Variable):
 class cotisation(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         period = period.this_month
@@ -93,7 +93,7 @@ class cotisation(Variable):
 class variable7(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
@@ -103,7 +103,7 @@ class variable7(Variable):
 class variable8(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable7 = simulation.calculate('variable7', period)

@@ -89,7 +89,7 @@ class birth(Variable):
 class depcom(Variable):
     column = FixedStrCol(max_length = 5)
     entity = Famille
-    column.period_unit = ETERNITY
+    column.definition_period = ETERNITY
     label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
 
 

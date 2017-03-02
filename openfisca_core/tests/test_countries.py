@@ -232,7 +232,7 @@ def test_variable_with_reference():
     assert(revenu_disponible_avant_reforme > 0)
 
     class revenu_disponible(Variable):
-        period_unit = YEAR
+        definition_period = YEAR
 
         def function(self, simulation, period):
             return self.zeros()
@@ -247,7 +247,7 @@ def test_variable_with_reference():
 def test_variable_name_conflict():
     class revenu_disponible(Variable):
         reference = 'revenu_disponible'
-        period_unit = YEAR
+        definition_period = YEAR
 
         def function(self, simulation, period):
             return self.zeros()
@@ -264,7 +264,7 @@ def test_non_existing_variable():
     simulation.calculate('non_existent_variable', 2013)
 
 
-def test_calculate_variable_with_wrong_period_unit():
+def test_calculate_variable_with_wrong_definition_period():
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = 2013,
         parent1 = dict(

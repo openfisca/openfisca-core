@@ -9,7 +9,7 @@ from periods import YEAR
 def compare_periods(x, y):
     a = x[0]
     b = y[0]
-    
+
     return periods.compare_period_start(a, b) or periods.compare_period_size(a, b)
 
 

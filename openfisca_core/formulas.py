@@ -307,7 +307,7 @@ class SimpleFormula(AbstractFormula):
             # Make sure the formula doesn't call itself for the same period it is being called for.
             # It would be a pure circular definition.
             requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and (column.period_unit != ETERNITY), get_error_message()
+            assert period not in requested_periods and (column.definition_period != ETERNITY), get_error_message()
             if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
                 message = get_error_message()
                 if simulation.max_nb_cycles is None:
@@ -660,7 +660,7 @@ def neutralize_column(column):
         entity = column.entity,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
-        period_unit = column.period_unit,
+        definition_period = column.definition_period,
         set_input = set_input_neutralized,
         )
 
@@ -670,7 +670,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
         default = UnboundLocalError,
         entity = UnboundLocalError, formula_class = UnboundLocalError,
-        period_unit = UnboundLocalError,
+        definition_period = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
         source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
@@ -724,10 +724,10 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class = reference_column.formula_class.__bases__[0]
     assert issubclass(formula_class, AbstractFormula), formula_class
 
-    if period_unit is UnboundLocalError:
-        raise ValueError('period_unit missing in {}'.format(name))
-    if period_unit not in (MONTH, YEAR, ETERNITY):
-        raise ValueError('Incorrect period_unit ({}) in {}'.format(period_unit, name))
+    if definition_period is UnboundLocalError:
+        raise ValueError('definition_period missing in {}'.format(name))
+    if definition_period not in (MONTH, YEAR, ETERNITY):
+        raise ValueError('Incorrect definition_period ({}) in {}'.format(definition_period, name))
 
     if label is UnboundLocalError:
         label = None if reference_column is None else reference_column.label
@@ -788,7 +788,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     if source_file_path is not None:
         formula_class_attributes['source_file_path'] = source_file_path
 
-    if column.period_unit == ETERNITY:
+    if column.definition_period == ETERNITY:
         assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
@@ -817,7 +817,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class_attributes['set_input'] = set_input
 
     if issubclass(formula_class, DatedFormula):
-        assert column.period_unit != ETERNITY
+        assert column.definition_period != ETERNITY
         dated_formulas_class = []
         for function_name, function in specific_attributes.copy().iteritems():
             start_instant = getattr(function, 'start_instant', UnboundLocalError)
@@ -881,7 +881,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         assert issubclass(formula_class, SimpleFormula), formula_class
 
         function = specific_attributes.pop('function', None)
-        if column.period_unit == ETERNITY:
+        if column.definition_period == ETERNITY:
             assert function is None
         if reference_column is not None and function is None:
             function = reference_column.formula_class.function
@@ -902,7 +902,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         column.end = stop_date
     column.entity = entity
     column.formula_class = formula_class
-    column.period_unit = period_unit
+    column.definition_period = definition_period
     column.label = label
     column.law_reference = law_reference
     column.name = name
@@ -919,9 +919,9 @@ def set_input_dispatch_by_period(formula, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if formula.holder.column.period_unit == MONTH:
+    if formula.holder.column.definition_period == MONTH:
         cached_period_unit = periods.MONTH
-    elif formula.holder.column.period_unit == YEAR:
+    elif formula.holder.column.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
         ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
@@ -946,9 +946,9 @@ def set_input_divide_by_period(formula, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if formula.holder.column.period_unit == MONTH:
+    if formula.holder.column.definition_period == MONTH:
         cached_period_unit = periods.MONTH
-    elif formula.holder.column.period_unit == YEAR:
+    elif formula.holder.column.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
         ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')

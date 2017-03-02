@@ -14,7 +14,7 @@ from openfisca_core.base_functions import requested_period_last_value
 class formula_1(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [0])
@@ -23,7 +23,7 @@ class formula_1(Variable):
 class formula_2(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [1])
@@ -32,7 +32,7 @@ class formula_2(Variable):
 class formula_3(Variable):
     column = IntCol
     entity = Individu
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period, choice):
         return self.zeros() + choice
@@ -42,7 +42,7 @@ class formula_4(Variable):
     column = BoolCol
     entity = Individu
     base_function = requested_period_last_value
-    period_unit = MONTH
+    definition_period = MONTH
 
     def function(self, simulation, period, choice):
         return self.zeros() + choice
