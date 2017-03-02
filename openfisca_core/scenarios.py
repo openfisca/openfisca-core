@@ -45,10 +45,8 @@ class AbstractScenario(object):
                     )
         return value, None
 
-    def fill_simulation(self, simulation, variables_name_to_skip = None):
+    def fill_simulation(self, simulation):
         assert isinstance(simulation, simulations.Simulation)
-        if variables_name_to_skip is None:
-            variables_name_to_skip = set()
         tbs = self.tax_benefit_system
         simulation_period = simulation.period
         test_case = self.test_case
@@ -116,7 +114,7 @@ class AbstractScenario(object):
                     key
                     for entity_member in test_case[entity.plural]
                     for key, value in entity_member.iteritems()
-                    if value is not None and key not in variables_name_to_skip
+                    if value is not None
                     )
 
                 if not entity.is_person:
