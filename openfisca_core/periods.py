@@ -360,21 +360,6 @@ class Period(tuple):
             if fragment is not None
             )
 
-    def __cmp__(self, other):
-        raise NotImplementedError('No unique order exist for periods.')
-
-    def __lt__(self, other):
-        raise NotImplementedError('No unique order exist for periods.')
-
-    def __le__(self, other):
-        raise NotImplementedError('No unique order exist for periods.')
-
-    def __gt__(self, other):
-        raise NotImplementedError('No unique order exist for periods.')
-
-    def __ge__(self, other):
-        raise NotImplementedError('No unique order exist for periods.')
-
     @property
     def date(self):
         assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)

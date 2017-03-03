@@ -16,8 +16,6 @@
   - `variables_name_to_skip` and `use_set_input_hooks` parameters in `scenario.fill_simulation`
   - `holders.new_test_case_array`
 * Deprecate and forbid `dated_holder.array = ...`
-* Forbid unexplicit comparison/sorting of periods
-  - `periods` can now be sorted only by providing an explicit comparison function.
 * Raise an error when inconsistent year and month inputs provided for a variable
   - Before, the year value would be silently ignored.
 * Rename `period.this_month` to `period.first_month`
