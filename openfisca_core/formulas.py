@@ -975,8 +975,8 @@ def set_input_divide_by_period(formula, period, array):
             if holder.get_array(sub_period) is None:
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
-    else:
-        raise ValueError("Variable {} have already been set for all months contained in period {}. You can't both set a variable values for a year and for **all** the months contained in this year. This error is also thrown if you try to call set_input twice for the same variable and period".format(holder.column.name, period))
+    elif not (remaining_array == 0).all():
+        raise ValueError("Inconsistent input : variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} does't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.column.name, period, array, array - remaining_array))
 
 
 def set_input_neutralized(formula, period, array):
