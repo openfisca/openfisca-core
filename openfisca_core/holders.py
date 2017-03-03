@@ -262,9 +262,12 @@ class Holder(object):
             assert period is not None
             if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
-                raise ValueError('Wrong period unit during cache write for variable {} ({} instead of {})'.format(
+                raise ValueError('Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
                     self.column.name,
-                    period.unit, self.column.definition_period))
+                    period.unit,
+                    period,
+                    self.column.definition_period
+                    ))
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and

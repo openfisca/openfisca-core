@@ -294,3 +294,13 @@ def test_wrong_use_of_divide_option():
 
     quarter = periods.period('2013-12').last_3_months
     simulation.individu('revenu_disponible', quarter, options = [DIVIDE])
+
+
+@raises(ValueError)
+def test_input_with_wrong_period():
+    tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            revenu_disponible = {'2015-02': 1200},
+            ),
+        ).new_simulation()
