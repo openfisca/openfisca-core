@@ -259,7 +259,8 @@ class Holder(object):
         simulation = self.simulation
 
         if not self.column.definition_period == ETERNITY:
-            assert period is not None
+            if period is None:
+                raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
             if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
                 raise ValueError('Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
