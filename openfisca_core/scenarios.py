@@ -15,10 +15,6 @@ def N_(message):
     return message
 
 
-def compare_periods(a, b):
-    return periods.compare_period_size(a, b) or periods.compare_period_start(a, b)
-
-
 class AbstractScenario(object):
     axes = None
     input_variables = None
@@ -169,7 +165,7 @@ class AbstractScenario(object):
                                 variable_periods.add(simulation_period)
                         variable_default_value = column.default
                         # Note: For set_input to work, handle days, before months, before years => use sorted().
-                        for variable_period in sorted(variable_periods, cmp = compare_periods):
+                        for variable_period in sorted(variable_periods, cmp = periods.compare_period_size):
                             variable_values = [
                                 variable_default_value if dated_cell is None else dated_cell
                                 for dated_cell in (
