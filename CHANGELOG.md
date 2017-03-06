@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.0
+
+* Move `base.py` content (file usually located in country packages) to core module `formula_toolbox` so that it can be reused by all countries
+* Use `AbstractScenario` if no custom scenario is defined for a tax and benefit sytem
+
 ## 6.0.0
 
 #### Breaking changes
