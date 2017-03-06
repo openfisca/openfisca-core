@@ -17,8 +17,10 @@ import re
 
 from . import conv
 
-YEAR = u'year'
+
 MONTH = u'month'
+YEAR = u'year'
+ETERNITY = u'eternity'
 
 
 def N_(message):
@@ -673,11 +675,11 @@ class Period(tuple):
 
     @property
     def last_3_months(self):
-        return self.this_month.start.period('month', 3).offset(-3)
+        return self.first_month.start.period('month', 3).offset(-3)
 
     @property
     def last_month(self):
-        return self.this_month.offset(-1)
+        return self.first_month.offset(-1)
 
     @property
     def last_year(self):
@@ -692,7 +694,7 @@ class Period(tuple):
         return self.start.offset('first-of', 'year').period('year')
 
     @property
-    def this_month(self):
+    def first_month(self):
         return self.start.offset('first-of', 'month').period('month')
 
 
@@ -878,6 +880,32 @@ def period(value, start = None, size = None):
         if size is None:
             size = 1
     return Period((unit, start, size))
+
+
+def compare_period_size(a, b):
+    unit_a, start_a, size_a = a
+    unit_b, start_b, size_b = b
+
+    if (unit_a is ETERNITY) or (unit_b is ETERNITY):
+        raise ValueError('ETERNITY cannot be compared to another period.')
+
+    if unit_a != unit_b:
+        unit_weights = {
+            u'day': 1,
+            u'month': 2,
+            u'year': 3,
+            }
+
+        return cmp(unit_weights[unit_a], unit_weights[unit_b])
+
+    return cmp(size_a, size_b)
+
+
+def compare_period_start(a, b):
+    unit_a, start_a, size_a = a
+    unit_b, start_b, size_b = b
+
+    return cmp(start_a, start_b)
 
 
 # Level-1 converters

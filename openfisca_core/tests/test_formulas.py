@@ -4,6 +4,7 @@
 import numpy as np
 
 from openfisca_core.columns import IntCol
+from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
 from openfisca_core.tests import dummy_country
@@ -13,23 +14,26 @@ from openfisca_core.tests.dummy_country.entities import Individu
 class choice(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
 
 class uses_multiplication(Variable):
     column = IntCol
     entity = Individu
     label = u'Variable with formula that uses multiplication'
+    definition_period = MONTH
 
     def function(self, simulation, period):
         choice = simulation.calculate('choice', period)
         result = (choice == 1) * 80 + (choice == 2) * 90
-        return period, result
+        return result
 
 
 class uses_switch(Variable):
     column = IntCol
     entity = Individu
     label = u'Variable with formula that uses switch'
+    definition_period = MONTH
 
     def function(self, simulation, period):
         choice = simulation.calculate('choice', period)
@@ -40,14 +44,14 @@ class uses_switch(Variable):
                 2: 90,
                 },
             )
-        return period, result
+        return result
 
 
 # TaxBenefitSystem instance declared after formulas
 tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period = 2013,
+    period = '2013-01',
     input_variables = {
         # 'choice': [1, 1, 1, 2],
         'choice': np.random.randint(2, size = 1000) + 1,

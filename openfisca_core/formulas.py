@@ -12,6 +12,7 @@ import logging
 import numpy as np
 
 from . import columns, holders, legislations, periods
+from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
     requested_period_default_value_neutralized,
@@ -27,6 +28,7 @@ log = logging.getLogger(__name__)
 
 ADD = 'add'
 DIVIDE = 'divide'
+
 
 # Exceptions
 
@@ -305,7 +307,7 @@ class SimpleFormula(AbstractFormula):
             # Make sure the formula doesn't call itself for the same period it is being called for.
             # It would be a pure circular definition.
             requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and not column.is_permanent, get_error_message()
+            assert period not in requested_periods and (column.definition_period != ETERNITY), get_error_message()
             if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
                 message = get_error_message()
                 if simulation.max_nb_cycles is None:
@@ -368,9 +370,9 @@ class SimpleFormula(AbstractFormula):
                     variable_name = column.name,
                     ))
             if extra_params:
-                formula_result = self.base_function(simulation, period, *extra_params)
+                array = self.base_function(simulation, period, *extra_params)
             else:
-                formula_result = self.base_function(simulation, period)
+                array = self.base_function(simulation, period)
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
@@ -392,23 +394,13 @@ class SimpleFormula(AbstractFormula):
                 column.name, entity.key, str(period), self.function.__module__,
                 ))
             raise
-        else:
-            try:
-                output_period, array = formula_result
-            except ValueError:
-                raise ValueError(u'A formula must return "period, array": {}@{}<{}> in module {}'.format(
-                    column.name, entity.key, str(period), self.function.__module__,
-                    ).encode('utf-8'))
-        assert output_period[1] <= period[1] <= output_period.stop, \
-            u"Function {}@{}<{}>() --> <{}>{} returns an output period that doesn't include start instant of" \
-            u"requested period".format(column.name, entity.key, str(period), str(output_period),
-                stringify_array(array)).encode('utf-8')
+
         assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-            column.name, entity.key, str(period), str(output_period), array).encode('utf-8')
+            column.name, entity.key, str(period), str(period), array).encode('utf-8')
         entity_count = entity.count
         assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                column.name, entity.key, str(period), str(output_period), stringify_array(array),
+                column.name, entity.key, str(period), str(period), stringify_array(array),
                 array.size, entity_count, entity.key).encode('utf-8')
         if debug:
             try:
@@ -416,7 +408,7 @@ class SimpleFormula(AbstractFormula):
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        column.name, entity.key, str(period), str(output_period), stringify_array(array),
+                        column.name, entity.key, str(period), str(period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
@@ -424,7 +416,7 @@ class SimpleFormula(AbstractFormula):
             array = array.astype(column.dtype)
 
         if debug or trace:
-            variable_infos = (column.name, output_period)
+            variable_infos = (column.name, period)
             step = simulation.traceback.get(variable_infos)
             if step is None:
                 simulation.traceback[variable_infos] = step = dict(
@@ -443,10 +435,10 @@ class SimpleFormula(AbstractFormula):
             step['is_computed'] = True
             if debug and (debug_all or not has_only_default_input_variables):
                 log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
-                    simulation.stringify_input_variables_infos(input_variables_infos), str(output_period),
+                    simulation.stringify_input_variables_infos(input_variables_infos), str(period),
                     stringify_array(array)))
 
-        dated_holder = holder.put_in_cache(array, output_period, extra_params)
+        dated_holder = holder.put_in_cache(array, period, extra_params)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
@@ -639,10 +631,6 @@ def calculate_output_add(formula, period):
     return formula.holder.compute_add(period).array
 
 
-def calculate_output_add_divide(formula, period):
-    return formula.holder.compute_add_divide(period).array
-
-
 def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
@@ -672,6 +660,7 @@ def neutralize_column(column):
         entity = column.entity,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
+        definition_period = column.definition_period,
         set_input = set_input_neutralized,
         )
 
@@ -680,7 +669,8 @@ def new_filled_column(__doc__ = None, __module__ = None,
         base_function = UnboundLocalError, calculate_output = UnboundLocalError,
         cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
         default = UnboundLocalError,
-        entity = UnboundLocalError, formula_class = UnboundLocalError, is_permanent = UnboundLocalError,
+        entity = UnboundLocalError, formula_class = UnboundLocalError,
+        definition_period = UnboundLocalError,
         label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
         name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
         source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
@@ -734,10 +724,10 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class = reference_column.formula_class.__bases__[0]
     assert issubclass(formula_class, AbstractFormula), formula_class
 
-    if is_permanent is UnboundLocalError:
-        is_permanent = False if reference_column is None else reference_column.is_permanent
-    else:
-        assert is_permanent in (False, True), is_permanent
+    if definition_period is UnboundLocalError:
+        raise ValueError(u'definition_period missing in {}'.format(name).encode('utf-8'))
+    if definition_period not in (MONTH, YEAR, ETERNITY):
+        raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
     if label is UnboundLocalError:
         label = None if reference_column is None else reference_column.label
@@ -798,7 +788,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     if source_file_path is not None:
         formula_class_attributes['source_file_path'] = source_file_path
 
-    if is_permanent:
+    if column.definition_period == ETERNITY:
         assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
@@ -827,7 +817,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class_attributes['set_input'] = set_input
 
     if issubclass(formula_class, DatedFormula):
-        assert not is_permanent
+        assert column.definition_period != ETERNITY
         dated_formulas_class = []
         for function_name, function in specific_attributes.copy().iteritems():
             start_instant = getattr(function, 'start_instant', UnboundLocalError)
@@ -891,7 +881,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         assert issubclass(formula_class, SimpleFormula), formula_class
 
         function = specific_attributes.pop('function', None)
-        if is_permanent:
+        if column.definition_period == ETERNITY:
             assert function is None
         if reference_column is not None and function is None:
             function = reference_column.formula_class.function
@@ -912,8 +902,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
         column.end = stop_date
     column.entity = entity
     column.formula_class = formula_class
-    if is_permanent:
-        column.is_permanent = True
+    column.definition_period = definition_period
     column.label = label
     column.law_reference = law_reference
     column.name = name
@@ -927,74 +916,67 @@ def new_filled_column(__doc__ = None, __module__ = None,
 
 def set_input_dispatch_by_period(formula, period, array):
     holder = formula.holder
-    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
-    if period_unit == u'year' or period_size > 1:
-        after_instant = period.start.offset(period_size, period_unit)
-        if period_size > 1:
-            sub_period = period.start.period(period_unit)
-            while sub_period.start < after_instant:
-                existing_array = holder.get_array(sub_period)
-                if existing_array is None:
-                    holder.put_in_cache(array, sub_period)
-                else:
-                    # The array of the current sub-period is reused for the next ones.
-                    array = existing_array
-                sub_period = sub_period.offset(1)
-        if period_unit == u'year':
-            month = period.start.period(u'month')
-            while month.start < after_instant:
-                existing_array = holder.get_array(month)
-                if existing_array is None:
-                    holder.put_in_cache(array, month)
-                else:
-                    # The array of the current sub-period is reused for the next ones.
-                    array = existing_array
-                month = month.offset(1)
+
+    if formula.holder.column.definition_period == MONTH:
+        cached_period_unit = periods.MONTH
+    elif formula.holder.column.definition_period == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+
+    after_instant = period.start.offset(period_size, period_unit)
+
+    # Cache the input data, skipping the existing cached months
+    sub_period = period.start.period(cached_period_unit)
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is None:
+            holder.put_in_cache(array, sub_period)
+        else:
+            # The array of the current sub-period is reused for the next ones.
+            # TODO: refactor or document this behavior
+            array = existing_array
+        sub_period = sub_period.offset(1)
 
 
 def set_input_divide_by_period(formula, period, array):
     holder = formula.holder
-    holder.put_in_cache(array, period)
     period_size = period.size
     period_unit = period.unit
-    if period_unit == u'year' or period_size > 1:
-        after_instant = period.start.offset(period_size, period_unit)
-        if period_size > 1:
-            remaining_array = array.copy()
-            sub_period = period.start.period(period_unit)
-            sub_periods_count = period_size
-            while sub_period.start < after_instant:
-                existing_array = holder.get_array(sub_period)
-                if existing_array is not None:
-                    remaining_array -= existing_array
-                    sub_periods_count -= 1
-                sub_period = sub_period.offset(1)
-            if sub_periods_count > 0:
-                divided_array = remaining_array / sub_periods_count
-                sub_period = period.start.period(period_unit)
-                while sub_period.start < after_instant:
-                    if holder.get_array(sub_period) is None:
-                        holder.put_in_cache(divided_array, sub_period)
-                    sub_period = sub_period.offset(1)
-        if period_unit == u'year':
-            remaining_array = array.copy()
-            month = period.start.period(u'month')
-            months_count = 12 * period_size
-            while month.start < after_instant:
-                existing_array = holder.get_array(month)
-                if existing_array is not None:
-                    remaining_array -= existing_array
-                    months_count -= 1
-                month = month.offset(1)
-            if months_count > 0:
-                divided_array = remaining_array / months_count
-                month = period.start.period(u'month')
-                while month.start < after_instant:
-                    if holder.get_array(month) is None:
-                        holder.put_in_cache(divided_array, month)
-                    month = month.offset(1)
+
+    if formula.holder.column.definition_period == MONTH:
+        cached_period_unit = periods.MONTH
+    elif formula.holder.column.definition_period == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+
+    after_instant = period.start.offset(period_size, period_unit)
+
+    # Count the number of elementary periods to change, and the difference with what is already known.
+    remaining_array = array.copy()
+    sub_period = period.start.period(cached_period_unit)
+    sub_periods_count = 0
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is not None:
+            remaining_array -= existing_array
+        else:
+            sub_periods_count += 1
+        sub_period = sub_period.offset(1)
+
+    # Cache the input data
+    if sub_periods_count > 0:
+        divided_array = remaining_array / sub_periods_count
+        sub_period = period.start.period(cached_period_unit)
+        while sub_period.start < after_instant:
+            if holder.get_array(sub_period) is None:
+                holder.put_in_cache(divided_array, sub_period)
+            sub_period = sub_period.offset(1)
+    elif not (remaining_array == 0).all():
+        raise ValueError(u"Inconsistent input : variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} does't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.column.name, period, array, array - remaining_array).encode('utf-8'))
 
 
 def set_input_neutralized(formula, period, array):

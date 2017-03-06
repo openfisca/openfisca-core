@@ -1,5 +1,35 @@
 # Changelog
 
+## 6.0.0
+
+#### Breaking changes
+
+* Add **mandatory** attribute `definition_period` to variables
+* Enforce that inputs provided for a variable match the variable `definition_period`
+  - If a `set_input` attribute has been defined, automatically cast the input accordingly.
+* Change the expected output of a formula
+  - Only `result` must be returned, instead of `period, result`
+* Deprecate and remove:
+  - `simulation.print_trace`
+  - `simulation.calculate_add_divide` and `simulation.compute_add_divide`
+  - `last_duration_last_value` base function
+  - `variables_name_to_skip` and `use_set_input_hooks` parameters in `scenario.fill_simulation`
+  - `holders.new_test_case_array`
+* Deprecate and forbid `dated_holder.array = ...`
+* Raise an error when inconsistent year and month inputs provided for a variable
+  - Before, the year value would be silently ignored.
+* Rename `period.this_month` to `period.first_month`
+
+#### Technical changes
+
+* Make sure the cache only store values for periods matching the variable `definition_period`
+* Use a cache buffer in simulation initialisation when axes are used, to avoid `set_input` conflicts
+* Make `DatedHolder` only a wrapper of a variable value for a given period, and no more a dated view of a `Holder`
+
+#### Documentation
+
+* the attribute `definition_period` is documented here : https://doc.openfisca.fr/coding-the-legislation/35_periods.html
+
 ## 5.0.2
 
 * Add `TaxBenefitSystem` doc to the reference doc

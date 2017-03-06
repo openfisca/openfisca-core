@@ -40,10 +40,8 @@ class AbstractScenario(object):
                     )
         return value, None
 
-    def fill_simulation(self, simulation, use_set_input_hooks = True, variables_name_to_skip = None):
+    def fill_simulation(self, simulation):
         assert isinstance(simulation, simulations.Simulation)
-        if variables_name_to_skip is None:
-            variables_name_to_skip = set()
         tbs = self.tax_benefit_system
         simulation_period = simulation.period
         test_case = self.test_case
@@ -59,10 +57,7 @@ class AbstractScenario(object):
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
-                        if use_set_input_hooks:
-                            holder.set_input(period, array)
-                        else:
-                            holder.put_in_cache(array, period)
+                        holder.set_input(period, array)
 
             if persons.count == 0:
                 persons.count = 1
@@ -89,11 +84,22 @@ class AbstractScenario(object):
         else:
             steps_count = 1
             if self.axes is not None:
+                # See set_input function comment below
+                # defaultdict(dict) is like dict but returns {} when calling d[k] if d[k] is not yet defined
+                cache_buffer = collections.defaultdict(dict)
                 for parallel_axes in self.axes:
                     # All parallel axes have the same count, entity and period.
                     axis = parallel_axes[0]
                     steps_count *= axis['count']
             simulation.steps_count = steps_count
+
+            # When we use axes, we use a buffer for the cache, to avoid collisions between several calls of holder.set_input.
+            def set_input(variable_name, period, value):
+                if self.axes is not None:
+                    cache_buffer[variable_name][period] = value
+                else:
+                    holder = simulation.get_or_new_holder(variable_name)
+                    holder.set_input(period, value)
 
             for entity in simulation.entities.itervalues():
                 step_size = len(test_case[entity.plural])
@@ -114,7 +120,7 @@ class AbstractScenario(object):
                     key
                     for entity_member in test_case[entity.plural]
                     for key, value in entity_member.iteritems()
-                    if value is not None and key not in variables_name_to_skip
+                    if value is not None
                     )
 
                 if not entity.is_person:
@@ -157,10 +163,9 @@ class AbstractScenario(object):
                                     variable_periods.update(cell.iterkeys())
                             elif cell is not None:
                                 variable_periods.add(simulation_period)
-                        holder = simulation.get_or_new_holder(variable_name)
                         variable_default_value = column.default
                         # Note: For set_input to work, handle days, before months, before years => use sorted().
-                        for variable_period in sorted(variable_periods):
+                        for variable_period in sorted(variable_periods, cmp = periods.compare_period_size):
                             variable_values = [
                                 variable_default_value if dated_cell is None else dated_cell
                                 for dated_cell in (
@@ -180,10 +185,7 @@ class AbstractScenario(object):
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
                                 if column.dtype is not object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
-                            if use_set_input_hooks:
-                                holder.set_input(variable_period, array)
-                            else:
-                                holder.put_in_cache(array, variable_period)
+                            set_input(variable_name, variable_period, array)
 
             if self.axes is not None:
                 if len(self.axes) == 1:
@@ -196,17 +198,14 @@ class AbstractScenario(object):
                     axis_entity_step_size = axis_entity.step_size
                     for axis in parallel_axes:
                         axis_period = axis['period'] or simulation_period
-                        holder = simulation.get_or_new_holder(axis['name'])
-                        column = holder.column
-                        array = holder.get_array(axis_period)
+                        axis_name = axis['name']
+                        array = cache_buffer[axis_name].get(axis_period)
                         if array is None:
+                            column = tbs.column_by_name[axis_name]
                             array = np.empty(axis_entity_count, dtype = column.dtype)
                             array.fill(column.default)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
-                        if use_set_input_hooks:
-                            holder.set_input(axis_period, array)
-                        else:
-                            holder.put_in_cache(array, axis_period)
+                        cache_buffer[axis_name][axis_period] = array
                 else:
                     axes_linspaces = [
                         np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -221,19 +220,25 @@ class AbstractScenario(object):
                         first_axis = parallel_axes[0]
                         axis_count = first_axis['count']
                         axis_entity = simulation.get_variable_entity(first_axis['name'])
+                        axis_entity_count = axis_entity.count
+                        axis_entity_step_size = axis_entity.step_size
                         for axis in parallel_axes:
                             axis_period = axis['period'] or simulation_period
-                            holder = simulation.get_or_new_holder(axis['name'])
-                            column = holder.column
-                            array = holder.get_array(axis_period)
+                            axis_name = axis['name']
+                            array = cache_buffer[axis_name].get(axis_period)
                             if array is None:
-                                array = holder.default_array()
-                            array[axis['index']:: axis_entity.step_size] = axis['min'] \
+                                column = tbs.column_by_name[axis_name]
+                                array = np.empty(axis_entity_count, dtype = column.dtype)
+                                array.fill(column.default)
+                            array[axis['index']:: axis_entity_step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                            if use_set_input_hooks:
-                                holder.set_input(axis_period, array)
-                            else:
-                                holder.put_in_cache(array, axis_period)
+                            cache_buffer[axis_name][axis_period] = array
+
+                # We pour the buffer in the real cache
+                for variable, values in cache_buffer.iteritems():
+                    holder = simulation.get_or_new_holder(variable)
+                    for period, array in values.iteritems():
+                        holder.set_input(period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
@@ -352,7 +357,7 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, use_set_input_hooks = True, opt_out_cache = False):
+    def new_simulation(self, debug = False, debug_all = False, reference = False, trace = False, opt_out_cache = False):
         assert isinstance(reference, (bool, int)), \
             'Parameter reference must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -370,7 +375,7 @@ class AbstractScenario(object):
             trace = trace,
             opt_out_cache = opt_out_cache,
             )
-        self.fill_simulation(simulation, use_set_input_hooks = use_set_input_hooks)
+        self.fill_simulation(simulation)
         return simulation
 
     def make_json_or_python_to_test_case(self, period, repair = False):

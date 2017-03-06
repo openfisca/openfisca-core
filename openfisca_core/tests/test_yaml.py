@@ -25,58 +25,58 @@ def run_yaml_test(file_name, options = {}):
 
 
 def test_success():
-    run_yaml_test('test_success')
+    run_yaml_test('test_success', options = {'default_absolute_error_margin': 0.01})
 
 
 @raises(AssertionError)
 def test_fail():
-    run_yaml_test('test_failure')
+    run_yaml_test('test_failure', options = {'default_absolute_error_margin': 0.01})
 
 
 def test_ignore_test():
     # The 2nd test is ignored
-    assert run_yaml_test('test_ignore') == 1
+    assert run_yaml_test('test_ignore', options = {'default_absolute_error_margin': 0.01}) == 1
 
 
 @raises(AssertionError)
 def test_force():
-    run_yaml_test('test_ignore', options = {'force': True})
+    run_yaml_test('test_ignore', options = {'force': True, 'default_absolute_error_margin': 0.01})
 
 
 def test_relative_error_margin_success():
-    run_yaml_test('test_relative_error_margin')
+    run_yaml_test('test_relative_error_margin', options = {'default_absolute_error_margin': 0.01})
 
 
 @raises(AssertionError)
 def test_relative_error_margin_fail():
-    run_yaml_test('test_relative_error_margin', options = {'force': True})
+    run_yaml_test('test_relative_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
 
 
 def test_absolute_error_margin_success():
-    run_yaml_test('test_absolute_error_margin')
+    run_yaml_test('test_absolute_error_margin', options = {'default_absolute_error_margin': 0.01})
 
 
 @raises(AssertionError)
 def test_absolute_error_margin_fail():
-    run_yaml_test('test_absolute_error_margin', options = {'force': True})
+    run_yaml_test('test_absolute_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
 
 
 def test_run_tests_from_directory():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    assert run_tests(tax_benefit_system, dir_path) == 5
+    assert run_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}) == 5
 
 
 @raises(AssertionError)
 def test_run_tests_from_directory_fail():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    run_tests(tax_benefit_system, dir_path, options = {'force': True})
+    run_tests(tax_benefit_system, dir_path, options = {'force': True, 'default_absolute_error_margin': 0.01})
 
 
 def test_name_filter():
     nb_tests = run_tests(
         tax_benefit_system,
         yamls_tests_dir,
-        options = {'name_filter': 'success'}
+        options = {'name_filter': 'success', 'default_absolute_error_margin': 0.01}
         )
 
     assert nb_tests == 3
@@ -84,5 +84,5 @@ def test_name_filter():
 
 def test_nose_style():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    for test in generate_tests(tax_benefit_system, dir_path):
+    for test in generate_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}):
         yield test

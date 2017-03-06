@@ -7,16 +7,17 @@ import numpy as np
 
 from . import periods
 from .commons import empty_clone
+from .periods import MONTH, YEAR, ETERNITY
 
 
 class DatedHolder(object):
-    """A view of an holder, for a given period (and possibly a given set of extra parameters).
-    If the variable is not cached, it also contains the value of the variable for the given date."""
+    """A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
+    """
     holder = None
     period = None
     extra_params = None
 
-    def __init__(self, holder, period, extra_params = None, value = None):
+    def __init__(self, holder, period, value, extra_params = None):
         self.holder = holder
         self.period = period
         self.extra_params = extra_params
@@ -24,14 +25,11 @@ class DatedHolder(object):
 
     @property
     def array(self):
-        return self.value if self.value else self.holder.get_array(self.period, self.extra_params)
+        return self.value
 
     @array.setter
     def array(self, array):
-        if self.value:
-            self.value = array
-        else:
-            self.holder.put_in_cache(array, self.period, self.extra_params)
+        raise ValueError('Impossible to modify DatedHolder.array. Please use Holder.put_in_cache.')
 
     @property
     def column(self):
@@ -50,8 +48,8 @@ class DatedHolder(object):
 
 
 class Holder(object):
-    _array = None  # Only used when column.is_permanent
-    _array_by_period = None  # Only used when not column.is_permanent
+    _array = None  # Only used when column.definition_period == ETERNITY
+    _array_by_period = None  # Only used when column.definition_period != ETERNITY
     column = None
     entity = None
     formula = None
@@ -66,13 +64,13 @@ class Holder(object):
 
     @property
     def array(self):
-        if not self.column.is_permanent:
+        if self.column.definition_period != ETERNITY:
             return self.get_array(self.simulation.period)
         return self._array
 
     @array.setter
     def array(self, array):
-        if not self.column.is_permanent:
+        if self.column.definition_period != ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
         if self.simulation.debug or self.simulation.trace:
             variable_infos = (self.column.name, None)
@@ -112,164 +110,100 @@ class Holder(object):
         return new
 
     def compute(self, period = None, **parameters):
-        """Compute array if needed and/or convert it to requested period and return a dated holder containig it.
+        """Compute array if needed and return a dated holder containing it.
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
         if period is None:
             period = self.simulation.period
         column = self.column
-        accept_other_period = parameters.get('accept_other_period', False)
 
-        # First look for dated_holders covering the whole period (without hole).
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
+        # Check that the requested period matches definition_period
+        if column.definition_period != ETERNITY:
+            if column.definition_period == MONTH and period.unit != periods.MONTH:
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
+                    column.name,
+                    period
+                    ).encode('utf-8'))
+            if column.definition_period == YEAR and period.unit != periods.YEAR:
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+                    column.name,
+                    period
+                    ).encode('utf-8'))
+            if period.size != 1:
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
+                    column.name,
+                    period,
+                    'month' if column.definition_period == MONTH else 'year').encode('utf-8'))
+
+        # First look for a value already cached
+        holder_or_dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
+        if holder_or_dated_holder.array is not None:
+            return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
+        # Request a computation
         column_start_instant = periods.instant(column.start)
         column_stop_instant = periods.instant(column.end)
         if (column_start_instant is None or column_start_instant <= period.start) \
                 and (column_stop_instant is None or period.start <= column_stop_instant):
             formula_dated_holder = self.formula.compute(period = period, **parameters)
             assert formula_dated_holder is not None
-            if not column.is_permanent:
-                assert accept_other_period or formula_dated_holder.period == period, \
-                    "Requested period {} differs from {} returned by variable {}".format(period,
-                        formula_dated_holder.period, column.name)
             return formula_dated_holder
         array = self.default_array()
         return self.put_in_cache(array, period)
 
     def compute_add(self, period = None, **parameters):
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
+        # Check that the requested period matches definition_period
+        if self.column.definition_period == YEAR and period.unit == periods.MONTH:
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+                self.column.name,
+                period,
+                ).encode('utf-8'))
 
-        array = None
-        unit = period.unit
-        if unit == u'month':
-            remaining_period_months = period.size
+        if self.column.definition_period == MONTH:
+            variable_definition_period = periods.MONTH
+        elif self.column.definition_period == YEAR:
+            variable_definition_period = periods.YEAR
         else:
-            assert unit == u'year', unit
-            remaining_period_months = period.size * 12
-        requested_period = period.start.period(unit)
-        # We expect the compute calls to return a period different than the requested one.
-        parameters['accept_other_period'] = True
-        while True:
-            dated_holder = self.compute(period = requested_period, **parameters)
-            requested_start = requested_period.start
-            returned_period = dated_holder.period
-            returned_start = returned_period.start
-            assert returned_start.day == 1
-            # Note: A dated formula may start after requested period => returned_start is not always equal to
-            # requested_start.
-            assert returned_start >= requested_start, \
-                "Period {} returned by variable {} doesn't have the same start as requested period {}.".format(
-                    returned_period, self.column.name, requested_period)
-            if returned_period.unit == u'month':
-                returned_period_months = returned_period.size
-            else:
-                assert returned_period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        returned_period, self.column.name)
-                returned_period_months = returned_period.size * 12
-            requested_start_months = requested_start.year * 12 + requested_start.month
-            returned_start_months = returned_start.year * 12 + returned_start.month
-            returned_period_months = returned_start_months + returned_period_months - requested_start_months
-            remaining_period_months -= returned_period_months
-            assert remaining_period_months >= 0, \
-                "Period {} returned by variable {} is larger than the requested_period {}.".format(
-                    returned_period, self.column.name, requested_period)
+            raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
+                self.column.name,
+                period).encode('utf-8'))
+
+        after_instant = period.start.offset(period.size, period.unit)
+        sub_period = period.start.period(variable_definition_period)
+        array = None
+        while sub_period.start < after_instant:
+            dated_holder = self.compute(period = sub_period, **parameters)
             if array is None:
                 array = dated_holder.array.copy()
             else:
                 array += dated_holder.array
+            sub_period = sub_period.offset(1)
 
-            if remaining_period_months <= 0:
-                return self.put_in_cache(array, period, parameters.get('extra_params'))
-            if remaining_period_months % 12 == 0:
-                requested_period = requested_start.offset(returned_period_months, u'month').period(u'year')
-            else:
-                requested_period = requested_start.offset(returned_period_months, u'month').period(u'month')
-
-    def compute_add_divide(self, period = None, **parameters):
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
-
-        array = None
-        unit = period.unit
-        if unit == u'month':
-            remaining_period_months = period.size
-        else:
-            assert unit == u'year', unit
-            remaining_period_months = period.size * 12
-        requested_period = period.start.period(unit)
-        # We expect the compute calls to return a period different than the requested one.
-        parameters['accept_other_period'] = True
-        while True:
-            dated_holder = self.compute(period = requested_period, **parameters)
-            requested_start = requested_period.start
-            returned_period = dated_holder.period
-            returned_start = returned_period.start
-            assert returned_start.day == 1
-            # Note: A dated formula may start after requested period.
-            # assert returned_start <= requested_start <= returned_period.stop, \
-            #     "Period {} returned by variable {} doesn't include start of requested period {}.".format(
-            #         returned_period, self.column.name, requested_period)
-            requested_start_months = requested_start.year * 12 + requested_start.month
-            returned_start_months = returned_start.year * 12 + returned_start.month
-            if returned_period.unit == u'month':
-                intersection_months = min(requested_start_months + requested_period.size,
-                    returned_start_months + returned_period.size) - requested_start_months
-                intersection_array = dated_holder.array * intersection_months / returned_period.size
-            else:
-                assert returned_period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        returned_period, self.column.name)
-                intersection_months = min(requested_start_months + requested_period.size,
-                    returned_start_months + returned_period.size * 12) - requested_start_months
-                intersection_array = dated_holder.array * intersection_months / (returned_period.size * 12)
-            if array is None:
-                array = intersection_array.copy()
-            else:
-                array += intersection_array
-
-            remaining_period_months -= intersection_months
-            if remaining_period_months <= 0:
-                return self.put_in_cache(array, period, parameters.get('extra_params'))
-            if remaining_period_months % 12 == 0:
-                requested_period = requested_start.offset(intersection_months, u'month').period(u'year')
-            else:
-                requested_period = requested_start.offset(intersection_months, u'month').period(u'month')
+        return DatedHolder(self, period, array, parameters.get('extra_params'))
 
     def compute_divide(self, period = None, **parameters):
-        dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
-        if dated_holder.array is not None:
-            return dated_holder
+        # Check that the requested period matches definition_period
+        if self.column.definition_period != YEAR:
+            raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
+                self.column.name,
+                period).encode('utf-8'))
 
-        array = None
-        unit = period[0]
-        year, month, day = period.start
-        if unit == u'month':
-            # We expect the compute call to return a yearly period.
-            parameters['accept_other_period'] = True
-            dated_holder = self.compute(period = period, **parameters)
-            assert dated_holder.period.start <= period.start and period.stop <= dated_holder.period.stop, \
-                "Period {} returned by variable {} doesn't include requested period {}.".format(
-                    dated_holder.period, self.column.name, period)
-            if dated_holder.period.unit == u'month':
-                array = dated_holder.array * period.size / dated_holder.period.size
-            else:
-                assert dated_holder.period.unit == u'year', \
-                    "Requested a monthly or yearly period. Got {} returned by variable {}.".format(
-                        dated_holder.period, self.column.name)
-                array = dated_holder.array * period.size / (12 * dated_holder.period.size)
-            return self.put_in_cache(array, period, parameters.get('extra_params'))
-        else:
-            assert unit == u'year', unit
-            return self.compute(period = period)
+        if period.size != 1:
+            raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
+
+        if period.unit == periods.MONTH:
+            computation_period = period.this_year
+            dated_holder = self.compute(period = computation_period, **parameters)
+            array = dated_holder.array / 12.
+            return DatedHolder(self, period, array, parameters.get('extra_params'))
+        elif period.unit == periods.YEAR:
+            return self.compute(period, **parameters)
+
+        raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
+            self.column.name,
+            period).encode('utf-8'))
 
     def delete_arrays(self):
         if self._array is not None:
@@ -278,7 +212,7 @@ class Holder(object):
             del self._array_by_period
 
     def get_array(self, period, extra_params = None):
-        if self.column.is_permanent:
+        if self.column.definition_period == ETERNITY:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
@@ -311,13 +245,6 @@ class Holder(object):
             return
         formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
-    def new_test_case_array(self, period):
-        array = self.get_array(period)
-        if array is None:
-            return None
-        entity_step_size = self.entity.step_size
-        return array.reshape([self.simulation.steps_count, entity_step_size]).sum(1)
-
     @property
     def real_formula(self):
         formula = self.formula
@@ -331,14 +258,26 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
+        if self.column.definition_period != ETERNITY:
+            if period is None:
+                raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
+            if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
+               (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
+                raise ValueError(u'Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
+                    self.column.name,
+                    period.unit,
+                    period,
+                    self.column.definition_period
+                    ).encode('utf-8'))
+
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.column.name in simulation.tax_benefit_system.cache_blacklist):
-            return DatedHolder(self, period, value = value)
+            return DatedHolder(self, period, value, extra_params)
 
-        if self.column.is_permanent:
+        if self.column.definition_period == ETERNITY:
             self.array = value
-        assert period is not None
+
         if simulation.debug or simulation.trace:
             variable_infos = (self.column.name, period)
             step = simulation.traceback.get(variable_infos)
@@ -358,7 +297,11 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        return self if self.column.is_permanent else DatedHolder(self, period, extra_params)
+        if self.column.definition_period == ETERNITY:
+            return self
+
+        value = self.get_array(period, extra_params)
+        return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
         from .formulas import DatedFormula
@@ -383,7 +326,7 @@ class Holder(object):
                     for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
-        if column.is_permanent:
+        if column.definition_period == ETERNITY:
             array = self._array
             if array is None:
                 return None

@@ -27,7 +27,7 @@ ENFANT = Famille.ENFANT
 
 def new_simulation(test_case):
     return tax_benefit_system.new_scenario().init_from_test_case(
-        period = 2013,
+        period = '2013-01',
         test_case = test_case
         ).new_simulation()
 
@@ -61,7 +61,7 @@ def test_project():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    af = famille('af', 2013)
+    af = famille('af')
     af_projete = famille.project(af)
 
     assert_near(af_projete, [20000, 20000, 20000, 20000, 0, 0])
@@ -123,11 +123,11 @@ def test_sum():
     salaire_net = famille.members('salaire_net')
     salaire_total_par_famille = famille.sum(salaire_net)
 
-    assert_near(salaire_total_par_famille, [2500, 3500])
+    assert_near(salaire_total_par_famille, [2500, 3500], absolute_error_margin=0.01)
 
     salaire_total_parents_par_famille = famille.sum(salaire_net, role = PARENT)
 
-    assert_near(salaire_total_parents_par_famille, [2500, 3000])
+    assert_near(salaire_total_parents_par_famille, [2500, 3000], absolute_error_margin=0.01)
 
 
 def test_any():

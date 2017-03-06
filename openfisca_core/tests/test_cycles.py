@@ -5,6 +5,7 @@ from nose.tools import raises
 
 from openfisca_core import periods
 from openfisca_core.columns import IntCol
+from openfisca_core.periods import MONTH
 from openfisca_core.formulas import CycleError
 from openfisca_core.variables import Variable
 
@@ -17,34 +18,38 @@ from openfisca_core.tools import assert_near
 class variable1(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable2', period)
+        return simulation.calculate('variable2', period)
 
 
 class variable2(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable1', period)
+        return simulation.calculate('variable1', period)
 
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
 class variable3(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable4', period.last_year)
+        return simulation.calculate('variable4', period.last_month)
 
 
 class variable4(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        return period, simulation.calculate('variable3', period)
+        return simulation.calculate('variable3', period)
 
 
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
@@ -52,32 +57,34 @@ class variable4(Variable):
 class variable5(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        variable6 = simulation.calculate('variable6', period.last_year, max_nb_cycles = 0)
-        return period, 5 + variable6
+        variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
+        return 5 + variable6
 
 
 class variable6(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable5 = simulation.calculate('variable5', period)
-        return period, 6 + variable5
+        return 6 + variable5
 
 
 # december cotisation depending on november value
 class cotisation(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        period = period.this_month
         if period.start.month == 12:
-            return period, 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
+            return 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
         else:
-            return period, self.zeros() + 1
+            return self.zeros() + 1
 
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
@@ -85,19 +92,21 @@ class cotisation(Variable):
 class variable7(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
-        variable8 = simulation.calculate('variable8', period.last_year, max_nb_cycles = 1)
-        return period, 7 + variable8
+        variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
+        return 7 + variable8
 
 
 class variable8(Variable):
     column = IntCol
     entity = Individu
+    definition_period = MONTH
 
     def function(self, simulation, period):
         variable7 = simulation.calculate('variable7', period)
-        return period, 8 + variable7
+        return 8 + variable7
 
 
 # TaxBenefitSystem instance declared after formulas
@@ -105,7 +114,7 @@ tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
     variable5, variable6, cotisation, variable7, variable8)
 
-reference_period = periods.period(u'2013')
+reference_period = periods.period(u'2013-01')
 
 
 @raises(AssertionError)
@@ -137,10 +146,10 @@ def test_allowed_cycle():
         ).new_simulation(debug = True)
     variable6 = simulation.calculate('variable6')
     variable5 = simulation.calculate('variable5')
-    variable6_last_year = simulation.calculate('variable6', reference_period.last_year)
+    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
-    assert_near(variable6_last_year, [0])
+    assert_near(variable6_last_month, [0])
 
 
 def test_allowed_cycle_different_order():
@@ -150,10 +159,10 @@ def test_allowed_cycle_different_order():
         ).new_simulation(debug = True)
     variable5 = simulation.calculate('variable5')
     variable6 = simulation.calculate('variable6')
-    variable6_last_year = simulation.calculate('variable6', reference_period.last_year)
+    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
-    assert_near(variable6_last_year, [0])
+    assert_near(variable6_last_month, [0])
 
 
 def test_cotisation_1_level():

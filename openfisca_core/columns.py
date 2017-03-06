@@ -31,7 +31,7 @@ class Column(object):
     entity = None
     formula_class = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
-    is_permanent = False  # When True, value of column doesn't depend from time (example: ID, birth)
+    definition_period = None
     # json_type = None  # Defined in sub-classes
     label = None
     law_reference = None  # Either a single reference or a list of references
@@ -42,7 +42,7 @@ class Column(object):
     val_type = None
 
     def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None,
-            is_permanent = False, label = None, law_reference = None, start = None, survey_only = False, url = None,
+            label = None, law_reference = None, start = None, survey_only = False, url = None,
             val_type = None):
         if cerfa_field is not None:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
@@ -53,8 +53,6 @@ class Column(object):
             self.end = end
         if function is not None:
             self.function = function
-        if is_permanent:
-            self.is_permanent = True
         if law_reference is not None:
             self.law_reference = law_reference
         if label is not None:

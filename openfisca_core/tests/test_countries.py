@@ -3,11 +3,13 @@
 import datetime
 
 import numpy as np
-from nose.tools import raises
+from nose.tools import raises, assert_raises
 
 from openfisca_core.variables import Variable
+from openfisca_core.periods import YEAR
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
+from openfisca_core.formulas import DIVIDE
 from dummy_country import DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -24,7 +26,7 @@ def test_input_variable():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('salaire_brut'), [2000])
+    assert_near(simulation.calculate_add('salaire_brut'), [2000], absolute_error_margin=0.01)
 
 
 def test_basic_calculation():
@@ -36,7 +38,7 @@ def test_basic_calculation():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('salaire_net'), [1600])
+    assert_near(simulation.calculate_add('salaire_net'), [1600], absolute_error_margin=0.01)
 
 
 def test_params():
@@ -48,7 +50,7 @@ def test_params():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('csg'), [102])
+    assert_near(simulation.calculate('csg'), [102], absolute_error_margin=0.01)
 
 
 def test_1_axis():
@@ -122,10 +124,10 @@ def test_2_parallel_axes_different_periods():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
+    assert_near(simulation.calculate_add('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
     assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year - 1)), [0, 0, 5000, 0, 10000, 0],
         absolute_error_margin = 0)
-    assert_near(simulation.calculate('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
+    assert_near(simulation.calculate_add('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
     assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year)), [0, 0, 0, 5000, 0, 10000],
         absolute_error_margin = 0)
 
@@ -137,6 +139,7 @@ def test_2_parallel_axes_same_values():
             [
                 dict(
                     count = 3,
+                    index = 0,
                     name = 'salaire_brut',
                     max = 100000,
                     min = 0,
@@ -154,26 +157,28 @@ def test_2_parallel_axes_same_values():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
+    print(simulation.calculate_add('salaire_brut'))
     assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], absolute_error_margin = 0.005)
 
 
 def test_age():
     year = 2013
+    month = '2013-01'
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
         parent1 = dict(
             birth = datetime.date(year - 40, 1, 1),
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', month), [40], absolute_error_margin = 0.005)
 
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
+        period = month,
         parent1 = dict(
             age_en_mois = 40 * 12 + 11,
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', month), [40], absolute_error_margin = 0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
@@ -228,9 +233,10 @@ def test_variable_with_reference():
     assert(revenu_disponible_avant_reforme > 0)
 
     class revenu_disponible(Variable):
+        definition_period = YEAR
 
         def function(self, simulation, period):
-            return period, self.zeros()
+            return self.zeros()
 
     tax_benefit_system.update_variable(revenu_disponible)
     revenu_disponible_apres_reforme = new_simulation().calculate('revenu_disponible', 2013)
@@ -242,9 +248,10 @@ def test_variable_with_reference():
 def test_variable_name_conflict():
     class revenu_disponible(Variable):
         reference = 'revenu_disponible'
+        definition_period = YEAR
 
         def function(self, simulation, period):
-            return period, self.zeros()
+            return self.zeros()
     tax_benefit_system.add_variable(revenu_disponible)
 
 
@@ -256,3 +263,44 @@ def test_non_existing_variable():
         ).new_simulation()
 
     simulation.calculate('non_existent_variable', 2013)
+
+
+def test_calculate_variable_with_wrong_definition_period():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            salaire_brut = 4000,
+            ),
+        ).new_simulation()
+
+    with assert_raises(ValueError) as error:
+        simulation.calculate('rsa', 2013)
+
+    error_message = str(error.exception)
+    expected_words = ['period', '2013', 'month', 'rsa', 'ADD']
+
+    for word in expected_words:
+        assert word in error_message, u'Expected "{}" in error message "{}"'.format(word, error_message).encode('utf-8')
+
+
+@raises(ValueError)
+def test_wrong_use_of_divide_option():
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            revenu_disponible = 12000,
+            ),
+        ).new_simulation()
+
+    quarter = periods.period('2013-12').last_3_months
+    simulation.individu('revenu_disponible', quarter, options = [DIVIDE])
+
+
+@raises(ValueError)
+def test_input_with_wrong_period():
+    tax_benefit_system.new_scenario().init_single_entity(
+        period = 2013,
+        parent1 = dict(
+            revenu_disponible = {'2015-02': 1200},
+            ),
+        ).new_simulation()

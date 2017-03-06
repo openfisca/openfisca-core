@@ -6,6 +6,7 @@ from nose.tools import raises
 from nose.tools import assert_equal
 
 from .. import columns, periods, reforms
+from ..periods import MONTH
 from ..reforms import Reform
 from ..formulas import dated_function
 from ..variables import Variable, DatedVariable
@@ -65,7 +66,7 @@ def test_input_variable_neutralization():
             ),
         )
     simulation = scenario.new_simulation(reference = True)
-    salaire_brut_annuel = simulation.calculate('salaire_brut')
+    salaire_brut_annuel = simulation.calculate_add('salaire_brut')
     assert_near(salaire_brut_annuel, [120000, 60000], absolute_error_margin = 0)
     salaire_brut_mensuel = simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel, [10000, 5000], absolute_error_margin = 0)
@@ -73,7 +74,7 @@ def test_input_variable_neutralization():
     assert_near(revenu_disponible, [60480, 30240], absolute_error_margin = 0)
 
     reform_simulation = scenario.new_simulation()
-    salaire_brut_annuel_reform = reform_simulation.calculate('salaire_brut')
+    salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut')
     assert_near(salaire_brut_annuel_reform, [0, 0], absolute_error_margin = 0)
     salaire_brut_mensuel_reform = reform_simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
@@ -396,9 +397,10 @@ def test_add_variable():
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
         entity = Famille
+        definition_period = MONTH
 
         def function(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
     class test_add_variable(Reform):
 
@@ -425,14 +427,15 @@ def test_add_dated_variable():
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
         entity = Famille
+        definition_period = MONTH
 
         @dated_function(datetime.date(2010, 1, 1))
         def function_2010(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
         @dated_function(datetime.date(2011, 1, 1))
         def function_apres_2011(self, simulation, period):
-            return period, self.zeros() + 15
+            return self.zeros() + 15
 
     class test_add_variable(Reform):
         def apply(self):
@@ -453,9 +456,10 @@ def test_add_dated_variable():
 def test_add_variable_with_reference():
 
     class revenu_disponible(Variable):
+        definition_period = MONTH
 
         def function(self, simulation, period):
-            return period, self.zeros() + 10
+            return self.zeros() + 10
 
     class test_add_variable_with_reference(Reform):
         def apply(self):
@@ -498,9 +502,10 @@ def test_compose_reforms():
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
             entity = Famille
+            definition_period = MONTH
 
             def function(self, simulation, period):
-                return period, self.zeros() + 10
+                return self.zeros() + 10
 
         def apply(self):
             self.add_variable(self.nouvelle_variable)
@@ -510,9 +515,10 @@ def test_compose_reforms():
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
             entity = Famille
+            definition_period = MONTH
 
             def function(self, simulation, period):
-                return period, self.zeros() + 20
+                return self.zeros() + 20
 
         def apply(self):
             self.update_variable(self.nouvelle_variable)
