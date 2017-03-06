@@ -924,11 +924,11 @@ def set_input_dispatch_by_period(formula, period, array):
     elif formula.holder.column.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
-        ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
 
     after_instant = period.start.offset(period_size, period_unit)
 
-    # Cache the input data
+    # Cache the input data, skipping the existing cached months
     sub_period = period.start.period(cached_period_unit)
     while sub_period.start < after_instant:
         existing_array = holder.get_array(sub_period)
@@ -951,7 +951,7 @@ def set_input_divide_by_period(formula, period, array):
     elif formula.holder.column.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
-        ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
 
     after_instant = period.start.offset(period_size, period_unit)
 
