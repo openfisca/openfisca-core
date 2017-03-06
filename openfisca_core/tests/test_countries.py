@@ -170,7 +170,7 @@ def test_age():
             birth = datetime.date(year - 40, 1, 1),
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age', '2013-01'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', month), [40], absolute_error_margin = 0.005)
 
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = month,
@@ -178,7 +178,7 @@ def test_age():
             age_en_mois = 40 * 12 + 11,
             ),
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('age', '2013-01'), [40], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('age', month), [40], absolute_error_margin = 0.005)
 
 
 def check_revenu_disponible(year, depcom, expected_revenu_disponible):
@@ -280,7 +280,7 @@ def test_calculate_variable_with_wrong_definition_period():
     expected_words = ['period', '2013', 'month', 'rsa', 'ADD']
 
     for word in expected_words:
-        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)
+        assert word in error_message, u'Expected "{}" in error message "{}"'.format(word, error_message).encode('utf-8')
 
 
 @raises(ValueError)

@@ -725,9 +725,9 @@ def new_filled_column(__doc__ = None, __module__ = None,
     assert issubclass(formula_class, AbstractFormula), formula_class
 
     if definition_period is UnboundLocalError:
-        raise ValueError('definition_period missing in {}'.format(name))
+        raise ValueError(u'definition_period missing in {}'.format(name).encode('utf-8'))
     if definition_period not in (MONTH, YEAR, ETERNITY):
-        raise ValueError('Incorrect definition_period ({}) in {}'.format(definition_period, name))
+        raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
     if label is UnboundLocalError:
         label = None if reference_column is None else reference_column.label
@@ -976,7 +976,7 @@ def set_input_divide_by_period(formula, period, array):
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError("Inconsistent input : variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} does't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.column.name, period, array, array - remaining_array))
+        raise ValueError(u"Inconsistent input : variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} does't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.column.name, period, array, array - remaining_array).encode('utf-8'))
 
 
 def set_input_neutralized(formula, period, array):

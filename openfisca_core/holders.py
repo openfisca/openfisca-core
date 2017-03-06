@@ -121,20 +121,20 @@ class Holder(object):
         # Check that the requested period matches definition_period
         if column.definition_period != ETERNITY:
             if column.definition_period == MONTH and period.unit != periods.MONTH:
-                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
                     column.name,
                     period
-                    ))
+                    ).encode('utf-8'))
             if column.definition_period == YEAR and period.unit != periods.YEAR:
-                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
                     column.name,
                     period
-                    ))
+                    ).encode('utf-8'))
             if period.size != 1:
-                raise ValueError('Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
+                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
                     column.name,
                     period,
-                    'month' if column.definition_period == MONTH else 'year'))
+                    'month' if column.definition_period == MONTH else 'year').encode('utf-8'))
 
         # First look for a value already cached
         holder_or_dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
@@ -156,19 +156,19 @@ class Holder(object):
     def compute_add(self, period = None, **parameters):
         # Check that the requested period matches definition_period
         if self.column.definition_period == YEAR and period.unit == periods.MONTH:
-            raise ValueError('Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
                 self.column.name,
                 period,
-                ))
+                ).encode('utf-8'))
 
         if self.column.definition_period == MONTH:
             variable_definition_period = periods.MONTH
         elif self.column.definition_period == YEAR:
             variable_definition_period = periods.YEAR
         else:
-            raise ValueError('Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
+            raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
                 self.column.name,
-                period))
+                period).encode('utf-8'))
 
         after_instant = period.start.offset(period.size, period.unit)
         sub_period = period.start.period(variable_definition_period)
@@ -186,9 +186,9 @@ class Holder(object):
     def compute_divide(self, period = None, **parameters):
         # Check that the requested period matches definition_period
         if self.column.definition_period != YEAR:
-            raise ValueError('Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
+            raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
                 self.column.name,
-                period))
+                period).encode('utf-8'))
 
         if period.size != 1:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
@@ -201,9 +201,9 @@ class Holder(object):
         elif period.unit == periods.YEAR:
             return self.compute(period, **parameters)
 
-        raise ValueError('Unable to divide the value of {} to match the period {}.'.format(
+        raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
             self.column.name,
-            period))
+            period).encode('utf-8'))
 
     def delete_arrays(self):
         if self._array is not None:
@@ -258,17 +258,17 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
-        if not self.column.definition_period == ETERNITY:
+        if self.column.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
             if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
-                raise ValueError('Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
+                raise ValueError(u'Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
                     self.column.name,
                     period.unit,
                     period,
                     self.column.definition_period
-                    ))
+                    ).encode('utf-8'))
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
