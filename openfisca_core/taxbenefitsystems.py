@@ -13,6 +13,7 @@ from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
+from scenarios import AbstractScenario
 from formulas import neutralize_column
 
 log = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class TaxBenefitSystem(object):
         conv.struct({}),
         ))
     reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
-    Scenario = None
+    Scenario = AbstractScenario
     cache_blacklist = None
     decomposition_file_path = None
 
