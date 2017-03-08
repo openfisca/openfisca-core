@@ -123,7 +123,7 @@ def test_pure_cycle():
         period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    simulation.calculate('variable1')
+    simulation.calculate('variable1', period = reference_period)
 
 
 @raises(CycleError)
@@ -132,7 +132,7 @@ def test_cycle_time_offset():
         period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    simulation.calculate('variable3')
+    simulation.calculate('variable3', period = reference_period)
 
 
 def test_allowed_cycle():
@@ -144,8 +144,8 @@ def test_allowed_cycle():
         period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    variable6 = simulation.calculate('variable6')
-    variable5 = simulation.calculate('variable5')
+    variable6 = simulation.calculate('variable6', period = reference_period)
+    variable5 = simulation.calculate('variable5', period = reference_period)
     variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
@@ -157,8 +157,8 @@ def test_allowed_cycle_different_order():
         period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    variable5 = simulation.calculate('variable5')
-    variable6 = simulation.calculate('variable6')
+    variable5 = simulation.calculate('variable5', period = reference_period)
+    variable6 = simulation.calculate('variable6', period = reference_period)
     variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
     assert_near(variable5, [5])
     assert_near(variable6, [11])
@@ -166,11 +166,12 @@ def test_allowed_cycle_different_order():
 
 
 def test_cotisation_1_level():
+    month = reference_period.last_month
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = reference_period.last_month,  # December
+        period = month,  # December
         parent1 = dict(),
         ).new_simulation(debug = True)
-    cotisation = simulation.calculate('cotisation')
+    cotisation = simulation.calculate('cotisation', period = month)
     assert_near(cotisation, [2])
 
 
@@ -179,6 +180,6 @@ def test_cycle_1_level():
         period = reference_period,
         parent1 = dict(),
         ).new_simulation(debug = True)
-    variable7 = simulation.calculate('variable7')
+    variable7 = simulation.calculate('variable7', period = reference_period)
     # variable8 = simulation.calculate('variable8')
     assert_near(variable7, [22])

@@ -24,10 +24,12 @@ CONJOINT = Famille.CONJOINT
 PARENT = Famille.PARENT
 ENFANT = Famille.ENFANT
 
+reference_period = '2013-01'
+
 
 def new_simulation(test_case):
     return tax_benefit_system.new_scenario().init_from_test_case(
-        period = '2013-01',
+        period = reference_period,
         test_case = test_case
         ).new_simulation()
 
@@ -61,7 +63,7 @@ def test_project():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    af = famille('af')
+    af = famille('af', period = reference_period)
     af_projete = famille.project(af)
 
     assert_near(af_projete, [20000, 20000, 20000, 20000, 0, 0])
@@ -76,7 +78,7 @@ def test_implicit_projection():
 
     simulation = new_simulation(test_case)
     individu = simulation.get_entity(Individu)
-    af = individu.famille('af')
+    af = individu.famille('af', period = reference_period)
 
     assert_near(af, [20000, 20000, 20000, 20000, 0, 0])
 
@@ -89,7 +91,7 @@ def test_project_on_first_person():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    af = famille('af')
+    af = famille('af', period = reference_period)
     af_projete = famille.project_on_first_person(af)
 
     assert_near(af_projete, [20000, 0, 0, 0, 5000, 0])
@@ -103,7 +105,7 @@ def test_share_between_members():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    af = famille('af')
+    af = famille('af', period = reference_period)
 
     af_shared = famille.share_between_members(af, role = PARENT)
 
@@ -120,7 +122,7 @@ def test_sum():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    salaire_net = famille.members('salaire_net')
+    salaire_net = famille.members('salaire_net', period = reference_period)
     salaire_total_par_famille = famille.sum(salaire_net)
 
     assert_near(salaire_total_par_famille, [2500, 3500], absolute_error_margin=0.01)
@@ -135,7 +137,7 @@ def test_any():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    age = famille.members('age')
+    age = famille.members('age', period = reference_period)
     condition_age = (age <= 18)
     has_famille_member_with_age_inf_18 = famille.any(condition_age)
     assert_near(has_famille_member_with_age_inf_18, [True, False])
@@ -150,7 +152,7 @@ def test_all():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    age = famille.members('age')
+    age = famille.members('age', period = reference_period)
 
     condition_age = (age >= 18)
     all_persons_age_sup_18 = famille.all(condition_age)
@@ -165,7 +167,7 @@ def test_max():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    age = famille.members('age')
+    age = famille.members('age', period = reference_period)
 
     age_max = famille.max(age)
     assert_near(age_max, [40, 54])
@@ -179,7 +181,7 @@ def test_min():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    age = famille.members('age')
+    age = famille.members('age', period = reference_period)
 
     age_min = famille.min(age)
     assert_near(age_min, [7, 20])
@@ -198,7 +200,7 @@ def test_partner():
     simulation = new_simulation(test_case)
     individus = simulation.get_entity(Individu)
 
-    salaire_net = individus('salaire_net')
+    salaire_net = individus('salaire_net', period = reference_period)
 
     salaire_conjoint = individus.value_from_partner(salaire_net, individus.famille, PARENT)
 
@@ -215,7 +217,7 @@ def test_value_from_first_person():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    salaires_net = famille.members('salaire_net')
+    salaires_net = famille.members('salaire_net', period = reference_period)
     salaire_first_person = famille.value_from_first_person(salaires_net)
 
     assert_near(salaire_first_person, [1000, 3000])
@@ -237,7 +239,7 @@ def test_sum_following_bug_ipp_1():
     simulation = new_simulation(test_case)
     famille = simulation.famille
 
-    elibible_i = famille.members('a_charge_fiscale')
+    elibible_i = famille.members('a_charge_fiscale', period = reference_period)
     nb_a_charge_fiscales_par_famille = famille.sum(elibible_i, role = ENFANT)
 
     assert_near(nb_a_charge_fiscales_par_famille, [0, 2])
@@ -257,9 +259,10 @@ def test_sum_following_bug_ipp_2():
     test_case['individus'][3]['a_charge_fiscale'] = True
 
     simulation = new_simulation(test_case)
+    print(simulation.period)
     famille = simulation.famille
 
-    elibible_i = famille.members('a_charge_fiscale')
+    elibible_i = famille.members('a_charge_fiscale', period = reference_period)
     nb_eligibles_par_famille = famille.sum(elibible_i, role = ENFANT)
 
     assert_near(nb_eligibles_par_famille, [2, 0])

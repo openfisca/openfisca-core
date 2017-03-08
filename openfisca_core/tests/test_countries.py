@@ -26,7 +26,7 @@ def test_input_variable():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate_add('salaire_brut'), [2000], absolute_error_margin=0.01)
+    assert_near(simulation.calculate_add('salaire_brut', year), [2000], absolute_error_margin=0.01)
 
 
 def test_basic_calculation():
@@ -38,7 +38,7 @@ def test_basic_calculation():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate_add('salaire_net'), [1600], absolute_error_margin=0.01)
+    assert_near(simulation.calculate_add('salaire_net', year), [1600], absolute_error_margin=0.01)
 
 
 def test_params():
@@ -50,7 +50,7 @@ def test_params():
             salaire_brut = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('csg'), [102], absolute_error_margin=0.01)
+    assert_near(simulation.calculate('csg', year), [102], absolute_error_margin=0.01)
 
 
 def test_1_axis():
@@ -68,7 +68,7 @@ def test_1_axis():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 28800, 54000], absolute_error_margin = 0.005)
 
 
 def test_2_parallel_axes_1_constant():
@@ -95,7 +95,7 @@ def test_2_parallel_axes_1_constant():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 28800, 54000], absolute_error_margin = 0.005)
+    assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 28800, 54000], absolute_error_margin = 0.005)
 
 
 def test_2_parallel_axes_different_periods():
@@ -157,8 +157,8 @@ def test_2_parallel_axes_same_values():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    print(simulation.calculate_add('salaire_brut'))
-    assert_near(simulation.calculate('revenu_disponible_famille'), [7200, 50400, 100800], absolute_error_margin = 0.005)
+    print(simulation.calculate_add('salaire_brut', year))
+    assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 50400, 100800], absolute_error_margin = 0.005)
 
 
 def test_age():
@@ -196,9 +196,9 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
         parent1 = dict(),
         parent2 = dict(),
         ).new_simulation(debug = True)
-    revenu_disponible = simulation.calculate('revenu_disponible')
+    revenu_disponible = simulation.calculate('revenu_disponible', year)
     assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
-    revenu_disponible_famille = simulation.calculate('revenu_disponible_famille')
+    revenu_disponible_famille = simulation.calculate('revenu_disponible_famille', year)
     expected_revenu_disponible_famille = np.array([
         expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
         for i in range(0, len(expected_revenu_disponible), 2)
