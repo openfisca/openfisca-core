@@ -41,7 +41,7 @@ class Entity(object):
         if role is not None and not type(role) == Role:
             raise Exception("{} is not a valid role".format(role))
 
-    def __call__(self, variable_name, period = None, options = [], **parameters):
+    def __call__(self, variable_name, period, options = [], **parameters):
         self.check_variable_defined_for_entity(variable_name)
 
         if ADD in options and DIVIDE in options:

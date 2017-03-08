@@ -61,26 +61,18 @@ class Simulation(object):
             self.entities[entity_definition.key] = entity
             setattr(self, entity.key, entity)
 
-    def calculate(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
+    def calculate(self, column_name, period, **parameters):
         return self.compute(column_name, period = period, **parameters).array
 
-    def calculate_add(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
+    def calculate_add(self, column_name, period, **parameters):
         return self.compute_add(column_name, period = period, **parameters).array
 
-    def calculate_divide(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
+    def calculate_divide(self, column_name, period, **parameters):
         return self.compute_divide(column_name, period = period, **parameters).array
 
-    def calculate_output(self, column_name, period = None):
+    def calculate_output(self, column_name, period):
         """Calculate the value using calculate_output hooks in formula classes."""
-        if period is None:
-            period = self.period
-        elif not isinstance(period, periods.Period):
+        if not isinstance(period, periods.Period):
             period = periods.period(period)
         holder = self.get_or_new_holder(column_name)
         return holder.calculate_output(period)
@@ -113,10 +105,8 @@ class Simulation(object):
             }
         return new
 
-    def compute(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
-        elif not isinstance(period, periods.Period):
+    def compute(self, column_name, period, **parameters):
+        if not isinstance(period, periods.Period):
             period = periods.period(period)
         if (self.debug or self.trace) and self.stack_trace:
             variable_infos = (column_name, period)
@@ -128,10 +118,8 @@ class Simulation(object):
         result = holder.compute(period = period, **parameters)
         return result
 
-    def compute_add(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
-        elif not isinstance(period, periods.Period):
+    def compute_add(self, column_name, period, **parameters):
+        if not isinstance(period, periods.Period):
             period = periods.period(period)
         if (self.debug or self.trace) and self.stack_trace:
             variable_infos = (column_name, period)
@@ -142,10 +130,8 @@ class Simulation(object):
         holder = self.get_or_new_holder(column_name)
         return holder.compute_add(period = period, **parameters)
 
-    def compute_divide(self, column_name, period = None, **parameters):
-        if period is None:
-            period = self.period
-        elif not isinstance(period, periods.Period):
+    def compute_divide(self, column_name, period, **parameters):
+        if not isinstance(period, periods.Period):
             period = periods.period(period)
         if (self.debug or self.trace) and self.stack_trace:
             variable_infos = (column_name, period)
@@ -156,10 +142,8 @@ class Simulation(object):
         holder = self.get_or_new_holder(column_name)
         return holder.compute_divide(period = period, **parameters)
 
-    def get_array(self, column_name, period = None):
-        if period is None:
-            period = self.period
-        elif not isinstance(period, periods.Period):
+    def get_array(self, column_name, period):
+        if not isinstance(period, periods.Period):
             period = periods.period(period)
         if (self.debug or self.trace) and self.stack_trace:
             variable_infos = (column_name, period)
