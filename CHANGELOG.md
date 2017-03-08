@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.0.0
+
+* Make it mandatory to provide a period when calculating a variable.
+  - When a computation is requested (with *.calculate_output, entities.__call__, *.calculate[_add|_divide], *.compute[_add|_divide]), the argument `period` is no longer optional.
+  - Previously, the period of the simulation was used instead of a missing period. It was error-prone, as values would be returned for the wrong period, without any error or warning to alert the formula writer about a likely coding error.
+
 ## 6.1.0
 
 * Move `base.py` content (file usually located in country packages) to core module `formula_toolbox` so that it can be reused by all countries
