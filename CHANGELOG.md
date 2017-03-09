@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.1
+
+* Add an `extra_require` to `setup.py` to express a dependency on `OpenFisca-Parsers`.
+
 ## 7.0.0
 
 * Make it mandatory to provide a period when calculating a variable.
