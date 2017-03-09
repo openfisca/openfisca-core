@@ -58,8 +58,8 @@ simulation = tax_benefit_system.new_scenario().init_single_entity(
     period = reference_period.first_month,
     parent1 = dict(),
     ).new_simulation(debug = True)
-formula_1_result = simulation.calculate('formula_1')
-formula_2_result = simulation.calculate('formula_2')
+formula_1_result = simulation.calculate('formula_1', period = reference_period)
+formula_2_result = simulation.calculate('formula_2', period = reference_period)
 formula_3_holder = simulation.holder_by_name['formula_3']
 
 

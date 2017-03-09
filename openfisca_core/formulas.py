@@ -152,7 +152,7 @@ class DatedFormula(AbstractGroupedFormula):
 
         return new
 
-    def compute(self, period = None, **parameters):
+    def compute(self, period, **parameters):
         dated_holder = None
         stop_instant = period.stop
         for dated_formula in self.dated_formulas:
@@ -332,7 +332,7 @@ class SimpleFormula(AbstractFormula):
             if len(requested_periods_by_variable_name[variable_name]) == 0:
                 del requested_periods_by_variable_name[variable_name]
 
-    def compute(self, period = None, **parameters):
+    def compute(self, period, **parameters):
         """
         Call the formula function (if needed) and return a dated holder containing its result.
 
@@ -342,7 +342,6 @@ class SimpleFormula(AbstractFormula):
         and a default value is returned for the latter variable.
         Then the calculation continues normally.
         """
-        assert period is not None
         holder = self.holder
         column = holder.column
         entity = holder.entity
@@ -350,6 +349,8 @@ class SimpleFormula(AbstractFormula):
         debug = simulation.debug
         debug_all = simulation.debug_all
         trace = simulation.trace
+
+        assert (period is not None) or (column.definition_period == ETERNITY)
 
         max_nb_cycles = parameters.get('max_nb_cycles')
         extra_params = parameters.get('extra_params')

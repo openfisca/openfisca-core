@@ -36,13 +36,13 @@ def test_formula_neutralization():
     simulation = scenario.new_simulation(debug = True, reference = True)
     rsa = simulation.calculate('rsa', period = '2013-01')
     assert_near(rsa, 300, absolute_error_margin = 0)
-    revenu_disponible = simulation.calculate('revenu_disponible')
+    revenu_disponible = simulation.calculate('revenu_disponible', period = year)
     assert_near(revenu_disponible, 3600, absolute_error_margin = 0)
 
     reform_simulation = scenario.new_simulation(debug = True)
     rsa_reform = reform_simulation.calculate('rsa', period = '2013-01')
     assert_near(rsa_reform, 0, absolute_error_margin = 0)
-    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
+    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible', period = year)
     assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
 
 
@@ -66,19 +66,19 @@ def test_input_variable_neutralization():
             ),
         )
     simulation = scenario.new_simulation(reference = True)
-    salaire_brut_annuel = simulation.calculate_add('salaire_brut')
+    salaire_brut_annuel = simulation.calculate_add('salaire_brut', period = year)
     assert_near(salaire_brut_annuel, [120000, 60000], absolute_error_margin = 0)
     salaire_brut_mensuel = simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel, [10000, 5000], absolute_error_margin = 0)
-    revenu_disponible = simulation.calculate('revenu_disponible')
+    revenu_disponible = simulation.calculate('revenu_disponible', period = year)
     assert_near(revenu_disponible, [60480, 30240], absolute_error_margin = 0)
 
     reform_simulation = scenario.new_simulation()
-    salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut')
+    salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut', period = year)
     assert_near(salaire_brut_annuel_reform, [0, 0], absolute_error_margin = 0)
     salaire_brut_mensuel_reform = reform_simulation.calculate('salaire_brut', period = '2013-01')
     assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
-    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible')
+    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible', period = year)
     assert_near(revenu_disponible_reform, [3600, 3600], absolute_error_margin = 0)
 
 
@@ -101,8 +101,8 @@ def test_permanent_variable_neutralization():
         )
     simulation = scenario.new_simulation(reference = True)
     reform_simulation = scenario.new_simulation()
-    assert str(simulation.calculate('birth')[0]) == '1980-01-01'
-    assert str(reform_simulation.calculate('birth')[0]) == '1970-01-01'
+    assert str(simulation.calculate('birth', None)[0]) == '1980-01-01'
+    assert str(reform_simulation.calculate('birth', None)[0]) == '1970-01-01'
 
 
 def test_split_item_containing_instant():
