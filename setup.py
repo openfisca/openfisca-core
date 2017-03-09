@@ -30,6 +30,9 @@ setup(
         'console_scripts': ['openfisca-run-test=openfisca_core.scripts.run_test:main'],
         },
     extras_require = {
+        'parsers': [
+            'OpenFisca-Parsers >= 1.0.1, < 2.0',
+            ],
         'test': [
             'nose',
             ],
