@@ -31,7 +31,7 @@ setup(
         },
     extras_require = {
         'parsers': [
-            'OpenFisca-Parsers >= 1.0.1, < 2.0',
+            'OpenFisca-Parsers >= 1.0.2, < 2.0',
             ],
         'test': [
             'nose',
