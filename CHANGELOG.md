@@ -2,7 +2,7 @@
 
 ## 7.0.1
 
-* Add an `extra_require` to `setup.py` to express a dependency on `OpenFisca-Parsers`.
+* Declare `Openfisca-Parsers` as an optional dependency of `Openfisca-Core`.
 
 ## 7.0.0
 
