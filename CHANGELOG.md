@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.1
+
+* Declare `Openfisca-Parsers` as an optional dependency of `Openfisca-Core`.
+
 ## 7.0.0
 
 * Make it mandatory to provide a period when calculating a variable.
