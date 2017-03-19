@@ -8,15 +8,19 @@ def check_entity_json(entity_json, entity_class, valid_roles, tax_benefit_system
         if key == 'id':
             if value is None or not isinstance(value, (basestring, int)):
                 raise ValueError(u"Invalid id in entity {}".format(entity_json))
-        elif key in valid_roles:
-            value, error = conv.pipe(
-                conv.make_item_to_singleton(),
-                conv.test_isinstance(list),
-                conv.uniform_sequence(
-                    conv.test_isinstance((basestring, int)),
-                    drop_none_items = True,
-                    )
-                )(value)
+        elif valid_roles.get(key) is not None:
+            role = valid_roles.get(key)
+            if role.max == 1:
+                value, error = conv.test_isinstance((basestring, int))(value)
+            else:
+                value, error = conv.pipe(
+                    conv.make_item_to_singleton(),
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        conv.test_isinstance((basestring, int)),
+                        drop_none_items = True,
+                        )
+                    )(value)
             if error is not None:
                 raise ValueError(u"Invalid description of {}: {}. Error: {}".format(entity_class.key, entity_json, error))
             entity_json[key] = value
@@ -59,8 +63,13 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
             )(entities)
         if error is not None:
             raise ValueError(u"Invalid list of {}: {}. Error: {}".format(entity_type_name, entities, error).encode('utf-8'))
+        if entities is None:
+            entities = test_case[entity_type_name] = [] #  YAML test runner may set these values to None
         entity_class = entity_classes[entity_type_name]
-        valid_roles = [role.key if role.max == 1 else role.plural for role in entity_class.roles] if not entity_class.is_person else []
+        valid_roles = dict(
+            (role.key, role) if (role.max == 1) else (role.plural, role)
+            for role in entity_class.roles
+            ) if not entity_class.is_person else {}
 
         for entity_json in entities:
             check_entity_json(entity_json, entity_class, valid_roles, tax_benefit_system)
