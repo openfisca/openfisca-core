@@ -46,7 +46,14 @@ def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_syst
         else:
             # We only import VariableNotFound here to avoid a circular dependency in imports
             from .taxbenefitsystems import VariableNotFound
-            raise VariableNotFound(u"Variable {} doesn't exist in this tax and benefit system.".format(key))
+            country_package_name, country_package_version = tax_benefit_system.get_package_metadata()
+            error_message = (
+                "You tried to set variable '{0}', but it was not found in the loaded tax benefit system ({1}@{2}). "
+                "Are you sure you spelled '{0}' correctly? "
+                "If this code used to work and suddenly does not, this is most probably linked to an update of the tax benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
+                ).format(key, country_package_name, country_package_version)
+
+            raise VariableNotFound(error_message)
 
     for role in valid_roles.itervalues():
         if role.max != 1 and entity_json.get(role.plural) is None:  # by convention, if no one in the entity has a given non-unique role, it should be [] in the JSON
