@@ -277,10 +277,9 @@ class TaxBenefitSystem(object):
             self.compute_legislation(with_source_file_infos = with_source_file_infos)
         return self._legislation_json
 
-
     @classmethod
     def get_package_metadata(cls):
-        package_name = inspect.getmodule(cls).__package__
+        package_name = inspect.getmodule(cls).__package__.split('.')[0]
         distribution = pkg_resources.get_distribution(package_name)
 
         return distribution.key, distribution.version
