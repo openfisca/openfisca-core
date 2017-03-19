@@ -22,7 +22,14 @@ log = logging.getLogger(__name__)
 
 
 class VariableNotFound(Exception):
-    pass
+    def __init__(self, variable_name, tax_benefit_system):
+        country_package_name, country_package_version = tax_benefit_system.get_package_metadata()
+        message = (
+            u"You tried to set variable '{0}', but it was not found in the loaded tax benefit system ({1}@{2}). "
+            u"Are you sure you spelled '{0}' correctly? "
+            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
+            ).format(variable_name, country_package_name, country_package_version)
+        Exception.__init__(self, message.encode('utf-8'))
 
 
 class VariableNameConflict(Exception):
@@ -231,7 +238,7 @@ class TaxBenefitSystem(object):
     def get_column(self, column_name, check_existence = False):
         column = self.column_by_name.get(column_name)
         if not column and check_existence:
-            raise VariableNotFound(u'Variable "{}" not found in current tax and benefit system'.format(column_name))
+            raise VariableNotFound(column_name, self)
         return column
 
     def update_column(self, column_name, new_column):
