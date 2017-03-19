@@ -7,9 +7,16 @@ from openfisca_core.taxbenefitsystems import VariableNotFound
 
 from test_countries import tax_benefit_system
 
+
 @raises(ValueError)
 def test_all_keys_must_be_valid_entity_names():
     test_case = {'unknown_entity': [{'id': 0, 'salaire_brut': 1}]}
+    test_case, error = check_entities_and_role(test_case, tax_benefit_system, None)
+
+
+@raises(ValueError)
+def test_entities_lists_must_be_singleton_or_list_of_objects():
+    test_case = {'individus': [[], []], 'familles': [{'parents': ['0']}]}
     test_case, error = check_entities_and_role(test_case, tax_benefit_system, None)
 
 
