@@ -442,7 +442,7 @@ class AbstractScenario(object):
     def suggest(self):
         pass  # To be reimplemented
 
-    def attribute_groupless_persons_to_entities(self, test_case, groupless_persons):
+    def attribute_groupless_persons_to_entities(self, test_case, period, groupless_persons):
         """
             Tries to reattribute persons who don't have an entity of each kind.
             Reimplemented by country packages
