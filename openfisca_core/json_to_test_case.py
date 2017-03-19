@@ -3,6 +3,37 @@
 from . import conv
 
 
+def check_entity_json(entity_json, entity_class, valid_roles, tax_benefit_system):
+    for key, value in entity_json.iteritems():
+        if key == 'id':
+            if value is None or not isinstance(value, (basestring, int)):
+                raise ValueError(u"Invalid id in entity {}".format(entity_json))
+        elif key in valid_roles:
+            value, error = conv.pipe(
+                conv.make_item_to_singleton(),
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    conv.test_isinstance((basestring, int)),
+                    drop_none_items = True,
+                    )
+                )(value)
+            if error is not None:
+                raise ValueError(u"Invalid description of {}: {}. Error: {}".format(entity_class.key, entity_json, error))
+            entity_json[key] = value
+        elif tax_benefit_system.column_by_name.get(key) is not None:
+            column = tax_benefit_system.column_by_name[key]
+            if column.entity != entity_class:
+                raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key))
+            value, error = column.json_to_python(value)
+            if error is not None:
+                raise ValueError(u"Invalid value {} for variable {}. Error: {}".format(value, key, error))
+            entity_json[key] = value
+        else:
+            # We only import VariableNotFound here to avoid a circular dependency in imports
+            from .taxbenefitsystems import VariableNotFound
+            raise VariableNotFound(u"Variable {} doesn't exist in this tax and benefit system.".format(key))
+
+
 def check_entities_and_role(test_case, tax_benefit_system, state):
     """
         Check that the test_case describes entities consistent with the tax and benefit system.
@@ -12,35 +43,6 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
             - An entity role is not recognized
             - A variable is declared for an entity it is not defined for (e.g. salary for a family)
     """
-
-    def check_entity_json(entity_json, entity_class, valid_roles):
-        for key, value in entity_json.iteritems():
-            if key == 'id':
-                if value is None or not isinstance(value, (basestring, int)):
-                    raise ValueError(u"Invalid id in entity {}".format(entity_json))
-            elif key in valid_roles:
-                value, error = conv.pipe(
-                    conv.make_item_to_singleton(),
-                    conv.test_isinstance(list),
-                    conv.uniform_sequence(
-                        conv.test_isinstance((basestring, int)),
-                        drop_none_items = True,
-                        )
-                    )(value)
-                if error is not None:
-                    raise ValueError(u"Invalid description of {}: {}. Error: {}".format(entity_class.key, entity_json, error))
-                entity_json[key] = value
-            elif tax_benefit_system.column_by_name.get(key) is not None:
-                column = tax_benefit_system.column_by_name[key]
-                if column.entity != entity_class:
-                    raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key))
-                value, error = column.json_to_python(value)
-                if error is not None:
-                    raise ValueError(u"Invalid value {} for variable {}. Error: {}".format(value, key, error))
-                entity_json[key] = value
-            else:
-                from .taxbenefitsystems import VariableNotFound
-                raise VariableNotFound(u"Variable {} doesn't exist in this tax and benefit system.".format(key))
 
     entity_classes = {entity_class.plural: entity_class for entity_class in tax_benefit_system.entities}
     for entity_type_name, entities in test_case.iteritems():
@@ -59,10 +61,11 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
             raise ValueError(u"Invalid list of {}: {}. Error: {}".format(entity_type_name, entities, error).encode('utf-8'))
         entity_class = entity_classes[entity_type_name]
         valid_roles = [role.key if role.max == 1 else role.plural for role in entity_class.roles] if not entity_class.is_person else []
-        for entity_json in entities:
-            check_entity_json(entity_json, entity_class, valid_roles)
 
-    return test_case, error
+        for entity_json in entities:
+            check_entity_json(entity_json, entity_class, valid_roles, tax_benefit_system)
+
+    return test_case
 
 
 def check_entities_consistency(test_case, tax_benefit_system, state):

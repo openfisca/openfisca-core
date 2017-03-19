@@ -385,9 +385,7 @@ class AbstractScenario(object):
             if state is None:
                 state = conv.default_state
 
-            test_case, error = json_to_test_case.check_entities_and_role(value, self.tax_benefit_system, state)
-            if error is not None:
-                return test_case, error
+            test_case = json_to_test_case.check_entities_and_role(value, self.tax_benefit_system, state)
 
             test_case, error, groupless_persons = json_to_test_case.check_entities_consistency(test_case, self.tax_benefit_system, state)
             if error is not None:
