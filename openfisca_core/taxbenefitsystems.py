@@ -8,6 +8,8 @@ from os import path
 from imp import find_module, load_module
 import importlib
 import logging
+import inspect
+import pkg_resources
 
 from setuptools import find_packages
 
@@ -274,3 +276,11 @@ class TaxBenefitSystem(object):
         if self._legislation_json is None:
             self.compute_legislation(with_source_file_infos = with_source_file_infos)
         return self._legislation_json
+
+
+    @classmethod
+    def get_package_metadata(cls):
+        package_name = inspect.getmodule(cls).__package__
+        distribution = pkg_resources.get_distribution(package_name)
+
+        return distribution.key, distribution.version
