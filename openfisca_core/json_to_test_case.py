@@ -49,35 +49,72 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
                     drop_none_items = True,
                     ),
                 conv.function(set_entities_json_id),
-                conv.uniform_sequence(
-                    conv.struct(
-                        dict(itertools.chain(
-                            dict(
-                                id = conv.pipe(
-                                    conv.test_isinstance((basestring, int)),
-                                    conv.not_none,
-                                    ),
-                                ).iteritems(),
-                            get_role_parsing_dict(entity).iteritems(),
-                            (
-                                (column.name, column.json_to_python)
-                                for column in column_by_name.itervalues()
-                                if column.entity == entity
-                                ),
-                            )),
-                        drop_none_values = True,
-                        ),
-                    drop_none_items = True,
-                    ),
+                # conv.uniform_sequence(
+                #     conv.struct(
+                #         dict(itertools.chain(
+                #             dict(
+                #                 id = conv.pipe(
+                #                     conv.test_isinstance((basestring, int)),
+                #                     conv.not_none,
+                #                     ),
+                #                 ).iteritems(),
+                #             get_role_parsing_dict(entity).iteritems(),
+                #             (
+                #                 (column.name, column.json_to_python)
+                #                 for column in column_by_name.itervalues()
+                #                 if column.entity == entity
+                #                 ),
+                #             )),
+                #         drop_none_values = True,
+                #         ),
+                #     drop_none_items = True,
+                #     ),
                 conv.default([]),
                 )
             for entity in tax_benefit_system.entities
             }
 
+
+
     test_case, error = conv.pipe(
         conv.test_isinstance(dict),
         conv.struct(get_entity_parsing_dict(tax_benefit_system)),
         )(test_case, state = state)
+
+    entity_classes = { entity_class.plural: entity_class for entity_class in tax_benefit_system.entities }
+    for entity_type_name, entities in test_case.iteritems():
+        if entity_type_name not in entity_classes.keys():
+            raise ValueError(u"Invalid entity name: {}".format(entity_type_name))
+        entity_class = entity_classes[entity_type_name]
+        valid_roles = [role.key if role.max == 1 else role.plural for role in entity_class.roles] if not entity_class.is_person else []
+        for entity in entities:
+            for key, value in entity.iteritems():
+                if key == 'id':
+                    if value is None or not isinstance(value, (basestring, int)):
+                        raise ValueError(u"Invalid id in entity {}".format(entity))
+                elif key in valid_roles:
+                    value, error = conv.pipe(
+                        conv.make_item_to_singleton(),
+                        conv.test_isinstance(list),
+                        conv.uniform_sequence(
+                            conv.test_isinstance((basestring, int)),
+                            drop_none_items = True,
+                            )
+                        )(value)
+                    if error is not None:
+                        raise ValueError(u"Invalid description of {}: {}. Error: {}".format(entity_class.key, entity, error))
+                    entity[key] = value
+                elif tax_benefit_system.column_by_name.get(key) is not None:
+                    column = tax_benefit_system.column_by_name[key]
+                    if column.entity != entity_class:
+                        raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key))
+                    value, error = column.json_to_python(value)
+                    if error is not None:
+                        raise ValueError(u"Invalid value {} for variable {}. Error: {}".format(value, key, error))
+                    entity[key] = value
+                else:
+                    from .taxbenefitsystems import VariableNotFound
+                    raise VariableNotFound(u"Variable {} doesn't exist in this tax and benefit system.".format(key))
 
     return test_case, error
 
