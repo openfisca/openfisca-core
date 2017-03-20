@@ -34,10 +34,7 @@ class AbstractScenario(object):
         if 'period' not in value:
             date = value.pop('date', None)
             if date is not None:
-                value['period'] = dict(
-                    unit = u'year',
-                    start = date,
-                    )
+                value['period'] = periods.period(date)
         return value, None
 
     def fill_simulation(self, simulation):
