@@ -755,7 +755,26 @@ def period(value, start = None, size = None):
     >>> period(YEAR, u'2014-02')
     Period((YEAR, Instant((2014, 2, 1)), 1))
     """
-    if not isinstance(value, basestring) or value not in (u'day', u'month', u'year'):
+
+    def try_parsing(value, format):
+        try:
+            date = datetime.datetime.strptime(value, format)
+            return date
+        except ValueError:
+            return None
+
+    if isinstance(value, int):
+        return Period((YEAR, Instant((value, 1 ,1)), 1))
+
+    date = try_parsing(value, '%Y')
+    if date:
+        return Period((YEAR, Instant((date.year, date.month ,1)), 1))
+
+    date = try_parsing(value, '%Y-%m')
+    if date:
+        return Period((MONTH, Instant((date.year, date.month ,1)), 1))
+
+    if not isinstance(value, basestring) or value not in (MONTH, YEAR):
         assert start is None, start
         assert size is None, size
         return conv.check(json_or_python_to_period)(value)
