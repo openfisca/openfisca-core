@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.0.1
+
+* Move the dummy country to [its own repository](https://github.com/openfisca/openfisca-dummy-country)
+
 ## 8.0.0
 
 * Raise more explicit error when an invalid test case is given
