@@ -84,7 +84,7 @@ class Column(object):
                 # Value is a dict of (period, value) couples.
                 conv.uniform_mapping(
                     conv.pipe(
-                        periods.json_or_python_to_period,
+                        conv.function(periods.period),
                         conv.not_none,
                         ),
                     conv.pipe(
@@ -118,7 +118,7 @@ class Column(object):
                 # Value is a dict of (period, value) couples.
                 conv.uniform_mapping(
                     conv.pipe(
-                        periods.json_or_python_to_period,
+                        conv.function(periods.period),
                         conv.not_none,
                         ),
                     self.json_to_dated_python,

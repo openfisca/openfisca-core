@@ -1045,9 +1045,3 @@ def json_or_python_to_instant_tuple(value, state = None):
         instant = value
 
     return instant, None
-
-
-def json_or_python_to_period(value, state):
-    if value is None:
-        return None, None
-    return period(value), None

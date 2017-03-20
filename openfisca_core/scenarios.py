@@ -270,7 +270,7 @@ class AbstractScenario(object):
                         axes = make_json_or_python_to_axes(self.tax_benefit_system),
                         input_variables = conv.test_isinstance(dict),  # Real test is done below, once period is known.
                         period = conv.pipe(
-                            periods.json_or_python_to_period,  # TODO: Check that period is valid in params.
+                            conv.function(periods.period),
                             conv.not_none,
                             ),
                         test_case = conv.test_isinstance(dict),  # Real test is done below, once period is known.
@@ -534,8 +534,7 @@ def make_json_or_python_to_axes(tax_benefit_system):
                                         error = N_(u'Invalid type for axe: integer or float expected')),
                                     conv.not_none,
                                     ),
-                                # TODO: Check that period is valid in params.
-                                period = periods.json_or_python_to_period,
+                                period = conv.function(periods.period),
                                 ),
                             ),
                         ),
@@ -653,7 +652,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                     ),
                 output_variables = conv.test_isinstance(dict),
                 period = conv.pipe(
-                    periods.json_or_python_to_period,
+                    conv.function(periods.period),
                     conv.not_none,
                     ),
                 relative_error_margin = conv.pipe(
