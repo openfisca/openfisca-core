@@ -291,74 +291,50 @@ class Period(tuple):
     def __str__(self):
         """Transform period to a string.
 
-        >>> unicode(period(u'year', 2014))
+        >>> unicode(period(YEAR, 2014))
         u'2014'
-        >>> unicode(period(u'month', 2014))
-        u'month:2014'
-        >>> unicode(period(u'day', 2014))
-        u'day:2014'
 
-        >>> unicode(period(u'year', '2014-2'))
+        >>> unicode(period(YEAR, '2014-2'))
         u'year:2014-02'
-        >>> unicode(period(u'month', '2014-2'))
+        >>> unicode(period(MONTH, '2014-2'))
         u'2014-02'
-        >>> unicode(period(u'day', '2014-2'))
-        u'day:2014-02'
 
-        >>> unicode(period(u'year', '2014-3-2'))
-        u'year:2014-03-02'
-        >>> unicode(period(u'month', '2014-3-2'))
-        u'month:2014-03-02'
-        >>> unicode(period(u'day', '2014-3-2'))
-        u'2014-03-02'
+        >>> unicode(period(YEAR, 2012, size = 2))
+        u'year:2012:2'
+        >>> unicode(period(MONTH, 2012, size = 2))
+        u'month:2012-01:2'
+        >>> unicode(period(MONTH, 2012, size = 12))
+        u'2012'
 
-        >>> unicode(period(u'year', 2012, size = 2))
-        u'2012:2'
-        >>> unicode(period(u'month', 2012, size = 2))
-        u'2012-01:2'
-        >>> unicode(period(u'day', 2012, size = 2))
-        u'2012-01-01:2'
-
-        >>> unicode(period(u'year', '2012-3', size = 2))
+        >>> unicode(period(YEAR, '2012-3', size = 2))
         u'year:2012-03:2'
-        >>> unicode(period(u'month', '2012-3', size = 2))
-        u'2012-03:2'
-        >>> unicode(period(u'day', '2012-3', size = 2))
-        u'2012-03-01:2'
-
-        >>> unicode(period(u'year', '2012-3-3', size = 2))
-        u'year:2012-03-03:2'
-        >>> unicode(period(u'month', '2012-3-3', size = 2))
-        u'month:2012-03-03:2'
-        >>> unicode(period(u'day', '2012-3-3', size = 2))
-        u'2012-03-03:2'
+        >>> unicode(period(MONTH, '2012-3', size = 2))
+        u'month:2012-03:2'
+        >>> unicode(period(MONTH, '2012-3', size = 12))
+        u'year:2012-03'
         """
+
         unit, start_instant, size = self
-        year, month, day = start_instant
-        if day == 1:
-            if month == 1 and (unit == u'day' and size == (366 if calendar.isleap(year) else 365) or
-                    unit == u'month' and size == 12 or unit == u'year'):
-                start_instant = start_instant[:1]
-                if unit != u'year':
-                    size = None
-            elif unit == u'day' and size == calendar.monthrange(year, month)[1] or unit in (u'month', u'year'):
-                start_instant = start_instant[:2]
-                if unit not in (u'month', u'year'):
-                    size = None
-        if unit == u'day' and len(start_instant) == 3 \
-                or unit == u'month' and len(start_instant) == 2 \
-                or unit == u'year' and len(start_instant) == 1:
-            unit = None
-        start_str = u'-'.join(
-            unicode(fragment) if index == 0 else u'{:02d}'.format(fragment)
-            for index, fragment in enumerate(start_instant)
-            )
-        size_str = unicode(size) if size is not None and size > 1 else None
-        return u':'.join(
-            fragment
-            for fragment in (unit, start_str, size_str)
-            if fragment is not None
-            )
+        start_instant = start_instant[:2]  # we always ignore the day, 1 by construction
+        year, month = start_instant
+
+        # 1 year long period
+        if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
+            if month == 1:
+                # civil year starting from january
+                return unicode(year)
+            else:
+                # rolling year
+                return u'{}:{}-{:02d}'.format(YEAR, year, month)
+        # simple month
+        if unit == MONTH and size == 1:
+            return u'{}-{:02d}'.format(year, month)
+        # several civil years
+        if unit == YEAR and month == 1:
+            return u'{}:{}:{}'.format(unit, year, size)
+
+        # complex period
+        return u'{}:{}-{:02d}:{}'.format(unit, year, month, size)
 
     @property
     def date(self):
