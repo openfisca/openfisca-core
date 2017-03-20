@@ -242,8 +242,8 @@ def test_update_items():
         check_update_items,
         u'Replace an item by a new item',
         [{"start": "2013-01-01", "stop": "2013-12-31", "value": 0.0}],
-        periods.period('year', 2013).start,
-        periods.period('year', 2013).stop,
+        periods.period(2013).start,
+        periods.period(2013).stop,
         1.0,
         [{"start": "2013-01-01", "stop": "2013-12-31", "value": 1.0}],
         )
@@ -255,8 +255,8 @@ def test_update_items():
             {'start': u'2015-01-01', 'stop': u'2015-12-31', 'value': 9.61},
             {'start': u'2014-01-01', 'stop': u'2014-12-31', 'value': 9.53},
             ],
-        periods.period('year', 2015).start,
-        periods.period('year', 2015).stop,
+        periods.period(2015).start,
+        periods.period(2015).stop,
         1.0,
         [
             {'start': u'2014-01-01', 'stop': u'2014-12-31', 'value': 9.53},
@@ -268,7 +268,7 @@ def test_update_items():
         check_update_items,
         u'Open the stop instant to the future',
         [{"start": "2013-01-01", "stop": "2013-12-31", "value": 0.0}],
-        periods.period('year', 2013).start,
+        periods.period(2013).start,
         None,  # stop instant
         1.0,
         [{"start": "2013-01-01", "value": 1.0}],
@@ -277,8 +277,8 @@ def test_update_items():
         check_update_items,
         u'Insert a new item in the middle of an existing item',
         [{"start": "2010-01-01", "stop": "2013-12-31", "value": 0.0}],
-        periods.period('year', 2011).start,
-        periods.period('year', 2011).stop,
+        periods.period(2011).start,
+        periods.period(2011).stop,
         1.0,
         [
             {"start": "2010-01-01", "stop": "2010-12-31", "value": 0.0},
@@ -293,7 +293,7 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2015).start,
+        periods.period(2015).start,
         None,  # stop instant
         1.0,
         [
@@ -309,8 +309,8 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2014).start,
-        periods.period('year', 2014).stop,
+        periods.period(2014).start,
+        periods.period(2014).stop,
         1.0,
         [
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
@@ -325,7 +325,7 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2014).start,
+        periods.period(2014).start,
         None,  # stop instant
         1.0,
         [
@@ -340,8 +340,8 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2005).start,
-        periods.period('year', 2005).stop,
+        periods.period(2005).start,
+        periods.period(2005).stop,
         1.0,
         [
             {"start": "2005-01-01", "stop": "2005-12-31", "value": 1.0},
@@ -356,8 +356,8 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2003).start,
-        periods.period('year', 2003).stop,
+        periods.period(2003).start,
+        periods.period(2003).stop,
         1.0,
         [
             {"start": "2003-01-01", "stop": "2003-12-31", "value": 1.0},
@@ -372,7 +372,7 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2005).start,
+        periods.period(2005).start,
         None,  # stop instant
         1.0,
         [{"start": "2005-01-01", "value": 1.0}],
@@ -384,7 +384,7 @@ def test_update_items():
             {"start": "2014-01-01", "value": 0.14},
             {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             ],
-        periods.period('year', 2006).start,
+        periods.period(2006).start,
         None,  # stop instant
         1.0,
         [{"start": "2006-01-01", "value": 1.0}],
