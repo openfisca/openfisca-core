@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.0.0
+
+* Raise more explicit error when an invalid test case is given
+* Raise more friendly error when trying to calculate a variable which doesn't exist
+* _Breaking change_: Python exceptions will now be raised when the test case in invalid. Before, only a byriani error was returned. Reusers must therefore adapt their exception handling. 
+
 ## 7.1.0
 
 * Add `Entity.to_json` method. Used by OpenFisca-Web-API in `/entity` endpoint in particular.

@@ -385,9 +385,7 @@ class AbstractScenario(object):
             if state is None:
                 state = conv.default_state
 
-            test_case, error = json_to_test_case.check_entities_and_role(value, self.tax_benefit_system, state)
-            if error is not None:
-                return test_case, error
+            test_case = json_to_test_case.check_entities_and_role(value, self.tax_benefit_system, state)
 
             test_case, error, groupless_persons = json_to_test_case.check_entities_consistency(test_case, self.tax_benefit_system, state)
             if error is not None:
@@ -444,7 +442,7 @@ class AbstractScenario(object):
     def suggest(self):
         pass  # To be reimplemented
 
-    def attribute_groupless_persons_to_entities(self, test_case, groupless_persons):
+    def attribute_groupless_persons_to_entities(self, test_case, period, groupless_persons):
         """
             Tries to reattribute persons who don't have an entity of each kind.
             Reimplemented by country packages
@@ -566,11 +564,22 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
             conv.uniform_mapping(
                 conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.test_in(variables_name),
                     conv.not_none,
                     ),
                 conv.noop,
                 ),
+            )(value, state = state)
+
+        if errors is not None:
+            return input_variables, errors
+
+        for input_variable_name in input_variables.keys():
+            if input_variable_name not in variables_name:
+                # We only import VariableNotFound here to avoid a circular dependency in imports
+                from .taxbenefitsystems import VariableNotFound
+                raise VariableNotFound(input_variable_name, tax_benefit_system)
+
+        input_variables, errors = conv.pipe(
             make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, period),
             conv.empty_to_none,
             )(value, state = state)
@@ -599,8 +608,6 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
 
 
 def make_json_or_python_to_test(tax_benefit_system):
-    column_by_name = tax_benefit_system.column_by_name
-    variables_name = set(column_by_name)
     validate = conv.struct(
         dict(itertools.chain(
             dict(
@@ -622,7 +629,6 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.uniform_mapping(
                         conv.pipe(
                             conv.test_isinstance(basestring),
-                            conv.test_in(variables_name),
                             conv.not_none,
                             ),
                         conv.noop,

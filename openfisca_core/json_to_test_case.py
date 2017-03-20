@@ -1,8 +1,58 @@
 # -*- coding: utf-8 -*-
 
-import itertools
+from copy import deepcopy
 
 from . import conv
+
+
+def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_system):
+
+    def check_id(value):
+        if value is None or not isinstance(value, (basestring, int)):
+            raise ValueError(u"Invalid id in entity {}".format(entity_json).encode('utf-8'))
+
+    def check_role(value, key):
+        role = valid_roles.get(key)
+        if role.max == 1:
+            value, error = conv.test_isinstance((basestring, int))(value)
+        else:
+            value, error = conv.pipe(
+                conv.make_item_to_singleton(),
+                conv.test_isinstance(list),
+                conv.uniform_sequence(
+                    conv.test_isinstance((basestring, int)),
+                    drop_none_items = True,
+                    )
+                )(value)
+
+        if error is not None:
+            raise ValueError(u"Invalid description of {}: {}. Error: {}".format(entity_class.key, entity_json, error).encode('utf-8'))
+        entity_json[key] = value
+
+    def check_variable(value, key):
+        column = tax_benefit_system.column_by_name[key]
+        if column.entity != entity_class:
+            raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key).encode('utf-8'))
+        value, error = column.json_to_python(value)
+        if error is not None:
+            raise ValueError(u"Invalid value {} for variable {}. Error: {}".format(value, key, error).encode('utf-8'))
+        entity_json[key] = value
+
+    for key, value in entity_json.iteritems():
+        if key == 'id':
+            check_id(value)
+        elif valid_roles.get(key) is not None:
+            check_role(value, key)
+        elif tax_benefit_system.column_by_name.get(key) is not None:
+            check_variable(value, key)
+        else:
+            # We only import VariableNotFound here to avoid a circular dependency in imports
+            from .taxbenefitsystems import VariableNotFound
+            raise VariableNotFound(key, tax_benefit_system)
+
+    for role in valid_roles.itervalues():
+        if role.max != 1 and entity_json.get(role.plural) is None:  # by convention, if no one in the entity has a given non-unique role, it should be [] in the JSON
+            entity_json[role.plural] = []
 
 
 def check_entities_and_role(test_case, tax_benefit_system, state):
@@ -15,71 +65,38 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
             - A variable is declared for an entity it is not defined for (e.g. salary for a family)
     """
 
-    def build_role_parser(role):
-        if role.max == 1:
-            return role.key, conv.test_isinstance((basestring, int))
-        else:
-            return role.plural, conv.pipe(
-                conv.make_item_to_singleton(),
-                conv.test_isinstance(list),
-                conv.uniform_sequence(
-                    conv.test_isinstance((basestring, int)),
-                    drop_none_items = True,
-                    ),
-                conv.default([]),
-                )
+    test_case = deepcopy(test_case)  # Avoid side-effects on other references to test_case
+    entity_classes = {entity_class.plural: entity_class for entity_class in tax_benefit_system.entities}
+    for entity_type_name, entities in test_case.iteritems():
+        if entity_classes.get(entity_type_name) is None:
+            raise ValueError(u"Invalid entity name: {}".format(entity_type_name).encode('utf-8'))
+        entities, error = conv.pipe(
+            conv.make_item_to_singleton(),
+            conv.test_isinstance(list),
+            conv.uniform_sequence(
+                conv.test_isinstance(dict),
+                drop_none_items = True,
+                ),
+            conv.function(set_entities_json_id),
+            )(entities)
+        if error is not None:
+            raise ValueError(u"Invalid list of {}: {}. Error: {}".format(entity_type_name, entities, error).encode('utf-8'))
+        if entities is None:
+            entities = test_case[entity_type_name] = []  # YAML test runner may set these values to None
+        entity_class = entity_classes[entity_type_name]
+        valid_roles = dict(
+            (role.key, role) if (role.max == 1) else (role.plural, role)
+            for role in entity_class.roles
+            ) if not entity_class.is_person else {}
 
-    def get_role_parsing_dict(entity):
-        if entity.is_person:
-            return {}
-        else:
-            return dict(
-                build_role_parser(role)
-                for role in entity.roles
-                )
+        for entity_json in entities:
+            check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_system)
 
-    def get_entity_parsing_dict(tax_benefit_system):
-        column_by_name = tax_benefit_system.column_by_name
-        return {
-            entity.plural: conv.pipe(
-                conv.make_item_to_singleton(),
-                conv.test_isinstance(list),
-                conv.uniform_sequence(
-                    conv.test_isinstance(dict),
-                    drop_none_items = True,
-                    ),
-                conv.function(set_entities_json_id),
-                conv.uniform_sequence(
-                    conv.struct(
-                        dict(itertools.chain(
-                            dict(
-                                id = conv.pipe(
-                                    conv.test_isinstance((basestring, int)),
-                                    conv.not_none,
-                                    ),
-                                ).iteritems(),
-                            get_role_parsing_dict(entity).iteritems(),
-                            (
-                                (column.name, column.json_to_python)
-                                for column in column_by_name.itervalues()
-                                if column.entity == entity
-                                ),
-                            )),
-                        drop_none_values = True,
-                        ),
-                    drop_none_items = True,
-                    ),
-                conv.default([]),
-                )
-            for entity in tax_benefit_system.entities
-            }
+    for entity_class in entity_classes.itervalues():
+        if test_case.get(entity_class.plural) is None:
+            test_case[entity_class.plural] = []  # by convention, all entities must be declared in the test_case
 
-    test_case, error = conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct(get_entity_parsing_dict(tax_benefit_system)),
-        )(test_case, state = state)
-
-    return test_case, error
+    return test_case
 
 
 def check_entities_consistency(test_case, tax_benefit_system, state):
