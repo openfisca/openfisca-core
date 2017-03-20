@@ -66,3 +66,9 @@ def test_variables_values_must_be_valid():
 def test_variables_must_exist_in_tbs():
     test_case = {'individus': [{'id': 0, 'salaire_brutte': 1}], 'familles': [{'parents': 0}]}
     test_case = check_entities_and_role(test_case, tax_benefit_system, None)
+
+
+def test_all_entities_should_be_set():
+    test_case = {'individus': [{'id': 0, 'salaire_brut': 1}]}
+    test_case = check_entities_and_role(test_case, tax_benefit_system, None)
+    assert test_case['familles'] is not None

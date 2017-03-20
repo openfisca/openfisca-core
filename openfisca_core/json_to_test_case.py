@@ -92,6 +92,10 @@ def check_entities_and_role(test_case, tax_benefit_system, state):
         for entity_json in entities:
             check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_system)
 
+    for entity_class in entity_classes.itervalues():
+        if test_case.get(entity_class.plural) is None:
+            test_case[entity_class.plural] = []  # by convention, all entities must be declared in the test_case
+
     return test_case
 
 
