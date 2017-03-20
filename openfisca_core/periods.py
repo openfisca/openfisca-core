@@ -727,18 +727,13 @@ def instant_date(instant):
     return instant_date
 
 
-def period(value, start = None, size = None):
+def period(value):
     """Return a new period, aka a triple (unit, start_instant, size).
 
     >>> period(u'2014')
     Period((YEAR, Instant((2014, 1, 1)), 1))
     >>> period(u'year:2014')
     Period((YEAR, Instant((2014, 1, 1)), 1))
-    >>> period(YEAR, 2014)
-    Period((YEAR, Instant((2014, 1, 1)), 1))
-    >>> period(YEAR, u'2014')
-    Period((YEAR, Instant((2014, 1, 1)), 1))
-
 
     >>> period(u'2014-2')
     Period((MONTH, Instant((2014, 2, 1)), 1))
@@ -746,79 +741,77 @@ def period(value, start = None, size = None):
     Period((MONTH, Instant((2014, 2, 1)), 1))
     >>> period(u'month:2014-2')
     Period((MONTH, Instant((2014, 2, 1)), 1))
-    >>> period(MONTH, u'2014-02')
-    Period((MONTH, Instant((2014, 2, 1)), 1))
-
 
     >>> period(u'year:2014-2')
     Period((YEAR, Instant((2014, 2, 1)), 1))
-    >>> period(YEAR, u'2014-02')
-    Period((YEAR, Instant((2014, 2, 1)), 1))
     """
 
-    def try_parsing(value, format):
+    def parse_simple_period(value):
+        """
+        Parses simple periods respecting the ISO format, such as 2012 or 2015-03
+        """
         try:
-            date = datetime.datetime.strptime(value, format)
-            return date
+            date = datetime.datetime.strptime(value, '%Y')
         except ValueError:
-            return None
+            try:
+                date = datetime.datetime.strptime(value, '%Y-%m')
+            except ValueError:
+                return None
+            else:
+                return Period((MONTH, Instant((date.year, date.month, 1)), 1))
+        else:
+            return Period((YEAR, Instant((date.year, date.month, 1)), 1))
 
+    def raise_error(value):
+        raise ValueError(u"Invalid period {}".format(value).encode('utf-8'))
+
+    # check the type
     if isinstance(value, int):
-        return Period((YEAR, Instant((value, 1 ,1)), 1))
+        return Period((YEAR, Instant((value, 1, 1)), 1))
+    if isinstance(value, Period):
+        return value
+    if not isinstance(value, basestring):
+        raise TypeError(u"periods.period argument most be a string, an int, or a period, and cannot be of type {}".format(type(value)).encode('utf-8'))
 
-    date = try_parsing(value, '%Y')
-    if date:
-        return Period((YEAR, Instant((date.year, date.month ,1)), 1))
+    # try to parse as a simple period
+    period = parse_simple_period(value)
+    if period is not None:
+        return period
 
-    date = try_parsing(value, '%Y-%m')
-    if date:
-        return Period((MONTH, Instant((date.year, date.month ,1)), 1))
+    # complex period must have a ':' in their strings
+    if ":" not in value:
+        raise_error(value)
 
-    if not isinstance(value, basestring) or value not in (MONTH, YEAR):
-        assert start is None, start
-        assert size is None, size
-        return conv.check(json_or_python_to_period)(value)
-    unit = unicode(value)
-    assert size is None or isinstance(size, int) and size > 0, size
+    components = value.split(':')
 
-    if isinstance(start, basestring):
-        start = tuple(
-            int(fragment)
-            for fragment in start.split(u'-', 2)[:3]
-            )
-    elif isinstance(start, datetime.date):
-        start = (start.year, start.month, start.day)
-    elif isinstance(start, int):
-        start = (start,)
-    elif isinstance(start, list):
-        assert 1 <= len(start) <= 3
-        start = tuple(start)
-    elif isinstance(start, Period):
-        start = start.start
+    # left-most component must be a valid unit
+    unit = components[0]
+    if unit not in (MONTH, YEAR):
+        raise_error(value)
+
+    # middle component must be a valid iso period
+    base_period = parse_simple_period(components[1])
+    if not base_period:
+        raise_error(value)
+
+    # period like year:2015-03 have a size of 1
+    if len(components) == 2:
+        size = 1
+    # if provided, make sure the size is an integer
+    elif len(components) == 3:
+        try:
+            size = int(components[2])
+        except ValueError:
+            raise_error(value)
+    # if there is more than 2 ":" in the string, the period is invalid
     else:
-        assert isinstance(start, tuple)
-        assert 1 <= len(start) <= 3
-    if len(start) == 1:
-        start = Instant((start[0], 1, 1))
-        if size is None:
-            if unit == u'day':
-                size = 366 if calendar.isleap(start[0]) else 365
-            elif unit == u'month':
-                size = 12
-            else:
-                size = 1
-    elif len(start) == 2:
-        start = Instant((start[0], start[1], 1))
-        if size is None:
-            if unit == u'day':
-                size = calendar.monthrange(start[0], start[1])[1]
-            else:
-                size = 1
-    else:
-        start = Instant(start)
-        if size is None:
-            size = 1
-    return Period((unit, start, size))
+        raise_error(value)
+
+    # reject ambiguous period such as month:2014
+    if base_period.unit == YEAR and unit == MONTH:
+        raise_error(value)
+
+    return Period((unit, base_period.start, size))
 
 
 def compare_period_size(a, b):
