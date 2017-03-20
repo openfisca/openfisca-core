@@ -10,7 +10,7 @@ from openfisca_core.periods import YEAR
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from openfisca_core.formulas import DIVIDE
-from dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
 
 

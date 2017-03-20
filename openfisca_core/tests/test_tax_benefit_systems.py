@@ -3,7 +3,7 @@
 from nose.tools import assert_equal
 
 from openfisca_core import legislations
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 
 def test_multiple_xml_based_tax_benefit_system():

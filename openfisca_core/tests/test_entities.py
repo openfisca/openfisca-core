@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 from openfisca_core.tools import assert_near
-from dummy_country.entities import Famille, Individu
+from openfisca_dummy_country.entities import Famille, Individu
 from test_countries import tax_benefit_system
 
 TEST_CASE = {

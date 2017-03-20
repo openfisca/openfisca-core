@@ -6,7 +6,7 @@ from nose.tools import nottest, raises
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
 
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 tax_benefit_system = DummyTaxBenefitSystem()
 

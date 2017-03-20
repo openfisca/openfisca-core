@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 
 tax_benefit_system = DummyTaxBenefitSystem()
