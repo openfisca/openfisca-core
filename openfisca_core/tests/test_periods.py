@@ -92,3 +92,18 @@ def test_deprecated_signature():
 @raises(TypeError)
 def test_wrong_argument():
     period({})
+
+
+@raises(TypeError)
+def test_wrong_argument_1():
+    period([])
+
+
+@raises(TypeError)
+def test_none():
+    period(None)
+
+
+@raises(ValueError)
+def test_empty_string():
+    period('')
