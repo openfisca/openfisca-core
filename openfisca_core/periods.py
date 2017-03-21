@@ -291,74 +291,50 @@ class Period(tuple):
     def __str__(self):
         """Transform period to a string.
 
-        >>> unicode(period(u'year', 2014))
+        >>> unicode(period(YEAR, 2014))
         u'2014'
-        >>> unicode(period(u'month', 2014))
-        u'month:2014'
-        >>> unicode(period(u'day', 2014))
-        u'day:2014'
 
-        >>> unicode(period(u'year', '2014-2'))
+        >>> unicode(period(YEAR, '2014-2'))
         u'year:2014-02'
-        >>> unicode(period(u'month', '2014-2'))
+        >>> unicode(period(MONTH, '2014-2'))
         u'2014-02'
-        >>> unicode(period(u'day', '2014-2'))
-        u'day:2014-02'
 
-        >>> unicode(period(u'year', '2014-3-2'))
-        u'year:2014-03-02'
-        >>> unicode(period(u'month', '2014-3-2'))
-        u'month:2014-03-02'
-        >>> unicode(period(u'day', '2014-3-2'))
-        u'2014-03-02'
+        >>> unicode(period(YEAR, 2012, size = 2))
+        u'year:2012:2'
+        >>> unicode(period(MONTH, 2012, size = 2))
+        u'month:2012-01:2'
+        >>> unicode(period(MONTH, 2012, size = 12))
+        u'2012'
 
-        >>> unicode(period(u'year', 2012, size = 2))
-        u'2012:2'
-        >>> unicode(period(u'month', 2012, size = 2))
-        u'2012-01:2'
-        >>> unicode(period(u'day', 2012, size = 2))
-        u'2012-01-01:2'
-
-        >>> unicode(period(u'year', '2012-3', size = 2))
+        >>> unicode(period(YEAR, '2012-3', size = 2))
         u'year:2012-03:2'
-        >>> unicode(period(u'month', '2012-3', size = 2))
-        u'2012-03:2'
-        >>> unicode(period(u'day', '2012-3', size = 2))
-        u'2012-03-01:2'
-
-        >>> unicode(period(u'year', '2012-3-3', size = 2))
-        u'year:2012-03-03:2'
-        >>> unicode(period(u'month', '2012-3-3', size = 2))
-        u'month:2012-03-03:2'
-        >>> unicode(period(u'day', '2012-3-3', size = 2))
-        u'2012-03-03:2'
+        >>> unicode(period(MONTH, '2012-3', size = 2))
+        u'month:2012-03:2'
+        >>> unicode(period(MONTH, '2012-3', size = 12))
+        u'year:2012-03'
         """
+
         unit, start_instant, size = self
-        year, month, day = start_instant
-        if day == 1:
-            if month == 1 and (unit == u'day' and size == (366 if calendar.isleap(year) else 365) or
-                    unit == u'month' and size == 12 or unit == u'year'):
-                start_instant = start_instant[:1]
-                if unit != u'year':
-                    size = None
-            elif unit == u'day' and size == calendar.monthrange(year, month)[1] or unit in (u'month', u'year'):
-                start_instant = start_instant[:2]
-                if unit not in (u'month', u'year'):
-                    size = None
-        if unit == u'day' and len(start_instant) == 3 \
-                or unit == u'month' and len(start_instant) == 2 \
-                or unit == u'year' and len(start_instant) == 1:
-            unit = None
-        start_str = u'-'.join(
-            unicode(fragment) if index == 0 else u'{:02d}'.format(fragment)
-            for index, fragment in enumerate(start_instant)
-            )
-        size_str = unicode(size) if size is not None and size > 1 else None
-        return u':'.join(
-            fragment
-            for fragment in (unit, start_str, size_str)
-            if fragment is not None
-            )
+        start_instant = start_instant[:2]  # we always ignore the day, 1 by construction
+        year, month = start_instant
+
+        # 1 year long period
+        if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
+            if month == 1:
+                # civil year starting from january
+                return unicode(year)
+            else:
+                # rolling year
+                return u'{}:{}-{:02d}'.format(YEAR, year, month)
+        # simple month
+        if unit == MONTH and size == 1:
+            return u'{}-{:02d}'.format(year, month)
+        # several civil years
+        if unit == YEAR and month == 1:
+            return u'{}:{}:{}'.format(unit, year, size)
+
+        # complex period
+        return u'{}:{}-{:02d}:{}'.format(unit, year, month, size)
 
     @property
     def date(self):
@@ -751,135 +727,91 @@ def instant_date(instant):
     return instant_date
 
 
-def period(value, start = None, size = None):
+def period(value):
     """Return a new period, aka a triple (unit, start_instant, size).
 
     >>> period(u'2014')
-    Period((u'year', Instant((2014, 1, 1)), 1))
-    >>> period(u'2014:2')
-    Period((u'year', Instant((2014, 1, 1)), 2))
-    >>> period(u'2014-2')
-    Period((u'month', Instant((2014, 2, 1)), 1))
-    >>> period(u'2014-2:2')
-    Period((u'month', Instant((2014, 2, 1)), 2))
-    >>> period(u'2014-2-3')
-    Period((u'day', Instant((2014, 2, 3)), 1))
-    >>> period(u'2014-2-3:2')
-    Period((u'day', Instant((2014, 2, 3)), 2))
-
+    Period((YEAR, Instant((2014, 1, 1)), 1))
     >>> period(u'year:2014')
-    Period((u'year', Instant((2014, 1, 1)), 1))
-    >>> period(u'month:2014')
-    Period((u'month', Instant((2014, 1, 1)), 12))
-    >>> period(u'day:2014')
-    Period((u'day', Instant((2014, 1, 1)), 365))
+    Period((YEAR, Instant((2014, 1, 1)), 1))
+
+    >>> period(u'2014-2')
+    Period((MONTH, Instant((2014, 2, 1)), 1))
+    >>> period(u'2014-02')
+    Period((MONTH, Instant((2014, 2, 1)), 1))
+    >>> period(u'month:2014-2')
+    Period((MONTH, Instant((2014, 2, 1)), 1))
 
     >>> period(u'year:2014-2')
-    Period((u'year', Instant((2014, 2, 1)), 1))
-    >>> period(u'month:2014-2')
-    Period((u'month', Instant((2014, 2, 1)), 1))
-    >>> period(u'day:2014-2')
-    Period((u'day', Instant((2014, 2, 1)), 28))
-
-    >>> period(u'year:2014-2-3')
-    Period((u'year', Instant((2014, 2, 3)), 1))
-    >>> period(u'month:2014-2-3')
-    Period((u'month', Instant((2014, 2, 3)), 1))
-    >>> period(u'day:2014-2-3')
-    Period((u'day', Instant((2014, 2, 3)), 1))
-
-    >>> period(u'year:2014-2-3:2')
-    Period((u'year', Instant((2014, 2, 3)), 2))
-    >>> period(u'month:2014-2-3:2')
-    Period((u'month', Instant((2014, 2, 3)), 2))
-    >>> period(u'day:2014-2-3:2')
-    Period((u'day', Instant((2014, 2, 3)), 2))
-
-    >>> period('year', 2014)
-    Period((u'year', Instant((2014, 1, 1)), 1))
-    >>> period('month', 2014)
-    Period((u'month', Instant((2014, 1, 1)), 12))
-    >>> period('day', 2014)
-    Period((u'day', Instant((2014, 1, 1)), 365))
-
-    >>> period('year', u'2014')
-    Period((u'year', Instant((2014, 1, 1)), 1))
-    >>> period('month', u'2014')
-    Period((u'month', Instant((2014, 1, 1)), 12))
-    >>> period('day', u'2014')
-    Period((u'day', Instant((2014, 1, 1)), 365))
-
-    >>> period('year', u'2014-02')
-    Period((u'year', Instant((2014, 2, 1)), 1))
-    >>> period('month', u'2014-02')
-    Period((u'month', Instant((2014, 2, 1)), 1))
-    >>> period('day', u'2014-02')
-    Period((u'day', Instant((2014, 2, 1)), 28))
-
-    >>> period('year', u'2014-3-2')
-    Period((u'year', Instant((2014, 3, 2)), 1))
-    >>> period('month', u'2014-3-2')
-    Period((u'month', Instant((2014, 3, 2)), 1))
-    >>> period('day', u'2014-3-2')
-    Period((u'day', Instant((2014, 3, 2)), 1))
-
-    >>> period('year', u'2014-3-2', size = 2)
-    Period((u'year', Instant((2014, 3, 2)), 2))
-    >>> period('month', u'2014-3-2', size = 2)
-    Period((u'month', Instant((2014, 3, 2)), 2))
-    >>> period('day', u'2014-3-2', size = 2)
-    Period((u'day', Instant((2014, 3, 2)), 2))
-
-    >>> period('month', instant(u'2014-3-2'), size = 2)
-    Period((u'month', Instant((2014, 3, 2)), 2))
-    >>> period('month', period(u'year', u'2014-3-2'), size = 2)
-    Period((u'month', Instant((2014, 3, 2)), 2))
+    Period((YEAR, Instant((2014, 2, 1)), 1))
     """
-    if not isinstance(value, basestring) or value not in (u'day', u'month', u'year'):
-        assert start is None, start
-        assert size is None, size
-        return conv.check(json_or_python_to_period)(value)
-    unit = unicode(value)
-    assert size is None or isinstance(size, int) and size > 0, size
 
-    if isinstance(start, basestring):
-        start = tuple(
-            int(fragment)
-            for fragment in start.split(u'-', 2)[:3]
-            )
-    elif isinstance(start, datetime.date):
-        start = (start.year, start.month, start.day)
-    elif isinstance(start, int):
-        start = (start,)
-    elif isinstance(start, list):
-        assert 1 <= len(start) <= 3
-        start = tuple(start)
-    elif isinstance(start, Period):
-        start = start.start
-    else:
-        assert isinstance(start, tuple)
-        assert 1 <= len(start) <= 3
-    if len(start) == 1:
-        start = Instant((start[0], 1, 1))
-        if size is None:
-            if unit == u'day':
-                size = 366 if calendar.isleap(start[0]) else 365
-            elif unit == u'month':
-                size = 12
+    def parse_simple_period(value):
+        """
+        Parses simple periods respecting the ISO format, such as 2012 or 2015-03
+        """
+        try:
+            date = datetime.datetime.strptime(value, '%Y')
+        except ValueError:
+            try:
+                date = datetime.datetime.strptime(value, '%Y-%m')
+            except ValueError:
+                return None
             else:
-                size = 1
-    elif len(start) == 2:
-        start = Instant((start[0], start[1], 1))
-        if size is None:
-            if unit == u'day':
-                size = calendar.monthrange(start[0], start[1])[1]
-            else:
-                size = 1
+                return Period((MONTH, Instant((date.year, date.month, 1)), 1))
+        else:
+            return Period((YEAR, Instant((date.year, date.month, 1)), 1))
+
+    def raise_error(value):
+        raise ValueError(u"Invalid period {}".format(value).encode('utf-8'))
+
+    # check the type
+    if isinstance(value, int):
+        return Period((YEAR, Instant((value, 1, 1)), 1))
+    if isinstance(value, Period):
+        return value
+    if not isinstance(value, basestring):
+        raise TypeError(u"periods.period argument most be a string, an int, or a period, and cannot be of type {}".format(type(value)).encode('utf-8'))
+
+    # try to parse as a simple period
+    period = parse_simple_period(value)
+    if period is not None:
+        return period
+
+    # complex period must have a ':' in their strings
+    if ":" not in value:
+        raise_error(value)
+
+    components = value.split(':')
+
+    # left-most component must be a valid unit
+    unit = components[0]
+    if unit not in (MONTH, YEAR):
+        raise_error(value)
+
+    # middle component must be a valid iso period
+    base_period = parse_simple_period(components[1])
+    if not base_period:
+        raise_error(value)
+
+    # period like year:2015-03 have a size of 1
+    if len(components) == 2:
+        size = 1
+    # if provided, make sure the size is an integer
+    elif len(components) == 3:
+        try:
+            size = int(components[2])
+        except ValueError:
+            raise_error(value)
+    # if there is more than 2 ":" in the string, the period is invalid
     else:
-        start = Instant(start)
-        if size is None:
-            size = 1
-    return Period((unit, start, size))
+        raise_error(value)
+
+    # reject ambiguous period such as month:2014
+    if base_period.unit == YEAR and unit == MONTH:
+        raise_error(value)
+
+    return Period((unit, base_period.start, size))
 
 
 def compare_period_size(a, b):
@@ -1113,134 +1045,3 @@ def json_or_python_to_instant_tuple(value, state = None):
         instant = value
 
     return instant, None
-
-
-def make_json_or_python_to_period(min_date = None, max_date = None):
-    """Return a converter that creates a period from a JSON or Python object.
-
-    >>> json_or_python_to_period(u'2014')
-    (Period((u'year', Instant((2014, 1, 1)), 1)), None)
-    >>> json_or_python_to_period(u'2014:2')
-    (Period((u'year', Instant((2014, 1, 1)), 2)), None)
-    >>> json_or_python_to_period(u'2014-2')
-    (Period((u'month', Instant((2014, 2, 1)), 1)), None)
-    >>> json_or_python_to_period(u'2014-2:2')
-    (Period((u'month', Instant((2014, 2, 1)), 2)), None)
-    >>> json_or_python_to_period(u'2014-2-3')
-    (Period((u'day', Instant((2014, 2, 3)), 1)), None)
-    >>> json_or_python_to_period(u'2014-2-3:2')
-    (Period((u'day', Instant((2014, 2, 3)), 2)), None)
-
-    >>> json_or_python_to_period(u'year:2014')
-    (Period((u'year', Instant((2014, 1, 1)), 1)), None)
-    >>> json_or_python_to_period(u'month:2014')
-    (Period((u'month', Instant((2014, 1, 1)), 12)), None)
-    >>> json_or_python_to_period(u'day:2014')
-    (Period((u'day', Instant((2014, 1, 1)), 365)), None)
-
-    >>> json_or_python_to_period(u'year:2014-2')
-    (Period((u'year', Instant((2014, 2, 1)), 1)), None)
-    >>> json_or_python_to_period(u'month:2014-2')
-    (Period((u'month', Instant((2014, 2, 1)), 1)), None)
-    >>> json_or_python_to_period(u'day:2014-2')
-    (Period((u'day', Instant((2014, 2, 1)), 28)), None)
-
-    >>> json_or_python_to_period(u'year:2014-2-3')
-    (Period((u'year', Instant((2014, 2, 3)), 1)), None)
-    >>> json_or_python_to_period(u'month:2014-2-3')
-    (Period((u'month', Instant((2014, 2, 3)), 1)), None)
-    >>> json_or_python_to_period(u'day:2014-2-3')
-    (Period((u'day', Instant((2014, 2, 3)), 1)), None)
-
-    >>> json_or_python_to_period(u'year:2014-2-3:2')
-    (Period((u'year', Instant((2014, 2, 3)), 2)), None)
-    >>> json_or_python_to_period(u'month:2014-2-3:2')
-    (Period((u'month', Instant((2014, 2, 3)), 2)), None)
-    >>> json_or_python_to_period(u'day:2014-2-3:2')
-    (Period((u'day', Instant((2014, 2, 3)), 2)), None)
-    """
-    min_instant = (1870, 1, 1) if min_date is None else (min_date.year, min_date.month, min_date.day)
-    max_instant = (2099, 12, 31) if max_date is None else (max_date.year, max_date.month, max_date.day)
-
-    return conv.pipe(
-        conv.condition(
-            conv.test_isinstance(basestring),
-            input_to_period_tuple,
-            conv.condition(
-                conv.test_isinstance(int),
-                conv.pipe(
-                    conv.test_greater_or_equal(0),
-                    conv.function(lambda year: (u'year', year)),
-                    ),
-                ),
-            ),
-        conv.condition(
-            conv.test_isinstance(dict),
-            conv.pipe(
-                conv.struct(
-                    dict(
-                        size = conv.pipe(
-                            conv.test_isinstance((basestring, int)),
-                            conv.anything_to_int,
-                            conv.test_greater_or_equal(1),
-                            ),
-                        start = conv.pipe(
-                            json_or_python_to_instant_tuple,
-                            conv.not_none,
-                            ),
-                        unit = conv.pipe(
-                            conv.test_isinstance(basestring),
-                            conv.input_to_slug,
-                            conv.test_in((u'day', u'month', u'year')),
-                            conv.not_none,
-                            ),
-                        ),
-                    ),
-                conv.function(lambda value: period(value['unit'], value['start'], value['size'])),
-                ),
-            conv.pipe(
-                conv.test_isinstance((list, tuple)),
-                conv.test(lambda period_tuple: 2 <= len(period_tuple) <= 3, error = N_(u'Invalid period tuple')),
-                conv.function(lambda period_tuple: (tuple(period_tuple) + (None,))[:3]),
-                conv.struct(
-                    (
-                        # unit
-                        conv.pipe(
-                            conv.test_isinstance(basestring),
-                            conv.input_to_slug,
-                            conv.test_in((u'day', u'month', u'year')),
-                            conv.not_none,
-                            ),
-                        # start
-                        conv.pipe(
-                            json_or_python_to_instant_tuple,
-                            conv.not_none,
-                            ),
-                        # size
-                        conv.pipe(
-                            conv.test_isinstance((basestring, int)),
-                            conv.anything_to_int,
-                            conv.test_greater_or_equal(1),
-                            ),
-                        ),
-                    ),
-                conv.function(lambda value: period(*value)),
-                ),
-            ),
-        conv.struct(
-            Period((
-                # unit
-                conv.noop,
-                # start
-                conv.test_between(min_instant, max_instant),
-                # stop
-                conv.noop,
-                )),
-            ),
-        )
-
-
-# Level-2 converters
-
-
-json_or_python_to_period = make_json_or_python_to_period()

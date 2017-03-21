@@ -1,5 +1,17 @@
 # Changelog
 
+## 9.0.0
+
+* Make sure identic periods are stringified the same way
+* _Breaking changes_:
+  - Change `periods.period` signature.
+    - It now only accepts strings.
+  - Restrict the possible inputs for `periods.period`
+    - The authorized formats are listed in [the doc](https://doc.openfisca.fr/periodsinstants.html)
+  - Deprecate and remove:
+    - `periods.json_or_python_to_period`
+    - `periods.make_json_or_python_to_period`
+
 ## 8.0.1
 
 * Move the dummy country to [its own repository](https://github.com/openfisca/openfisca-dummy-country)
