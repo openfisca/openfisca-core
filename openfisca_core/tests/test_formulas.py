@@ -7,8 +7,8 @@ from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
-from openfisca_core.tests import dummy_country
-from openfisca_core.tests.dummy_country.entities import Individu
+import openfisca_dummy_country as dummy_country
+from openfisca_dummy_country.entities import Individu
 
 
 class choice(Variable):

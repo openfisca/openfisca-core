@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_core.tests import dummy_country
+from openfisca_dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country.entities import Individu
 from openfisca_core.variables import Variable
 from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
-from openfisca_core.tests.dummy_country.entities import Individu
 
 
 class input(Variable):
@@ -36,7 +36,7 @@ class output(Variable):
 
 
 def get_filled_tbs():
-    tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+    tax_benefit_system = DummyTaxBenefitSystem()
     tax_benefit_system.add_variables(input, intermediate, output)
 
     return tax_benefit_system

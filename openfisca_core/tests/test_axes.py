@@ -1,5 +1,5 @@
 from openfisca_core.tools import assert_near
-from dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 
 tax_benefit_system = DummyTaxBenefitSystem()

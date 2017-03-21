@@ -3,7 +3,7 @@ import os
 
 from nose.tools import raises
 
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
 dummy_extension_path = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'dummy_extension')

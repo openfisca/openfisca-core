@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '8.0.0',
+    version = '8.0.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -35,6 +35,7 @@ setup(
             ],
         'test': [
             'nose',
+            'openfisca-dummy-country'
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in

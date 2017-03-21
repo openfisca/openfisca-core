@@ -6,12 +6,12 @@ from nose.tools import nottest, raises
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
 
-from openfisca_core.tests.dummy_country import DummyTaxBenefitSystem
+from openfisca_dummy_country import DummyTaxBenefitSystem
 
 tax_benefit_system = DummyTaxBenefitSystem()
 
-openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-yamls_tests_dir = os.path.join(openfisca_core_dir, 'openfisca_core', 'tests', 'tests_yaml')
+openfisca_dummy_country_dir = pkg_resources.get_distribution('OpenFisca-Dummy-Country').location
+yamls_tests_dir = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'tests')
 
 # Declare that these two functions are not tests to run with nose
 nottest(run_tests)
