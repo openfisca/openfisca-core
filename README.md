@@ -12,7 +12,7 @@ The documentation of the project is hosted at http://doc.openfisca.fr/
 ## Install for development
 
 This is the way to install OpenFisca-Core for development. If you just want to modify the legislation formulas and/or parameters,
-just follow the [installation section](http://doc.openfisca.fr/en/install.html) of the documentation.
+just follow the [installation section](http://doc.openfisca.fr/install.html) of the documentation.
 
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
