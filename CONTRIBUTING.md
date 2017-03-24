@@ -1,1 +1,1 @@
-Please read the [contributor guidelines](http://doc.openfisca.fr/contribute/guidelines.html).
+Please read the [contributor guidelines](https://doc.openfisca.fr/contribute/guidelines.html).
