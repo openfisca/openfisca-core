@@ -51,9 +51,19 @@ def test_params():
             ),
         ).new_simulation()
     assert_near(simulation.calculate('revenu_disponible', year), [7000], absolute_error_margin=0.01)
+
+
+def test_bareme():
+    year = 2017
+
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            salaire_brut = 20000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('csg', year), [102], absolute_error_margin=0.01)
+    expected_result = 0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600
+    assert_near(simulation.calculate('contribution_sociale', year), [expected_result], absolute_error_margin=0.01)
 
 
 def test_1_axis():
