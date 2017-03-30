@@ -50,6 +50,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(exclude=['openfisca_core.tests*']),
+    packages = find_packages(),
     test_suite = 'nose.collector',
     )
