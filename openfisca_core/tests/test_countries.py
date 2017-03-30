@@ -47,7 +47,10 @@ def test_params():
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
         parent1 = dict(
-            salaire_brut = 2000,
+            salaire_imposable = 10000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate('revenu_disponible', year), [7000], absolute_error_margin=0.01)
             ),
         ).new_simulation()
     assert_near(simulation.calculate('csg', year), [102], absolute_error_margin=0.01)
