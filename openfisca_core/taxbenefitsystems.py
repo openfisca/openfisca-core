@@ -245,12 +245,19 @@ class TaxBenefitSystem(object):
         self.column_by_name[column_name] = new_column
 
     def neutralize_variable(self, variable_name):
+        """
+        Neutralizes an OpenFisca variable existing in the tax and benefit system.
+
+        A neutralized variable always returns its default value when computed.
+
+        Trying to set inputs for a neutralized variable has no effect.
+        """
         self.update_column(variable_name, neutralize_column(self.get_column(variable_name)))
 
     def neutralize_column(self, column_name):
         print(
             u"Warning: the neutralize_column method has been renamed to neutralize_variable. "
-            u"neutralize_column has thus been deprecated and will be removed soon. "
+            u"neutralize_column has thus been deprecated and will be removed in the next major version. "
             u"Please update your code."
             )
         self.neutralize_variable(column_name)
