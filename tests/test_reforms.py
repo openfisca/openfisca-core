@@ -22,7 +22,7 @@ def test_formula_neutralization():
 
     class test_rsa_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('rsa')
+            self.neutralize_variable('rsa')
 
     reform = test_rsa_neutralization(tax_benefit_system)
 
@@ -50,7 +50,7 @@ def test_input_variable_neutralization():
 
     class test_salaire_brut_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('salaire_brut')
+            self.neutralize_variable('salaire_brut')
 
     reform = test_salaire_brut_neutralization(tax_benefit_system)
 
@@ -86,7 +86,7 @@ def test_permanent_variable_neutralization():
 
     class test_date_naissance_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('birth')
+            self.neutralize_variable('birth')
 
     reform = test_date_naissance_neutralization(tax_benefit_system)
 

@@ -244,8 +244,16 @@ class TaxBenefitSystem(object):
     def update_column(self, column_name, new_column):
         self.column_by_name[column_name] = new_column
 
+    def neutralize_variable(self, variable_name):
+        self.update_column(variable_name, neutralize_column(self.get_column(variable_name)))
+
     def neutralize_column(self, column_name):
-        self.update_column(column_name, neutralize_column(self.get_column(column_name)))
+        print(
+            u"Warning: the neutralize_column method has been renamed to neutralize_variable. "
+            u"neutralize_column has thus been deprecated and will be removed soon. "
+            u"Please update your code."
+            )
+        self.neutralize_variable(column_name)
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         """
