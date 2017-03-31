@@ -1,5 +1,11 @@
 # Changelog
 
+## 9.1.0
+
+* Rename `neutralize_column` to `neutralize_variable`
+  - Deprecate `neutralize_column` without removing it
+* Document `neutralize_variable`
+
 ## 9.0.2
 
 * Fix spelling in error messages
