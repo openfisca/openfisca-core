@@ -5,13 +5,13 @@ import datetime
 from nose.tools import raises
 from nose.tools import assert_equal
 
-from .. import columns, periods, reforms
-from ..periods import MONTH
-from ..reforms import Reform
-from ..formulas import dated_function
-from ..variables import Variable, DatedVariable
-from ..periods import Instant
-from ..tools import assert_near
+from openfisca_core import columns, periods, reforms
+from openfisca_core.periods import MONTH
+from openfisca_core.reforms import Reform
+from openfisca_core.formulas import dated_function
+from openfisca_core.variables import Variable, DatedVariable
+from openfisca_core.periods import Instant
+from openfisca_core.tools import assert_near
 from openfisca_dummy_country.entities import Famille
 from openfisca_dummy_country import DummyTaxBenefitSystem
 

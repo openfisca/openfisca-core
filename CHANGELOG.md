@@ -1,5 +1,11 @@
 # Changelog
 
+## 9.0.1
+
+* Test marginal scales
+* Move tests out of the main package
+* These changes are transparent for users
+
 ## 9.0.0
 
 * Make sure identic periods are stringified the same way

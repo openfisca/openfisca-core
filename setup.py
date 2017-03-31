@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '9.0.0',
+    version = '9.0.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -35,7 +35,7 @@ setup(
             ],
         'test': [
             'nose',
-            'openfisca-dummy-country'
+            'openfisca-dummy-country >= 0.1.2'
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
@@ -50,6 +50,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(exclude=['openfisca_core.tests*']),
+    packages = find_packages(),
     test_suite = 'nose.collector',
     )
