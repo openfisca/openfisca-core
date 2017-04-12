@@ -10,6 +10,7 @@ import importlib
 import logging
 import inspect
 import pkg_resources
+import warnings
 
 from setuptools import find_packages
 
@@ -250,15 +251,16 @@ class TaxBenefitSystem(object):
 
         A neutralized variable always returns its default value when computed.
 
-        Trying to set inputs for a neutralized variable has no effect.
+        Trying to set inputs for a neutralized variable has no effect except raising a warning.
         """
         self.update_column(variable_name, neutralize_column(self.get_column(variable_name)))
 
     def neutralize_column(self, column_name):
-        print(
-            u"Warning: the neutralize_column method has been renamed to neutralize_variable. "
+        warnings.warn(
+            u"The neutralize_column method has been renamed to neutralize_variable. "
             u"neutralize_column has thus been deprecated and will be removed in the next major version. "
-            u"Please update your code."
+            u"Please update your code.",
+            Warning
             )
         self.neutralize_variable(column_name)
 
