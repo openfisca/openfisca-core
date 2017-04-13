@@ -454,22 +454,6 @@ class AbstractScenario(object):
         return test_case, None
 
 
-def extract_output_variables_name_to_ignore(output_variables_name_to_ignore):
-    def extract_output_variables_name_to_ignore_converter(value, state = None):
-        if value is None:
-            return value, None
-
-        new_value = collections.OrderedDict()
-        for variable_name, variable_value in value.iteritems():
-            if variable_name.startswith(u'IGNORE_'):
-                variable_name = variable_name[len(u'IGNORE_'):]
-                output_variables_name_to_ignore.add(variable_name)
-            new_value[variable_name] = variable_value
-        return new_value, None
-
-    return extract_output_variables_name_to_ignore_converter
-
-
 def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, period):
     def json_or_python_to_array_by_period_by_variable_name(value, state = None):
         if value is None:
@@ -672,15 +656,8 @@ def make_json_or_python_to_test(tax_benefit_system):
             return value, None
         if state is None:
             state = conv.default_state
-        output_variables_name_to_ignore = set()
         value, error = conv.pipe(
             conv.test_isinstance(dict),
-            conv.struct(
-                dict(
-                    output_variables = extract_output_variables_name_to_ignore(output_variables_name_to_ignore),
-                    ),
-                default = conv.noop,
-                ),
             validate,
             )(value, state = state)
         if error is not None:
@@ -729,7 +706,6 @@ def make_json_or_python_to_test(tax_benefit_system):
                 keywords = keywords,
                 name = name,
                 output_variables = output_variables,
-                output_variables_name_to_ignore = output_variables_name_to_ignore,
                 relative_error_margin = relative_error_margin,
                 scenario = scenario,
                 ).iteritems()

@@ -213,10 +213,7 @@ def _run_test(period_str, test, verbose = False, options = {}):
     simulation = scenario.new_simulation(debug = verbose)
     output_variables = test.get(u'output_variables')
     if output_variables is not None:
-        output_variables_name_to_ignore = test.get(u'output_variables_name_to_ignore') or set()
         for variable_name, expected_value in output_variables.iteritems():
-            if not options.get('force') and variable_name in output_variables_name_to_ignore:
-                continue
             if isinstance(expected_value, dict):
                 for requested_period, expected_value_at_period in expected_value.iteritems():
                     assert_near(
