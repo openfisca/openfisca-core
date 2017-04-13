@@ -56,6 +56,10 @@ def test_run_tests_from_directory():
     assert run_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}) == 5
 
 
+def test_with_reform():
+    run_yaml_test('test_with_reform', options = {'default_absolute_error_margin': 0.01})
+
+
 @raises(AssertionError)
 def test_run_tests_from_directory_fail():
     run_tests(tax_benefit_system, yamls_tests_dir, options = {'default_absolute_error_margin': 0.01})
