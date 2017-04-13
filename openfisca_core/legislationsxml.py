@@ -191,6 +191,11 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                 transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
                 for item in value
                 ]
+        elif key == 'END':
+            parameter_json['ends'] = [
+                transform_end_xml_json_to_json(item)
+                for item in value
+                ]
         else:
             parameter_json[key] = value
     if parameter_json.get('format') is None:
@@ -247,11 +252,40 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
     return value_json
 
 
+def transform_end_xml_json_to_json(end_xml_json):
+    comments = []
+    end_json = collections.OrderedDict()
+    for key, value in end_xml_json.iteritems():
+        assert key not in ('code', 'format', 'type')
+        if key == 'deb':
+            end_json['start'] = value
+        elif key in ('tail', 'text'):
+            comments.append(value)
+        else:
+            end_json[key] = value
+    if comments:
+        end_json['comment'] = u'\n\n'.join(comments)
+    return end_json
+
+
 def transform_values_holder_xml_json_to_json(values_holder_xml_json):
-    return [
+    values = [
         transform_value_xml_json_to_json(item, float)
         for item in values_holder_xml_json['VALUE']
         ]
+
+    if 'END' in values_holder_xml_json:
+        ends = [
+            transform_end_xml_json_to_json(item)
+            for item in values_holder_xml_json['END']
+            ]
+    else:
+        ends = []
+
+    # Sort by "deb" date
+    sorted_values_json = sorted(values + ends, key = lambda value_xml_json: value_xml_json['start'], reverse = True)
+
+    return sorted_values_json
 
 
 def validate_bracket_xml_json(bracket, state = None):
@@ -507,6 +541,13 @@ def validate_parameter_xml_json(parameter, state = None):
                     conv.empty_to_none,
                     conv.not_none,
                     ),
+                END = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_end_xml_json,
+                        drop_none_items = True,
+                        ),
+                    ),
                 xml_file_path = conv.test_isinstance(basestring),
                 # baremes-ipp related attributes
                 conflicts = conv.pipe(
@@ -680,6 +721,44 @@ def validate_value_xml_json(value, state = None):
     return validated_value, errors
 
 
+def validate_end_xml_json(value, state = None):
+    if value is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, value)
+    validated_value, errors = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                deb = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                end_line_number = conv.test_isinstance(int),
+                start_line_number = conv.test_isinstance(int),
+                tail = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                text = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(value, state = state)
+    conv.remove_ancestor_from_state(state, value)
+    return validated_value, errors
 def validate_values_xml_json_dates(values_xml_json, state = None):
     if not values_xml_json:
         return values_xml_json, None
@@ -722,6 +801,13 @@ validate_values_holder_xml_json = conv.struct(
             validate_values_xml_json_dates,
             conv.empty_to_none,
             conv.not_none,
+            ),
+        END = conv.pipe(
+            conv.test_isinstance(list),
+            conv.uniform_sequence(
+                validate_end_xml_json,
+                drop_none_items = True,
+                ),
             ),
         xml_file_path = conv.test_isinstance(basestring),
         # baremes-ipp related attributes
