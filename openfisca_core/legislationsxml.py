@@ -535,7 +535,6 @@ def validate_parameter_xml_json(parameter, state = None):
                         validate_value_xml_json,
                         drop_none_items = True,
                         ),
-                    validate_values_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -752,33 +751,6 @@ def validate_end_xml_json(value, state = None):
         )(value, state = state)
     conv.remove_ancestor_from_state(state, value)
     return validated_value, errors
-def validate_values_xml_json_dates(values_xml_json, state = None):
-    if not values_xml_json:
-        return values_xml_json, None
-    if state is None:
-        state = conv.default_state
-
-    errors = {}
-    for index, value_xml_json in enumerate(values_xml_json):
-        to_date_str = value_xml_json.get('fin')
-        if to_date_str is not None and value_xml_json['deb'] > to_date_str:
-            errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
-
-    sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'],
-        reverse = True)
-    next_value_xml_json = sorted_values_xml_json[0]
-    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None), 1):
-        to_date_str = value_xml_json.get('fin')
-        if to_date_str is None:
-            errors.setdefault(index, {})['fin'] = state._(u"Missing value")
-        else:
-            next_date_str = (datetime.date(*(int(fragment) for fragment in to_date_str.split('-'))) +
-                datetime.timedelta(days = 1)).isoformat()
-            if next_date_str > next_value_xml_json['deb']:
-                errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
-        next_value_xml_json = value_xml_json
-
-    return sorted_values_xml_json, errors or None
 
 
 validate_values_holder_xml_json = conv.struct(
@@ -791,7 +763,6 @@ validate_values_holder_xml_json = conv.struct(
                 validate_value_xml_json,
                 drop_none_items = True,
                 ),
-            validate_values_xml_json_dates,
             conv.empty_to_none,
             conv.not_none,
             ),
