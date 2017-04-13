@@ -235,8 +235,6 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
         assert key not in ('code', 'format', 'type')
         if key == 'deb':
             value_json['start'] = value
-        elif key == 'fin':
-            value_json['stop'] = value
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'valeur':
@@ -681,11 +679,6 @@ def validate_value_xml_json(value, state = None):
                     conv.not_none,
                     ),
                 end_line_number = conv.test_isinstance(int),
-                fin = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    ),
                 fuzzy = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.input_to_slug,
