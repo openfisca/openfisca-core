@@ -33,23 +33,13 @@ def test_fail():
     run_yaml_test('test_failure', options = {'default_absolute_error_margin': 0.01})
 
 
-def test_ignore_test():
-    # The 2nd test is ignored
-    assert run_yaml_test('test_ignore', options = {'default_absolute_error_margin': 0.01}) == 1
-
-
-@raises(AssertionError)
-def test_force():
-    run_yaml_test('test_ignore', options = {'force': True, 'default_absolute_error_margin': 0.01})
-
-
 def test_relative_error_margin_success():
     run_yaml_test('test_relative_error_margin', options = {'default_absolute_error_margin': 0.01})
 
 
 @raises(AssertionError)
 def test_relative_error_margin_fail():
-    run_yaml_test('test_relative_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_yaml_test('failing_test_relative_error_margin', options = {'default_absolute_error_margin': 0.01})
 
 
 def test_absolute_error_margin_success():
@@ -58,7 +48,7 @@ def test_absolute_error_margin_success():
 
 @raises(AssertionError)
 def test_absolute_error_margin_fail():
-    run_yaml_test('test_absolute_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_yaml_test('failing_test_absolute_error_margin', options = {'default_absolute_error_margin': 0.01})
 
 
 def test_run_tests_from_directory():
@@ -68,8 +58,7 @@ def test_run_tests_from_directory():
 
 @raises(AssertionError)
 def test_run_tests_from_directory_fail():
-    dir_path = os.path.join(yamls_tests_dir, 'directory')
-    run_tests(tax_benefit_system, dir_path, options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_tests(tax_benefit_system, yamls_tests_dir, options = {'default_absolute_error_margin': 0.01})
 
 
 def test_name_filter():

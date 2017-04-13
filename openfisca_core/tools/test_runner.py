@@ -91,8 +91,6 @@ def run_tests(tax_benefit_system, path, options = {}):
     +-------------------------------+-----------+-------------------------------------------+
     | Key                           | Type      | Role                                      |
     +===============================+===========+===========================================+
-    | force                         | ``bool``  |                                           |
-    +-------------------------------+-----------+                                           +
     | verbose                       | ``bool``  |                                           |
     +-------------------------------+-----------+                                           +
     | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
@@ -116,7 +114,6 @@ def run_tests(tax_benefit_system, path, options = {}):
 
 def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
-    force = options.get('force')
     name_filter = options.get('name_filter')
     if isinstance(name_filter, str):
         name_filter = name_filter.decode('utf-8')
@@ -125,9 +122,6 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
     tests = _parse_yaml_file(tax_benefit_system, path_to_file)
 
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
-
-        if not force and test.get(u'ignore', False):
-            continue
         if name_filter is not None and name_filter not in filename \
                 and name_filter not in (test.get('name', u'')) \
                 and name_filter not in (test.get('keywords', [])):

@@ -13,8 +13,6 @@ def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
     parser = add_tax_benefit_system_arguments(parser)
-    parser.add_argument('-f', '--force', action = 'store_true', default = False,
-        help = 'force testing of tests with "ignore" flag and formulas belonging to "ignore_output_variables" list')
     parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
     parser.add_argument('-m', '--default_relative_error_margin', help = u"relative error margin to use for tests that don't define any", action = 'store', type = float)
@@ -32,7 +30,6 @@ def main():
 
     options = {
         'verbose': args.verbose,
-        'force': args.force,
         'name_filter': args.name_filter,
         'default_relative_error_margin': args.default_relative_error_margin,
         'default_absolute_error_margin': args.default_absolute_error_margin,

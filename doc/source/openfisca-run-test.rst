@@ -39,41 +39,6 @@ Basic use
   # In that case, specify which package to use with the --country_package option
 
 
-Force option
-^^^^^^^^^^^^
-
-
-**test_2.yaml:**
-
-.. code-block:: yaml
-
-    - name: "Basic test"
-      period: 2015
-      input_variables:
-        gross_salary: 1000
-      output_variables:
-        net_salary: 800
-
-    - name: "Failing test"
-      ignore: True
-      period: 2015
-      input_variables:
-        gross_salary: 1000
-      output_variables:
-        net_salary: 0
-
-
-**Command line:**
-
-.. code-block:: shell
-
-  openfisca-run-test test_2.yaml
-  # Success: the second test is ignored
-
-  openfisca-run-test -f test_2.yaml
-  # Failure: the second test is executed and does not pass
-
-
 Error margin
 ^^^^^^^^^^^^
 

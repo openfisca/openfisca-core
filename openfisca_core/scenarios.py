@@ -600,10 +600,6 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
-                ignore = conv.pipe(
-                    conv.test_isinstance((bool, int)),
-                    conv.anything_to_bool,
-                    ),
                 input_variables = conv.pipe(
                     conv.test_isinstance(dict),
                     conv.uniform_mapping(
@@ -676,7 +672,6 @@ def make_json_or_python_to_test(tax_benefit_system):
         absolute_error_margin = test_case.pop(u'absolute_error_margin')
         axes = test_case.pop(u'axes')
         description = test_case.pop(u'description')
-        ignore = test_case.pop(u'ignore')
         input_variables = test_case.pop(u'input_variables')
         keywords = test_case.pop(u'keywords')
         name = test_case.pop(u'name')
@@ -702,7 +697,6 @@ def make_json_or_python_to_test(tax_benefit_system):
             for key, value in dict(
                 absolute_error_margin = absolute_error_margin,
                 description = description,
-                ignore = ignore,
                 keywords = keywords,
                 name = name,
                 output_variables = output_variables,
