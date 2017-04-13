@@ -303,11 +303,14 @@ def generate_dated_bracket_json(bracket_json, instant_str):
     return dated_bracket_json
 
 
-def generate_dated_json_value(values_json, instant_str):
+def generate_dated_json_value(values_json, instant):
     for value_json in values_json:
-        value_stop_str = value_json.get('stop')
-        if value_json['start'] <= instant_str and (value_stop_str is None or instant_str <= value_stop_str):
-            return value_json['value']
+        value_start = value_json.get('start')
+        if value_start <= instant:
+            if 'value' in value_json:
+                return value_json['value']
+            else:
+                return None
     return None
 
 
