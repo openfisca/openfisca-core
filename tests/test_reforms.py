@@ -460,7 +460,7 @@ def test_add_dated_variable():
     assert_near(nouvelle_dated_variable1, 15, absolute_error_margin = 0)
 
 
-def test_add_variable_with_reference():
+def test_update_variable():
 
     class revenu_disponible(Variable):
         definition_period = MONTH
@@ -468,11 +468,11 @@ def test_add_variable_with_reference():
         def function(self, simulation, period):
             return self.zeros() + 10
 
-    class test_add_variable_with_reference(Reform):
+    class test_update_variable(Reform):
         def apply(self):
             self.update_variable(revenu_disponible)
 
-    reform = test_add_variable_with_reference(tax_benefit_system)
+    reform = test_update_variable(tax_benefit_system)
 
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
