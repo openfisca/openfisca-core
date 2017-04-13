@@ -678,12 +678,6 @@ def validate_value_xml_json(value, state = None):
                     conv.not_none,
                     ),
                 end_line_number = conv.test_isinstance(int),
-                fuzzy = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_equals(u'true'),
-                    conv.set_value(True),
-                    ),
                 start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
