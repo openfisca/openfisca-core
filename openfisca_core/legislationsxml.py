@@ -23,6 +23,8 @@ from . import conv
 #    TAUX = 'rate',  # "rate" is singular, because a bracket has only one base.
 #    TRANCHE = 'brackets', # TODO: should be renamed to bracket
 #    VALUE = 'values',
+#    END
+#    PLACEHOLDER
 #    )
 
 default_format = 'float'
