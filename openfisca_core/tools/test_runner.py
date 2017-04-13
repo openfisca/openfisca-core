@@ -13,6 +13,7 @@ import numpy as np
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
+from openfisca_core.scripts import build_reform
 
 
 # Yaml module configuration
@@ -119,7 +120,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
 
-    tests = _parse_yaml_file(tax_benefit_system, path_to_file)
+    tests = _parse_test_file(tax_benefit_system, path_to_file)
 
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
         if name_filter is not None and name_filter not in filename \
@@ -157,7 +158,7 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}
             yield test
 
 
-def _parse_yaml_file(tax_benefit_system, yaml_path):
+def _parse_test_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         tests = yaml.load(yaml_file)
@@ -177,8 +178,14 @@ def _parse_yaml_file(tax_benefit_system, yaml_path):
             default_flow_style = False, indent = 2, width = 120)))
 
     for test in tests:
+        current_tax_benefit_system = tax_benefit_system
+        if test.get('reforms'):
+            for reform_path in test['reforms']:
+                reform = build_reform(reform_path)
+                current_tax_benefit_system = reform(current_tax_benefit_system)
+
         test, error = scenarios.make_json_or_python_to_test(
-            tax_benefit_system = tax_benefit_system
+            tax_benefit_system = current_tax_benefit_system
             )(test)
 
         if error is not None:
