@@ -86,11 +86,11 @@ class birth(Variable):
     label = u"Date de naissance"
 
 
-class depcom(Variable):
+class city_code(Variable):
     column = FixedStrCol(max_length = 5)
     entity = Famille
     column.definition_period = ETERNITY
-    label = u"""Code INSEE "depcom" de la commune de résidence de la famille"""
+    label = u"""Code INSEE "city_code" de la commune de résidence de la famille"""
 
 
 class salaire_brut(Variable):
@@ -123,8 +123,8 @@ class dom_tom(Variable):
 
     def function(self, simulation, period):
         period = period.start.period('year').offset('first-of')
-        depcom = simulation.calculate('depcom', period)
-        return np.logical_or(startswith(depcom, '97'), startswith(depcom, '98'))
+        city_code = simulation.calculate('city_code', period)
+        return np.logical_or(startswith(city_code, '97'), startswith(city_code, '98'))
 
 
 class revenu_disponible(Variable):
@@ -190,12 +190,12 @@ class salaire_net(Variable):
 
 
 tax_benefit_system = TaxBenefitSystem([Famille, Individu])
-tax_benefit_system.add_variables(age_en_mois, birth, depcom, salaire_brut, age,
+tax_benefit_system.add_variables(age_en_mois, birth, city_code, salaire_brut, age,
     dom_tom, revenu_disponible, rsa, salaire_imposable, salaire_net)
 
 
 @timeit
-def check_revenu_disponible(year, depcom, expected_revenu_disponible):
+def check_revenu_disponible(year, city_code, expected_revenu_disponible):
     simulation = simulations.Simulation(period = periods.period(year), tax_benefit_system = tax_benefit_system)
     famille = simulation.entities["famille"]
     famille.count = 3
@@ -204,7 +204,7 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
     individu = simulation.entities["individu"]
     individu.count = 6
     individu.step_size = 2
-    simulation.get_or_new_holder("depcom").array = np.array([depcom, depcom, depcom])
+    simulation.get_or_new_holder("city_code").array = np.array([city_code, city_code, city_code])
     famille.members_entity_id = np.array([0, 0, 1, 1, 2, 2])
     famille.members_legacy_role = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
         PARENT2])

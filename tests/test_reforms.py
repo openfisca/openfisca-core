@@ -31,7 +31,7 @@ def test_formula_neutralization():
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
         period = year,
-        famille = dict(depcom = '75101'),
+        famille = dict(city_code = '75101'),
         parent1 = dict(),
         parent2 = dict(),
         )
@@ -59,7 +59,7 @@ def test_input_variable_neutralization():
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
         period = year,
-        famille = dict(depcom = '75101'),
+        famille = dict(city_code = '75101'),
         parent1 = dict(
             salaire_brut = 120000,
             ),
@@ -98,7 +98,7 @@ def test_permanent_variable_neutralization():
     year = 2013
     scenario = reform.new_scenario().init_single_entity(
         period = year,
-        famille = dict(depcom = '75101'),
+        famille = dict(city_code = '75101'),
         parent1 = dict(
             birth = '1980-01-01',
             salaire_brut = 120000,
