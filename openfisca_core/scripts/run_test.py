@@ -15,8 +15,6 @@ def build_parser():
     parser = add_tax_benefit_system_arguments(parser)
     parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
-    parser.add_argument('-m', '--default_relative_error_margin', help = u"relative error margin to use for tests that don't define any", action = 'store', type = float)
-    parser.add_argument('-M', '--default_absolute_error_margin', help = u"absolute error margin to use for tests that don't define any", action = 'store', type = float)
 
     return parser
 
@@ -31,8 +29,6 @@ def main():
     options = {
         'verbose': args.verbose,
         'name_filter': args.name_filter,
-        'default_relative_error_margin': args.default_relative_error_margin,
-        'default_absolute_error_margin': args.default_absolute_error_margin,
         }
 
     tests_found = False

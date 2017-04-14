@@ -95,10 +95,6 @@ def run_tests(tax_benefit_system, path, options = {}):
     | verbose                       | ``bool``  |                                           |
     +-------------------------------+-----------+                                           +
     | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
-    +-------------------------------+-----------+                                           +
-    | default_absolute_error_margin | ``float`` |                                           |
-    +-------------------------------+-----------+                                           +
-    | default_relative_error_margin | ``float`` |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
@@ -212,9 +208,6 @@ def _run_test(period_str, test, verbose = False, options = {}):
         absolute_error_margin = test.get('absolute_error_margin')
     if test.get('relative_error_margin') is not None:
         relative_error_margin = test.get('relative_error_margin')
-    if absolute_error_margin is None and relative_error_margin is None:
-        absolute_error_margin = options.get('default_absolute_error_margin')
-        relative_error_margin = options.get('default_relative_error_margin')
 
     scenario = test['scenario']
     scenario.suggest()
