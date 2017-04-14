@@ -2,7 +2,14 @@
 
 from datetime import date  # noqa analysis:ignore
 
-from numpy import maximum as max_, minimum as min_, logical_not as not_, where, select   # noqa analysis:ignore
+from numpy import (   # noqa analysis:ignore
+    logical_not as not_,
+    maximum as max_,
+    minimum as min_,
+    round as round_,
+    select,
+    where,
+)
 
 from .columns import (  # noqa analysis:ignore
     AgeCol,
