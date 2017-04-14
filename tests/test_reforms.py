@@ -572,7 +572,10 @@ def test_modify_legislation():
                     "@type": "Parameter",
                     "description": "New parameter",
                     "format": "boolean",
-                    "values": [{'start': u'2000-01-01', 'stop': u'2014-12-31', 'value': True}],
+                    "values": [
+                        {'start': u'2015-01-01'},
+                        {'start': u'2000-01-01', 'value': True}
+                        ],
                     },
                 },
             }
