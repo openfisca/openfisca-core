@@ -339,7 +339,7 @@ def generate_dated_node_json(node_json, instant_str):
             if not dated_children_json:
                 return None
             dated_node_json[key] = dated_children_json
-        elif key in ('start', 'stop'):
+        elif key in ('start', ):
             pass
         elif key == 'brackets':
             # Occurs when @type == 'Scale'.
@@ -918,14 +918,8 @@ def validate_value_json(value, state = None):
                     conv.not_none,
                     ),
                 u'start_line_number': conv.test_isinstance(int),
-                u'stop': conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    ),
                 u'value': conv.pipe(
                     value_converter,
-                    conv.not_none,
                     ),
                 },
             constructor = collections.OrderedDict,
