@@ -211,6 +211,9 @@ class TaxBenefitSystem(object):
     def load_extension(self, extension):
         """
         Loads an extension to the tax and benefit system.
+
+        :param string extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
+
         """
         if path.isdir(extension):
             if find_packages(extension):
@@ -232,6 +235,38 @@ class TaxBenefitSystem(object):
         param_file = path.join(extension_directory, 'parameters.xml')
         if path.isfile(param_file):
             self.add_legislation_params(param_file)
+
+    def apply_reform(self, reform_path):
+        """
+        Generates a new tax and benefit system applying a reform to the tax and benefit system.
+
+        The current tax and benefit system is **not** mutated.
+
+        :param string reform_path: The reform to apply. Must respect the format *installed_package.sub_module.reform*
+
+        :returns: A reformed tax and benefit system.
+
+        Exemple:
+
+        >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
+
+        """
+        from reforms import Reform
+        try:
+            reform_package, reform_name = reform_path.rsplit('.', 1)
+        except ValueError:
+            raise ValueError(u'`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path).encode('utf-8'))
+        try:
+            reform_module = importlib.import_module(reform_package)
+        except ImportError:
+            raise ValueError(u'Could not import `{}`.'.format(reform_package).encode('utf-8'))
+        reform = getattr(reform_module, reform_name, None)
+        if reform is None:
+            raise ValueError(u'{} has no attribute {}'.format(reform_package, reform_name).encode('utf-8'))
+        if not issubclass(reform, Reform):
+            raise ValueError(u'`{}` does not seem to be a valid Openfisca reform.'.format(reform_path).encode('utf-8'))
+
+        return reform(self)
 
     def add_column(self, column):
         self.column_by_name[column.name] = column

@@ -13,10 +13,9 @@ import numpy as np
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
-from openfisca_core.scripts import build_reform
-
 
 # Yaml module configuration
+
 
 def _config_yaml(yaml):
 
@@ -189,8 +188,7 @@ def _parse_test_file(tax_benefit_system, yaml_path, tax_benefit_system_cache):
                 current_tax_benefit_system = tax_benefit_system_cache[cache_key]
             else:
                 for reform_path in reforms:
-                    reform = build_reform(reform_path)
-                    current_tax_benefit_system = reform(current_tax_benefit_system)
+                    current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
                     tax_benefit_system_cache[cache_key] = current_tax_benefit_system
 
         test, error = scenarios.make_json_or_python_to_test(

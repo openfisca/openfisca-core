@@ -5,8 +5,6 @@ import logging
 import pkgutil
 import sys
 
-from openfisca_core.reforms import Reform
-
 log = logging.getLogger(__name__)
 logging.basicConfig(format='%(levelname)s: %(message)s')
 
@@ -43,28 +41,9 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
 
     if reforms:
         for reform_path in reforms:
-            reform = build_reform(reform_path)
-            tax_benefit_system = reform(tax_benefit_system)
+            tax_benefit_system = tax_benefit_system.apply_reform(reform_path)
 
     return tax_benefit_system
-
-
-def build_reform(reform_path):
-    try:
-        reform_package, reform_name = reform_path.rsplit('.', 1)
-    except ValueError:
-        handle_error(u'`{}` does not seem to be a path pointing to a reform. A path looks like `some_country_package.reforms.some_reform.`'.format(reform_path))
-    try:
-        reform_module = importlib.import_module(reform_package)
-    except ImportError:
-        handle_error(u'Could not import `{}`.'.format(reform_package))
-    reform = getattr(reform_module, reform_name, None)
-    if reform is None:
-        handle_error(u'{} has no attribute {}'.format(reform_package, reform_name))
-    if not issubclass(reform, Reform):
-        handle_error(u'`{}` does not seem to be a valid Openfisca reform.'.format(reform_path))
-
-    return reform
 
 
 def detect_country_package():
