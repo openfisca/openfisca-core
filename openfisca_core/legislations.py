@@ -370,35 +370,6 @@ def generate_dated_node_json(node_json, instant_str):
 # Level-1 Converters
 
 
-def make_validate_values_json_dates(require_consecutive_dates = False):
-    def validate_values_json_dates(values_json, state = None):
-        if not values_json:
-            return values_json, None
-        if state is None:
-            state = conv.default_state
-
-        errors = {}
-        for index, value_json in enumerate(values_json):
-            stop_date_str = value_json.get('stop')
-            if stop_date_str is not None and value_json['start'] > stop_date_str:
-                errors[index] = dict(to = state._(u"Last date must be greater than first date"))
-
-        sorted_values_json = sorted(values_json, key = lambda value_json: value_json['start'], reverse = True)
-        next_value_json = sorted_values_json[0]
-        for index, value_json in enumerate(itertools.islice(sorted_values_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_json['stop'].split('-'))) +
-                datetime.timedelta(days = 1)).isoformat()
-            if require_consecutive_dates and next_date_str < next_value_json['start']:
-                errors.setdefault(index, {})['start'] = state._(u"Dates of values are not consecutive")
-            elif next_date_str > next_value_json['start']:
-                errors.setdefault(index, {})['start'] = state._(u"Dates of values overlap")
-            next_value_json = value_json
-
-        return sorted_values_json, errors or None
-
-    return validate_values_json_dates
-
-
 def validate_dated_legislation_json(dated_legislation_json, state = None):
     if dated_legislation_json is None:
         return None, None
@@ -790,7 +761,6 @@ def validate_node_json(node, state = None):
                     validate_value_json,
                     drop_none_items = True,
                     ),
-                make_validate_values_json_dates(require_consecutive_dates = True),
                 conv.empty_to_none,
                 conv.not_none,
                 ),
@@ -1121,7 +1091,6 @@ validate_values_holder_json = conv.pipe(
         validate_value_json,
         drop_none_items = True,
         ),
-    make_validate_values_json_dates(require_consecutive_dates = False),
     conv.empty_to_none,
     )
 
