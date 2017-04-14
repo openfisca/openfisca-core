@@ -2,6 +2,7 @@
 
 import pkg_resources
 import os
+import subprocess
 from nose.tools import nottest, raises
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
@@ -79,3 +80,24 @@ def test_nose_style():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
     for test in generate_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}):
         yield test
+
+
+def test_shell_script():
+    yaml_path = os.path.join(yamls_tests_dir, 'test_success.yaml')
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country']
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)
+
+
+def test_shell_script_with_reform():
+    yaml_path = os.path.join(yamls_tests_dir, 'test_with_reform_2.yaml')
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country', '-r', 'openfisca_dummy_country.dummy_reforms.neutralization_rsa']
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)
+
+
+def test_shell_script_with_extension():
+    extension_dir = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'dummy_extension')
+    command = ['openfisca-run-test', extension_dir, '-c', 'openfisca_dummy_country', '-e', extension_dir]
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)
