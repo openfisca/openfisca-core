@@ -557,6 +557,13 @@ def validate_parameter_xml_json(parameter, state = None):
                         drop_none_items = True,
                         ),
                     ),
+                PLACEHOLDER = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_placeholder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    ),
                 xml_file_path = conv.test_isinstance(basestring),
                 # baremes-ipp related attributes
                 conflicts = conv.pipe(
@@ -759,6 +766,46 @@ def validate_end_xml_json(value, state = None):
     return validated_value, errors
 
 
+def validate_placeholder_xml_json(value, state = None):
+    if value is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, value)
+    validated_value, errors = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                deb = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                end_line_number = conv.test_isinstance(int),
+                start_line_number = conv.test_isinstance(int),
+                tail = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                text = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(value, state = state)
+    conv.remove_ancestor_from_state(state, value)
+    return validated_value, errors
+
+
 validate_values_holder_xml_json = conv.struct(
     dict(
         end_line_number = conv.test_isinstance(int),
@@ -776,6 +823,13 @@ validate_values_holder_xml_json = conv.struct(
             conv.test_isinstance(list),
             conv.uniform_sequence(
                 validate_end_xml_json,
+                drop_none_items = True,
+                ),
+            ),
+        PLACEHOLDER = conv.pipe(
+            conv.test_isinstance(list),
+            conv.uniform_sequence(
+                validate_placeholder_xml_json,
                 drop_none_items = True,
                 ),
             ),
