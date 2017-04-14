@@ -183,9 +183,14 @@ def _parse_test_file(tax_benefit_system, yaml_path, tax_benefit_system_cache):
             if tax_benefit_system_cache.get(cache_key):
                 current_tax_benefit_system = tax_benefit_system_cache[cache_key]
             else:
+                current_cache_key = ''
                 for reform_path in reforms:
-                    current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
-                    tax_benefit_system_cache[cache_key] = current_tax_benefit_system
+                    current_cache_key = ';'.join([current_cache_key, reform_path]) if current_cache_key else reform_path
+                    if tax_benefit_system_cache.get(current_cache_key):
+                        current_tax_benefit_system = tax_benefit_system_cache[current_cache_key]
+                    else:
+                        current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+                        tax_benefit_system_cache[current_cache_key] = current_tax_benefit_system
 
         test, error = scenarios.make_json_or_python_to_test(
             tax_benefit_system = current_tax_benefit_system
