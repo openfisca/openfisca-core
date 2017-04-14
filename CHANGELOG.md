@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.0.2
+
+* Fix spelling in error messages
+
 ## 9.0.1
 
 * Test marginal scales
@@ -26,7 +30,7 @@
 
 * Raise more explicit error when an invalid test case is given
 * Raise more friendly error when trying to calculate a variable which doesn't exist
-* _Breaking change_: Python exceptions will now be raised when the test case in invalid. Before, only a byriani error was returned. Reusers must therefore adapt their exception handling. 
+* _Breaking change_: Python exceptions will now be raised when the test case in invalid. Before, only a byriani error was returned. Reusers must therefore adapt their exception handling.
 
 ## 7.1.0
 
