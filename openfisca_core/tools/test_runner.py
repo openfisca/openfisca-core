@@ -66,11 +66,10 @@ def generate_tests(tax_benefit_system, path, options = {}):
 
     """
 
-    tax_benefit_system_cache = {}
     if os.path.isdir(path):
-        return _generate_tests_from_directory(tax_benefit_system, path, options, tax_benefit_system_cache)
+        return _generate_tests_from_directory(tax_benefit_system, path, options)
     else:
-        return _generate_tests_from_file(tax_benefit_system, path, options, tax_benefit_system_cache)
+        return _generate_tests_from_file(tax_benefit_system, path, options)
 
 
 def run_tests(tax_benefit_system, path, options = {}):
@@ -109,14 +108,14 @@ def run_tests(tax_benefit_system, path, options = {}):
 
 # Internal methods
 
-def _generate_tests_from_file(tax_benefit_system, path_to_file, options, tax_benefit_system_cache):
+def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
     name_filter = options.get('name_filter')
     if isinstance(name_filter, str):
         name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
 
-    tests = _parse_test_file(tax_benefit_system, path_to_file, tax_benefit_system_cache)
+    tests = _parse_test_file(tax_benefit_system, path_to_file)
 
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
         if name_filter is not None and name_filter not in filename \
@@ -141,20 +140,20 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options, tax_ben
         yield check
 
 
-def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options, tax_benefit_system_cache):
+def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
     yaml_paths = glob.glob(os.path.join(path_to_dir, "*.yaml"))
     subdirectories = glob.glob(os.path.join(path_to_dir, "*/"))
 
     for yaml_path in yaml_paths:
-        for test in _generate_tests_from_file(tax_benefit_system, yaml_path, options, tax_benefit_system_cache):
+        for test in _generate_tests_from_file(tax_benefit_system, yaml_path, options):
             yield test
 
     for subdirectory in subdirectories:
-        for test in _generate_tests_from_directory(tax_benefit_system, subdirectory, options, tax_benefit_system_cache):
+        for test in _generate_tests_from_directory(tax_benefit_system, subdirectory, options):
             yield test
 
 
-def _parse_test_file(tax_benefit_system, yaml_path, tax_benefit_system_cache):
+def _parse_test_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         tests = yaml.load(yaml_file)
@@ -179,18 +178,8 @@ def _parse_test_file(tax_benefit_system, yaml_path, tax_benefit_system_cache):
             reforms = test.pop('reforms')
             if not isinstance(reforms, list):
                 reforms = [reforms]
-            cache_key = ';'.join(reforms)
-            if tax_benefit_system_cache.get(cache_key):
-                current_tax_benefit_system = tax_benefit_system_cache[cache_key]
-            else:
-                current_cache_key = ''
-                for reform_path in reforms:
-                    current_cache_key = ';'.join([current_cache_key, reform_path]) if current_cache_key else reform_path
-                    if tax_benefit_system_cache.get(current_cache_key):
-                        current_tax_benefit_system = tax_benefit_system_cache[current_cache_key]
-                    else:
-                        current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
-                        tax_benefit_system_cache[current_cache_key] = current_tax_benefit_system
+            for reform_path in reforms:
+                current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
         test, error = scenarios.make_json_or_python_to_test(
             tax_benefit_system = current_tax_benefit_system
