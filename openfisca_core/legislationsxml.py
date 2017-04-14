@@ -172,34 +172,44 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
     def xml_json_value_to_json_transformer_bool(xml_json_value):
         return bool(int(xml_json_value))
 
-    for key, value in parameter_xml_json.iteritems():
-        if key in ('code', 'taille'):
-            pass
-        elif key == 'format':
-            parameter_json[key] = dict(
-                bool = u'boolean',
-                percent = u'rate',
-                ).get(value, value)
-            if value == 'bool':
-                xml_json_value_to_json_transformer = xml_json_value_to_json_transformer_bool
-            elif value == 'integer':
-                xml_json_value_to_json_transformer = int
-        elif key in ('tail', 'text'):
-            comments.append(value)
-        elif key == 'type':
-            parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
-        elif key == 'VALUE':
-            parameter_json['values'] = [
-                transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
-                for item in value
-                ]
-        elif key == 'END':
-            parameter_json['ends'] = [
-                transform_end_xml_json_to_json(item)
-                for item in value
-                ]
-        else:
-            parameter_json[key] = value
+    if 'format' in parameter_xml_json:
+        value = parameter_xml_json['format']
+        parameter_json['format'] = dict(
+            bool = u'boolean',
+            percent = u'rate',
+            ).get(value, value)
+        if value == 'bool':
+            xml_json_value_to_json_transformer = xml_json_value_to_json_transformer_bool
+        elif value == 'integer':
+            xml_json_value_to_json_transformer = int
+
+    if 'tail' in parameter_xml_json:
+        comments.append(parameter_xml_json['tail'])
+
+    if 'text' in parameter_xml_json:
+        comments.append(parameter_xml_json['text'])
+
+    if 'type' in parameter_xml_json:
+        value = parameter_xml_json['type']
+        parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
+
+    values = [
+        transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
+        for item in parameter_xml_json['VALUE']
+        ]
+
+    if 'END' in parameter_xml_json:
+        ends = [
+            transform_end_xml_json_to_json(item)
+            for item in parameter_xml_json['END']
+            ]
+    else:
+        ends = []
+
+    # Sort by "deb" date
+    sorted_values_json = sorted(values + ends, key = lambda value_xml_json: value_xml_json['start'], reverse = True)
+    parameter_json['values'] = sorted_values_json
+
     if parameter_json.get('format') is None:
         parameter_json['format'] = default_format
     if comments:
