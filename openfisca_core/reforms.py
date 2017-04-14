@@ -6,7 +6,7 @@ import json
 
 from biryani.strings import deep_encode
 
-from . import conv, legislations, periods
+from . import conv, legislations
 from .taxbenefitsystems import TaxBenefitSystem
 
 
@@ -126,58 +126,43 @@ def update_legislation(legislation_json, path = None, period = None, value = Non
 
 
 def update_items(items, start, stop, value):
-    def is_contained_in(inner, outer):
-        '''Returns True if `inner` is contained in `outer`.'''
-        return inner['start'] >= outer['start'] and (
-            outer.get('stop') is None or inner.get('stop') is not None and inner['stop'] <= outer['stop']
-            )
-    items = sorted(items, key=lambda item: item['start'])
-    new_item = create_item(start, stop, value)
-    split_items = list(split_item_containing_instant(start, items))
-    if stop is not None:
-        split_items = list(split_item_containing_instant(stop.offset(+1, 'day'), split_items))
-    not_contained_items = list(filter(lambda item: not is_contained_in(item, new_item), split_items))
-    if not_contained_items and not_contained_items[-1].get('stop') is None \
-            and str(start) > not_contained_items[-1]['start']:
-        last_not_contained_item = not_contained_items[-1].copy()  # Copy to avoid modifying `items` argument.
-        last_not_contained_item['stop'] = str(start.offset(-1, 'day'))
-        not_contained_items[-1] = last_not_contained_item
-    new_items = sorted(not_contained_items + [new_item], key=lambda item: item['start'])
-    return new_items
+    start_str = str(start)
+    stop_str = str(stop.offset(1, 'day')) if stop else None
 
+    i = 0
+    n = len(items)
+    new_items = []
 
-def create_item(start, stop, value):
-    dict_items = []
-    if start is not None:
-        dict_items.append(('start', str(start)))
-    if stop is not None:
-        dict_items.append(('stop', str(stop)))
-    dict_items.append(('value', value))
-    return collections.OrderedDict(dict_items)
+    # Future intervals : not affected
+    if stop_str:
+        while (i < n) and (items[i]['start'] >= stop_str):
+            new_items.append(items[i])
+            i += 1
 
-
-def split_item_containing_instant(instant, items):
-    '''
-    Returns `items` list updated so that the item containing `instant` is split.
-
-    If `instant` is contained in an item, it will be the start instant of the matching item.
-    '''
-    assert instant is not None
-    for item in items:
-        item_start = periods.instant(item['start'])
-        item_stop = item.get('stop')
-        if item_stop is not None:
-            item_stop = periods.instant(item_stop)
-        if item_start < instant and (item_stop is None or instant < item_stop):
-            yield create_item(
-                item['start'],
-                str(instant.offset(-1, 'day')),
-                item['value'],
-                )
-            yield create_item(
-                str(instant),
-                item.get('stop'),
-                item['value']
-                )
+    # Right-overlapped interval
+    if stop_str:
+        if new_items and (stop_str == new_items[-1]['start']):
+            pass  # such interval is empty
         else:
-            yield item
+            if i < n:
+                overlapped_value = items[i]['value']
+                new_interval = collections.OrderedDict({'start': stop_str, 'value': overlapped_value})
+                new_items.append(new_interval)
+            else:
+                new_interval = collections.OrderedDict({'start': stop_str, })
+                new_items.append(new_interval)
+
+    # Insert new interval
+    new_interval = collections.OrderedDict({'start': start_str, 'value': value})
+    new_items.append(new_interval)
+
+    # Remove covered intervals
+    while (i < n) and (items[i]['start'] >= start_str):
+        i += 1
+
+    # Past intervals : not affected
+    while i < n:
+        new_items.append(items[i])
+        i += 1
+
+    return new_items
