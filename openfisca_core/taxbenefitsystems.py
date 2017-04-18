@@ -17,7 +17,7 @@ from setuptools import find_packages
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
 from scenarios import AbstractScenario
-from formulas import neutralize_column
+from formulas import get_neutralized_column
 
 log = logging.getLogger(__name__)
 
@@ -253,7 +253,7 @@ class TaxBenefitSystem(object):
 
         Trying to set inputs for a neutralized variable has no effect except raising a warning.
         """
-        self.update_column(variable_name, neutralize_column(self.get_column(variable_name)))
+        self.update_column(variable_name, get_neutralized_column(self.get_column(variable_name)))
 
     def neutralize_column(self, column_name):
         warnings.warn(

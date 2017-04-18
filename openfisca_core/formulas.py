@@ -655,7 +655,7 @@ def missing_value(formula, simulation, period):
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
 
 
-def neutralize_column(column):
+def get_neutralized_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
