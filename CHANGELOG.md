@@ -1,5 +1,9 @@
 # Changelog
 
+### 10.0.1
+
+* Improve the raised error message when a wrong period type is given as an input
+
 # 10.0.0
 
 #### Breaking changes

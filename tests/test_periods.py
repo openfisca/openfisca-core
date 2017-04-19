@@ -89,17 +89,17 @@ def test_deprecated_signature():
     period(MONTH, 2014)
 
 
-@raises(TypeError)
+@raises(ValueError)
 def test_wrong_argument():
     period({})
 
 
-@raises(TypeError)
+@raises(ValueError)
 def test_wrong_argument_1():
     period([])
 
 
-@raises(TypeError)
+@raises(ValueError)
 def test_none():
     period(None)
 
