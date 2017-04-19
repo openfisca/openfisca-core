@@ -74,10 +74,10 @@ def test_params_too_late():
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         period = year,
         parent1 = dict(
-            patrimoine = 10000,
+            salaire_brut = 10000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate('impot_sur_fortune', year), [1000], absolute_error_margin=0.01)
+    simulation.calculate('plafond_imposition', year)
 
 
 def test_bareme():
