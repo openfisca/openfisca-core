@@ -2,6 +2,7 @@
 
 import pkg_resources
 import os
+import subprocess
 from nose.tools import nottest, raises
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
@@ -25,58 +26,51 @@ def run_yaml_test(file_name, options = {}):
 
 
 def test_success():
-    run_yaml_test('test_success', options = {'default_absolute_error_margin': 0.01})
+    run_yaml_test('test_success')
 
 
 @raises(AssertionError)
 def test_fail():
-    run_yaml_test('test_failure', options = {'default_absolute_error_margin': 0.01})
-
-
-def test_ignore_test():
-    # The 2nd test is ignored
-    assert run_yaml_test('test_ignore', options = {'default_absolute_error_margin': 0.01}) == 1
-
-
-@raises(AssertionError)
-def test_force():
-    run_yaml_test('test_ignore', options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_yaml_test('test_failure')
 
 
 def test_relative_error_margin_success():
-    run_yaml_test('test_relative_error_margin', options = {'default_absolute_error_margin': 0.01})
+    run_yaml_test('test_relative_error_margin')
 
 
 @raises(AssertionError)
 def test_relative_error_margin_fail():
-    run_yaml_test('test_relative_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_yaml_test('failing_test_relative_error_margin')
 
 
 def test_absolute_error_margin_success():
-    run_yaml_test('test_absolute_error_margin', options = {'default_absolute_error_margin': 0.01})
+    run_yaml_test('test_absolute_error_margin')
 
 
 @raises(AssertionError)
 def test_absolute_error_margin_fail():
-    run_yaml_test('test_absolute_error_margin', options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_yaml_test('failing_test_absolute_error_margin')
 
 
 def test_run_tests_from_directory():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    assert run_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}) == 5
+    assert run_tests(tax_benefit_system, dir_path) == 5
+
+
+def test_with_reform():
+    run_yaml_test('test_with_reform')
 
 
 @raises(AssertionError)
 def test_run_tests_from_directory_fail():
-    dir_path = os.path.join(yamls_tests_dir, 'directory')
-    run_tests(tax_benefit_system, dir_path, options = {'force': True, 'default_absolute_error_margin': 0.01})
+    run_tests(tax_benefit_system, yamls_tests_dir)
 
 
 def test_name_filter():
     nb_tests = run_tests(
         tax_benefit_system,
         yamls_tests_dir,
-        options = {'name_filter': 'success', 'default_absolute_error_margin': 0.01}
+        options = {'name_filter': 'success'}
         )
 
     assert nb_tests == 3
@@ -84,5 +78,26 @@ def test_name_filter():
 
 def test_nose_style():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    for test in generate_tests(tax_benefit_system, dir_path, options = {'default_absolute_error_margin': 0.01}):
+    for test in generate_tests(tax_benefit_system, dir_path):
         yield test
+
+
+def test_shell_script():
+    yaml_path = os.path.join(yamls_tests_dir, 'test_success.yaml')
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country']
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)
+
+
+def test_shell_script_with_reform():
+    yaml_path = os.path.join(yamls_tests_dir, 'test_with_reform_2.yaml')
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country', '-r', 'openfisca_dummy_country.dummy_reforms.neutralization_rsa']
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)
+
+
+def test_shell_script_with_extension():
+    extension_dir = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'dummy_extension')
+    command = ['openfisca-run-test', extension_dir, '-c', 'openfisca_dummy_country', '-e', extension_dir]
+    with open(os.devnull, 'wb') as devnull:
+        subprocess.check_call(command, stdout = devnull)

@@ -1,5 +1,28 @@
 # Changelog
 
+# 10.0.0
+
+#### Breaking changes
+
+* In YAML tests:
+  - Deprecate and remove the `IGNORE_` prefix
+  - Deprecate and remove the `ignore` property
+* In the YAML test runner:
+  - Deprecate and remove the `force` option (`-f` in the shell script)
+  - Deprecate and remove the `default_absolute_error_margin` option (`-M` in the shell script)
+  - Deprecate and remove the `default_relative_error_margin` option (`-m` in the shell script)
+
+#### New features
+
+* Add `Reform` and `numpy.round` (as `round_`) in the model API
+* Introduce `tax_benefit_system.apply_reform(reform_path)`
+* Allow YAML tests to declare the reforms they need to be executed (through the `reforms` property)
+
+#### Technical changes
+
+* Move the `dummy_extension` to `OpenFisca-Dummy-Country`
+* Test `openfisca-run-test` script
+
 ## 9.1.0
 
 * Rename `neutralize_column` to `neutralize_variable`

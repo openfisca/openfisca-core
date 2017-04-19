@@ -1,5 +1,0 @@
-<NODE code="paris" description="Ville de Paris">
-  <CODE code="montant_plf" description="Montant de l'aide Paris Logement Famille" format="float" type="monetary">
-    <VALUE deb="2010-01-01" fin="2020-12-31" valeur="100" />
-  </CODE>
-</NODE>

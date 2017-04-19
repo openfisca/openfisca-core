@@ -39,49 +39,14 @@ Basic use
   # In that case, specify which package to use with the --country_package option
 
 
-Force option
+Error margin
 ^^^^^^^^^^^^
-
 
 **test_2.yaml:**
 
 .. code-block:: yaml
 
-    - name: "Basic test"
-      period: 2015
-      input_variables:
-        gross_salary: 1000
-      output_variables:
-        net_salary: 800
-
-    - name: "Failing test"
-      ignore: True
-      period: 2015
-      input_variables:
-        gross_salary: 1000
-      output_variables:
-        net_salary: 0
-
-
-**Command line:**
-
-.. code-block:: shell
-
-  openfisca-run-test test_2.yaml
-  # Success: the second test is ignored
-
-  openfisca-run-test -f test_2.yaml
-  # Failure: the second test is executed and does not pass
-
-
-Error margin
-^^^^^^^^^^^^
-
-**test_3.yaml:**
-
-.. code-block:: yaml
-
-    - name: "Test defining its own relative error margin"
+    - name: "Test defining a relative error margin"
       period: 2015
       relative_error_margin: 0.05
       input_variables:
@@ -89,13 +54,17 @@ Error margin
       output_variables:
         net_salary: 780 # the right value is 800
 
-    - name: "Test defining its own absolute error margin"
+    - name: "Test defining an absolute error margin"
       absolute_error_margin: 10
       period: 2015
       input_variables:
         gross_salary: 1000
       output_variables:
         net_salary: 790 # the right value is 800
+
+**test_3.yaml:**
+
+.. code-block:: yaml
 
     - name: "Test not defining any error margin"
       period: 2015
@@ -109,20 +78,11 @@ Error margin
 
 .. code-block:: shell
 
+  openfisca-run-test test_2.yaml
+  # Success: the test pass, as the actual results are within the error margins
+
   openfisca-run-test test_3.yaml
-  # Failure: the third test does not pass, as its error margin is by default 0
-
-  openfisca-run-test -m 0.01 test_3.yaml
-  # Success:
-  # The first test passes with its own 0.05 relative error margin
-  # The second test passes with its own 10 absolute error margin
-  # The third test passes with the default 0.01 relative error margin
-
-  openfisca-run-test -M 10 test_3.yaml
-  # Success:
-  # The first test passes with its own 0.05 relative error margin
-  # The second test passes with its own 10 absolute error margin
-  # The third test passes with the default 10 absolute error margin
+  # Failure: the test does not pass, as its error margin is by default 0
 
 
 Name filter

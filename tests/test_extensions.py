@@ -5,8 +5,8 @@ from nose.tools import raises
 
 from openfisca_dummy_country import DummyTaxBenefitSystem
 
-openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
-dummy_extension_path = os.path.join(openfisca_core_dir, 'tests', 'dummy_extension')
+openfisca_dummy_country_dir = pkg_resources.get_distribution('OpenFisca-Dummy-Country').location
+dummy_extension_path = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'dummy_extension')
 tbs = DummyTaxBenefitSystem()
 
 

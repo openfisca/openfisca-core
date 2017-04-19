@@ -194,7 +194,7 @@ def test_age():
     assert_near(simulation.calculate('age', month), [40], absolute_error_margin = 0.005)
 
 
-def check_revenu_disponible(year, depcom, expected_revenu_disponible):
+def check_revenu_disponible(year, city_code, expected_revenu_disponible):
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             dict(
@@ -204,7 +204,7 @@ def check_revenu_disponible(year, depcom, expected_revenu_disponible):
                 min = 0,
                 ),
             ],
-        famille = dict(depcom = depcom),
+        famille = dict(city_code = city_code),
         period = periods.period(year),
         parent1 = dict(),
         parent2 = dict(),

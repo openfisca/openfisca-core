@@ -14,8 +14,8 @@ import numpy as np
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 
-
 # Yaml module configuration
+
 
 def _config_yaml(yaml):
 
@@ -91,15 +91,9 @@ def run_tests(tax_benefit_system, path, options = {}):
     +-------------------------------+-----------+-------------------------------------------+
     | Key                           | Type      | Role                                      |
     +===============================+===========+===========================================+
-    | force                         | ``bool``  |                                           |
-    +-------------------------------+-----------+                                           +
     | verbose                       | ``bool``  |                                           |
     +-------------------------------+-----------+                                           +
     | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
-    +-------------------------------+-----------+                                           +
-    | default_absolute_error_margin | ``float`` |                                           |
-    +-------------------------------+-----------+                                           +
-    | default_relative_error_margin | ``float`` |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
@@ -114,20 +108,16 @@ def run_tests(tax_benefit_system, path, options = {}):
 
 # Internal methods
 
-def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
+def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
-    force = options.get('force')
     name_filter = options.get('name_filter')
     if isinstance(name_filter, str):
         name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
 
-    tests = _parse_yaml_file(tax_benefit_system, path_to_file)
+    tests = _parse_test_file(tax_benefit_system, path_to_file)
 
     for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
-
-        if not force and test.get(u'ignore', False):
-            continue
         if name_filter is not None and name_filter not in filename \
                 and name_filter not in (test.get('name', u'')) \
                 and name_filter not in (test.get('keywords', [])):
@@ -150,7 +140,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options = {}):
         yield check
 
 
-def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}):
+def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
     yaml_paths = glob.glob(os.path.join(path_to_dir, "*.yaml"))
     subdirectories = glob.glob(os.path.join(path_to_dir, "*/"))
 
@@ -163,7 +153,7 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options = {}
             yield test
 
 
-def _parse_yaml_file(tax_benefit_system, yaml_path):
+def _parse_test_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         tests = yaml.load(yaml_file)
@@ -183,8 +173,16 @@ def _parse_yaml_file(tax_benefit_system, yaml_path):
             default_flow_style = False, indent = 2, width = 120)))
 
     for test in tests:
+        current_tax_benefit_system = tax_benefit_system
+        if test.get('reforms'):
+            reforms = test.pop('reforms')
+            if not isinstance(reforms, list):
+                reforms = [reforms]
+            for reform_path in reforms:
+                current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+
         test, error = scenarios.make_json_or_python_to_test(
-            tax_benefit_system = tax_benefit_system
+            tax_benefit_system = current_tax_benefit_system
             )(test)
 
         if error is not None:
@@ -204,19 +202,13 @@ def _run_test(period_str, test, verbose = False, options = {}):
         absolute_error_margin = test.get('absolute_error_margin')
     if test.get('relative_error_margin') is not None:
         relative_error_margin = test.get('relative_error_margin')
-    if absolute_error_margin is None and relative_error_margin is None:
-        absolute_error_margin = options.get('default_absolute_error_margin')
-        relative_error_margin = options.get('default_relative_error_margin')
 
     scenario = test['scenario']
     scenario.suggest()
     simulation = scenario.new_simulation(debug = verbose)
     output_variables = test.get(u'output_variables')
     if output_variables is not None:
-        output_variables_name_to_ignore = test.get(u'output_variables_name_to_ignore') or set()
         for variable_name, expected_value in output_variables.iteritems():
-            if not options.get('force') and variable_name in output_variables_name_to_ignore:
-                continue
             if isinstance(expected_value, dict):
                 for requested_period, expected_value_at_period in expected_value.iteritems():
                     assert_near(
