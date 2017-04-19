@@ -771,7 +771,7 @@ def period(value):
     if isinstance(value, Period):
         return value
     if not isinstance(value, basestring):
-        raise TypeError(u"periods.period argument must be a string, an int, or a period, and cannot be of type {}".format(type(value)).encode('utf-8'))
+        raise_error(value)
 
     # try to parse as a simple period
     period = parse_simple_period(value)
