@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from nose.tools import assert_equal, raises
+import numpy as np
 
 from openfisca_core import legislations
 from openfisca_core.legislations import ParameterNotFound
@@ -62,3 +63,9 @@ def test_stopped_parameter_before_end_value():
 @raises(ParameterNotFound)
 def test_stopped_parameter_after_end_value():
     tax_benefit_system.get_compact_legislation('2012-01-01').impot.bouclier
+
+
+@raises(ParameterNotFound)
+def test_stopped_marginal_scale_after_end_value():
+    scale = tax_benefit_system.get_compact_legislation('2030-01-01').contribution_sociale.crds.activite.abattement
+    scale.calc(np.asarray([20000]))
