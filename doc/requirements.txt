@@ -1,4 +1,4 @@
 # pip doesn't handle well dependencies with a relative path inside a requirements.txt file.
-# If we put .. instead of 'openfisca_core >= 4.2.0, < 5.0', it will look for a setup.py in the parent directory relatively to where the instruction is executed from, and not where the requirements file is.
-openfisca_core >= 4.2.0, < 6.0
+# If we put .. instead of the first line, it will look for a setup.py in the parent directory relatively to where the instruction is executed from, and not where the requirements file is.
+--editable git+https://github.com/openfisca/openfisca-core.git@master#egg=OpenFisca-Core
 sphinx-argparse

@@ -10,13 +10,14 @@ import importlib
 import logging
 import inspect
 import pkg_resources
+import warnings
 
 from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
 from variables import AbstractVariable
 from scenarios import AbstractScenario
-from formulas import neutralize_column
+from formulas import get_neutralized_column
 
 log = logging.getLogger(__name__)
 
@@ -244,8 +245,24 @@ class TaxBenefitSystem(object):
     def update_column(self, column_name, new_column):
         self.column_by_name[column_name] = new_column
 
+    def neutralize_variable(self, variable_name):
+        """
+        Neutralizes an OpenFisca variable existing in the tax and benefit system.
+
+        A neutralized variable always returns its default value when computed.
+
+        Trying to set inputs for a neutralized variable has no effect except raising a warning.
+        """
+        self.update_column(variable_name, get_neutralized_column(self.get_column(variable_name)))
+
     def neutralize_column(self, column_name):
-        self.update_column(column_name, neutralize_column(self.get_column(column_name)))
+        warnings.warn(
+            u"The neutralize_column method has been renamed to neutralize_variable. "
+            u"neutralize_column has thus been deprecated and will be removed in the next major version. "
+            u"Please update your code.",
+            Warning
+            )
+        self.neutralize_variable(column_name)
 
     def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
         """

@@ -8,6 +8,7 @@ import datetime
 import inspect
 import itertools
 import logging
+import warnings
 
 import numpy as np
 
@@ -654,7 +655,7 @@ def missing_value(formula, simulation, period):
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
 
 
-def neutralize_column(column):
+def get_neutralized_column(column):
     """Return a new neutralized column (to be used by reforms)."""
     return new_filled_column(
         base_function = requested_period_default_value_neutralized,
@@ -981,4 +982,8 @@ def set_input_divide_by_period(formula, period, array):
 
 
 def set_input_neutralized(formula, period, array):
-    pass
+    warnings.warn(
+        u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
+        .format(formula.holder.column.name, array).encode('utf-8'),
+        Warning
+        )

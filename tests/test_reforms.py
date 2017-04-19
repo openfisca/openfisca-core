@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import warnings
+
 
 from nose.tools import raises
 from nose.tools import assert_equal
@@ -22,7 +24,7 @@ def test_formula_neutralization():
 
     class test_rsa_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('rsa')
+            self.neutralize_variable('rsa')
 
     reform = test_rsa_neutralization(tax_benefit_system)
 
@@ -50,7 +52,7 @@ def test_input_variable_neutralization():
 
     class test_salaire_brut_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('salaire_brut')
+            self.neutralize_variable('salaire_brut')
 
     reform = test_salaire_brut_neutralization(tax_benefit_system)
 
@@ -65,6 +67,7 @@ def test_input_variable_neutralization():
             salaire_brut = 60000,
             ),
         )
+
     simulation = scenario.new_simulation(reference = True)
     salaire_brut_annuel = simulation.calculate_add('salaire_brut', period = year)
     assert_near(salaire_brut_annuel, [120000, 60000], absolute_error_margin = 0)
@@ -73,7 +76,9 @@ def test_input_variable_neutralization():
     revenu_disponible = simulation.calculate('revenu_disponible', period = year)
     assert_near(revenu_disponible, [60480, 30240], absolute_error_margin = 0)
 
-    reform_simulation = scenario.new_simulation()
+    with warnings.catch_warnings(record=True) as raised_warnings:
+        reform_simulation = scenario.new_simulation()
+        assert 'You cannot set a value for the variable' in raised_warnings[0].message.message
     salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut', period = year)
     assert_near(salaire_brut_annuel_reform, [0, 0], absolute_error_margin = 0)
     salaire_brut_mensuel_reform = reform_simulation.calculate('salaire_brut', period = '2013-01')
@@ -86,7 +91,7 @@ def test_permanent_variable_neutralization():
 
     class test_date_naissance_neutralization(Reform):
         def apply(self):
-            self.neutralize_column('birth')
+            self.neutralize_variable('birth')
 
     reform = test_date_naissance_neutralization(tax_benefit_system)
 
@@ -100,7 +105,9 @@ def test_permanent_variable_neutralization():
             ),
         )
     simulation = scenario.new_simulation(reference = True)
-    reform_simulation = scenario.new_simulation()
+    with warnings.catch_warnings(record=True) as raised_warnings:
+        reform_simulation = scenario.new_simulation()
+        assert 'You cannot set a value for the variable' in raised_warnings[0].message.message
     assert str(simulation.calculate('birth', None)[0]) == '1980-01-01'
     assert str(reform_simulation.calculate('birth', None)[0]) == '1970-01-01'
 
