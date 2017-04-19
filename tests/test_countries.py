@@ -81,32 +81,6 @@ def test_params_too_late():
 
 
 def test_bareme():
-    year = 2015
-
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
-        parent1 = dict(
-            salaire_brut = 20000,
-            ),
-        ).new_simulation()
-    expected_result = 0.04 * 6200 + 0.12 * 9200 + 0.22 * 4600
-    assert_near(simulation.calculate('contribution_sociale', year), [expected_result], absolute_error_margin=0.01)
-
-
-def test_bareme_placeholder():
-    year = 2016
-
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = year,
-        parent1 = dict(
-            salaire_brut = 20000,
-            ),
-        ).new_simulation()
-    expected_result = 0.02 * 6200 + 0.12 * 9200 + 0.22 * 4600
-    assert_near(simulation.calculate('contribution_sociale', year), [expected_result], absolute_error_margin=0.01)
-
-
-def test_bareme_end():
     year = 2017
 
     simulation = tax_benefit_system.new_scenario().init_single_entity(
@@ -115,7 +89,7 @@ def test_bareme_end():
             salaire_brut = 20000,
             ),
         ).new_simulation()
-    expected_result = 0.02 * 6200 + 0.12 * 13800
+    expected_result = 0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600
     assert_near(simulation.calculate('contribution_sociale', year), [expected_result], absolute_error_margin=0.01)
 
 
