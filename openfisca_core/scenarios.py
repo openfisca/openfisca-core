@@ -632,6 +632,10 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.function(periods.period),
                     conv.not_none,
                     ),
+                sum_over_period = conv.pipe(
+                    conv.test_isinstance((bool, int)),
+                    conv.anything_to_bool,
+                    ),
                 relative_error_margin = conv.pipe(
                     conv.test_isinstance((float, int)),
                     conv.test_greater_or_equal(0),
@@ -678,6 +682,7 @@ def make_json_or_python_to_test(tax_benefit_system):
         output_variables = test_case.pop(u'output_variables')
         period = test_case.pop(u'period')
         relative_error_margin = test_case.pop(u'relative_error_margin')
+        sum_over_period = test_case.pop(u'sum_over_period')
 
         if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
             test_case = None
@@ -701,6 +706,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                 name = name,
                 output_variables = output_variables,
                 relative_error_margin = relative_error_margin,
+                sum_over_period = sum_over_period,
                 scenario = scenario,
                 ).iteritems()
             if value is not None
