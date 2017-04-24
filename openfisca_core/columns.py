@@ -41,9 +41,20 @@ class Column(object):
     url = None
     val_type = None
 
-    def __init__(self, cerfa_field = None, default = None, end = None, entity = None, function = None,
-            label = None, law_reference = None, start = None, survey_only = False, url = None,
-            val_type = None):
+    def __init__(
+            self,
+            cerfa_field = None,
+            default = None,
+            end = None,
+            entity = None,
+            function = None,
+            label = None,
+            law_reference = None,
+            start = None,
+            survey_only = False,
+            url = None,
+            val_type = None
+            ):
         if cerfa_field is not None:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
             self.cerfa_field = cerfa_field
@@ -65,6 +76,7 @@ class Column(object):
             self.url = url
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
+        self.is_neutralized = False
 
     def empty_clone(self):
         return self.__class__()

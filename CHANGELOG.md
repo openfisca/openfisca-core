@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.0.2
+
+* Do not cache values for neutralized variables
+  - To reduce memory usage for large population simulations
+
 ### 10.0.1
 
 * Improve the raised error message when a wrong period type is given as an input

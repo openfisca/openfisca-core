@@ -295,6 +295,8 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
+        if self.column.is_neutralized:
+            return DatedHolder(self, period, value = self.default_array())
         if self.column.definition_period == ETERNITY:
             return self
 

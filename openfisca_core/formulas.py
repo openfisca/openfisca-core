@@ -16,7 +16,6 @@ from . import columns, holders, legislations, periods
 from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
-    requested_period_default_value_neutralized,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
@@ -656,10 +655,13 @@ def missing_value(formula, simulation, period):
 
 
 def get_neutralized_column(column):
-    """Return a new neutralized column (to be used by reforms)."""
+    """
+        Return a new neutralized column (to be used by reforms).
+        A neutralized column always returns its default value, and does not cache anything.
+    """
     return new_filled_column(
-        base_function = requested_period_default_value_neutralized,
         entity = column.entity,
+        is_neutralized = True,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
         reference_column = column,
         definition_period = column.definition_period,
@@ -667,16 +669,32 @@ def get_neutralized_column(column):
         )
 
 
-def new_filled_column(__doc__ = None, __module__ = None,
-        base_function = UnboundLocalError, calculate_output = UnboundLocalError,
-        cerfa_field = UnboundLocalError, column = UnboundLocalError, comments = UnboundLocalError,
+def new_filled_column(
+        __doc__ = None,
+        __module__ = None,
+        base_function = UnboundLocalError,
+        calculate_output = UnboundLocalError,
+        cerfa_field = UnboundLocalError,
+        column = UnboundLocalError,
+        comments = UnboundLocalError,
         default = UnboundLocalError,
-        entity = UnboundLocalError, formula_class = UnboundLocalError,
         definition_period = UnboundLocalError,
-        label = UnboundLocalError, law_reference = UnboundLocalError, start_line_number = UnboundLocalError,
-        name = None, reference_column = None, set_input = UnboundLocalError, source_code = UnboundLocalError,
-        source_file_path = UnboundLocalError, start_date = UnboundLocalError, stop_date = UnboundLocalError,
-        url = UnboundLocalError, **specific_attributes):
+        entity = UnboundLocalError,
+        formula_class = UnboundLocalError,
+        is_neutralized = False,
+        label = UnboundLocalError,
+        law_reference = UnboundLocalError,
+        name = None,
+        reference_column = None,
+        set_input = UnboundLocalError,
+        source_code = UnboundLocalError,
+        source_file_path = UnboundLocalError,
+        start_date = UnboundLocalError,
+        start_line_number = UnboundLocalError,
+        stop_date = UnboundLocalError,
+        url = UnboundLocalError,
+        **specific_attributes
+        ):
     # Validate arguments.
 
     if reference_column is not None:
@@ -791,12 +809,10 @@ def new_filled_column(__doc__ = None, __module__ = None,
         formula_class_attributes['source_file_path'] = source_file_path
 
     if column.definition_period == ETERNITY:
-        assert base_function in (requested_period_default_value_neutralized, UnboundLocalError), \
-            'Unexpected base_function {}'.format(base_function)
+        assert base_function == UnboundLocalError, 'Unexpected base_function {}'.format(base_function)
         base_function = permanent_default_value
     elif column.is_period_size_independent:
-        assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value,
-            requested_period_default_value_neutralized, UnboundLocalError), \
+        assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value, UnboundLocalError), \
             'Unexpected base_function {}'.format(base_function)
         if base_function is UnboundLocalError:
             base_function = requested_period_last_value
@@ -905,6 +921,7 @@ def new_filled_column(__doc__ = None, __module__ = None,
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period
+    column.is_neutralized = is_neutralized
     column.label = label
     column.law_reference = law_reference
     column.name = name
