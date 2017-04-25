@@ -24,7 +24,9 @@ log = logging.getLogger(__name__)
 
 class VariableNotFound(Exception):
     def __init__(self, variable_name, tax_benefit_system):
-        country_package_name, country_package_version = tax_benefit_system.get_package_metadata()
+        country_package_metadata = tax_benefit_system.get_package_metadata()
+        country_package_name = country_package_metadata['name']
+        country_package_version  = country_package_metadata['version']
         message = (
             u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax benefit system ({1}@{2}). "
             u"Are you sure you spelled '{0}' correctly? "
@@ -340,5 +342,13 @@ class TaxBenefitSystem(object):
     def get_package_metadata(cls):
         package_name = inspect.getmodule(cls).__package__.split('.')[0]
         distribution = pkg_resources.get_distribution(package_name)
-
-        return distribution.key, distribution.version
+        home_page_metadatas = [
+            metadata.split(':', 1)[1].strip(' ')
+            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
+            ]
+        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+        return {
+            'name': distribution.key,
+            'version': distribution.version,
+            'repository_url': repository_url,
+            }
