@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import collections
 import glob
 from inspect import isclass
 from os import path
@@ -62,7 +61,7 @@ class TaxBenefitSystem(object):
     def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.column_by_name = collections.OrderedDict()
+        self.column_by_name = {}
         self.automatically_loaded_variable = set()
         self.legislation_xml_info_list = []
         self._legislation_json = legislation_json
