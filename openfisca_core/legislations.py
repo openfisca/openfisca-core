@@ -315,6 +315,11 @@ def generate_dated_json_value(values_json, instant):
 def generate_dated_legislation_json(legislation_json, instant):
     instant_str = str(periods.instant(instant))
     dated_legislation_json = generate_dated_node_json(legislation_json, instant_str)
+    if dated_legislation_json is None:  # special case when the legislation is empty
+        dated_legislation_json = collections.OrderedDict({
+            '@type': u'Node',
+            'children': collections.OrderedDict(),
+            })
     dated_legislation_json['@context'] = u'http://openfisca.fr/contexts/dated-legislation.jsonld'
     dated_legislation_json['instant'] = instant_str
     return dated_legislation_json
