@@ -141,15 +141,9 @@ class Holder(object):
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
-        column_start_instant = periods.instant(column.start)
-        column_stop_instant = periods.instant(column.end)
-        if (column_start_instant is None or column_start_instant <= period.start) \
-                and (column_stop_instant is None or period.start <= column_stop_instant):
-            formula_dated_holder = self.formula.compute(period = period, **parameters)
-            assert formula_dated_holder is not None
-            return formula_dated_holder
-        array = self.default_array()
-        return self.put_in_cache(array, period)
+        formula_dated_holder = self.formula.compute(period = period, **parameters)
+        assert formula_dated_holder is not None
+        return formula_dated_holder
 
     def compute_add(self, period, **parameters):
         # Check that the requested period matches definition_period
@@ -236,10 +230,8 @@ class Holder(object):
             label = column.name,
             title = column.label,
             ))
-        period = self.simulation.period
         formula = self.formula
-        if formula is None or column.start is not None and column.start > period.stop.date or column.end is not None \
-                and column.end < period.start.date:
+        if formula is None:
             return
         formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
