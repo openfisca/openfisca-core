@@ -351,4 +351,5 @@ class TaxBenefitSystem(object):
             'name': distribution.key,
             'version': distribution.version,
             'repository_url': repository_url,
+            'location': distribution.location,
             }
