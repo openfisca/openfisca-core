@@ -354,7 +354,7 @@ def generate_dated_node_json(node_json, instant_str):
                     generate_dated_bracket_json(bracket_json, instant_str)
                     for bracket_json in value
                     )
-                if dated_bracket_json is not None
+                if dated_bracket_json != collections.OrderedDict()
                 ]
             if not dated_brackets_json:
                 return None
