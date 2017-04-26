@@ -1,5 +1,26 @@
 # Changelog
 
+## 11.0.0
+
+#### Breaking changes
+
+These breaking changes only concern variable and tax and benefit system **metadata**. They **do not** impact calculations.
+
+* Make `tax_benefit_system.get_package_metadata()` return a `dict` instead of a `tuple`
+* Make `column.source_file_path` a relative path (was absolute before)
+* Make `column.url` a list instead of a string
+
+#### New features
+
+* Make `tax_benefit_system.get_package_metadata()` more robust
+  - Handle reforms
+  - Handle tax and benefit systems that are not defined within a package and/or a distribution
+
+#### Technical changes
+
+* Turn `Variable`s with a `start_date` and/or a `stop_date` into `DatedVariable`s
+  - This is transparent for users.
+
 ## 10.0.2
 
 * Do not cache values for neutralized variables
