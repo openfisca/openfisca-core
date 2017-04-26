@@ -25,11 +25,11 @@ class VariableNotFound(Exception):
     def __init__(self, variable_name, tax_benefit_system):
         country_package_metadata = tax_benefit_system.get_package_metadata()
         country_package_name = country_package_metadata['name']
-        country_package_version  = country_package_metadata['version']
+        country_package_version = country_package_metadata['version']
         message = (
-            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax benefit system ({1}@{2}). "
+            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}@{2}). "
             u"Are you sure you spelled '{0}' correctly? "
-            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
+            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
             ).format(variable_name, country_package_name, country_package_version)
         Exception.__init__(self, message.encode('utf-8'))
 
@@ -339,6 +339,22 @@ class TaxBenefitSystem(object):
 
     @classmethod
     def get_package_metadata(cls):
+        """
+            Gets metatada relative to the country package the tax and benefit system is built from.
+
+            :returns: Country package metadata
+            :rtype: dict
+
+            Exemple:
+
+            >>> tax_benefit_system.get_package_metadata()
+            >>> {
+            >>>    'location': '/path/to/dir/containing/package',
+            >>>    'name': 'openfisca-france',
+            >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
+            >>>    'version': '17.2.0'
+            >>>    }
+        """
         package_name = inspect.getmodule(cls).__package__.split('.')[0]
         distribution = pkg_resources.get_distribution(package_name)
         home_page_metadatas = [
