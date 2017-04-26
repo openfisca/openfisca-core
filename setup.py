@@ -35,7 +35,7 @@ setup(
             ],
         'test': [
             'nose',
-            'openfisca-dummy-country == 0.1.4',
+            'openfisca-dummy-country == 0.1.5',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
