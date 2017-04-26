@@ -153,23 +153,17 @@ class DatedFormula(AbstractGroupedFormula):
         return new
 
     def compute(self, period, **parameters):
-        dated_holder = None
-        stop_instant = period.stop
+        # We compute using the formula matching the first day of the requested period, if there is one
         for dated_formula in self.dated_formulas:
-            if dated_formula['start_instant'] > stop_instant:
-                break
-            output_period = period.intersection(dated_formula['start_instant'], dated_formula['stop_instant'])
-            if output_period is None:
-                continue
-            dated_holder = dated_formula['formula'].compute(period = output_period, **parameters)
-            if dated_holder.array is None:
-                break
-            self.used_formula = dated_formula['formula']
-            return dated_holder
+            if period.start < dated_formula['start_instant']:
+                # The requested period is before the definition span of the first dated formula.
+                # As these are sorted, no dated formula will match. We can thus break the loop.
+                return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
+            if dated_formula['stop_instant'] is None or period.start <= dated_formula['stop_instant']:
+                self.used_formula = dated_formula['formula']
+                return dated_formula['formula'].compute(period, **parameters)
 
-        holder = self.holder
-        array = holder.default_array()
-        return holder.put_in_cache(array, period, parameters.get('extra_params'))
+        return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
