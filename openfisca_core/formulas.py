@@ -784,7 +784,10 @@ def new_filled_column(
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url
     elif url is not None:
-        url = unicode(url)
+        if isinstance(url, list):
+            url = url.map(unicode)
+        else:
+            url = [unicode(url)]
 
     # Build formula class and column.
 
