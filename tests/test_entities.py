@@ -259,7 +259,6 @@ def test_sum_following_bug_ipp_2():
     test_case['individus'][3]['a_charge_fiscale'] = True
 
     simulation = new_simulation(test_case)
-    print(simulation.period)
     famille = simulation.famille
 
     elibible_i = famille.members('a_charge_fiscale', period = reference_period)

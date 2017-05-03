@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import collections
 import glob
 from inspect import isclass
 from os import path
@@ -24,12 +23,18 @@ log = logging.getLogger(__name__)
 
 class VariableNotFound(Exception):
     def __init__(self, variable_name, tax_benefit_system):
-        country_package_name, country_package_version = tax_benefit_system.get_package_metadata()
+        country_package_metadata = tax_benefit_system.get_package_metadata()
+        country_package_name = country_package_metadata['name']
+        country_package_version = country_package_metadata['version']
+        if country_package_version:
+            country_package_id = '{}@{}'.format(country_package_name, country_package_version)
+        else:
+            country_package_id = country_package_name
         message = (
-            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax benefit system ({1}@{2}). "
+            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({2}). "
             u"Are you sure you spelled '{0}' correctly? "
-            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
-            ).format(variable_name, country_package_name, country_package_version)
+            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
+            ).format(variable_name, country_package_name, country_package_id)
         Exception.__init__(self, message.encode('utf-8'))
 
 
@@ -60,7 +65,7 @@ class TaxBenefitSystem(object):
     def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.column_by_name = collections.OrderedDict()
+        self.column_by_name = {}
         self.automatically_loaded_variable = set()
         self.legislation_xml_info_list = []
         self._legislation_json = legislation_json
@@ -336,9 +341,51 @@ class TaxBenefitSystem(object):
             self.compute_legislation(with_source_file_infos = with_source_file_infos)
         return self._legislation_json
 
-    @classmethod
-    def get_package_metadata(cls):
-        package_name = inspect.getmodule(cls).__package__.split('.')[0]
-        distribution = pkg_resources.get_distribution(package_name)
+    def get_package_metadata(self):
+        """
+            Gets metatada relative to the country package the tax and benefit system is built from.
 
-        return distribution.key, distribution.version
+            :returns: Country package metadata
+            :rtype: dict
+
+            Exemple:
+
+            >>> tax_benefit_system.get_package_metadata()
+            >>> {
+            >>>    'location': '/path/to/dir/containing/package',
+            >>>    'name': 'openfisca-france',
+            >>>    'repository_url': 'https://github.com/openfisca/openfisca-france',
+            >>>    'version': '17.2.0'
+            >>>    }
+        """
+        # Handle reforms
+        if self.reference:
+            return self.reference.get_package_metadata()
+
+        fallback_metadata = {
+            'name': self.__class__.__name__,
+            'version': '',
+            'repository_url': '',
+            'location': '',
+            }
+
+        module = inspect.getmodule(self)
+        if not module.__package__:
+            return fallback_metadata
+        else:
+            package_name = module.__package__.split('.')[0]
+            try:
+                distribution = pkg_resources.get_distribution(package_name)
+            except pkg_resources.DistributionNotFound:
+                return fallback_metadata
+        home_page_metadatas = [
+            metadata.split(':', 1)[1].strip(' ')
+            for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
+            ]
+        repository_url = home_page_metadatas[0] if home_page_metadatas else ''
+        return {
+            'name': distribution.key,
+            'version': distribution.version,
+            'repository_url': repository_url,
+            'location': distribution.location,
+            }

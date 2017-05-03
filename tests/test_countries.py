@@ -170,7 +170,6 @@ def test_2_parallel_axes_same_values():
         parent1 = {},
         parent2 = {},
         ).new_simulation(debug = True)
-    print(simulation.calculate_add('salaire_brut', year))
     assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 50400, 100800], absolute_error_margin = 0.005)
 
 
