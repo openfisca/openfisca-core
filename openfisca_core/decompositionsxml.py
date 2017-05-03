@@ -17,7 +17,7 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
     comments = []
     node_json = collections.OrderedDict()
     if root:
-        node_json['@context'] = u'http://openfisca.fr/contexts/decomposition.jsonld'
+        node_json['@context'] = u'https://openfisca.fr/contexts/decomposition.jsonld'
     node_json['@type'] = 'Node'
     children_json = []
     for key, value in node_xml_json.iteritems():

@@ -131,7 +131,7 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
     comments = []
     node_json = collections.OrderedDict()
     if root:
-        node_json['@context'] = u'http://openfisca.fr/contexts/legislation.jsonld'
+        node_json['@context'] = u'https://openfisca.fr/contexts/legislation.jsonld'
     node_json['@type'] = 'Node'
     child_json_by_code = {}
     for key, value in node_xml_json.iteritems():
@@ -857,7 +857,7 @@ validate_values_holder_xml_json = conv.struct(
 def make_xml_legislation_file_path_to_xml(with_source_file_infos = False):
     def xml_legislation_file_path_to_xml(value, state = None):
         if with_source_file_infos:
-            # From # http://bugs.python.org/issue14078#msg153907
+            # From # https://bugs.python.org/issue14078#msg153907
             class XMLParserWithLineNumbers(xml.etree.ElementTree.XMLParser):
                 def _end(self, *args, **kwargs):
                     element = super(self.__class__, self)._end(*args, **kwargs)
