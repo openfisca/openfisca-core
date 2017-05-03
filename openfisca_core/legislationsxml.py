@@ -5,7 +5,6 @@
 
 
 import collections
-import datetime
 import logging
 import itertools
 
@@ -24,6 +23,8 @@ from . import conv
 #    TAUX = 'rate',  # "rate" is singular, because a bracket has only one base.
 #    TRANCHE = 'brackets', # TODO: should be renamed to bracket
 #    VALUE = 'values',
+#    END
+#    PLACEHOLDER
 #    )
 
 default_format = 'float'
@@ -72,25 +73,6 @@ def merge_xml_elements_and_paths_into_first(xml_elements_and_paths, state = None
             xml_root_element.find(xpath).append(xml_element)
 
     return xml_root_element, None
-
-
-def pop_fuzzy(value, state = None):
-    if value is not None:
-        value.pop('fuzzy', None)
-    return value, None
-
-
-def test_has_fuzzy_or_fin(value, state = None):
-    if value is None:
-        return value, None
-    if not value.get('fuzzy', False) and value.get('fin') is None:
-        if state is None:
-            state = conv.default_state
-        errors = dict(
-            fin = state._(u'Missing value (required when "fuzzy" attribute is not set)'),
-            )
-        return value, errors
-    return value, None
 
 
 def translate_xml_element_to_json_item(xml_element):
@@ -190,29 +172,44 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
     def xml_json_value_to_json_transformer_bool(xml_json_value):
         return bool(int(xml_json_value))
 
-    for key, value in parameter_xml_json.iteritems():
-        if key in ('code', 'taille'):
-            pass
-        elif key == 'format':
-            parameter_json[key] = dict(
-                bool = u'boolean',
-                percent = u'rate',
-                ).get(value, value)
-            if value == 'bool':
-                xml_json_value_to_json_transformer = xml_json_value_to_json_transformer_bool
-            elif value == 'integer':
-                xml_json_value_to_json_transformer = int
-        elif key in ('tail', 'text'):
-            comments.append(value)
-        elif key == 'type':
-            parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
-        elif key == 'VALUE':
-            parameter_json['values'] = [
-                transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
-                for item in value
-                ]
-        else:
-            parameter_json[key] = value
+    if 'format' in parameter_xml_json:
+        value = parameter_xml_json['format']
+        parameter_json['format'] = dict(
+            bool = u'boolean',
+            percent = u'rate',
+            ).get(value, value)
+        if value == 'bool':
+            xml_json_value_to_json_transformer = xml_json_value_to_json_transformer_bool
+        elif value == 'integer':
+            xml_json_value_to_json_transformer = int
+
+    if 'tail' in parameter_xml_json:
+        comments.append(parameter_xml_json['tail'])
+
+    if 'text' in parameter_xml_json:
+        comments.append(parameter_xml_json['text'])
+
+    if 'type' in parameter_xml_json:
+        value = parameter_xml_json['type']
+        parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
+
+    values = [
+        transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
+        for item in parameter_xml_json['VALUE']
+        ]
+
+    if 'END' in parameter_xml_json:
+        ends = [
+            transform_end_xml_json_to_json(item)
+            for item in parameter_xml_json['END']
+            ]
+    else:
+        ends = []
+
+    # Sort by "deb" date
+    sorted_values_json = sorted(values + ends, key = lambda value_xml_json: value_xml_json['start'], reverse = True)
+    parameter_json['values'] = sorted_values_json
+
     if parameter_json.get('format') is None:
         parameter_json['format'] = default_format
     if comments:
@@ -250,8 +247,6 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
         assert key not in ('code', 'format', 'type')
         if key == 'deb':
             value_json['start'] = value
-        elif key == 'fin':
-            value_json['stop'] = value
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'valeur':
@@ -267,11 +262,40 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
     return value_json
 
 
+def transform_end_xml_json_to_json(end_xml_json):
+    comments = []
+    end_json = collections.OrderedDict()
+    for key, value in end_xml_json.iteritems():
+        assert key not in ('code', 'format', 'type')
+        if key == 'deb':
+            end_json['start'] = value
+        elif key in ('tail', 'text'):
+            comments.append(value)
+        else:
+            end_json[key] = value
+    if comments:
+        end_json['comment'] = u'\n\n'.join(comments)
+    return end_json
+
+
 def transform_values_holder_xml_json_to_json(values_holder_xml_json):
-    return [
+    values = [
         transform_value_xml_json_to_json(item, float)
         for item in values_holder_xml_json['VALUE']
         ]
+
+    if 'END' in values_holder_xml_json:
+        ends = [
+            transform_end_xml_json_to_json(item)
+            for item in values_holder_xml_json['END']
+            ]
+    else:
+        ends = []
+
+    # Sort by "deb" date
+    sorted_values_json = sorted(values + ends, key = lambda value_xml_json: value_xml_json['start'], reverse = True)
+
+    return sorted_values_json
 
 
 def validate_bracket_xml_json(bracket, state = None):
@@ -349,153 +373,6 @@ def validate_bracket_xml_json(bracket, state = None):
         )(bracket, state = state)
     conv.remove_ancestor_from_state(state, bracket)
     return validated_bracket, errors
-
-
-def validate_brackets_xml_json_dates(brackets, state = None):
-    if not brackets:
-        return brackets, None
-    if state is None:
-        state = conv.default_state
-    errors = {}
-
-    previous_bracket = brackets[0]
-    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
-        for key in ('ASSIETTE', 'MONTANT', 'SEUIL', 'TAUX'):
-            valid_segments = []
-            values_holder_xml_json = previous_bracket.get(key)
-            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-            for value_xml_json in values_xml_json:
-                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-                # Note: to_date may be None for first valid segment.
-                to_date_str = value_xml_json.get('fin')
-                to_date = None if to_date_str is None \
-                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-                if valid_segments and valid_segments[-1][0] == to_date + datetime.timedelta(days = 1):
-                    valid_segments[-1] = (from_date, valid_segments[-1][1])
-                else:
-                    valid_segments.append((from_date, to_date))
-
-            values_holder_xml_json = bracket.get(key)
-            values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-            for value_index, value_xml_json in enumerate(values_xml_json):
-                from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-                # Note: to_date may be None for first value_xml_json.
-                to_date_str = value_xml_json.get('fin')
-                to_date = None if to_date_str is None \
-                    else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-                for valid_segment in valid_segments:
-                    valid_to_date = valid_segment[1]
-                    if valid_segment[0] <= from_date and (
-                            valid_to_date is None or to_date is not None and to_date <= valid_to_date):
-                        break
-                else:
-                    errors.setdefault(bracket_index, {}).setdefault(key, {}).setdefault(0, {}).setdefault('VALUE',
-                        {}).setdefault(value_index, {})['deb'] = state._(
-                        u"Dates don't belong to valid dates of previous bracket")
-        previous_bracket = bracket
-    if errors:
-        return brackets, errors
-
-    for bracket_index, bracket in enumerate(itertools.islice(brackets, 1, None), 1):
-        amount_segments = []
-        values_holder_xml_json = bracket.get('MONTANT')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_xml_json in values_xml_json:
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first amount segment.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            if amount_segments and amount_segments[-1][0] == to_date + datetime.timedelta(days = 1):
-                amount_segments[-1] = (from_date, amount_segments[-1][1])
-            else:
-                amount_segments.append((from_date, to_date))
-
-        rate_segments = []
-        values_holder_xml_json = bracket.get('TAUX')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_xml_json in values_xml_json:
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first rate segment.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            if rate_segments and rate_segments[-1][0] == to_date + datetime.timedelta(days = 1):
-                rate_segments[-1] = (from_date, rate_segments[-1][1])
-            else:
-                rate_segments.append((from_date, to_date))
-
-        threshold_segments = []
-        values_holder_xml_json = bracket.get('SEUIL')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_xml_json in values_xml_json:
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first threshold segment.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            if threshold_segments and threshold_segments[-1][0] == to_date + datetime.timedelta(days = 1):
-                threshold_segments[-1] = (from_date, threshold_segments[-1][1])
-            else:
-                threshold_segments.append((from_date, to_date))
-
-        values_holder_xml_json = bracket.get('ASSIETTE')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_index, value_xml_json in enumerate(values_xml_json):
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first value_xml_json.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            for rate_segment in rate_segments:
-                rate_to_date = rate_segment[1]
-                if rate_segment[0] <= from_date and (
-                        rate_to_date is None or to_date is not None and to_date <= rate_to_date):
-                    break
-            else:
-                errors.setdefault(bracket_index, {}).setdefault('ASSIETTE', {}).setdefault(0, {}).setdefault('VALUE',
-                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
-
-        values_holder_xml_json = bracket.get('TAUX')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_index, value_xml_json in enumerate(values_xml_json):
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first value_xml_json.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            for threshold_segment in threshold_segments:
-                threshold_to_date = threshold_segment[1]
-                if threshold_segment[0] <= from_date and (
-                        threshold_to_date is None or to_date is not None and to_date <= threshold_to_date):
-                    break
-            else:
-                errors.setdefault(bracket_index, {}).setdefault('TAUX', {}).setdefault(0, {}).setdefault('VALUE',
-                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to SEUIL dates")
-
-        values_holder_xml_json = bracket.get('SEUIL')
-        values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
-        for value_index, value_xml_json in enumerate(values_xml_json):
-            from_date = datetime.date(*(int(fragment) for fragment in value_xml_json['deb'].split('-')))
-            # Note: to_date may be None for first value_xml_json.
-            to_date_str = value_xml_json.get('fin')
-            to_date = None if to_date_str is None \
-                else datetime.date(*(int(fragment) for fragment in to_date_str.split('-')))
-            for rate_segment in rate_segments:
-                rate_to_date = rate_segment[1]
-                if rate_segment[0] <= from_date and (
-                        rate_to_date is None or to_date is not None and to_date <= rate_to_date):
-                    break
-            else:
-                for amount_segment in amount_segments:
-                    amount_to_date = amount_segment[1]
-                    if amount_segment[0] <= from_date and (
-                            amount_to_date is None or to_date is not None and to_date <= amount_to_date):
-                        break
-                else:
-                    errors.setdefault(bracket_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
-                        {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
-    return brackets, errors or None
 
 
 def validate_brackets_xml_json_types(brackets, state = None):
@@ -670,9 +547,22 @@ def validate_parameter_xml_json(parameter, state = None):
                         validate_value_xml_json,
                         drop_none_items = True,
                         ),
-                    validate_values_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
+                    ),
+                END = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_end_xml_json,
+                        drop_none_items = True,
+                        ),
+                    ),
+                PLACEHOLDER = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_placeholder_xml_json,
+                        drop_none_items = True,
+                        ),
                     ),
                 xml_file_path = conv.test_isinstance(basestring),
                 # baremes-ipp related attributes
@@ -730,7 +620,6 @@ def validate_scale_xml_json(scale, state = None):
                         drop_none_items = True,
                         ),
                     validate_brackets_xml_json_types,
-                    validate_brackets_xml_json_dates,
                     conv.empty_to_none,
                     conv.not_none,
                     ),
@@ -808,17 +697,6 @@ def validate_value_xml_json(value, state = None):
                     conv.not_none,
                     ),
                 end_line_number = conv.test_isinstance(int),
-                fin = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.iso8601_input_to_date,
-                    conv.date_to_iso8601_str,
-                    ),
-                fuzzy = conv.pipe(
-                    conv.test_isinstance(basestring),
-                    conv.input_to_slug,
-                    conv.test_equals(u'true'),
-                    conv.set_value(True),
-                    ),
                 start_line_number = conv.test_isinstance(int),
                 tail = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -843,40 +721,89 @@ def validate_value_xml_json(value, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
-        test_has_fuzzy_or_fin,
-        pop_fuzzy,
         )(value, state = state)
     conv.remove_ancestor_from_state(state, value)
     return validated_value, errors
 
 
-def validate_values_xml_json_dates(values_xml_json, state = None):
-    if not values_xml_json:
-        return values_xml_json, None
-    if state is None:
-        state = conv.default_state
+def validate_end_xml_json(value, state = None):
+    if value is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, value)
+    validated_value, errors = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                deb = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                end_line_number = conv.test_isinstance(int),
+                start_line_number = conv.test_isinstance(int),
+                tail = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                text = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(value, state = state)
+    conv.remove_ancestor_from_state(state, value)
+    return validated_value, errors
 
-    errors = {}
-    for index, value_xml_json in enumerate(values_xml_json):
-        to_date_str = value_xml_json.get('fin')
-        if to_date_str is not None and value_xml_json['deb'] > to_date_str:
-            errors[index] = dict(fin = state._(u"Last date must be greater than first date"))
 
-    sorted_values_xml_json = sorted(values_xml_json, key = lambda value_xml_json: value_xml_json['deb'],
-        reverse = True)
-    next_value_xml_json = sorted_values_xml_json[0]
-    for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None), 1):
-        to_date_str = value_xml_json.get('fin')
-        if to_date_str is None:
-            errors.setdefault(index, {})['fin'] = state._(u"Missing value")
-        else:
-            next_date_str = (datetime.date(*(int(fragment) for fragment in to_date_str.split('-'))) +
-                datetime.timedelta(days = 1)).isoformat()
-            if next_date_str > next_value_xml_json['deb']:
-                errors.setdefault(index, {})['deb'] = state._(u"Dates of values overlap")
-        next_value_xml_json = value_xml_json
-
-    return sorted_values_xml_json, errors or None
+def validate_placeholder_xml_json(value, state = None):
+    if value is None:
+        return None, None
+    state = conv.add_ancestor_to_state(state, value)
+    validated_value, errors = conv.pipe(
+        conv.test_isinstance(dict),
+        conv.struct(
+            dict(
+                deb = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.iso8601_input_to_date,
+                    conv.date_to_iso8601_str,
+                    conv.not_none,
+                    ),
+                end_line_number = conv.test_isinstance(int),
+                start_line_number = conv.test_isinstance(int),
+                tail = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                text = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.cleanup_text,
+                    ),
+                xml_file_path = conv.test_isinstance(basestring),
+                # baremes-ipp related attributes
+                origin = conv.pipe(
+                    conv.test_isinstance(basestring),
+                    conv.empty_to_none,
+                    ),
+                ),
+            constructor = collections.OrderedDict,
+            drop_none_values = 'missing',
+            keep_value_order = True,
+            ),
+        )(value, state = state)
+    conv.remove_ancestor_from_state(state, value)
+    return validated_value, errors
 
 
 validate_values_holder_xml_json = conv.struct(
@@ -889,9 +816,22 @@ validate_values_holder_xml_json = conv.struct(
                 validate_value_xml_json,
                 drop_none_items = True,
                 ),
-            validate_values_xml_json_dates,
             conv.empty_to_none,
             conv.not_none,
+            ),
+        END = conv.pipe(
+            conv.test_isinstance(list),
+            conv.uniform_sequence(
+                validate_end_xml_json,
+                drop_none_items = True,
+                ),
+            ),
+        PLACEHOLDER = conv.pipe(
+            conv.test_isinstance(list),
+            conv.uniform_sequence(
+                validate_placeholder_xml_json,
+                drop_none_items = True,
+                ),
             ),
         xml_file_path = conv.test_isinstance(basestring),
         # baremes-ipp related attributes

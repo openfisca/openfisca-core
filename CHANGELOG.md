@@ -1,5 +1,20 @@
 # Changelog
 
+# 12.0.0
+
+#### Breaking changes
+
+* Deprecate and remove the `fin` attribute in XML parameters.
+  - The end date of a parameter is assumed to be the start of the next one.
+  - The `<END>` indicates that a parameter does not exist anymore
+* Deprecate and remove the `fuzzy` attribute in XML parameters.
+  - By construction, the value of a parameter is always extended towards the future.
+  - To indicate a likely change of the legislation, a `<PLACEHOLDER>` can be added.
+* Deprecate and remove `reforms.create_item`
+  - New items are created directly with the method `reforms.update_items`.
+* Deprecate and remove `reforms.split_item_containing_instant`
+  - Splitting items does not make sense in the new convention. Use `reform.update_items` to update the parameters.
+
 ## 11.0.0
 
 #### Breaking changes

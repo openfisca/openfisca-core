@@ -131,134 +131,6 @@ def test_permanent_variable_neutralization():
     assert str(reform_simulation.calculate('birth', None)[0]) == '1970-01-01'
 
 
-def test_split_item_containing_instant():
-    def check_split_item_containing_instant(description, items, instant, expected_items):
-        new_items = reforms.split_item_containing_instant(instant, items)
-        assert_equal(map(dict, new_items), expected_items)
-
-    item = [{'start': '2015-01-01', 'stop': '2015-12-31', 'value': 0.2}]
-    items = [
-        {'start': '2014-01-01', 'stop': '2014-12-31', 'value': 0.1},
-        {'start': '2015-01-01', 'stop': '2015-12-31', 'value': 0.2},
-        {'start': '2016-01-01', 'stop': '2016-12-31', 'value': 0.3},
-        ]
-    items_with_last_open = [
-        {'start': '2014-01-01', 'stop': '2014-12-31', 'value': 0.1},
-        {'start': '2015-01-01', 'stop': '2015-12-31', 'value': 0.2},
-        {'start': '2016-01-01', 'value': 0.3},
-        ]
-
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the start instant of a single item',
-        item,
-        periods.instant('2015-01-01'),
-        item,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the start instant of an item among others',
-        items,
-        periods.instant('2015-01-01'),
-        items,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the start instant of an item among others (with last item open)',
-        items_with_last_open,
-        periods.instant('2015-01-01'),
-        items_with_last_open,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the stop instant of a single item',
-        item,
-        periods.instant('2015-12-31'),
-        item,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the stop instant of an item among others',
-        items,
-        periods.instant('2015-12-31'),
-        items,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is the stop instant of an item among others (with last item open)',
-        items_with_last_open,
-        periods.instant('2015-12-31'),
-        items_with_last_open,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is between start and stop instants of a single item',
-        item,
-        periods.instant('2015-04-16'),
-        [
-            {'start': '2015-01-01', 'stop': '2015-04-15', 'value': 0.2},
-            {'start': '2015-04-16', 'stop': '2015-12-31', 'value': 0.2},
-            ],
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is between start and stop instants of an item among others',
-        items,
-        periods.instant('2015-04-16'),
-        [
-            {'start': '2014-01-01', 'stop': '2014-12-31', 'value': 0.1},
-            {'start': '2015-01-01', 'stop': '2015-04-15', 'value': 0.2},
-            {'start': '2015-04-16', 'stop': '2015-12-31', 'value': 0.2},
-            {'start': '2016-01-01', 'stop': '2016-12-31', 'value': 0.3},
-            ],
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is between start and stop instants of an item among others (with last item open)',
-        items_with_last_open,
-        periods.instant('2015-04-16'),
-        [
-            {'start': '2014-01-01', 'stop': '2014-12-31', 'value': 0.1},
-            {'start': '2015-01-01', 'stop': '2015-04-15', 'value': 0.2},
-            {'start': '2015-04-16', 'stop': '2015-12-31', 'value': 0.2},
-            {'start': '2016-01-01', 'value': 0.3},
-            ],
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is outside all items in the past',
-        items,
-        periods.instant('2012-01-01'),
-        items,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is outside all items in the past (with last item open)',
-        items_with_last_open,
-        periods.instant('2012-01-01'),
-        items_with_last_open,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is outside all items in the future',
-        items,
-        periods.instant('2017-01-01'),
-        items,
-        )
-    yield (
-        check_split_item_containing_instant,
-        u'Instant is outside all items in the future (with last item open)',
-        items_with_last_open,
-        periods.instant('2017-01-01'),
-        [
-            {'start': '2014-01-01', 'stop': '2014-12-31', 'value': 0.1},
-            {'start': '2015-01-01', 'stop': '2015-12-31', 'value': 0.2},
-            {'start': '2016-01-01', 'stop': '2016-12-31', 'value': 0.3},
-            {'start': '2017-01-01', 'value': 0.3},
-            ],
-        )
-
-
 def test_update_items():
     def check_update_items(description, items, start_instant, stop_instant, value, expected_items):
         new_items = reforms.update_items(items, start_instant, stop_instant, value)
@@ -267,33 +139,42 @@ def test_update_items():
     yield (
         check_update_items,
         u'Replace an item by a new item',
-        [{"start": "2013-01-01", "stop": "2013-12-31", "value": 0.0}],
+        [
+            {"start": "2014-01-01", },
+            {"start": "2013-01-01", "value": 0.0},
+            ],
         periods.period(2013).start,
         periods.period(2013).stop,
         1.0,
-        [{"start": "2013-01-01", "stop": "2013-12-31", "value": 1.0}],
+        [
+            {"start": "2014-01-01", },
+            {"start": "2013-01-01", "value": 1.0},
+            ],
         )
     yield (
         check_update_items,
         u'Replace an item by a new item in a list of items, the last being open',
         [
             {'start': u'2016-01-01', 'value': 9.67},
-            {'start': u'2015-01-01', 'stop': u'2015-12-31', 'value': 9.61},
-            {'start': u'2014-01-01', 'stop': u'2014-12-31', 'value': 9.53},
+            {'start': u'2015-01-01', 'value': 9.61},
+            {'start': u'2014-01-01', 'value': 9.53},
             ],
         periods.period(2015).start,
         periods.period(2015).stop,
         1.0,
         [
-            {'start': u'2014-01-01', 'stop': u'2014-12-31', 'value': 9.53},
-            {'start': u'2015-01-01', 'stop': u'2015-12-31', 'value': 1.0},
             {'start': u'2016-01-01', 'value': 9.67},
+            {'start': u'2015-01-01', 'value': 1.0},
+            {'start': u'2014-01-01', 'value': 9.53},
             ],
         )
     yield (
         check_update_items,
         u'Open the stop instant to the future',
-        [{"start": "2013-01-01", "stop": "2013-12-31", "value": 0.0}],
+        [
+            {"start": "2014-01-01", },
+            {"start": "2013-01-01", "value": 0.0},
+            ],
         periods.period(2013).start,
         None,  # stop instant
         1.0,
@@ -302,14 +183,18 @@ def test_update_items():
     yield (
         check_update_items,
         u'Insert a new item in the middle of an existing item',
-        [{"start": "2010-01-01", "stop": "2013-12-31", "value": 0.0}],
+        [
+            {"start": "2014-01-01", },
+            {"start": "2010-01-01", "value": 0.0},
+            ],
         periods.period(2011).start,
         periods.period(2011).stop,
         1.0,
         [
-            {"start": "2010-01-01", "stop": "2010-12-31", "value": 0.0},
-            {"start": "2011-01-01", "stop": "2011-12-31", "value": 1.0},
-            {"start": "2012-01-01", "stop": "2013-12-31", "value": 0.0},
+            {"start": "2014-01-01", },
+            {"start": "2012-01-01", "value": 0.0},
+            {"start": "2011-01-01", "value": 1.0},
+            {"start": "2010-01-01", "value": 0.0},
             ],
         )
     yield (
@@ -317,15 +202,15 @@ def test_update_items():
         u'Insert a new open item coming after the last open item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2015).start,
         None,  # stop instant
         1.0,
         [
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
-            {"start": "2014-01-01", "stop": "2014-12-31", "value": 0.14},
             {"start": "2015-01-01", "value": 1},
+            {"start": "2014-01-01", "value": 0.14},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         )
     yield (
@@ -333,15 +218,15 @@ def test_update_items():
         u'Insert a new item starting at the same date than the last open item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2014).start,
         periods.period(2014).stop,
         1.0,
         [
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
-            {"start": "2014-01-01", "stop": "2014-12-31", "value": 1.0},
             {"start": "2015-01-01", "value": 0.14},
+            {"start": "2014-01-01", "value": 1.0},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         )
     yield (
@@ -349,14 +234,14 @@ def test_update_items():
         u'Insert a new open item starting at the same date than the last open item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2014).start,
         None,  # stop instant
         1.0,
         [
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             {"start": "2014-01-01", "value": 1.0},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         )
     yield (
@@ -364,15 +249,15 @@ def test_update_items():
         u'Insert a new item coming before the first item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2005).start,
         periods.period(2005).stop,
         1.0,
         [
-            {"start": "2005-01-01", "stop": "2005-12-31", "value": 1.0},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             {"start": "2014-01-01", "value": 0.14},
+            {"start": "2006-01-01", "value": 0.055},
+            {"start": "2005-01-01", "value": 1.0},
             ],
         )
     yield (
@@ -380,23 +265,24 @@ def test_update_items():
         u'Insert a new item coming before the first item with a hole',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2003).start,
         periods.period(2003).stop,
         1.0,
         [
-            {"start": "2003-01-01", "stop": "2003-12-31", "value": 1.0},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
             {"start": "2014-01-01", "value": 0.14},
+            {"start": "2006-01-01", "value": 0.055},
+            {"start": "2004-01-01", },
+            {"start": "2003-01-01", "value": 1.0},
             ],
         )
     yield (
         check_update_items,
-        u'Insert a new open item startng before the start date of the first item',
+        u'Insert a new open item starting before the start date of the first item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2005).start,
         None,  # stop instant
@@ -408,7 +294,7 @@ def test_update_items():
         u'Insert a new open item starting at the same date than the first item',
         [
             {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "stop": "2013-12-31", "value": 0.055},
+            {"start": "2006-01-01", "value": 0.055},
             ],
         periods.period(2006).start,
         None,  # stop instant
@@ -572,7 +458,10 @@ def test_modify_legislation():
                     "@type": "Parameter",
                     "description": "New parameter",
                     "format": "boolean",
-                    "values": [{'start': u'2000-01-01', 'stop': u'2014-12-31', 'value': True}],
+                    "values": [
+                        {'start': u'2015-01-01'},
+                        {'start': u'2000-01-01', 'value': True}
+                        ],
                     },
                 },
             }
