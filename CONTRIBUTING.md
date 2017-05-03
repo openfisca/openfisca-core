@@ -1,8 +1,9 @@
-Thanks for wanting to contribute to OpenFisca! :smiley:
+Thank you for wanting to contribute to OpenFisca! :smiley:
+
+TL;DR: [GitHub Flow](https://guides.github.com/introduction/flow/), [SemVer](http://semver.org/), sweat on naming and messages.
+
 
 ## Common guidelines for all OpenFisca modules
-
-TL;DR: [GitHub Flow](https://guides.github.com/introduction/flow/) and [SemVer](http://semver.org/).
 
 [Common contributor guidelines](https://doc.openfisca.fr/contribute/guidelines.html).
 
