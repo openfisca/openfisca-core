@@ -172,6 +172,9 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
     def xml_json_value_to_json_transformer_bool(xml_json_value):
         return bool(int(xml_json_value))
 
+    if 'description' in parameter_xml_json:
+        parameter_json['description'] = parameter_xml_json['description']
+
     if 'format' in parameter_xml_json:
         value = parameter_xml_json['format']
         parameter_json['format'] = dict(
