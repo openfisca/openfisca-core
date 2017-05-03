@@ -399,7 +399,7 @@ class SimpleFormula(AbstractFormula):
                 array.size, entity_count, entity.key).encode('utf-8')
         if debug:
             try:
-                # cf http://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
+                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
