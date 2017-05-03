@@ -3,11 +3,6 @@ Thank you for wanting to contribute to OpenFisca! :smiley:
 TL;DR: [GitHub Flow](https://guides.github.com/introduction/flow/), [SemVer](http://semver.org/), sweat on naming and messages.
 
 
-## Common guidelines for all OpenFisca modules
-
-[Common contributor guidelines](https://doc.openfisca.fr/contribute/guidelines.html).
-
-
 ## Pull requests
 
 We follow the [GitHub Flow](https://guides.github.com/introduction/flow/): all code contributions are submitted via a pull request towards the `master` branch.
