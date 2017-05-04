@@ -1,5 +1,10 @@
 # Changelog
 
+### 12.0.3
+
+* Fix variable `source_file_path` computation.
+  - Make sure the tax and benefit system `location` metadata is consistent with the actual python files being loaded.
+
 ### 12.0.2
 
 * Fix a bug introduced by 11.0.0: variables with several references could not be loaded.

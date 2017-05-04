@@ -24,7 +24,7 @@ class AbstractVariable(object):
         except TypeError:
             source_file_path = None
         else:
-            source_file_path = absolute_file_path[len(tax_benefit_system.get_package_metadata()['location']):]
+            source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
         try:
             source_lines, start_line_number = inspect.getsourcelines(self.variable_class)
             source_code = textwrap.dedent(''.join(source_lines))
