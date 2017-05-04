@@ -785,7 +785,7 @@ def new_filled_column(
         url = None if reference_column is None else reference_column.url
     elif url is not None:
         if isinstance(url, list):
-            url = url.map(unicode)
+            url = map(unicode, url)
         else:
             url = [unicode(url)]
 
