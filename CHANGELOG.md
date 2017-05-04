@@ -1,5 +1,9 @@
 # Changelog
 
+### 12.0.2
+
+* Fix a bug introduced by 11.0.0: variables with several references could not be loaded.
+
 ### 12.0.1
 
 * Fix a bug introduced by 12.0.0: the description of a parameter node was no longer exported in the parameter JSON.
