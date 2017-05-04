@@ -9,8 +9,6 @@ We follow the [GitHub Flow](https://guides.github.com/introduction/flow/): all c
 
 Opening a Pull Request means you want that code to be merged. If you want to only discuss it, send a link to your branch along with your questions through whichever communication channel you prefer.
 
-If the Pull Request depends on another opened Pull Request on another repository (like OpenFisca-Core/OpenFisca-France), the requirements should be updated in the dependent project via its `setup.py`.
-
 ### Peer reviews
 
 All pull requests must be reviewed by someone else than their original author.
