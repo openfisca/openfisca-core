@@ -20,7 +20,7 @@ deployment:
       - git tag `python setup.py --version`
       - git push --tags
   pypi:
-    branch: master
+    branch: merge-core-api
     commands:
       - python setup.py bdist_wheel
       - twine upload dist/* --username openfisca-bot --password $PYPI_PASSWORD
