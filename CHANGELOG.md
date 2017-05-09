@@ -1,5 +1,11 @@
 # Changelog
 
+## 12.1.0
+
+* Include the preview API into OpenFisca-Core
+* Remove internationalization (`i18n`, `Babel`)
+* Use CircleCI instead of Travis
+
 ### 12.0.3
 
 * Fix variable `source_file_path` computation.
