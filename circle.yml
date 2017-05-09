@@ -13,6 +13,11 @@ test:
     - make test
     - ./check-version-bump.sh
 deployment:
+  tag:
+    branch: master
+    commands:
+      - git tag `python setup.py --version`
+      - git push --tags
   production:
     branch: master
     commands:
