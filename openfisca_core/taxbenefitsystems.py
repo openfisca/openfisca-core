@@ -372,12 +372,14 @@ class TaxBenefitSystem(object):
         module = inspect.getmodule(self)
         if not module.__package__:
             return fallback_metadata
-        else:
-            package_name = module.__package__.split('.')[0]
-            try:
-                distribution = pkg_resources.get_distribution(package_name)
-            except pkg_resources.DistributionNotFound:
-                return fallback_metadata
+        package_name = module.__package__.split('.')[0]
+        try:
+            distribution = pkg_resources.get_distribution(package_name)
+        except pkg_resources.DistributionNotFound:
+            return fallback_metadata
+
+        location = inspect.getsourcefile(module).split(package_name)[0].rstrip('/')
+
         home_page_metadatas = [
             metadata.split(':', 1)[1].strip(' ')
             for metadata in distribution._get_metadata(distribution.PKG_INFO) if 'Home-page' in metadata
@@ -387,5 +389,5 @@ class TaxBenefitSystem(object):
             'name': distribution.key,
             'version': distribution.version,
             'repository_url': repository_url,
-            'location': distribution.location,
+            'location': location,
             }
