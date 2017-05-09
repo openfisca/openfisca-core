@@ -5,6 +5,7 @@ machine:
 dependencies:
   override:
     - pip install --upgrade pip wheel  # pip >= 8.0 needed to be compatible with "manylinux" wheels, used by numpy >= 1.11
+    - pip install twine
     - pip install --editable .[test]
 test:
   pre:
@@ -18,6 +19,11 @@ deployment:
     commands:
       - git tag `python setup.py --version`
       - git push --tags
+  pypi:
+    branch: master
+    commands:
+      - python setup.py bdist_wheel
+      - twine upload dist/* --username openfisca-bot --password $PYPI_PASSWORD
   production:
     branch: master
     commands:
