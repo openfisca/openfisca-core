@@ -19,5 +19,4 @@ This package requires Python 2.7.
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
 pip install --editable .
-python setup.py compile_catalog
 ```

@@ -23,7 +23,6 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
         ],
     entry_points = {
@@ -41,7 +40,6 @@ setup(
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
-        'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11',
         'PyYAML >= 3.10',

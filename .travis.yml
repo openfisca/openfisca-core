@@ -8,7 +8,6 @@ install:
   - pip install --editable .[test]
 script: ./travis-run-tests.sh
 before_deploy:
-  - python setup.py compile_catalog
   - openssl aes-256-cbc -K $encrypted_5636fd88352f_key -iv $encrypted_5636fd88352f_iv -in openfisca_bot.enc -out openfisca_bot -d
 deploy:
   - provider: script
