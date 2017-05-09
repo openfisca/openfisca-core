@@ -14,7 +14,7 @@ test:
     - ./check-version-bump.sh
 deployment:
   tag:
-    branch: master
+    branch: merge-core-api
     commands:
       - git tag `python setup.py --version`
       - git push --tags
