@@ -35,6 +35,7 @@ setup(
             ],
         'test': [
             'nose',
+            'flake8',
             'openfisca-dummy-country == 0.1.6',
             ],
         },
@@ -44,12 +45,15 @@ setup(
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11',
         'PyYAML >= 3.10',
+        'flask == 0.12',
+        'flask-cors == 3.0.2',
+        'gunicorn >= 19.7.1',
         ],
     message_extractors = {
         'openfisca_core': [
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(),
+    packages = find_packages(exclude=['tests*']),
     test_suite = 'nose.collector',
     )
