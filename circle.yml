@@ -14,17 +14,11 @@ test:
     - make test
     - ./check-version-bump.sh
 deployment:
-  tag:
+  master:
     branch: merge-core-api
     commands:
       - git tag `python setup.py --version`
       - git push --tags
-  pypi:
-    branch: merge-core-api
-    commands:
       - python setup.py bdist_wheel
       - twine upload dist/* --username openfisca-bot --password $PYPI_PASSWORD
-  production:
-    branch: master
-    commands:
       - ssh deploy-new-api@api-test.openfisca.fr
