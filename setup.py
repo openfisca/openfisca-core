@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '12.0.3',
+    version = '12.1.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -23,7 +23,6 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/locale/fr/LC_MESSAGES', ['openfisca_core/i18n/fr/LC_MESSAGES/openfisca-core.mo']),
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
         ],
     entry_points = {
@@ -35,21 +34,24 @@ setup(
             ],
         'test': [
             'nose',
+            'flake8',
             'openfisca-dummy-country == 0.1.6',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
-        'Babel >= 0.9.4',
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11',
         'PyYAML >= 3.10',
+        'flask == 0.12',
+        'flask-cors == 3.0.2',
+        'gunicorn >= 19.7.1',
         ],
     message_extractors = {
         'openfisca_core': [
             ('**.py', 'python', None),
             ],
         },
-    packages = find_packages(),
+    packages = find_packages(exclude=['tests*']),
     test_suite = 'nose.collector',
     )
