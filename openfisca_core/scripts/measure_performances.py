@@ -19,7 +19,7 @@ from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntC
 from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import build_entity
 from openfisca_core.formulas import dated_function
-from openfisca_core.variables import DatedVariable, Variable
+from openfisca_core.variables import Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
 
@@ -139,7 +139,7 @@ class revenu_disponible(Variable):
         return rsa + salaire_imposable * 0.7
 
 
-class rsa(DatedVariable):
+class rsa(Variable):
     column = FloatCol
     entity = Individu
     label = u"RSA"

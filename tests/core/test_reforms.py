@@ -11,7 +11,7 @@ from openfisca_core import columns, periods, reforms
 from openfisca_core.periods import MONTH
 from openfisca_core.reforms import Reform
 from openfisca_core.formulas import dated_function
-from openfisca_core.variables import Variable, DatedVariable
+from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
 from openfisca_country_template.entities import Household
@@ -311,7 +311,7 @@ def test_add_variable():
 
 
 def test_add_dated_variable():
-    class new_dated_variable(DatedVariable):
+    class new_dated_variable(Variable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
         entity = Household

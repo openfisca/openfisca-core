@@ -156,7 +156,7 @@ class TaxBenefitSystem(object):
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
-        :param variable: The variable to add. Must be a subclass of Variable or DatedVariable.
+        :param variable: The variable to add. Must be a subclass of Variable.
 
         :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
         """
@@ -170,7 +170,7 @@ class TaxBenefitSystem(object):
 
         If no variable with the given name exists in the tax and benefit system, no error will be raised and the variable will be simply added.
 
-        :param variable: Variable to add. Must be a subclass of Variable or DatedVariable.
+        :param variable: Variable to add. Must be a subclass of Variable.
         """
         return self.load_variable(variable, update = True)
 

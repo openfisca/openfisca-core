@@ -4,7 +4,7 @@
 import inspect
 import textwrap
 
-from openfisca_core.formulas import SimpleFormula, DatedFormula, new_filled_column
+from openfisca_core.formulas import DatedFormula, new_filled_column
 
 
 class AbstractVariable(object):
@@ -62,8 +62,5 @@ class AbstractVariable(object):
 
 
 class Variable(AbstractVariable):
-    formula_class = SimpleFormula
-
-
-class DatedVariable(AbstractVariable):
     formula_class = DatedFormula
+
