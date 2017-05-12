@@ -55,7 +55,7 @@ def build_formulas(dated_formulas, country_package_metadata):
         for dated_formula in dated_formulas
         }
 
-    if dated_formulas[-1]['stop_instant']:
+    if dated_formulas and dated_formulas[-1]['stop_instant']:
         result[get_next_day(dated_formulas[-1]['stop_instant'].date.isoformat())] = None
 
     return result
