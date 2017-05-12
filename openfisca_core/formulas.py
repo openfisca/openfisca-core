@@ -120,7 +120,7 @@ class DatedFormula(AbstractGroupedFormula):
                 )
             for dated_formula_class in self.dated_formulas_class
             ]
-        #assert self.dated_formulas
+        # assert self.dated_formulas
 
     @classmethod
     def at_instant(cls, instant, default = UnboundLocalError):
@@ -837,24 +837,20 @@ def new_filled_column(
     # Turn function into a decorated function
     def is_decorated(function):
         return hasattr(function, 'start_instant') or hasattr(function, 'stop_instant')
-    
+
     if specific_attributes.get('function') and not is_decorated(specific_attributes['function']):
         specific_attributes['function'] = dated_function(start = start_date, stop = stop_date)(specific_attributes['function'])
 
-
-    
-        
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
         start_instant = getattr(function, 'start_instant', UnboundLocalError)
         if start_instant is UnboundLocalError:
             # Function is not dated (and may not even be a function). Skip it.
             continue
-        
+
         # Do not accept dated formula with ETERNITY
         assert column.definition_period != ETERNITY
-        
-        
+
         stop_instant = function.stop_instant
         if stop_instant is not None:
             assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
@@ -914,7 +910,6 @@ def new_filled_column(
         dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class
-    
 
     # Ensure that all attributes defined in ConversionColumn class are used.
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,

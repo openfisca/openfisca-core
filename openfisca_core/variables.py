@@ -63,4 +63,3 @@ class AbstractVariable(object):
 
 class Variable(AbstractVariable):
     formula_class = DatedFormula
-
