@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.1.3
+
+* Validate XML parameters with lxml and a XML Schema
+* Raise nicer errors during validation
+
 ## 12.1.2
 
 * Improve the error when the period argument is forgotten in entity call
