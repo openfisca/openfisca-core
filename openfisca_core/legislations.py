@@ -4,7 +4,6 @@
 """Handle legislative parameters in JSON format."""
 
 
-import collections
 import logging
 
 from . import conv, periods, taxscales
@@ -189,7 +188,7 @@ class TracedCompactNode(object):
             else:
                 parameter_infos.update({"@type": "Parameter", "value": value})
             if parameter_infos not in caller_parameters_infos:
-                caller_parameters_infos.append(collections.OrderedDict(sorted(parameter_infos.iteritems())))
+                caller_parameters_infos.append(dict(sorted(parameter_infos.iteritems())))
         return value
 
     def __getitem__(self, key):
@@ -290,7 +289,7 @@ def compact_dated_node_json(dated_node_json, code = None, instant = None, parent
 
 
 def generate_dated_bracket_json(bracket_json, instant_str):
-    dated_bracket_json = collections.OrderedDict()
+    dated_bracket_json = dict()
     for key, value in bracket_json.iteritems():
         if key in ('amount', 'base', 'rate', 'threshold'):
             dated_value = generate_dated_json_value(value, instant_str)
@@ -316,9 +315,9 @@ def generate_dated_legislation_json(legislation_json, instant):
     instant_str = str(periods.instant(instant))
     dated_legislation_json = generate_dated_node_json(legislation_json, instant_str)
     if dated_legislation_json is None:  # special case when the legislation is empty
-        dated_legislation_json = collections.OrderedDict({
+        dated_legislation_json = dict({
             '@type': u'Node',
-            'children': collections.OrderedDict(),
+            'children': dict(),
             })
     dated_legislation_json['@context'] = u'https://openfisca.fr/contexts/dated-legislation.jsonld'
     dated_legislation_json['instant'] = instant_str
@@ -326,7 +325,7 @@ def generate_dated_legislation_json(legislation_json, instant):
 
 
 def generate_dated_node_json(node_json, instant_str):
-    dated_node_json = collections.OrderedDict()
+    dated_node_json = dict()
     for key, value in node_json.iteritems():
         if key == 'children':
             # Occurs when @type == 'Node'.
@@ -354,7 +353,7 @@ def generate_dated_node_json(node_json, instant_str):
                     generate_dated_bracket_json(bracket_json, instant_str)
                     for bracket_json in value
                     )
-                if dated_bracket_json != collections.OrderedDict()
+                if dated_bracket_json != dict()
                 ]
             if not dated_brackets_json:
                 return None
@@ -390,7 +389,7 @@ def validate_dated_legislation_json(dated_legislation_json, state = None):
                     conv.not_none,
                     ),
                 ),
-            constructor = collections.OrderedDict,
+            constructor = dict,
             default = conv.noop,
             drop_none_values = 'missing',
             keep_value_order = True,
@@ -449,7 +448,7 @@ def validate_dated_node_json(node, state = None):
                 conv.empty_to_none,
                 ),
             },
-        constructor = collections.OrderedDict,
+        constructor = dict,
         default = conv.noop,
         drop_none_values = 'missing',
         keep_value_order = True,
@@ -545,7 +544,7 @@ def validate_dated_node_json(node, state = None):
             ))
     validated_node, errors = conv.struct(
         node_converters,
-        constructor = collections.OrderedDict,
+        constructor = dict,
         drop_none_values = 'missing',
         keep_value_order = True,
         )(validated_node, state = state)
@@ -590,7 +589,7 @@ def validate_dated_bracket_json(bracket, state = None):
                         ),
                     ),
                 ),
-            constructor = collections.OrderedDict,
+            constructor = dict,
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
@@ -701,7 +700,7 @@ def validate_node_json(node, state = None):
                 conv.empty_to_none,
                 ),
             },
-        constructor = collections.OrderedDict,
+        constructor = dict,
         default = conv.noop,
         drop_none_values = 'missing',
         keep_value_order = True,
@@ -806,7 +805,7 @@ def validate_node_json(node, state = None):
             ))
     validated_node, errors = conv.struct(
         node_converters,
-        constructor = collections.OrderedDict,
+        constructor = dict,
         drop_none_values = 'missing',
         keep_value_order = True,
         )(validated_node, state = state)
@@ -840,7 +839,7 @@ def validate_bracket_json(bracket, state = None):
                     conv.not_none,
                     ),
                 ),
-            constructor = collections.OrderedDict,
+            constructor = dict,
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
@@ -927,7 +926,7 @@ def validate_value_json(value, state = None):
                     value_converter,
                     ),
                 },
-            constructor = collections.OrderedDict,
+            constructor = dict,
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
