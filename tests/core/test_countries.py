@@ -6,15 +6,46 @@ import numpy as np
 from nose.tools import raises, assert_raises
 
 from openfisca_core.variables import Variable
-from openfisca_core.periods import YEAR
+from openfisca_core.periods import YEAR, MONTH
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from openfisca_core.formulas import DIVIDE
 from openfisca_dummy_country import DummyTaxBenefitSystem
 from openfisca_core.tools import assert_near
+from openfisca_core.columns import FloatCol
+from openfisca_dummy_country.entities import Individu
 
 
 tax_benefit_system = DummyTaxBenefitSystem()
+
+
+class salaire_net_no_period(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Salaire net (buggy)"
+    definition_period = MONTH
+
+    def function(individu, period):
+        # salaire_brut = individu('salaire_brut', period)  # correct
+        salaire_brut = individu('salaire_brut')            # buggy
+
+        return salaire_brut * 0.8
+
+
+@raises(ValueError)
+def test_no_period():
+    year = 2016
+
+    buggy_tbf = DummyTaxBenefitSystem()
+    buggy_tbf.add_variable(salaire_net_no_period)
+
+    simulation = buggy_tbf.new_scenario().init_single_entity(
+        period = year,
+        parent1 = dict(
+            salaire_brut = 2000,
+            ),
+        ).new_simulation()
+    simulation.calculate_add('salaire_net_no_period', year)
 
 
 def test_input_variable():
