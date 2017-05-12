@@ -1,0 +1,33 @@
+<NODE code="root">
+  <NODE code="contribution_sociale" description="Contribution sociale progressive">
+    <NODE code="salaire" description="Contribution sur les salaires">
+      <BAREME code="bareme" description="Bareme progressif de contribution sociale sur les salaires">
+        <TRANCHE code="tranche0">
+          <SEUIL>
+            <VALUE deb="2013-01-01" valeur="0" />
+          </SEUIL>
+          <TAUX>
+            <VALUE deb="2017-01-01" valeur="0.02" />
+            <VALUE deb="2015-01-01" valeur="0.04" />
+            <VALUE deb="2013-01-01" valeur="0.03" />
+          </TAUX>
+        </TRANCHE>
+        <TRANCHE code="tranche1">
+          <TAUX>
+            <VALUE deb="2017-01-01" valeur="0.06" />
+            <VALUE deb="2015-01-01" valeur="0.12" />
+            <VALUE deb="2013-01-01" valeur="0.10" />
+          </TAUX>
+        </TRANCHE>
+        <TRANCHE code="tranche2">
+          <SEUIL>
+            <VALUE deb="2017-01-01" valeur="12400" />
+          </SEUIL>
+          <TAUX>
+            <VALUE deb="2017-01-01" valeur="0.12" />
+          </TAUX>
+        </TRANCHE>
+      </BAREME>
+    </NODE>
+  </NODE>
+</NODE>

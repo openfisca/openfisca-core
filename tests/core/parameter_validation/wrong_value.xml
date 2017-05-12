@@ -1,0 +1,9 @@
+<NODE code="root">
+  <NODE code="impot">
+    <CODE code="taux" description="Taux d'impôt sur les salaires" format="percent">
+      <VALUE deb="2016-01-01" valeur="0.3a" />
+      <VALUE deb="2015-01-01" valeur="0.32" />
+      <VALUE deb="1998-01-01" valeur="0.3" />
+    </CODE>
+  </NODE>
+</NODE>
