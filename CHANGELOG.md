@@ -1,5 +1,9 @@
 # Changelog
 
+## 12.1.2
+
+* Improve the error when the period argument is forgotten in entity call
+
 ## 12.1.1
 
 * When replacing a variable by another one in a reform, assume the new variable has the same metadata than the reference one.
