@@ -318,6 +318,8 @@ class TaxBenefitSystem(object):
         """
         if path_in_legislation_tree is not None:
             path_in_legislation_tree = path_in_legislation_tree.split('.')
+        else:
+            path_in_legislation_tree = []
 
         self.legislation_xml_info_list.append(
             (path_to_xml_file, path_in_legislation_tree)
@@ -327,11 +329,7 @@ class TaxBenefitSystem(object):
         self._legislation_json = None
 
     def compute_legislation(self, with_source_file_infos = False):
-        state = conv.default_state
-        xml_legislation_info_list_to_json = legislationsxml.make_xml_legislation_info_list_to_json(
-            with_source_file_infos,
-            )
-        legislation_json = conv.check(xml_legislation_info_list_to_json)(self.legislation_xml_info_list, state = state)
+        legislation_json = legislationsxml.load_legislation(self.legislation_xml_info_list)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         self._legislation_json = legislation_json
