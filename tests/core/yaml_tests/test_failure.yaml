@@ -1,0 +1,6 @@
+- name: "Basic failing test"
+  period: 2015-01
+  input_variables:
+    salary: 2000
+  output_variables:
+    income_tax: 0

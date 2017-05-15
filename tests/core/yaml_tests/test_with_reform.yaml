@@ -1,0 +1,18 @@
+- name: "Test using a reform"
+  period: 2017-01
+  reforms: openfisca_country_template.reforms.removal_basic_income.removal_basic_income
+  input_variables:
+    salary: 0
+  output_variables:
+    basic_income: 0
+
+- name: "Test using several reforms"
+  period: 2017-01
+  reforms:
+    - openfisca_country_template.reforms.removal_basic_income.removal_basic_income
+    - openfisca_country_template.reforms.flat_social_security_contribution.flat_social_security_contribution
+  input_variables:
+    salary: 500
+  output_variables:
+    basic_income: 0
+    income_tax: 75

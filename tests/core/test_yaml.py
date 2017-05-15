@@ -3,16 +3,18 @@
 import pkg_resources
 import os
 import subprocess
+
 from nose.tools import nottest, raises
+import openfisca_extension_template
+from openfisca_country_template import CountryTaxBenefitSystem
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
 
-from openfisca_dummy_country import DummyTaxBenefitSystem
+tax_benefit_system = CountryTaxBenefitSystem()
 
-tax_benefit_system = DummyTaxBenefitSystem()
 
-openfisca_dummy_country_dir = pkg_resources.get_distribution('OpenFisca-Dummy-Country').location
-yamls_tests_dir = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'tests')
+openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
+yamls_tests_dir = os.path.join(openfisca_core_dir, 'tests', 'core', 'yaml_tests')
 
 # Declare that these two functions are not tests to run with nose
 nottest(run_tests)
@@ -54,7 +56,7 @@ def test_absolute_error_margin_fail():
 
 def test_run_tests_from_directory():
     dir_path = os.path.join(yamls_tests_dir, 'directory')
-    assert run_tests(tax_benefit_system, dir_path) == 5
+    assert run_tests(tax_benefit_system, dir_path) == 4
 
 
 def test_with_reform():
@@ -84,20 +86,20 @@ def test_nose_style():
 
 def test_shell_script():
     yaml_path = os.path.join(yamls_tests_dir, 'test_success.yaml')
-    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country']
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull)
 
 
 def test_shell_script_with_reform():
     yaml_path = os.path.join(yamls_tests_dir, 'test_with_reform_2.yaml')
-    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country', '-r', 'openfisca_dummy_country.dummy_reforms.neutralization_rsa']
+    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull)
 
 
 def test_shell_script_with_extension():
-    extension_dir = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'dummy_extension')
-    command = ['openfisca-run-test', extension_dir, '-c', 'openfisca_dummy_country', '-e', extension_dir]
+    extension_dir = openfisca_extension_template.__path__[0]
+    command = ['openfisca-run-test', extension_dir, '-c', 'openfisca_country_template', '-e', extension_dir]
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull)

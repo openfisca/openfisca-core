@@ -1,0 +1,7 @@
+- name: "Test that needs a reform but does not declare it itself"
+  period: 2017-01
+  #reforms: openfisca_country_template.reforms.removal_basic_income.removal_basic_income  input_variables:
+  input_variables:
+    salary: 0
+  output_variables:
+    basic_income: 0
