@@ -739,7 +739,10 @@ def new_filled_column(
     assert issubclass(formula_class, AbstractFormula), formula_class
 
     if definition_period is UnboundLocalError:
-        raise ValueError(u'definition_period missing in {}'.format(name).encode('utf-8'))
+        if reference_column:
+            definition_period = reference_column.definition_period
+        else:
+            raise ValueError(u'definition_period missing in {}'.format(name).encode('utf-8'))
     if definition_period not in (MONTH, YEAR, ETERNITY):
         raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
