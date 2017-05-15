@@ -7,19 +7,19 @@ from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
-import openfisca_dummy_country as dummy_country
-from openfisca_dummy_country.entities import Individu
+from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Person
 
 
 class choice(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
 
 class uses_multiplication(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     label = u'Variable with formula that uses multiplication'
     definition_period = MONTH
 
@@ -31,7 +31,7 @@ class uses_multiplication(Variable):
 
 class uses_switch(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     label = u'Variable with formula that uses switch'
     definition_period = MONTH
 
@@ -48,7 +48,7 @@ class uses_switch(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
 month = '2013-01'
 scenario = tax_benefit_system.new_scenario().init_from_attributes(

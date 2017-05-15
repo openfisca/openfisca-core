@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_dummy_country import DummyTaxBenefitSystem
-from openfisca_dummy_country.entities import Individu
+from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Person
 from openfisca_core.variables import Variable
 from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
@@ -10,14 +10,14 @@ from openfisca_core.periods import MONTH
 
 class input(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     label = u"Input variable"
     definition_period = MONTH
 
 
 class intermediate(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     label = u"Intermediate result that don't need to be cached"
     definition_period = MONTH
 
@@ -27,7 +27,7 @@ class intermediate(Variable):
 
 class output(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     label = u'Output variable'
     definition_period = MONTH
 
@@ -36,7 +36,7 @@ class output(Variable):
 
 
 def get_filled_tbs():
-    tax_benefit_system = DummyTaxBenefitSystem()
+    tax_benefit_system = CountryTaxBenefitSystem()
     tax_benefit_system.add_variables(input, intermediate, output)
 
     return tax_benefit_system
