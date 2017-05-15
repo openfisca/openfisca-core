@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from nose.tools import assert_equal, raises
-import numpy as np
 
 from openfisca_core import legislations
 from openfisca_core.legislations import ParameterNotFound
