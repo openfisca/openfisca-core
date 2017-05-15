@@ -1,11 +1,11 @@
 import numpy as np
 from openfisca_core.tools import assert_near
 
-from openfisca_dummy_country.entities import Famille, Individu
+from openfisca_country_template.entities import Household, Person
 
-DEMANDEUR = Famille.DEMANDEUR
-CONJOINT = Famille.CONJOINT
-ENFANT = Famille.ENFANT
+FIRST_PARENT = Household.FIRST_PARENT
+SECOND_PARENT = Household.SECOND_PARENT
+CHILD = Household.CHILD
 
 
 class SimulationMockUp(object):
@@ -14,8 +14,8 @@ class SimulationMockUp(object):
 
 def get_new_famille():
     simulation = SimulationMockUp()
-    famille = Famille(simulation)
-    simulation.persons = Individu(simulation)
+    famille = Household(simulation)
+    simulation.persons = Person(simulation)
     famille.members = simulation.persons
     return famille
 
@@ -24,7 +24,7 @@ def test_role_inference():
     famille = get_new_famille()
     famille.members_legacy_role = np.asarray([0, 1, 2, 3, 4, 0, 2, 3])
 
-    assert (famille.members_role == [DEMANDEUR, CONJOINT, ENFANT, ENFANT, ENFANT, DEMANDEUR, ENFANT, ENFANT]).all()
+    assert (famille.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, CHILD, FIRST_PARENT, CHILD, CHILD]).all()
 
 
 def test_position_inference():

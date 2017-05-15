@@ -6,8 +6,7 @@ from nose.tools import raises
 from lxml.etree import XMLSyntaxError
 
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_dummy_country.entities import entities
-from openfisca_dummy_country.scenarios import Scenario
+from openfisca_country_template.entities import entities
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +17,6 @@ year = 2016
 class TestTaxBenefitSystem(TaxBenefitSystem):
     def __init__(self, path_to_xml):
         TaxBenefitSystem.__init__(self, entities)
-        self.Scenario = Scenario
         self.add_legislation_params(path_to_xml)
 
 
