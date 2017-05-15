@@ -1,27 +1,22 @@
-import pkg_resources
-import os
-
 from nose.tools import raises
 
-from openfisca_dummy_country import DummyTaxBenefitSystem
+from openfisca_country_template import CountryTaxBenefitSystem
 
-openfisca_dummy_country_dir = pkg_resources.get_distribution('OpenFisca-Dummy-Country').location
-dummy_extension_path = os.path.join(openfisca_dummy_country_dir, 'openfisca_dummy_country', 'dummy_extension')
-tbs = DummyTaxBenefitSystem()
+tbs = CountryTaxBenefitSystem()
 
 
 def test_extension_not_already_loaded():
-    assert tbs.get_column('paris_logement_famille') is None
+    assert tbs.get_column('local_town_child_allowance') is None
 
 
 def test_load_extension():
-    tbs.load_extension(dummy_extension_path)
-    assert tbs.get_column('paris_logement_familles') is not None
+    tbs.load_extension('openfisca_extension_template')
+    assert tbs.get_column('local_town_child_allowance') is not None
 
 
 def test_unload_extensions():
-    tbs = DummyTaxBenefitSystem()
-    assert tbs.get_column('paris_logement_famille') is None
+    tbs = CountryTaxBenefitSystem()
+    assert tbs.get_column('local_town_child_allowance') is None
 
 
 @raises(IOError)
