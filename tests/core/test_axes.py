@@ -1,27 +1,62 @@
 from openfisca_core.tools import assert_near
-from openfisca_dummy_country import DummyTaxBenefitSystem
+from openfisca_core import conv
+from openfisca_core.scenarios import AbstractScenario
+from openfisca_country_template import CountryTaxBenefitSystem
 
 
-tax_benefit_system = DummyTaxBenefitSystem()
+# To initialize a simulation with axes, we need a specific scenario.
+class AxesScenario(AbstractScenario):
+    def init_single_entity(self, axes = None, enfants = None, famille = None, parent1 = None, parent2 = None,
+            period = None):
+        if enfants is None:
+            enfants = []
+        assert parent1 is not None
+        famille = famille.copy() if famille is not None else {}
+        individus = []
+        for index, individu in enumerate([parent1, parent2] + (enfants or [])):
+            if individu is None:
+                continue
+            id = individu.get('id')
+            if id is None:
+                individu = individu.copy()
+                individu['id'] = id = 'ind{}'.format(index)
+            individus.append(individu)
+            if index <= 1:
+                famille.setdefault('parents', []).append(id)
+            else:
+                famille.setdefault('children', []).append(id)
+        conv.check(self.make_json_or_python_to_attributes())(dict(
+            axes = axes,
+            period = period,
+            test_case = dict(
+                households = [famille],
+                persons = individus,
+                ),
+            ))
+        return self
+
+
+tax_benefit_system = CountryTaxBenefitSystem()
+tax_benefit_system.Scenario = AxesScenario
 
 
 # Test introduced following a bug with set_input in the case of parallel axes
 def test_set_input_parallel_axes():
-    year = 2013
+    year = "2016-01"
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             [
                 dict(
                     count = 3,
                     index = 0,
-                    name = 'salaire_brut',
+                    name = 'salary',
                     max = 100000,
                     min = 0,
                     ),
                 dict(
                     count = 3,
                     index = 1,
-                    name = 'salaire_brut',
+                    name = 'salary',
                     max = 100000,
                     min = 0,
                     ),
@@ -30,18 +65,19 @@ def test_set_input_parallel_axes():
         period = year,
         parent1 = {},
         parent2 = {},
-        enfants = [{"salaire_brut": 2000}]
+        enfants = [{"salary": 2000}]
         ).new_simulation()
 
     assert_near(
-        simulation.calculate_add('salaire_brut', year),
+        simulation.calculate_add('salary', year),
         [0, 0, 2000, 50000, 50000, 2000, 100000, 100000, 2000],
         absolute_error_margin = 0.01
         )
 
+
 def test_1_axis():
     period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+    simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             dict(
                 count = 3,
@@ -51,133 +87,95 @@ def test_1_axis():
                 ),
             ],
         period = period,
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate('income_tax', period), [0, 225, 550], absolute_error_margin = 0.005)
+        parent1 = {},
+        ).new_simulation()
+    assert_near(
+        simulation.calculate('salary', period),
+        [0, 1500, 3000]
+        )
 
 
-def test_2_parallel_axes_1_constant():
-    year = 2013
+def test_2_parallel_axes():
+    period = "2016-01"
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             [
                 dict(
                     count = 3,
-                    name = 'salaire_brut',
-                    max = 100000,
+                    name = 'salary',
+                    max = 10000,
                     min = 0,
                     ),
                 dict(
                     count = 3,
                     index = 1,
-                    name = 'salaire_brut',
-                    max = 0.0001,
+                    name = 'salary',
+                    max = 1000,
                     min = 0,
                     ),
                 ],
             ],
-        period = year,
+        period = period,
         parent1 = {},
         parent2 = {},
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 28800, 54000], absolute_error_margin = 0.005)
+        ).new_simulation()
+    assert_near(
+        simulation.calculate('salary', period),
+        [0, 0, 5000, 500, 10000, 1000]
+        )
 
 
 def test_2_parallel_axes_different_periods():
-    year = 2013
+    period_1 = "2016-01"
+    period_2 = "2016-02"
+
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             [
                 dict(
                     count = 3,
-                    name = 'salaire_brut',
-                    max = 120000,
+                    name = 'salary',
+                    max = 1200,
                     min = 0,
-                    period = year - 1,
+                    period = period_1,
                     ),
                 dict(
                     count = 3,
                     index = 1,
-                    name = 'salaire_brut',
-                    max = 120000,
+                    name = 'salary',
+                    max = 1200,
                     min = 0,
-                    period = year,
+                    period = period_2,
                     ),
                 ],
             ],
-        period = year,
+        period = period_2,
         parent1 = {},
         parent2 = {},
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate_add('salaire_brut', year - 1), [0, 0, 60000, 0, 120000, 0], absolute_error_margin = 0)
-    assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year - 1)), [0, 0, 5000, 0, 10000, 0],
-        absolute_error_margin = 0)
-    assert_near(simulation.calculate_add('salaire_brut', year), [0, 0, 0, 60000, 0, 120000], absolute_error_margin = 0)
-    assert_near(simulation.calculate('salaire_brut', '{}-01'.format(year)), [0, 0, 0, 5000, 0, 10000],
-        absolute_error_margin = 0)
+        ).new_simulation()
+
+    assert_near(simulation.calculate('salary', period_1), [0, 0, 600, 0, 1200, 0])
+    assert_near(simulation.calculate_add('salary', period_2), [0, 0, 0, 600, 0, 1200])
 
 
-def test_2_parallel_axes_same_values():
-    year = 2013
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
-        axes = [
-            [
-                dict(
-                    count = 3,
-                    index = 0,
-                    name = 'salaire_brut',
-                    max = 100000,
-                    min = 0,
-                    ),
-                dict(
-                    count = 3,
-                    index = 1,
-                    name = 'salaire_brut',
-                    max = 100000,
-                    min = 0,
-                    ),
-                ],
-            ],
-        period = year,
-        parent1 = {},
-        parent2 = {},
-        ).new_simulation(debug = True)
-    assert_near(simulation.calculate('revenu_disponible_famille', year), [7200, 50400, 100800], absolute_error_margin = 0.005)
-
-
-def check_revenu_disponible(year, city_code, expected_revenu_disponible):
+def check_disposable_income(period, expected_disposable_income):
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         axes = [
             dict(
-                count = 3,
-                name = 'salaire_brut',
-                max = 100000,
+                count = 5,
+                name = 'salary',
+                max = 10000,
                 min = 0,
                 ),
             ],
-        famille = dict(city_code = city_code),
-        period = periods.period(year),
+        period = period,
         parent1 = dict(),
-        parent2 = dict(),
-        ).new_simulation(debug = True)
-    revenu_disponible = simulation.calculate('revenu_disponible', year)
-    assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
-    revenu_disponible_famille = simulation.calculate('revenu_disponible_famille', year)
-    expected_revenu_disponible_famille = np.array([
-        expected_revenu_disponible[i] + expected_revenu_disponible[i + 1]
-        for i in range(0, len(expected_revenu_disponible), 2)
-        ])
-    assert_near(revenu_disponible_famille, expected_revenu_disponible_famille, absolute_error_margin = 0.005)
+        ).new_simulation()
+    disposable_income = simulation.calculate('disposable_income', period)
+    assert_near(disposable_income, expected_disposable_income, absolute_error_margin = 0.005)
 
 
-def test_revenu_disponible():
-    yield check_revenu_disponible, 2009, '75101', np.array([0, 0, 25200, 0, 50400, 0])
-    yield check_revenu_disponible, 2010, '75101', np.array([1200, 1200, 25200, 1200, 50400, 1200])
-    yield check_revenu_disponible, 2011, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400])
-    yield check_revenu_disponible, 2012, '75101', np.array([2400, 2400, 25200, 2400, 50400, 2400])
-    yield check_revenu_disponible, 2013, '75101', np.array([3600, 3600, 25200, 3600, 50400, 3600])
-
-    yield check_revenu_disponible, 2009, '97123', np.array([-70.0, -70.0, 25130.0, -70.0, 50330.0, -70.0])
-    yield check_revenu_disponible, 2010, '97123', np.array([1130.0, 1130.0, 25130.0, 1130.0, 50330.0, 1130.0])
-    yield check_revenu_disponible, 2011, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
-    yield check_revenu_disponible, 2012, '98456', np.array([2330.0, 2330.0, 25130.0, 2330.0, 50330.0, 2330.0])
-    yield check_revenu_disponible, 2013, '98456', np.array([3530.0, 3530.0, 25130.0, 3530.0, 50330.0, 3530.0])
+def test_disposable_income():
+    yield check_disposable_income, "2015-01", [0, 2025, 4050, 6075, 8100]
+    yield check_disposable_income, "2016-01", [600, 2025, 4050, 6075, 8100]
+    yield check_disposable_income, "2017-01", [600, 2675, 4750, 6765, 8740]
