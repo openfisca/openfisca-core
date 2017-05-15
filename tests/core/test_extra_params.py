@@ -5,15 +5,15 @@ from openfisca_core import periods
 from openfisca_core.columns import IntCol, BoolCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
-import openfisca_dummy_country as dummy_country
-from openfisca_dummy_country.entities import Individu
+from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 from openfisca_core.base_functions import requested_period_last_value
 
 
 class formula_1(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -22,7 +22,7 @@ class formula_1(Variable):
 
 class formula_2(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -31,7 +31,7 @@ class formula_2(Variable):
 
 class formula_3(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period, choice):
@@ -40,7 +40,7 @@ class formula_3(Variable):
 
 class formula_4(Variable):
     column = BoolCol
-    entity = Individu
+    entity = Person
     base_function = requested_period_last_value
     definition_period = MONTH
 
@@ -49,14 +49,13 @@ class formula_4(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(formula_1, formula_2, formula_3, formula_4)
 
 reference_period = periods.period(u'2013-01')
 
-simulation = tax_benefit_system.new_scenario().init_single_entity(
+simulation = tax_benefit_system.new_scenario().init_from_attributes(
     period = reference_period.first_month,
-    parent1 = dict(),
     ).new_simulation(debug = True)
 formula_1_result = simulation.calculate('formula_1', period = reference_period)
 formula_2_result = simulation.calculate('formula_2', period = reference_period)
