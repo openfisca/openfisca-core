@@ -9,15 +9,15 @@ from openfisca_core.periods import MONTH
 from openfisca_core.formulas import CycleError
 from openfisca_core.variables import Variable
 
-import openfisca_dummy_country as dummy_country
-from openfisca_dummy_country.entities import Individu
+from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 
 
 # 1 <--> 2 with same period
 class variable1(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -26,7 +26,7 @@ class variable1(Variable):
 
 class variable2(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -36,7 +36,7 @@ class variable2(Variable):
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
 class variable3(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -45,7 +45,7 @@ class variable3(Variable):
 
 class variable4(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -56,7 +56,7 @@ class variable4(Variable):
 #   <---
 class variable5(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -66,7 +66,7 @@ class variable5(Variable):
 
 class variable6(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -77,7 +77,7 @@ class variable6(Variable):
 # december cotisation depending on november value
 class cotisation(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -91,7 +91,7 @@ class cotisation(Variable):
 #   <---
 class variable7(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -101,7 +101,7 @@ class variable7(Variable):
 
 class variable8(Variable):
     column = IntCol
-    entity = Individu
+    entity = Person
     definition_period = MONTH
 
     def function(self, simulation, period):
@@ -110,7 +110,7 @@ class variable8(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
+tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
     variable5, variable6, cotisation, variable7, variable8)
 
@@ -119,18 +119,16 @@ reference_period = periods.period(u'2013-01')
 
 @raises(AssertionError)
 def test_pure_cycle():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = reference_period,
-        parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable1', period = reference_period)
 
 
 @raises(CycleError)
 def test_cycle_time_offset():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = reference_period,
-        parent1 = dict(),
         ).new_simulation(debug = True)
     simulation.calculate('variable3', period = reference_period)
 
@@ -140,9 +138,8 @@ def test_allowed_cycle():
     Calculate variable5 then variable6 then in the order order, to verify that the first calculated variable
     has no effect on the result.
     """
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = reference_period,
-        parent1 = dict(),
         ).new_simulation(debug = True)
     variable6 = simulation.calculate('variable6', period = reference_period)
     variable5 = simulation.calculate('variable5', period = reference_period)
@@ -153,9 +150,8 @@ def test_allowed_cycle():
 
 
 def test_allowed_cycle_different_order():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = reference_period,
-        parent1 = dict(),
         ).new_simulation(debug = True)
     variable5 = simulation.calculate('variable5', period = reference_period)
     variable6 = simulation.calculate('variable6', period = reference_period)
@@ -167,18 +163,16 @@ def test_allowed_cycle_different_order():
 
 def test_cotisation_1_level():
     month = reference_period.last_month
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = month,  # December
-        parent1 = dict(),
         ).new_simulation(debug = True)
     cotisation = simulation.calculate('cotisation', period = month)
     assert_near(cotisation, [2])
 
 
 def test_cycle_1_level():
-    simulation = tax_benefit_system.new_scenario().init_single_entity(
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
         period = reference_period,
-        parent1 = dict(),
         ).new_simulation(debug = True)
     variable7 = simulation.calculate('variable7', period = reference_period)
     # variable8 = simulation.calculate('variable8')
