@@ -631,7 +631,7 @@ def calculate_output_divide(formula, period):
 
 
 def dated_function(start = None, stop = None):
-    """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
+    """Function decorator used to give start & stop instants to a method of a function in class Variable."""
     def dated_function_decorator(function):
         function.start_instant = periods.instant(start)
         function.stop_instant = periods.instant(stop)
