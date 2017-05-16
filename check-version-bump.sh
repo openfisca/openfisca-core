@@ -11,7 +11,7 @@ then
         exit 1
     fi
 
-    if git diff-index master --quiet CHANGELOG.md
+    if git diff-index origin/master --quiet CHANGELOG.md
     then
         set +x
         echo "CHANGELOG.md has not been modified. Please update it before merging this branch into master."
