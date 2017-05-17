@@ -7,7 +7,7 @@ then
     if git rev-parse $current_version
     then
         set +x
-        echo "Version $version already exists. Please update version number in setup.py before merging this branch into master."
+        echo "Version $current_version already exists. Please update version number in setup.py before merging this branch into master."
         exit 1
     fi
 

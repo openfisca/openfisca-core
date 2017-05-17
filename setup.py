@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '12.1.2',
+    version = '12.1.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -46,6 +46,7 @@ setup(
         'flask == 0.12',
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
+        'lxml >= 3.7',
         ],
     message_extractors = {
         'openfisca_core': [
