@@ -2,3 +2,4 @@
 # If we put .. instead of the first line, it will look for a setup.py in the parent directory relatively to where the instruction is executed from, and not where the requirements file is.
 openfisca_core >= 10.0.0
 sphinx-argparse
+sphinxcontrib-httpdomain

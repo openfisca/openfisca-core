@@ -3,6 +3,7 @@
 extensions = [
     'sphinx.ext.autodoc',
     'sphinxarg.ext',
+    'sphinxcontrib.httpdomain',
     ]
 master_doc = 'index'
 project = u'openfisca-core'

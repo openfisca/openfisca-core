@@ -16,6 +16,17 @@ Scripts:
 
    openfisca-run-test
 
+Web-API routes:
+
+.. toctree::
+   :maxdepth: 1
+
+   parameter
+   parameters
+   variable
+   variables
+
+
 
 
 Indices and tables
