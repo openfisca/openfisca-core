@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.1.1
+
+* When replacing a variable by another one in a reform, assume the new variable has the same metadata than the reference one.
+  - The is currently the behaviour for all other metadata.
+
 ## 12.1.0
 
 * Include the preview API into OpenFisca-Core

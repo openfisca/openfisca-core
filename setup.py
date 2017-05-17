@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '12.1.0',
+    version = '12.1.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -19,7 +19,7 @@ setup(
         ],
     description = u'A versatile microsimulation free software',
     keywords = 'benefit microsimulation social tax',
-    license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
+    license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
