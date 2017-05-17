@@ -1,1 +1,2 @@
 recursive-include openfisca_core/scripts *
+include openfisca_core/legislation.xsd
