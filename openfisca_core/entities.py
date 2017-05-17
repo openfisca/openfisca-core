@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
+import traceback
 import warnings
+
+import numpy as np
 
 from formulas import ADD, DIVIDE
 
@@ -51,8 +53,22 @@ class Entity(object):
         if role is not None and not type(role) == Role:
             raise Exception("{} is not a valid role".format(role))
 
-    def __call__(self, variable_name, period, options = [], **parameters):
+    def check_period_validity(self, variable_name, period):
+        if period is None:
+            stack = traceback.extract_stack()
+            filename, line_number, function_name, line_of_code = stack[-3]
+            raise ValueError(u'''
+You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
+    {}
+When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
+    computed_salary = person('salary', period).
+See more information at <https://doc.openfisca.fr/coding-the-legislation/35_periods.html#periods-for-variable>.
+'''.format(variable_name, filename, line_number, line_of_code).encode('utf-8'))
+
+    def __call__(self, variable_name, period = None, options = [], **parameters):
         self.check_variable_defined_for_entity(variable_name)
+
+        self.check_period_validity(variable_name, period)
 
         if ADD in options and DIVIDE in options:
             raise ValueError(u'Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
