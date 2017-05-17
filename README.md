@@ -28,10 +28,10 @@ make test
 
 ## Serving the API
 
-OpenFisca-Core provides a Web-API. To run it with the mock country package `openfisca_dummy_country`, run:
+OpenFisca-Core provides a Web-API. To run it with the mock country package `openfisca_country_template`, run:
 
 ```sh
-COUNTRY_PACKAGE=openfisca_dummy_country gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
+COUNTRY_PACKAGE=openfisca_country_template gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
 ```
 
 The `--workers k` (with `k >= 3`) option is necessary to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process.
