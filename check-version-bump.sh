@@ -2,7 +2,7 @@
 
 current_version=`python setup.py --version`
 
-if ! git diff-index --quiet origin/master openfisca_core openfisca_web_api
+if ! git diff-index --quiet origin/master openfisca_core openfisca_web_api_preview
 then
     if git rev-parse $current_version
     then

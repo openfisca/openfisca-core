@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.1.4
+
+* Fix package naming conflict between the preview API and the official one.
+* Fix import error
+
 ## 12.1.3
 
 * Validate XML parameters with lxml and a XML Schema

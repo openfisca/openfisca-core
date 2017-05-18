@@ -3,7 +3,7 @@
 
 import collections
 import copy
-import xml
+from xml.etree import ElementTree
 
 from . import conv, decompositionsxml, legislations
 
@@ -42,7 +42,7 @@ def calculate(simulations, decomposition_json):
 def get_decomposition_json(tax_benefit_system, xml_file_path = None):
     if xml_file_path is None:
         xml_file_path = tax_benefit_system.decomposition_file_path
-    decomposition_tree = xml.etree.ElementTree.parse(xml_file_path)
+    decomposition_tree = ElementTree.parse(xml_file_path)
     decomposition_xml_json = conv.check(decompositionsxml.xml_decomposition_to_json)(decomposition_tree.getroot(),
         state = conv.State)
     decomposition_xml_json = conv.check(decompositionsxml.make_validate_node_xml_json(tax_benefit_system))(

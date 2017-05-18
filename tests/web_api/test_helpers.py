@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from nose.tools import assert_equal
 
-from openfisca_web_api.loader.parameters import build_values, get_value
+from openfisca_web_api_preview.loader.parameters import build_values, get_value
 
 
 def test_build_values():
