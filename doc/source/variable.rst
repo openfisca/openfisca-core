@@ -6,18 +6,18 @@
 
     Get data about the ``<variable_id>`` variable
 
-    :>json defaultValue: Variable default value.
-    :>json definitionPeriod: Definition period of the variable. Possible values : ``YEAR``, ``MONTH``, ``ETERNITY``.
-    :>json description: Variable description.
-    :>json entity: Entity for which the variable is defined. For instance, ``person``, ``household``…
-    :>json formulas: History of formulas used to compute the variable. If no start date has been specified for the formula, ``0001-01-01`` is used by convention. A ``null` value means that the scale does not exist anymore.
-    :>json id: Variable id.
-    :>json references: Legislative references of the variable.
-    :>json source: Link towards the variable code on GitHub.
-    :>json valueType: The type of the variable.
+    :>json String defaultValue: Variable default value.
+    :>json String definitionPeriod: Definition period of the variable. Possible values : ``YEAR``, ``MONTH``, ``ETERNITY``.
+    :>json String description: Variable description.
+    :>json String entity: Entity for which the variable is defined. For instance, ``person``, ``household``…
+    :>json Object formulas: History of formulas used to compute the variable. If no start date has been specified for the formula, ``0001-01-01`` is used by convention. If one of the property value of this object is ``null``,  the variable doesn't have any formula from the date encoded in the corresponding key.
+    :>json String id: Variable id.
+    :>json Array references: Legislative references of the variable.
+    :>json String source: Link towards the variable code on GitHub.
+    :>json String valueType: The type of the variable.
     :reqheader Country-Package: The name of the country package served by the API
     :resheader Country-Package-Version: The version of the country package served by the API
-    :statuscode 200: no error.
+    :statuscode 200: The requested variable description is sent back in the response body.
     :statuscode 404: the variable ``<variable_id>`` doesn't exist.
 
     **Example request**:

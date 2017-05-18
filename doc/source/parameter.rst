@@ -4,16 +4,16 @@
 
 .. http:get:: /parameter/<parameter_id>
 
-    Get data about the ``<parameter_id>`` parameter
+    Get the type, description and values of the ``<parameter_id>`` parameter
 
-    :>json description: Parameter description.
-    :>json id: Parameter id.
-    :>json values: Parameter values history. Only present if the parameter is a simple one. A ``null`` value means that the parameter does not exist anymore.
-    :>json brackets: Marginal scale history. Only present if the parameter is a marginal scale. A ``null`` value means that the scale does not exist anymore.
+    :>json String description: Parameter description.
+    :>json String id: Parameter id.
+    :>json Object values: Parameter values history. Only present if the parameter is a simple one. If one of the property value of this object is ``null``,  the parameter has been removed from the legislation from the date encoded in the corresponding key.
+    :>json Object brackets: Marginal scale history. Only present if the parameter is a marginal scale. If one of the property value of this object is ``null``,  the scale has been removed from the legislation from the date encoded in the corresponding key.
     :resheader Country-Package: The name of the country package served by the API.
     :resheader Country-Package-Version: The version of the country package served by the API.
-    :statuscode 200: no error.
-    :statuscode 404: the parameter ``<parameter_id>`` doesn't exist.
+    :statuscode 200: The requested parameter description is sent back in the response body.
+    :statuscode 404: The parameter ``<parameter_id>`` doesn't exist.
 
     **Example: Simple parameter**
 

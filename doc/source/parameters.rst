@@ -4,11 +4,13 @@
 
 .. http:get:: /parameters
 
-    All the parameters contained in the tax and benefit system
+    Get the parameters contained in the tax and benefit system.
+
+    The response is formatted as an object whose keys are the parameters id and values objects with a single property, description.
 
     :resheader Country-Package: The name of the country package served by the API
     :resheader Country-Package-Version: The version of the country package served by the API
-    :statuscode 200: no error
+    :statuscode 200: The list of all parameters is sent back in the response body.
 
     **Example request**:
 

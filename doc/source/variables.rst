@@ -4,11 +4,13 @@
 
 .. http:get:: /variables
 
-    All the variables contained in the tax and benefit system
+    Get the variables contained in the tax and benefit system.
+
+    The response is formatted as an object whose keys are the variable ids and values objects with a single property, description.
 
     :resheader Country-Package: The name of the country package served by the API
     :resheader Country-Package-Version: The version of the country package served by the API
-    :statuscode 200: no error
+    :statuscode 200: The list of all variables is sent back in the response body.
 
     **Example request**:
 
