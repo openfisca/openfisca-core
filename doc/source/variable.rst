@@ -7,9 +7,9 @@
     Get data about the ``<variable_id>`` variable
 
     :>json String defaultValue: Variable default value.
-    :>json String definitionPeriod: Definition period of the variable. Possible values : ``YEAR``, ``MONTH``, ``ETERNITY``.
+    :>json String definitionPeriod: `Definition period <https://doc.openfisca.fr/coding-the-legislation/35_periods.html#periods-for-variable>`_ of the variable. Possible values : ``YEAR``, ``MONTH``, ``ETERNITY``.
     :>json String description: Variable description.
-    :>json String entity: Entity for which the variable is defined. For instance, ``person``, ``household``…
+    :>json String entity: `Entity <https://doc.openfisca.fr/person,_entities,_role.html>`_  for which the variable is defined. For instance, ``person``, ``household``…
     :>json Object formulas: History of formulas used to compute the variable. If no start date has been specified for the formula, ``0001-01-01`` is used by convention. If one of the property value of this object is ``null``,  the variable doesn't have any formula from the date encoded in the corresponding key.
     :>json String id: Variable id.
     :>json Array references: Legislative references of the variable.
