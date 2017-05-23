@@ -35,6 +35,13 @@ paths:
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package served by the API"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package served by the API"
+              type: "string"
           schema:
             type: "object"
   /pet/{petId}:
