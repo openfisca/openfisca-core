@@ -79,34 +79,61 @@ paths:
             Country-Package-Version:
               description: "The version of the country package served by the API"
               type: "string"
-
-  /pet/{petId}:
+  /variables:
     get:
       tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
+      - "Variables"
+      summary: "List all available variables"
+      operationId: "getVariables"
       produces:
-      - "application/xml"
       - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to return"
-        required: true
-        type: "integer"
-        format: "int64"
       responses:
         200:
-          description: "successful operation"
+          description: "The list of variables is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package served by the API"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package served by the API"
+              type: "string"
           schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
+            type: "object"
+  /variable/{variableID}:
+    get:
+      tags:
+      - "Variables"
+      summary: "Gets information about a specific variable"
+      operationId: "getVariable"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "variableID"
+        in: "path"
+        description: "ID of variable (e.g. aide_embauche_pme)"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "The requested parameter's information is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package served by the API"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package served by the API"
+              type: "string"
+          schema:
+            type: "object"
         404:
-          description: "Pet not found"
-
+          description: "The requested parameter does not exist"
+          headers :
+            Country-Package :
+              description : "The name of the country package served by the API"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package served by the API"
+              type: "string"
 definitions:
   Order:
     type: "object"
