@@ -10,6 +10,8 @@ import glob
 import os
 import yaml
 import numpy as np
+import sys
+import unittest
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
@@ -94,16 +96,26 @@ def run_tests(tax_benefit_system, path, options = {}):
     | verbose                       | ``bool``  |                                           |
     +-------------------------------+-----------+                                           +
     | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
+    +-------------------------------+-----------+                                           +
+    | nose                          | ``bool``  |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
+    if options.get('nose'):
+        import nose
+        nose.run(
+            # The suite argument must be a lambda for nose to run the tests lazily
+            suite = lambda: generate_tests(tax_benefit_system, path, options),
+            # Nose crashes if it gets any unexpected argument.
+            argv = sys.argv[:1]
+            )
+    else:
+        nb_tests = 0
+        for test in generate_tests(tax_benefit_system, path, options):
+            test()
+            nb_tests += 1
 
-    nb_tests = 0
-    for test in generate_tests(tax_benefit_system, path, options):
-        test()
-        nb_tests += 1
-
-    return nb_tests  # Nb of sucessful tests
+        return nb_tests  # Nb of sucessful tests
 
 
 # Internal methods
@@ -137,7 +149,10 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
             print("=" * len(title))
             _run_test(period_str, test, verbose, options)
 
-        yield check
+        if options.get('nose'):
+            yield unittest.FunctionTestCase(check)
+        else:
+            yield check
 
 
 def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
