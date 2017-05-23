@@ -43,7 +43,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            type: "object"
+            $ref: '#/definitions/ListOfParam'
   /parameter/{parameterID}:
     get:
       tags:
@@ -69,7 +69,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            type: "object"
+            $ref: "#/definitions/Param"
         404:
           description: "The requested parameter does not exist"
           headers :
@@ -98,7 +98,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            type: "object"
+            $ref: "#/definitions/ListOfVars"
   /variable/{variableID}:
     get:
       tags:
@@ -110,7 +110,7 @@ paths:
       parameters:
       - name: "variableID"
         in: "path"
-        description: "ID of variable (e.g. aide_embauche_pme)"
+        description: "ID of a variable (e.g. aide_embauche_pme)"
         required: true
         type: "string"
       responses:
@@ -124,7 +124,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            type: "object"
+            $ref: "#/definitions/Var"
         404:
           description: "The requested parameter does not exist"
           headers :
@@ -135,124 +135,49 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
 definitions:
-  Order:
+  Param:
     type: "object"
     properties:
+      values:
+        type: "object"
+      description:
+        type: "string"
       id:
         type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
-  Category:
+        format: "string"
+
+  ListOfParam:
+    type: "object"
+    additionalProperties:
+      $ref: "#/definitions/Param"
+
+  Var:
     type: "object"
     properties:
-      id:
+      defaultValue:
         type: "integer"
         format: "int64"
-      name:
+      definitionPeriod:
         type: "string"
-    xml:
-      name: "Category"
-  User:
-    type: "object"
-    properties:
+      description:
+        type: "string"
+      entity:
+        type: "string"
+      formulas:
+        type: "object"
       id:
-        type: "integer"
-        format: "int64"
-      username:
         type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
+      reference :
         type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
         items:
-          type: "string"
-      tags:
-        type: "array"
-        xml:
-          name: "tag"
-          wrapped: true
-        items:
-          $ref: "#/definitions/Tag"
-      status:
+          type : "string"
+      source :
         type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
-    xml:
-      name: "Pet"
-  ApiResponse:
+      valueType:
+        type: "number"
+        format: "float"
+
+  ListOfVars:
     type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+    additionalProperties:
+      $ref: "#/definitions/Var"
