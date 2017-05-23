@@ -2,8 +2,12 @@
 
 import datetime
 
+from nose.tools import eq_
+from functools import wraps
+
+from openfisca_core.model_api import Variable
 from openfisca_core.formulas import dated_function
-from openfisca_core.periods import YEAR, MONTH
+from openfisca_core.periods import MONTH
 from openfisca_core.columns import IntCol
 
 import openfisca_dummy_country as dummy_country
@@ -14,31 +18,77 @@ from openfisca_dummy_country.entities import Individu
 # or function(s) decoration (@dated_function > start_instant & stop_instant).
 
 
+class MyCustomException(Exception):
+    pass
+
+
+def raises_custom(status=None, uri=None, msg=None):
+    assert status or uri or msg, 'You need to pass either status, uri, or message'
+
+    def decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            try:
+                function(*args, **kwargs)
+
+            except MyCustomException, e:
+
+                def check(value, name):
+                    if value:
+                        eq_(getattr(e, name), value)
+                check(status, 'status')
+                check(uri, 'uri')
+                assert getattr(e, 'message').startswith(msg)
+
+            except:
+                raise
+            else:
+                message = "%{} did not raise MyCustomException".format(function.__name__)
+                raise AssertionError(message)
+        return wrapper
+    return decorator
+
+
+def add_variable_catch_assertion(tax_benefit_system, variable, assertion_message_prefix):
+    try:
+        tax_benefit_system.add_variable(variable)
+    except AssertionError, e:
+        if hasattr(e, 'message'):
+            assert getattr(e, 'message').startswith(assertion_message_prefix)
+        else:
+            raise
+    except:
+        raise
+
+
 def has_dated_attributes(variable):
     return (variable.start is not None) and (variable.end is not None)
 
 
 def dummy_function(individu, period, number):
-    return individu('dummy_variable', period.first_month) + number
+    # return individu('dummy_variable', period) + number
+    return number
 
 
 def new_simulation(tax_benefit_system, month):
     return tax_benefit_system.new_scenario().init_single_entity(
         period = month,
+        parent1 = dict(
+            ),
         ).new_simulation()
 
 
 tax_benefit_system = dummy_country.DummyTaxBenefitSystem()
 
 
-class dummy_variable():
+class dummy_variable(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable without date."
 
 
-tax_benefit_system.add_variables(dummy_variable)
+tax_benefit_system.add_variable(dummy_variable)
 
 
 # DATED ATTRIBUTE(S) - NO DATED FORMULA
@@ -46,7 +96,7 @@ tax_benefit_system.add_variables(dummy_variable)
 
 # 371 - start_date, stop_date, no function
 
-class dated_attributes__no_formula():
+class dated_attributes__no_formula(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
@@ -55,7 +105,7 @@ class dated_attributes__no_formula():
     stop_date = datetime.date(1989, 12, 31)
 
 
-tax_benefit_system.add_variables(dated_attributes__no_formula)
+tax_benefit_system.add_variable(dated_attributes__no_formula)
 
 
 def test_dated_attributes__no_formula():
@@ -70,10 +120,10 @@ def test_dated_attributes__no_formula():
 
 # 371 - start_date, stop_date, one function without date
 
-class dated_attributes__one_formula():
+class dated_attributes__one_formula(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, one function without date."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1989, 12, 31)
@@ -82,13 +132,14 @@ class dated_attributes__one_formula():
         return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(dated_attributes__one_formula)
+tax_benefit_system.add_variable(dated_attributes__one_formula)
 
 
 def test_dated_variable_with_one_formula():
     month = '1983-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert (simulation.calculate('dated_attributes__one_formula', month, 100) == 100)
+    result = simulation.calculate('dated_attributes__one_formula', month, nb=100)
+    assert (result == 100)
 
     variable = tax_benefit_system.column_by_name['dated_attributes__one_formula']
     assert variable is not None
@@ -109,24 +160,24 @@ def test_dated_variable_with_one_formula():
 
 # 371 - @dated_function, start only
 
-class no_attributes__one_start_decorated_function():
+class no_attributes__one_start_decorated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable no dated attributes, one decorated function, start only."
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(individu, period):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(no_attributes__one_start_decorated_function)
+tax_benefit_system.add_variable(no_attributes__one_start_decorated_function)
 
 
 def test_no_attributes__one_function_start_only():
     month = '1983-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert (simulation.calculate('no_attributes__one_start_decorated_function', month, 100) == 100)
+    assert (simulation.calculate('no_attributes__one_start_decorated_function', month, nb=100) == 100)
 
     variable = tax_benefit_system.column_by_name['no_attributes__one_start_decorated_function']
     assert variable is not None
@@ -146,24 +197,24 @@ def test_no_attributes__one_function_start_only():
 
 # 371 - @dated_function, stop only
 
-class no_attributes__one_stop_decorated_function():
+class no_attributes__one_stop_decorated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable no dated attributes, one decorated function, stop only."
 
     @dated_function(stop = datetime.date(2009, 12, 31))
-    def function(individu, period):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(no_attributes__one_stop_decorated_function)
+tax_benefit_system.add_variable(no_attributes__one_stop_decorated_function)
 
 
 def test_no_attributes__one_function_stop_only():
     month = '2008-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert (simulation.calculate('no_attributes__one_stop_decorated_function', '2008', 100) == 100)
+    assert (simulation.calculate('no_attributes__one_stop_decorated_function', month, nb=100) == 100)
 
     variable = tax_benefit_system.column_by_name['no_attributes__one_stop_decorated_function']
     assert variable is not None
@@ -184,24 +235,24 @@ def test_no_attributes__one_function_stop_only():
 # 371 - @dated_function(start, stop)
 
 
-class no_attributes__one_fully_decorated_function():
+class no_attributes__one_fully_decorated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable no dated attributes, one fully decorated function."
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(no_attributes__one_fully_decorated_function)
+tax_benefit_system.add_variable(no_attributes__one_fully_decorated_function)
 
 
 def test_no_attributes__one_formula_fully_dated():
     month = '2000-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert (simulation.calculate('no_attributes__one_fully_decorated_function', month, 200) == 200)
+    assert (simulation.calculate('no_attributes__one_fully_decorated_function', month, nb=200) == 200)
 
     variable = tax_benefit_system.column_by_name['no_attributes__one_fully_decorated_function']
     assert variable is not None
@@ -218,65 +269,78 @@ def test_no_attributes__one_formula_fully_dated():
     assert variable.end == formula['stop_instant'].date
 
 
-# 371 - @dated_function, start only/different names
+# 371 - @dated_function, start only/different names with date overlap
 
-class no_attributes__decorated_functions_multiple_names():
+class no_attributes__decorated_functions_multiple_names__overlap_dates(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable no dated attributes, multiple fully decorated functions with different names."
 
-    @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function_100(individu, period):
-        return dummy_function(individu, period, 100)
+    try:
+        @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
+        def function_100(individu, period):
+            return dummy_function(individu, period, nb=100)
 
-    @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function_200(individu, period):
-        return dummy_function(individu, period, 200)
+        @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
+        def function_200(individu, period):
+            return dummy_function(individu, period, nb=200)
+
+    except AssertionError, e:
+        assert getattr(e, 'msg').startswith("Dated formulas overlap")
+    except:
+        raise
 
 
-tax_benefit_system.add_variables(no_attributes__decorated_functions_multiple_names)
+# tax_benefit_system.add_variable(no_attributes__decorated_functions_multiple_names__overlap_dates)
+add_variable_catch_assertion(tax_benefit_system, no_attributes__decorated_functions_multiple_names__overlap_dates, "Dated formulas overlap")
 
 
 def test_no_attributes__dated_formulas__different_names():
-    dated_function_nb = 2
-    month = '2010-05'
-    simulation = new_simulation(tax_benefit_system, month)
-    assert (simulation.calculate('no_attributes__decorated_functions_multiple_names', month) == 100)
+    # Check that AssertionError at variable adding prevents it from registration in the taxbenefitsystem.
+    assert not hasattr(tax_benefit_system.column_by_name, "no_attributes__decorated_functions_multiple_names__overlap_dates")
 
-    variable = tax_benefit_system.column_by_name['no_attributes__decorated_functions_multiple_names']
-    assert variable is not None
-    assert not has_dated_attributes(variable)
+    # dated_function_nb = 2
+    # month = '2010-05'
+    # simulation = new_simulation(tax_benefit_system, month)
 
-    assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
-    i = 0
-    for formula in variable.formula_class.dated_formulas_class:
-        assert formula is not None, (dated_function_nb + " formulas expected in " + variable.formula_class.dated_formulas_class)
-        # assert formula['formula_class'].holder is not None, ("Undefined holder for '" + variable.name + "', function#" + str(i))
-        assert formula['start_instant'] is not None, ("Missing 'start' date on '" + variable.name + "', function#" + str(i))
-        if i < (dated_function_nb - 1):
-            assert formula['stop_instant'] is not None, ("Deprecated 'end' date but 'stop_instant' deduction expected on '" + variable.name + "', function#" + str(i))
-        i += 1
+    # assert (simulation.calculate('no_attributes__decorated_functions_multiple_names__overlap_dates', month) == 100)
 
-    assert (simulation.calculate('no_attributes__decorated_functions_multiple_names', '2011-05') == 200)
+    # variable = tax_benefit_system.column_by_name['no_attributes__decorated_functions_multiple_names__overlap_dates']
+    # assert variable is not None
+    # assert not has_dated_attributes(variable)
+
+    # assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
+    # i = 0
+    # for formula in variable.formula_class.dated_formulas_class:
+    #     assert formula is not None, (dated_function_nb + " formulas expected in " + variable.formula_class.dated_formulas_class)
+    #     # assert formula['formula_class'].holder is not None, ("Undefined holder for '" + variable.name + "', function#" + str(i))
+    #     assert formula['start_instant'] is not None, ("Missing 'start' date on '" + variable.name + "', function#" + str(i))
+    #     if i < (dated_function_nb - 1):
+    #         assert formula['stop_instant'] is not None, ("Deprecated 'end' date but 'stop_instant' deduction expected on '" + variable.name + "', function#" + str(i))
+    #     i += 1
+
+    # assert (simulation.calculate('no_attributes__decorated_functions_multiple_names__overlap_dates', '2011-05') == 200)
 
 
-class no_attributes__decorated_functions_same_name():
+# 371 - @dated_function, start only/same names without date overlap
+
+class no_attributes__decorated_functions_same_name(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable no dated attributes, multiple fully decorated functions with same names."
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function(individu, period):
+        return dummy_function(individu, period, nb=100)
 
     @dated_function(start = datetime.date(2010, 1, 1), stop = datetime.date(2019, 12, 31))  # noqa: F811
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 200)
+    def function(individu, period):
+        return dummy_function(individu, period, nb=200)
 
 
-tax_benefit_system.add_variables(no_attributes__decorated_functions_same_name)
+tax_benefit_system.add_variable(no_attributes__decorated_functions_same_name)
 
 
 def test_no_attributes__dated_formulas__same_names():
@@ -305,52 +369,52 @@ def test_no_attributes__dated_formulas__same_names():
 # DATED ATTRIBUTE(S) - DATED FORMULA(S)
 
 
-class dated_attributes__one_start_decorated_function():
+class dated_attributes__one_start_decorated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, one decorated function, start only."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(dated_attributes__one_start_decorated_function)  # TODO Check case
+tax_benefit_system.add_variable(dated_attributes__one_start_decorated_function)  # TODO Check case
 
 
-class dated_attributes__one_stop_decorated_function():
+class dated_attributes__one_stop_decorated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, one decorated function, stop only."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(stop = datetime.date(2009, 12, 31))
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(dated_attributes__one_stop_decorated_function)  # TODO Check case
+tax_benefit_system.add_variable(dated_attributes__one_stop_decorated_function)  # TODO Check case
 
 
-class dated_attributes_restrictive__one_dated_function():
+class dated_attributes_restrictive__one_dated_function(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, one fully decorated function."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function(individu, period):
-        return dummy_function(individu, period, 100)
+    def function(individu, period, nb):
+        return dummy_function(individu, period, nb)
 
 
-tax_benefit_system.add_variables(dated_attributes_restrictive__one_dated_function)
+tax_benefit_system.add_variable(dated_attributes_restrictive__one_dated_function)
 
 
 def test_dated_attributes_restrictive__one_dated_function():
@@ -371,27 +435,27 @@ def test_dated_attributes_restrictive__one_dated_function():
     assert (simulation.calculate('dated_attributes__decorated_functions_multiple_names', month) is None)
 
 
-class dated_attributes__decorated_functions_multiple_names():
+class dated_attributes__decorated_functions_multiple_names(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, multiple fully decorated functions with different names."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
     def function_100(individu, period):
-        return dummy_function(individu, period, 100)
+        return dummy_function(individu, period, nb=100)
 
-    @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
+    @dated_function(start = datetime.date(2010, 1, 1), stop = datetime.date(2016, 12, 31))
     def function_200(individu, period):
-        return dummy_function(individu, period, 200)
+        return dummy_function(individu, period, nb=200)
 
 
-tax_benefit_system.add_variables(dated_attributes__decorated_functions_multiple_names)
+tax_benefit_system.add_variable(dated_attributes__decorated_functions_multiple_names)
 
 
-# #371 - start_date, stop_date, @dated_function/different names
+# #371 - start_date, stop_date, @dated_function/different names (without dates overlap on functions)
 def test_dated_variable_with_formulas__different_names():
     dated_function_nb = 2
     month = '1999-01'
@@ -417,24 +481,24 @@ def test_dated_variable_with_formulas__different_names():
     assert formula['stop_instant'].date == variable.end
 
 
-class dated_attributes__decorated_functions_same_name():
+class dated_attributes__decorated_functions_same_name(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with dated attributes, multiple fully decorated functions with same names."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function(individu, period):
+        return dummy_function(individu, period, nb=100)
 
     @dated_function(start = datetime.date(2010, 1, 1), stop = datetime.date(2019, 12, 31))  # noqa: F811
-    def function(individu, period, legislation):
-        return dummy_function(individu, period, 200)
+    def function(individu, period):
+        return dummy_function(individu, period, nb=200)
 
 
-tax_benefit_system.add_variables(dated_attributes__decorated_functions_same_name)
+tax_benefit_system.add_variable(dated_attributes__decorated_functions_same_name)
 
 
 # 371 - start_date, stop_date, @dated_function/one name > api_same_function_name
@@ -464,24 +528,24 @@ def test_dated_variable_with_formulas__same_name():
 
 
 # 371 - start_date, stop_date, @dated_function/stop_date older than function start
-class dated_attributes__formulas_restrictive_stop():
+class dated_attributes__formulas_restrictive_stop(Variable):
     column = IntCol
     entity = Individu
-    definition_period = YEAR
+    definition_period = MONTH
     label = u"Variable with restrictive stop attribute, multiple fully decorated functions."
     start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1990, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1), stop = datetime.date(2009, 12, 31))
-    def function_100(individu, period, legislation):
-        return dummy_function(individu, period, 100)
+    def function_100(individu, period):
+        return dummy_function(individu, period, nb=100)
 
     @dated_function(start = datetime.date(2010, 1, 1), stop = datetime.date(2019, 12, 31))
-    def function_200(individu, period, legislation):
-        return dummy_function(individu, period, 200)
+    def function_200(individu, period):
+        return dummy_function(individu, period, nb=200)
 
 
-tax_benefit_system.add_variables(dated_attributes__formulas_restrictive_stop)
+tax_benefit_system.add_variable(dated_attributes__formulas_restrictive_stop)
 
 
 def test_dated_variable_with_formulas__stop_date_older():
