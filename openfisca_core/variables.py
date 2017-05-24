@@ -7,8 +7,8 @@ import textwrap
 from openfisca_core.formulas import DatedFormula, new_filled_column
 
 
-class AbstractVariable(object):
-    formula_class = None
+class Variable(object):
+    formula_class = DatedFormula
 
     def __init__(self, name, attributes, variable_class):
         self.name = name
@@ -59,7 +59,3 @@ class AbstractVariable(object):
             source_file_path = source_file_path,
             **self.attributes
             )
-
-
-class Variable(AbstractVariable):
-    formula_class = DatedFormula

@@ -867,20 +867,21 @@ def new_filled_column(
             stop_instant = stop_instant,
             ))
     # Sort dated formulas by start instant and add missing stop instants.
-    dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-    if start_date:
-        dated_formulas_class[0]['start_instant'] = max(dated_formulas_class[0]['start_instant'], instant(start_date))
-    if stop_date:
-        stop_instant = dated_formulas_class[-1]['stop_instant']
-        stop_instant = min(stop_instant, instant(stop_date)) if stop_instant else instant(stop_date)
-        dated_formulas_class[-1]['stop_instant'] = stop_instant
-    for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
-            itertools.islice(dated_formulas_class, 1, None)):
-        if dated_formula_class['stop_instant'] is None:
-            dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
-        else:
-            assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
-                "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
+    if dated_formulas_class.__len__() > 0:
+        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+        if start_date:
+            dated_formulas_class[0]['start_instant'] = max(dated_formulas_class[0]['start_instant'], instant(start_date))
+        if stop_date:
+            stop_instant = dated_formulas_class[-1]['stop_instant']
+            stop_instant = min(stop_instant, instant(stop_date)) if stop_instant else instant(stop_date)
+            dated_formulas_class[-1]['stop_instant'] = stop_instant
+        for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
+        itertools.islice(dated_formulas_class, 1, None)):
+            if dated_formula_class['stop_instant'] is None:
+                dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
+            else:
+                assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
+                    "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
 
     # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
     # formulas.

@@ -14,7 +14,7 @@ import warnings
 from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
-from variables import AbstractVariable
+from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
 
@@ -186,7 +186,7 @@ class TaxBenefitSystem(object):
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
                 if isclass(pot_variable) and \
-                        issubclass(pot_variable, AbstractVariable) and \
+                        issubclass(pot_variable, Variable) and \
                         pot_variable.__module__.endswith(module_name):
                     self.add_variable(pot_variable)
         except:
