@@ -43,7 +43,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            $ref: '#/definitions/ListOfParam'
+            $ref: '#/definitions/Parameters'
   /parameter/{parameterID}:
     get:
       tags:
@@ -69,7 +69,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            $ref: "#/definitions/Param"
+            $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
           headers :
@@ -98,7 +98,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            $ref: "#/definitions/ListOfVars"
+            $ref: "#/definitions/Variables"
   /variable/{variableID}:
     get:
       tags:
@@ -124,7 +124,7 @@ paths:
               description: "The version of the country package served by the API"
               type: "string"
           schema:
-            $ref: "#/definitions/Var"
+            $ref: "#/definitions/Variable"
         404:
           description: "The requested parameter does not exist"
           headers :
@@ -134,14 +134,13 @@ paths:
             Country-Package-Version:
               description: "The version of the country package served by the API"
               type: "string"
+
 definitions:
-  Param:
+  Parameter:
     type: "object"
     properties:
       values:
-        type: "object"
-        additionalProperties:
-          $ref: "#/definitions/Value"
+        $ref: '#/definitions/Values'
       brackets:
         type: "object"
         additionalProperties:
@@ -175,12 +174,15 @@ definitions:
                 "2016-01-01": 9.67,
                 "2017-01-01": 9.76}
 
-  ListOfParam:
+  Parameters:
     type: "object"
     additionalProperties:
-      $ref: "#/definitions/Param"
+      type: "object"
+      properties:
+        definition:
+          type: 'string'
 
-  Var:
+  Variable:
     type: "object"
     properties:
       defaultValue:
@@ -194,7 +196,7 @@ definitions:
       formulas:
         type: "object"
         additionalProperties:
-         $ref: "#/definitions/FormulaContent"
+         $ref: "#/definitions/Formula"
       id:
         type: "string"
       reference :
@@ -221,12 +223,15 @@ definitions:
       "source": "https://github.com/openfisca/openfisca-france/blob/18.2.5/openfisca_france/model/prelevements_obligatoires/prelevements_sociaux/cotisations_sociales/allegements.py#L223-L287"
       } }
 
-  ListOfVars:
+  Variables:
     type: "object"
     additionalProperties:
-      $ref: "#/definitions/Var"
+      type: "object"
+      properties:
+        definition:
+          type: 'string'
 
-  FormulaContent:
+  Formula:
     type: "object"
     properties:
       content:
@@ -237,9 +242,12 @@ definitions:
   Brackets:
     type: "object"
     additionalProperties:
-      $ref: "#/definitions/Value"
+      type: "number"
+      format: "float"
 
-  Value:
-    type: "number"
-    format: "float"
+  Values:
+    type: "object"
+    additionalProperties:
+      type: "number"
+      format: "float"
 
