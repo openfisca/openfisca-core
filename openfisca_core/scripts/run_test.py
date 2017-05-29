@@ -15,7 +15,6 @@ def build_parser():
     parser = add_tax_benefit_system_arguments(parser)
     parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.")
     parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
-    parser.add_argument('--nose', action = 'store_true', default = False, help = "use nosetests to run the tests")
 
     return parser
 
@@ -30,29 +29,16 @@ def main():
     options = {
         'verbose': args.verbose,
         'name_filter': args.name_filter,
-        'nose': args.nose,
         }
 
-    if args.nose:
-        tests_ok = True
-        for path in args.path:
-            path = os.path.abspath(path)
-        output = run_tests(tax_benefit_system, path, options)
-        tests_ok = tests_ok and output
+    tests_ok = True
+    for path in args.path:
+        path = os.path.abspath(path)
+        test_ok = run_tests(tax_benefit_system, path, options)
+        tests_ok = tests_ok and test_ok
 
-        if not tests_ok:
-            sys.exit(1)
-
-    else:
-        tests_found = False
-        for path in args.path:
-            path = os.path.abspath(path)
-            nb_tests = run_tests(tax_benefit_system, path, options)
-            tests_found = tests_found or nb_tests > 0
-
-        if not tests_found:
-            print("No tests found!")
-            sys.exit(1)
+    if not tests_ok:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

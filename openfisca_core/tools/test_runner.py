@@ -8,10 +8,12 @@ import collections
 import copy
 import glob
 import os
-import yaml
-import numpy as np
 import sys
 import unittest
+
+import nose
+import numpy as np
+import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
@@ -94,28 +96,18 @@ def run_tests(tax_benefit_system, path, options = {}):
     | Key                           | Type      | Role                                      |
     +===============================+===========+===========================================+
     | verbose                       | ``bool``  |                                           |
-    +-------------------------------+-----------+                                           +
-    | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
-    +-------------------------------+-----------+                                           +
-    | nose                          | ``bool``  |                                           |
+    +-------------------------------+-----------+ See :any:`openfisca-run-test` options doc +
+    | name_filter                   | ``str``   |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
-    if options.get('nose'):
-        import nose
-        return nose.run(
-            # The suite argument must be a lambda for nose to run the tests lazily
-            suite = lambda: generate_tests(tax_benefit_system, path, options),
-            # Nose crashes if it gets any unexpected argument.
-            argv = sys.argv[:1]
-            )
-    else:
-        nb_tests = 0
-        for test in generate_tests(tax_benefit_system, path, options):
-            test()
-            nb_tests += 1
-
-        return nb_tests  # Nb of sucessful tests
+    return nose.run(
+        # The suite argument must be a lambda for nose to run the tests lazily
+        suite = lambda: generate_tests(tax_benefit_system, path, options),
+        # Nose crashes if it gets any unexpected argument.
+        argv = sys.argv[:1],
+        # testRunner = nose.core.TextTestRunner(stream = open(os.devnull, 'w')),
+        )
 
 
 # Internal methods
@@ -149,10 +141,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
             print("=" * len(title))
             _run_test(period_str, test, verbose, options)
 
-        if options.get('nose'):
-            yield unittest.FunctionTestCase(check)
-        else:
-            yield check
+        yield unittest.FunctionTestCase(check)
 
 
 def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):

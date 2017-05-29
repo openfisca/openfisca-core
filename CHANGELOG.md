@@ -2,9 +2,8 @@
 
 ## 12.2.0
 
-* Improve the `openfisca-run-test` script
-  - Add a `--nose` option to run the tests with nose.
-    - This avoids boilerplate code on country packages, and makes parallelism easier to set on Circle CI.
+* Use `nose` in the `openfisca-run-test` script
+  - This avoids boilerplate code on country packages, and makes parallelism easier to set on Circle CI.
 
 ## 12.1.4
 
