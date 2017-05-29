@@ -31,11 +31,8 @@ def main():
         'name_filter': args.name_filter,
         }
 
-    tests_ok = True
-    for path in args.path:
-        path = os.path.abspath(path)
-        test_ok = run_tests(tax_benefit_system, path, options)
-        tests_ok = tests_ok and test_ok
+    paths = map(os.path.abspath, args.path)
+    tests_ok = run_tests(tax_benefit_system, paths, options)
 
     if not tests_ok:
         sys.exit(1)
