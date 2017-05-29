@@ -33,18 +33,26 @@ def main():
         'nose': args.nose,
         }
 
-    tests_found = False
+    if args.nose:
+        tests_ok = True
+        for path in args.path:
+            path = os.path.abspath(path)
+        output = run_tests(tax_benefit_system, path, options)
+        tests_ok = tests_ok and output
 
-    for path in args.path:
-        path = os.path.abspath(path)
-        nb_tests = run_tests(tax_benefit_system, path, options)
-        tests_found = tests_found or nb_tests > 0
+        if not tests_ok:
+            sys.exit(1)
 
-    if not tests_found and not args.nose:
-        print("No tests found!")
-        sys.exit(1)
+    else:
+        tests_found = False
+        for path in args.path:
+            path = os.path.abspath(path)
+            nb_tests = run_tests(tax_benefit_system, path, options)
+            tests_found = tests_found or nb_tests > 0
 
-    sys.exit(0)
+        if not tests_found:
+            print("No tests found!")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

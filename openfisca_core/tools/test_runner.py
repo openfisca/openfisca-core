@@ -103,7 +103,7 @@ def run_tests(tax_benefit_system, path, options = {}):
     """
     if options.get('nose'):
         import nose
-        nose.run(
+        return nose.run(
             # The suite argument must be a lambda for nose to run the tests lazily
             suite = lambda: generate_tests(tax_benefit_system, path, options),
             # Nose crashes if it gets any unexpected argument.
