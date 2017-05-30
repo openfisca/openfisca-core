@@ -131,6 +131,7 @@ class TaxBenefitSystem(object):
         variable_type = variable_class.__bases__[0]
         attributes = dict(variable_class.__dict__)
 
+        # Check if a Variable of same name is already registered.
         existing_column = self.get_column(name)
         if existing_column:
             if update:

@@ -68,7 +68,7 @@ def test_cache():
 
 
 def test_get_extra_param_names():
-    assert formula_3_holder.get_extra_param_names(period = None) == ('choice',)
+    assert formula_3_holder.get_extra_param_names(reference_period) == ('choice',)
 
 
 def test_json_conversion():

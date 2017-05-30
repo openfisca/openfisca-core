@@ -143,8 +143,9 @@ class Holder(object):
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
-        array = self.formula.compute(period = period, **parameters)
-        formula_dated_holder = self.put_in_cache(array, period, extra_params)
+        dated_holder = self.formula.compute(period = period, **parameters)
+        assert isinstance(dated_holder, DatedHolder)
+        formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
         assert formula_dated_holder is not None
         return formula_dated_holder
 
@@ -299,15 +300,7 @@ class Holder(object):
         return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
-        from .formulas import DatedFormula
-        if isinstance(self.formula, DatedFormula):
-            # Get the function that matches the period
-            formula = [
-                formula for formula in self.formula.dated_formulas
-                if (not formula['start_instant'] or formula['start_instant'] < period.stop) and (not formula['stop_instant'] or formula['stop_instant'] > period.start)
-                ][0]['formula'].function
-        else:
-            formula = self.formula.function
+        formula = self.formula.find_right_dated_function(period)
 
         return formula.__func__.func_code.co_varnames[3:]
 
