@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
-  title: "OpenFisca France"
-  description: "The OpenFisca API lets you get up-to-date information and formulas pertaining to the French legislation e.g. minimum wage, state scholasrship, social benefits, income taxes ..."
+  title: "{CONTRY_PACKAGE_NAME} Web API"
+  description: "The OpenFisca Web API lets you get up-to-date information and formulas pertaining to the {CONTRY_PACKAGE_NAME} legislation e.g. minimum wage, state scholasrship, social benefits, income taxes…"
   version: "0.1.0"
   termsOfService: "https://doc.openfisca.fr/publishing.html"
   contact:
@@ -9,7 +9,7 @@ info:
   license:
     name: "AGPL"
     url: "https://www.gnu.org/licenses/agpl-3.0.html"
-host: "api-test.openfisca.fr"
+host: null
 schemes:
   - "https"
 tags:
