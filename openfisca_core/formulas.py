@@ -5,7 +5,6 @@ from __future__ import division
 
 import collections
 import datetime
-import inspect
 import itertools
 import logging
 import warnings
@@ -92,106 +91,7 @@ class AbstractFormula(object):
         '''
         return np.zeros(self.holder.entity.count, **kwargs)
 
-
-class AbstractGroupedFormula(AbstractFormula):
-    used_formula = None
-
-    @property
-    def real_formula(self):
-        used_formula = self.used_formula
-        if used_formula is None:
-            return None
-        return used_formula.real_formula
-
-
-class DatedFormula(AbstractGroupedFormula):
-    base_function = None  # Class attribute. Overridden by subclasses
-    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
-    dated_formulas_class = None  # Class attribute
-
-    def __init__(self, holder = None):
-        super(DatedFormula, self).__init__(holder = holder)
-
-        self.dated_formulas = [
-            dict(
-                formula = dated_formula_class['formula_class'](holder = holder),
-                start_instant = dated_formula_class['start_instant'],
-                stop_instant = dated_formula_class['stop_instant'],
-                )
-            for dated_formula_class in self.dated_formulas_class
-            ]
-        # assert self.dated_formulas
-
-    @classmethod
-    def at_instant(cls, instant, default = UnboundLocalError):
-        assert isinstance(instant, periods.Instant)
-        for dated_formula_class in cls.dated_formulas_class:
-            start_instant = dated_formula_class['start_instant']
-            stop_instant = dated_formula_class['stop_instant']
-            if (start_instant is None or start_instant <= instant) and (
-                    stop_instant is None or instant <= stop_instant):
-                return dated_formula_class['formula_class']
-        if default is UnboundLocalError:
-            raise KeyError(instant)
-        return default
-
-    def clone(self, holder, keys_to_skip = None):
-        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        if keys_to_skip is None:
-            keys_to_skip = set()
-        keys_to_skip.add('dated_formulas')
-        new = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
-
-        new.dated_formulas = [
-            {
-                key: value.clone(holder) if key == 'formula' else value
-                for key, value in dated_formula.iteritems()
-                }
-            for dated_formula in self.dated_formulas
-            ]
-
-        return new
-
-    def compute(self, period, **parameters):
-        # We compute using the formula matching the first day of the requested period, if there is one
-        for dated_formula in self.dated_formulas:
-            if period.start < dated_formula['start_instant']:
-                # The requested period is before the definition span of the first dated formula.
-                # As these are sorted, no dated formula will match. We can thus break the loop.
-                return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
-            if dated_formula['stop_instant'] is None or period.start <= dated_formula['stop_instant']:
-                self.used_formula = dated_formula['formula']
-                return dated_formula['formula'].compute(period, **parameters)
-
-        return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
-
-    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
-        """Recursively build a graph of formulas."""
-        for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
-
-    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
-        return collections.OrderedDict((
-            ('@type', u'DatedFormula'),
-            ('dated_formulas', [
-                dict(
-                    formula = dated_formula['formula'].to_json(
-                        get_input_variables_and_parameters = get_input_variables_and_parameters,
-                        with_input_variables_details = with_input_variables_details,
-                        ),
-                    start_instant = (None if dated_formula['start_instant'] is None
-                        else str(dated_formula['start_instant'])),
-                    stop_instant = (None if dated_formula['stop_instant'] is None
-                        else str(dated_formula['stop_instant'])),
-                    )
-                for dated_formula in self.dated_formulas
-                ]),
-            ))
-
-
-class SimpleFormula(AbstractFormula):
-    base_function = None  # Class attribute. Overridden by subclasses
-    function = None  # Class attribute. Overridden by subclasses
+    # Roles & Entities dispatch helpers
 
     def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
@@ -278,6 +178,174 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
+    def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
+        """Convert a persons array to an entity array, copying only cells of persons having the given role."""
+        holder = self.holder
+        simulation = holder.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_person
+            array = array_or_dated_holder.array
+            if default is None:
+                default = array_or_dated_holder.column.default
+        else:
+            array = array_or_dated_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
+                array.size)
+            if default is None:
+                default = 0
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
+        assert isinstance(role, int)
+        entity_count = entity.count
+        target_array = np.empty(entity_count, dtype = array.dtype)
+        target_array.fill(default)
+        boolean_filter = simulation.get_entity(entity).members_legacy_role == role
+        try:
+            target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
+        except:
+            log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                entity.key, role, holder.column.name))
+            raise
+        return target_array
+
+    def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
+        """dispatch a persons array to several entity arrays (one for each role)."""
+        holder = self.holder
+        simulation = holder.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_person
+            array = array_or_dated_holder.array
+            if default is None:
+                default = array_or_dated_holder.column.default
+        else:
+            array = array_or_dated_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
+                array.size)
+            if default is None:
+                default = 0
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+        if roles is None:
+            # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
+            # roles = range(entity.roles_count)
+            roles = range(max(entity.roles_count, 11))
+        target_array_by_role = {}
+        entity_count = entity.count
+        for role in roles:
+            target_array_by_role[role] = target_array = np.empty(entity_count, dtype = array.dtype)
+            target_array.fill(default)
+
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
+            try:
+                target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
+            except:
+                log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
+                    entity.key, role, holder.column.name))
+                raise
+        return target_array_by_role
+
+    def sum_by_entity(self, array_or_dated_holder, entity = None, roles = None):
+        holder = self.holder
+        simulation = holder.simulation
+        persons = simulation.persons
+        if entity is None:
+            entity = holder.entity
+        else:
+            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
+
+        assert not entity.is_person
+        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
+            assert array_or_dated_holder.entity.is_person
+            array = array_or_dated_holder.array
+        else:
+            array = array_or_dated_holder
+            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
+                'utf-8')
+            persons_count = persons.count
+            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
+                array.size)
+
+        entity_index_array = simulation.get_entity(entity).members_entity_id
+
+        if roles is None:  # Here we assume we have only one person per role. Not true with new role.
+            roles = range(entity.roles_count)
+        target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
+        for role in roles:
+            # TODO: Mettre les filtres en cache dans la simulation
+            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
+            target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
+        return target_array
+
+
+class DatedFormula(AbstractFormula):
+    base_function = None  # Class attribute. Overridden by subclasses
+    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
+    dated_formulas_class = None  # Class attribute
+
+    def __init__(self, holder = None):
+        super(DatedFormula, self).__init__(holder = holder)
+
+        if self.dated_formulas_class is not None:
+            self.dated_formulas = [
+                dict(
+                    formula = dated_formula_class['formula_class'](holder = holder),
+                    start_instant = dated_formula_class['start_instant'],  # TODO Ensure start_instant is string.
+                    stop_instant = dated_formula_class['stop_instant'],  # TODO Deduce stop_instant ?
+                    )
+                for dated_formula_class in self.dated_formulas_class
+                ]
+            # Sort functions by start_instant
+            self.dated_formulas.sort(key = lambda dated_formula: dated_formula['start_instant'])
+
+    @classmethod
+    def at_instant(cls, instant, default = UnboundLocalError):
+        assert isinstance(instant, periods.Instant)
+        for dated_formula_class in cls.dated_formulas_class:
+            start_instant = dated_formula_class['start_instant']
+            stop_instant = dated_formula_class['stop_instant']
+            if (start_instant is None or start_instant <= instant) and (
+                    stop_instant is None or instant <= stop_instant):
+                return dated_formula_class['formula_class']
+        if default is UnboundLocalError:
+            raise KeyError(instant)
+        return default
+
+    def clone(self, holder, keys_to_skip = None):
+        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
+        if keys_to_skip is None:
+            keys_to_skip = set()
+        keys_to_skip.add('dated_formulas')
+        new = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
+
+        new.dated_formulas = [
+            {
+                key: value.clone(holder) if key == 'formula' else value
+                for key, value in dated_formula.iteritems()
+                }
+            for dated_formula in self.dated_formulas
+            ]
+
+        return new
+
     def check_for_cycle(self, period):
         """
         Return a boolean telling if the current variable has already been called without being allowed by
@@ -328,13 +396,7 @@ class SimpleFormula(AbstractFormula):
 
     def compute(self, period, **parameters):
         """
-        Call the formula function (if needed) and return a dated holder containing its result.
-
-        If a cycle is detected, a CycleError is raised.
-        To avoid it a formula can use the max_nb_cycles parameter (int >= 0) so when the cycle is detected,
-        the exceptions mechanism rewinds up to the first variable called with max_nb_cycles != None,
-        and a default value is returned for the latter variable.
-        Then the calculation continues normally.
+        This function is called by `Holder.compute` only when no value is found in cache.
         """
         holder = self.holder
         column = holder.column
@@ -433,193 +495,64 @@ class SimpleFormula(AbstractFormula):
                     simulation.stringify_input_variables_infos(input_variables_infos), str(period),
                     stringify_array(array)))
 
-        dated_holder = holder.put_in_cache(array, period, extra_params)
-
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
             simulation.max_nb_cycles = None
 
-        return dated_holder
+        return array
 
-    # Retro-compatibility-layer
+    def find_right_dated_function(self, period):
+        """
+        This function finds the first active formula for the period starting date.
+        """
+        for dated_formula in self.dated_formulas:
+            if period.start >= dated_formula['start_instant']:
+                return dated_formula['function']
+        return None
+
     def exec_function(self, simulation, period, *extra_params):
+        """
+        This function calls the right Variable's dated function and returns a NumPy array.
 
-        if self.function.im_func.func_code.co_varnames[0] == 'self':
-            return self.function(simulation, period, *extra_params)
+        Retro-compatibility-layer: handles old syntax (with `self` as first argument).
+        """
+        function = self.find_right_dated_function(period)
+        if function is None:
+            return self.holder.default_array()
+
+        if function.im_func.func_code.co_varnames[0] == 'self':
+            return function(simulation, period, *extra_params)
         else:
             entity = self.holder.entity
-            function = self.function.im_func
+            function = function.im_func
             legislation = simulation.legislation_at
-            if self.function.im_func.func_code.co_argcount == 2:
+            if function.im_func.func_code.co_argcount == 2:
                 return function(entity, period)
             else:
                 return function(entity, period, legislation, *extra_params)
 
-    def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
-        """Convert a persons array to an entity array, copying only cells of persons having the given role."""
-        holder = self.holder
-        simulation = holder.simulation
-        persons = simulation.persons
-        if entity is None:
-            entity = holder.entity
-        else:
-            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
-
-        assert not entity.is_person
-        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_person
-            array = array_or_dated_holder.array
-            if default is None:
-                default = array_or_dated_holder.column.default
-        else:
-            array = array_or_dated_holder
-            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
-                'utf-8')
-            persons_count = persons.count
-            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
-                array.size)
-            if default is None:
-                default = 0
-        entity_index_array = simulation.get_entity(entity).members_entity_id
-
-        assert isinstance(role, int)
-        entity_count = entity.count
-        target_array = np.empty(entity_count, dtype = array.dtype)
-        target_array.fill(default)
-        boolean_filter = simulation.get_entity(entity).members_legacy_role == role
-        try:
-            target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
-        except:
-            log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                entity.key, role, holder.column.name))
-            raise
-        return target_array
-
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
-        holder = self.holder
-        column = holder.column
-        simulation = holder.simulation
-        variables_name, parameters_name = get_input_variables_and_parameters(column)
-        if variables_name is not None:
-            for variable_name in sorted(variables_name):
-                variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
-                edges.append({
-                    'from': variable_holder.column.name,
-                    'to': column.name,
-                    })
-
-    def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
-        """dispatch a persons array to several entity arrays (one for each role)."""
-        holder = self.holder
-        simulation = holder.simulation
-        persons = simulation.persons
-        if entity is None:
-            entity = holder.entity
-        else:
-            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
-
-        assert not entity.is_person
-        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_person
-            array = array_or_dated_holder.array
-            if default is None:
-                default = array_or_dated_holder.column.default
-        else:
-            array = array_or_dated_holder
-            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
-                'utf-8')
-            persons_count = persons.count
-            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
-                array.size)
-            if default is None:
-                default = 0
-        entity_index_array = simulation.get_entity(entity).members_entity_id
-        if roles is None:
-            # To ensure that existing formulas don't fail, ensure there is always at least 11 roles.
-            # roles = range(entity.roles_count)
-            roles = range(max(entity.roles_count, 11))
-        target_array_by_role = {}
-        entity_count = entity.count
-        for role in roles:
-            target_array_by_role[role] = target_array = np.empty(entity_count, dtype = array.dtype)
-            target_array.fill(default)
-
-            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
-            try:
-                target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
-            except:
-                log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                    entity.key, role, holder.column.name))
-                raise
-        return target_array_by_role
-
-    def sum_by_entity(self, array_or_dated_holder, entity = None, roles = None):
-        holder = self.holder
-        simulation = holder.simulation
-        persons = simulation.persons
-        if entity is None:
-            entity = holder.entity
-        else:
-            assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
-
-        assert not entity.is_person
-        if isinstance(array_or_dated_holder, (holders.DatedHolder, holders.Holder)):
-            assert array_or_dated_holder.entity.is_person
-            array = array_or_dated_holder.array
-        else:
-            array = array_or_dated_holder
-            assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
-                'utf-8')
-            persons_count = persons.count
-            assert array.size == persons_count, u"Expected an array of size {}. Got: {}".format(persons_count,
-                array.size)
-
-        entity_index_array = simulation.get_entity(entity).members_entity_id
-
-        if roles is None:  # Here we assume we have only one person per role. Not true with new role.
-            roles = range(entity.roles_count)
-        target_array = np.zeros(entity.count, dtype = array.dtype if array.dtype != np.bool else np.int16)
-        for role in roles:
-            # TODO: Mettre les filtres en cache dans la simulation
-            boolean_filter = simulation.get_entity(entity).members_legacy_role == role
-            target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
-        return target_array
+        for dated_formula in self.dated_formulas:
+            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
     def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
-        function = self.function
-        if function is None:
-            return None
-        comments = inspect.getcomments(function)
-        doc = inspect.getdoc(function)
-        self_json = collections.OrderedDict((
-            ('@type', u'SimpleFormula'),
-            ('comments', comments.decode('utf-8') if comments is not None else None),
-            ('doc', doc.decode('utf-8') if doc is not None else None),
+        return collections.OrderedDict((
+            ('@type', u'DatedFormula'),
+            ('dated_formulas', [
+                dict(
+                    formula = dated_formula['formula'].to_json(
+                        get_input_variables_and_parameters = get_input_variables_and_parameters,
+                        with_input_variables_details = with_input_variables_details,
+                        ),
+                    start_instant = (None if dated_formula['start_instant'] is None
+                        else str(dated_formula['start_instant'])),
+                    stop_instant = (None if dated_formula['stop_instant'] is None
+                        else str(dated_formula['stop_instant'])),
+                    )
+                for dated_formula in self.dated_formulas
+                ]),
             ))
-        if get_input_variables_and_parameters is not None:
-            holder = self.holder
-            column = holder.column
-            simulation = holder.simulation
-            variables_name, parameters_name = get_input_variables_and_parameters(column)
-            if variables_name:
-                if with_input_variables_details:
-                    input_variables_json = []
-                    for variable_name in sorted(variables_name):
-                        variable_holder = simulation.get_or_new_holder(variable_name)
-                        variable_column = variable_holder.column
-                        input_variables_json.append(collections.OrderedDict((
-                            ('entity', variable_holder.entity.key),
-                            ('label', variable_column.label),
-                            ('name', variable_column.name),
-                            )))
-                    self_json['input_variables'] = input_variables_json
-                else:
-                    self_json['input_variables'] = list(variables_name)
-            if parameters_name:
-                self_json['parameters'] = list(parameters_name)
-        return self_json
 
 
 def calculate_output_add(formula, period):
@@ -689,6 +622,7 @@ def new_filled_column(
         url = UnboundLocalError,
         **specific_attributes
         ):
+
     # Validate arguments.
 
     if reference_column is not None:
@@ -818,9 +752,10 @@ def new_filled_column(
             base_function = requested_period_last_value
     elif base_function is UnboundLocalError:
         base_function = requested_period_default_value
+
     if base_function is UnboundLocalError:
         assert reference_column is not None \
-            and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
+            and issubclass(reference_column.formula_class, DatedFormula), \
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
         base_function = reference_column.formula_class.base_function
     else:
@@ -837,7 +772,6 @@ def new_filled_column(
     # Turn function into a decorated function
     def is_decorated(function):
         return hasattr(function, 'start_instant') or hasattr(function, 'stop_instant')
-
     if specific_attributes.get('function') and not is_decorated(specific_attributes['function']):
         specific_attributes['function'] = dated_function(start = start_date, stop = stop_date)(specific_attributes['function'])
 
@@ -848,17 +782,22 @@ def new_filled_column(
             # Function is not dated (and may not even be a function). Skip it.
             continue
 
-        # Do not accept dated formula with ETERNITY
-        assert column.definition_period != ETERNITY
-
         stop_instant = function.stop_instant
         if stop_instant is not None:
             assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
                 function_name, start_instant, stop_instant)
 
         dated_formula_class_attributes = formula_class_attributes.copy()
-        dated_formula_class_attributes['function'] = function
-        dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
+        dated_formula_class = type(name.encode('utf-8'), (DatedFormula,), dated_formula_class_attributes)
+        # TODO check:
+        # dated_formula_class_attributes['function'] = function
+        # dated_formula_class.dated_formulas_class['formula_class'] = function
+        # formula_class = getattr(function, 'formula_class', UnboundLocalError)
+
+        from nose.tools import set_trace
+        set_trace()
+        import ipdb
+        ipdb.set_trace()
 
         del specific_attributes[function_name]
         dated_formulas_class.append(dict(
@@ -866,22 +805,21 @@ def new_filled_column(
             start_instant = start_instant,
             stop_instant = stop_instant,
             ))
+
     # Sort dated formulas by start instant and add missing stop instants.
-    if dated_formulas_class.__len__() > 0:
-        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-        if start_date:
-            dated_formulas_class[0]['start_instant'] = max(dated_formulas_class[0]['start_instant'], instant(start_date))
-        if stop_date:
-            stop_instant = dated_formulas_class[-1]['stop_instant']
-            stop_instant = min(stop_instant, instant(stop_date)) if stop_instant else instant(stop_date)
-            dated_formulas_class[-1]['stop_instant'] = stop_instant
-        for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
-        itertools.islice(dated_formulas_class, 1, None)):
-            if dated_formula_class['stop_instant'] is None:
-                dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
-            else:
-                assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
-                    "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
+    if start_date:
+        dated_formulas_class[0]['start_instant'] = max(dated_formulas_class[0]['start_instant'], instant(start_date))
+    if stop_date:
+        stop_instant = dated_formulas_class[-1]['stop_instant']
+        stop_instant = min(stop_instant, instant(stop_date)) if stop_instant else instant(stop_date)
+        dated_formulas_class[-1]['stop_instant'] = stop_instant
+    for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
+    itertools.islice(dated_formulas_class, 1, None)):
+        if dated_formula_class['stop_instant'] is None:
+            dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
+        else:
+            assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
+                "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
 
     # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
     # formulas.

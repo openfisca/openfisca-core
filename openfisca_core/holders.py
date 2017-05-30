@@ -134,14 +134,17 @@ class Holder(object):
                     period,
                     'month' if column.definition_period == MONTH else 'year').encode('utf-8'))
 
+        extra_params = parameters.get('extra_params')
+
         # First look for a value already cached
-        holder_or_dated_holder = self.get_from_cache(period, parameters.get('extra_params'))
+        holder_or_dated_holder = self.get_from_cache(period, extra_params)
         if holder_or_dated_holder.array is not None:
             return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
-        formula_dated_holder = self.formula.compute(period = period, **parameters)
+        array = self.formula.compute(period = period, **parameters)
+        formula_dated_holder = self.put_in_cache(array, period, extra_params)
         assert formula_dated_holder is not None
         return formula_dated_holder
 
