@@ -41,7 +41,8 @@ def add_variable_catch_assertion(tax_benefit_system, variable, assertion_message
         tax_benefit_system.add_variable(variable)
     except AssertionError, e:
         if hasattr(e, 'message'):
-            assert getattr(e, 'message').startswith(assertion_message_prefix)
+            message = getattr(e, 'message')
+            assert message.startswith(assertion_message_prefix), message
         else:
             raise
     except:
@@ -80,9 +81,9 @@ class variable__deprecated_start_date(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, no function."
     start_date = datetime.date(1980, 1, 1)  # Deprecated
-    end = datetime.date(1989, 12, 31)
-
-
+    end = '1989-12-31'
+ 
+ 
 add_variable_catch_assertion(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
 
 
@@ -94,7 +95,7 @@ class variable__dated_attributes(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, no function."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(1989, 12, 31)
+    end = '1989-12-31'
 
 
 tax_benefit_system.add_variable(variable__dated_attributes)
@@ -103,7 +104,7 @@ tax_benefit_system.add_variable(variable__dated_attributes)
 def test_variable__dated_attributes():
     variable = tax_benefit_system.column_by_name['variable__dated_attributes']
     assert variable is not None
-    assert variable.end == datetime.date(1989, 12, 31)
+    assert variable.end == '1989-12-31'
     assert variable.formula_class.dated_formulas_class.__len__() == 0
 
 
@@ -115,7 +116,7 @@ class dated_attributes__one_formula(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one function without date."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(1989, 12, 31)
+    end = '1989-12-31'
 
     def formula(self, individu, period, nb):
         return vectorize(self, nb)
@@ -142,7 +143,7 @@ def test_call__dated_attributes__one_formula():
 def test_dates__dated_attributes__one_formula():
     variable = tax_benefit_system.column_by_name['dated_attributes__one_formula']
     assert variable is not None
-    assert variable.end == datetime.date(1989, 12, 31)
+    assert variable.end == '1989-12-31'
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -203,7 +204,7 @@ class no_attributes__one_formula__end(Variable):
     entity = Individu
     definition_period = MONTH
     label = u"Variable, no dated attributes, one decorated function, stop only."
-    end = datetime.date(2009, 12, 31)
+    end = '2009-12-31'
 
     def formula(self, individu, period, nb):
         return vectorize(self, nb)
@@ -319,7 +320,7 @@ class dated_attributes__one_formula__start_only(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one decorated function, start only."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(2001, 12, 31)
+    end = '2001-12-31'
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -346,7 +347,7 @@ def test_dates__dated_attributes__one_formula__start_only():
     variable = tax_benefit_system.column_by_name['dated_attributes__one_formula__start_only']
     assert variable is not None
     assert has_dated_attribute(variable)
-    assert variable.end == datetime.date(2001, 12, 31)
+    assert variable.end == '2001-12-31'
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -363,7 +364,7 @@ class stop_attribute_before__one_formula__start(Variable):
     entity = Individu
     definition_period = MONTH
     label = u"Variable with stop attribute only coming before formula start."
-    end = datetime.date(1990, 1, 1)
+    end = '1990-01-01'
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -386,7 +387,7 @@ def test_call__stop_attribute_before__one_formula__start():
 def test_dates__stop_attribute_before__one_formula__start():
     variable = tax_benefit_system.column_by_name['stop_attribute_before__one_formula__start']
     assert variable is not None
-    assert variable.end == datetime.date(1990, 1, 1)
+    assert variable.end == '1990-01-01'
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -405,7 +406,7 @@ class dated_attributes_restrictive__one_formula(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one fully decorated function and dates intervals overlap."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(2001, 12, 31)
+    end = '2001-12-31'
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -435,7 +436,7 @@ def test_call__dated_attributes_restrictive__one_formula():
 def test_dates__dated_attributes_restrictive__one_formula():
     variable = tax_benefit_system.column_by_name['dated_attributes_restrictive__one_formula']
     assert variable is not None
-    assert variable.end == datetime.date(2001, 12, 31)
+    assert variable.end == '2001-12-31'
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -454,7 +455,7 @@ class dated_attributes__formulas__different_names(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, multiple fully decorated functions with different names."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(2005, 12, 31)
+    end = '2005-12-31'
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
@@ -489,7 +490,7 @@ def test_dates__dated_attributes__formulas__different_names():
     variable = tax_benefit_system.column_by_name['dated_attributes__formulas__different_names']
     assert variable is not None
     assert has_dated_attribute(variable)
-    assert variable.end == datetime.date(2005, 12, 31)
+    assert variable.end == '2005-12-31'
 
     assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
 
@@ -518,7 +519,7 @@ class dated_attributes__inactive_formulas(Variable):
     definition_period = MONTH
     label = u"Variable with restrictive dated attribute, more than 2 fully decorated functions, all outside dated attributes interval."
     # start_date = datetime.date(1980, 1, 1)
-    end = datetime.date(1990, 12, 31)
+    end = '1990-12-31'
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
@@ -564,7 +565,7 @@ def test_dates__dated_attributes__inactive_formulas():
     variable = tax_benefit_system.column_by_name['dated_attributes__inactive_formulas']
     assert variable is not None
     assert has_dated_attribute(variable)
-    assert variable.end == datetime.date(1990, 12, 31)
+    assert variable.end == '1990-12-31'
 
     # Even inactivated functions (functions with start date < attribute stop date) should be registered.
     assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
@@ -606,7 +607,7 @@ class dated_attributes__active_formulas(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, more than 2 fully decorated functions, all inside dated attributes interval."
     # start_date = datetime.date(2000, 1, 1)
-    end = datetime.date(2020, 12, 31)
+    end = '2020-12-31'
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
@@ -652,7 +653,7 @@ def test_dates__dated_attributes__active_formulas():
     variable = tax_benefit_system.column_by_name['dated_attributes__active_formulas']
     assert variable is not None
     assert has_dated_attribute(variable)
-    assert variable.end == datetime.date(2020, 12, 31)
+    assert variable.end == '2020-12-31'
 
     # Even inactivated functions (functions with start date < attribute stop date) should be registered.
     assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb

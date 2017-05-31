@@ -501,7 +501,7 @@ class DatedFormula(AbstractFormula):
         This function finds the first active formula for the period starting date.
         """
         end = self.holder.column.end
-        if end and period.start.date > end:
+        if end and period.start.date > get_datetime_date(self, end):
             return None
 
         # Assume that self.dated_formulas and self.dated_formulas_class
@@ -620,6 +620,13 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
 
     return formula_name
 
+def get_datetime_date(variable_name, date_str):
+    try:
+        time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(variable_name, date_str).encode('utf-8'))
+
+    return time.date()
 
 def new_filled_column(
         __doc__ = None,
@@ -735,7 +742,8 @@ def new_filled_column(
     if end is UnboundLocalError:
         end = None if reference_column is None else reference_column.end
     elif end is not None:
-        assert isinstance(end, datetime.date)
+        assert isinstance(end, str)
+        get_datetime_date(name, end)  # Raises ValueError on format error.
 
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url

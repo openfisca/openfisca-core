@@ -82,7 +82,7 @@ def build_variable(variable, country_package_metadata):
         result['formulas'] = build_formulas(variable.formula_class.dated_formulas_class, country_package_metadata)
 
         if variable.end:
-            result['formulas'][get_next_day(variable.end.isoformat())] = None
+            result['formulas'][get_next_day(variable.end)] = None
 
     return result
 
