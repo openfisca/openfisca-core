@@ -10,7 +10,6 @@ from nose.tools import assert_equal
 from openfisca_core import columns, periods, reforms
 from openfisca_core.periods import MONTH
 from openfisca_core.reforms import Reform
-from openfisca_core.formulas import dated_function
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
@@ -317,11 +316,9 @@ def test_add_dated_variable():
         entity = Household
         definition_period = MONTH
 
-        @dated_function(datetime.date(2010, 1, 1))
         def formula_2010_01_01(self, simulation, period):
             return self.zeros() + 10
 
-        @dated_function(datetime.date(2011, 1, 1))
         def formula_2011_01_01(self, simulation, period):
             return self.zeros() + 15
 

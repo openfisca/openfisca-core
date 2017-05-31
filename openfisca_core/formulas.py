@@ -508,45 +508,18 @@ class DatedFormula(AbstractFormula):
         if stop_date and period.start.date > stop_date:
             return None
 
-        default_date = datetime.date(1, 1, 1)
-        default_month = "01"
-        default_day = "01"
-
         # Assume that self.dated_formulas and self.dated_formulas_class 
         # contain same formulas (instance and class) in same order
         assert len(self.dated_formulas) == len(self.dated_formulas_class)
-
         i = len(self.dated_formulas)
-        # for dated_formula in reversed(self.dated_formulas):
+
         for dated_formula_class in reversed(self.dated_formulas_class):
+            # All formulas are already dated
             i -= 1
-            # formula_class = self.dated_formulas_class[i]['formula_class']
-            # formula_name = formula_class.formula.__name__
-            formula_name = dated_formula_class['formula_class'].formula.__name__
+            start = dated_formula_class['start_instant'].date
+            # formula_name = dated_formula_class['formula_class'].formula.__name__
 
-            if formula_name == 'formula':
-                start_instant = default_date
-
-            else:
-                start_instant = dated_formula_class['start_instant'].date
-                if start_instant:
-                    match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)
-                    assert match, formula_name
-                    start = match.group(2)
-
-                    if len(start) == 4:  # YYYY
-                        start += '_' + default_month
-
-                    if len(start) == 7:  # YYYY_MM
-                        start += '_' + default_day
-
-                    date = datetime.datetime.strptime(start, '%Y_%m_%d').date()
-                    
-                    # class_start_instant = formula_class.dated_formulas_class[i]
-                    # assert class_start_instant == start_instant
-                    assert date == start_instant, date
-
-            if period.start.date >= start_instant:
+            if period.start.date >= start:
                 dated_formula = self.dated_formulas[i]
                 return dated_formula['formula'].formula
 
@@ -603,15 +576,6 @@ def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
 
-def dated_function(start = None):
-    """Function decorator used to give a start instant to a method of a function in class Variable."""
-    def dated_function_decorator(function):
-        function.start_instant = periods.instant(start)
-        return function
-
-    return dated_function_decorator
-
-
 def missing_value(formula, simulation, period):
     if formula.function is not None:
         return formula.function(simulation, period)
@@ -633,6 +597,32 @@ def get_neutralized_column(column):
         definition_period = column.definition_period,
         set_input = set_input_neutralized,
         )
+
+
+def complete_formula_name(formula_name, formula_name_prefix, formula_name_separator):
+    formula_default_year = '0001'
+    formula_default_month = '01'
+    formula_default_day = '01'
+
+    if formula_name == formula_name_prefix:
+        formula_name += formula_name_separator + formula_default_year + formula_name_separator\
+        + formula_default_month + formula_name_separator\
+        + formula_default_day
+
+    else:
+        match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)  # YYYY or YYYY_MM or YYYY_MM_DD
+        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: '.formula_name
+        start_str = match.group(2)
+
+        if len(start_str) == 4:  # YYYY
+            start_str += formula_name_separator + formula_default_month
+            formula_name += formula_name_separator + formula_default_month
+ 
+        if len(start_str) == 7:  # YYYY_MM
+            start_str += formula_name_separator + formula_default_day
+            formula_name += formula_name_separator + formula_default_day
+
+    return formula_name
 
 
 def new_filled_column(
@@ -802,18 +792,18 @@ def new_filled_column(
     if set_input is not None:
         formula_class_attributes['set_input'] = set_input
 
-    # Turn function into a decorated function
-    def is_decorated(function):
-        return hasattr(function, 'start_instant') or hasattr(function, 'stop_instant')
-    if specific_attributes.get('formula') and not is_decorated(specific_attributes['formula']):
-        specific_attributes['formula'] = dated_function()(specific_attributes['formula'])
-
+    # Turn function into a dated function
+    formula_name_prefix = 'formula'
+    formula_name_separator = '_'
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
-        start_instant = getattr(function, 'start_instant', UnboundLocalError)
-        if start_instant is UnboundLocalError:
-            # Function is not dated (and may not even be a function). Skip it.
+        formula_name = function_name
+        if not formula_name.startswith(formula_name_prefix):
+            # Current attribute isn't a formula
             continue
+
+        formula_name = complete_formula_name(formula_name, formula_name_prefix, formula_name_separator)
+        formula_start = periods.instant(datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator +'%Y_%m_%d').date())
 
         dated_formula_class_attributes = formula_class_attributes.copy()
         dated_formula_class_attributes['formula'] = function
@@ -822,7 +812,7 @@ def new_filled_column(
         del specific_attributes[function_name]
         dated_formulas_class.append(dict(
             formula_class = dated_formula_class,
-            start_instant = start_instant,
+            start_instant = formula_start,
             ))
 
     # Sort dated formulas by start instant and add missing stop instants.

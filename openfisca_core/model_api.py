@@ -27,7 +27,6 @@ from .formulas import (  # noqa analysis:ignore
     ADD,
     calculate_output_add,
     calculate_output_divide,
-    dated_function,
     DIVIDE,
     set_input_dispatch_by_period,
     set_input_divide_by_period,
