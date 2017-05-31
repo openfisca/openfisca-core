@@ -14,96 +14,75 @@ from openfisca_core.formulas import dated_function
 from openfisca_core.variables import Variable, DatedVariable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_dummy_country.entities import Famille
-from openfisca_dummy_country import DummyTaxBenefitSystem
+from openfisca_country_template.entities import Household
+from openfisca_country_template import CountryTaxBenefitSystem
+tax_benefit_system = CountryTaxBenefitSystem()
 
-tax_benefit_system = DummyTaxBenefitSystem()
 
-
-class test_rsa_neutralization(Reform):
+class test_basic_income_neutralization(Reform):
     def apply(self):
-        self.neutralize_variable('rsa')
+        self.neutralize_variable('basic_income')
 
 
 def test_formula_neutralization():
-    reform = test_rsa_neutralization(tax_benefit_system)
+    reform = test_basic_income_neutralization(tax_benefit_system)
 
-    year = 2013
-    scenario = reform.new_scenario().init_single_entity(
-        period = year,
-        famille = dict(city_code = '75101'),
-        parent1 = dict(),
-        parent2 = dict(),
+    period = '2017-01'
+    scenario = reform.new_scenario().init_from_attributes(
+        period = period
         )
     simulation = scenario.new_simulation(debug = True, reference = True)
-    rsa = simulation.calculate('rsa', period = '2013-01')
-    assert_near(rsa, 300, absolute_error_margin = 0)
-    revenu_disponible = simulation.calculate('revenu_disponible', period = year)
-    assert_near(revenu_disponible, 3600, absolute_error_margin = 0)
+    basic_income = simulation.calculate('basic_income', period = period)
+    assert_near(basic_income, 600)
+    disposable_income = simulation.calculate('disposable_income', period = period)
+    assert disposable_income > 0
 
     reform_simulation = scenario.new_simulation(debug = True)
-    rsa_reform = reform_simulation.calculate('rsa', period = '2013-01')
-    assert_near(rsa_reform, 0, absolute_error_margin = 0)
-    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible', period = year)
-    assert_near(revenu_disponible_reform, 0, absolute_error_margin = 0)
+    basic_income_reform = reform_simulation.calculate('basic_income', period = '2013-01')
+    assert_near(basic_income_reform, 0, absolute_error_margin = 0)
+    disposable_income_reform = reform_simulation.calculate('disposable_income', period = period)
+    assert_near(disposable_income_reform, 0)
 
 
 def test_neutralization_optimization():
-    reform = test_rsa_neutralization(tax_benefit_system)
+    reform = test_basic_income_neutralization(tax_benefit_system)
 
-    year = 2013
-    scenario = reform.new_scenario().init_single_entity(
-        period = year,
-        famille = dict(city_code = '75101'),
-        parent1 = dict(),
-        parent2 = dict(),
+    period = '2017-01'
+    scenario = reform.new_scenario().init_from_attributes(
+        period = period,
         )
     simulation = scenario.new_simulation(debug = True)
-    simulation.calculate('rsa', period = '2013-01')
-    simulation.calculate_add('rsa', period = '2013')
+    simulation.calculate('basic_income', period = '2013-01')
+    simulation.calculate_add('basic_income', period = '2013')
 
-    # As rsa is neutralized, it should not be cached
-    rsa_holder = simulation.holder_by_name.get('rsa')
-    assert rsa_holder._array_by_period is None
+    # As basic_income is neutralized, it should not be cached
+    basic_income_holder = simulation.holder_by_name.get('basic_income')
+    assert basic_income_holder._array_by_period is None
 
 
 def test_input_variable_neutralization():
 
-    class test_salaire_brut_neutralization(Reform):
+    class test_salary_neutralization(Reform):
         def apply(self):
-            self.neutralize_variable('salaire_brut')
+            self.neutralize_variable('salary')
 
-    reform = test_salaire_brut_neutralization(tax_benefit_system)
+    reform = test_salary_neutralization(tax_benefit_system)
 
-    year = 2013
-    scenario = reform.new_scenario().init_single_entity(
-        period = year,
-        famille = dict(city_code = '75101'),
-        parent1 = dict(
-            salaire_brut = 120000,
-            ),
-        parent2 = dict(
-            salaire_brut = 60000,
-            ),
+    period = '2017-01'
+    scenario = reform.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(salary = [1200, 1000])
         )
 
-    simulation = scenario.new_simulation(reference = True)
-    salaire_brut_annuel = simulation.calculate_add('salaire_brut', period = year)
-    assert_near(salaire_brut_annuel, [120000, 60000], absolute_error_margin = 0)
-    salaire_brut_mensuel = simulation.calculate('salaire_brut', period = '2013-01')
-    assert_near(salaire_brut_mensuel, [10000, 5000], absolute_error_margin = 0)
-    revenu_disponible = simulation.calculate('revenu_disponible', period = year)
-    assert_near(revenu_disponible, [60480, 30240], absolute_error_margin = 0)
+    reform = test_salary_neutralization(tax_benefit_system)
 
     with warnings.catch_warnings(record=True) as raised_warnings:
         reform_simulation = scenario.new_simulation()
         assert 'You cannot set a value for the variable' in raised_warnings[0].message.message
-    salaire_brut_annuel_reform = reform_simulation.calculate_add('salaire_brut', period = year)
-    assert_near(salaire_brut_annuel_reform, [0, 0], absolute_error_margin = 0)
-    salaire_brut_mensuel_reform = reform_simulation.calculate('salaire_brut', period = '2013-01')
-    assert_near(salaire_brut_mensuel_reform, [0, 0], absolute_error_margin = 0)
-    revenu_disponible_reform = reform_simulation.calculate('revenu_disponible', period = year)
-    assert_near(revenu_disponible_reform, [3600, 3600], absolute_error_margin = 0)
+    salary = reform_simulation.calculate('salary', period)
+    assert_near(salary, [0, 0],)
+    disposable_income_reform = reform_simulation.calculate('disposable_income', period = period)
+    assert_near(disposable_income_reform, [600, 600])
 
 
 def test_permanent_variable_neutralization():
@@ -115,12 +94,10 @@ def test_permanent_variable_neutralization():
     reform = test_date_naissance_neutralization(tax_benefit_system)
 
     year = 2013
-    scenario = reform.new_scenario().init_single_entity(
+    scenario = reform.new_scenario().init_from_attributes(
         period = year,
-        famille = dict(city_code = '75101'),
-        parent1 = dict(
-            birth = '1980-01-01',
-            salaire_brut = 120000,
+        input_variables = dict(
+            birth = '1980-01-01'
             ),
         )
     simulation = scenario.new_simulation(reference = True)
@@ -305,10 +282,10 @@ def test_update_items():
 
 def test_add_variable():
 
-    class nouvelle_variable(Variable):
+    class new_variable(Variable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity = Famille
+        entity = Household
         definition_period = MONTH
 
         def function(self, simulation, period):
@@ -317,28 +294,27 @@ def test_add_variable():
     class test_add_variable(Reform):
 
         def apply(self):
-            self.add_variable(nouvelle_variable)
+            self.add_variable(new_variable)
 
     reform = test_add_variable(tax_benefit_system)
 
     year = 2013
 
-    scenario = reform.new_scenario().init_single_entity(
+    scenario = reform.new_scenario().init_from_attributes(
         period = year,
-        parent1 = dict(),
         )
 
-    assert tax_benefit_system.get_column('nouvelle_variable') is None
+    assert tax_benefit_system.get_column('new_variable') is None
     reform_simulation = scenario.new_simulation(debug = True)
-    nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
-    assert_near(nouvelle_variable1, 10, absolute_error_margin = 0)
+    new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
+    assert_near(new_variable1, 10, absolute_error_margin = 0)
 
 
 def test_add_dated_variable():
-    class nouvelle_dated_variable(DatedVariable):
+    class new_dated_variable(DatedVariable):
         column = columns.IntCol
         label = u"Nouvelle variable introduite par la réforme"
-        entity = Famille
+        entity = Household
         definition_period = MONTH
 
         @dated_function(datetime.date(2010, 1, 1))
@@ -351,23 +327,22 @@ def test_add_dated_variable():
 
     class test_add_variable(Reform):
         def apply(self):
-            self.add_variable(nouvelle_dated_variable)
+            self.add_variable(new_dated_variable)
 
     reform = test_add_variable(tax_benefit_system)
 
-    scenario = reform.new_scenario().init_single_entity(
+    scenario = reform.new_scenario().init_from_attributes(
         period = 2013,
-        parent1 = dict(),
         )
 
     reform_simulation = scenario.new_simulation(debug = True)
-    nouvelle_dated_variable1 = reform_simulation.calculate('nouvelle_dated_variable', period = '2013-01')
-    assert_near(nouvelle_dated_variable1, 15, absolute_error_margin = 0)
+    new_dated_variable1 = reform_simulation.calculate('new_dated_variable', period = '2013-01')
+    assert_near(new_dated_variable1, 15, absolute_error_margin = 0)
 
 
 def test_update_variable():
 
-    class revenu_disponible(Variable):
+    class disposable_income(Variable):
         definition_period = MONTH
 
         def function(self, simulation, period):
@@ -375,27 +350,26 @@ def test_update_variable():
 
     class test_update_variable(Reform):
         def apply(self):
-            self.update_variable(revenu_disponible)
+            self.update_variable(disposable_income)
 
     reform = test_update_variable(tax_benefit_system)
 
     year = 2013
-    scenario = reform.new_scenario().init_single_entity(
+    scenario = reform.new_scenario().init_from_attributes(
         period = year,
-        parent1 = dict(),
         )
 
-    revenu_disponible_reform = reform.get_column('revenu_disponible')
-    revenu_disponible_reference = tax_benefit_system.get_column('revenu_disponible')
+    disposable_income_reform = reform.get_column('disposable_income')
+    disposable_income_reference = tax_benefit_system.get_column('disposable_income')
 
-    assert revenu_disponible_reform is not None
-    assert revenu_disponible_reform.entity.plural == revenu_disponible_reference.entity.plural
-    assert revenu_disponible_reform.name == revenu_disponible_reference.name
-    assert revenu_disponible_reform.label == revenu_disponible_reference.label
+    assert disposable_income_reform is not None
+    assert disposable_income_reform.entity.plural == disposable_income_reference.entity.plural
+    assert disposable_income_reform.name == disposable_income_reference.name
+    assert disposable_income_reform.label == disposable_income_reference.label
 
     reform_simulation = scenario.new_simulation()
-    revenu_disponible1 = reform_simulation.calculate('revenu_disponible', period = '2013-01')
-    assert_near(revenu_disponible1, 10, absolute_error_margin = 0)
+    disposable_income1 = reform_simulation.calculate('disposable_income', period = '2013-01')
+    assert_near(disposable_income1, 10, absolute_error_margin = 0)
 
 
 @raises(Exception)
@@ -410,41 +384,40 @@ def test_wrong_reform():
 def test_compose_reforms():
 
     class first_reform(Reform):
-        class nouvelle_variable(Variable):
+        class new_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity = Famille
+            entity = Household
             definition_period = MONTH
 
             def function(self, simulation, period):
                 return self.zeros() + 10
 
         def apply(self):
-            self.add_variable(self.nouvelle_variable)
+            self.add_variable(self.new_variable)
 
     class second_reform(Reform):
-        class nouvelle_variable(Variable):
+        class new_variable(Variable):
             column = columns.IntCol
             label = u"Nouvelle variable introduite par la réforme"
-            entity = Famille
+            entity = Household
             definition_period = MONTH
 
             def function(self, simulation, period):
                 return self.zeros() + 20
 
         def apply(self):
-            self.update_variable(self.nouvelle_variable)
+            self.update_variable(self.new_variable)
 
     reform = reforms.compose_reforms([first_reform, second_reform], tax_benefit_system)
     year = 2013
-    scenario = reform.new_scenario().init_single_entity(
+    scenario = reform.new_scenario().init_from_attributes(
         period = year,
-        parent1 = dict(),
         )
 
     reform_simulation = scenario.new_simulation(debug = True)
-    nouvelle_variable1 = reform_simulation.calculate('nouvelle_variable', period = '2013-01')
-    assert_near(nouvelle_variable1, 20, absolute_error_margin = 0)
+    new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
+    assert_near(new_variable1, 20, absolute_error_margin = 0)
 
 
 def test_modify_legislation():

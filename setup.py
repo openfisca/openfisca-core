@@ -35,7 +35,8 @@ setup(
         'test': [
             'nose',
             'flake8',
-            'openfisca-dummy-country == 0.1.6',
+            'openfisca-country-template == 1.0.0',
+            'openfisca-extension-template == 1.0.0',
             ],
         },
     include_package_data = True,  # Will read MANIFEST.in
