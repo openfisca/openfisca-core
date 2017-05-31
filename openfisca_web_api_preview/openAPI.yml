@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
-  title: "{CONTRY_PACKAGE_NAME} Web API"
-  description: "The OpenFisca Web API lets you get up-to-date information and formulas pertaining to the {CONTRY_PACKAGE_NAME} legislation e.g. minimum wage, state scholasrship, social benefits, income taxes…"
+  title: "{COUNTRY_PACKAGE_NAME} Web API"
+  description: "The OpenFisca Web API lets you get up-to-date information and formulas included in the {COUNTRY_PACKAGE_NAME} legislation."
   version: "0.1.0"
   termsOfService: "https://doc.openfisca.fr/publishing.html"
   contact:
@@ -14,14 +14,14 @@ schemes:
   - "https"
 tags:
 - name: "Parameters"
-  description: "A parameter is a numeric property of the legislation which can evolve over time."
+  description: "A parameter is a numeric property of the legislation that can evolve over time."
   externalDocs:
-    description: "Find out more"
+    description: "Parameter official documentation"
     url: "https://doc.openfisca.fr/parameters.html"
 - name: "Variables"
   description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
   externalDocs:
-    description: "Find out more"
+    description: "Variable official documentation"
     url: "https://doc.openfisca.fr/variables.html"
 paths:
   /parameters:
@@ -37,10 +37,10 @@ paths:
           description: "The list of parameters is sent back in the response body"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
           schema:
             $ref: '#/definitions/Parameters'
@@ -48,14 +48,14 @@ paths:
     get:
       tags:
       - "Parameters"
-      summary: "Gets information about a specific parameter"
+      summary: "Get information about a specific parameter"
       operationId: "getParameter"
       produces:
       - "application/json"
       parameters:
       - name: "parameterID"
         in: "path"
-        description: "ID of parameter (e.g. impot_revenu.bareme)"
+        description: "ID of parameter. IDs can be obtained by enumerating the /parameters endpoint"
         required: true
         type: "string"
       responses:
@@ -63,10 +63,10 @@ paths:
           description: "The requested parameter's information is sent back in the response body"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
           schema:
             $ref: "#/definitions/Parameter"
@@ -74,10 +74,10 @@ paths:
           description: "The requested parameter does not exist"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
   /variables:
     get:
@@ -92,10 +92,10 @@ paths:
           description: "The list of variables is sent back in the response body"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
           schema:
             $ref: "#/definitions/Variables"
@@ -103,36 +103,36 @@ paths:
     get:
       tags:
       - "Variables"
-      summary: "Gets information about a specific variable"
+      summary: "Get information about a specific variable"
       operationId: "getVariable"
       produces:
       - "application/json"
       parameters:
       - name: "variableID"
         in: "path"
-        description: "ID of a variable (e.g. aide_embauche_pme)"
+        description: "ID of a variable. IDs can be obtained by enumerating the /variables endpoint."
         required: true
         type: "string"
       responses:
         200:
-          description: "The requested parameter's information is sent back in the response body"
+          description: "The requested variable's information is sent back in the response body"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
           schema:
             $ref: "#/definitions/Variable"
         404:
-          description: "The requested parameter does not exist"
+          description: "The requested variable does not exist"
           headers :
             Country-Package :
-              description : "The name of the country package served by the API"
+              description : "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
-              description: "The version of the country package served by the API"
+              description: "The version of the country package currently loaded in this API server"
               type: "string"
 
 definitions:
@@ -188,7 +188,11 @@ definitions:
       defaultValue:
         type: "string"
       definitionPeriod:
-        type: "string"
+        type: string
+        enum:
+          - MONTH
+          - YEAR
+          - ETERNITY
       description:
         type: "string"
       entity:
@@ -208,9 +212,9 @@ definitions:
       valueType:
          type: "string"
     example:
-      defaultValue": 0,
+      defaultValue: 0,
       definitionPeriod: "MONTH"
-      description: "Aide \u00e0 l'embauche d'un salari\u00e9 pour les PME"
+      description: "Aide à l'embauche d'un salarié pour les PME"
       entity: "individu"
       id: "aide_embauche_pme"
       references: [
