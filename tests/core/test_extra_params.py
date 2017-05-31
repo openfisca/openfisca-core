@@ -16,7 +16,7 @@ class formula_1(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [0])
 
 
@@ -25,7 +25,7 @@ class formula_2(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [1])
 
 
@@ -34,7 +34,7 @@ class formula_3(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period, choice):
+    def formula(self, simulation, period, choice):
         return self.zeros() + choice
 
 
@@ -44,7 +44,7 @@ class formula_4(Variable):
     base_function = requested_period_last_value
     definition_period = MONTH
 
-    def function(self, simulation, period, choice):
+    def formula(self, simulation, period, choice):
         return self.zeros() + choice
 
 

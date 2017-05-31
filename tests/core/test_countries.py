@@ -94,7 +94,7 @@ def test_variable_with_reference():
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def function(self, simulation, period):
+        def formula(self, simulation, period):
             return self.zeros()
 
     tax_benefit_system.update_variable(disposable_income)
@@ -109,7 +109,7 @@ def test_variable_name_conflict():
         reference = 'disposable_income'
         definition_period = MONTH
 
-        def function(self, simulation, period):
+        def formula(self, simulation, period):
             return self.zeros()
     tax_benefit_system.add_variable(disposable_income)
 

@@ -288,7 +288,7 @@ def test_add_variable():
         entity = Household
         definition_period = MONTH
 
-        def function(self, simulation, period):
+        def formula(self, simulation, period):
             return self.zeros() + 10
 
     class test_add_variable(Reform):
@@ -318,11 +318,11 @@ def test_add_dated_variable():
         definition_period = MONTH
 
         @dated_function(datetime.date(2010, 1, 1))
-        def function_2010(self, simulation, period):
+        def formula_2010_01_01(self, simulation, period):
             return self.zeros() + 10
 
         @dated_function(datetime.date(2011, 1, 1))
-        def function_apres_2011(self, simulation, period):
+        def formula_2011_01_01(self, simulation, period):
             return self.zeros() + 15
 
     class test_add_variable(Reform):
@@ -345,7 +345,7 @@ def test_update_variable():
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def function(self, simulation, period):
+        def formula(self, simulation, period):
             return self.zeros() + 10
 
     class test_update_variable(Reform):
@@ -390,7 +390,7 @@ def test_compose_reforms():
             entity = Household
             definition_period = MONTH
 
-            def function(self, simulation, period):
+            def formula(self, simulation, period):
                 return self.zeros() + 10
 
         def apply(self):
@@ -403,7 +403,7 @@ def test_compose_reforms():
             entity = Household
             definition_period = MONTH
 
-            def function(self, simulation, period):
+            def formula(self, simulation, period):
                 return self.zeros() + 20
 
         def apply(self):

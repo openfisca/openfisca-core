@@ -512,7 +512,10 @@ class DatedFormula(AbstractFormula):
         default_month = "01"
         default_day = "01"
 
+        # Assume that self.dated_formulas and self.dated_formulas_class 
+        # contain same formulas (instance and class) in same order
         assert len(self.dated_formulas) == len(self.dated_formulas_class)
+
         i = len(self.dated_formulas)
         # for dated_formula in reversed(self.dated_formulas):
         for dated_formula_class in reversed(self.dated_formulas_class):

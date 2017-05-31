@@ -29,7 +29,7 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
 
 
 def build_formula(formula, country_package_metadata):
-    source_code, start_line_number = inspect.getsourcelines(formula.function)
+    source_code, start_line_number = inspect.getsourcelines(formula.formula)
     if source_code[0].lstrip(' ').startswith('@'):  # remove decorator
         source_code = source_code[1:]
         start_line_number = start_line_number + 1
