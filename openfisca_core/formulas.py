@@ -5,7 +5,6 @@ from __future__ import division
 
 import collections
 import datetime
-import itertools
 import logging
 import warnings
 import re
@@ -13,7 +12,7 @@ import re
 import numpy as np
 
 from . import columns, holders, legislations, periods
-from .periods import MONTH, YEAR, ETERNITY, instant
+from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
     requested_period_default_value,
@@ -314,15 +313,12 @@ class DatedFormula(AbstractFormula):
                 for dated_formula_class in self.dated_formulas_class
                 ]
 
-
     @classmethod
     def at_instant(cls, instant, default = UnboundLocalError):
         assert isinstance(instant, periods.Instant)
         for dated_formula_class in cls.dated_formulas_class:
             start_instant = dated_formula_class['start_instant']
-            stop_instant = dated_formula_class['stop_instant']
-            if (start_instant is None or start_instant <= instant) and (
-                    stop_instant is None or instant <= stop_instant):
+            if (start_instant is None or start_instant <= instant):  # TODO Check for end attribute?
                 return dated_formula_class['formula_class']
         if default is UnboundLocalError:
             raise KeyError(instant)
@@ -504,11 +500,11 @@ class DatedFormula(AbstractFormula):
         """
         This function finds the first active formula for the period starting date.
         """
-        stop_date = self.holder.column.end
-        if stop_date and period.start.date > stop_date:
+        end = self.holder.column.end
+        if end and period.start.date > end:
             return None
 
-        # Assume that self.dated_formulas and self.dated_formulas_class 
+        # Assume that self.dated_formulas and self.dated_formulas_class
         # contain same formulas (instance and class) in same order
         assert len(self.dated_formulas) == len(self.dated_formulas_class)
         i = len(self.dated_formulas)
@@ -606,8 +602,8 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
 
     if formula_name == formula_name_prefix:
         formula_name += formula_name_separator + formula_default_year + formula_name_separator\
-        + formula_default_month + formula_name_separator\
-        + formula_default_day
+            + formula_default_month + formula_name_separator\
+            + formula_default_day
 
     else:
         match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)  # YYYY or YYYY_MM or YYYY_MM_DD
@@ -617,7 +613,7 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
         if len(start_str) == 4:  # YYYY
             start_str += formula_name_separator + formula_default_month
             formula_name += formula_name_separator + formula_default_month
- 
+
         if len(start_str) == 7:  # YYYY_MM
             start_str += formula_name_separator + formula_default_day
             formula_name += formula_name_separator + formula_default_day
@@ -646,7 +642,7 @@ def new_filled_column(
         source_code = UnboundLocalError,
         source_file_path = UnboundLocalError,
         start_line_number = UnboundLocalError,
-        stop_date = UnboundLocalError,
+        end = UnboundLocalError,
         url = UnboundLocalError,
         **specific_attributes
         ):
@@ -736,10 +732,10 @@ def new_filled_column(
     elif isinstance(source_file_path, str):
         source_file_path = source_file_path.decode('utf-8')
 
-    if stop_date is UnboundLocalError:
-        stop_date = None if reference_column is None else reference_column.end
-    elif stop_date is not None:
-        assert isinstance(stop_date, datetime.date)
+    if end is UnboundLocalError:
+        end = None if reference_column is None else reference_column.end
+    elif end is not None:
+        assert isinstance(end, datetime.date)
 
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url
@@ -803,7 +799,7 @@ def new_filled_column(
             continue
 
         formula_name = complete_formula_name(formula_name, formula_name_prefix, formula_name_separator)
-        formula_start = periods.instant(datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator +'%Y_%m_%d').date())
+        formula_start = periods.instant(datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator + '%Y_%m_%d').date())
 
         dated_formula_class_attributes = formula_class_attributes.copy()
         dated_formula_class_attributes['formula'] = function
@@ -845,8 +841,8 @@ def new_filled_column(
         column.cerfa_field = cerfa_field
     if default != column.default:
         column.default = default
-    if stop_date is not None:
-        column.end = stop_date
+    if end is not None:
+        column.end = end
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period

@@ -72,7 +72,7 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
 
     accept_future_value = kwargs.pop('accept_future_value', False)
     holder = formula.holder
-    function = formula.find_right_dated_function(period) 
+    function = formula.find_right_dated_function(period)
     if holder._array_by_period is not None:
         known_values = sorted(holder._array_by_period.iteritems(), cmp = compare_start_instant, reverse = True)
         for last_period, last_result in known_values:

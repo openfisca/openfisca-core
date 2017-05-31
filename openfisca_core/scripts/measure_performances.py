@@ -6,7 +6,6 @@
 
 
 import argparse
-import datetime
 import logging
 import sys
 import time
@@ -18,7 +17,6 @@ from openfisca_core import periods, simulations
 from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import build_entity
-from openfisca_core.formulas import dated_function
 from openfisca_core.variables import Variable
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_core.tools import assert_near
@@ -106,7 +104,7 @@ class age(Variable):
     entity = Individu
     label = u"Âge (en nombre d'années)"
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         birth = simulation.get_array('birth', period)
         if birth is None:
             age_en_mois = simulation.get_array('age_en_mois', period)
@@ -121,7 +119,7 @@ class dom_tom(Variable):
     entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         period = period.start.period('year').offset('first-of')
         city_code = simulation.calculate('city_code', period)
         return np.logical_or(startswith(city_code, '97'), startswith(city_code, '98'))
@@ -132,7 +130,7 @@ class revenu_disponible(Variable):
     entity = Individu
     label = u"Revenu disponible de l'individu"
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         period = period.start.period(u'year').offset('first-of')
         rsa = simulation.calculate('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
@@ -144,20 +142,17 @@ class rsa(Variable):
     entity = Individu
     label = u"RSA"
 
-    @dated_function(datetime.date(2010, 1, 1))
-    def function_2010(self, simulation, period):
+    def formula_2010_01_01(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 100.0
 
-    @dated_function(datetime.date(2011, 1, 1), datetime.date(2012, 12, 31))
-    def function_2011_2012(self, simulation, period):
+    def formula_2011_01_01(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 200.0
 
-    @dated_function(datetime.date(2013, 1, 1))
-    def function_2013(self, simulation, period):
+    def formula_2013_01_01(self, simulation, period):
         period = period.start.period(u'month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 300
@@ -168,7 +163,7 @@ class salaire_imposable(Variable):
     entity = Individu
     label = u"Salaire imposable"
 
-    def function(individu, period):
+    def formula(individu, period):
         period = period.start.period(u'year').offset('first-of')
         dom_tom = individu.famille('dom_tom', period)
         salaire_net = individu('salaire_net', period)
@@ -180,7 +175,7 @@ class salaire_net(Variable):
     entity = Individu
     label = u"Salaire net"
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         period = period.start.period(u'year').offset('first-of')
         salaire_brut = simulation.calculate('salaire_brut', period)
         return salaire_brut * 0.8

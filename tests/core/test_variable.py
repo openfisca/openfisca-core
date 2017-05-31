@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from nose.tools import raises
 
 from openfisca_core.model_api import Variable
 from openfisca_core.taxbenefitsystems import VariableNotFound
@@ -11,7 +10,7 @@ from openfisca_core.columns import IntCol
 import openfisca_dummy_country as dummy_country
 from openfisca_dummy_country.entities import Individu
 
-# Check which date is applied whether it comes from Variable attribute (stop_date)
+# Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.
 
 
@@ -81,13 +80,13 @@ class variable__deprecated_start_date(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, no function."
     start_date = datetime.date(1980, 1, 1)  # Deprecated
-    stop_date = datetime.date(1989, 12, 31)
+    end = datetime.date(1989, 12, 31)
 
 
 add_variable_catch_assertion(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
 
 
-# 371 - stop_date, no function
+# 371 - end, no function
 
 class variable__dated_attributes(Variable):
     column = IntCol
@@ -95,7 +94,7 @@ class variable__dated_attributes(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, no function."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(1989, 12, 31)
+    end = datetime.date(1989, 12, 31)
 
 
 tax_benefit_system.add_variable(variable__dated_attributes)
@@ -108,7 +107,7 @@ def test_variable__dated_attributes():
     assert variable.formula_class.dated_formulas_class.__len__() == 0
 
 
-# 371 - stop_date, one function without date
+# 371 - end, one function without date
 
 class dated_attributes__one_formula(Variable):
     column = IntCol
@@ -116,7 +115,7 @@ class dated_attributes__one_formula(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one function without date."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(1989, 12, 31)
+    end = datetime.date(1989, 12, 31)
 
     def formula(self, individu, period, nb):
         return vectorize(self, nb)
@@ -199,27 +198,28 @@ def test_dates__no_attributes__one_formula__start_only():
 
 # 371 - function, stop only
 
-class no_attributes__one_formula__stop_date(Variable):
+class no_attributes__one_formula__end(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable, no dated attributes, one decorated function, stop only."
-    stop_date = datetime.date(2009, 12, 31)
+    end = datetime.date(2009, 12, 31)
 
     def formula(self, individu, period, nb):
         return vectorize(self, nb)
 
-tax_benefit_system.add_variable(no_attributes__one_formula__stop_date)
+
+tax_benefit_system.add_variable(no_attributes__one_formula__end)
 
 
-def test_add__no_attributes__one_formula__stop_date():
+def test_add__no_attributes__one_formula__end():
     month = '2008-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__one_formula__stop_date', month, extra_params=[100]) == 100
+    assert simulation.calculate('no_attributes__one_formula__end', month, extra_params=[100]) == 100
 
     month = '2015-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__one_formula__stop_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('no_attributes__one_formula__end', month, extra_params=[100]) == IntCol.default
 
 
 # 371 - Multiple functions, different names with date overlap
@@ -293,7 +293,7 @@ def test_dates__no_attributes__formulas__different_name__no_overlap():
 
     assert variable.formula_class.dated_formulas_class.__len__() == 2
 
-    # TODO compare dated_formulas_class and dated_formulas 
+    # TODO compare dated_formulas_class and dated_formulas
 
     i = 0
     formula = variable.formula_class.dated_formulas_class[i]
@@ -319,7 +319,7 @@ class dated_attributes__one_formula__start_only(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one decorated function, start only."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(2001, 12, 31)
+    end = datetime.date(2001, 12, 31)
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -356,14 +356,14 @@ def test_dates__dated_attributes__one_formula__start_only():
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
 
-# 371 - stop_date < function, start.
+# 371 - end < function, start.
 
 class stop_attribute_before__one_formula__start(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with stop attribute only coming before formula start."
-    stop_date = datetime.date(1990, 1, 1)
+    end = datetime.date(1990, 1, 1)
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -397,7 +397,7 @@ def test_dates__stop_attribute_before__one_formula__start():
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
 
-# 371 - stop_date, function with dates intervals overlap.
+# 371 - end, function with dates intervals overlap.
 
 class dated_attributes_restrictive__one_formula(Variable):
     column = IntCol
@@ -405,7 +405,7 @@ class dated_attributes_restrictive__one_formula(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, one fully decorated function and dates intervals overlap."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(2001, 12, 31)
+    end = datetime.date(2001, 12, 31)
 
     def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
@@ -446,7 +446,7 @@ def test_dates__dated_attributes_restrictive__one_formula():
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
 
-# 371 - stop_date, functions different names (without dates overlap on functions)
+# 371 - end, functions different names (without dates overlap on functions)
 
 class dated_attributes__formulas__different_names(Variable):
     column = IntCol
@@ -454,7 +454,7 @@ class dated_attributes__formulas__different_names(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, multiple fully decorated functions with different names."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(2005, 12, 31)
+    end = datetime.date(2005, 12, 31)
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
@@ -510,7 +510,7 @@ def test_dates__dated_attributes__formulas__different_names():
     assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
 
-# 371 - function start_instant > stop_date
+# 371 - function start_instant > end
 
 class dated_attributes__inactive_formulas(Variable):
     column = IntCol
@@ -518,7 +518,7 @@ class dated_attributes__inactive_formulas(Variable):
     definition_period = MONTH
     label = u"Variable with restrictive dated attribute, more than 2 fully decorated functions, all outside dated attributes interval."
     # start_date = datetime.date(1980, 1, 1)
-    stop_date = datetime.date(1990, 12, 31)
+    end = datetime.date(1990, 12, 31)
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
@@ -598,9 +598,7 @@ def test_dates__dated_attributes__inactive_formulas():
     assert formula['start_instant'].date == datetime.date(2016, 1, 1)
 
 
-
-
-# 371 - stop_date, all functions start_instant < stop_date
+# 371 - end, all functions start_instant < end
 
 class dated_attributes__active_formulas(Variable):
     column = IntCol
@@ -608,7 +606,7 @@ class dated_attributes__active_formulas(Variable):
     definition_period = MONTH
     label = u"Variable with dated attributes, more than 2 fully decorated functions, all inside dated attributes interval."
     # start_date = datetime.date(2000, 1, 1)
-    stop_date = datetime.date(2020, 12, 31)
+    end = datetime.date(2020, 12, 31)
 
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
