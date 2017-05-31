@@ -119,7 +119,7 @@ class dated_attributes__one_formula(Variable):
     # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1989, 12, 31)
 
-    def function(self, individu, period, nb):
+    def formula(self, individu, period, nb):
         return vectorize(self, nb)
 
 
@@ -163,7 +163,7 @@ class no_attributes__one_formula__start_only(Variable):
     label = u"Variable without dated attributes, one decorated function, start only."
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(self, individu, period, nb):
+    def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
 
 
@@ -211,7 +211,7 @@ def test_add__no_attributes__one_formula__stop_date():
         label = u"Variable, no dated attributes, one decorated function, stop only."
 
         @dated_function(stop = datetime.date(2009, 12, 31))
-        def function(self, individu, period, nb):
+        def formula(self, individu, period, nb):
             return vectorize(self, nb)
 
     tax_benefit_system.add_variable(no_attributes__one_formula__stop_date)
@@ -226,11 +226,11 @@ class no_attributes__formulas__different_names__dates_overlap(Variable):
     label = u"Variable, no dated attributes, multiple fully decorated functions with different names but same dates."
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function_100(self, individu, period):
+    def formula_2000(self, individu, period):
         return vectorize(self, 100)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function_200(self, individu, period):
+    def formula_2000_01_01(self, individu, period):
         return vectorize(self, 200)
 
 
@@ -255,18 +255,18 @@ def test_dates__no_attributes__formulas__different_names__dates_overlap():
 
 # 371 - Multiple @dated_function(start, stop), same name, no date overlap
 
-class no_attributes__formulas__same_name(Variable):
+class no_attributes__formulas__same_name(Variable):  # TODO not same name anymore > adapt
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable, no dated attributes, multiple fully decorated functions with same name and no date overlap."
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(self, individu, period):
+    def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
 
     @dated_function(start = datetime.date(2010, 1, 1))  # noqa: F811
-    def function(self, individu, period):
+    def formula_2010_01_01(self, individu, period):
         return vectorize(self, 200)
 
 
@@ -277,7 +277,8 @@ def test_call__no_attributes__formulas__same_name():
     # Check that only last declared function is registered.
     month = '2009-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__formulas__same_name', month) == IntCol.default
+    result = simulation.calculate('no_attributes__formulas__same_name', month)
+    assert result == 100, result
 
     month = '2015-05'
     simulation = new_simulation(tax_benefit_system, month)
@@ -311,7 +312,7 @@ class dated_attributes__one_formula__start_only(Variable):
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(self, individu, period, nb):
+    def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
 
 
@@ -356,7 +357,7 @@ class stop_attribute_before__one_formula__start(Variable):
     stop_date = datetime.date(1990, 1, 1)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(self, individu, period, nb):
+    def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
 
 
@@ -399,7 +400,7 @@ class dated_attributes_restrictive__one_formula(Variable):
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function(self, individu, period, nb):
+    def formula_2000_01_01(self, individu, period, nb):
         return vectorize(self, nb)
 
 
@@ -449,11 +450,11 @@ class dated_attributes__formulas__different_names(Variable):
     stop_date = datetime.date(2005, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function_100(self, individu, period):
+    def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
 
     @dated_function(start = datetime.date(2010, 1, 1))
-    def function_200(self, individu, period):
+    def formula_2010_01_01(self, individu, period):
         return vectorize(self, 200)
 
 
@@ -515,19 +516,19 @@ class dated_attributes__inactive_formulas(Variable):
     stop_date = datetime.date(1990, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function_100(self, individu, period):
+    def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
 
     @dated_function(start = datetime.date(2006, 1, 1))
-    def function_200(self, individu, period):
+    def formula_2006_01_01(self, individu, period):
         return vectorize(self, 200)
 
     @dated_function(start = datetime.date(2011, 1, 1))
-    def function_300(self, individu, period):
+    def formula_2011_01_01(self, individu, period):
         return vectorize(self, 300)
 
     @dated_function(start = datetime.date(2016, 1, 1))
-    def function_400(self, individu, period):
+    def formula_2016_01_01(self, individu, period):
         return vectorize(self, 400)
 
 
@@ -609,19 +610,19 @@ class dated_attributes__active_formulas(Variable):
     stop_date = datetime.date(2020, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
-    def function_100(self, individu, period):
+    def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
 
     @dated_function(start = datetime.date(2006, 1, 1))
-    def function_200(self, individu, period):
+    def formula_2006_01_01(self, individu, period):
         return vectorize(self, 200)
 
     @dated_function(start = datetime.date(2011, 1, 1))
-    def function_300(self, individu, period):
+    def formula_2011_01_01(self, individu, period):
         return vectorize(self, 300)
 
     @dated_function(start = datetime.date(2016, 1, 1))
-    def function_400(self, individu, period):
+    def formula_2016_01_01(self, individu, period):
         return vectorize(self, 400)
 
 

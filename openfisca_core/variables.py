@@ -34,7 +34,7 @@ class Variable(object):
         return comments, source_file_path, source_code, start_line_number
 
     def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class  # DatedFormula. TODO Remove attribute ?
+        formula_class = self.__class__.formula_class  # DatedFormula. TODO Remove .formula_class ? Remove attribute ?
         entity = self.attributes.pop('entity', None)
 
         # For reform variable that replaces the existing reference one

@@ -8,6 +8,7 @@ import datetime
 import itertools
 import logging
 import warnings
+import re
 
 import numpy as np
 
@@ -507,9 +508,42 @@ class DatedFormula(AbstractFormula):
         if stop_date and period.start.date > stop_date:
             return None
 
-        for dated_formula in reversed(self.dated_formulas):
-            if period.start >= dated_formula['start_instant']:
-                return dated_formula['formula'].function
+        default_date = datetime.date(1, 1, 1)
+        default_month = "01"
+        default_day = "01"
+        i = -1
+        # for dated_formula in reversed(self.dated_formulas):
+        for dated_formula_class in reversed(self.dated_formulas_class):
+            i += 1
+            # formula_class = self.dated_formulas_class[i]['formula_class']
+            # formula_name = formula_class.formula.__name__
+            formula_name = dated_formula_class['formula_class'].formula.__name__
+
+            if formula_name == 'formula':
+                start_instant = default_date
+
+            else:
+                start_instant = dated_formula_class['start_instant'].date
+                if start_instant:
+                    match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)
+                    assert match, formula_name
+                    start = match.group(2)
+
+                    if len(start) == 4:  # YYYY
+                        start += '_' + default_month
+
+                    if len(start) == 7:  # YYYY_MM
+                        start += '_' + default_day
+
+                    date = datetime.datetime.strptime(start, '%Y_%m_%d').date()
+                    
+                    # class_start_instant = formula_class.dated_formulas_class[i]
+                    # assert class_start_instant == start_instant
+                    assert date == start_instant, date
+
+            if period.start.date >= start_instant:
+                dated_formula = self.dated_formulas[i]
+                return dated_formula['formula'].formula
         return None
 
     def exec_function(self, simulation, period, *extra_params):
@@ -765,8 +799,8 @@ def new_filled_column(
     # Turn function into a decorated function
     def is_decorated(function):
         return hasattr(function, 'start_instant') or hasattr(function, 'stop_instant')
-    if specific_attributes.get('function') and not is_decorated(specific_attributes['function']):
-        specific_attributes['function'] = dated_function()(specific_attributes['function'])
+    if specific_attributes.get('formula') and not is_decorated(specific_attributes['formula']):
+        specific_attributes['formula'] = dated_function()(specific_attributes['formula'])
 
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
@@ -776,7 +810,7 @@ def new_filled_column(
             continue
 
         dated_formula_class_attributes = formula_class_attributes.copy()
-        dated_formula_class_attributes['function'] = function
+        dated_formula_class_attributes['formula'] = function
         dated_formula_class = type(name.encode('utf-8'), (DatedFormula,), dated_formula_class_attributes)
 
         del specific_attributes[function_name]
