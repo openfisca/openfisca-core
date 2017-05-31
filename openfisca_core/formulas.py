@@ -511,10 +511,12 @@ class DatedFormula(AbstractFormula):
         default_date = datetime.date(1, 1, 1)
         default_month = "01"
         default_day = "01"
-        i = -1
+
+        assert len(self.dated_formulas) == len(self.dated_formulas_class)
+        i = len(self.dated_formulas)
         # for dated_formula in reversed(self.dated_formulas):
         for dated_formula_class in reversed(self.dated_formulas_class):
-            i += 1
+            i -= 1
             # formula_class = self.dated_formulas_class[i]['formula_class']
             # formula_name = formula_class.formula.__name__
             formula_name = dated_formula_class['formula_class'].formula.__name__
@@ -544,6 +546,7 @@ class DatedFormula(AbstractFormula):
             if period.start.date >= start_instant:
                 dated_formula = self.dated_formulas[i]
                 return dated_formula['formula'].formula
+
         return None
 
     def exec_function(self, simulation, period, *extra_params):

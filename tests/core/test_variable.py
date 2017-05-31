@@ -253,46 +253,55 @@ def test_dates__no_attributes__formulas__different_names__dates_overlap():
     assert not hasattr(tax_benefit_system.column_by_name, "no_attributes__formulas__different_names__dates_overlap")
 
 
-# 371 - Multiple @dated_function(start, stop), same name, no date overlap
+# 371 - Multiple @dated_function(start), different names, no date overlap
 
-class no_attributes__formulas__same_name(Variable):  # TODO not same name anymore > adapt
+class no_attributes__formulas__different_name__no_overlap(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
-    label = u"Variable, no dated attributes, multiple fully decorated functions with same name and no date overlap."
+    label = u"Variable, no dated attributes, multiple decorated functions with different names and no date overlap."
 
     @dated_function(start = datetime.date(2000, 1, 1))
     def formula_2000_01_01(self, individu, period):
         return vectorize(self, 100)
 
-    @dated_function(start = datetime.date(2010, 1, 1))  # noqa: F811
+    @dated_function(start = datetime.date(2010, 1, 1))
     def formula_2010_01_01(self, individu, period):
         return vectorize(self, 200)
 
 
-tax_benefit_system.add_variable(no_attributes__formulas__same_name)
+tax_benefit_system.add_variable(no_attributes__formulas__different_name__no_overlap)
 
 
-def test_call__no_attributes__formulas__same_name():
+def test_call__no_attributes__formulas__different_name__no_overlap():
     # Check that only last declared function is registered.
     month = '2009-12'
     simulation = new_simulation(tax_benefit_system, month)
-    result = simulation.calculate('no_attributes__formulas__same_name', month)
-    assert result == 100, result
+    assert simulation.calculate('no_attributes__formulas__different_name__no_overlap', month) == 100
 
     month = '2015-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__formulas__same_name', month) == 200
+    assert simulation.calculate('no_attributes__formulas__different_name__no_overlap', month) == 200
 
 
-def test_dates__no_attributes__formulas__same_name():
+def test_dates__no_attributes__formulas__different_name__no_overlap():
     # Check that only last declared function is registered.
-    variable = tax_benefit_system.column_by_name['no_attributes__formulas__same_name']
+    variable = tax_benefit_system.column_by_name['no_attributes__formulas__different_name__no_overlap']
     assert variable is not None
     assert not has_dated_attribute(variable)
 
-    assert variable.formula_class.dated_formulas_class.__len__() == 1
-    formula = variable.formula_class.dated_formulas_class[0]
+    assert variable.formula_class.dated_formulas_class.__len__() == 2
+
+    # TODO compare dated_formulas_class and dated_formulas 
+
+    i = 0
+    formula = variable.formula_class.dated_formulas_class[i]
+    assert formula is not None
+    assert formula['start_instant'] is not None
+    assert formula['start_instant'].date == datetime.date(2000, 1, 1)
+
+    i = 1
+    formula = variable.formula_class.dated_formulas_class[i]
     assert formula is not None
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2010, 1, 1)
