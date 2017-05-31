@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import yaml
 import os
 from flask import Flask, jsonify, abort
 from flask_cors import CORS
 
 from loader import build_data
-
-OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'openAPI.yml')
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
@@ -48,14 +45,8 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
         return jsonify(variable)
 
     @app.route('/swagger')
-    def root():
-        file = open(OPEN_API_CONFIG_FILE, 'r')
-        spec = yaml.load(file)
-        country_package_name = data['country_package_metadata']['name'].title()
-        spec['info']['title'] = spec['info']['title'].replace("{CONTRY_PACKAGE_NAME}", country_package_name)
-        spec['info']['description'] = spec['info']['description'].replace("{CONTRY_PACKAGE_NAME}", country_package_name)
-        spec['host'] = os.environ.get('SERVER_NAME')
-        return jsonify(spec)
+    def get_swagger():
+        return jsonify(data['openAPI_spec'])
 
     @app.after_request
     def apply_headers(response):
