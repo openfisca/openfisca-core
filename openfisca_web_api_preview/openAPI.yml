@@ -1,0 +1,257 @@
+swagger: "2.0"
+info:
+  title: "{COUNTRY_PACKAGE_NAME} Web API"
+  description: "The OpenFisca Web API lets you get up-to-date information and formulas included in the {COUNTRY_PACKAGE_NAME} legislation."
+  version: "0.1.0"
+  termsOfService: "https://doc.openfisca.fr/publishing.html"
+  contact:
+    email: "contact@openfisca.fr"
+  license:
+    name: "AGPL"
+    url: "https://www.gnu.org/licenses/agpl-3.0.html"
+host: null
+schemes:
+  - "https"
+tags:
+- name: "Parameters"
+  description: "A parameter is a numeric property of the legislation that can evolve over time."
+  externalDocs:
+    description: "Parameter official documentation"
+    url: "https://doc.openfisca.fr/parameters.html"
+- name: "Variables"
+  description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
+  externalDocs:
+    description: "Variable official documentation"
+    url: "https://doc.openfisca.fr/variables.html"
+paths:
+  /parameters:
+    get:
+      tags:
+      - "Parameters"
+      summary: "List all available parameters"
+      operationId: "getParameters"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The list of parameters is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: '#/definitions/Parameters'
+  /parameter/{parameterID}:
+    get:
+      tags:
+      - "Parameters"
+      summary: "Get information about a specific parameter"
+      operationId: "getParameter"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "parameterID"
+        in: "path"
+        description: "ID of parameter. IDs can be obtained by enumerating the /parameters endpoint"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "The requested parameter's information is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: "#/definitions/Parameter"
+        404:
+          description: "The requested parameter does not exist"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+  /variables:
+    get:
+      tags:
+      - "Variables"
+      summary: "List all available variables"
+      operationId: "getVariables"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The list of variables is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: "#/definitions/Variables"
+  /variable/{variableID}:
+    get:
+      tags:
+      - "Variables"
+      summary: "Get information about a specific variable"
+      operationId: "getVariable"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "variableID"
+        in: "path"
+        description: "ID of a variable. IDs can be obtained by enumerating the /variables endpoint."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "The requested variable's information is sent back in the response body"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: "#/definitions/Variable"
+        404:
+          description: "The requested variable does not exist"
+          headers :
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+
+definitions:
+  Parameter:
+    type: "object"
+    properties:
+      values:
+        $ref: '#/definitions/Values'
+      brackets:
+        type: "object"
+        additionalProperties:
+          $ref: "#/definitions/Brackets"
+      description:
+        type: "string"
+      id:
+        type: "integer"
+        format: "string"
+    example:
+      id: "cotsoc.gen.smic_h_b"
+      description: "SMIC horaire brut"
+      values: {"2001-08-01": 6.67,
+                "2002-07-01": 6.83,
+                "2003-07-01": 7.19,
+                "2004-07-01": 7.61,
+                "2005-07-01": 8.03,
+                "2006-07-01": 8.27,
+                "2007-07-01": 8.44,
+                "2008-05-01": 8.63,
+                "2008-07-01": 8.71,
+                "2009-07-01": 8.82,
+                "2010-01-01": 8.86,
+                "2011-01-01": 9.0,
+                "2011-12-01": 9.19,
+                "2012-01-01": 9.22,
+                "2012-07-01": 9.4,
+                "2013-01-01": 9.43,
+                "2014-01-01": 9.53,
+                "2015-01-01": 9.61,
+                "2016-01-01": 9.67,
+                "2017-01-01": 9.76}
+
+  Parameters:
+    type: "object"
+    additionalProperties:
+      type: "object"
+      properties:
+        definition:
+          type: 'string'
+
+  Variable:
+    type: "object"
+    properties:
+      defaultValue:
+        type: "string"
+      definitionPeriod:
+        type: string
+        enum:
+          - MONTH
+          - YEAR
+          - ETERNITY
+      description:
+        type: "string"
+      entity:
+        type: "string"
+      formulas:
+        type: "object"
+        additionalProperties:
+         $ref: "#/definitions/Formula"
+      id:
+        type: "string"
+      reference :
+        type: "array"
+        items:
+          type : "string"
+      source :
+        type: "string"
+      valueType:
+         type: "string"
+    example:
+      defaultValue: 0,
+      definitionPeriod: "MONTH"
+      description: "Aide à l'embauche d'un salarié pour les PME"
+      entity: "individu"
+      id: "aide_embauche_pme"
+      references: [
+                    "http://travail-emploi.gouv.fr/grands-dossiers/embauchepme"
+                  ]
+      source: "https://github.com/openfisca/openfisca-france/blob/18.2.5/openfisca_france/model/prelevements_obligatoires/prelevements_sociaux/cotisations_sociales/allegement.py#L214-L287"
+      valueType: "Float"
+      formulas: { "2016-01-18":{
+                    "content": "def function(self, simulation, period):\n    effectif_entreprise = simulation.calculate('effectif_entreprise', period)\n    apprenti = simulation.calculate('apprenti', period)\n    contrat_de_travail_duree = simulation.calculate('contrat_de_travail_duree', period)\n    contrat_de_travail_debut = simulation.calculate('contrat_de_travail_debut', period)\n    contrat_de_travail_fin = simulation.calculate('contrat_de_travail_fin', period)\n    coefficient_proratisation = simulation.calculate('coefficient_proratisation', period)\n    smic_proratise = simulation.calculate('smic_proratise', period)\n    salaire_de_base = simulation.calculate('salaire_de_base', period)\n    exoneration_cotisations_employeur_jei = simulation.calculate('exoneration_cotisations_employeur_jei', period)\n    aide_premier_salarie = simulation.calculate('aide_premier_salarie', period)\n\n    # Cette aide est temporaire.\n    # Si toutefois elle est reconduite et modifi\u00e9e, les dates et le montant seront \u00e0 impl\u00e9menter comme\n    # des params xml.\n\n    # jusqu\u2019\u00e0 1,3 fois le Smic\n    eligible_salaire = salaire_de_base <= (1.3 * smic_proratise)\n\n    # pour les PME\n    eligible_effectif = effectif_entreprise < 250\n\n    non_cumulee = and_(\n        # non cumulable avec l'aide pour la premi\u00e8re embauche\n        # qui est identique, si ce n'est qu'elle couvre tous les salaires\n        aide_premier_salarie == 0,\n        # non cumul avec le dispositif Jeune Entreprise Innovante (JEI)\n        not_(exoneration_cotisations_employeur_jei)\n        )\n\n\n    eligible_contrat = and_(\n        contrat_de_travail_debut >= datetime64(\"2016-01-18\"),\n        contrat_de_travail_debut <= datetime64(\"2017-06-30\")\n    )\n\n    # Si CDD, dur\u00e9e du contrat doit \u00eatre > 1 an\n    eligible_duree = or_(\n        # dur\u00e9e ind\u00e9termin\u00e9e\n        contrat_de_travail_duree == 0,\n        # dur\u00e9e d\u00e9termin\u00e9e sup\u00e9rieure \u00e0 1 an\n        and_(\n            # CDD\n            contrat_de_travail_duree == 1,\n            # > 6 mois\n            (contrat_de_travail_fin - contrat_de_travail_debut).astype('timedelta64[M]') >= timedelta64(6, 'M')\n            )\n        )\n\n    # Valable 2 ans seulement\n    eligible_date = datetime64(period.offset(-24, 'month').start) < contrat_de_travail_debut\n\n    eligible = (\n        eligible_salaire * eligible_effectif * non_cumulee * eligible_contrat * eligible_duree *\n        eligible_date * not_(apprenti)\n    )\n    # somme sur 24 mois, \u00e0 raison de 500 \u20ac maximum par trimestre\n    montant_max = 4000\n\n    # Si le salari\u00e9 est embauch\u00e9 \u00e0 temps partiel,\n    # l\u2019aide est proratis\u00e9e en fonction de sa dur\u00e9e de travail.\n    # TODO cette multiplication par le coefficient de proratisation suffit-elle pour le cas du temps partiel ?\n    # A tester\n\n    return eligible * (montant_max / 24) * coefficient_proratisation\n",
+      "source": "https://github.com/openfisca/openfisca-france/blob/18.2.5/openfisca_france/model/prelevements_obligatoires/prelevements_sociaux/cotisations_sociales/allegements.py#L223-L287"
+      } }
+
+  Variables:
+    type: "object"
+    additionalProperties:
+      type: "object"
+      properties:
+        definition:
+          type: 'string'
+
+  Formula:
+    type: "object"
+    properties:
+      content:
+        type: "string"
+      source:
+        type: "string"
+
+  Brackets:
+    type: "object"
+    additionalProperties:
+      type: "number"
+      format: "float"
+
+  Values:
+    type: "object"
+    additionalProperties:
+      type: "number"
+      format: "float"
+

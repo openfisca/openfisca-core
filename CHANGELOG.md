@@ -1,5 +1,9 @@
 # Changelog
 
+## 12.3.0
+
+* Serve the [OpenAPI specification](https://www.openapis.org/) under the API route `/spec/`
+
 ## 12.2.0
 
 * Use `nose` in the `openfisca-run-test` script
