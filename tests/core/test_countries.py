@@ -22,7 +22,7 @@ class income_tax_no_period(Variable):
     label = u"Salaire net (buggy)"
     definition_period = MONTH
 
-    def function(individu, period):
+    def formula(individu, period):
         # salary = individu('salary', period)  # correct
         salary = individu('salary')            # buggy
 
