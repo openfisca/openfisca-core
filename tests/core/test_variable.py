@@ -82,8 +82,8 @@ class variable__deprecated_start_date(Variable):
     label = u"Variable with dated attributes, no function."
     start_date = datetime.date(1980, 1, 1)  # Deprecated
     end = '1989-12-31'
- 
- 
+
+
 add_variable_catch_assertion(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
 
 

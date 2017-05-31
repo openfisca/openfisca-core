@@ -81,11 +81,10 @@ class Column(object):
     def empty_clone(self):
         return self.__class__()
 
-    # TODO Adapt to DatedFormula.
     def is_input_variable(self):
         """Returns true if the column (self) is an input variable."""
         from . import formulas
-        return issubclass(self.formula_class, formulas.SimpleFormula) and self.formula_class.function is None
+        return issubclass(self.formula_class, formulas.Formula) and self.formula_class.formula is None
 
     def json_default(self):
         return self.default

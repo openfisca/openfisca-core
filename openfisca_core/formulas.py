@@ -42,19 +42,28 @@ class CycleError(Exception):
 # Formulas
 
 
-class AbstractFormula(object):
+class Formula(object):
     comments = None
     holder = None
     start_line_number = None
     source_code = None
     source_file_path = None
+    base_function = None  # Class attribute. Overridden by subclasses
+    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
+    dated_formulas_class = None  # Class attribute
 
     def __init__(self, holder = None):
         assert holder is not None
         self.holder = holder
 
-    def calculate_output(self, period):
-        return self.holder.compute(period).array
+        if self.dated_formulas_class is not None:
+            self.dated_formulas = [
+                dict(
+                    formula = dated_formula_class['formula_class'](holder = holder),
+                    start_instant = dated_formula_class['start_instant'],
+                    )
+                for dated_formula_class in self.dated_formulas_class
+                ]
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
@@ -68,9 +77,19 @@ class AbstractFormula(object):
             if key not in keys_to_skip:
                 new_dict[key] = value
 
+        keys_to_skip.add('dated_formulas')
+        new.dated_formulas = [
+            {
+                key: value.clone(holder) if key == 'formula' else value
+                for key, value in dated_formula.iteritems()
+                }
+            for dated_formula in self.dated_formulas
+            ]
         new_dict['holder'] = holder
-
         return new
+
+    def calculate_output(self, period):
+        return self.holder.compute(period).array
 
     def default_values(self):
         '''Return a new NumPy array which length is the entity count, filled with default values.'''
@@ -295,51 +314,16 @@ class AbstractFormula(object):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-
-class DatedFormula(AbstractFormula):
-    base_function = None  # Class attribute. Overridden by subclasses
-    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
-    dated_formulas_class = None  # Class attribute
-
-    def __init__(self, holder = None):
-        super(DatedFormula, self).__init__(holder = holder)
-
-        if self.dated_formulas_class is not None:
-            self.dated_formulas = [
-                dict(
-                    formula = dated_formula_class['formula_class'](holder = holder),
-                    start_instant = dated_formula_class['start_instant'],  # TODO Ensure start_instant is string.
-                    )
-                for dated_formula_class in self.dated_formulas_class
-                ]
-
     @classmethod
     def at_instant(cls, instant, default = UnboundLocalError):
         assert isinstance(instant, periods.Instant)
         for dated_formula_class in cls.dated_formulas_class:
             start_instant = dated_formula_class['start_instant']
-            if (start_instant is None or start_instant <= instant):  # TODO Check for end attribute?
+            if (start_instant is None or start_instant <= instant):
                 return dated_formula_class['formula_class']
         if default is UnboundLocalError:
             raise KeyError(instant)
         return default
-
-    def clone(self, holder, keys_to_skip = None):
-        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        if keys_to_skip is None:
-            keys_to_skip = set()
-        keys_to_skip.add('dated_formulas')
-        new = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
-
-        new.dated_formulas = [
-            {
-                key: value.clone(holder) if key == 'formula' else value
-                for key, value in dated_formula.iteritems()
-                }
-            for dated_formula in self.dated_formulas
-            ]
-
-        return new
 
     def check_for_cycle(self, period):
         """
@@ -620,6 +604,7 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
 
     return formula_name
 
+
 def get_datetime_date(variable_name, date_str):
     try:
         time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
@@ -627,6 +612,7 @@ def get_datetime_date(variable_name, date_str):
         raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(variable_name, date_str).encode('utf-8'))
 
     return time.date()
+
 
 def new_filled_column(
         __doc__ = None,
@@ -698,10 +684,9 @@ def new_filled_column(
     assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
         name)
     if formula_class is UnboundLocalError:
-        assert reference_column is not None, \
+        assert reference_column is not None,\
             """Missing attribute "formula_class" in definition of filled column {}""".format(name)
         formula_class = reference_column.formula_class.__bases__[0]
-    assert issubclass(formula_class, AbstractFormula), formula_class
 
     if definition_period is UnboundLocalError:
         if reference_column:
@@ -782,7 +767,7 @@ def new_filled_column(
 
     if base_function is UnboundLocalError:
         assert reference_column is not None \
-            and issubclass(reference_column.formula_class, DatedFormula), \
+            and issubclass(reference_column.formula_class, Formula), \
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
         base_function = reference_column.formula_class.base_function
     else:
@@ -811,7 +796,7 @@ def new_filled_column(
 
         dated_formula_class_attributes = formula_class_attributes.copy()
         dated_formula_class_attributes['formula'] = function
-        dated_formula_class = type(name.encode('utf-8'), (DatedFormula,), dated_formula_class_attributes)
+        dated_formula_class = type(name.encode('utf-8'), (Formula,), dated_formula_class_attributes)
 
         del specific_attributes[function_name]
         dated_formulas_class.append(dict(
@@ -824,7 +809,7 @@ def new_filled_column(
 
     # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
     # formulas.
-    if reference_column is not None and issubclass(reference_column.formula_class, DatedFormula):
+    if reference_column is not None and issubclass(reference_column.formula_class, Formula):
         for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
             reference_dated_formula_class = reference_dated_formula_class.copy()
             for dated_formula_class in dated_formulas_class:

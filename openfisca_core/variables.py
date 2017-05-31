@@ -4,11 +4,11 @@
 import inspect
 import textwrap
 
-from openfisca_core.formulas import DatedFormula, new_filled_column
+from openfisca_core.formulas import Formula, new_filled_column
 
 
 class Variable(object):
-    formula_class = DatedFormula
+    formula_class = Formula
 
     def __init__(self, name, attributes, variable_class):
         self.name = name
@@ -34,7 +34,7 @@ class Variable(object):
         return comments, source_file_path, source_code, start_line_number
 
     def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class  # DatedFormula. TODO Remove .formula_class ? Remove attribute ?
+        formula_class = self.__class__.formula_class  # Formula
         entity = self.attributes.pop('entity', None)
 
         # For reform variable that replaces the existing reference one
