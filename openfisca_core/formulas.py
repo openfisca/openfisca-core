@@ -615,7 +615,6 @@ def new_filled_column(
         set_input = UnboundLocalError,
         source_code = UnboundLocalError,
         source_file_path = UnboundLocalError,
-        start_date = UnboundLocalError,
         start_line_number = UnboundLocalError,
         stop_date = UnboundLocalError,
         url = UnboundLocalError,
@@ -707,11 +706,6 @@ def new_filled_column(
     elif isinstance(source_file_path, str):
         source_file_path = source_file_path.decode('utf-8')
 
-    if start_date is UnboundLocalError:
-        start_date = None if reference_column is None else reference_column.start
-    elif start_date is not None:
-        assert isinstance(start_date, datetime.date)
-
     if stop_date is UnboundLocalError:
         stop_date = None if reference_column is None else reference_column.end
     elif stop_date is not None:
@@ -772,7 +766,7 @@ def new_filled_column(
     def is_decorated(function):
         return hasattr(function, 'start_instant') or hasattr(function, 'stop_instant')
     if specific_attributes.get('function') and not is_decorated(specific_attributes['function']):
-        specific_attributes['function'] = dated_function(start = start_date)(specific_attributes['function'])
+        specific_attributes['function'] = dated_function()(specific_attributes['function'])
 
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
@@ -810,6 +804,7 @@ def new_filled_column(
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class
 
     # Ensure that all attributes defined in ConversionColumn class are used.
+    assert not specific_attributes.get('start_date'), 'Deprecated "start_date" attribute in definition of variable "{}".'.format(name)
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
         ', '.join(sorted(specific_attributes.iterkeys())))
 
@@ -829,8 +824,7 @@ def new_filled_column(
     column.label = label
     column.law_reference = law_reference
     column.name = name
-    if start_date is not None:
-        column.start = start_date
+
     if url is not None:
         column.url = url
 

@@ -12,7 +12,7 @@ from openfisca_core.columns import IntCol
 import openfisca_dummy_country as dummy_country
 from openfisca_dummy_country.entities import Individu
 
-# Check which date is applied whether it comes from Variable attributes (start_date & stop_date)
+# Check which date is applied whether it comes from Variable attribute (stop_date)
 # or formula(s) dates.
 
 
@@ -34,8 +34,8 @@ def vectorize(function, number):
     return (function.zeros() + 1) * number
 
 
-def has_dated_attributes(variable):
-    return (variable.start is not None) and (variable.end is not None)
+def has_dated_attribute(variable):
+    return variable.end is not None
 
 
 def add_variable_catch_assertion(tax_benefit_system, variable, assertion_message_prefix):
@@ -69,7 +69,6 @@ tax_benefit_system.add_variable(variable__no_dated_attributes)
 def test_variable__no_dated_attributes():
     variable = tax_benefit_system.column_by_name['variable__no_dated_attributes']
     assert variable is not None
-    assert variable.start is None
     assert variable.end is None
     assert variable.formula_class.dated_formulas_class.__len__() == 0
 
@@ -77,14 +76,26 @@ def test_variable__no_dated_attributes():
 # DATED ATTRIBUTE(S) - NO DATED FORMULA
 
 
-# 371 - start_date, stop_date, no function
+class variable__deprecated_start_date(Variable):
+    column = IntCol
+    entity = Individu
+    definition_period = MONTH
+    label = u"Variable with dated attributes, no function."
+    start_date = datetime.date(1980, 1, 1)  # Deprecated
+    stop_date = datetime.date(1989, 12, 31)
+
+
+add_variable_catch_assertion(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
+
+
+# 371 - stop_date, no function
 
 class variable__dated_attributes(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with dated attributes, no function."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1989, 12, 31)
 
 
@@ -94,21 +105,18 @@ tax_benefit_system.add_variable(variable__dated_attributes)
 def test_variable__dated_attributes():
     variable = tax_benefit_system.column_by_name['variable__dated_attributes']
     assert variable is not None
-
-    assert variable.start == datetime.date(1980, 1, 1)
     assert variable.end == datetime.date(1989, 12, 31)
-
     assert variable.formula_class.dated_formulas_class.__len__() == 0
 
 
-# 371 - start_date, stop_date, one function without date
+# 371 - stop_date, one function without date
 
 class dated_attributes__one_formula(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with dated attributes, one function without date."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1989, 12, 31)
 
     def function(self, individu, period, nb):
@@ -121,7 +129,7 @@ tax_benefit_system.add_variable(dated_attributes__one_formula)
 def test_call__dated_attributes__one_formula():
     month = '1979-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attributes__one_formula', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('dated_attributes__one_formula', month, extra_params=[100]) == 100
 
     month = '1983-05'
     simulation = new_simulation(tax_benefit_system, month)
@@ -136,16 +144,11 @@ def test_call__dated_attributes__one_formula():
 def test_dates__dated_attributes__one_formula():
     variable = tax_benefit_system.column_by_name['dated_attributes__one_formula']
     assert variable is not None
-
-    assert variable.start == datetime.date(1980, 1, 1)
     assert variable.end == datetime.date(1989, 12, 31)
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
     assert formula is not None
-
-    # Check that formula dates get attributes' dates.
-    assert variable.start == formula['start_instant'].date
 
 
 # NO DATED ATTRIBUTE - DATED FORMULA(S)
@@ -153,7 +156,7 @@ def test_dates__dated_attributes__one_formula():
 
 # 371 - @dated_function, start only
 
-class no_attributes__one_formula__start_date(Variable):
+class no_attributes__one_formula__start_only(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
@@ -164,29 +167,29 @@ class no_attributes__one_formula__start_date(Variable):
         return vectorize(self, nb)
 
 
-tax_benefit_system.add_variable(no_attributes__one_formula__start_date)
+tax_benefit_system.add_variable(no_attributes__one_formula__start_only)
 
 
-def test_call__no_attributes__one_formula__start_date():
+def test_call__no_attributes__one_formula__start_only():
     month = '1999-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__one_formula__start_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('no_attributes__one_formula__start_only', month, extra_params=[100]) == IntCol.default
 
     month = '2000-05'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__one_formula__start_date', month, extra_params=[100]) == 100
+    assert simulation.calculate('no_attributes__one_formula__start_only', month, extra_params=[100]) == 100
 
     month = '2020-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('no_attributes__one_formula__start_date', month, extra_params=[100]) == 100
+    assert simulation.calculate('no_attributes__one_formula__start_only', month, extra_params=[100]) == 100
 
 
-def test_dates__no_attributes__one_formula__start_date():
-    variable = tax_benefit_system.column_by_name['no_attributes__one_formula__start_date']
+def test_dates__no_attributes__one_formula__start_only():
+    variable = tax_benefit_system.column_by_name['no_attributes__one_formula__start_only']
     assert variable is not None
 
     # Check that attributes' dates aren't modified by formula dates
-    assert not has_dated_attributes(variable)
+    assert not has_dated_attribute(variable)
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -285,7 +288,7 @@ def test_dates__no_attributes__formulas__same_name():
     # Check that only last declared function is registered.
     variable = tax_benefit_system.column_by_name['no_attributes__formulas__same_name']
     assert variable is not None
-    assert not has_dated_attributes(variable)
+    assert not has_dated_attribute(variable)
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
     formula = variable.formula_class.dated_formulas_class[0]
@@ -297,14 +300,14 @@ def test_dates__no_attributes__formulas__same_name():
 # DATED ATTRIBUTE(S) - DATED FORMULA(S)
 
 
-# 371 - start_date, stop_date, @dated_function, start only.
+# 371 - stop_date, @dated_function, start only.
 
-class dated_attributes__one_formula__start_date(Variable):
+class dated_attributes__one_formula__start_only(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with dated attributes, one decorated function, start only."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
@@ -312,28 +315,27 @@ class dated_attributes__one_formula__start_date(Variable):
         return vectorize(self, nb)
 
 
-tax_benefit_system.add_variable(dated_attributes__one_formula__start_date)
+tax_benefit_system.add_variable(dated_attributes__one_formula__start_only)
 
 
-def test_call__dated_attributes__one_formula__start_date():
+def test_call__dated_attributes__one_formula__start_only():
     month = '1980-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attributes__one_formula__start_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('dated_attributes__one_formula__start_only', month, extra_params=[100]) == IntCol.default
 
     month = '2000-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attributes__one_formula__start_date', month, extra_params=[100]) == 100
+    assert simulation.calculate('dated_attributes__one_formula__start_only', month, extra_params=[100]) == 100
 
     month = '2002-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attributes__one_formula__start_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('dated_attributes__one_formula__start_only', month, extra_params=[100]) == IntCol.default
 
 
-def test_dates__dated_attributes__one_formula__start_date():
-    variable = tax_benefit_system.column_by_name['dated_attributes__one_formula__start_date']
+def test_dates__dated_attributes__one_formula__start_only():
+    variable = tax_benefit_system.column_by_name['dated_attributes__one_formula__start_only']
     assert variable is not None
-    assert has_dated_attributes(variable)
-    assert variable.start == datetime.date(1980, 1, 1)
+    assert has_dated_attribute(variable)
     assert variable.end == datetime.date(2001, 12, 31)
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
@@ -346,7 +348,7 @@ def test_dates__dated_attributes__one_formula__start_date():
 
 # 371 - stop_date < @dated_function, start only.
 
-class stop_attribute_before__one_formula__start_date(Variable):
+class stop_attribute_before__one_formula__start(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
@@ -358,22 +360,22 @@ class stop_attribute_before__one_formula__start_date(Variable):
         return vectorize(self, nb)
 
 
-tax_benefit_system.add_variable(stop_attribute_before__one_formula__start_date)
+tax_benefit_system.add_variable(stop_attribute_before__one_formula__start)
 
 
-def test_call__stop_attribute_before__one_formula__start_date():
+def test_call__stop_attribute_before__one_formula__start():
     # Check that as attribute start date is after formula's start, attribute start wins. >> the most restrictive wins.
     month = '1989-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('stop_attribute_before__one_formula__start_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('stop_attribute_before__one_formula__start', month, extra_params=[100]) == IntCol.default
 
     month = '2000-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('stop_attribute_before__one_formula__start_date', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('stop_attribute_before__one_formula__start', month, extra_params=[100]) == IntCol.default
 
 
-def test_dates__stop_attribute_before__one_formula__start_date():
-    variable = tax_benefit_system.column_by_name['stop_attribute_before__one_formula__start_date']
+def test_dates__stop_attribute_before__one_formula__start():
+    variable = tax_benefit_system.column_by_name['stop_attribute_before__one_formula__start']
     assert variable is not None
     assert variable.end == datetime.date(1990, 1, 1)
 
@@ -386,14 +388,14 @@ def test_dates__stop_attribute_before__one_formula__start_date():
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
 
-# 371 - start_date, stop_date, @dated_function with dates intervals overlap.
+# 371 - stop_date, @dated_function with dates intervals overlap.
 
 class dated_attributes_restrictive__one_formula(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with dated attributes, one fully decorated function and dates intervals overlap."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2001, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
@@ -425,7 +427,6 @@ def test_call__dated_attributes_restrictive__one_formula():
 def test_dates__dated_attributes_restrictive__one_formula():
     variable = tax_benefit_system.column_by_name['dated_attributes_restrictive__one_formula']
     assert variable is not None
-    assert variable.start == datetime.date(1980, 1, 1)
     assert variable.end == datetime.date(2001, 12, 31)
 
     assert variable.formula_class.dated_formulas_class.__len__() == 1
@@ -437,14 +438,14 @@ def test_dates__dated_attributes_restrictive__one_formula():
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
 
-# 371 - start_date, stop_date, @dated_function/different names (without dates overlap on functions)
+# 371 - stop_date, @dated_function/different names (without dates overlap on functions)
 
 class dated_attributes__formulas__different_names(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with dated attributes, multiple fully decorated functions with different names."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(2005, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
@@ -481,8 +482,7 @@ def test_dates__dated_attributes__formulas__different_names():
     dated_function_nb = 2
     variable = tax_benefit_system.column_by_name['dated_attributes__formulas__different_names']
     assert variable is not None
-    assert has_dated_attributes(variable)
-    assert variable.start == datetime.date(1980, 1, 1)
+    assert has_dated_attribute(variable)
     assert variable.end == datetime.date(2005, 12, 31)
 
     assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
@@ -504,14 +504,14 @@ def test_dates__dated_attributes__formulas__different_names():
     assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
 
-# 371 - start_date, stop_date, all @dated_function outside [start_date, stop_date]
+# 371 - stop_date, all @dated_function start_instant > stop_date
 
 class dated_attributes__inactive_formulas(Variable):
     column = IntCol
     entity = Individu
     definition_period = MONTH
     label = u"Variable with restrictive dated attribute, more than 2 fully decorated functions, all outside dated attributes interval."
-    start_date = datetime.date(1980, 1, 1)
+    # start_date = datetime.date(1980, 1, 1)
     stop_date = datetime.date(1990, 12, 31)
 
     @dated_function(start = datetime.date(2000, 1, 1))
@@ -561,8 +561,7 @@ def test_dates__dated_attributes__inactive_formulas():
 
     variable = tax_benefit_system.column_by_name['dated_attributes__inactive_formulas']
     assert variable is not None
-    assert has_dated_attributes(variable)
-    assert variable.start == datetime.date(1980, 1, 1)
+    assert has_dated_attribute(variable)
     assert variable.end == datetime.date(1990, 12, 31)
 
     # Even inactivated functions (functions with start date < attribute stop date) should be registered.
@@ -580,7 +579,101 @@ def test_dates__dated_attributes__inactive_formulas():
     assert formula is not None
     # Raises an error before DatedVariable update.
     assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2006, 1, 1), variable.formula_class.dated_formulas_class
+    assert formula['start_instant'].date == datetime.date(2006, 1, 1)
+
+    i = 2
+    formula = variable.formula_class.dated_formulas_class[i]
+    assert formula is not None
+    # Raises an error before DatedVariable update.
+    assert formula['start_instant'] is not None
+    assert formula['start_instant'].date == datetime.date(2011, 1, 1)
+
+    i = 3
+    formula = variable.formula_class.dated_formulas_class[i]
+    assert formula is not None
+    # Raises an error before DatedVariable update.
+    assert formula['start_instant'] is not None
+    assert formula['start_instant'].date == datetime.date(2016, 1, 1)
+
+
+
+
+# 371 - stop_date, all @dated_function start_instant < stop_date
+
+class dated_attributes__active_formulas(Variable):
+    column = IntCol
+    entity = Individu
+    definition_period = MONTH
+    label = u"Variable with dated attributes, more than 2 fully decorated functions, all inside dated attributes interval."
+    # start_date = datetime.date(2000, 1, 1)
+    stop_date = datetime.date(2020, 12, 31)
+
+    @dated_function(start = datetime.date(2000, 1, 1))
+    def function_100(self, individu, period):
+        return vectorize(self, 100)
+
+    @dated_function(start = datetime.date(2006, 1, 1))
+    def function_200(self, individu, period):
+        return vectorize(self, 200)
+
+    @dated_function(start = datetime.date(2011, 1, 1))
+    def function_300(self, individu, period):
+        return vectorize(self, 300)
+
+    @dated_function(start = datetime.date(2016, 1, 1))
+    def function_400(self, individu, period):
+        return vectorize(self, 400)
+
+
+tax_benefit_system.add_variable(dated_attributes__active_formulas)
+
+
+def test_call__dated_attributes__active_formulas():
+    month = '1999-12'
+    simulation = new_simulation(tax_benefit_system, month)
+    assert simulation.calculate('dated_attributes__active_formulas', month) == IntCol.default
+
+    month = '2000-01'
+    simulation = new_simulation(tax_benefit_system, month)
+    assert simulation.calculate('dated_attributes__active_formulas', month) == 100
+
+    month = '2006-01'
+    simulation = new_simulation(tax_benefit_system, month)
+    assert simulation.calculate('dated_attributes__active_formulas', month) == 200
+
+    month = '2011-01'
+    simulation = new_simulation(tax_benefit_system, month)
+    assert simulation.calculate('dated_attributes__active_formulas', month) == 300
+
+    month = '2016-01'
+    simulation = new_simulation(tax_benefit_system, month)
+    assert simulation.calculate('dated_attributes__active_formulas', month) == 400
+
+
+def test_dates__dated_attributes__active_formulas():
+    dated_function_nb = 4
+
+    variable = tax_benefit_system.column_by_name['dated_attributes__active_formulas']
+    assert variable is not None
+    assert has_dated_attribute(variable)
+    assert variable.end == datetime.date(2020, 12, 31)
+
+    # Even inactivated functions (functions with start date < attribute stop date) should be registered.
+    assert variable.formula_class.dated_formulas_class.__len__() == dated_function_nb
+
+    i = 0
+    formula = variable.formula_class.dated_formulas_class[i]
+    assert formula is not None
+    # Raises an error before DatedVariable update.
+    assert formula['start_instant'] is not None
+    assert formula['start_instant'].date == datetime.date(2000, 1, 1)
+
+    i = 1
+    formula = variable.formula_class.dated_formulas_class[i]
+    assert formula is not None
+    # Raises an error before DatedVariable update.
+    assert formula['start_instant'] is not None
+    assert formula['start_instant'].date == datetime.date(2006, 1, 1)
 
     i = 2
     formula = variable.formula_class.dated_formulas_class[i]
