@@ -8,8 +8,12 @@ import collections
 import copy
 import glob
 import os
-import yaml
+import sys
+import unittest
+
+import nose
 import numpy as np
+import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
@@ -56,7 +60,7 @@ _config_yaml(yaml)
 
 # Exposed methods
 
-def generate_tests(tax_benefit_system, path, options = {}):
+def generate_tests(tax_benefit_system, paths, options = {}):
     """
     Generates a lazy iterator of all the YAML tests contained in a file or a directory.
 
@@ -66,20 +70,26 @@ def generate_tests(tax_benefit_system, path, options = {}):
 
     """
 
-    if os.path.isdir(path):
-        return _generate_tests_from_directory(tax_benefit_system, path, options)
-    else:
-        return _generate_tests_from_file(tax_benefit_system, path, options)
+    if isinstance(paths, str):
+        paths = [paths]
+
+    for path in paths:
+        if os.path.isdir(path):
+            for test in _generate_tests_from_directory(tax_benefit_system, path, options):
+                yield test
+        else:
+            for test in _generate_tests_from_file(tax_benefit_system, path, options):
+                yield test
 
 
-def run_tests(tax_benefit_system, path, options = {}):
+def run_tests(tax_benefit_system, paths, options = {}):
     """
     Runs all the YAML tests contained in a file or a directory.
 
     If `path` is a directory, subdirectories will be recursively explored.
 
     :param TaxBenefitSystem tax_benefit_system: the tax-benefit system to use to run the tests
-    :param str path: the path towards the file or directory containing thes tests. If it is a directory, subdirectories will be recursively explored.
+    :param (str/list) paths: A path, or a list of paths, towards the files or directories containing the tests to run. If a path is a directory, subdirectories will be recursively explored.
     :param dict options: See more details below.
 
     :raises AssertionError: if a test does not pass
@@ -92,18 +102,18 @@ def run_tests(tax_benefit_system, path, options = {}):
     | Key                           | Type      | Role                                      |
     +===============================+===========+===========================================+
     | verbose                       | ``bool``  |                                           |
-    +-------------------------------+-----------+                                           +
-    | name_filter                   | ``str``   | See :any:`openfisca-run-test` options doc |
+    +-------------------------------+-----------+ See :any:`openfisca-run-test` options doc +
+    | name_filter                   | ``str``   |                                           |
     +-------------------------------+-----------+-------------------------------------------+
 
     """
-
-    nb_tests = 0
-    for test in generate_tests(tax_benefit_system, path, options):
-        test()
-        nb_tests += 1
-
-    return nb_tests  # Nb of sucessful tests
+    return nose.run(
+        # The suite argument must be a lambda for nose to run the tests lazily
+        suite = lambda: generate_tests(tax_benefit_system, paths, options),
+        # Nose crashes if it gets any unexpected argument.
+        argv = sys.argv[:1],
+        # testRunner = nose.core.TextTestRunner(stream = open(os.devnull, 'w')),
+        )
 
 
 # Internal methods
@@ -137,7 +147,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
             print("=" * len(title))
             _run_test(period_str, test, verbose, options)
 
-        yield check
+        yield unittest.FunctionTestCase(check)
 
 
 def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):

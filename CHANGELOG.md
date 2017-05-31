@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.2.0
+
+* Use `nose` in the `openfisca-run-test` script
+  - This avoids boilerplate code on country packages, and makes parallelism easier to set on Circle CI.
+
 ## 12.1.4
 
 * Fix package naming conflict between the preview API and the official one.

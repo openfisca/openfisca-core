@@ -8,9 +8,9 @@ from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFo
 from openfisca_core import periods
 from openfisca_core.formulas import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 from openfisca_core.columns import FloatCol
-from openfisca_dummy_country.entities import Individu
 
 
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -18,7 +18,7 @@ tax_benefit_system = CountryTaxBenefitSystem()
 
 class income_tax_no_period(Variable):
     column = FloatCol
-    entity = Individu
+    entity = Person
     label = u"Salaire net (buggy)"
     definition_period = MONTH
 

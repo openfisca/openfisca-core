@@ -31,18 +31,11 @@ def main():
         'name_filter': args.name_filter,
         }
 
-    tests_found = False
+    paths = map(os.path.abspath, args.path)
+    tests_ok = run_tests(tax_benefit_system, paths, options)
 
-    for path in args.path:
-        path = os.path.abspath(path)
-        nb_tests = run_tests(tax_benefit_system, path, options)
-        tests_found = tests_found or nb_tests > 0
-
-    if not tests_found:
-        print("No tests found!")
+    if not tests_ok:
         sys.exit(1)
-
-    sys.exit(0)
 
 
 if __name__ == "__main__":
