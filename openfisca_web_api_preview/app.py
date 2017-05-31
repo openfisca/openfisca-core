@@ -44,8 +44,8 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             raise abort(404)
         return jsonify(variable)
 
-    @app.route('/swagger')
-    def get_swagger():
+    @app.route('/spec')
+    def get_spec():
         return jsonify(data['openAPI_spec'])
 
     @app.after_request

@@ -6,7 +6,7 @@ from httplib import OK
 from nose.tools import assert_equal, assert_items_equal
 from . import subject
 
-openAPI_response = subject.get('/swagger')
+openAPI_response = subject.get('/spec')
 
 
 def test_return_code():
