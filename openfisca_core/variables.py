@@ -8,7 +8,6 @@ from openfisca_core.formulas import Formula, new_filled_column
 
 
 class Variable(object):
-    formula_class = Formula
 
     def __init__(self, name, attributes, variable_class):
         self.name = name
@@ -34,7 +33,6 @@ class Variable(object):
         return comments, source_file_path, source_code, start_line_number
 
     def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class  # Formula
         entity = self.attributes.pop('entity', None)
 
         # For reform variable that replaces the existing reference one
@@ -51,7 +49,6 @@ class Variable(object):
         return new_filled_column(
             name = self.name,
             entity = entity,
-            formula_class = formula_class,
             reference_column = reference,
             comments = comments,
             start_line_number = start_line_number,

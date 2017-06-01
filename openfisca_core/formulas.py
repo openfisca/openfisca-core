@@ -674,7 +674,6 @@ def new_filled_column(
         default = UnboundLocalError,
         definition_period = UnboundLocalError,
         entity = UnboundLocalError,
-        formula_class = UnboundLocalError,
         is_neutralized = False,
         label = UnboundLocalError,
         law_reference = UnboundLocalError,
@@ -729,13 +728,6 @@ def new_filled_column(
         assert reference_column is not None, \
             """Missing attribute "entity" in definition of filled column {}""".format(name)
         entity = reference_column.entity
-
-    assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
-        name)
-    if formula_class is UnboundLocalError:
-        assert reference_column is not None,\
-            """Missing attribute "formula_class" in definition of filled column {}""".format(name)
-        formula_class = reference_column.formula_class.__bases__[0]
 
     if definition_period is UnboundLocalError:
         if reference_column:
@@ -876,7 +868,7 @@ def new_filled_column(
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
         ', '.join(sorted(specific_attributes.iterkeys())))
 
-    formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
+    formula_class = type(name.encode('utf-8'), (Formula,), formula_class_attributes)
 
     # Fill column attributes.
     if cerfa_field is not None:

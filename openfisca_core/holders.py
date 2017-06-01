@@ -144,9 +144,7 @@ class Holder(object):
 
         # Request a computation
         dated_holder = self.formula.compute(period = period, **parameters)
-        assert isinstance(dated_holder, DatedHolder)
         formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
-        assert formula_dated_holder is not None
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):
@@ -300,9 +298,9 @@ class Holder(object):
         return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
-        formula = self.formula.find_function(period)
+        function = self.formula.find_function(period)
 
-        return formula.__func__.func_code.co_varnames[3:]
+        return function.__func__.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
         column = self.column
