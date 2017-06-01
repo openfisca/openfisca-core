@@ -592,7 +592,7 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
 
     else:
         match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)  # YYYY or YYYY_MM or YYYY_MM_DD
-        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: '.formula_name
+        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + formula_name
         start_str = match.group(2)
 
         if len(start_str) == 4:  # YYYY
