@@ -300,7 +300,7 @@ class Holder(object):
         return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
-        formula = self.formula.find_right_dated_function(period)
+        formula = self.formula.find_function(period)
 
         return formula.__func__.func_code.co_varnames[3:]
 

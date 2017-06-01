@@ -4,6 +4,7 @@
 from __future__ import division
 
 import collections
+import inspect
 import datetime
 import logging
 import warnings
@@ -43,6 +44,10 @@ class CycleError(Exception):
 
 
 class Formula(object):
+    """
+    This class is an OpenFisca Formula for a Variable.
+    Such a Formula might have different behaviors according to the time period.
+    """
     comments = None
     holder = None
     start_line_number = None
@@ -376,6 +381,7 @@ class Formula(object):
     def compute(self, period, **parameters):
         """
         This function is called by `Holder.compute` only when no value is found in cache.
+        Return a DatedHolder after checking for cycles in formula.
         """
         holder = self.holder
         column = holder.column
@@ -480,9 +486,9 @@ class Formula(object):
 
         return holders.DatedHolder(self.holder, period, array, extra_params)
 
-    def find_right_dated_function(self, period):
+    def find_function(self, period):
         """
-        This function finds the first active formula for the period starting date.
+        This function finds the last active formula for the time interval [period starting date, variable end attribute].
         """
         end = self.holder.column.end
         if end and period.start.date > get_datetime_date(self, end):
@@ -497,7 +503,6 @@ class Formula(object):
             # All formulas are already dated
             i -= 1
             start = dated_formula_class['start_instant'].date
-            # formula_name = dated_formula_class['formula_class'].formula.__name__
 
             if period.start.date >= start:
                 dated_formula = self.dated_formulas[i]
@@ -507,11 +512,11 @@ class Formula(object):
 
     def exec_function(self, simulation, period, *extra_params):
         """
-        This function calls the right Variable's dated function and returns a NumPy array.
+        This function calls the right Variable's dated function for current period and returns a NumPy array.
 
         Retro-compatibility-layer: handles old syntax (with `self` as first argument).
         """
-        function = self.find_right_dated_function(period)
+        function = self.find_function(period)
 
         if function.im_func.func_code.co_varnames[0] == 'self':
             return function(simulation, period, *extra_params)
@@ -529,12 +534,46 @@ class Formula(object):
         for dated_formula in self.dated_formulas:
             dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
+    def formula_to_json(self, function, get_input_variables_and_parameters = None, with_input_variables_details = False):
+        if function is None:
+            return None
+        comments = inspect.getcomments(function)
+        doc = inspect.getdoc(function)
+        self_json = collections.OrderedDict((
+            ('@type', u'SimpleFormula'),
+            ('comments', comments.decode('utf-8') if comments is not None else None),
+            ('doc', doc.decode('utf-8') if doc is not None else None),
+            ))
+        if get_input_variables_and_parameters is not None:
+            holder = self.holder
+            column = holder.column
+            simulation = holder.simulation
+            variables_name, parameters_name = get_input_variables_and_parameters(column)
+            if variables_name:
+                if with_input_variables_details:
+                    input_variables_json = []
+                    for variable_name in sorted(variables_name):
+                        variable_holder = simulation.get_or_new_holder(variable_name)
+                        variable_column = variable_holder.column
+                        input_variables_json.append(collections.OrderedDict((
+                            ('entity', variable_holder.entity.key),
+                            ('label', variable_column.label),
+                            ('name', variable_column.name),
+                            )))
+                    self_json['input_variables'] = input_variables_json
+                else:
+                    self_json['input_variables'] = list(variables_name)
+            if parameters_name:
+                self_json['parameters'] = list(parameters_name)
+        return self_json
+
     def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
         return collections.OrderedDict((
             ('@type', u'DatedFormula'),
             ('dated_formulas', [
                 dict(
-                    formula = dated_formula['formula'].to_json(
+                    formula = self.formula_to_json(
+                        dated_formula['formula'].formula,
                         get_input_variables_and_parameters = get_input_variables_and_parameters,
                         with_input_variables_details = with_input_variables_details,
                         ),
@@ -557,7 +596,7 @@ def calculate_output_divide(formula, period):
 
 
 def missing_value(formula, simulation, period):
-    function = formula.find_right_dated_function(period)
+    function = formula.find_function(period)
     if function is not None:
         return function(simulation, period)
     holder = formula.holder
@@ -580,7 +619,12 @@ def get_neutralized_column(column):
         )
 
 
-def complete_formula_name(formula_name, formula_name_prefix, formula_name_separator):
+def complete_formula_name_date(formula_name, formula_name_prefix, formula_name_separator):
+    """
+    Return a formula_name matching 'formula_YYYY_MM_DD' format where YYYY, MM and DD are a year, month and day.
+
+    Default year is '0001'. Default month and day are '01'.
+    """
     formula_default_year = '0001'
     formula_default_month = '01'
     formula_default_day = '01'
@@ -607,6 +651,9 @@ def complete_formula_name(formula_name, formula_name_prefix, formula_name_separa
 
 
 def get_datetime_date(variable_name, date_str):
+    """
+    Return a datetime.date from a date string.
+    """
     try:
         time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
     except ValueError:
@@ -792,7 +839,7 @@ def new_filled_column(
             # Current attribute isn't a formula
             continue
 
-        formula_name = complete_formula_name(formula_name, formula_name_prefix, formula_name_separator)
+        formula_name = complete_formula_name_date(formula_name, formula_name_prefix, formula_name_separator)
         formula_start = periods.instant(datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator + '%Y_%m_%d').date())
 
         dated_formula_class_attributes = formula_class_attributes.copy()
@@ -805,7 +852,7 @@ def new_filled_column(
             start_instant = formula_start,
             ))
 
-    # Sort dated formulas by start instant and add missing stop instants.
+    # Sort dated formulas by start instant.
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
     # Add dated formulas defined in (optional) reference column when they are not overridden by new dated

@@ -7,7 +7,7 @@ from periods import YEAR
 
 
 def permanent_default_value(formula, simulation, period, *extra_params):
-    if formula.find_right_dated_function(period) is not None:
+    if formula.find_function(period) is not None:
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
     array = holder.default_array()
@@ -46,14 +46,14 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
                 month = month.offset(1)
             if array is not None:
                 return array
-    if formula.find_right_dated_function(period) is not None:
+    if formula.find_function(period) is not None:
         return formula.exec_function(simulation, period, *extra_params)
     array = holder.default_array()
     return array
 
 
 def requested_period_default_value(formula, simulation, period, *extra_params):
-    if formula.find_right_dated_function(period) is not None:
+    if formula.find_function(period) is not None:
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
     array = holder.default_array()
@@ -72,7 +72,7 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
 
     accept_future_value = kwargs.pop('accept_future_value', False)
     holder = formula.holder
-    function = formula.find_right_dated_function(period)
+    function = formula.find_function(period)
     if holder._array_by_period is not None:
         known_values = sorted(holder._array_by_period.iteritems(), cmp = compare_start_instant, reverse = True)
         for last_period, last_result in known_values:
