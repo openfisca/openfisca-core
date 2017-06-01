@@ -83,13 +83,14 @@ class Formula(object):
                 new_dict[key] = value
 
         keys_to_skip.add('dated_formulas')
-        new.dated_formulas = [
-            {
-                key: value.clone(holder) if key == 'formula' else value
-                for key, value in dated_formula.iteritems()
-                }
-            for dated_formula in self.dated_formulas
-            ]
+        if self.dated_formulas is not None:
+            new.dated_formulas = [
+                {
+                    key: value.clone(holder) if key == 'formula' else value
+                    for key, value in dated_formula.iteritems()
+                    }
+                for dated_formula in self.dated_formulas
+                ]
         new_dict['holder'] = holder
         return new
 
