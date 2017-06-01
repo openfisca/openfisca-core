@@ -557,8 +557,9 @@ def calculate_output_divide(formula, period):
 
 
 def missing_value(formula, simulation, period):
-    if formula.function is not None:
-        return formula.function(simulation, period)
+    function = formula.find_right_dated_function(period)
+    if function is not None:
+        return function(simulation, period)
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
