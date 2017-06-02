@@ -133,8 +133,8 @@ class dated_attribute__one_simple_formula(Variable):
     label = u"Variable with end attribute, one function without date."
     end = '1989-12-31'
 
-    def formula(self, individu, period, nb):
-        return vectorize(self, nb)
+    def formula(self, individu, period):
+        return vectorize(self, 100)
 
 
 tax_benefit_system.add_variable(dated_attribute__one_simple_formula)
@@ -143,15 +143,15 @@ tax_benefit_system.add_variable(dated_attribute__one_simple_formula)
 def test_call__dated_attribute__one_simple_formula():
     month = '1979-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attribute__one_simple_formula', month, extra_params=[100]) == 100
+    assert simulation.calculate('dated_attribute__one_simple_formula', month) == 100
 
     month = '1989-12'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attribute__one_simple_formula', month, extra_params=[100]) == 100
+    assert simulation.calculate('dated_attribute__one_simple_formula', month) == 100
 
     month = '1990-01'
     simulation = new_simulation(tax_benefit_system, month)
-    assert simulation.calculate('dated_attribute__one_simple_formula', month, extra_params=[100]) == IntCol.default
+    assert simulation.calculate('dated_attribute__one_simple_formula', month) == IntCol.default
 
 
 def test_dates__dated_attribute__one_simple_formula():
