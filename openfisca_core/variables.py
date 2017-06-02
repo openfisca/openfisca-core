@@ -4,7 +4,7 @@
 import inspect
 import textwrap
 
-from openfisca_core.formulas import Formula, new_filled_column
+from openfisca_core.formulas import new_filled_column
 
 
 class Variable(object):

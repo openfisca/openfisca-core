@@ -83,7 +83,6 @@ class Column(object):
 
     def is_input_variable(self):
         """Returns true if the column (self) is an input variable."""
-        from . import formulas
         return self.formula_class.formula is None
 
     def json_default(self):
