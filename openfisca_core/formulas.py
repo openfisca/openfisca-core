@@ -620,9 +620,10 @@ def get_neutralized_column(column):
         )
 
 
-def complete_formula_name_date(formula_name, formula_name_prefix, formula_name_separator):
+def extract_formula_date_from_name(formula_name, formula_name_prefix, formula_name_separator):
     """
-    Return a formula_name matching 'formula_YYYY_MM_DD' format where YYYY, MM and DD are a year, month and day.
+    Return a day date extracted from formula name.
+    Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
 
     Default year is '0001'. Default month and day are '01'.
     """
@@ -648,7 +649,7 @@ def complete_formula_name_date(formula_name, formula_name_prefix, formula_name_s
             start_str += formula_name_separator + formula_default_day
             formula_name += formula_name_separator + formula_default_day
 
-    return formula_name
+    return datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
 
 
 def get_datetime_date(variable_name, date_str):
@@ -827,13 +828,15 @@ def new_filled_column(
     formula_name_separator = '_'
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
-        formula_name = function_name
-        if not formula_name.startswith(formula_name_prefix):
+        if not function_name.startswith(formula_name_prefix):
             # Current attribute isn't a formula
             continue
 
-        formula_name = complete_formula_name_date(formula_name, formula_name_prefix, formula_name_separator)
-        formula_start = periods.instant(datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator + '%Y_%m_%d').date())
+        formula_start_date = extract_formula_date_from_name(function_name, formula_name_prefix, formula_name_separator)
+        if end is not None:
+            end_date = get_datetime_date(name, end)
+            assert end_date >= formula_start_date, \
+                'Variable "end = {}" should come after formula start "{}" for function "{}".'.format(end_date, formula_start_date, function_name)
 
         dated_formula_class_attributes = formula_class_attributes.copy()
         dated_formula_class_attributes['formula'] = function
@@ -842,7 +845,7 @@ def new_filled_column(
         del specific_attributes[function_name]
         dated_formulas_class.append(dict(
             formula_class = dated_formula_class,
-            start_instant = formula_start,
+            start_instant = periods.instant(formula_start_date),
             ))
 
     # Sort dated formulas by start instant.
@@ -864,7 +867,8 @@ def new_filled_column(
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class
 
     # Ensure that all attributes defined in ConversionColumn class are used.
-    assert not specific_attributes.get('start_date'), 'Deprecated "start_date" attribute in definition of variable "{}".'.format(name)
+    assert not specific_attributes.get('start_date'), \
+        'Deprecated "start_date" attribute in definition of variable "{}".'.format(name)
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
         ', '.join(sorted(specific_attributes.iterkeys())))
 
