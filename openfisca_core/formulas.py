@@ -836,8 +836,7 @@ def new_filled_column(
         if end is not None:
             end_date = get_datetime_date(name, end)
             assert end_date >= formula_start_date, \
-                'Variable "end = {}" should come after formula start "{}" for function "{}".'.format(end_date, formula_start_date, function_name)
-
+                'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(name, end_date, formula_start_date, function_name)
         dated_formula_class_attributes = formula_class_attributes.copy()
         dated_formula_class_attributes['formula'] = function
         dated_formula_class = type(name.encode('utf-8'), (Formula,), dated_formula_class_attributes)
