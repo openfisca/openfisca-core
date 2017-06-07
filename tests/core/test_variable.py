@@ -400,7 +400,7 @@ class stop_attribute_before__one_formula__start(Variable):
 
 
 def test_add__stop_attribute_before__one_formula__start():
-    check_error_at_add_variable(tax_benefit_system, stop_attribute_before__one_formula__start, 'Variable "end = 1990-01-01" should come after formula start "2000-01-01" for function "formula_2000_01_01".')
+    check_error_at_add_variable(tax_benefit_system, stop_attribute_before__one_formula__start, 'You declared that "stop_attribute_before__one_formula__start" ends on "1990-01-01", but you wrote a formula to calculate it from "2000-01-01"')
 
 
 # end, function with dates intervals overlap.
