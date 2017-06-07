@@ -78,7 +78,8 @@ class variable__deprecated_start_date(Variable):
     end = '1989-12-31'
 
 
-check_error_at_add_variable(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
+def test_deprecated_start_date():
+    check_error_at_add_variable(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
 
 
 # end, no function
