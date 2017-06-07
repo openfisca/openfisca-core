@@ -427,9 +427,9 @@ def validate_dated_node_json(node, state = None):
                 conv.test_in((u'Node', u'Parameter', u'Scale')),
                 conv.not_none,
                 ),
-            'comment': conv.pipe(
+            'reference': conv.pipe(
                 conv.test_isinstance(basestring),
-                conv.cleanup_text,
+                conv.cleanup_line,
                 ),
             'description': conv.pipe(
                 conv.test_isinstance(basestring),
@@ -460,8 +460,8 @@ def validate_dated_node_json(node, state = None):
     validated_node.pop('@context', None)  # Remove optional @context everywhere. It will be added to root node later.
     node_converters = {
         '@type': conv.noop,
-        'comment': conv.noop,
         'description': conv.noop,
+        'reference': conv.noop,
         'end_line_number': conv.test_isinstance(int),
         'start_line_number': conv.test_isinstance(int),
         # baremes-ipp related attributes
@@ -570,9 +570,9 @@ def validate_dated_bracket_json(bracket, state = None):
                         conv.test_greater_or_equal(0),
                         ),
                     ),
-                comment = conv.pipe(
+                reference = conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.cleanup_text,
+                    conv.cleanup_line,
                     ),
                 end_line_number = conv.test_isinstance(int),
                 rate = conv.item_or_sequence(
@@ -679,9 +679,9 @@ def validate_node_json(node, state = None):
                 conv.test_in((u'Node', u'Parameter', u'Scale')),
                 conv.not_none,
                 ),
-            'comment': conv.pipe(
+            'reference': conv.pipe(
                 conv.test_isinstance(basestring),
-                conv.cleanup_text,
+                conv.cleanup_line,
                 ),
             'description': conv.pipe(
                 conv.test_isinstance(basestring),
@@ -712,7 +712,7 @@ def validate_node_json(node, state = None):
     validated_node.pop('@context', None)  # Remove optional @context everywhere. It will be added to root node later.
     node_converters = {
         '@type': conv.noop,
-        'comment': conv.noop,
+        'reference': conv.noop,
         'description': conv.noop,
         'end_line_number': conv.noop,
         'start_line_number': conv.noop,
@@ -827,9 +827,9 @@ def validate_bracket_json(bracket, state = None):
             dict(
                 amount = validate_values_holder_json,
                 base = validate_values_holder_json,
-                comment = conv.pipe(
+                reference = conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.cleanup_text,
+                    conv.cleanup_line,
                     ),
                 end_line_number = conv.test_isinstance(int),
                 rate = validate_values_holder_json,
@@ -910,9 +910,9 @@ def validate_value_json(value, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             {
-                u'comment': conv.pipe(
+                u'reference': conv.pipe(
                     conv.test_isinstance(basestring),
-                    conv.cleanup_text,
+                    conv.cleanup_line,
                     ),
                 u'end_line_number': conv.test_isinstance(int),
                 u'start': conv.pipe(

@@ -85,7 +85,7 @@ def transform_etree_to_json_recursive(xml_node):
             json_node['unit'] = json_unit_by_xml_json_type.get(value)
         elif key == 'conflicts':
             json_node['conflicts'] = value.split(',')
-        elif key in {'description', 'origin', 'option'}:
+        elif key in {'description', 'origin', 'option', 'reference'}:
             json_node[key] = value
         else:
             raise ValueError('Unknown attribute "{}": "{}"'.format(key, value).encode('utf-8'))

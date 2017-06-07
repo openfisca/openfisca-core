@@ -24,6 +24,7 @@
         <xs:attribute name="code" type="xs:string" use="required"/>
         <xs:attribute name="description" type="xs:string"/>
         <xs:attribute name="origin" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="codeType" mixed="true">
@@ -34,6 +35,7 @@
         <xs:attribute name="origin" type="xs:string"/>
         <xs:attribute name="type" type="xs:string"/>
         <xs:attribute name="conflicts" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="endType">
@@ -55,6 +57,7 @@
         <xs:attribute name="type" type="xs:string"/>
         <xs:attribute name="conflicts" type="xs:string"/>
         <xs:attribute name="option" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="trancheType">
