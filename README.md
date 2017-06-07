@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/openfisca/openfisca-core.png?label=ready&title=Ready)](https://waffle.io/openfisca/openfisca-core?utm_source=badge)
 # OpenFisca Core
 
 [OpenFisca](https://doc.openfisca.fr/) is a versatile microsimulation free software. Check the [online documentation](https://doc.openfisca.fr/) for more details.
