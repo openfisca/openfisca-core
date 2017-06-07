@@ -1,5 +1,16 @@
 # Changelog
 
+## 13.0.0
+
+#### Breaking changes
+
+* Disallow text out of tags in XML parameters
+  - This prevents to add "comments" that would be lost by automated transformation of these parameters.
+
+#### New features
+
+* Introduce a "reference" attribute to document a source in XML parameters
+
 ## 12.3.0
 
 * Serve the [OpenAPI specification](https://www.openapis.org/) under the API route `/spec/`
