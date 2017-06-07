@@ -31,16 +31,12 @@ def vectorize(function, number):
     return (function.zeros() + 1) * number
 
 
-def check_error_at_add_variable(tax_benefit_system, variable, assertion_message_prefix):
+def check_error_at_add_variable(tax_benefit_system, variable, error_message_prefix):
     try:
         tax_benefit_system.add_variable(variable)
     except AssertionError, e:
-        if e.message:
-            assert e.message.startswith(assertion_message_prefix), e.message
-        else:
-            raise
-    except:
-        raise
+        if not e.message or not e.message.startswith(error_message_prefix):
+            raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, e.message).encode('utf-8'))
 
 
 # TESTS
