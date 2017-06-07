@@ -1,5 +1,35 @@
 # Changelog
 
+# 14.0.0
+
+#### Breaking changes
+
+- In variables:
+  - Remove SimpleVariable and DatedVariable. Any Variable acts like old DatedVariable
+  - Remove start_date attribute
+  - Rename stop_date attribute to end
+- In formulas:
+  - Remove SimpleFormula and DatedFormula. Any Formula acts like old DatedFormula
+  - Remove @dated_function: start goes to formula name suffix, stop is deduced from other formulas start dates and variable end attribute 
+
+#### New features
+
+- Introduce `formula_YYYY[_MM[_DD]]`
+  - Allows for formula start instant definition
+- Introduce `end = 'YYYY-MM-DD'`
+  - Allows for variable end date definition in string format
+- Change ETERNITY period effect
+  - Allows for dated Variable definition on ETERNITY period
+
+#### Technical changes
+
+- In variables:
+  - Remove Abstract class
+- In formulas:
+  - Remove Abstract classes
+- In tests:
+  - Add test_variable
+
 ## 13.0.1 - [#526](https://github.com/openfisca/openfisca-core/pull/526)
 
 ### Bug fix
