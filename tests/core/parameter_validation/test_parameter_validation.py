@@ -23,15 +23,29 @@ class TestTaxBenefitSystem(TaxBenefitSystem):
 @raises(XMLSyntaxError)
 def test_malformed():
     path_to_xml = os.path.join(BASE_DIR, 'malformed.xml')
-    tbf = TestTaxBenefitSystem(path_to_xml)
-    tbf.compute_legislation()
+    tbs = TestTaxBenefitSystem(path_to_xml)
+    tbs.compute_legislation()
+
+
+def test_free_text():
+    path_to_xml = os.path.join(BASE_DIR, 'free_text.xml')
+    tbs = TestTaxBenefitSystem(path_to_xml)
+    try:
+        tbs.compute_legislation()
+    except ValueError as e:
+        content = str(e)
+        assert len(content) < 1000
+        for keyword in {'free_text.xml:3', 'content', 'not allowed', 'element-only'}:
+            assert keyword in content
+    else:
+        assert False, "This test should raise a ValueError."
 
 
 def test_unknown_node():
     path_to_xml = os.path.join(BASE_DIR, 'unknown_node.xml')
-    tbf = TestTaxBenefitSystem(path_to_xml)
+    tbs = TestTaxBenefitSystem(path_to_xml)
     try:
-        tbf.compute_legislation()
+        tbs.compute_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
@@ -43,9 +57,9 @@ def test_unknown_node():
 
 def test_wrong_value():
     path_to_xml = os.path.join(BASE_DIR, 'wrong_value.xml')
-    tbf = TestTaxBenefitSystem(path_to_xml)
+    tbs = TestTaxBenefitSystem(path_to_xml)
     try:
-        tbf.compute_legislation()
+        tbs.compute_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
@@ -57,9 +71,9 @@ def test_wrong_value():
 
 def test_wrong_bareme():
     path_to_xml = os.path.join(BASE_DIR, 'wrong_bareme.xml')
-    tbf = TestTaxBenefitSystem(path_to_xml)
+    tbs = TestTaxBenefitSystem(path_to_xml)
     try:
-        tbf.compute_legislation()
+        tbs.compute_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
