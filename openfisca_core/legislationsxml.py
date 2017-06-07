@@ -88,7 +88,7 @@ def transform_etree_to_json_recursive(xml_node):
         elif key in {'description', 'origin', 'option', 'reference'}:
             json_node[key] = value
         else:
-            raise ValueError('Unknown attribute "{}": "{}"'.format(key, value).encode('utf-8'))
+            raise ValueError(u'Unknown attribute "{}": "{}"'.format(key, value).encode('utf-8'))
 
     if xml_node.tag == 'NODE':
         json_node['@type'] = 'Node'
@@ -131,7 +131,7 @@ def transform_etree_to_json_recursive(xml_node):
             elif child.tag == 'MONTANT':
                 json_node['amount'] = new_child
             else:
-                raise ValueError('Unknown TRANCHE child {}'.format(child.tag).encode('utf-8'))
+                raise ValueError(u'Unknown TRANCHE child {}'.format(child.tag).encode('utf-8'))
 
     elif xml_node.tag == 'TAUX':
         json_node = transform_values_history(xml_node, value_format)
@@ -149,7 +149,7 @@ def transform_etree_to_json_recursive(xml_node):
         pass
 
     else:
-        raise ValueError('Unknown tag {}'.format(xml_node.tag).encode('utf-8'))
+        raise ValueError(u'Unknown tag {}'.format(xml_node.tag).encode('utf-8'))
 
     return name, json_node
 
@@ -181,7 +181,7 @@ def merge(name_list, json_list, path_list):
                     'children': {},
                     }
 
-        assert name not in pointer['children'], '{} is defined twice'.format('.'.join(path) + '.' + 'name').encode('utf-8')
+        assert name not in pointer['children'], u'{} is defined twice'.format('.'.join(path) + '.' + 'name').encode('utf-8')
         pointer['children'][name] = json_tree
 
     return merged_json
