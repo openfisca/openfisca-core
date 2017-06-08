@@ -1,34 +1,56 @@
 # Changelog
 
-# 14.0.0
+## 14.0.0 - [#522](https://github.com/openfisca/openfisca-core/pull/522)
 
 #### Breaking changes
 
 - In variables:
-  - Remove SimpleVariable and DatedVariable. Any Variable acts like old DatedVariable
-  - Remove start_date attribute
-  - Rename stop_date attribute to end
+  - Merge `Variable` and `DatedVariable`.
+    - `Variable` can now handle formula evolution over time.
+  - Remove `start_date` attribute 
+  - Rename `stop_date` attribute to `end`
+    - Introduce end string format `end = 'YYYY-MM-DD'`
 - In formulas:
-  - Remove SimpleFormula and DatedFormula. Any Formula acts like old DatedFormula
-  - Remove @dated_function: start goes to formula name suffix, stop is deduced from other formulas start dates and variable end attribute 
+  - Merge `SimpleFormula` and `DatedFormula`.
+    - `Formula` evolves over time.
+  - Remove `@dated_function`
+    - start definition goes to formula name: `formula_YYYY[_MM[_DD]]`
+    - stop is deduced from next formula start
+
+  Before:
+  ```
+  class your_variable(DatedVariable):
+      # ... attributes
+      start_date = datetime.date(2015, 05, 01)
+      stop_date = datetime.date(2017, 05, 31)
+
+      # openfisca chooses most restrictive start in (start_date, @dated_function start)
+      @dated_function(start = date(2015, 1, 1), stop = date(2016, 12, 31))
+      def function_2015_something(self, simulation, period):
+          # Calculate for 2015
+
+      @dated_function(start = date(2016, 1, 1))
+      def function__different_name(self, simulation, period):
+          # Calculate for 2016 > 2017-05-31 (including 2017-05-31 stop_date day)
+  ```
+  After:
+  ```
+  class your_variable(Variable):
+      # ... unchanged attributes
+      end = '2017-05-31'  # string format 'YYYY-MM-DD'
+
+      # name should begin with 'formula' / you define the start in the name
+      def formula_2015_05_01(self, simulation, period):  # stops on last day before next formula
+          # Calculate for 2015
+
+      def formula_2016(self, simulation, period):  # similar to formula_2016_01_01 or formula_2016_01
+          # Calculate for 2016+ > 2017-05-31 (including 2017-05-31 end day)
+  ```
 
 #### New features
 
-- Introduce `formula_YYYY[_MM[_DD]]`
-  - Allows for formula start instant definition
-- Introduce `end = 'YYYY-MM-DD'`
-  - Allows for variable end date definition in string format
-- Change ETERNITY period effect
-  - Allows for dated Variable definition on ETERNITY period
-
-#### Technical changes
-
-- In variables:
-  - Remove Abstract class
-- In formulas:
-  - Remove Abstract classes
-- In tests:
-  - Add test_variable
+- Change `ETERNITY` period effect
+  - Remove restriction that prevented formula changes over time for a variable with `definition_period = ETERNITY`.
 
 ## 13.0.1 - [#526](https://github.com/openfisca/openfisca-core/pull/526)
 
