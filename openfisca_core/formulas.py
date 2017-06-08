@@ -693,7 +693,7 @@ def new_filled_column(
         source_file_path = UnboundLocalError,
         start_line_number = UnboundLocalError,
         end = UnboundLocalError,
-        url = UnboundLocalError,
+        reference = UnboundLocalError,
         **specific_attributes
         ):
 
@@ -772,13 +772,13 @@ def new_filled_column(
     if end is UnboundLocalError:
         end = None if reference_column is None else reference_column.end
 
-    if url is UnboundLocalError:
-        url = None if reference_column is None else reference_column.url
-    elif url is not None:
-        if isinstance(url, list):
-            url = map(unicode, url)
+    if reference is UnboundLocalError:
+        reference = None if reference_column is None else reference_column.reference
+    elif reference is not None:
+        if isinstance(reference, list):
+            reference = map(unicode, reference)
         else:
-            url = [unicode(url)]
+            reference = [unicode(reference)]
 
     # Build formula class and column.
 
@@ -874,8 +874,8 @@ def new_filled_column(
         column.default = default
     if end is not None:
         column.end = end
-    if url is not None:
-        column.url = url
+    if reference is not None:
+        column.reference = reference
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period

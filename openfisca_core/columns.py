@@ -37,7 +37,7 @@ class Column(object):
     name = None
     start = None
     survey_only = False
-    url = None
+    reference = None  # Either a single reference or a list of references
     val_type = None
 
     def __init__(
@@ -50,7 +50,7 @@ class Column(object):
             label = None,
             start = None,
             survey_only = False,
-            url = None,
+            reference = None,
             val_type = None
             ):
         if cerfa_field is not None:
@@ -68,8 +68,8 @@ class Column(object):
             self.start = start
         if survey_only:
             self.survey_only = True
-        if url is not None:
-            self.url = url
+        if reference is not None:
+            self.reference = reference
         if val_type is not None and val_type != self.val_type:
             self.val_type = val_type
         self.is_neutralized = False
@@ -169,8 +169,8 @@ class Column(object):
             self_json['start'] = start
         if self.survey_only:
             self_json['survey_only'] = self.survey_only
-        if self.url is not None:
-            self_json['url'] = self.url
+        if self.reference is not None:
+            self_json['reference'] = self.reference
         if self.val_type is not None:
             self_json['val_type'] = self.val_type
         return self_json
