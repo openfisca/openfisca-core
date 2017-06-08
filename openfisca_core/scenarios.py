@@ -364,7 +364,7 @@ class AbstractScenario(object):
         tax_benefit_system = self.tax_benefit_system
         if reference:
             while True:
-                reference_tax_benefit_system = tax_benefit_system.reference
+                reference_tax_benefit_system = tax_benefit_system.reference_tax_benefit_system
                 if reference_tax_benefit_system is None:
                     break
                 tax_benefit_system = reference_tax_benefit_system

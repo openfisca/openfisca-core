@@ -25,28 +25,28 @@ def compose_reforms(reforms, tax_benefit_system):
 class Reform(TaxBenefitSystem):
     name = None
 
-    def __init__(self, reference):
-        self.reference = reference
-        self._legislation_json = reference.get_legislation()
-        self.compact_legislation_by_instant_cache = reference.compact_legislation_by_instant_cache
-        self.column_by_name = reference.column_by_name.copy()
-        self.decomposition_file_path = reference.decomposition_file_path
-        self.Scenario = reference.Scenario
+    def __init__(self, reference_tax_benefit_system):
+        self.reference_tax_benefit_system = reference_tax_benefit_system
+        self._legislation_json = reference_tax_benefit_system.get_legislation()
+        self.compact_legislation_by_instant_cache = reference_tax_benefit_system.compact_legislation_by_instant_cache
+        self.column_by_name = reference_tax_benefit_system.column_by_name.copy()
+        self.decomposition_file_path = reference_tax_benefit_system.decomposition_file_path
+        self.Scenario = reference_tax_benefit_system.Scenario
         self.key = unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
             raise Exception("Reform {} must define an `apply` function".format(self.key))
         self.apply()
 
     def __getattr__(self, attribute):
-        return getattr(self.reference, attribute)
+        return getattr(self.reference_tax_benefit_system, attribute)
 
     @property
     def full_key(self):
         key = self.key
         assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
-        if self.reference is not None and hasattr(self.reference, 'key'):
-            reference_full_key = self.reference.full_key
-            key = u'.'.join([reference_full_key, key])
+        if self.reference_tax_benefit_system is not None and hasattr(self.reference_tax_benefit_system, 'key'):
+            reference_tax_benefit_system_full_key = self.reference_tax_benefit_system.full_key
+            key = u'.'.join([reference_tax_benefit_system_full_key, key])
         return key
 
     def modify_legislation_json(self, modifier_function):
@@ -55,9 +55,9 @@ class Reform(TaxBenefitSystem):
         Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
         Validates the new legislation.
         """
-        reference_legislation_json = self.reference.get_legislation()
-        reference_legislation_json_copy = copy.deepcopy(reference_legislation_json)
-        reform_legislation_json = modifier_function(reference_legislation_json_copy)
+        reference_tax_benefit_system_legislation_json = self.reference_tax_benefit_system.get_legislation()
+        reference_tax_benefit_system_legislation_json_copy = copy.deepcopy(reference_tax_benefit_system_legislation_json)
+        reform_legislation_json = modifier_function(reference_tax_benefit_system_legislation_json_copy)
         assert reform_legislation_json is not None, \
             'modifier_function {} in module {} must return the modified legislation_json'.format(
                 modifier_function.__name__,
