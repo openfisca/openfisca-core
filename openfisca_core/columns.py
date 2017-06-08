@@ -34,7 +34,6 @@ class Column(object):
     definition_period = None
     # json_type = None  # Defined in sub-classes
     label = None
-    law_reference = None  # Either a single reference or a list of references
     name = None
     start = None
     survey_only = False
@@ -49,7 +48,6 @@ class Column(object):
             entity = None,
             function = None,
             label = None,
-            law_reference = None,
             start = None,
             survey_only = False,
             url = None,
@@ -64,8 +62,6 @@ class Column(object):
             self.end = end
         if function is not None:
             self.function = function
-        if law_reference is not None:
-            self.law_reference = law_reference
         if label is not None:
             self.label = label
         if start is not None:

@@ -686,7 +686,6 @@ def new_filled_column(
         entity = UnboundLocalError,
         is_neutralized = False,
         label = UnboundLocalError,
-        law_reference = UnboundLocalError,
         name = None,
         reference_column = None,
         set_input = UnboundLocalError,
@@ -751,11 +750,6 @@ def new_filled_column(
         label = None if reference_column is None else reference_column.label
     else:
         label = None if label is None else unicode(label)
-
-    if law_reference is UnboundLocalError:
-        law_reference = None if reference_column is None else reference_column.law_reference
-    else:
-        assert isinstance(law_reference, (basestring, list))
 
     if start_line_number is UnboundLocalError:
         start_line_number = None if reference_column is None else reference_column.formula_class.start_line_number
@@ -887,7 +881,6 @@ def new_filled_column(
     column.definition_period = definition_period
     column.is_neutralized = is_neutralized
     column.label = label
-    column.law_reference = law_reference
     column.name = name
 
     return column
