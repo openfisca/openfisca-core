@@ -179,7 +179,6 @@ def test_dates__end_attribute__one_simple_formula():
 
     assert len(variable.formula_class.dated_formulas_class) == 1
     formula = variable.formula_class.dated_formulas_class[0]
-    assert formula is not None
     assert formula['start_instant'].date == datetime.date.min
 
 
@@ -238,8 +237,6 @@ def test_dates__no_end_attribute__one_formula__start():
 
     assert len(variable.formula_class.dated_formulas_class) == 1
     formula = variable.formula_class.dated_formulas_class[0]
-    assert formula is not None
-
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
@@ -310,13 +307,11 @@ def test_dates__no_end_attribute__formulas__start_formats():
 
     i = 0
     formula = variable.formula_class.dated_formulas_class[i]
-    assert formula is not None
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
     i = 1
     formula = variable.formula_class.dated_formulas_class[i]
-    assert formula is not None
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
@@ -375,13 +370,11 @@ def test_dates__no_attribute__formulas__different_names__no_overlap():
 
     i = 0
     formula = variable.formula_class.dated_formulas_class[i]
-    assert formula is not None
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2000, 1, 1)
 
     i = 1
     formula = variable.formula_class.dated_formulas_class[i]
-    assert formula is not None
     assert formula['start_instant'] is not None
     assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
