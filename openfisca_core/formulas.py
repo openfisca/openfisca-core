@@ -647,9 +647,9 @@ def extract_formula_date_from_name(attribute_name):
             )
 
     else:
-        match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', attribute_name)  # YYYY or YYYY_MM or YYYY_MM_DD
+        match = re.match(r'formula_(\d{4}(_\d{2}){0,2})$', attribute_name)  # YYYY or YYYY_MM or YYYY_MM_DD
         assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + attribute_name
-        start_str = match.group(2)
+        start_str = match.group(1)
 
         if len(start_str) == 4:  # YYYY
             start_str += formula_name_separator + formula_default_month
@@ -663,14 +663,14 @@ def extract_formula_date_from_name(attribute_name):
     formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
 
 
-def get_datetime_date(variable_name, date_str):
+def get_datetime_date(src_name, date_str):
     """
     Return a datetime.date from a date string.
     """
     try:
         time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
     except ValueError:
-        raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(variable_name, date_str).encode('utf-8'))
+        raise ValueError(u"Incorrect format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(src_name, date_str).encode('utf-8'))
 
     return time.date()
 
@@ -780,8 +780,8 @@ def new_filled_column(
     if end is UnboundLocalError:
         end = None if reference_column is None else reference_column.end
     elif end is not None:
-        assert isinstance(end, str)
-        get_datetime_date(name, end)  # Raises ValueError on format error.
+        assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(name + '.end', type(end))
+        get_datetime_date(name + '.end', end)  # Raises ValueError on format error.
 
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url
@@ -843,7 +843,7 @@ def new_filled_column(
             # Current attribute isn't a formula
             continue
         if end is not None:
-            end_date = get_datetime_date(name, end)
+            end_date = get_datetime_date(name + '.end', end)
             assert end_date >= formula_start_date, \
                 'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(name, end_date, formula_start_date, function_name)
         dated_formula_class_attributes = formula_class_attributes.copy()
@@ -856,12 +856,10 @@ def new_filled_column(
             start_instant = periods.instant(formula_start_date),
             ))
 
-    # Sort dated formulas by start instant.
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-    # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
-    # formulas.
-    if reference_column is not None and issubclass(reference_column.formula_class, Formula):
+    # Add dated formulas defined in (optional) reference column when they are not overridden by new dated formulas.
+    if reference_column is not None:
         for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
             reference_dated_formula_class = reference_dated_formula_class.copy()
             for dated_formula_class in dated_formulas_class:
@@ -874,7 +872,6 @@ def new_filled_column(
 
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class
 
-    # Ensure that all attributes defined in ConversionColumn class are used.
     assert not specific_attributes.get('start_date'), \
         'Deprecated "start_date" attribute in definition of variable "{}".'.format(name)
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
@@ -889,6 +886,8 @@ def new_filled_column(
         column.default = default
     if end is not None:
         column.end = end
+    if url is not None:
+        column.url = url
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period
@@ -896,9 +895,6 @@ def new_filled_column(
     column.label = label
     column.law_reference = law_reference
     column.name = name
-
-    if url is not None:
-        column.url = url
 
     return column
 

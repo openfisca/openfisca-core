@@ -29,6 +29,7 @@ class Column(object):
     dtype = float
     end = None
     entity = None
+    # TODO: Add? function = None
     formula_class = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     definition_period = None
@@ -83,7 +84,7 @@ class Column(object):
 
     def is_input_variable(self):
         """Returns true if the column (self) is an input variable."""
-        return self.formula_class.formula is None
+        return self.formula_class.dated_formulas_class == []
 
     def json_default(self):
         return self.default

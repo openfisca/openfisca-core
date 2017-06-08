@@ -57,11 +57,16 @@ class variable__no_date(Variable):
 tax_benefit_system.add_variable(variable__no_date)
 
 
-def test_variable__no_dated_attributes():
+def test_variable__no_date():
     variable = tax_benefit_system.column_by_name['variable__no_date']
     assert variable is not None
     assert variable.end is None
     assert len(variable.formula_class.dated_formulas_class) == 0
+
+
+def test_is_input_variable__variable__no_date():
+    variable_as_column = tax_benefit_system.column_by_name['variable__no_date']
+    assert variable_as_column.is_input_variable()
 
 
 # DATED ATTRIBUTE(S) - NO DATED FORMULA
@@ -76,7 +81,7 @@ class variable__deprecated_start_date(Variable):
     end = '1989-12-31'
 
 
-def test_deprecated_start_date():
+def test_add__variable__deprecated_start_date():
     check_error_at_add_variable(tax_benefit_system, variable__deprecated_start_date, 'Deprecated "start_date" attribute in definition of variable')
 
 
@@ -96,7 +101,7 @@ def test_variable__strange_end_attribute():
 
     except ValueError, e:
         if e.message:
-            assert e.message.startswith("Incorrect 'end' attribute format"), e.message
+            assert e.message.startswith("Incorrect format in 'variable__strange_end_attribute.end'."), e.message
     except:
         raise
 
@@ -165,6 +170,23 @@ def test_dates__dated_attribute__one_simple_formula():
 
 
 # NO DATED ATTRIBUTE - DATED FORMULA(S)
+
+
+# function, strange name
+
+class no_dated_attribute__one_formula__strange_name(Variable):
+    column = IntCol
+    entity = Person
+    definition_period = MONTH
+    label = u"Variable without end attribute, one stangely named function."
+
+    def formula_2015_toto(self, individu, period):
+        return vectorize(self, 100)
+
+
+def test_add__no_dated_attribute__one_formula__strange_name():
+    check_error_at_add_variable(tax_benefit_system, no_dated_attribute__one_formula__strange_name,
+    'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ')
 
 
 # function, start
@@ -472,6 +494,7 @@ def test_call__dated_attribute__formulas__different_names():
 
 
 def test_clone__dated_attribute__formulas__different_names():
+    # CHECK VARIABLE STRUCTURE
     variable_as_column = tax_benefit_system.column_by_name['dated_attribute__formulas__different_names']
     assert isinstance(variable_as_column, IntCol)
 
@@ -480,37 +503,44 @@ def test_clone__dated_attribute__formulas__different_names():
     assert variable_as_column.formula_class.dated_formulas_class is not None
     assert type(variable_as_column.formula_class.dated_formulas_class) == list
     assert type(variable_as_column.formula_class.dated_formulas_class[0]) == dict
-
+    # No Formula instance data before calculate:
     assert variable_as_column.formula_class.dated_formulas is None
+
+    # CALCULATE
     month = '2005-01'
     simulation = new_simulation(tax_benefit_system, month)
     simulation.calculate('dated_attribute__formulas__different_names', month)  # numpy.ndarray
 
-    # After calculate, Formula instance is in the holder (not directly in the simulation)
+    # After calculate, look for Formula instance data:
     simulation_variable_as_column = simulation.tax_benefit_system.column_by_name['dated_attribute__formulas__different_names']
     assert simulation_variable_as_column == variable_as_column  # IntCol
+    # Formula instance is not directly in the simulation:
     assert simulation_variable_as_column.formula_class.dated_formulas is None
-    # TODO: ? assert simulation_variable_as_column.function.dated_formulas is None
-
+    # Formula instance is in the simulation's holder:
     simulation_holder = simulation.get_holder('dated_attribute__formulas__different_names', month)
     assert issubclass(simulation_holder.formula.__class__, Formula)
-    assert simulation_holder.formula.dated_formulas is not None
+    assert len(simulation_holder.formula.dated_formulas) > 0
 
-    # clone the Formula:
+    # CLONE
     new_holder = Holder(simulation, simulation_variable_as_column)
     keys_to_skip = None
     clone = simulation_holder.formula.clone(new_holder, keys_to_skip)
 
     assert isinstance(clone, Formula)
-    assert clone.dated_formulas_class == simulation_holder.formula.dated_formulas_class
-    # Clone skips dated_formulas:
-    assert clone.dated_formulas is not None
-    # TODO: assert len(clone.dated_formulas) == 0, len(clone.dated_formulas)
-    # clone gives specified holder:
     assert clone.holder == new_holder
-    # TODO: assert clone.base_function == simulation_holder.formula.base_function, simulation_holder.formula.base_function
+    assert clone.dated_formulas_class == simulation_holder.formula.dated_formulas_class
+    assert clone.dated_formulas is not None
+    assert len(clone.dated_formulas) == 3
+    for dated_formula in clone.dated_formulas:
+        assert dated_formula['formula'].holder == new_holder
 
+    assert clone.base_function.__name__ == simulation_holder.formula.base_function.__name__  # bound methods to instances of variables
     assert clone.comments == simulation_holder.formula.comments
     assert clone.start_line_number == simulation_holder.formula.start_line_number
     assert clone.source_code == simulation_holder.formula.source_code
     assert clone.source_file_path == simulation_holder.formula.source_file_path
+
+
+def test_is_input_variable__dated_attribute__formulas__different_names():
+    variable_as_column = tax_benefit_system.column_by_name['dated_attribute__formulas__different_names']
+    assert not variable_as_column.is_input_variable()
