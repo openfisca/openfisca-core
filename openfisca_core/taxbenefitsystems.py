@@ -136,7 +136,7 @@ class TaxBenefitSystem(object):
         existing_column = self.get_column(name)
         if existing_column:
             if update:
-                attributes['reference'] = existing_column
+                attributes['reference_column'] = existing_column
             else:
                 # Variables that are dependencies of others (trough a conversion column) can be loaded automatically
                 # Is it still necessary ?
