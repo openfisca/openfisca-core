@@ -1,5 +1,12 @@
 # Changelog
 
+## 13.0.1 - [#526](https://github.com/openfisca/openfisca-core/pull/526)
+
+### Bug fix
+
+* Require numpy < 1.13.
+  - Openfisca is not yet compatible with the new numpy version 1.13.
+
 ## 13.0.0
 
 #### Breaking changes
