@@ -29,7 +29,6 @@ class Column(object):
     dtype = float
     end = None
     entity = None
-    # TODO: Add? function = None
     formula_class = None
     is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     definition_period = None
