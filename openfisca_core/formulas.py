@@ -45,7 +45,7 @@ class CycleError(Exception):
 
 class Formula(object):
     """
-    This class is an OpenFisca Formula for a Variable.
+    An OpenFisca Formula for a Variable.
     Such a Formula might have different behaviors according to the time period.
     """
     comments = None
@@ -77,12 +77,14 @@ class Formula(object):
 
         if keys_to_skip is None:
             keys_to_skip = set()
+        keys_to_skip.add('dated_formulas')
         keys_to_skip.add('holder')
+
         for key, value in self.__dict__.iteritems():
             if key not in keys_to_skip:
                 new_dict[key] = value
+        new_dict['holder'] = holder
 
-        keys_to_skip.add('dated_formulas')
         if self.dated_formulas is not None:
             new.dated_formulas = [
                 {
@@ -91,7 +93,7 @@ class Formula(object):
                     }
                 for dated_formula in self.dated_formulas
                 ]
-        new_dict['holder'] = holder
+
         return new
 
     def calculate_output(self, period):
@@ -381,7 +383,7 @@ class Formula(object):
 
     def compute(self, period, **parameters):
         """
-        This function is called by `Holder.compute` only when no value is found in cache.
+        Called by `Holder.compute` only when no value is found in cache.
         Return a DatedHolder after checking for cycles in formula.
         """
         holder = self.holder
@@ -489,31 +491,27 @@ class Formula(object):
 
     def find_function(self, period):
         """
-        This function finds the last active formula for the time interval [period starting date, variable end attribute].
+        Finds the last active formula for the time interval [period starting date, variable end attribute].
         """
         end = self.holder.column.end
         if end and period.start.date > get_datetime_date(self, end):
             return None
 
-        # Assume that self.dated_formulas and self.dated_formulas_class
-        # contain same formulas (instance and class) in same order
-        assert len(self.dated_formulas) == len(self.dated_formulas_class)
         i = len(self.dated_formulas)
 
-        for dated_formula_class in reversed(self.dated_formulas_class):
+        for dated_formula in reversed(self.dated_formulas):
             # All formulas are already dated
             i -= 1
-            start = dated_formula_class['start_instant'].date
+            start = dated_formula['start_instant'].date
 
             if period.start.date >= start:
-                dated_formula = self.dated_formulas[i]
                 return dated_formula['formula'].formula
 
         return None
 
     def exec_function(self, simulation, period, *extra_params):
         """
-        This function calls the right Variable's dated function for current period and returns a NumPy array.
+        Calls the right Variable's dated function for current period and returns a NumPy array.
 
         Retro-compatibility-layer: handles old syntax (with `self` as first argument).
         """
@@ -620,25 +618,37 @@ def get_neutralized_column(column):
         )
 
 
-def extract_formula_date_from_name(formula_name, formula_name_prefix, formula_name_separator):
+def extract_formula_date_from_name(attribute_name):
     """
-    Return a day date extracted from formula name.
+    Return a day date extracted from attribute name when it is a formula name, None otherwise.
     Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
 
     Default year is '0001'. Default month and day are '01'.
     """
+    formula_name_prefix = 'formula'
+    if not attribute_name.startswith(formula_name_prefix):
+        # Current attribute isn't a formula
+        return None
+
+    formula_name_separator = '_'
     formula_default_year = '0001'
     formula_default_month = '01'
     formula_default_day = '01'
 
-    if formula_name == formula_name_prefix:
-        formula_name += formula_name_separator + formula_default_year + formula_name_separator\
-            + formula_default_month + formula_name_separator\
+    formula_name = attribute_name
+    if attribute_name == formula_name_prefix:
+        formula_name += (
+            formula_name_separator
+            + formula_default_year
+            + formula_name_separator
+            + formula_default_month
+            + formula_name_separator
             + formula_default_day
+            )
 
     else:
-        match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', formula_name)  # YYYY or YYYY_MM or YYYY_MM_DD
-        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + formula_name
+        match = re.match(r'(formula_)(\d{4}(_\d{2}){0,2})', attribute_name)  # YYYY or YYYY_MM or YYYY_MM_DD
+        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + attribute_name
         start_str = match.group(2)
 
         if len(start_str) == 4:  # YYYY
@@ -649,7 +659,8 @@ def extract_formula_date_from_name(formula_name, formula_name_prefix, formula_na
             start_str += formula_name_separator + formula_default_day
             formula_name += formula_name_separator + formula_default_day
 
-    return datetime.datetime.strptime(formula_name, formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
+    return datetime.datetime.strptime(formula_name,
+    formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
 
 
 def get_datetime_date(variable_name, date_str):
@@ -824,15 +835,13 @@ def new_filled_column(
         formula_class_attributes['set_input'] = set_input
 
     # Turn function into a dated function
-    formula_name_prefix = 'formula'
-    formula_name_separator = '_'
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
-        if not function_name.startswith(formula_name_prefix):
+
+        formula_start_date = extract_formula_date_from_name(function_name)
+        if not formula_start_date:
             # Current attribute isn't a formula
             continue
-
-        formula_start_date = extract_formula_date_from_name(function_name, formula_name_prefix, formula_name_separator)
         if end is not None:
             end_date = get_datetime_date(name, end)
             assert end_date >= formula_start_date, \

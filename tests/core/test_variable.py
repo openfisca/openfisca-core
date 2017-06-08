@@ -5,6 +5,8 @@ import datetime
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
 from openfisca_core.columns import IntCol
+from openfisca_core.formulas import Formula
+from openfisca_core.holders import Holder
 
 import openfisca_country_template as country_template
 from openfisca_country_template.entities import Person
@@ -467,3 +469,48 @@ def test_call__dated_attribute__formulas__different_names():
     month = '2010-12'
     simulation = new_simulation(tax_benefit_system, month)
     assert simulation.calculate('dated_attribute__formulas__different_names', month) == 300
+
+
+def test_clone__dated_attribute__formulas__different_names():
+    variable_as_column = tax_benefit_system.column_by_name['dated_attribute__formulas__different_names']
+    assert isinstance(variable_as_column, IntCol)
+
+    assert issubclass(variable_as_column.formula_class, Formula)
+    assert variable_as_column.formula_class.__name__ == 'dated_attribute__formulas__different_names'
+    assert variable_as_column.formula_class.dated_formulas_class is not None
+    assert type(variable_as_column.formula_class.dated_formulas_class) == list
+    assert type(variable_as_column.formula_class.dated_formulas_class[0]) == dict
+
+    assert variable_as_column.formula_class.dated_formulas is None
+    month = '2005-01'
+    simulation = new_simulation(tax_benefit_system, month)
+    simulation.calculate('dated_attribute__formulas__different_names', month)  # numpy.ndarray
+
+    # After calculate, Formula instance is in the holder (not directly in the simulation)
+    simulation_variable_as_column = simulation.tax_benefit_system.column_by_name['dated_attribute__formulas__different_names']
+    assert simulation_variable_as_column == variable_as_column  # IntCol
+    assert simulation_variable_as_column.formula_class.dated_formulas is None
+    # TODO: ? assert simulation_variable_as_column.function.dated_formulas is None
+
+    simulation_holder = simulation.get_holder('dated_attribute__formulas__different_names', month)
+    assert issubclass(simulation_holder.formula.__class__, Formula)
+    assert simulation_holder.formula.dated_formulas is not None
+
+    # clone the Formula:
+    new_holder = Holder(simulation, simulation_variable_as_column)
+    keys_to_skip = None
+    clone = simulation_holder.formula.clone(new_holder, keys_to_skip)
+
+    assert isinstance(clone, Formula)
+    assert clone.dated_formulas_class == simulation_holder.formula.dated_formulas_class
+    # Clone skips dated_formulas:
+    assert clone.dated_formulas is not None
+    # TODO: assert len(clone.dated_formulas) == 0, len(clone.dated_formulas)
+    # clone gives specified holder:
+    assert clone.holder == new_holder
+    # TODO: assert clone.base_function == simulation_holder.formula.base_function, simulation_holder.formula.base_function
+
+    assert clone.comments == simulation_holder.formula.comments
+    assert clone.start_line_number == simulation_holder.formula.start_line_number
+    assert clone.source_code == simulation_holder.formula.source_code
+    assert clone.source_file_path == simulation_holder.formula.source_file_path
