@@ -29,6 +29,11 @@ log = logging.getLogger(__name__)
 ADD = 'add'
 DIVIDE = 'divide'
 
+FORMULA_NAME_PREFIX = 'formula'
+FORMULA_NAME_SEPARATOR = '_'
+DEFAULT_YEAR = '0001'
+DEFAULT_MONTH = '01'
+DEFAULT_DAY = '01'
 
 # Exceptions
 
@@ -622,25 +627,19 @@ def deduce_formula_date_from_name(attribute_name):
 
     Default year is '0001'. Default month and day are '01'. Thus, 'formula' starts on 1st january of year 1.
     """
-    formula_name_prefix = 'formula'
-    if not attribute_name.startswith(formula_name_prefix):
+    if not attribute_name.startswith(FORMULA_NAME_PREFIX):
         # Current attribute isn't a formula
         return None
 
-    formula_name_separator = '_'
-    formula_default_year = '0001'
-    formula_default_month = '01'
-    formula_default_day = '01'
-
     formula_name = attribute_name
-    if attribute_name == formula_name_prefix:
+    if attribute_name == FORMULA_NAME_PREFIX:
         formula_name += (
-            formula_name_separator
-            + formula_default_year
-            + formula_name_separator
-            + formula_default_month
-            + formula_name_separator
-            + formula_default_day
+            FORMULA_NAME_SEPARATOR
+            + DEFAULT_YEAR
+            + FORMULA_NAME_SEPARATOR
+            + DEFAULT_MONTH
+            + FORMULA_NAME_SEPARATOR
+            + DEFAULT_DAY
             )
 
     else:
@@ -649,15 +648,15 @@ def deduce_formula_date_from_name(attribute_name):
         start_str = match.group(1)
 
         if len(start_str) == 4:  # YYYY
-            start_str += formula_name_separator + formula_default_month
-            formula_name += formula_name_separator + formula_default_month
+            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
+            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
 
         if len(start_str) == 7:  # YYYY_MM
-            start_str += formula_name_separator + formula_default_day
-            formula_name += formula_name_separator + formula_default_day
+            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
+            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
 
     return datetime.datetime.strptime(formula_name,
-    formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
+    FORMULA_NAME_PREFIX + FORMULA_NAME_SEPARATOR + '%Y_%m_%d').date()
 
 
 def get_datetime_date(string_date):
