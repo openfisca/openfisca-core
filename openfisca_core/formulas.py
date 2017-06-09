@@ -494,7 +494,7 @@ class Formula(object):
         Finds the last active formula for the time interval [period starting date, variable end attribute].
         """
         end = self.holder.column.end
-        if end and period.start.date > get_datetime_date(self, end):
+        if end and period.start.date > get_datetime_date(end):
             return None
 
         # All formulas are already dated (with default start date in absence of user date)
@@ -660,15 +660,12 @@ def deduce_formula_date_from_name(attribute_name):
     formula_name_prefix + formula_name_separator + '%Y_%m_%d').date()
 
 
-def get_datetime_date(src_name, date_str):
+def get_datetime_date(string_date):
     """
     Return a datetime.date from a date string.
+    Raises ValueError on string_date format error.
     """
-    try:
-        time = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-    except ValueError:
-        raise ValueError(u"Incorrect format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(src_name, date_str).encode('utf-8'))
-
+    time = datetime.datetime.strptime(string_date, '%Y-%m-%d')
     return time.date()
 
 
@@ -778,7 +775,10 @@ def new_filled_column(
         end = None if reference_column is None else reference_column.end
     elif end is not None:
         assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(name + '.end', type(end))
-        get_datetime_date(name + '.end', end)  # Raises ValueError on format error.
+        try:
+            get_datetime_date(end)
+        except ValueError:
+            raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(name, end).encode('utf-8'))
 
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url
@@ -840,7 +840,7 @@ def new_filled_column(
             continue
 
         if end is not None:
-            end_date = get_datetime_date(name + '.end', end)
+            end_date = get_datetime_date(end)
             assert end_date >= formula_start_date, \
                 'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(name, end_date, formula_start_date, function_name)
         dated_formula_class_attributes = formula_class_attributes.copy()

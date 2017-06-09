@@ -62,7 +62,6 @@ def test_attribute_content__formula_class():
     assert formula_class.dated_formulas_class is not None
     assert type(formula_class.dated_formulas_class) == list
     assert len(formula_class.dated_formulas_class) == 1
-
     assert type(formula_class.dated_formulas_class[0]) == dict
     assert formula_class.dated_formulas is None
 
@@ -73,8 +72,5 @@ def test_attribute_content__formula_class():
 
     # No change expected on formula_class after a calculate
     assert formula_class.dated_formulas_class is not None
-    assert type(formula_class.dated_formulas_class) == list
     assert len(formula_class.dated_formulas_class) == 1
-
-    assert type(formula_class.dated_formulas_class[0]) == dict
     assert formula_class.dated_formulas is None

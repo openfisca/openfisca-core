@@ -102,7 +102,7 @@ def test_variable__strange_end_attribute():
 
     except ValueError, e:
         if e.message:
-            assert e.message.startswith("Incorrect format in 'variable__strange_end_attribute.end'."), e.message
+            assert e.message.startswith("Incorrect 'end' attribute format in 'variable__strange_end_attribute'."), e.message
     except:
         raise
 
