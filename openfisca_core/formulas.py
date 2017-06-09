@@ -54,8 +54,8 @@ class Formula(object):
     source_code = None
     source_file_path = None
     base_function = None  # Class attribute. Overridden by subclasses
-    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
-    dated_formulas_class = None  # Class attribute
+    dated_formulas = None  # A list of dictionaries containing a formula instance and a start instant
+    dated_formulas_class = None  # A list of dictionaries containing a formula class and a start instant
 
     def __init__(self, holder = None):
         assert holder is not None
@@ -497,11 +497,8 @@ class Formula(object):
         if end and period.start.date > get_datetime_date(self, end):
             return None
 
-        i = len(self.dated_formulas)
-
+        # All formulas are already dated (with default start date in absence of user date)
         for dated_formula in reversed(self.dated_formulas):
-            # All formulas are already dated
-            i -= 1
             start = dated_formula['start_instant'].date
 
             if period.start.date >= start:
@@ -618,12 +615,12 @@ def get_neutralized_column(column):
         )
 
 
-def extract_formula_date_from_name(attribute_name):
+def deduce_formula_date_from_name(attribute_name):
     """
-    Return a day date extracted from attribute name when it is a formula name, None otherwise.
+    Return a day date deduced from attribute name when it is a formula name, None otherwise.
     Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
 
-    Default year is '0001'. Default month and day are '01'.
+    Default year is '0001'. Default month and day are '01'. Thus, 'formula' starts on 1st january of year 1.
     """
     formula_name_prefix = 'formula'
     if not attribute_name.startswith(formula_name_prefix):
@@ -834,14 +831,14 @@ def new_filled_column(
     if set_input is not None:
         formula_class_attributes['set_input'] = set_input
 
-    # Turn function into a dated function
     dated_formulas_class = []
     for function_name, function in specific_attributes.copy().iteritems():
-
-        formula_start_date = extract_formula_date_from_name(function_name)
+        # Turn any formula into a dated formula
+        formula_start_date = deduce_formula_date_from_name(function_name)
         if not formula_start_date:
             # Current attribute isn't a formula
             continue
+
         if end is not None:
             end_date = get_datetime_date(name + '.end', end)
             assert end_date >= formula_start_date, \
