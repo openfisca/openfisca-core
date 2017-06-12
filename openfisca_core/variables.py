@@ -3,6 +3,7 @@
 
 import inspect
 import textwrap
+import datetime
 
 from openfisca_core.formulas import new_filled_column
 
@@ -46,9 +47,19 @@ class Variable(object):
         if entity is None:
             raise Exception('Variable {} must have an entity'.format(self.name))
 
+        end = self.attributes.pop('end', None)
+        end_date = None
+        if end:
+            assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
+            try:
+                end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+            except ValueError:
+                raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
+
         return new_filled_column(
             name = self.name,
             entity = entity,
+            end = end_date,
             reference_column = reference,
             comments = comments,
             start_line_number = start_line_number,

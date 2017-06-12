@@ -6,7 +6,7 @@ import textwrap
 
 
 def get_next_day(date):
-    parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
+    parsed_date = date
     next_day = parsed_date + datetime.timedelta(days = 1)
     return next_day.isoformat().split('T')[0]
 

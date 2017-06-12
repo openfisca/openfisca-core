@@ -125,7 +125,7 @@ tax_benefit_system.add_variable(variable__end_attribute)
 
 def test_variable__end_attribute():
     variable = tax_benefit_system.column_by_name['variable__end_attribute']
-    assert variable.end == '1989-12-31'
+    assert variable.end == datetime.date(1989, 12, 31)
 
 
 # end, one formula without date
@@ -160,7 +160,7 @@ def test_call__end_attribute__one_simple_formula():
 
 def test_dates__end_attribute__one_simple_formula():
     variable = tax_benefit_system.column_by_name['end_attribute__one_simple_formula']
-    assert variable.end == '1989-12-31'
+    assert variable.end == datetime.date(1989, 12, 31)
 
     assert len(variable.formula_class.dated_formulas_class) == 1
     formula = variable.formula_class.dated_formulas_class[0]
