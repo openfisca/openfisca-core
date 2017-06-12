@@ -27,7 +27,6 @@ from .formulas import (  # noqa analysis:ignore
     ADD,
     calculate_output_add,
     calculate_output_divide,
-    dated_function,
     DIVIDE,
     set_input_dispatch_by_period,
     set_input_divide_by_period,
@@ -39,7 +38,7 @@ from .base_functions import (   # noqa analysis:ignore
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from .variables import DatedVariable, Variable  # noqa analysis:ignore
+from .variables import Variable  # noqa analysis:ignore
 from .formula_helpers import apply_thresholds, switch  # noqa analysis:ignore
 from .periods import MONTH, YEAR, ETERNITY  # noqa analysis:ignore
 from .reforms import Reform  # noqa analysis:ignore

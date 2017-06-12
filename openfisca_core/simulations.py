@@ -177,7 +177,7 @@ class Simulation(object):
                 column = column,
                 )
             if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)
+                holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
         return holder
 
     def get_reference_compact_legislation(self, instant):

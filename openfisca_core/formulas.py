@@ -4,16 +4,16 @@
 from __future__ import division
 
 import collections
-import datetime
 import inspect
-import itertools
+import datetime
 import logging
 import warnings
+import re
 
 import numpy as np
 
 from . import columns, holders, legislations, periods
-from .periods import MONTH, YEAR, ETERNITY, instant
+from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     permanent_default_value,
     requested_period_default_value,
@@ -29,6 +29,11 @@ log = logging.getLogger(__name__)
 ADD = 'add'
 DIVIDE = 'divide'
 
+FORMULA_NAME_PREFIX = 'formula'
+FORMULA_NAME_SEPARATOR = '_'
+DEFAULT_YEAR = '0001'
+DEFAULT_MONTH = '01'
+DEFAULT_DAY = '01'
 
 # Exceptions
 
@@ -43,19 +48,32 @@ class CycleError(Exception):
 # Formulas
 
 
-class AbstractFormula(object):
+class Formula(object):
+    """
+    An OpenFisca Formula for a Variable.
+    Such a Formula might have different behaviors according to the time period.
+    """
     comments = None
     holder = None
     start_line_number = None
     source_code = None
     source_file_path = None
+    base_function = None  # Class attribute. Overridden by subclasses
+    dated_formulas = None  # A list of dictionaries containing a formula instance and a start instant
+    dated_formulas_class = None  # A list of dictionaries containing a formula class and a start instant
 
     def __init__(self, holder = None):
         assert holder is not None
         self.holder = holder
 
-    def calculate_output(self, period):
-        return self.holder.compute(period).array
+        if self.dated_formulas_class is not None:
+            self.dated_formulas = [
+                dict(
+                    formula = dated_formula_class['formula_class'](holder = holder),
+                    start_instant = dated_formula_class['start_instant'],
+                    )
+                for dated_formula_class in self.dated_formulas_class
+                ]
 
     def clone(self, holder, keys_to_skip = None):
         """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
@@ -64,14 +82,27 @@ class AbstractFormula(object):
 
         if keys_to_skip is None:
             keys_to_skip = set()
+        keys_to_skip.add('dated_formulas')
         keys_to_skip.add('holder')
+
         for key, value in self.__dict__.iteritems():
             if key not in keys_to_skip:
                 new_dict[key] = value
-
         new_dict['holder'] = holder
 
+        if self.dated_formulas is not None:
+            new.dated_formulas = [
+                {
+                    key: value.clone(holder) if key == 'formula' else value
+                    for key, value in dated_formula.iteritems()
+                    }
+                for dated_formula in self.dated_formulas
+                ]
+
         return new
+
+    def calculate_output(self, period):
+        return self.holder.compute(period).array
 
     def default_values(self):
         '''Return a new NumPy array which length is the entity count, filled with default values.'''
@@ -92,106 +123,7 @@ class AbstractFormula(object):
         '''
         return np.zeros(self.holder.entity.count, **kwargs)
 
-
-class AbstractGroupedFormula(AbstractFormula):
-    used_formula = None
-
-    @property
-    def real_formula(self):
-        used_formula = self.used_formula
-        if used_formula is None:
-            return None
-        return used_formula.real_formula
-
-
-class DatedFormula(AbstractGroupedFormula):
-    base_function = None  # Class attribute. Overridden by subclasses
-    dated_formulas = None  # A list of dictionaries containing a formula jointly with start and stop instants
-    dated_formulas_class = None  # Class attribute
-
-    def __init__(self, holder = None):
-        super(DatedFormula, self).__init__(holder = holder)
-
-        self.dated_formulas = [
-            dict(
-                formula = dated_formula_class['formula_class'](holder = holder),
-                start_instant = dated_formula_class['start_instant'],
-                stop_instant = dated_formula_class['stop_instant'],
-                )
-            for dated_formula_class in self.dated_formulas_class
-            ]
-        assert self.dated_formulas
-
-    @classmethod
-    def at_instant(cls, instant, default = UnboundLocalError):
-        assert isinstance(instant, periods.Instant)
-        for dated_formula_class in cls.dated_formulas_class:
-            start_instant = dated_formula_class['start_instant']
-            stop_instant = dated_formula_class['stop_instant']
-            if (start_instant is None or start_instant <= instant) and (
-                    stop_instant is None or instant <= stop_instant):
-                return dated_formula_class['formula_class']
-        if default is UnboundLocalError:
-            raise KeyError(instant)
-        return default
-
-    def clone(self, holder, keys_to_skip = None):
-        """Copy the formula just enough to be able to run a new simulation without modifying the original simulation."""
-        if keys_to_skip is None:
-            keys_to_skip = set()
-        keys_to_skip.add('dated_formulas')
-        new = super(DatedFormula, self).clone(holder, keys_to_skip = keys_to_skip)
-
-        new.dated_formulas = [
-            {
-                key: value.clone(holder) if key == 'formula' else value
-                for key, value in dated_formula.iteritems()
-                }
-            for dated_formula in self.dated_formulas
-            ]
-
-        return new
-
-    def compute(self, period, **parameters):
-        # We compute using the formula matching the first day of the requested period, if there is one
-        for dated_formula in self.dated_formulas:
-            if period.start < dated_formula['start_instant']:
-                # The requested period is before the definition span of the first dated formula.
-                # As these are sorted, no dated formula will match. We can thus break the loop.
-                return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
-            if dated_formula['stop_instant'] is None or period.start <= dated_formula['stop_instant']:
-                self.used_formula = dated_formula['formula']
-                return dated_formula['formula'].compute(period, **parameters)
-
-        return self.holder.put_in_cache(self.holder.default_array(), period, parameters.get('extra_params'))
-
-    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
-        """Recursively build a graph of formulas."""
-        for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
-
-    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
-        return collections.OrderedDict((
-            ('@type', u'DatedFormula'),
-            ('dated_formulas', [
-                dict(
-                    formula = dated_formula['formula'].to_json(
-                        get_input_variables_and_parameters = get_input_variables_and_parameters,
-                        with_input_variables_details = with_input_variables_details,
-                        ),
-                    start_instant = (None if dated_formula['start_instant'] is None
-                        else str(dated_formula['start_instant'])),
-                    stop_instant = (None if dated_formula['stop_instant'] is None
-                        else str(dated_formula['stop_instant'])),
-                    )
-                for dated_formula in self.dated_formulas
-                ]),
-            ))
-
-
-class SimpleFormula(AbstractFormula):
-    base_function = None  # Class attribute. Overridden by subclasses
-    function = None  # Class attribute. Overridden by subclasses
+    # Roles & Entities dispatch helpers
 
     def any_by_roles(self, array_or_dated_holder, entity = None, roles = None):
         holder = self.holder
@@ -278,183 +210,6 @@ class SimpleFormula(AbstractFormula):
                 raise
         return target_array
 
-    def check_for_cycle(self, period):
-        """
-        Return a boolean telling if the current variable has already been called without being allowed by
-        the parameter max_nb_cycles of the calculate method.
-        """
-        def get_error_message():
-            return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
-                column.name,
-                period,
-                u', '.join(sorted(set(
-                    u'{}<{}>'.format(variable_name, period2)
-                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
-                    for period2 in periods
-                    ))).encode('utf-8'),
-                )
-        simulation = self.holder.simulation
-        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
-        column = self.holder.column
-        variable_name = column.name
-        if variable_name in requested_periods_by_variable_name:
-            # Make sure the formula doesn't call itself for the same period it is being called for.
-            # It would be a pure circular definition.
-            requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and (column.definition_period != ETERNITY), get_error_message()
-            if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
-                message = get_error_message()
-                if simulation.max_nb_cycles is None:
-                    message += ' Hint: use "max_nb_cycles = 0" to get a default value, or "= N" to allow N cycles.'
-                raise CycleError(message)
-            else:
-                requested_periods.append(period)
-        else:
-            requested_periods_by_variable_name[variable_name] = [period]
-
-    def clean_cycle_detection_data(self):
-        """
-        When the value of a formula have been computed, remove the period from
-        requested_periods_by_variable_name[variable_name] and delete the latter if empty.
-        """
-        simulation = self.holder.simulation
-        column = self.holder.column
-        variable_name = column.name
-        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
-        if variable_name in requested_periods_by_variable_name:
-            requested_periods_by_variable_name[variable_name].pop()
-            if len(requested_periods_by_variable_name[variable_name]) == 0:
-                del requested_periods_by_variable_name[variable_name]
-
-    def compute(self, period, **parameters):
-        """
-        Call the formula function (if needed) and return a dated holder containing its result.
-
-        If a cycle is detected, a CycleError is raised.
-        To avoid it a formula can use the max_nb_cycles parameter (int >= 0) so when the cycle is detected,
-        the exceptions mechanism rewinds up to the first variable called with max_nb_cycles != None,
-        and a default value is returned for the latter variable.
-        Then the calculation continues normally.
-        """
-        holder = self.holder
-        column = holder.column
-        entity = holder.entity
-        simulation = holder.simulation
-        debug = simulation.debug
-        debug_all = simulation.debug_all
-        trace = simulation.trace
-
-        assert (period is not None) or (column.definition_period == ETERNITY)
-
-        max_nb_cycles = parameters.get('max_nb_cycles')
-        extra_params = parameters.get('extra_params')
-        if max_nb_cycles is not None:
-            simulation.max_nb_cycles = max_nb_cycles
-
-        # Note: Don't compute intersection with column.start & column.end, because holder already does it:
-        # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
-        # Note: Don't verify that the function result has already been computed, because this is the task of
-        # holder.compute().
-
-        try:
-            self.check_for_cycle(period)
-            if debug or trace:
-                simulation.stack_trace.append(dict(
-                    parameters_infos = [],
-                    input_variables_infos = [],
-                    variable_name = column.name,
-                    ))
-            if extra_params:
-                array = self.base_function(simulation, period, *extra_params)
-            else:
-                array = self.base_function(simulation, period)
-        except CycleError:
-            self.clean_cycle_detection_data()
-            if max_nb_cycles is None:
-                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
-                raise
-            simulation.max_nb_cycles = None
-            return holder.put_in_cache(self.default_values(), period, extra_params)
-        except legislations.ParameterNotFound as exc:
-            if exc.variable_name is None:
-                raise legislations.ParameterNotFound(
-                    instant = exc.instant,
-                    name = exc.name,
-                    variable_name = column.name,
-                    )
-            else:
-                raise
-        except:
-            log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
-                column.name, entity.key, str(period), self.function.__module__,
-                ))
-            raise
-
-        assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-            column.name, entity.key, str(period), str(period), array).encode('utf-8')
-        entity_count = entity.count
-        assert array.size == entity_count, \
-            u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                column.name, entity.key, str(period), str(period), stringify_array(array),
-                array.size, entity_count, entity.key).encode('utf-8')
-        if debug:
-            try:
-                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
-                if np.isnan(np.min(array)):
-                    nan_count = np.count_nonzero(np.isnan(array))
-                    raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        column.name, entity.key, str(period), str(period), stringify_array(array),
-                        nan_count).encode('utf-8'))
-            except TypeError:
-                pass
-        if array.dtype != column.dtype:
-            array = array.astype(column.dtype)
-
-        if debug or trace:
-            variable_infos = (column.name, period)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = step = dict(
-                    holder = holder,
-                    )
-            step.update(simulation.stack_trace.pop())
-            input_variables_infos = step['input_variables_infos']
-            if not debug_all or trace:
-                step['default_input_variables'] = has_only_default_input_variables = all(
-                    np.all(input_holder.get_array(input_variable_period) == input_holder.column.default)
-                    for input_holder, input_variable_period in (
-                        (simulation.get_holder(input_variable_name), input_variable_period1)
-                        for input_variable_name, input_variable_period1 in input_variables_infos
-                        )
-                    )
-            step['is_computed'] = True
-            if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
-                    simulation.stringify_input_variables_infos(input_variables_infos), str(period),
-                    stringify_array(array)))
-
-        dated_holder = holder.put_in_cache(array, period, extra_params)
-
-        self.clean_cycle_detection_data()
-        if max_nb_cycles is not None:
-            simulation.max_nb_cycles = None
-
-        return dated_holder
-
-    # Retro-compatibility-layer
-    def exec_function(self, simulation, period, *extra_params):
-
-        if self.function.im_func.func_code.co_varnames[0] == 'self':
-            return self.function(simulation, period, *extra_params)
-        else:
-            entity = self.holder.entity
-            function = self.function.im_func
-            legislation = simulation.legislation_at
-            if self.function.im_func.func_code.co_argcount == 2:
-                return function(entity, period)
-            else:
-                return function(entity, period, legislation, *extra_params)
-
     def filter_role(self, array_or_dated_holder, default = None, entity = None, role = None):
         """Convert a persons array to an entity array, copying only cells of persons having the given role."""
         holder = self.holder
@@ -494,21 +249,6 @@ class SimpleFormula(AbstractFormula):
                 entity.key, role, holder.column.name))
             raise
         return target_array
-
-    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
-        """Recursively build a graph of formulas."""
-        holder = self.holder
-        column = holder.column
-        simulation = holder.simulation
-        variables_name, parameters_name = get_input_variables_and_parameters(column)
-        if variables_name is not None:
-            for variable_name in sorted(variables_name):
-                variable_holder = simulation.get_or_new_holder(variable_name)
-                variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
-                edges.append({
-                    'from': variable_holder.column.name,
-                    'to': column.name,
-                    })
 
     def split_by_roles(self, array_or_dated_holder, default = None, entity = None, roles = None):
         """dispatch a persons array to several entity arrays (one for each role)."""
@@ -587,8 +327,215 @@ class SimpleFormula(AbstractFormula):
             target_array[entity_index_array[boolean_filter]] += array[boolean_filter]
         return target_array
 
-    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
-        function = self.function
+    @classmethod
+    def at_instant(cls, instant, default = UnboundLocalError):
+        assert isinstance(instant, periods.Instant)
+        for dated_formula_class in cls.dated_formulas_class:
+            start_instant = dated_formula_class['start_instant']
+            if (start_instant is None or start_instant <= instant):
+                return dated_formula_class['formula_class']
+        if default is UnboundLocalError:
+            raise KeyError(instant)
+        return default
+
+    def check_for_cycle(self, period):
+        """
+        Return a boolean telling if the current variable has already been called without being allowed by
+        the parameter max_nb_cycles of the calculate method.
+        """
+        def get_error_message():
+            return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                column.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(variable_name, period2)
+                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
+        simulation = self.holder.simulation
+        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
+        column = self.holder.column
+        variable_name = column.name
+        if variable_name in requested_periods_by_variable_name:
+            # Make sure the formula doesn't call itself for the same period it is being called for.
+            # It would be a pure circular definition.
+            requested_periods = requested_periods_by_variable_name[variable_name]
+            assert period not in requested_periods and (column.definition_period != ETERNITY), get_error_message()
+            if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
+                message = get_error_message()
+                if simulation.max_nb_cycles is None:
+                    message += ' Hint: use "max_nb_cycles = 0" to get a default value, or "= N" to allow N cycles.'
+                raise CycleError(message)
+            else:
+                requested_periods.append(period)
+        else:
+            requested_periods_by_variable_name[variable_name] = [period]
+
+    def clean_cycle_detection_data(self):
+        """
+        When the value of a formula have been computed, remove the period from
+        requested_periods_by_variable_name[variable_name] and delete the latter if empty.
+        """
+        simulation = self.holder.simulation
+        column = self.holder.column
+        variable_name = column.name
+        requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
+        if variable_name in requested_periods_by_variable_name:
+            requested_periods_by_variable_name[variable_name].pop()
+            if len(requested_periods_by_variable_name[variable_name]) == 0:
+                del requested_periods_by_variable_name[variable_name]
+
+    def compute(self, period, **parameters):
+        """
+        Called by `Holder.compute` only when no value is found in cache.
+        Return a DatedHolder after checking for cycles in formula.
+        """
+        holder = self.holder
+        column = holder.column
+        entity = holder.entity
+        simulation = holder.simulation
+        debug = simulation.debug
+        debug_all = simulation.debug_all
+        trace = simulation.trace
+
+        assert (period is not None) or (column.definition_period == ETERNITY)
+
+        max_nb_cycles = parameters.get('max_nb_cycles')
+        extra_params = parameters.get('extra_params')
+        if max_nb_cycles is not None:
+            simulation.max_nb_cycles = max_nb_cycles
+
+        # Note: Don't compute intersection with column.start & column.end, because holder already does it:
+        # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
+        # Note: Don't verify that the function result has already been computed, because this is the task of
+        # holder.compute().
+
+        try:
+            self.check_for_cycle(period)
+            if debug or trace:
+                simulation.stack_trace.append(dict(
+                    parameters_infos = [],
+                    input_variables_infos = [],
+                    variable_name = column.name,
+                    ))
+            if extra_params:
+                array = self.base_function(simulation, period, *extra_params)
+            else:
+                array = self.base_function(simulation, period)
+        except CycleError:
+            self.clean_cycle_detection_data()
+            if max_nb_cycles is None:
+                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
+                raise
+            simulation.max_nb_cycles = None
+            return holder.put_in_cache(self.default_values(), period, extra_params)
+        except legislations.ParameterNotFound as exc:
+            if exc.variable_name is None:
+                raise legislations.ParameterNotFound(
+                    instant = exc.instant,
+                    name = exc.name,
+                    variable_name = column.name,
+                    )
+            else:
+                raise
+        except:
+            log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
+                column.name, entity.key, str(period), self.__module__,
+                ))
+            raise
+
+        assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
+            column.name, entity.key, str(period), str(period), array).encode('utf-8')
+        entity_count = entity.count
+        assert array.size == entity_count, \
+            u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
+                column.name, entity.key, str(period), str(period), stringify_array(array),
+                array.size, entity_count, entity.key).encode('utf-8')
+        if debug:
+            try:
+                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
+                if np.isnan(np.min(array)):
+                    nan_count = np.count_nonzero(np.isnan(array))
+                    raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
+                        column.name, entity.key, str(period), str(period), stringify_array(array),
+                        nan_count).encode('utf-8'))
+            except TypeError:
+                pass
+        if array.dtype != column.dtype:
+            array = array.astype(column.dtype)
+
+        if debug or trace:
+            variable_infos = (column.name, period)
+            step = simulation.traceback.get(variable_infos)
+            if step is None:
+                simulation.traceback[variable_infos] = step = dict(
+                    holder = holder,
+                    )
+            step.update(simulation.stack_trace.pop())
+            input_variables_infos = step['input_variables_infos']
+            if not debug_all or trace:
+                step['default_input_variables'] = has_only_default_input_variables = all(
+                    np.all(input_holder.get_array(input_variable_period) == input_holder.column.default)
+                    for input_holder, input_variable_period in (
+                        (simulation.get_holder(input_variable_name), input_variable_period1)
+                        for input_variable_name, input_variable_period1 in input_variables_infos
+                        )
+                    )
+            step['is_computed'] = True
+            if debug and (debug_all or not has_only_default_input_variables):
+                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
+                    simulation.stringify_input_variables_infos(input_variables_infos), str(period),
+                    stringify_array(array)))
+
+        self.clean_cycle_detection_data()
+        if max_nb_cycles is not None:
+            simulation.max_nb_cycles = None
+
+        return holders.DatedHolder(self.holder, period, array, extra_params)
+
+    def find_function(self, period):
+        """
+        Finds the last active formula for the time interval [period starting date, variable end attribute].
+        """
+        end = self.holder.column.end
+        if end and period.start.date > end:
+            return None
+
+        # All formulas are already dated (with default start date in absence of user date)
+        for dated_formula in reversed(self.dated_formulas):
+            start = dated_formula['start_instant'].date
+
+            if period.start.date >= start:
+                return dated_formula['formula'].formula
+
+        return None
+
+    def exec_function(self, simulation, period, *extra_params):
+        """
+        Calls the right Variable's dated function for current period and returns a NumPy array.
+
+        Retro-compatibility-layer: handles old syntax (with `self` as first argument).
+        """
+        function = self.find_function(period)
+
+        if function.im_func.func_code.co_varnames[0] == 'self':
+            return function(simulation, period, *extra_params)
+        else:
+            entity = self.holder.entity
+            function = function.im_func
+            legislation = simulation.legislation_at
+            if function.func_code.co_argcount == 2:
+                return function(entity, period)
+            else:
+                return function(entity, period, legislation, *extra_params)
+
+    def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
+        """Recursively build a graph of formulas."""
+        for dated_formula in self.dated_formulas:
+            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
+
+    def formula_to_json(self, function, get_input_variables_and_parameters = None, with_input_variables_details = False):
         if function is None:
             return None
         comments = inspect.getcomments(function)
@@ -621,6 +568,25 @@ class SimpleFormula(AbstractFormula):
                 self_json['parameters'] = list(parameters_name)
         return self_json
 
+    def to_json(self, get_input_variables_and_parameters = None, with_input_variables_details = False):
+        return collections.OrderedDict((
+            ('@type', u'DatedFormula'),
+            ('dated_formulas', [
+                dict(
+                    formula = self.formula_to_json(
+                        dated_formula['formula'].formula,
+                        get_input_variables_and_parameters = get_input_variables_and_parameters,
+                        with_input_variables_details = with_input_variables_details,
+                        ),
+                    start_instant = (None if dated_formula['start_instant'] is None
+                        else str(dated_formula['start_instant'])),
+                    stop_instant = (None if dated_formula['stop_instant'] is None
+                        else str(dated_formula['stop_instant'])),
+                    )
+                for dated_formula in self.dated_formulas
+                ]),
+            ))
+
 
 def calculate_output_add(formula, period):
     return formula.holder.compute_add(period).array
@@ -630,19 +596,10 @@ def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
 
-def dated_function(start = None, stop = None):
-    """Function decorator used to give start & stop instants to a method of a function in class DatedVariable."""
-    def dated_function_decorator(function):
-        function.start_instant = periods.instant(start)
-        function.stop_instant = periods.instant(stop)
-        return function
-
-    return dated_function_decorator
-
-
 def missing_value(formula, simulation, period):
-    if formula.function is not None:
-        return formula.function(simulation, period)
+    function = formula.find_function(period)
+    if function is not None:
+        return function(simulation, period)
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
@@ -663,6 +620,45 @@ def get_neutralized_column(column):
         )
 
 
+def deduce_formula_date_from_name(attribute_name):
+    """
+    Return a day date deduced from attribute name when it is a formula name, None otherwise.
+    Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
+
+    Default year is '0001'. Default month and day are '01'. Thus, 'formula' starts on 1st january of year 1.
+    """
+    if not attribute_name.startswith(FORMULA_NAME_PREFIX):
+        # Current attribute isn't a formula
+        return None
+
+    formula_name = attribute_name
+    if attribute_name == FORMULA_NAME_PREFIX:
+        formula_name += (
+            FORMULA_NAME_SEPARATOR
+            + DEFAULT_YEAR
+            + FORMULA_NAME_SEPARATOR
+            + DEFAULT_MONTH
+            + FORMULA_NAME_SEPARATOR
+            + DEFAULT_DAY
+            )
+
+    else:
+        match = re.match(r'formula_(\d{4}(_\d{2}){0,2})$', attribute_name)  # YYYY or YYYY_MM or YYYY_MM_DD
+        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + attribute_name
+        start_str = match.group(1)
+
+        if len(start_str) == 4:  # YYYY
+            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
+            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
+
+        if len(start_str) == 7:  # YYYY_MM
+            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
+            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
+
+    return datetime.datetime.strptime(formula_name,
+    FORMULA_NAME_PREFIX + FORMULA_NAME_SEPARATOR + '%Y_%m_%d').date()
+
+
 def new_filled_column(
         __doc__ = None,
         __module__ = None,
@@ -674,7 +670,6 @@ def new_filled_column(
         default = UnboundLocalError,
         definition_period = UnboundLocalError,
         entity = UnboundLocalError,
-        formula_class = UnboundLocalError,
         is_neutralized = False,
         label = UnboundLocalError,
         law_reference = UnboundLocalError,
@@ -683,12 +678,12 @@ def new_filled_column(
         set_input = UnboundLocalError,
         source_code = UnboundLocalError,
         source_file_path = UnboundLocalError,
-        start_date = UnboundLocalError,
         start_line_number = UnboundLocalError,
-        stop_date = UnboundLocalError,
+        end = UnboundLocalError,
         url = UnboundLocalError,
         **specific_attributes
         ):
+
     # Validate arguments.
 
     if reference_column is not None:
@@ -730,14 +725,6 @@ def new_filled_column(
             """Missing attribute "entity" in definition of filled column {}""".format(name)
         entity = reference_column.entity
 
-    assert formula_class is not None, """Missing attribute "formula_class" in definition of filled column {}""".format(
-        name)
-    if formula_class is UnboundLocalError:
-        assert reference_column is not None, \
-            """Missing attribute "formula_class" in definition of filled column {}""".format(name)
-        formula_class = reference_column.formula_class.__bases__[0]
-    assert issubclass(formula_class, AbstractFormula), formula_class
-
     if definition_period is UnboundLocalError:
         if reference_column:
             definition_period = reference_column.definition_period
@@ -774,15 +761,8 @@ def new_filled_column(
     elif isinstance(source_file_path, str):
         source_file_path = source_file_path.decode('utf-8')
 
-    if start_date is UnboundLocalError:
-        start_date = None if reference_column is None else reference_column.start
-    elif start_date is not None:
-        assert isinstance(start_date, datetime.date)
-
-    if stop_date is UnboundLocalError:
-        stop_date = None if reference_column is None else reference_column.end
-    elif stop_date is not None:
-        assert isinstance(stop_date, datetime.date)
+    if end is UnboundLocalError:
+        end = None if reference_column is None else reference_column.end
 
     if url is UnboundLocalError:
         url = None if reference_column is None else reference_column.url
@@ -818,9 +798,10 @@ def new_filled_column(
             base_function = requested_period_last_value
     elif base_function is UnboundLocalError:
         base_function = requested_period_default_value
+
     if base_function is UnboundLocalError:
         assert reference_column is not None \
-            and issubclass(reference_column.formula_class, (DatedFormula, SimpleFormula)), \
+            and issubclass(reference_column.formula_class, Formula), \
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
         base_function = reference_column.formula_class.base_function
     else:
@@ -834,101 +815,59 @@ def new_filled_column(
     if set_input is not None:
         formula_class_attributes['set_input'] = set_input
 
-    # Turn Variable with a start or a stop into a DatedVariable
-    if (start_date or stop_date) and formula_class == SimpleFormula and specific_attributes.get('function'):
-        specific_attributes['function'] = dated_function(start = start_date, stop = stop_date)(specific_attributes['function'])
-        formula_class = DatedFormula
+    dated_formulas_class = []
+    for function_name, function in specific_attributes.copy().iteritems():
+        # Turn any formula into a dated formula
+        formula_start_date = deduce_formula_date_from_name(function_name)
+        if not formula_start_date:
+            # Current attribute isn't a formula
+            continue
 
-    if issubclass(formula_class, DatedFormula):
-        assert column.definition_period != ETERNITY
-        dated_formulas_class = []
-        for function_name, function in specific_attributes.copy().iteritems():
-            start_instant = getattr(function, 'start_instant', UnboundLocalError)
-            if start_instant is UnboundLocalError:
-                # Function is not dated (and may not even be a function). Skip it.
-                continue
-            stop_instant = function.stop_instant
-            if stop_instant is not None:
-                assert start_instant <= stop_instant, 'Invalid instant interval for function {}: {} - {}'.format(
-                    function_name, start_instant, stop_instant)
+        if end is not None:
+            assert end >= formula_start_date, \
+                'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(name, end, formula_start_date, function_name)
+        dated_formula_class_attributes = formula_class_attributes.copy()
+        dated_formula_class_attributes['formula'] = function
+        dated_formula_class = type(name.encode('utf-8'), (Formula,), dated_formula_class_attributes)
 
-            dated_formula_class_attributes = formula_class_attributes.copy()
-            dated_formula_class_attributes['function'] = function
-            dated_formula_class = type(name.encode('utf-8'), (SimpleFormula,), dated_formula_class_attributes)
+        del specific_attributes[function_name]
+        dated_formulas_class.append(dict(
+            formula_class = dated_formula_class,
+            start_instant = periods.instant(formula_start_date),
+            ))
 
-            del specific_attributes[function_name]
-            dated_formulas_class.append(dict(
-                formula_class = dated_formula_class,
-                start_instant = start_instant,
-                stop_instant = stop_instant,
-                ))
-        # Sort dated formulas by start instant and add missing stop instants.
-        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-        if start_date:
-            dated_formulas_class[0]['start_instant'] = max(dated_formulas_class[0]['start_instant'], instant(start_date))
-        if stop_date:
-            stop_instant = dated_formulas_class[-1]['stop_instant']
-            stop_instant = min(stop_instant, instant(stop_date)) if stop_instant else instant(stop_date)
-            dated_formulas_class[-1]['stop_instant'] = stop_instant
-        for dated_formula_class, next_dated_formula_class in itertools.izip(dated_formulas_class,
-                itertools.islice(dated_formulas_class, 1, None)):
-            if dated_formula_class['stop_instant'] is None:
-                dated_formula_class['stop_instant'] = next_dated_formula_class['start_instant'].offset(-1, 'day')
+    dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+
+    # Add dated formulas defined in (optional) reference column when they are not overridden by new dated formulas.
+    if reference_column is not None:
+        for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
+            reference_dated_formula_class = reference_dated_formula_class.copy()
+            for dated_formula_class in dated_formulas_class:
+                if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
+                    break
+
             else:
-                assert dated_formula_class['stop_instant'] < next_dated_formula_class['start_instant'], \
-                    "Dated formulas overlap: {} & {}".format(dated_formula_class, next_dated_formula_class)
+                dated_formulas_class.append(reference_dated_formula_class)
+        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-        # Add dated formulas defined in (optional) reference column when they are not overridden by new dated
-        # formulas.
-        if reference_column is not None and issubclass(reference_column.formula_class, DatedFormula):
-            for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
-                reference_dated_formula_class = reference_dated_formula_class.copy()
-                for dated_formula_class in dated_formulas_class:
-                    if reference_dated_formula_class['start_instant'] == dated_formula_class['start_instant'] \
-                            and reference_dated_formula_class['stop_instant'] == dated_formula_class[
-                                'stop_instant']:
-                        break
-                    if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant'] \
-                            and reference_dated_formula_class['start_instant'] < dated_formula_class[
-                                'stop_instant']:
-                        reference_dated_formula_class['start_instant'] = dated_formula_class['stop_instant'].offset(
-                            1, 'day')
-                    if reference_dated_formula_class['stop_instant'] > dated_formula_class['start_instant'] \
-                            and reference_dated_formula_class['stop_instant'] <= dated_formula_class[
-                                'stop_instant']:
-                        reference_dated_formula_class['stop_instant'] = dated_formula_class['start_instant'].offset(
-                            -1, 'day')
-                    if reference_dated_formula_class['start_instant'] > reference_dated_formula_class[
-                            'stop_instant']:
-                        break
-                else:
-                    dated_formulas_class.append(reference_dated_formula_class)
-            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+    formula_class_attributes['dated_formulas_class'] = dated_formulas_class
 
-        formula_class_attributes['dated_formulas_class'] = dated_formulas_class
-    else:
-        assert issubclass(formula_class, SimpleFormula), formula_class
-
-        function = specific_attributes.pop('function', None)
-        if column.definition_period == ETERNITY:
-            assert function is None
-        if reference_column is not None and function is None:
-            function = reference_column.formula_class.function
-        formula_class_attributes['function'] = function
-
-    # Ensure that all attributes defined in ConversionColumn class are used.
+    assert not specific_attributes.get('start_date'), \
+        'Deprecated "start_date" attribute in definition of variable "{}".'.format(name)
     assert not specific_attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(name,
         ', '.join(sorted(specific_attributes.iterkeys())))
 
-    formula_class = type(name.encode('utf-8'), (formula_class,), formula_class_attributes)
+    formula_class = type(name.encode('utf-8'), (Formula,), formula_class_attributes)
 
     # Fill column attributes.
     if cerfa_field is not None:
         column.cerfa_field = cerfa_field
     if default != column.default:
         column.default = default
-    if stop_date is not None:
-        column.end = stop_date
+    if end is not None:
+        column.end = end
+    if url is not None:
+        column.url = url
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period
@@ -936,10 +875,6 @@ def new_filled_column(
     column.label = label
     column.law_reference = law_reference
     column.name = name
-    if start_date is not None:
-        column.start = start_date
-    if url is not None:
-        column.url = url
 
     return column
 

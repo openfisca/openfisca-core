@@ -16,7 +16,7 @@ class formula_1(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [0])
 
 
@@ -25,7 +25,7 @@ class formula_2(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('formula_3', period, extra_params = [1])
 
 
@@ -34,7 +34,7 @@ class formula_3(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period, choice):
+    def formula(self, simulation, period, choice):
         return self.zeros() + choice
 
 
@@ -44,7 +44,7 @@ class formula_4(Variable):
     base_function = requested_period_last_value
     definition_period = MONTH
 
-    def function(self, simulation, period, choice):
+    def formula(self, simulation, period, choice):
         return self.zeros() + choice
 
 
@@ -68,7 +68,7 @@ def test_cache():
 
 
 def test_get_extra_param_names():
-    assert formula_3_holder.get_extra_param_names(period = None) == ('choice',)
+    assert formula_3_holder.get_extra_param_names(reference_period) == ('choice',)
 
 
 def test_json_conversion():

@@ -3,12 +3,12 @@
 
 import inspect
 import textwrap
+import datetime
 
-from openfisca_core.formulas import SimpleFormula, DatedFormula, new_filled_column
+from openfisca_core.formulas import new_filled_column
 
 
-class AbstractVariable(object):
-    formula_class = None
+class Variable(object):
 
     def __init__(self, name, attributes, variable_class):
         self.name = name
@@ -34,7 +34,6 @@ class AbstractVariable(object):
         return comments, source_file_path, source_code, start_line_number
 
     def to_column(self, tax_benefit_system):
-        formula_class = self.__class__.formula_class
         entity = self.attributes.pop('entity', None)
 
         # For reform variable that replaces the existing reference one
@@ -48,10 +47,19 @@ class AbstractVariable(object):
         if entity is None:
             raise Exception('Variable {} must have an entity'.format(self.name))
 
+        end = self.attributes.pop('end', None)
+        end_date = None
+        if end:
+            assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
+            try:
+                end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+            except ValueError:
+                raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
+
         return new_filled_column(
             name = self.name,
             entity = entity,
-            formula_class = formula_class,
+            end = end_date,
             reference_column = reference,
             comments = comments,
             start_line_number = start_line_number,
@@ -59,11 +67,3 @@ class AbstractVariable(object):
             source_file_path = source_file_path,
             **self.attributes
             )
-
-
-class Variable(AbstractVariable):
-    formula_class = SimpleFormula
-
-
-class DatedVariable(AbstractVariable):
-    formula_class = DatedFormula

@@ -14,7 +14,7 @@ import warnings
 from setuptools import find_packages
 
 from . import conv, legislations, legislationsxml
-from variables import AbstractVariable
+from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
 
@@ -131,6 +131,7 @@ class TaxBenefitSystem(object):
         variable_type = variable_class.__bases__[0]
         attributes = dict(variable_class.__dict__)
 
+        # Check if a Variable of same name is already registered.
         existing_column = self.get_column(name)
         if existing_column:
             if update:
@@ -156,7 +157,7 @@ class TaxBenefitSystem(object):
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
-        :param variable: The variable to add. Must be a subclass of Variable or DatedVariable.
+        :param variable: The variable to add. Must be a subclass of Variable.
 
         :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
         """
@@ -170,7 +171,7 @@ class TaxBenefitSystem(object):
 
         If no variable with the given name exists in the tax and benefit system, no error will be raised and the variable will be simply added.
 
-        :param variable: Variable to add. Must be a subclass of Variable or DatedVariable.
+        :param variable: Variable to add. Must be a subclass of Variable.
         """
         return self.load_variable(variable, update = True)
 
@@ -186,7 +187,7 @@ class TaxBenefitSystem(object):
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
                 if isclass(pot_variable) and \
-                        issubclass(pot_variable, AbstractVariable) and \
+                        issubclass(pot_variable, Variable) and \
                         pot_variable.__module__.endswith(module_name):
                     self.add_variable(pot_variable)
         except:

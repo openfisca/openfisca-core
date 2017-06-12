@@ -20,7 +20,7 @@ class variable1(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('variable2', period)
 
 
@@ -29,7 +29,7 @@ class variable2(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('variable1', period)
 
 
@@ -39,7 +39,7 @@ class variable3(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('variable4', period.last_month)
 
 
@@ -48,7 +48,7 @@ class variable4(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         return simulation.calculate('variable3', period)
 
 
@@ -59,7 +59,7 @@ class variable5(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
         return 5 + variable6
 
@@ -69,7 +69,7 @@ class variable6(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         variable5 = simulation.calculate('variable5', period)
         return 6 + variable5
 
@@ -80,7 +80,7 @@ class cotisation(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         if period.start.month == 12:
             return 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
         else:
@@ -94,7 +94,7 @@ class variable7(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
         return 7 + variable8
 
@@ -104,7 +104,7 @@ class variable8(Variable):
     entity = Person
     definition_period = MONTH
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         variable7 = simulation.calculate('variable7', period)
         return 8 + variable7
 

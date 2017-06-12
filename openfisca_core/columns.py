@@ -83,8 +83,7 @@ class Column(object):
 
     def is_input_variable(self):
         """Returns true if the column (self) is an input variable."""
-        from . import formulas
-        return issubclass(self.formula_class, formulas.SimpleFormula) and self.formula_class.function is None
+        return self.formula_class.dated_formulas_class == []
 
     def json_default(self):
         return self.default
