@@ -1,5 +1,9 @@
 # Changelog
 
+## 14.0.1
+
+* Improve the error message at module import failure.
+
 ## 14.0.0 - [#522](https://github.com/openfisca/openfisca-core/pull/522)
 
 #### Breaking changes
