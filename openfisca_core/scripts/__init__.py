@@ -29,7 +29,10 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
     try:
         country_package = importlib.import_module(country_package_name)
     except ImportError:
-        handle_error(u'{}\nCould not import module `{}`.\nAre you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.\nSee more at <https://github.com/openfisca/country-template#installing>.'.format(traceback.format_exc(sys.exc_info()), country_package_name))
+        handle_error(u'{}\nCould not import module `{}`.\n'.format(traceback.format_exc(), country_package_name)
+        + u'Are you sure it is installed in your environment? '
+        + u'If so, look at the stack trace above to determine the origin of this error.\n'
+        + u'See more at <https://github.com/openfisca/country-template#installing>.')
     if not hasattr(country_package, 'CountryTaxBenefitSystem'):
         handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
 
@@ -52,7 +55,11 @@ def detect_country_package():
     for module_description in pkgutil.iter_modules():
         module_name = module_description[1]
         if 'openfisca' in module_name.lower():
-            module = importlib.import_module(module_name)
+            try:
+                module = importlib.import_module(module_name)
+            except ImportError:
+                handle_error(u'{}\nCould not import module `{}`.\n'.format(traceback.format_exc(), module_name)
+                + u'Look at the stack trace above to determine the error that stopped installed modules detection.')
             if hasattr(module, 'CountryTaxBenefitSystem'):
                 installed_country_packages.append(module_name)
 
