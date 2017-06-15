@@ -5,6 +5,7 @@ import importlib
 import logging
 import pkgutil
 import sys
+from os import linesep
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format='%(levelname)s: %(message)s')
@@ -29,10 +30,13 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
     try:
         country_package = importlib.import_module(country_package_name)
     except ImportError:
-        handle_error(u'{}\nCould not import module `{}`.\n'.format(traceback.format_exc(), country_package_name)
-        + u'Are you sure it is installed in your environment? '
-        + u'If so, look at the stack trace above to determine the origin of this error.\n'
-        + u'See more at <https://github.com/openfisca/country-template#installing>.')
+        message = linesep.join([traceback.format_exc(),
+                                u'Could not import module `{}`.'.format(country_package_name),
+                                u'Are you sure it is installed in your environment? '
+                                + u'If so, look at the stack trace above to determine the origin of this error.\n'
+                                + u'See more at <https://github.com/openfisca/country-template#installing>.'])
+
+        handle_error(message)
     if not hasattr(country_package, 'CountryTaxBenefitSystem'):
         handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
 
@@ -58,8 +62,10 @@ def detect_country_package():
             try:
                 module = importlib.import_module(module_name)
             except ImportError:
-                handle_error(u'{}\nCould not import module `{}`.\n'.format(traceback.format_exc(), module_name)
-                + u'Look at the stack trace above to determine the error that stopped installed modules detection.')
+                message = linesep.join([traceback.format_exc(),
+                                        u'Could not import module `{}`.'.format(module_name),
+                                        u'Look at the stack trace above to determine the error that stopped installed modules detection.'])
+                handle_error(message)
             if hasattr(module, 'CountryTaxBenefitSystem'):
                 installed_country_packages.append(module_name)
 
