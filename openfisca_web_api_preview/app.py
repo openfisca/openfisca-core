@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from flask_cors import CORS
 
 from loader import build_data
@@ -47,6 +47,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
     @app.route('/spec')
     def get_spec():
         return jsonify(data['openAPI_spec'])
+
+    @app.route('/calculate', methods=['POST'])
+    def calculate():
+        request.get_json()
 
     @app.after_request
     def apply_headers(response):
