@@ -5,6 +5,7 @@ from flask import Flask, jsonify, abort, request
 from flask_cors import CORS
 
 from loader import build_data
+from errors import handle_invalid_json
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
@@ -50,6 +51,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
 
     @app.route('/calculate', methods=['POST'])
     def calculate():
+        request.on_json_loading_failed = handle_invalid_json
         request.get_json()
 
     @app.after_request
