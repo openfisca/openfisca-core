@@ -2,7 +2,7 @@
 
 ## 14.0.1 - [#527](https://github.com/openfisca/openfisca-core/pull/527)
 
-* Improve error message when a module import fails at `openfisca-run-test`
+* Improve error message and add stack trace when a module import fails
 
 ## 14.0.0 - [#522](https://github.com/openfisca/openfisca-core/pull/522)
 
