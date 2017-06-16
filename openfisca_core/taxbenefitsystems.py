@@ -23,7 +23,9 @@ log = logging.getLogger(__name__)
 
 
 class VariableNotFound(Exception):
-    def __init__(self, variable_name, tax_benefit_system):
+
+    @classmethod
+    def build_error_message(cls, variable_name, tax_benefit_system):
         country_package_metadata = tax_benefit_system.get_package_metadata()
         country_package_name = country_package_metadata['name']
         country_package_version = country_package_metadata['version']
@@ -31,12 +33,14 @@ class VariableNotFound(Exception):
             country_package_id = '{}@{}'.format(country_package_name, country_package_version)
         else:
             country_package_id = country_package_name
-        message = (
+        return (
             u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({2}). "
             u"Are you sure you spelled '{0}' correctly? "
             u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
-            ).format(variable_name, country_package_name, country_package_id)
-        Exception.__init__(self, message.encode('utf-8'))
+            ).format(variable_name, country_package_name, country_package_id).encode('utf-8')
+
+    def __init__(self, variable_name, tax_benefit_system):
+        Exception.__init__(self, build_error_message(variable_name, tax_benefit_system))
 
 
 class VariableNameConflict(Exception):
@@ -396,4 +400,24 @@ class TaxBenefitSystem(object):
             'version': distribution.version,
             'repository_url': repository_url,
             'location': location,
+            }
+
+
+    def get_variables(self, entity = None):
+        """
+        Gets all variables contained in a tax and benefit system.
+
+        :param <Entity subclass> entity: If set, returns only the variable defined for the given entity.
+
+        :returns: A dictionnary, indexed by variable names.
+        :rtype: dict
+
+        """
+        if not entity:
+            return self.column_by_name
+        else:
+            return {
+            variable_name: variable
+            for variable_name, variable in self.column_by_name.iteritems()
+            if variable.entity == entity
             }

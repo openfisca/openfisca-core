@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
 
+from openfisca_core.inputs import build_simulation, SituationParsingError
+
 from loader import build_data
+from errors import handle_invalid_json
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
@@ -47,6 +50,15 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
     @app.route('/spec')
     def get_spec():
         return jsonify(data['openAPI_spec'])
+
+    @app.route('/calculate', methods=['POST'])
+    def calculate():
+        request.on_json_loading_failed = handle_invalid_json
+        input_data = request.get_json()
+        try:
+            simulation = build_simulation(input_data, data['tax_benefit_system'])
+        except SituationParsingError as e:
+            abort(make_response(jsonify(e.error), e.code or 400))
 
     @app.after_request
     def apply_headers(response):
