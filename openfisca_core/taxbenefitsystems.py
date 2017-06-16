@@ -3,13 +3,14 @@
 
 import glob
 from inspect import isclass
-from os import path
+from os import path, linesep
 from imp import find_module, load_module
 import importlib
 import logging
 import inspect
 import pkg_resources
 import warnings
+import traceback
 
 from setuptools import find_packages
 
@@ -234,8 +235,11 @@ class TaxBenefitSystem(object):
                 package = importlib.import_module(extension)
                 extension_directory = package.__path__[0]
             except ImportError:
-                raise IOError(
-                    "Error loading extension: {} is neither a directory, nor an installed package.".format(extension))
+                message = linesep.join([traceback.format_exc(),
+                                        u'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
+                                        u'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
+                                        u'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
+                raise IOError(message)
 
         self.add_variables_from_directory(extension_directory)
         param_file = path.join(extension_directory, 'parameters.xml')
@@ -265,7 +269,10 @@ class TaxBenefitSystem(object):
         try:
             reform_module = importlib.import_module(reform_package)
         except ImportError:
-            raise ValueError(u'Could not import `{}`.'.format(reform_package).encode('utf-8'))
+            message = linesep.join([traceback.format_exc(),
+                                    u'Could not import `{}`.'.format(reform_package).encode('utf-8'),
+                                    u'Are you sure of this reform module name? If so, look at the stack trace above to determine the origin of this error.'])
+            raise ValueError(message)
         reform = getattr(reform_module, reform_name, None)
         if reform is None:
             raise ValueError(u'{} has no attribute {}'.format(reform_package, reform_name).encode('utf-8'))
