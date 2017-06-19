@@ -84,15 +84,17 @@ def build_simulation(situation, tax_benefit_system):
                 )
             else:
                 raise SituationParsingError(e.path,
-                    VariableNotFound.build_error_message(unknown_variable_name, tax_benefit_system))
+                    VariableNotFound.build_error_message(unknown_variable_name, tax_benefit_system),
+                    code = 404
+                    )
 
 
         raise SituationParsingError(e.path, e.message)
 
 
-
 class SituationParsingError(Exception):
-    def __init__(self, path, message):
+    def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join([node for node in path if isinstance(node, basestring)])
         dpath.util.new(self.error, dpath_path, message)
+        self.code = code

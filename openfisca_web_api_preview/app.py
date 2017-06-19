@@ -58,7 +58,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
         try:
             simulation = build_simulation(input_data, data['tax_benefit_system'])
         except SituationParsingError as e:
-            abort(make_response(jsonify(e.error), 400))
+            abort(make_response(jsonify(e.error), e.code or 400))
 
     @app.after_request
     def apply_headers(response):
