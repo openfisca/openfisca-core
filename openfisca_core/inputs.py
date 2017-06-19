@@ -1,16 +1,37 @@
 # -*- coding: utf-8 -*-
 
 from jsonschema import validate, ValidationError
+import dpath
 
-json_schema = {
-    'type': 'object',
-    'additionalProperties': False,
-    'properties': {
-        'persons': {'type': 'object'}
+def get_entity_schema(entity):
+    if entity.is_person:
+        return {'type': 'object'}
+    else:
+        return {
+                'type': 'object',
+                'properties': {
+                    role.plural: {
+                        'type': 'array',
+                        "items": {
+                            "type": "string"
+                            }
+                        }
+                    for role in entity.roles
+                    }
+                }
+
+def get_schema(tax_benefit_system):
+    return {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            entity.plural: get_entity_schema(entity)
+            for entity in tax_benefit_system.entities
+        }
     }
-}
 
 def build_simulation(situation, tax_benefit_system):
+    json_schema = get_schema(tax_benefit_system)
     try:
         validate(situation, json_schema)
     except ValidationError as e:
@@ -24,12 +45,9 @@ def build_simulation(situation, tax_benefit_system):
                 e.message.split("'")[1]: 'This entity is not defined in the loaded tax and benefit system.'
                 })
 
-
-
-    #     if entity not in [loaded_entity.plural for loaded_entity in tax_benefit_system.entities]:
-    #         raise SituationParsingError({
-    #             entity: 'This entity is not defined in the loaded tax and benefit system.'
-    #             })
+        response = {}
+        dpath.util.new(response, '/'.join([node for node in e.path if isinstance(node, str)]), e.message)
+        raise SituationParsingError(response)
 
 
 

@@ -52,3 +52,25 @@ def test_unknown_entity_return_code():
 def test_unknown_entity_response_content():
     response = json.loads(unknown_entity_response.data)
     assert_in('entity is not defined', response['unknown_entity'])
+
+invalid_role_type_response = post_json('{"households": {"parents": {}}}')
+
+def test_invalid_role_type_return_code():
+    assert_equal(invalid_role_type_response.status_code, BAD_REQUEST)
+
+
+def test_invalid_role_type_response_content():
+    response = json.loads(invalid_role_type_response.data)
+    assert_in('type', response['households']['parents'])
+
+another_test_response = post_json('{"households": {"parents": [{}, {}]}}')
+
+
+
+def test_another_test_return_code():
+    assert_equal(another_test_response.status_code, BAD_REQUEST)
+
+
+def test_another_test_response_content():
+    response = json.loads(another_test_response.data)
+    assert_in('type', response['households']['parents'])
