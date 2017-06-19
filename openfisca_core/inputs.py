@@ -55,7 +55,7 @@ def get_situation_schema(tax_benefit_system):
         }
     }
 
-def build_simulation(situation, tax_benefit_system):
+def build_simulation_old(situation, tax_benefit_system):
     json_schema = get_situation_schema(tax_benefit_system)
     try:
         validate(situation, json_schema)
@@ -90,6 +90,62 @@ def build_simulation(situation, tax_benefit_system):
 
 
         raise SituationParsingError(e.path, e.message)
+
+
+def build_simulation(situation, tax_benefit_system):
+    if not isinstance(situation, dict):
+        raise SituationParsingError(['error'],
+                'Invalid type: a situation must be of type "object".')
+
+    entities_by_plural = {
+        entity.plural: entity
+        for entity in tax_benefit_system.entities
+    }
+
+    for entity_plural, entities in situation.iteritems():
+        entity_class = entities_by_plural.get(entity_plural)
+        if not entity_class:
+            raise SituationParsingError([entity_plural],
+                'This entity is not defined in the loaded tax and benefit system.')
+        if not isinstance(entities, dict):
+           raise SituationParsingError([entity_plural],
+                'Invalid type: must be of type "object".')
+
+        roles_by_plural = {
+            role.plural: role
+            for role in entity_class.roles
+        } if not entity_class.is_person else {}
+
+        for entity_id, entity_object in entities.iteritems():
+            if not isinstance(entity_object, dict):
+              raise SituationParsingError([entity_plural, entity_id],
+                'Invalid type: must be of type "object".')
+
+            for property_name, property in entity_object.iteritems():
+                if property_name in roles_by_plural:
+                    if not isinstance(property, list):
+                        raise SituationParsingError([entity_plural, entity_id, property_name],
+                'Invalid type: must be of type "array".')
+                elif property_name in tax_benefit_system.column_by_name:
+                    variable = tax_benefit_system.get_column(property_name)
+                    if not variable.entity == entity_class:
+                        declared_entity = entity_class.plural
+                        right_entity = variable.entity.plural
+                        raise SituationParsingError([entity_plural, entity_id, property_name],
+                            u'You tried to set the value of variable {0} for {1}, but {0} is only defined for {2}.'.format(property_name, declared_entity, right_entity)
+                        )
+                    else:
+                        if not isinstance(property, dict):
+                            raise SituationParsingError([entity_plural, entity_id, property_name],
+                    'Input variables need to be set for a specific period. For instance: "{salary: {"2017-06": 2000}}"')
+                else:
+                    raise SituationParsingError([entity_plural, entity_id, property_name],
+                    VariableNotFound.build_error_message(property_name, tax_benefit_system),
+                    code = 404
+                    )
+
+
+
 
 
 class SituationParsingError(Exception):

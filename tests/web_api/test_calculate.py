@@ -26,6 +26,7 @@ def check_response(data, expected_error_code, path_to_check, content_to_check):
         content = dpath.util.get(json_response, path_to_check)
         assert_in(content_to_check, content)
     except:
+        raise
         import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
 
 
@@ -37,7 +38,7 @@ def test_incorrect_inputs():
         ('{"households": {"dupont": {"parents": {}}}}', BAD_REQUEST, 'households/dupont/parents', 'type',),
         ('{"persons": {"bob": {"unknown_variable": {}}}}', NOT_FOUND, 'persons/bob/unknown_variable', 'You tried to calculate or to set',),
         ('{"persons": {"bob": {"housing_allowance": {}}}}', BAD_REQUEST, 'persons/bob/housing_allowance', 'housing_allowance is only defined for households',),
-        # ('{"persons": {"bob": {"salary": 4000 }}}', BAD_REQUEST, 'persons/bob/salary', 'period',),
+        ('{"persons": {"bob": {"salary": 4000 }}}', BAD_REQUEST, 'persons/bob/salary', 'period',),
 
         ]
 
