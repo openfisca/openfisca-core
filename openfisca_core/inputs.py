@@ -72,16 +72,19 @@ def build_simulation(situation, tax_benefit_system):
                 'This entity is not defined in the loaded tax and benefit system.')
 
         if len(e.path) == 2 and e.validator == "additionalProperties":
-            unknown_variable = e.message.split("'")[1]
-            e.path.append(unknown_variable)
-            if tax_benefit_system.get_column(unknown_variable):
+            unknown_variable_name = e.message.split("'")[1]
+            e.path.append(unknown_variable_name)
+            unknown_variable = tax_benefit_system.get_column(unknown_variable_name)
+            if unknown_variable:
+                declared_entity = e.path[-2]
+                right_entity = unknown_variable.entity.plural
                 raise SituationParsingError(e.path,
-                u'You tried to set the value of variable {0} for a {1}.'
-                + u'{0} is only defined for a {2}'.format(unknown_variable, )
+                u'You tried to set the value of variable {0} for {1}.'
+                + u'but {0} is only defined for {2}'.format(unknown_variable_name, declared_entity, right_entity)
                 )
             else:
                 raise SituationParsingError(e.path,
-                    VariableNotFound.build_error_message(unknown_variable, tax_benefit_system))
+                    VariableNotFound.build_error_message(unknown_variable_name, tax_benefit_system))
 
 
         raise SituationParsingError(e.path, e.message)
