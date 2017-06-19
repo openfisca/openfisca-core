@@ -3,6 +3,9 @@
 from jsonschema import validate, ValidationError
 import dpath
 
+from taxbenefitsystems import VariableNotFound
+
+
 def get_entity_schema(entity, tax_benefit_system):
     if entity.is_person:
         return {
@@ -34,43 +37,59 @@ def get_entity_schema(entity, tax_benefit_system):
             'additionalProperties': False,
             }
 
-def get_schema(tax_benefit_system):
+
+def get_entities_schema(entity, tax_benefit_system):
+    return {
+        'type': 'object',
+        'additionalProperties': get_entity_schema(entity, tax_benefit_system)
+    }
+
+
+def get_situation_schema(tax_benefit_system):
     return {
         'type': 'object',
         'additionalProperties': False,
         'properties': {
-            entity.plural: get_entity_schema(entity, tax_benefit_system)
+            entity.plural: get_entities_schema(entity, tax_benefit_system)
             for entity in tax_benefit_system.entities
         }
     }
 
 def build_simulation(situation, tax_benefit_system):
-    json_schema = get_schema(tax_benefit_system)
+    json_schema = get_situation_schema(tax_benefit_system)
     try:
         validate(situation, json_schema)
     except ValidationError as e:
+
         if len(e.path) == 0 and e.validator == "type":
-            if not isinstance(situation, dict):
-                raise SituationParsingError({
-                    'error': 'Invalid type: a situation must be of type "object".'
-                    })
+            raise SituationParsingError(['error'],
+                'Invalid type: a situation must be of type "object".')
+
         if len(e.path) == 0 and e.validator == "additionalProperties":
-            raise SituationParsingError({
-                e.message.split("'")[1]: 'This entity is not defined in the loaded tax and benefit system.'
-                })
+            unknown_entity = e.message.split("'")[1]
+            e.path.append(unknown_entity)
+            raise SituationParsingError(e.path,
+                'This entity is not defined in the loaded tax and benefit system.')
 
-        if len(e.path) == 1 and e.validator == "additionalProperties":
-            raise SituationParsingError({
-                e.message.split("'")[1]: 'This entity is not defined in the loaded tax and benefit system.'
-                })
+        if len(e.path) == 2 and e.validator == "additionalProperties":
+            unknown_variable = e.message.split("'")[1]
+            e.path.append(unknown_variable)
+            if tax_benefit_system.get_column(unknown_variable):
+                raise SituationParsingError(e.path,
+                u'You tried to set the value of variable {0} for a {1}.'
+                + u'{0} is only defined for a {2}'.format(unknown_variable, )
+                )
+            else:
+                raise SituationParsingError(e.path,
+                    VariableNotFound.build_error_message(unknown_variable, tax_benefit_system))
 
 
-        response = {}
-        dpath.util.new(response, '/'.join([node for node in e.path if isinstance(node, str)]), e.message)
-        raise SituationParsingError(response)
+        raise SituationParsingError(e.path, e.message)
 
 
 
 class SituationParsingError(Exception):
-    def __init__(self, error):
-        self.error = error
+    def __init__(self, path, message):
+        self.error = {}
+        dpath_path = '/'.join([node for node in path if isinstance(node, basestring)])
+        dpath.util.new(self.error, dpath_path, message)

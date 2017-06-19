@@ -20,11 +20,13 @@ def post_json(data = None, file = None):
 
 def check_response(data, expected_error_code, path_to_check, content_to_check):
     response = post_json(data)
-    assert_equal(response.status_code, expected_error_code)
-    json_response = json.loads(response.data)
-    content = dpath.util.get(json_response, path_to_check)
-
-    assert_in(content_to_check, content)
+    try:
+        assert_equal(response.status_code, expected_error_code)
+        json_response = json.loads(response.data)
+        content = dpath.util.get(json_response, path_to_check)
+        assert_in(content_to_check, content)
+    except:
+        import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
 
 
 def test_incorrect_inputs():
@@ -32,8 +34,9 @@ def test_incorrect_inputs():
         ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
         ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
         ('{"unknown_entity": {}}', BAD_REQUEST, 'unknown_entity', 'entity is not defined',),
-        ('{"households": {"parents": {}}}', BAD_REQUEST, 'households/parents', 'type',),
-        ('{"persons": {"unknown_variable": {}}}', BAD_REQUEST, 'persons/unknown_variable', 'You tried to calculate or to set',)
+        ('{"households": {"dupont": {"parents": {}}}}', BAD_REQUEST, 'households/dupont/parents', 'type',),
+        ('{"persons": {"bob": {"unknown_variable": {}}}}', BAD_REQUEST, 'persons/bob/unknown_variable', 'You tried to calculate or to set',)
+
         ]
 
     for test in tests:
