@@ -3,9 +3,10 @@
 import os
 from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
+import dpath
+
 
 from openfisca_core.simulations import Simulation, SituationParsingError
-
 from loader import build_data
 from errors import handle_invalid_json
 
@@ -59,6 +60,21 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             simulation = Simulation(tax_benefit_system = data['tax_benefit_system'], simulation_json = input_data)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
+
+        requested_computations = dpath.util.search(input_data, '**', afilter = lambda t: t is None, yielded = True)
+
+        for computation in requested_computations :
+            full_path = computation[0]
+            path = full_path.split('/')
+            result = simulation.calculate(path[-2], path[-1]).tolist()
+            entity = [entity for entity in simulation.entities.values() if entity.plural == path[0]][0]
+            entity_index = entity.ids.index(path[1])
+            entity_result = result[entity_index]
+
+            dpath.util.set(input_data, full_path, entity_result)
+
+
+        return jsonify(input_data)
 
     @app.after_request
     def apply_headers(response):
