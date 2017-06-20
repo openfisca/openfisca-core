@@ -19,6 +19,6 @@ def test_unload_extensions():
     assert tbs.get_column('local_town_child_allowance') is None
 
 
-@raises(IOError)
+@raises(ValueError)
 def test_failure_to_load_extension_when_directory_doesnt_exist():
     tbs.load_extension('/this/is/not/a/real/path')

@@ -239,7 +239,7 @@ class TaxBenefitSystem(object):
                                         u'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
                                         u'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
                                         u'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
-                raise IOError(message)
+                raise ValueError(message)
 
         self.add_variables_from_directory(extension_directory)
         param_file = path.join(extension_directory, 'parameters.xml')
