@@ -49,22 +49,3 @@ def get_situation_schema(tax_benefit_system):
             for entity in tax_benefit_system.entities
             }
         }
-
-
-# def check_variable(property_name, property, entity_class, tax_benefit_system, path):
-#     variable = tax_benefit_system.get_column(property_name)
-#     if not variable:
-#         raise SituationParsingError(path,
-#         VariableNotFound.build_error_message(property_name, tax_benefit_system),
-#         code = 404
-#         )
-#     if not variable.entity == entity_class:
-#         declared_entity = entity_class.plural
-#         right_entity = variable.entity.plural
-#         raise SituationParsingError(path,
-#             u'You tried to set the value of variable {0} for {1}, but {0} is only defined for {2}.'.format(property_name, declared_entity, right_entity)
-#         )
-#     else:
-#         if not isinstance(property, dict):
-#             raise SituationParsingError(path,
-#             'Input variables need to be set for a specific period. For instance: "{salary: {"2017-06": 2000}}"')
