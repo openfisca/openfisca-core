@@ -97,7 +97,7 @@ class Simulation(object):
         """Calculate the value using calculate_output hooks in formula classes."""
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.calculate_output(period)
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -138,7 +138,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         result = holder.compute(period = period, **parameters)
         return result
 
@@ -151,7 +151,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_add(period = period, **parameters)
 
     def compute_divide(self, column_name, period, **parameters):
@@ -163,7 +163,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_divide(period = period, **parameters)
 
     def get_array(self, column_name, period):
@@ -175,7 +175,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.get_or_new_holder(column_name).get_array(period)
+        return self.get_variable_entity(column_name).get_array(period).get_holder(column_name).get_array(period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -223,7 +223,7 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+        self.get_variable_entity(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
         if isinstance(instant, periods.Period):
@@ -243,7 +243,7 @@ class Simulation(object):
         return step
 
     def stringify_variable_for_period_with_array(self, variable_name, period):
-        holder = self.get_holder(variable_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         return u'{}@{}<{}>{}'.format(
             variable_name,
             holder.entity.key,
