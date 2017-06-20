@@ -3,7 +3,8 @@
 from copy import deepcopy
 
 from openfisca_core.tools import assert_near
-from openfisca_country_template.entities import Household
+from openfisca_core.simulations import Simulation
+from openfisca_country_template.entities import Household, Person
 from test_countries import tax_benefit_system
 
 TEST_CASE = {
@@ -41,7 +42,36 @@ def test_role_index_and_positions():
     assert_near(simulation.household.members_legacy_role, [0, 1, 2, 3, 0, 2])
     assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
+    assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
+    assert(simulation.household.ids == [0, 1])
 
+
+def test_entity_constructor():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system)
+
+    simulation.persons = Person(simulation, {
+        "bill": {},
+        "bob": {},
+        "claudia": {},
+        "janet": {},
+        "tom": {},
+        })
+
+    household = Household(simulation, {
+        "first_household": {
+            "parents": ['bill', 'bob'],
+            "children": ['janet', 'tom']
+            },
+        "second_household": {
+            "parents": ["claudia"]
+            }
+        })
+
+
+    assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
+    assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
+    assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
+    assert_near(household.members_position, [0, 1, 0, 2, 3])
 
 def test_has_role():
     simulation = new_simulation(TEST_CASE)

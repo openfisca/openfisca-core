@@ -21,7 +21,8 @@ class Simulation(object):
 
     def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None,
     trace = False, opt_out_cache = False):
-        assert isinstance(period, periods.Period)
+        if period:
+            assert isinstance(period, periods.Period)
         self.period = period
         self.holder_by_name = {}
 
