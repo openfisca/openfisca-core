@@ -49,6 +49,25 @@ class Entity(object):
                 holder.set_input(period, array)
 
 
+    def clone(self, new_simulation):
+        """
+            Returns an entity instance with the same structure, but no variable value set.
+        """
+        new = Entity(new_simulation)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key == '_holders':
+                new_dict[key] = {
+                    name: holder.clone()
+                    for name, holder in self._holders.iteritems()
+                    }
+            else:
+                new_dict[key] = value
+
+        return new
+
+
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
@@ -119,25 +138,28 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
-    def get_or_new_holder(self, variable_name):
+    def get_holder(self, variable_name, init = True):
         holder = self._holders.get(variable_name)
-        if holder is None:
-            column = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True)
-            if column.entity != self.__class__:
-                raise ValueError("Variable {} is not defined for {} but for {}".format(
-                    variable_name, self.key, column.entity.key).encode('utf-8'))
+        if holder:
+            return holder
+        if not init:
+            return None
+        column = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True)
+        if column.entity != self.__class__:
+            raise ValueError("Variable {} is not defined for {} but for {}".format(
+                variable_name, self.key, column.entity.key).encode('utf-8'))
 
-            self._holders[variable_name] = holder = Holder(
-                self,
-                column = column,
-                )
-            if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        self._holders[variable_name] = holder = Holder(
+            self,
+            column = column,
+            )
+        if column.formula_class is not None:
+            holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
         return holder
 
     def build_variables(self, entity_object, entity_index):
         for variable_name, variable_values in entity_object.iteritems():
-            holder = self.get_or_new_holder(variable_name)
+            holder = self.get_holder(variable_name)
             for date, value in variable_values.iteritems():
                 if value is not None:
                     array = holder.buffer.get(make_period(date))

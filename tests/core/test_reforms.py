@@ -54,7 +54,7 @@ def test_neutralization_optimization():
     simulation.calculate_add('basic_income', period = '2013')
 
     # As basic_income is neutralized, it should not be cached
-    basic_income_holder = simulation.holder_by_name.get('basic_income')
+    basic_income_holder = simulation.persons.get_holder('basic_income')
     assert basic_income_holder._array_by_period is None
 
 

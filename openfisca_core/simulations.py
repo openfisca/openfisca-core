@@ -2,6 +2,7 @@
 
 
 import collections
+import warnings
 
 import dpath
 
@@ -36,7 +37,6 @@ class Simulation(object):
         if period:
             assert isinstance(period, periods.Period)
         self.period = period
-        self.holder_by_name = {}
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
         # See use in formulas.py.
@@ -106,11 +106,16 @@ class Simulation(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'debug_all', 'trace'):
+            if key not in ('debug', 'debug_all', 'trace', 'entities'):
                 new_dict[key] = value
 
-        for entity in new.entities.itervalues():
-            entity.simulation = new
+        new.persons = self.persons.clone()
+        setattr(new, new.persons.key, new.persons)
+        new.entities = {new.persons.key: new.persons}
+
+        for entity_class in self.tax_benefit_system.group_entities:
+            entity = self.entities[entity_class.key].clone()
+            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
 
         if debug:
             new_dict['debug'] = True
@@ -122,10 +127,6 @@ class Simulation(object):
             new_dict['stack_trace'] = collections.deque()
             new_dict['traceback'] = collections.OrderedDict()
 
-        new_dict['holder_by_name'] = {
-            name: holder.clone()
-            for name, holder in self.holder_by_name.iteritems()
-            }
         return new
 
     def compute(self, column_name, period, **parameters):
@@ -187,14 +188,29 @@ class Simulation(object):
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
-        if default is UnboundLocalError:
-            return self.holder_by_name[column_name]
-        return self.holder_by_name.get(column_name, default)
-
-    def get_or_new_holder(self, column_name):
+        warnings.warn(
+            u"The simulation.get_holder has been deprecated. "
+            u"Please use entity.get_holder instead.",
+            Warning
+            )
         column = self.tax_benefit_system.get_column(column_name, check_existence = True)
         entity = self.entities[column.entity.key]
-        return entity.get_or_new_holder(column_name)
+        holder = entity.get_holder(column_name, init = False)
+        if holder:
+            return holder
+        if default is UnboundLocalError:
+            raise KeyError("column_name")
+        return default
+
+    def get_or_new_holder(self, column_name):
+        warnings.warn(
+            u"The simulation.get_or_new_holder has been deprecated. "
+            u"Please use entity.get_holder instead.",
+            Warning
+            )
+        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
+        entity = self.get_entity(column.entity)
+        return entity.get_holder(column_name)
 
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
