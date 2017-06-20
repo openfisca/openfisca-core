@@ -26,6 +26,7 @@ class Entity(object):
             self.build_from_json(entities_json)
         else:
             self.count = 0
+            self.ids = []
             self.step_size = 0
 
     def build_from_json(self, entities_json):

@@ -54,10 +54,12 @@ class AbstractScenario(object):
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
+                            entity.ids = range(entity.count)
                         holder.set_input(period, array)
 
             if persons.count == 0:
                 persons.count = 1
+                persons.ids = range(persons.count)
 
             for entity in simulation.entities.itervalues():
                 if entity is persons:
@@ -76,6 +78,7 @@ class AbstractScenario(object):
 
                 if entity.count == 0:
                     entity.count = max(entity.members_entity_id) + 1
+                    entity.ids = range(entity.count)
                 else:
                     assert entity.count == max(entity.members_entity_id) + 1
         else:
@@ -103,6 +106,7 @@ class AbstractScenario(object):
                 count = steps_count * step_size
                 entity.count = count
                 entity.step_size = step_size
+                entity.ids = [entity_instance[u'id'] for entity_instance in test_case[entity.plural]]
 
             persons_step_size = persons.step_size
 
