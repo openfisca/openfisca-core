@@ -9,8 +9,7 @@ from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type
 from holders import Holder
-import periods
-
+from periods import compare_period_size, period as make_period
 
 class Entity(object):
     key = None
@@ -20,14 +19,34 @@ class Entity(object):
 
     def __init__(self, simulation, entities_json = None):
         self.simulation = simulation
+        self._holders = {}
         if entities_json:
-            check_type(entities_json, dict, [self.plural])
-            self.count = len(entities_json)
-            self.ids = sorted(entities_json.keys())
+            self.build_from_json(entities_json)
         else:
             self.count = 0
             self.step_size = 0
-        self._holders = {}
+
+
+    def build_from_json(self, entities_json):
+        check_type(entities_json, dict, [self.plural])
+        self.count = len(entities_json)
+        self.ids = sorted(entities_json.keys())
+        for entity_id, entity_object in entities_json.iteritems():
+            check_type(entity_object, dict, [self.plural, entity_id])
+            if not self.is_person:
+                roles_json, variables_json = self.split_variables_and_roles_json(entity_object)
+                self.build_roles(roles_json, entity_id)
+            else:
+                variables_json = entity_object
+            self.build_variables(variables_json, self.ids.index(entity_id))
+        for holder in self._holders.itervalues():
+            periods = holder.buffer.keys()
+            # We need to handle small periods first for set_input to work
+            sorted_periods = sorted(periods, cmp = compare_period_size)
+            for period in sorted_periods:
+                array = holder.buffer[period]
+                holder.set_input(period, array)
+
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -117,32 +136,20 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
 
     def build_variables(self, entity_object, entity_index):
         for variable_name, variable_values in entity_object.iteritems():
-                holder = self.get_or_new_holder(variable_name)
-                for date, value in variable_values.iteritems():
-                    if value is not None:
-                        array = holder.buffer.get(periods.period(date))
-                        if array is None:
-                            array = holder.default_array()
+            holder = self.get_or_new_holder(variable_name)
+            for date, value in variable_values.iteritems():
+                if value is not None:
+                    array = holder.buffer.get(make_period(date))
+                    if array is None:
+                        array = holder.default_array()
 
-                        array[entity_index] = value
+                    array[entity_index] = value
 
-                        holder.buffer[periods.period(date)] = array
+                    holder.buffer[make_period(date)] = array
 
 
 class PersonEntity(Entity):
     is_person = True
-
-    def __init__(self, simulation, entities_json = None):
-        Entity.__init__(self, simulation, entities_json)
-        if entities_json:
-            for personID, entity_object in entities_json.iteritems():
-                self.build_variables(entity_object, self.ids.index(personID))
-            for holder in self._holders.itervalues():
-                periods = holder.buffer.keys()
-                sorted_periods = sorted(periods, cmp = periods.compare_period_size)
-                for period in sorted_periods:
-                    array = holder.buffer[period]
-                    holder.set_input(period, array)
 
     # Projection person -> person
 
@@ -187,8 +194,18 @@ class GroupEntity(Entity):
             self.members_legacy_role = None
         self.members = self.simulation.persons
 
-    def build_from_json(self, entities_json):
 
+    def split_variables_and_roles_json(self, entity_object):
+        entity_object = entity_object.copy()  # Don't mutate function input
+
+        roles_definition = {
+            role.plural: entity_object.pop(role.plural, [])
+            for role in self.roles
+            }
+
+        return roles_definition, entity_object
+
+    def build_from_json(self, entities_json):
         self.members_entity_id = np.empty(
             self.simulation.persons.count,
             dtype = np.int32
@@ -203,25 +220,19 @@ class GroupEntity(Entity):
             )
         self._members_position = None
 
-        check_type(entities_json, dict, [self.plural])
+        Entity.build_from_json(self, entities_json)
 
-        for entity_id, entity_object in entities_json.iteritems():
-            check_type(entity_object, dict, [self.plural, entity_id])
-            entity_object = entity_object.copy()  # Don't mutate function input
 
-            entity_roles_definition = {
-                role.plural: entity_object.pop(role.plural, None)
-                for role in self.roles
-                }
+    def build_roles(self, roles_json, entity_id):
+        for role_id, role_definition in roles_json.iteritems():
+            check_type(role_definition, list, [self.plural, entity_id, role_id])
 
             entity_index = self.ids.index(entity_id)
-            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, entity_roles_definition):
+            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
                 person_index = self.simulation.persons.ids.index(person_id)
                 self.members_entity_id[person_index] = entity_index
                 self.members_role[person_index] = person_role
                 self.members_legacy_role[person_index] = person_legacy_role
-
-            self.build_variables(entity_object, entity_index)
 
         self.roles_count = self.members_legacy_role.max() + 1
 
