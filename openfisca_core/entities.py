@@ -175,7 +175,12 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                     if array is None:
                         array = holder.default_array()
 
-                    array[entity_index] = value
+                    try:
+                        array[entity_index] = value
+                    except (ValueError, TypeError )as e:
+                        raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date],
+                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+
 
                     holder.buffer[make_period(date)] = array
 

@@ -274,9 +274,9 @@ class Simulation(object):
 
 def check_type(input, type, path = []):
     type_map = {
-        dict: "object",
-        list: "array",
-        str: "string"
+        dict: "Object",
+        list: "Array",
+        str: "String"
         }
 
     if not isinstance(input, type):
