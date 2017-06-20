@@ -3,6 +3,8 @@
 
 import collections
 
+import dpath
+
 from . import periods, holders
 from .commons import empty_clone, stringify_array
 
@@ -19,8 +21,18 @@ class Simulation(object):
     trace = False
     traceback = None
 
-    def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None,
-    trace = False, opt_out_cache = False):
+    def __init__(
+            self,
+            debug = False,
+            debug_all = False,
+            period = None,
+            tax_benefit_system = None,
+            trace = False,
+            opt_out_cache = False,
+            simulation_json = None
+            ):
+        self.tax_benefit_system = tax_benefit_system
+        assert tax_benefit_system is not None
         if period:
             assert isinstance(period, periods.Period)
         self.period = period
@@ -37,8 +49,6 @@ class Simulation(object):
         if debug_all:
             assert debug
             self.debug_all = True
-        assert tax_benefit_system is not None
-        self.tax_benefit_system = tax_benefit_system
         if trace:
             self.trace = True
         self.opt_out_cache = opt_out_cache
@@ -50,17 +60,30 @@ class Simulation(object):
         self.compact_legislation_by_instant_cache = {}
         self.reference_compact_legislation_by_instant_cache = {}
 
-        self.instantiate_entities()
+        self.instantiate_entities(simulation_json)
 
-    def instantiate_entities(self):
-        self.persons = self.tax_benefit_system.person_entity(self)
-        setattr(self, self.persons.key, self.persons)
+    def instantiate_entities(self, simulation_json):
+        if simulation_json:
+            check_type(simulation_json, dict, ['error'])
+            simulation_json = simulation_json.copy()  # Avoid mutating the input
+
+        persons_json = simulation_json and simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
+
+        self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         self.entities = {self.persons.key: self.persons}
+        setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
-        for entity_definition in self.tax_benefit_system.group_entities:
-            entity = entity_definition(self)
-            self.entities[entity_definition.key] = entity
-            setattr(self, entity.key, entity)
+        for entity_class in self.tax_benefit_system.group_entities:
+            entities_json = simulation_json and simulation_json.pop(entity_class.plural, None)
+            entities = entity_class(self, entities_json)
+            self.entities[entity_class.key] = entities
+            setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
+
+        if simulation_json:  # The JSON should be empty now that all the entities have been extracted
+            unexpected_key = simulation_json.keys()[0]
+            raise SituationParsingError([unexpected_key],
+                'This entity is not defined in the loaded tax and benefit system.')
+
 
     def calculate(self, column_name, period, **parameters):
         return self.compute(column_name, period = period, **parameters).array
@@ -239,3 +262,24 @@ class Simulation(object):
 
     def get_entity(self, entity_type):
         return self.entities[entity_type.key]
+
+
+def check_type(input, type, path = []):
+    type_map = {
+        dict: "object",
+        list: "array",
+        str: "string"
+    }
+
+    if not isinstance(input, type):
+        raise SituationParsingError(path,
+            'Invalid type: must be of type "{}".'.format(type_map[type]))
+
+
+class SituationParsingError(Exception):
+    def __init__(self, path, message, code = None):
+        self.error = {}
+        dpath_path = '/'.join(path)
+        dpath.util.new(self.error, dpath_path, message)
+        self.code = code
+        Exception.__init__(self, self.error)

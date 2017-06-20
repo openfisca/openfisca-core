@@ -4,7 +4,7 @@ import os
 from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
 
-from openfisca_core.inputs import build_simulation, SituationParsingError
+from openfisca_core.simulations import Simulation, SituationParsingError
 
 from loader import build_data
 from errors import handle_invalid_json
@@ -56,7 +56,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
         request.on_json_loading_failed = handle_invalid_json
         input_data = request.get_json()
         try:
-            simulation = build_simulation(input_data, data['tax_benefit_system'])
+            simulation = Simulation(tax_benefit_system = data['tax_benefit_system'], simulation_json = input_data)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
 

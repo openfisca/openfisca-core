@@ -6,8 +6,8 @@ import warnings
 import numpy as np
 
 from formulas import ADD, DIVIDE
-from inputs import check_type
 from scenarios import iter_over_entity_members
+from simulations import check_type
 
 
 class Entity(object):
