@@ -193,16 +193,9 @@ class Simulation(object):
         return self.holder_by_name.get(column_name, default)
 
     def get_or_new_holder(self, column_name):
-        holder = self.holder_by_name.get(column_name)
-        if holder is None:
-            column = self.tax_benefit_system.get_column(column_name, check_existence = True)
-            self.holder_by_name[column_name] = holder = holders.Holder(
-                self,
-                column = column,
-                )
-            if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
-        return holder
+        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
+        entity = self.entities[column.entity.key]
+        return entity.get_or_new_holder(column_name)
 
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)

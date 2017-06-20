@@ -8,7 +8,8 @@ import numpy as np
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type
-
+from holders import Holder
+from periods import period
 
 class Entity(object):
     key = None
@@ -25,6 +26,7 @@ class Entity(object):
         else:
             self.count = 0
             self.step_size = 0
+        self._holders = {}
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -96,6 +98,21 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
+    def get_or_new_holder(self, variable_name):
+        holder = self._holders.get(variable_name)
+        if holder is None:
+            column = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True)
+            if column.entity != self.__class__:
+                raise ValueError("Variable {} is not defined for {} but for {}".format(
+                    variable_name, self.key, column.entity.key).encode('utf-8'))
+
+            self._holders[variable_name] = holder = Holder(
+                self,
+                column = column,
+                )
+            if column.formula_class is not None:
+                holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        return holder
 
 class PersonEntity(Entity):
     is_person = True
@@ -144,6 +161,7 @@ class GroupEntity(Entity):
         self.members = self.simulation.persons
 
 
+
     def build_from_json(self, entities_json):
 
         self.members_entity_id = np.empty(
@@ -161,28 +179,36 @@ class GroupEntity(Entity):
         self._members_position = None
 
         check_type(entities_json, dict, [self.plural])
-        roles_by_plural = {
-            role.plural: role
-            for role in self.roles
-        }
 
         for entity_id, entity_object in entities_json.iteritems():
             check_type(entity_object, dict, [self.plural, entity_id])
+            entity_object = entity_object.copy()  # Don't mutate function input
 
-            for property_name, property in entity_object.iteritems():
-                if property_name in roles_by_plural:
-                    check_type(property, list, [self.plural, entity_id, property_name])
+            entity_roles_definition = {
+                role.plural: entity_object.pop(role.plural, None)
+                for role in self.roles
+            }
 
             entity_index = self.ids.index(entity_id)
-            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, entity_object):
+            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, entity_roles_definition):
                 person_index = self.simulation.persons.ids.index(person_id)
                 self.members_entity_id[person_index] = entity_index
                 self.members_role[person_index] = person_role
                 self.members_legacy_role[person_index] = person_legacy_role
 
+            for variable_name, variable_values in entity_object.iteritems():
+                holder = self.get_or_new_holder(variable_name)
+                for date,value in variable_values.iteritems() :
+                    array = holder.get_array(period(date))
+                    if array is None :
+                        array = holder.default_array()
+                    array[entity_index] = value
+                    holder.set_input(period(date), array)
+                # variable_name = "rent"
+                # variable_values = {"2016-06": 400}
+
         self.roles_count = self.members_legacy_role.max() + 1
 
-                    # check_variable(property_name, property, entity_class, tax_benefit_system, [self.plural, entity_id, property_name])
 
 
     @property
