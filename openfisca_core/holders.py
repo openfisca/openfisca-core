@@ -55,12 +55,12 @@ class Holder(object):
     formula = None
     formula_output_period_by_requested_period = None
 
-    def __init__(self, simulation, column = None):
+    def __init__(self, entity, column = None):
         assert column is not None
         assert self.column is None
         self.column = column
-        self.simulation = simulation
-        self.entity = self.simulation.entities[self.column.entity.key]
+        self.entity = entity
+        self.simulation = entity.simulation
 
     @property
     def array(self):

@@ -38,40 +38,69 @@ def new_simulation(test_case, period = MONTH):
 
 def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
+    assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert((simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all())
     assert_near(simulation.household.members_legacy_role, [0, 1, 2, 3, 0, 2])
-    assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
     assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
     assert(simulation.household.ids == [0, 1])
 
 
-def test_entity_constructor():
-    simulation = Simulation(tax_benefit_system = tax_benefit_system)
-
-    simulation.persons = Person(simulation, {
-        "bill": {},
-        "bob": {},
-        "claudia": {},
-        "janet": {},
-        "tom": {},
-        })
-
-    household = Household(simulation, {
-        "first_household": {
-            "parents": ['bill', 'bob'],
-            "children": ['janet', 'tom']
+def test_entity_structure_with_constructor():
+    simulation_json = {
+        "persons": {
+            "bill": {},
+            "bob": {},
+            "claudia": {},
+            "janet": {},
+            "tom": {},
             },
-        "second_household": {
-            "parents": ["claudia"]
+        "households": {
+            "first_household": {
+                "parents": ['bill', 'bob'],
+                "children": ['janet', 'tom']
+                },
+            "second_household": {
+                "parents": ["claudia"]
+                }
             }
-        })
+    }
 
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    household = simulation.household
 
     assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
-    assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
     assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
+    assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
     assert_near(household.members_position, [0, 1, 0, 2, 3])
+
+
+def test_entity_variables_with_constructor():
+    simulation_json = {
+        "persons": {
+            "bill": {},
+            "bob": {},
+            "claudia": {},
+            "janet": {},
+            "tom": {},
+            },
+        "households": {
+            "first_household": {
+                "parents": ['bill', 'bob'],
+                "children": ['janet', 'tom'],
+                "rent": {"2017-06": 800}
+                },
+            "second_household": {
+                "parents": ["claudia"],
+                "rent": {"2017-06": 600}
+                }
+            }
+    }
+
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    household = simulation.household
+    assert_near(household('rent', "2017-06"), [800, 600])
+
 
 def test_has_role():
     simulation = new_simulation(TEST_CASE)
