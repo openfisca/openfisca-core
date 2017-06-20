@@ -9,7 +9,8 @@ from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type
 from holders import Holder
-from periods import period, compare_period_size
+import periods
+
 
 class Entity(object):
     key = None
@@ -120,13 +121,14 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                 holder = self.get_or_new_holder(variable_name)
                 for date, value in variable_values.iteritems():
                     if value is not None:
-                        array = holder.buffer.get(period(date))
-                        if array is None :
+                        array = holder.buffer.get(periods.period(date))
+                        if array is None:
                             array = holder.default_array()
 
                         array[entity_index] = value
 
-                        holder.buffer[period(date)] = array
+                        holder.buffer[periods.period(date)] = array
+
 
 class PersonEntity(Entity):
     is_person = True
@@ -138,7 +140,7 @@ class PersonEntity(Entity):
                 self.build_variables(entity_object, self.ids.index(personID))
             for holder in self._holders.itervalues():
                 periods = holder.buffer.keys()
-                sorted_periods = sorted(periods, cmp = compare_period_size)
+                sorted_periods = sorted(periods, cmp = periods.compare_period_size)
                 for period in sorted_periods:
                     array = holder.buffer[period]
                     holder.set_input(period, array)
@@ -186,7 +188,6 @@ class GroupEntity(Entity):
             self.members_legacy_role = None
         self.members = self.simulation.persons
 
-
     def build_from_json(self, entities_json):
 
         self.members_entity_id = np.empty(
@@ -212,7 +213,7 @@ class GroupEntity(Entity):
             entity_roles_definition = {
                 role.plural: entity_object.pop(role.plural, None)
                 for role in self.roles
-            }
+                }
 
             entity_index = self.ids.index(entity_id)
             for person_role, person_legacy_role, person_id in iter_over_entity_members(self, entity_roles_definition):
@@ -224,8 +225,6 @@ class GroupEntity(Entity):
             self.build_variables(entity_object, entity_index)
 
         self.roles_count = self.members_legacy_role.max() + 1
-
-
 
     @property
     def members_role(self):

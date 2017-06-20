@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from jsonschema import validate, ValidationError
-import dpath
-
-from taxbenefitsystems import VariableNotFound
-from simulations import Simulation
-
 
 def get_entity_schema(entity, tax_benefit_system):
     if entity.is_person:
         return {
             'type': 'object',
             'properties': {
-                variable_name : {'type': 'object'}
+                variable_name: {'type': 'object'}
                 for variable_name in tax_benefit_system.get_variables(entity)
                 },
             'additionalProperties': False,
@@ -29,7 +23,7 @@ def get_entity_schema(entity, tax_benefit_system):
             for role in entity.roles
             })
         properties.update({
-            variable_name : {'type': 'object'}
+            variable_name: {'type': 'object'}
             for variable_name in tax_benefit_system.get_variables(entity)
             })
         return {
@@ -43,7 +37,7 @@ def get_entities_schema(entity, tax_benefit_system):
     return {
         'type': 'object',
         'additionalProperties': get_entity_schema(entity, tax_benefit_system)
-    }
+        }
 
 
 def get_situation_schema(tax_benefit_system):
@@ -53,8 +47,8 @@ def get_situation_schema(tax_benefit_system):
         'properties': {
             entity.plural: get_entities_schema(entity, tax_benefit_system)
             for entity in tax_benefit_system.entities
+            }
         }
-    }
 
 
 # def check_variable(property_name, property, entity_class, tax_benefit_system, path):

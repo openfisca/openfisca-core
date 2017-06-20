@@ -398,7 +398,6 @@ class TaxBenefitSystem(object):
             'location': location,
             }
 
-
     def get_variables(self, entity = None):
         """
         Gets all variables contained in a tax and benefit system.
@@ -413,7 +412,7 @@ class TaxBenefitSystem(object):
             return self.column_by_name
         else:
             return {
-            variable_name: variable
-            for variable_name, variable in self.column_by_name.iteritems()
-            if variable.entity == entity
-            }
+                variable_name: variable
+                for variable_name, variable in self.column_by_name.iteritems()
+                if variable.entity == entity
+                }

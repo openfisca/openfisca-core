@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from openfisca_core.tools import assert_near
 from openfisca_core.simulations import Simulation
-from openfisca_country_template.entities import Household, Person
+from openfisca_country_template.entities import Household
 from test_countries import tax_benefit_system
 
 TEST_CASE = {
@@ -46,7 +46,6 @@ def test_role_index_and_positions():
     assert(simulation.household.ids == [0, 1])
 
 
-
 def test_entity_structure_with_constructor():
     simulation_json = {
         "persons": {
@@ -65,7 +64,7 @@ def test_entity_structure_with_constructor():
                 "parents": ["claudia"]
                 }
             }
-    }
+        }
 
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
     household = simulation.household
@@ -96,7 +95,7 @@ def test_entity_variables_with_constructor():
                 "rent": {"2017-06": 600}
                 }
             }
-    }
+        }
 
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
     household = simulation.household
@@ -110,17 +109,17 @@ def test_person_variable_with_constructor():
                 "salary": {
                     "2017-11": 1500,
                     "2017-12": 2000
-                }
-            },
+                    }
+                },
             "bob": {
                 "salary": {}
-            },
+                },
             "claudia": {
                 "salary": {
                     "2017-11": 3000,
                     "2017-12": 4000
-                }
-            },
+                    }
+                },
             "janet": {},
             "tom": {},
             },
@@ -149,22 +148,22 @@ def test_set_input():
                     "2017-11": 2000,
                     "2017-12": 2000
 
-                }
-            },
+                    }
+                },
             "bob": {
                 "salary": {
                     "2017": 30000,
                     "2017-11": 0,
                     "2017-12": 0
-                }
-            },
+                    }
+                },
             "claudia": {
                 "salary": {
                     "2017": 24000,
                     "2017-11": 4000,
                     "2017-12": 4000,
-                }
-            },
+                    }
+                },
             "janet": {},
             "tom": {},
             },
@@ -177,12 +176,13 @@ def test_set_input():
                 "parents": ["claudia"],
                 }
             }
-    }
+        }
 
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
     person = simulation.person
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
     assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
+
 
 def test_has_role():
     simulation = new_simulation(TEST_CASE)

@@ -63,7 +63,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
 
         requested_computations = dpath.util.search(input_data, '**', afilter = lambda t: t is None, yielded = True)
 
-        for computation in requested_computations :
+        for computation in requested_computations:
             full_path = computation[0]
             path = full_path.split('/')
             result = simulation.calculate(path[-2], path[-1]).tolist()
@@ -72,7 +72,6 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             entity_result = result[entity_index]
 
             dpath.util.set(input_data, full_path, entity_result)
-
 
         return jsonify(input_data)
 

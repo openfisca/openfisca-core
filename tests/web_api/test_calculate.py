@@ -2,7 +2,7 @@
 
 import os
 import json
-from httplib import BAD_REQUEST, NOT_FOUND
+from httplib import BAD_REQUEST  # , NOT_FOUND
 
 from nose.tools import assert_equal, assert_in
 import dpath
@@ -12,7 +12,7 @@ from . import subject
 
 def post_json(data = None, file = None):
     if file:
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file_name)
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file)
         with open(file_path, 'r') as file:
             data = file.read()
     return subject.post('/calculate', data = data, content_type = 'application/json')
@@ -20,14 +20,10 @@ def post_json(data = None, file = None):
 
 def check_response(data, expected_error_code, path_to_check, content_to_check):
     response = post_json(data)
-    try:
-        assert_equal(response.status_code, expected_error_code)
-        json_response = json.loads(response.data)
-        content = dpath.util.get(json_response, path_to_check)
-        assert_in(content_to_check, content)
-    except:
-        raise
-        import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
+    assert_equal(response.status_code, expected_error_code)
+    json_response = json.loads(response.data)
+    content = dpath.util.get(json_response, path_to_check)
+    assert_in(content_to_check, content)
 
 
 def test_incorrect_inputs():
@@ -71,7 +67,7 @@ def test_basic_calculation():
                     "2017-12": None
                     }
                 },
-        },
+            },
         "households": {
             "first_household": {
                 "parents": ['bill', 'bob'],
@@ -83,11 +79,10 @@ def test_basic_calculation():
                     }
                 },
             }
-    })
+        })
 
     response = json.loads(post_json(simulation_json).data)
     assert_equal(dpath.get(response, 'persons/bill/basic_income/2017-12'), 600)  # Universal basic income
     assert_equal(dpath.get(response, 'persons/bill/income_tax/2017-12'), 300)  # 15% of the salary
     assert_equal(dpath.get(response, 'persons/bob/basic_income/2017-12'), 600)
     assert_equal(dpath.get(response, 'persons/bob/social_security_contribution/2017-12'), 816)  # From social_security_contribution.yaml test
-
