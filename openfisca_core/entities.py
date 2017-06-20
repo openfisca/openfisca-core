@@ -9,7 +9,7 @@ from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type
 from holders import Holder
-from periods import period
+from periods import period, compare_period_size
 
 class Entity(object):
     key = None
@@ -114,8 +114,32 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                 holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
         return holder
 
+    def build_variables(self, entity_object, entity_index):
+        for variable_name, variable_values in entity_object.iteritems():
+                holder = self.get_or_new_holder(variable_name)
+                for date,value in variable_values.iteritems() :
+                    array = holder.buffer.get(period(date))
+                    if array is None :
+                        array = holder.default_array()
+
+                    array[entity_index] = value
+
+                    holder.buffer[period(date)] = array
+
 class PersonEntity(Entity):
     is_person = True
+
+    def __init__(self, simulation, entities_json = None):
+        Entity.__init__(self, simulation, entities_json)
+        if entities_json:
+            for personID, entity_object in entities_json.iteritems():
+                self.build_variables(entity_object, self.ids.index(personID))
+            for holder in self._holders.itervalues():
+                periods = holder.buffer.keys()
+                sorted_periods = sorted(periods, cmp = compare_period_size)
+                for period in sorted_periods:
+                    array = holder.buffer[period]
+                    holder.set_input(period, array)
 
     # Projection person -> person
 
@@ -161,7 +185,6 @@ class GroupEntity(Entity):
         self.members = self.simulation.persons
 
 
-
     def build_from_json(self, entities_json):
 
         self.members_entity_id = np.empty(
@@ -196,16 +219,7 @@ class GroupEntity(Entity):
                 self.members_role[person_index] = person_role
                 self.members_legacy_role[person_index] = person_legacy_role
 
-            for variable_name, variable_values in entity_object.iteritems():
-                holder = self.get_or_new_holder(variable_name)
-                for date,value in variable_values.iteritems() :
-                    array = holder.get_array(period(date))
-                    if array is None :
-                        array = holder.default_array()
-                    array[entity_index] = value
-                    holder.set_input(period(date), array)
-                # variable_name = "rent"
-                # variable_values = {"2016-06": 400}
+            self.build_variables(entity_object, entity_index)
 
         self.roles_count = self.members_legacy_role.max() + 1
 
