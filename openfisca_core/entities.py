@@ -118,14 +118,15 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
     def build_variables(self, entity_object, entity_index):
         for variable_name, variable_values in entity_object.iteritems():
                 holder = self.get_or_new_holder(variable_name)
-                for date,value in variable_values.iteritems() :
-                    array = holder.buffer.get(period(date))
-                    if array is None :
-                        array = holder.default_array()
+                for date, value in variable_values.iteritems():
+                    if value is not None:
+                        array = holder.buffer.get(period(date))
+                        if array is None :
+                            array = holder.default_array()
 
-                    array[entity_index] = value
+                        array[entity_index] = value
 
-                    holder.buffer[period(date)] = array
+                        holder.buffer[period(date)] = array
 
 class PersonEntity(Entity):
     is_person = True
