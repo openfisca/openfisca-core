@@ -10,6 +10,7 @@ from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
 from holders import Holder
 from periods import compare_period_size, period as make_period
+from taxbenefitsystems import VariableNotFound
 
 
 class Entity(object):
@@ -87,7 +88,7 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name).entity
+        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
             raise ValueError(
                 "Variable {} is not defined for {} but for {}".format(
@@ -160,6 +161,9 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                 holder = self.get_holder(variable_name)
             except ValueError as e:
                 raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message)
+            except VariableNotFound as e:
+                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message, code = 404)
+
 
             for date, value in variable_values.iteritems():
                 if value is not None:
