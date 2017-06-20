@@ -260,13 +260,19 @@ class GroupEntity(Entity):
     def build_roles(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
+            for person_id in role_definition:
+                if not person_id in self.simulation.persons.ids:
+                    raise SituationParsingError([self.plural, entity_id, role_id],
+                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                            person_id, entity_id, role_id, self.simulation.persons.plural)
+                        )
 
-            entity_index = self.ids.index(entity_id)
-            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
-                person_index = self.simulation.persons.ids.index(person_id)
-                self.members_entity_id[person_index] = entity_index
-                self.members_role[person_index] = person_role
-                self.members_legacy_role[person_index] = person_legacy_role
+        entity_index = self.ids.index(entity_id)
+        for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
+            person_index = self.simulation.persons.ids.index(person_id)
+            self.members_entity_id[person_index] = entity_index
+            self.members_role[person_index] = person_role
+            self.members_legacy_role[person_index] = person_legacy_role
 
         self.roles_count = self.members_legacy_role.max() + 1
 
