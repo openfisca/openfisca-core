@@ -164,6 +164,9 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             except VariableNotFound as e:
                 raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message, code = 404)
 
+            if not isinstance(variable_values, dict):
+                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name],
+                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             for date, value in variable_values.iteritems():
                 if value is not None:
