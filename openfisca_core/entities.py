@@ -6,6 +6,8 @@ import warnings
 import numpy as np
 
 from formulas import ADD, DIVIDE
+from inputs import check_type
+from scenarios import iter_over_entity_members
 
 
 class Entity(object):
@@ -14,10 +16,15 @@ class Entity(object):
     label = None
     is_person = False
 
-    def __init__(self, simulation):
+    def __init__(self, simulation, entities_json = None):
         self.simulation = simulation
-        self.count = 0
-        self.step_size = 0
+        if entities_json:
+            check_type(entities_json, dict, [self.plural])
+            self.count = len(entities_json)
+            self.ids = sorted(entities_json.keys())
+        else:
+            self.count = 0
+            self.step_size = 0
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -125,13 +132,58 @@ class GroupEntity(Entity):
     flattened_roles = None
     roles_description = None
 
-    def __init__(self, simulation):
-        Entity.__init__(self, simulation)
-        self.members_entity_id = None
-        self._members_role = None
-        self._members_position = None
-        self.members_legacy_role = None
+    def __init__(self, simulation, entities_json = None):
+        Entity.__init__(self, simulation, entities_json)
+        if entities_json:
+            self.build_from_json(entities_json)
+        else:
+            self.members_entity_id = None
+            self._members_role = None
+            self._members_position = None
+            self.members_legacy_role = None
         self.members = self.simulation.persons
+
+
+    def build_from_json(self, entities_json):
+
+        self.members_entity_id = np.empty(
+            self.simulation.persons.count,
+            dtype = np.int32
+            )
+        self.members_role = np.empty(
+            self.simulation.persons.count,
+            dtype = object
+            )
+        self.members_legacy_role = np.empty(
+            self.simulation.persons.count,
+            dtype = np.int32
+            )
+        self._members_position = None
+
+        check_type(entities_json, dict, [self.plural])
+        roles_by_plural = {
+            role.plural: role
+            for role in self.roles
+        }
+
+        for entity_id, entity_object in entities_json.iteritems():
+            check_type(entity_object, dict, [self.plural, entity_id])
+
+            for property_name, property in entity_object.iteritems():
+                if property_name in roles_by_plural:
+                    check_type(property, list, [self.plural, entity_id, property_name])
+
+            entity_index = self.ids.index(entity_id)
+            for person_role, person_legacy_role, person_id in iter_over_entity_members(self, entity_object):
+                person_index = self.simulation.persons.ids.index(person_id)
+                self.members_entity_id[person_index] = entity_index
+                self.members_role[person_index] = person_role
+                self.members_legacy_role[person_index] = person_legacy_role
+
+        self.roles_count = self.members_legacy_role.max() + 1
+
+                    # check_variable(property_name, property, entity_class, tax_benefit_system, [self.plural, entity_id, property_name])
+
 
     @property
     def members_role(self):

@@ -4,6 +4,7 @@ from jsonschema import validate, ValidationError
 import dpath
 
 from taxbenefitsystems import VariableNotFound
+from simulations import Simulation
 
 
 def get_entity_schema(entity, tax_benefit_system):
@@ -56,7 +57,7 @@ def get_situation_schema(tax_benefit_system):
     }
 
 
-def check_type(input, type, path):
+def check_type(input, type, path = []):
     type_map = {
         dict: "object",
         list: "array",
@@ -68,56 +69,45 @@ def check_type(input, type, path):
             'Invalid type: must be of type "{}".'.format(type_map[type]))
 
 
-def check_entity(entity_object, entity_class, roles_by_plural, tax_benefit_system, path):
-    check_type(entity_object, dict, path)
-
-    for property_name, property in entity_object.iteritems():
-        if property_name in roles_by_plural:
-            check_type(property, list, path + [property_name])
-        else:
-            check_variable(property_name, property, entity_class, tax_benefit_system, path + [property_name])
-
-
-def check_variable(property_name, property, entity_class, tax_benefit_system, path):
-    variable = tax_benefit_system.get_column(property_name)
-    if not variable:
-        raise SituationParsingError(path,
-        VariableNotFound.build_error_message(property_name, tax_benefit_system),
-        code = 404
-        )
-    if not variable.entity == entity_class:
-        declared_entity = entity_class.plural
-        right_entity = variable.entity.plural
-        raise SituationParsingError(path,
-            u'You tried to set the value of variable {0} for {1}, but {0} is only defined for {2}.'.format(property_name, declared_entity, right_entity)
-        )
-    else:
-        if not isinstance(property, dict):
-            raise SituationParsingError(path,
-            'Input variables need to be set for a specific period. For instance: "{salary: {"2017-06": 2000}}"')
+# def check_variable(property_name, property, entity_class, tax_benefit_system, path):
+#     variable = tax_benefit_system.get_column(property_name)
+#     if not variable:
+#         raise SituationParsingError(path,
+#         VariableNotFound.build_error_message(property_name, tax_benefit_system),
+#         code = 404
+#         )
+#     if not variable.entity == entity_class:
+#         declared_entity = entity_class.plural
+#         right_entity = variable.entity.plural
+#         raise SituationParsingError(path,
+#             u'You tried to set the value of variable {0} for {1}, but {0} is only defined for {2}.'.format(property_name, declared_entity, right_entity)
+#         )
+#     else:
+#         if not isinstance(property, dict):
+#             raise SituationParsingError(path,
+#             'Input variables need to be set for a specific period. For instance: "{salary: {"2017-06": 2000}}"')
 
 
 def build_simulation(situation, tax_benefit_system):
     check_type(situation, dict, ['error'])
+
+    simulation = Simulation(tax_benefit_system = tax_benefit_system)
+
+    persons_json = situation.pop(tax_benefit_system.person_entity.plural, None)
+    persons_entity = tax_benefit_system.person_entity(simulation, persons_json)
+
     entities_by_plural = {
         entity.plural: entity
         for entity in tax_benefit_system.entities
     }
 
-    for entity_plural, entities in situation.iteritems():
+    for entity_plural, entities_json in situation.iteritems():
         entity_class = entities_by_plural.get(entity_plural)
         if not entity_class:
             raise SituationParsingError([entity_plural],
                 'This entity is not defined in the loaded tax and benefit system.')
-        check_type(entities, dict, [entity_plural])
 
-        roles_by_plural = {
-            role.plural: role
-            for role in entity_class.roles
-        } if not entity_class.is_person else {}
-
-        for entity_id, entity_object in entities.iteritems():
-            check_entity(entity_object, entity_class, roles_by_plural, tax_benefit_system, [entity_plural, entity_id])
+        entities = entity_class(simulation, entities_json)
 
 
 class SituationParsingError(Exception):

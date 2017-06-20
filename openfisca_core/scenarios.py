@@ -714,7 +714,7 @@ def iter_over_entity_members(entity_description, scenario_entity):
         legacy_role_i = 0
         for role in entity_description.roles:
             role_name = role.plural or role.key
-            individus = scenario_entity[role_name]
+            individus = scenario_entity.get(role_name)
 
             if individus:
                 if not type(individus) == list:
