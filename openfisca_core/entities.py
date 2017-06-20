@@ -7,9 +7,10 @@ import numpy as np
 
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
-from simulations import check_type
+from simulations import check_type, SituationParsingError
 from holders import Holder
 from periods import compare_period_size, period as make_period
+
 
 class Entity(object):
     key = None
@@ -26,7 +27,6 @@ class Entity(object):
             self.count = 0
             self.step_size = 0
 
-
     def build_from_json(self, entities_json):
         check_type(entities_json, dict, [self.plural])
         self.count = len(entities_json)
@@ -39,14 +39,16 @@ class Entity(object):
             else:
                 variables_json = entity_object
             self.build_variables(variables_json, self.ids.index(entity_id))
-        for holder in self._holders.itervalues():
+        for variable_name, holder in self._holders.iteritems():
             periods = holder.buffer.keys()
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, cmp = compare_period_size)
             for period in sorted_periods:
                 array = holder.buffer[period]
-                holder.set_input(period, array)
-
+                try:
+                    holder.set_input(period, array)
+                except ValueError as e:
+                    raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
 
     def clone(self, new_simulation):
         """
@@ -65,7 +67,6 @@ class Entity(object):
                 new_dict[key] = value
 
         return new
-
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -86,20 +87,20 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        if not (self.simulation.get_variable_entity(variable_name) == self):
-            variable_entity = self.simulation.get_variable_entity(variable_name)
-            raise Exception(
+        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name).entity
+        if not isinstance(self, variable_entity):
+            raise ValueError(
                 "Variable {} is not defined for {} but for {}".format(
-                    variable_name, self.key, variable_entity.key)
+                    variable_name, self.plural, variable_entity.plural)
                 )
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise Exception("Input {} is not a valid value for the entity {}".format(array, self.key))
+            raise ValueError("Input {} is not a valid value for the entity {}".format(array, self.key))
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
-            raise Exception("{} is not a valid role".format(role))
+            raise ValueError("{} is not a valid role".format(role))
 
     def check_period_validity(self, variable_name, period):
         if period is None:
@@ -138,16 +139,13 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             return np.full(self.count, value, dtype)
 
     def get_holder(self, variable_name, init = True):
+        self.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
         if not init:
             return None
-        column = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True)
-        if column.entity != self.__class__:
-            raise ValueError("Variable {} is not defined for {} but for {}".format(
-                variable_name, self.key, column.entity.key).encode('utf-8'))
-
+        column = self.simulation.tax_benefit_system.get_column(variable_name)
         self._holders[variable_name] = holder = Holder(
             self,
             column = column,
@@ -158,7 +156,11 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
 
     def build_variables(self, entity_object, entity_index):
         for variable_name, variable_values in entity_object.iteritems():
-            holder = self.get_holder(variable_name)
+            try:
+                holder = self.get_holder(variable_name)
+            except ValueError as e:
+                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message)
+
             for date, value in variable_values.iteritems():
                 if value is not None:
                     array = holder.buffer.get(make_period(date))
@@ -216,7 +218,6 @@ class GroupEntity(Entity):
             self.members_legacy_role = None
         self.members = self.simulation.persons
 
-
     def split_variables_and_roles_json(self, entity_object):
         entity_object = entity_object.copy()  # Don't mutate function input
 
@@ -243,7 +244,6 @@ class GroupEntity(Entity):
         self._members_position = None
 
         Entity.build_from_json(self, entities_json)
-
 
     def build_roles(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
