@@ -256,6 +256,8 @@ class GroupEntity(Entity):
             )
         self._members_position = None
 
+        self.persons_to_allocate = set(self.simulation.persons.ids)
+
         Entity.build_from_json(self, entities_json)
 
     def build_roles(self, roles_json, entity_id):
@@ -267,6 +269,12 @@ class GroupEntity(Entity):
                         "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
                             person_id, entity_id, role_id, self.simulation.persons.plural)
                         )
+                if not person_id in self.persons_to_allocate:
+                    raise SituationParsingError([self.plural, entity_id, role_id],
+                        "{} has been declared more than once in {}".format(
+                            person_id, self.plural)
+                        )
+                self.persons_to_allocate.discard(person_id)
 
         entity_index = self.ids.index(entity_id)
         for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
