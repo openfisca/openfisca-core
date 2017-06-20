@@ -61,6 +61,7 @@ class Holder(object):
         self.column = column
         self.entity = entity
         self.simulation = entity.simulation
+        self.buffer = {}
 
     @property
     def array(self):

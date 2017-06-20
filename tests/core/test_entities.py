@@ -102,6 +102,43 @@ def test_entity_variables_with_constructor():
     assert_near(household('rent', "2017-06"), [800, 600])
 
 
+def test_person_variable_with_constructor():
+    simulation_json = {
+        "persons": {
+            "bill": {
+                "salary": {
+                    "2017-11": 1500,
+                    "2017-12": 2000
+                }
+            },
+            "bob": {
+                "salary": {}
+            },
+            "claudia": {
+                "salary": {
+                    "2017-11": 3000,
+                    "2017-12": 4000
+                }
+            },
+            "janet": {},
+            "tom": {},
+            },
+        "households": {
+            "first_household": {
+                "parents": ['bill', 'bob'],
+                "children": ['janet', 'tom'],
+                },
+            "second_household": {
+                "parents": ["claudia"],
+                }
+            }
+        }
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    person = simulation.person
+    assert_near(person('salary', "2017-11"), [1500, 0, 3000, 0, 0])
+    assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
+
+
 def test_has_role():
     simulation = new_simulation(TEST_CASE)
     individu = simulation.persons
