@@ -5,8 +5,8 @@ import collections
 
 import dpath
 
-from . import periods, holders
-from .commons import empty_clone, stringify_array
+import periods
+from commons import empty_clone, stringify_array
 
 
 class Simulation(object):
@@ -83,7 +83,6 @@ class Simulation(object):
             unexpected_key = simulation_json.keys()[0]
             raise SituationParsingError([unexpected_key],
                 'This entity is not defined in the loaded tax and benefit system.')
-
 
     def calculate(self, column_name, period, **parameters):
         return self.compute(column_name, period = period, **parameters).array
@@ -262,7 +261,7 @@ def check_type(input, type, path = []):
         dict: "object",
         list: "array",
         str: "string"
-    }
+        }
 
     if not isinstance(input, type):
         raise SituationParsingError(path,
