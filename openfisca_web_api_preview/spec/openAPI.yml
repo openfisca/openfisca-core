@@ -13,17 +13,58 @@ host: null
 schemes:
   - "https"
 tags:
-- name: "Parameters"
-  description: "A parameter is a numeric property of the legislation that can evolve over time."
-  externalDocs:
-    description: "Parameter official documentation"
-    url: "https://doc.openfisca.fr/parameters.html"
-- name: "Variables"
-  description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
-  externalDocs:
-    description: "Variable official documentation"
-    url: "https://doc.openfisca.fr/variables.html"
+  - name: "Parameters"
+    description: "A parameter is a numeric property of the legislation that can evolve over time."
+    externalDocs:
+      description: "Parameter official documentation"
+      url: "https://doc.openfisca.fr/parameters.html"
+  - name: "Variables"
+    description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
+    externalDocs:
+      description: "Variable official documentation"
+      url: "https://doc.openfisca.fr/variables.html"
 paths:
+  /calculate:
+    post:
+      summary: "Run a simulation"
+      operationId: "calculate"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "The calculation result is sent back in the respnse body"
+          headers : # Shoud be factorized
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+              schema:
+                $ref: '#/definitions/Situation'
+        404:
+          description: "The calculation result is sent back in the respnse body"
+          headers : # Shoud be factorized
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+              schema:
+                $ref: '#/definitions/Situation'
+        400:
+          description: "The request is invalid."
+          headers : # Shoud be factorized
+            Country-Package :
+              description : "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+              schema:
+                $ref: '#/definitions/Situation'
+
   /parameters:
     get:
       tags:
@@ -31,7 +72,7 @@ paths:
       summary: "List all available parameters"
       operationId: "getParameters"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
@@ -134,6 +175,7 @@ paths:
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
+
 
 definitions:
   Parameter:
@@ -255,3 +297,4 @@ definitions:
       type: "number"
       format: "float"
 
+  Situation: null
