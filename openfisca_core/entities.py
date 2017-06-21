@@ -172,7 +172,11 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
 
             for date, value in variable_values.iteritems():
                 if value is not None:
-                    array = holder.buffer.get(make_period(date))
+                    try:
+                        period = make_period(date)
+                    except ValueError as e:
+                        raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date], e.message)
+                    array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
 
@@ -182,7 +186,7 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                         raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date],
                     'Invalid type: must be of type {}.'.format(holder.column.json_type))
 
-                    holder.buffer[make_period(date)] = array
+                    holder.buffer[period] = array
 
 
 class PersonEntity(Entity):

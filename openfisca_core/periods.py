@@ -763,7 +763,7 @@ def period(value):
             return Period((YEAR, Instant((date.year, date.month, 1)), 1))
 
     def raise_error(value):
-        raise ValueError(u"Invalid period {}".format(value).encode('utf-8'))
+        raise ValueError(u"Invalid period '{}'. Legal period formats are documented here: <https://doc.openfisca.fr/periodsinstants.html#api>".format(value).encode('utf-8'))
 
     # check the type
     if isinstance(value, int):
