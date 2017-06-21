@@ -8,7 +8,6 @@ import dpath
 
 from openfisca_core.simulations import Simulation, SituationParsingError
 from loader import build_data
-from errors import handle_invalid_json
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
@@ -51,6 +50,13 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
     @app.route('/spec')
     def get_spec():
         return jsonify(data['openAPI_spec'])
+
+    def handle_invalid_json(error):
+        json_response = jsonify({
+            'error': 'Invalid JSON: {}'.format(error.message),
+            })
+
+        abort(make_response(json_response, 400))
 
     @app.route('/calculate', methods=['POST'])
     def calculate():
