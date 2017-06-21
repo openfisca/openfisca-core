@@ -198,7 +198,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.get_variable_entity(column_name).get_array(period).get_holder(column_name).get_array(period)
+        return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -246,7 +246,7 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_variable_entity(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+        self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
         if isinstance(instant, periods.Period):
