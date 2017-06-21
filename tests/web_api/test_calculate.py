@@ -53,6 +53,12 @@ def test_basic_calculation():
     simulation_json = json.dumps({
         "persons": {
             "bill": {
+                "birth": {
+                    "2017-12": "1980-01-01"
+                    },
+                "age": {
+                    "2017-12": None
+                    },
                 "salary": {
                     "2017-12": 2000
                     },
@@ -93,6 +99,7 @@ def test_basic_calculation():
     response_json = json.loads(response.data)
     assert_equal(dpath.get(response_json, 'persons/bill/basic_income/2017-12'), 600)  # Universal basic income
     assert_equal(dpath.get(response_json, 'persons/bill/income_tax/2017-12'), 300)  # 15% of the salary
+    assert_equal(dpath.get(response_json, 'persons/bill/age/2017-12'), 37)  # 15% of the salary
     assert_equal(dpath.get(response_json, 'persons/bob/basic_income/2017-12'), 600)
     assert_equal(dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12'), 816)  # From social_security_contribution.yaml test
     assert_equal(dpath.get(response_json, 'households/first_household/housing_tax/2017'), 3000)
