@@ -8,7 +8,7 @@ from .tax_benefit_system import build_tax_benefit_system
 from .parameters import build_parameters
 from .variables import build_variables
 
-OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'openAPI.yml')
+OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'spec', 'openAPI.yml')
 
 
 def extract_description(items):
