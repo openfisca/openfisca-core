@@ -291,8 +291,11 @@ class Simulation(object):
         column = self.tax_benefit_system.get_column(variable_name, check_existence = True)
         return self.get_entity(column.entity)
 
-    def get_entity(self, entity_type):
-        return self.entities[entity_type.key]
+    def get_entity(self, entity_type = None, plural = None):
+        if entity_type:
+            return self.entities[entity_type.key]
+        if plural:
+            return [entity for entity in self.entities.values() if entity.plural == plural][0]
 
 
 def check_type(input, type, path = []):
