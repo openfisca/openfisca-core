@@ -3,7 +3,9 @@
 import json
 from httplib import OK
 
+import dpath
 from nose.tools import assert_equal, assert_items_equal, assert_in
+
 from . import subject
 
 openAPI_response = subject.get('/spec')
@@ -28,20 +30,18 @@ def test_paths():
 
 
 def test_entity_definition():
-    household = body['definitions']['Household']
-    person = body['definitions']['Person']
-    assert_in('salary', person['properties'])
-    assert_in('rent', household['properties'])
-    assert_in('parents', household['properties'])
-    assert_in('children', household['properties'])
+    assert_in('parents', dpath.get(body, 'definitions/Household/properties'))
+    assert_in('children', dpath.get(body, 'definitions/Household/properties'))
+    assert_in('salary', dpath.get(body, 'definitions/Person/properties'))
+    assert_in('rent', dpath.get(body, 'definitions/Household/properties'))
+    assert_equal('Float', dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type'))
 
 
 def test_situation_definition():
     situation_input = body['definitions']['SituationInput']
     situation_output = body['definitions']['SituationOutput']
     for situation in situation_input, situation_output:
-        properties = situation['properties']
-        assert_in('households', properties)
-        assert_in('persons', properties)
-        assert_equal(properties['households']['additionalProperties'], {"$ref": "#/definitions/Household"})
-        assert_equal(properties['persons']['additionalProperties'], {"$ref": "#/definitions/Person"})
+        assert_in('households', dpath.get(situation, '/properties'))
+        assert_in('persons', dpath.get(situation, '/properties'))
+        assert_equal("#/definitions/Household", dpath.get(situation, '/properties/households/additionalProperties/$ref'))
+        assert_equal("#/definitions/Person", dpath.get(situation, '/properties/persons/additionalProperties/$ref'))

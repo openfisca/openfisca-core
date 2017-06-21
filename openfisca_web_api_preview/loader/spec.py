@@ -27,13 +27,20 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
     return spec
 
 
+def get_variable_schema(variable):
+    return {
+        'type': 'object',
+        'additionalProperties': {'type': variable.json_type},
+        }
+
+
 def get_entity_schema(entity, tax_benefit_system):
     if entity.is_person:
         return {
             'type': 'object',
             'properties': {
-                variable_name: {'type': 'object'}
-                for variable_name in tax_benefit_system.get_variables(entity)
+                variable_name: get_variable_schema(variable)
+                for variable_name, variable in tax_benefit_system.get_variables(entity).iteritems()
                 },
             'additionalProperties': False,
             }
@@ -49,8 +56,8 @@ def get_entity_schema(entity, tax_benefit_system):
             for role in entity.roles
             })
         properties.update({
-            variable_name: {'type': 'object'}
-            for variable_name in tax_benefit_system.get_variables(entity)
+            variable_name: get_variable_schema(variable)
+            for variable_name, variable in tax_benefit_system.get_variables(entity).iteritems()
             })
         return {
             'type': 'object',
