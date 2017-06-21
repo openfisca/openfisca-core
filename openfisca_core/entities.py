@@ -182,7 +182,6 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                         raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date],
                     'Invalid type: must be of type {}.'.format(holder.column.json_type))
 
-
                     holder.buffer[make_period(date)] = array
 
 
@@ -275,12 +274,12 @@ class GroupEntity(Entity):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for person_id in role_definition:
-                if not person_id in self.simulation.persons.ids:
+                if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
                             person_id, entity_id, role_id, self.simulation.persons.plural)
                         )
-                if not person_id in self.persons_to_allocate:
+                if person_id not in self.persons_to_allocate:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         "{} has been declared more than once in {}".format(
                             person_id, self.plural)
@@ -443,6 +442,9 @@ class Role(object):
         self.plural = description.get('plural')
         self.max = description.get('max')
         self.subroles = None
+
+    def __repr__(self):
+        return "Role({})".format(self.key)
 
 
 class Projector(object):
