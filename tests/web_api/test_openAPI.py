@@ -32,3 +32,14 @@ def test_entity_definition():
     assert_in('rent', household['properties'])
     assert_in('parents', household['properties'])
     assert_in('children', household['properties'])
+
+
+def test_situation_definition():
+    situation_input = body['definitions']['SituationInput']
+    situation_output = body['definitions']['SituationOutput']
+    for situation in situation_input, situation_output:
+        properties = situation['properties']
+        assert_in('households', properties)
+        assert_in('persons', properties)
+        assert_equal(properties['households']['additionalProperties'], {"$ref": "#/definitions/Household"})
+        assert_equal(properties['persons']['additionalProperties'], {"$ref": "#/definitions/Person"})

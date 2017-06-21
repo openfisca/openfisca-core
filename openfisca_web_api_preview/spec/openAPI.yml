@@ -305,7 +305,8 @@ definitions:
       type: "number"
       format: "float"
 
-  Situation_input:
+
+  SituationInput:
     example:
       persons:
         Bill:
@@ -333,17 +334,18 @@ definitions:
       households:
         household:
           first_household:
-                parents: [Bill, Bob]
-                children: [Janet]
-                housing_tax:
-                    "2017": None
-                accomodation_size:
-                    "2017-01": 300
-                    "2017-02": 300
-                    "2017-03": 300
-                    "2017-04": 300
-                    "2017-05": 300
-  Situation_output:
+            parents: [Bill, Bob]
+            children: [Janet]
+            housing_tax:
+                "2017": None
+            accomodation_size:
+                "2017-01": 300
+                "2017-02": 300
+                "2017-03": 300
+                "2017-04": 300
+                "2017-05": 300
+
+  SituationOutput:
     example:
       persons:
         Bill:
@@ -370,16 +372,16 @@ definitions:
       households:
         household:
           first_household:
-                parents: [Bill, Bob]
-                children: [Janet]
-                housing_tax:
-                    "2017": 345
-                accomodation_size:
-                    "2017-01": 300
-                    "2017-02": 300
-                    "2017-03": 300
-                    "2017-04": 300
-                    "2017-05": 300
+            parents: [Bill, Bob]
+            children: [Janet]
+            housing_tax:
+                "2017": 345
+            accomodation_size:
+                "2017-01": 300
+                "2017-02": 300
+                "2017-03": 300
+                "2017-04": 300
+                "2017-05": 300
 
 
 

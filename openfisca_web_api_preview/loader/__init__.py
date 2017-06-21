@@ -7,7 +7,7 @@ import yaml
 from tax_benefit_system import build_tax_benefit_system
 from parameters import build_parameters
 from variables import build_variables
-from ..spec.situation_schema import get_entity_schema
+from ..spec.situation_schema import get_entity_schema, get_situation_schema
 
 
 OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'spec', 'openAPI.yml')
@@ -29,7 +29,13 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
     spec['host'] = os.environ.get('SERVER_NAME')
 
     for entity in tax_benefit_system.entities:
-        spec['definitions'][entity.key.title()] = get_entity_schema(entity, tax_benefit_system)
+        name = entity.key.title()
+        spec['definitions'][name] = get_entity_schema(entity, tax_benefit_system)
+
+    situation_schema = get_situation_schema(tax_benefit_system)
+    spec['definitions']['SituationInput'].update(situation_schema)
+    spec['definitions']['SituationOutput'].update(situation_schema)
+
     return spec
 
 
