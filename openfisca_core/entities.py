@@ -66,11 +66,11 @@ class Entity(object):
                     'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             for date, value in variable_values.iteritems():
+                try:
+                    period = make_period(date)
+                except ValueError as e:
+                    raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
                 if value is not None:
-                    try:
-                        period = make_period(date)
-                    except ValueError as e:
-                        raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
