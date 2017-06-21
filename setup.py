@@ -48,6 +48,7 @@ setup(
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
         'lxml >= 3.7',
+        'dpath == 1.4.0'
         ],
     message_extractors = {
         'openfisca_core': [
