@@ -51,7 +51,7 @@ class Entity(object):
                 try:
                     holder.set_input(period, array)
                 except ValueError as e:
-                    raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
+                    raise SituationParsingError([self.plural, entity_id, variable_name, str(period)], e.message)
 
     def clone(self, new_simulation):
         """
