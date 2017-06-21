@@ -67,18 +67,24 @@ class Simulation(object):
             check_type(simulation_json, dict, ['error'])
             copied_simulation_json = simulation_json.copy()  # Avoid mutating the input
 
-        persons_json = simulation_json and copied_simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
+            persons_json = copied_simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
 
-        if simulation_json and not persons_json:
-            raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                'No person found. At least one person must be defined to run a simulation.')
-        self.persons = self.tax_benefit_system.person_entity(self, persons_json)
+            if not persons_json:
+                raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
+                    'No person found. At least one person must be defined to run a simulation.')
+            self.persons = self.tax_benefit_system.person_entity(self, persons_json)
+        else:
+            self.persons = self.tax_benefit_system.person_entity(self)
+
         self.entities = {self.persons.key: self.persons}
         setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
         for entity_class in self.tax_benefit_system.group_entities:
-            entities_json = simulation_json and copied_simulation_json.pop(entity_class.plural, {})
-            entities = entity_class(self, entities_json)
+            if simulation_json:
+                entities_json = copied_simulation_json.pop(entity_class.plural, {})
+                entities = entity_class(self, entities_json)
+            else:
+                entities = entity_class(self)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
 
