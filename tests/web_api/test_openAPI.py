@@ -12,7 +12,9 @@ openAPI_response = subject.get('/spec')
 def test_return_code():
     assert_equal(openAPI_response.status_code, OK)
 
+
 body = json.loads(openAPI_response.data)
+
 
 def test_paths():
     assert_items_equal(
