@@ -216,7 +216,7 @@ class Simulation(object):
         if holder:
             return holder
         if default is UnboundLocalError:
-            raise KeyError("column_name")
+            raise KeyError(column_name)
         return default
 
     def get_or_new_holder(self, column_name):
