@@ -28,11 +28,20 @@ paths:
     post:
       summary: "Run a simulation"
       operationId: "calculate"
+      consumes:
+        - "application/json"
       produces:
         - "application/json"
+      parameters:
+      - in: "body"
+        name: "Situation"
+        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with "None" as the value.'
+        required: true
+        schema:
+          $ref: '#/definitions/Situation_input'
       responses:
         200:
-          description: "The calculation result is sent back in the respnse body"
+          description: "The calculation result is sent back in the response body"
           headers : # Shoud be factorized
             Country-Package :
               description : "The name of the country package currently loaded in this API server"
@@ -40,10 +49,10 @@ paths:
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
-              schema:
-                $ref: '#/definitions/Situation'
+          schema:
+            $ref: '#/definitions/Situation_output'
         404:
-          description: "The calculation result is sent back in the respnse body"
+          description: "The calculation result is sent back in the response body"
           headers : # Shoud be factorized
             Country-Package :
               description : "The name of the country package currently loaded in this API server"
@@ -51,8 +60,8 @@ paths:
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
-              schema:
-                $ref: '#/definitions/Situation'
+          schema:
+            $ref: '#/definitions/Situation_input'
         400:
           description: "The request is invalid."
           headers : # Shoud be factorized
@@ -62,8 +71,7 @@ paths:
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
-              schema:
-                $ref: '#/definitions/Situation'
+
 
   /parameters:
     get:
@@ -297,4 +305,82 @@ definitions:
       type: "number"
       format: "float"
 
-  Situation: null
+  Situation_input:
+    example:
+      persons:
+        Bill:
+          salary:
+            "2017-05-01" : 2000
+            "2017-04-01" : 4000
+            "2017-03-01" : 5000
+            "2017-02-01" : 300
+            "2017-01-01" : 2000
+          income_tax :
+            "2017-05-01" : None
+            "2017-04-01" : None
+            "2017-03-01" : None
+            "2017-02-01" : None
+            "2017-01-01" : None
+
+        Bob:
+          salary:
+            "2017-05-01" : 2000
+            "2017-04-01" : 2000
+            "2017-03-01" : 2000
+            "2017-02-01" : 2000
+            "2017-01-01" : 2000
+        Janet:
+      households:
+        household:
+          first_household:
+                parents: [Bill, Bob]
+                children: [Janet]
+                housing_tax:
+                    "2017": None
+                accomodation_size:
+                    "2017-01": 300
+                    "2017-02": 300
+                    "2017-03": 300
+                    "2017-04": 300
+                    "2017-05": 300
+  Situation_output:
+    example:
+      persons:
+        Bill:
+          salary:
+            "2017-05-01" : 2000
+            "2017-04-01" : 4000
+            "2017-03-01" : 5000
+            "2017-02-01" : 300
+            "2017-01-01" : 2000
+          income_tax :
+            "2017-05-01" : 200
+            "2017-04-01" : 500
+            "2017-03-01" : 700
+            "2017-02-01" : 0
+            "2017-01-01" : 200
+        Bob:
+          salary:
+            "2017-05-01" : 2000
+            "2017-04-01" : 2000
+            "2017-03-01" : 2000
+            "2017-02-01" : 2000
+            "2017-01-01" : 2000
+        Janet:
+      households:
+        household:
+          first_household:
+                parents: [Bill, Bob]
+                children: [Janet]
+                housing_tax:
+                    "2017": 345
+                accomodation_size:
+                    "2017-01": 300
+                    "2017-02": 300
+                    "2017-03": 300
+                    "2017-04": 300
+                    "2017-05": 300
+
+
+
+
