@@ -33,19 +33,17 @@ def get_entity_schema(entity, tax_benefit_system):
             }
 
 
-def get_entities_schema(entity, tax_benefit_system):
-    return {
-        'type': 'object',
-        'additionalProperties': get_entity_schema(entity, tax_benefit_system)
-        }
-
-
 def get_situation_schema(tax_benefit_system):
     return {
         'type': 'object',
         'additionalProperties': False,
         'properties': {
-            entity.plural: get_entities_schema(entity, tax_benefit_system)
+            entity.plural: {
+                'type': 'object',
+                'additionalProperties': {
+                    "$ref": "#/definitions/{}".format(entity.key.title())
+                    }
+                }
             for entity in tax_benefit_system.entities
             }
         }
