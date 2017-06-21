@@ -2,6 +2,7 @@
 
 
 from __future__ import division
+import warnings
 
 import numpy as np
 
@@ -55,12 +56,21 @@ class Holder(object):
     formula = None
     formula_output_period_by_requested_period = None
 
-    def __init__(self, entity, column = None):
+    def __init__(self, simulation = None, column = None, entity = None):
         assert column is not None
         assert self.column is None
+        if simulation is not None:
+            warnings.warn(
+                u"The Holder(simulation, column) constructor has been deprecated. "
+                u"Please use Holder(entity = entity, column = column) instead.",
+                Warning
+                )
+            self.simulation = simulation
+            self.entity = simulation.get_entity(column.entity)
+        else:
+            self.entity = entity
+            self.simulation = entity.simulation
         self.column = column
-        self.entity = entity
-        self.simulation = entity.simulation
         self.buffer = {}
 
     @property

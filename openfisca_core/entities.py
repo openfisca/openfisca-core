@@ -150,7 +150,7 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             return None
         column = self.simulation.tax_benefit_system.get_column(variable_name)
         self._holders[variable_name] = holder = Holder(
-            self,
+            entity = self,
             column = column,
             )
         if column.formula_class is not None:

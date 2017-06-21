@@ -87,6 +87,20 @@ class Simulation(object):
             raise SituationParsingError([unexpected_key],
                 'This entity is not defined in the loaded tax and benefit system.')
 
+    @property
+    def holder_by_name(self):
+        warnings.warn(
+            u"The simulation.holder_by_name attribute has been deprecated. "
+            u"Please use entity.get_holder instead. "
+            u"Using simulation.holder_by_name may negatively impact performances",
+            Warning
+            )
+
+        result = {}
+        for entity in self.entities.itervalues():
+            result.update(entity._holders)
+        return result
+
     def calculate(self, column_name, period, **parameters):
         return self.compute(column_name, period = period, **parameters).array
 
@@ -192,7 +206,7 @@ class Simulation(object):
 
     def get_holder(self, column_name, default = UnboundLocalError):
         warnings.warn(
-            u"The simulation.get_holder has been deprecated. "
+            u"The simulation.get_holder method has been deprecated. "
             u"Please use entity.get_holder instead.",
             Warning
             )
@@ -207,7 +221,7 @@ class Simulation(object):
 
     def get_or_new_holder(self, column_name):
         warnings.warn(
-            u"The simulation.get_or_new_holder has been deprecated. "
+            u"The simulation.get_or_new_holder method has been deprecated. "
             u"Please use entity.get_holder instead.",
             Warning
             )
