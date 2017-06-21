@@ -266,12 +266,19 @@ class Holder(object):
                 raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
             if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
-                raise ValueError(u'Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
+                error_message = u'Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
                     self.column.name,
                     period.unit,
                     period,
                     self.column.definition_period
-                    ).encode('utf-8'))
+                    ).encode('utf-8')
+
+                raise PeriodMismatchError(
+                    self.column.name,
+                    period,
+                    self.column.definition_period,
+                    error_message
+                    )
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
@@ -354,3 +361,11 @@ class Holder(object):
         array = np.empty(array_size, dtype = self.column.dtype)
         array.fill(self.column.default)
         return array
+
+
+class PeriodMismatchError(ValueError):
+    def __init__(self, variable_name, period, definition_period, message):
+        self.variable_name = variable_name
+        self.period = period
+        self.definition_period = definition_period
+        ValueError.__init__(self, message)

@@ -4,11 +4,12 @@ import traceback
 import warnings
 
 import numpy as np
+import dpath
 
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
-from holders import Holder
+from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
 from taxbenefitsystems import VariableNotFound
 
@@ -25,12 +26,14 @@ class Entity(object):
         if entities_json is not None:
             self.build_from_json(entities_json)
         else:
+            self.entities_json = None
             self.count = 0
             self.ids = []
             self.step_size = 0
 
     def build_from_json(self, entities_json):
         check_type(entities_json, dict, [self.plural])
+        self.entities_json = entities_json
         self.count = len(entities_json)
         self.step_size = self.count  # Related to axes.
         self.ids = sorted(entities_json.keys())
@@ -42,6 +45,45 @@ class Entity(object):
             else:
                 variables_json = entity_object
             self.build_variables(variables_json, entity_id)
+
+        # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
+        self.finalize_variables_init()
+
+    def build_variables(self, entity_object, entity_id):
+        entity_index = self.ids.index(entity_id)
+        for variable_name, variable_values in entity_object.iteritems():
+            try:
+                self.check_variable_defined_for_entity(variable_name)
+            except ValueError as e:  # The variable is defined for another entity
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
+            except VariableNotFound as e:  # The variable doesn't exist
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
+
+            holder = self.get_holder(variable_name)
+
+            if not isinstance(variable_values, dict):
+                raise SituationParsingError([self.plural, entity_id, variable_name],
+                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
+
+            for date, value in variable_values.iteritems():
+                if value is not None:
+                    try:
+                        period = make_period(date)
+                    except ValueError as e:
+                        raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
+                    array = holder.buffer.get(period)
+                    if array is None:
+                        array = holder.default_array()
+
+                    try:
+                        array[entity_index] = value
+                    except (ValueError, TypeError) as e:
+                        raise SituationParsingError([self.plural, entity_id, variable_name, date],
+                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+
+                    holder.buffer[period] = array
+
+    def finalize_variables_init(self):
         for variable_name, holder in self._holders.iteritems():
             periods = holder.buffer.keys()
             # We need to handle small periods first for set_input to work
@@ -50,8 +92,19 @@ class Entity(object):
                 array = holder.buffer[period]
                 try:
                     holder.set_input(period, array)
-                except ValueError as e:
-                    raise SituationParsingError([self.plural, entity_id, variable_name, str(period)], e.message)
+                except PeriodMismatchError as e:
+                    # This errors happens when we try to set a variable value for a period that doesn't match its definition period
+                    # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
+                    # We do a basic research to find the culprit path
+                    culprit_path = next(
+                        dpath.search(self.entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+                        None)
+                    if culprit_path:
+                        path = [self.plural] + culprit_path[0].split('/')
+                    else:
+                        path = [self.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
+
+                    raise SituationParsingError(path, e.message)
 
     def clone(self, new_simulation):
         """
@@ -156,38 +209,6 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
         if column.formula_class is not None:
             holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
         return holder
-
-    def build_variables(self, entity_object, entity_id):
-        entity_index = self.ids.index(entity_id)
-        for variable_name, variable_values in entity_object.iteritems():
-            try:
-                holder = self.get_holder(variable_name)
-            except ValueError as e:
-                raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
-            except VariableNotFound as e:
-                raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
-
-            if not isinstance(variable_values, dict):
-                raise SituationParsingError([self.plural, entity_id, variable_name],
-                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
-
-            for date, value in variable_values.iteritems():
-                if value is not None:
-                    try:
-                        period = make_period(date)
-                    except ValueError as e:
-                        raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
-                    array = holder.buffer.get(period)
-                    if array is None:
-                        array = holder.default_array()
-
-                    try:
-                        array[entity_index] = value
-                    except (ValueError, TypeError) as e:
-                        raise SituationParsingError([self.plural, entity_id, variable_name, date],
-                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
-
-                    holder.buffer[period] = array
 
 
 class PersonEntity(Entity):
