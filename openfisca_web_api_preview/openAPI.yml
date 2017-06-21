@@ -42,7 +42,7 @@ paths:
       responses:
         200:
           description: "The calculation result is sent back in the response body"
-          headers : # Shoud be factorized
+          headers:
             Country-Package :
               description : "The name of the country package currently loaded in this API server"
               type: "string"
@@ -53,7 +53,7 @@ paths:
             $ref: '#/definitions/SituationOutput'
         404:
           description: "The calculation result is sent back in the response body"
-          headers : # Shoud be factorized
+          headers:
             Country-Package :
               description : "The name of the country package currently loaded in this API server"
               type: "string"
@@ -64,7 +64,7 @@ paths:
             $ref: '#/definitions/SituationInput'
         400:
           description: "The request is invalid."
-          headers : # Shoud be factorized
+          headers:
             Country-Package :
               description : "The name of the country package currently loaded in this API server"
               type: "string"
@@ -380,7 +380,3 @@ definitions:
               "2017-03": 300
               "2017-04": 300
               "2017-05": 300
-
-
-
-
