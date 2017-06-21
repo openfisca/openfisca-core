@@ -27,7 +27,7 @@ def check_response(data, expected_error_code, path_to_check, content_to_check):
         assert_in(content_to_check, content)
 
 
-def test_incorrect_inputs():
+def test_responses():
     tests = [
         ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
         ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
@@ -46,7 +46,7 @@ def test_incorrect_inputs():
         ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', BAD_REQUEST, 'persons/bob/salary/invalid period', 'Invalid period',),
         ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', BAD_REQUEST, 'persons/bob/salary/invalid period', 'Invalid period',),
         ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
-
+        ('{"persons": {"bob": {}}, "households": null}', OK, None, None,),
         ]
 
     for test in tests:
