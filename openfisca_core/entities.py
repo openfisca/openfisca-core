@@ -41,7 +41,7 @@ class Entity(object):
                 self.build_roles(roles_json, entity_id)
             else:
                 variables_json = entity_object
-            self.build_variables(variables_json, self.ids.index(entity_id))
+            self.build_variables(variables_json, entity_id)
         for variable_name, holder in self._holders.iteritems():
             periods = holder.buffer.keys()
             # We need to handle small periods first for set_input to work
@@ -157,17 +157,18 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
         return holder
 
-    def build_variables(self, entity_object, entity_index):
+    def build_variables(self, entity_object, entity_id):
+        entity_index = self.ids.index(entity_id)
         for variable_name, variable_values in entity_object.iteritems():
             try:
                 holder = self.get_holder(variable_name)
             except ValueError as e:
-                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message)
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
             except VariableNotFound as e:
-                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name], e.message, code = 404)
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
 
             if not isinstance(variable_values, dict):
-                raise SituationParsingError([self.plural, self.ids[entity_index], variable_name],
+                raise SituationParsingError([self.plural, entity_id, variable_name],
                     'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             for date, value in variable_values.iteritems():
@@ -175,7 +176,7 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                     try:
                         period = make_period(date)
                     except ValueError as e:
-                        raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date], e.message)
+                        raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
@@ -183,7 +184,7 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
-                        raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date],
+                        raise SituationParsingError([self.plural, entity_id, variable_name, date],
                     'Invalid type: must be of type {}.'.format(holder.column.json_type))
 
                     holder.buffer[period] = array
