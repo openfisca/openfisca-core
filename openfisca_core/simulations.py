@@ -65,22 +65,25 @@ class Simulation(object):
     def instantiate_entities(self, simulation_json):
         if simulation_json:
             check_type(simulation_json, dict, ['error'])
-            simulation_json = simulation_json.copy()  # Avoid mutating the input
+            copied_simulation_json = simulation_json.copy()  # Avoid mutating the input
 
-        persons_json = simulation_json and simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
+        persons_json = simulation_json and copied_simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
 
+        if simulation_json and not persons_json:
+            raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
+                'No person found. At least one person must be defined to run a simulation.')
         self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         self.entities = {self.persons.key: self.persons}
         setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
         for entity_class in self.tax_benefit_system.group_entities:
-            entities_json = simulation_json and simulation_json.pop(entity_class.plural, None)
+            entities_json = simulation_json and copied_simulation_json.pop(entity_class.plural, {})
             entities = entity_class(self, entities_json)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
 
-        if simulation_json:  # The JSON should be empty now that all the entities have been extracted
-            unexpected_key = simulation_json.keys()[0]
+        if simulation_json and copied_simulation_json:  # The JSON should be empty now that all the entities have been extracted
+            unexpected_key = copied_simulation_json.keys()[0]
             raise SituationParsingError([unexpected_key],
                 'This entity is not defined in the loaded tax and benefit system.')
 
