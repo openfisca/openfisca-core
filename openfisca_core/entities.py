@@ -22,7 +22,7 @@ class Entity(object):
     def __init__(self, simulation, entities_json = None):
         self.simulation = simulation
         self._holders = {}
-        if entities_json:
+        if entities_json is not None:
             self.build_from_json(entities_json)
         else:
             self.count = 0
@@ -32,6 +32,7 @@ class Entity(object):
     def build_from_json(self, entities_json):
         check_type(entities_json, dict, [self.plural])
         self.count = len(entities_json)
+        self.step_size = self.count  # Related to axes.
         self.ids = sorted(entities_json.keys())
         for entity_id, entity_object in entities_json.iteritems():
             check_type(entity_object, dict, [self.plural, entity_id])
@@ -259,6 +260,16 @@ class GroupEntity(Entity):
         self.persons_to_allocate = set(self.simulation.persons.ids)
 
         Entity.build_from_json(self, entities_json)
+
+        for person in self.persons_to_allocate:  # We build a single-person entity for each person who hasn't been declared inside any entity
+            person_index = self.simulation.persons.ids.index(person)
+            entity_index = self.count
+            self.count += 1
+            self.step_size += 1  # Related to axes
+            self.ids.append(person)
+            self.members_entity_id[person_index] = entity_index
+            self.members_role[person_index] = self.flattened_roles[0]
+            self.members_legacy_role[person_index] = 0
 
     def build_roles(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
