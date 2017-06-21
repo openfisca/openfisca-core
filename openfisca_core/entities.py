@@ -178,7 +178,7 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
 
                     try:
                         array[entity_index] = value
-                    except (ValueError, TypeError )as e:
+                    except (ValueError, TypeError) as e:
                         raise SituationParsingError([self.plural, self.ids[entity_index], variable_name, date],
                     'Invalid type: must be of type {}.'.format(holder.column.json_type))
 
@@ -222,9 +222,7 @@ class GroupEntity(Entity):
 
     def __init__(self, simulation, entities_json = None):
         Entity.__init__(self, simulation, entities_json)
-        if entities_json:
-            self.build_from_json(entities_json)
-        else:
+        if entities_json is None:
             self.members_entity_id = None
             self._members_role = None
             self._members_position = None
@@ -293,6 +291,7 @@ class GroupEntity(Entity):
             self.members_role[person_index] = person_role
             self.members_legacy_role[person_index] = person_legacy_role
 
+        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
         self.roles_count = self.members_legacy_role.max() + 1
 
     @property
