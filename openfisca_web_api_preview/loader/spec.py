@@ -5,7 +5,7 @@ import os
 import yaml
 
 
-OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'spec', 'openAPI.yml')
+OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'openAPI.yml')
 
 
 def build_openAPI_specification(tax_benefit_system, country_package_metadata):
