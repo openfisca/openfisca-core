@@ -199,12 +199,11 @@ def check_revenu_disponible(year, city_code, expected_revenu_disponible):
     individu = simulation.entities["individu"]
     individu.count = 6
     individu.step_size = 2
-    simulation.get_variable_entity("city_code").array = np.array([city_code, city_code, city_code]).get_holder("city_code").array = np.array([city_code, city_code, city_code])
+    simulation.get_or_new_holder("city_code").array = np.array([city_code, city_code, city_code])
     famille.members_entity_id = np.array([0, 0, 1, 1, 2, 2])
     famille.members_legacy_role = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
         PARENT2])
-    simulation.get_variable_entity("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0]).get_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])
-    revenu_disponible = simulation.calculate('revenu_disponible')
+    simulation.get_or_new_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])    revenu_disponible = simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)
 
 
