@@ -46,8 +46,8 @@ paths:
         200:
           description: "The calculation result is sent back in the response body"
           headers:
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -57,8 +57,8 @@ paths:
         404:
           description: "A variable mentioned in the input siutation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -68,8 +68,8 @@ paths:
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -85,9 +85,9 @@ paths:
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -111,9 +111,9 @@ paths:
       responses:
         200:
           description: "The requested parameter's information is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -122,9 +122,9 @@ paths:
             $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -140,9 +140,9 @@ paths:
       responses:
         200:
           description: "The list of variables is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -166,9 +166,9 @@ paths:
       responses:
         200:
           description: "The requested variable's information is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -177,9 +177,9 @@ paths:
             $ref: "#/definitions/Variable"
         404:
           description: "The requested variable does not exist"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -254,11 +254,11 @@ definitions:
          $ref: "#/definitions/Formula"
       id:
         type: "string"
-      reference :
+      reference:
         type: "array"
         items:
-          type : "string"
-      source :
+          type: "string"
+      source:
         type: "string"
       valueType:
          type: "string"
@@ -312,25 +312,25 @@ definitions:
       persons:
         Bill:
           salary:
-            "2017-05" : 2000
-            "2017-04" : 4000
-            "2017-03" : 5000
-            "2017-02" : 300
-            "2017-01" : 2000
-          income_tax :
-            "2017-05" : null
-            "2017-04" : null
-            "2017-03" : null
-            "2017-02" : null
-            "2017-01" : null
+            "2017-05": 2000
+            "2017-04": 4000
+            "2017-03": 5000
+            "2017-02": 300
+            "2017-01": 2000
+          income_tax:
+            "2017-05": null
+            "2017-04": null
+            "2017-03": null
+            "2017-02": null
+            "2017-01": null
 
         Bob:
           salary:
-            "2017-05" : 2000
-            "2017-04" : 2000
-            "2017-03" : 2000
-            "2017-02" : 2000
-            "2017-01" : 2000
+            "2017-05": 2000
+            "2017-04": 2000
+            "2017-03": 2000
+            "2017-02": 2000
+            "2017-01": 2000
         Janet: {}
       households:
         first_household:
@@ -350,24 +350,24 @@ definitions:
       persons:
         Bill:
           salary:
-            "2017-05" : 2000
-            "2017-04" : 4000
-            "2017-03" : 5000
-            "2017-02" : 300
-            "2017-01" : 2000
-          income_tax :
-            "2017-05" : 200
-            "2017-04" : 500
-            "2017-03" : 700
-            "2017-02" : 0
-            "2017-01" : 200
+            "2017-05": 2000
+            "2017-04": 4000
+            "2017-03": 5000
+            "2017-02": 300
+            "2017-01": 2000
+          income_tax:
+            "2017-05": 200
+            "2017-04": 500
+            "2017-03": 700
+            "2017-02": 0
+            "2017-01": 200
         Bob:
           salary:
-            "2017-05" : 2000
-            "2017-04" : 2000
-            "2017-03" : 2000
-            "2017-02" : 2000
-            "2017-01" : 2000
+            "2017-05": 2000
+            "2017-04": 2000
+            "2017-03": 2000
+            "2017-02": 2000
+            "2017-01": 2000
         Janet:
       households:
         first_household:
