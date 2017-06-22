@@ -257,6 +257,21 @@ class Holder(object):
         return formula.real_formula
 
     def set_input(self, period, array):
+        if period.unit == ETERNITY and self.column.definition_period != ETERNITY:
+            error_message = os.linesep.join([
+                u'Unable to set a value for variable {0} for ETERNITY.',
+                u'{0} is only defined for {1}s. Please adapt your input.',
+                ]).format(
+                    self.column.name,
+                    self.column.definition_period
+                ).encode('utf-8')
+            raise PeriodMismatchError(
+                self.column.name,
+                period,
+                self.column.definition_period,
+                error_message
+                )
+
         self.formula.set_input(period, array)
 
     def put_in_cache(self, value, period, extra_params = None):
