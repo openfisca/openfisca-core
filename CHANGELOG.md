@@ -24,7 +24,7 @@
 - Deprecate `simulation.holder_by_name`, `simulation.get_holder`, `get_or_new_holder`
   - These functionalities are now provided by `entity.get_holder(name)`
 
-- Deprecate constructor `Holder(simulation, column`
+- Deprecate constructor `Holder(simulation, column)`
   - A `Holder` should now be instanciated with `Holder(entity = entity, column = column)`
 
 
