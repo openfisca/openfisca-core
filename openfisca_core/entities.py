@@ -193,13 +193,11 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
-    def get_holder(self, variable_name, init = True):
+    def get_holder(self, variable_name):
         self.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        if not init:
-            return None
         column = self.simulation.tax_benefit_system.get_column(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,

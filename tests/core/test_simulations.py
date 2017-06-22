@@ -21,7 +21,7 @@ def test_calculate__holder_attribute_content():
     variable_name = 'disposable_income'
     period = "2014-01"
     simulation.calculate(variable_name, period)  # numpy.ndarray
-    simulation_holder = simulation.person.get_holder(variable_name, period)
+    simulation_holder = simulation.person.get_holder(variable_name)
 
     assert issubclass(simulation_holder.formula.__class__, Formula)
     assert len(simulation_holder.formula.dated_formulas) > 0  # contains formulas instances

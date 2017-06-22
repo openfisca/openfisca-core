@@ -485,7 +485,7 @@ def test_clone__end_attribute__formulas__different_names():
     month = '2005-01'
     simulation = new_simulation(tax_benefit_system, month)
     simulation.calculate('end_attribute__formulas__different_names', month)
-    simulation_holder = simulation.person.get_holder('end_attribute__formulas__different_names', month)
+    simulation_holder = simulation.person.get_holder('end_attribute__formulas__different_names')
 
     # clone
     variable_as_column = tax_benefit_system.column_by_name['end_attribute__formulas__different_names']  # IntCol
