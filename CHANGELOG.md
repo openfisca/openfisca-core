@@ -5,12 +5,13 @@
 #### New features
 
 - Introduce `/calculate` route in the preview API
-  - Allows to run calculations
+  - Allows to run calculations.
+  - Takes a simulation `JSON` as an input, and returns a copy of the input extended with calculation results.
 
 - Handle `500` errors in the preview API
     - In this case, the API returns a JSON with details about the error.
 
-- Allows simulations to be build from a JSON using their constructor
+- Allows simulations to be built from a JSON using their constructor
   - For instance `Simulation(simulation_json = {"persons": {...}, "households": {...}}, tax_benefit_system = tax_benefit_system)`
 
 - Allows entities to be built from a JSON using their constructor
