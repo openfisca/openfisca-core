@@ -218,7 +218,7 @@ class Simulation(object):
             )
         column = self.tax_benefit_system.get_column(column_name, check_existence = True)
         entity = self.entities[column.entity.key]
-        holder = entity.get_holder(column_name, init = False)
+        holder = entity._holders.get(column_name)
         if holder:
             return holder
         if default is UnboundLocalError:
