@@ -109,16 +109,16 @@ class Entity(object):
         """
             Returns an entity instance with the same structure, but no variable value set.
         """
-        new = Entity(new_simulation)
+        new = self.__class__(new_simulation)
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
             if key == '_holders':
                 new_dict[key] = {
-                    name: holder.clone()
+                    name: holder.clone(new)
                     for name, holder in self._holders.iteritems()
                     }
-            else:
+            elif key != 'simulation':
                 new_dict[key] = value
 
         return new

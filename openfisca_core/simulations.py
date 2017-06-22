@@ -129,15 +129,16 @@ class Simulation(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'debug_all', 'trace', 'entities'):
+            if key not in ('debug', 'debug_all', 'trace'):
                 new_dict[key] = value
 
-        new.persons = self.persons.clone()
+        new.persons = self.persons.clone(new)
         setattr(new, new.persons.key, new.persons)
         new.entities = {new.persons.key: new.persons}
 
         for entity_class in self.tax_benefit_system.group_entities:
-            entity = self.entities[entity_class.key].clone()
+            entity = self.entities[entity_class.key].clone(new)
+            new.entities[entity.key] = entity
             setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
 
         if debug:

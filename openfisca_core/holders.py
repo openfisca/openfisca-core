@@ -100,7 +100,7 @@ class Holder(object):
     def calculate_output(self, period):
         return self.formula.calculate_output(period)
 
-    def clone(self):
+    def clone(self, entity):
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = empty_clone(self)
         new_dict = new.__dict__
@@ -110,10 +110,11 @@ class Holder(object):
                 if value is not None:
                     # There is no need to copy the arrays, because the formulas don't modify them.
                     new_dict[key] = value.copy()
-            elif key not in ('entity', 'formula'):
+            elif key not in ('entity', 'formula', 'simulation'):
                 new_dict[key] = value
 
-        new_dict['entity'] = self.entity
+        new_dict['entity'] = entity
+        new_dict['simulation'] = entity.simulation
         # Caution: formula must be cloned after the entity has been set into new.
         formula = self.formula
         if formula is not None:
