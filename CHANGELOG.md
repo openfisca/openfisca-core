@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.1.1 - [#533](https://github.com/openfisca/openfisca-core/pull/533)
+
+#### Bug fix
+
+- Fix `simulation.clone` and `entity.clone` methods.
+  - A bug was introduced in `14.1.0`
+
 ## 14.1.0 - [#528](https://github.com/openfisca/openfisca-core/pull/528)
 
 #### New features
