@@ -299,7 +299,7 @@ class Simulation(object):
 
 
 def check_type(input, type, path = []):
-    type_map = {
+    json_type_map = {
         dict: "Object",
         list: "Array",
         str: "String"
@@ -307,7 +307,7 @@ def check_type(input, type, path = []):
 
     if not isinstance(input, type):
         raise SituationParsingError(path,
-            'Invalid type: must be of type "{}".'.format(type_map[type]))
+            'Invalid type: must be of type "{}".'.format(json_type_map[type]))
 
 
 class SituationParsingError(Exception):
