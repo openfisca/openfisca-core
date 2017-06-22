@@ -47,6 +47,8 @@ def test_responses():
         ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', BAD_REQUEST, 'persons/bob/salary/invalid period', 'Invalid period',),
         ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
         ('{"persons": {"bob": {}}, "households": null}', OK, None, None,),
+        ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}}', OK, None, None,),
+        ('{"persons": {"bob": {"salary": {"ETERNITY": 2000} }}}', BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
         ]
 
     for test in tests:
