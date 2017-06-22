@@ -302,7 +302,7 @@ def check_type(input, type, path = []):
     json_type_map = {
         dict: "Object",
         list: "Array",
-        str: "String"
+        basestring: "String"
         }
 
     if not isinstance(input, type):

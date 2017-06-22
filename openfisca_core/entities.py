@@ -296,7 +296,8 @@ class GroupEntity(Entity):
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
-            for person_id in role_definition:
+            for index, person_id in enumerate(role_definition):
+                check_type(person_id, basestring, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
