@@ -25,6 +25,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
 
     data = build_data(country_package)
 
+    @app.route('/')
+    def welcome():
+        return "Welcome to the OpenFisca Web API"
+
     @app.route('/parameters')
     def get_parameters():
         return jsonify(data['parameters_description'])
@@ -57,6 +61,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             })
 
         abort(make_response(json_response, 400))
+
+    @app.route('/calculate', methods=['GET'])
+    def welcome_calculate():
+        return "Welcome to the Calculate endpoint of the OpenFisca Web API"
 
     @app.route('/calculate', methods=['POST'])
     def calculate():
