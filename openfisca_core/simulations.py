@@ -2,9 +2,12 @@
 
 
 import collections
+import warnings
 
-from . import periods, holders
-from .commons import empty_clone, stringify_array
+import dpath
+
+import periods
+from commons import empty_clone, stringify_array
 
 
 class Simulation(object):
@@ -19,11 +22,21 @@ class Simulation(object):
     trace = False
     traceback = None
 
-    def __init__(self, debug = False, debug_all = False, period = None, tax_benefit_system = None,
-    trace = False, opt_out_cache = False):
-        assert isinstance(period, periods.Period)
+    def __init__(
+            self,
+            debug = False,
+            debug_all = False,
+            period = None,
+            tax_benefit_system = None,
+            trace = False,
+            opt_out_cache = False,
+            simulation_json = None
+            ):
+        self.tax_benefit_system = tax_benefit_system
+        assert tax_benefit_system is not None
+        if period:
+            assert isinstance(period, periods.Period)
         self.period = period
-        self.holder_by_name = {}
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
         # See use in formulas.py.
@@ -36,8 +49,6 @@ class Simulation(object):
         if debug_all:
             assert debug
             self.debug_all = True
-        assert tax_benefit_system is not None
-        self.tax_benefit_system = tax_benefit_system
         if trace:
             self.trace = True
         self.opt_out_cache = opt_out_cache
@@ -49,17 +60,52 @@ class Simulation(object):
         self.compact_legislation_by_instant_cache = {}
         self.reference_compact_legislation_by_instant_cache = {}
 
-        self.instantiate_entities()
+        self.instantiate_entities(simulation_json)
 
-    def instantiate_entities(self):
-        self.persons = self.tax_benefit_system.person_entity(self)
-        setattr(self, self.persons.key, self.persons)
+    def instantiate_entities(self, simulation_json):
+        if simulation_json:
+            check_type(simulation_json, dict, ['error'])
+            copied_simulation_json = simulation_json.copy()  # Avoid mutating the input
+
+            persons_json = copied_simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
+
+            if not persons_json:
+                raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
+                    'No person found. At least one person must be defined to run a simulation.')
+            self.persons = self.tax_benefit_system.person_entity(self, persons_json)
+        else:
+            self.persons = self.tax_benefit_system.person_entity(self)
+
         self.entities = {self.persons.key: self.persons}
+        setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
-        for entity_definition in self.tax_benefit_system.group_entities:
-            entity = entity_definition(self)
-            self.entities[entity_definition.key] = entity
-            setattr(self, entity.key, entity)
+        for entity_class in self.tax_benefit_system.group_entities:
+            if simulation_json:
+                entities_json = copied_simulation_json.pop(entity_class.plural, {})
+                entities = entity_class(self, entities_json)
+            else:
+                entities = entity_class(self)
+            self.entities[entity_class.key] = entities
+            setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
+
+        if simulation_json and copied_simulation_json:  # The JSON should be empty now that all the entities have been extracted
+            unexpected_key = copied_simulation_json.keys()[0]
+            raise SituationParsingError([unexpected_key],
+                'This entity is not defined in the loaded tax and benefit system.')
+
+    @property
+    def holder_by_name(self):
+        warnings.warn(
+            u"The simulation.holder_by_name attribute has been deprecated. "
+            u"Please use entity.get_holder instead. "
+            u"Using simulation.holder_by_name may negatively impact performances",
+            Warning
+            )
+
+        result = {}
+        for entity in self.entities.itervalues():
+            result.update(entity._holders)
+        return result
 
     def calculate(self, column_name, period, **parameters):
         return self.compute(column_name, period = period, **parameters).array
@@ -74,7 +120,7 @@ class Simulation(object):
         """Calculate the value using calculate_output hooks in formula classes."""
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.calculate_output(period)
 
     def clone(self, debug = False, debug_all = False, trace = False):
@@ -83,11 +129,16 @@ class Simulation(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'debug_all', 'trace'):
+            if key not in ('debug', 'debug_all', 'trace', 'entities'):
                 new_dict[key] = value
 
-        for entity in new.entities.itervalues():
-            entity.simulation = new
+        new.persons = self.persons.clone()
+        setattr(new, new.persons.key, new.persons)
+        new.entities = {new.persons.key: new.persons}
+
+        for entity_class in self.tax_benefit_system.group_entities:
+            entity = self.entities[entity_class.key].clone()
+            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
 
         if debug:
             new_dict['debug'] = True
@@ -99,10 +150,6 @@ class Simulation(object):
             new_dict['stack_trace'] = collections.deque()
             new_dict['traceback'] = collections.OrderedDict()
 
-        new_dict['holder_by_name'] = {
-            name: holder.clone()
-            for name, holder in self.holder_by_name.iteritems()
-            }
         return new
 
     def compute(self, column_name, period, **parameters):
@@ -114,7 +161,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         result = holder.compute(period = period, **parameters)
         return result
 
@@ -127,7 +174,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_add(period = period, **parameters)
 
     def compute_divide(self, column_name, period, **parameters):
@@ -139,7 +186,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        holder = self.get_or_new_holder(column_name)
+        holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_divide(period = period, **parameters)
 
     def get_array(self, column_name, period):
@@ -151,7 +198,7 @@ class Simulation(object):
             caller_input_variables_infos = calling_frame['input_variables_infos']
             if variable_infos not in caller_input_variables_infos:
                 caller_input_variables_infos.append(variable_infos)
-        return self.get_or_new_holder(column_name).get_array(period)
+        return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
 
     def get_compact_legislation(self, instant):
         compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
@@ -164,21 +211,29 @@ class Simulation(object):
         return compact_legislation
 
     def get_holder(self, column_name, default = UnboundLocalError):
+        warnings.warn(
+            u"The simulation.get_holder method has been deprecated. "
+            u"Please use entity.get_holder instead.",
+            Warning
+            )
+        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
+        entity = self.entities[column.entity.key]
+        holder = entity._holders.get(column_name)
+        if holder:
+            return holder
         if default is UnboundLocalError:
-            return self.holder_by_name[column_name]
-        return self.holder_by_name.get(column_name, default)
+            raise KeyError(column_name)
+        return default
 
     def get_or_new_holder(self, column_name):
-        holder = self.holder_by_name.get(column_name)
-        if holder is None:
-            column = self.tax_benefit_system.get_column(column_name, check_existence = True)
-            self.holder_by_name[column_name] = holder = holders.Holder(
-                self,
-                column = column,
-                )
-            if column.formula_class is not None:
-                holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
-        return holder
+        warnings.warn(
+            u"The simulation.get_or_new_holder method has been deprecated. "
+            u"Please use entity.get_holder instead.",
+            Warning
+            )
+        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
+        entity = self.get_entity(column.entity)
+        return entity.get_holder(column_name)
 
     def get_reference_compact_legislation(self, instant):
         reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
@@ -191,7 +246,7 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_or_new_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+        self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
         if isinstance(instant, periods.Period):
@@ -211,7 +266,7 @@ class Simulation(object):
         return step
 
     def stringify_variable_for_period_with_array(self, variable_name, period):
-        holder = self.get_holder(variable_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         return u'{}@{}<{}>{}'.format(
             variable_name,
             holder.entity.key,
@@ -236,5 +291,29 @@ class Simulation(object):
         column = self.tax_benefit_system.get_column(variable_name, check_existence = True)
         return self.get_entity(column.entity)
 
-    def get_entity(self, entity_type):
-        return self.entities[entity_type.key]
+    def get_entity(self, entity_type = None, plural = None):
+        if entity_type:
+            return self.entities[entity_type.key]
+        if plural:
+            return [entity for entity in self.entities.values() if entity.plural == plural][0]
+
+
+def check_type(input, type, path = []):
+    json_type_map = {
+        dict: "Object",
+        list: "Array",
+        basestring: "String"
+        }
+
+    if not isinstance(input, type):
+        raise SituationParsingError(path,
+            'Invalid type: must be of type "{}".'.format(json_type_map[type]))
+
+
+class SituationParsingError(Exception):
+    def __init__(self, path, message, code = None):
+        self.error = {}
+        dpath_path = '/'.join(path)
+        dpath.util.new(self.error, dpath_path, message)
+        self.code = code
+        Exception.__init__(self, self.error)

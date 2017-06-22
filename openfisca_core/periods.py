@@ -315,6 +315,8 @@ class Period(tuple):
         """
 
         unit, start_instant, size = self
+        if unit == ETERNITY:
+            return 'ETERNITY'
         start_instant = start_instant[:2]  # we always ignore the day, 1 by construction
         year, month = start_instant
 
@@ -763,7 +765,10 @@ def period(value):
             return Period((YEAR, Instant((date.year, date.month, 1)), 1))
 
     def raise_error(value):
-        raise ValueError(u"Invalid period {}".format(value).encode('utf-8'))
+        raise ValueError(u"Invalid period '{}'. Legal period formats are documented here: <https://doc.openfisca.fr/periodsinstants.html#api>".format(value).encode('utf-8'))
+
+    if value == 'ETERNITY':
+        return Period((u'eternity', instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
@@ -818,14 +823,11 @@ def compare_period_size(a, b):
     unit_a, start_a, size_a = a
     unit_b, start_b, size_b = b
 
-    if (unit_a is ETERNITY) or (unit_b is ETERNITY):
-        raise ValueError('ETERNITY cannot be compared to another period.')
-
     if unit_a != unit_b:
         unit_weights = {
-            u'day': 1,
-            u'month': 2,
-            u'year': 3,
+            MONTH: 1,
+            YEAR: 2,
+            ETERNITY: 3,
             }
 
         return cmp(unit_weights[unit_a], unit_weights[unit_b])

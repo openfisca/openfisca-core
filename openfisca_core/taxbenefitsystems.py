@@ -397,3 +397,22 @@ class TaxBenefitSystem(object):
             'repository_url': repository_url,
             'location': location,
             }
+
+    def get_variables(self, entity = None):
+        """
+        Gets all variables contained in a tax and benefit system.
+
+        :param <Entity subclass> entity: If set, returns only the variable defined for the given entity.
+
+        :returns: A dictionnary, indexed by variable names.
+        :rtype: dict
+
+        """
+        if not entity:
+            return self.column_by_name
+        else:
+            return {
+                variable_name: variable
+                for variable_name, variable in self.column_by_name.iteritems()
+                if variable.entity == entity
+                }

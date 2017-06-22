@@ -4,8 +4,14 @@ import traceback
 import warnings
 
 import numpy as np
+import dpath
 
 from formulas import ADD, DIVIDE
+from scenarios import iter_over_entity_members
+from simulations import check_type, SituationParsingError
+from holders import Holder, PeriodMismatchError
+from periods import compare_period_size, period as make_period
+from taxbenefitsystems import VariableNotFound
 
 
 class Entity(object):
@@ -14,10 +20,108 @@ class Entity(object):
     label = None
     is_person = False
 
-    def __init__(self, simulation):
+    def __init__(self, simulation, entities_json = None):
         self.simulation = simulation
-        self.count = 0
-        self.step_size = 0
+        self._holders = {}
+        if entities_json is not None:
+            self.init_from_json(entities_json)
+        else:
+            self.entities_json = None
+            self.count = 0
+            self.ids = []
+            self.step_size = 0
+
+    def init_from_json(self, entities_json):
+        check_type(entities_json, dict, [self.plural])
+        self.entities_json = entities_json
+        self.count = len(entities_json)
+        self.step_size = self.count  # Related to axes.
+        self.ids = sorted(entities_json.keys())
+        for entity_id, entity_object in entities_json.iteritems():
+            check_type(entity_object, dict, [self.plural, entity_id])
+            if not self.is_person:
+                roles_json, variables_json = self.split_variables_and_roles_json(entity_object)
+                self.init_members(roles_json, entity_id)
+            else:
+                variables_json = entity_object
+            self.init_variable_values(variables_json, entity_id)
+
+        # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
+        self.finalize_variables_init()
+
+    def init_variable_values(self, entity_object, entity_id):
+        entity_index = self.ids.index(entity_id)
+        for variable_name, variable_values in entity_object.iteritems():
+            try:
+                self.check_variable_defined_for_entity(variable_name)
+            except ValueError as e:  # The variable is defined for another entity
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
+            except VariableNotFound as e:  # The variable doesn't exist
+                raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
+
+            if not isinstance(variable_values, dict):
+                raise SituationParsingError([self.plural, entity_id, variable_name],
+                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
+
+            holder = self.get_holder(variable_name)
+            for date, value in variable_values.iteritems():
+                try:
+                    period = make_period(date)
+                except ValueError as e:
+                    raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
+                if value is not None:
+                    array = holder.buffer.get(period)
+                    if array is None:
+                        array = holder.default_array()
+
+                    try:
+                        array[entity_index] = value
+                    except (ValueError, TypeError) as e:
+                        raise SituationParsingError([self.plural, entity_id, variable_name, date],
+                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+
+                    holder.buffer[period] = array
+
+    def finalize_variables_init(self):
+        for variable_name, holder in self._holders.iteritems():
+            periods = holder.buffer.keys()
+            # We need to handle small periods first for set_input to work
+            sorted_periods = sorted(periods, cmp = compare_period_size)
+            for period in sorted_periods:
+                array = holder.buffer[period]
+                try:
+                    holder.set_input(period, array)
+                except PeriodMismatchError as e:
+                    # This errors happens when we try to set a variable value for a period that doesn't match its definition period
+                    # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
+                    # We do a basic research to find the culprit path
+                    culprit_path = next(
+                        dpath.search(self.entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+                        None)
+                    if culprit_path:
+                        path = [self.plural] + culprit_path[0].split('/')
+                    else:
+                        path = [self.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
+
+                    raise SituationParsingError(path, e.message)
+
+    def clone(self, new_simulation):
+        """
+            Returns an entity instance with the same structure, but no variable value set.
+        """
+        new = Entity(new_simulation)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key == '_holders':
+                new_dict[key] = {
+                    name: holder.clone()
+                    for name, holder in self._holders.iteritems()
+                    }
+            else:
+                new_dict[key] = value
+
+        return new
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -38,20 +142,20 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        if not (self.simulation.get_variable_entity(variable_name) == self):
-            variable_entity = self.simulation.get_variable_entity(variable_name)
-            raise Exception(
+        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
+        if not isinstance(self, variable_entity):
+            raise ValueError(
                 "Variable {} is not defined for {} but for {}".format(
-                    variable_name, self.key, variable_entity.key)
+                    variable_name, self.plural, variable_entity.plural)
                 )
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise Exception("Input {} is not a valid value for the entity {}".format(array, self.key))
+            raise ValueError("Input {} is not a valid value for the entity {}".format(array, self.key))
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
-            raise Exception("{} is not a valid role".format(role))
+            raise ValueError("{} is not a valid role".format(role))
 
     def check_period_validity(self, variable_name, period):
         if period is None:
@@ -89,6 +193,20 @@ See more information at <https://doc.openfisca.fr/coding-the-legislation/35_peri
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
+    def get_holder(self, variable_name):
+        self.check_variable_defined_for_entity(variable_name)
+        holder = self._holders.get(variable_name)
+        if holder:
+            return holder
+        column = self.simulation.tax_benefit_system.get_column(variable_name)
+        self._holders[variable_name] = holder = Holder(
+            entity = self,
+            column = column,
+            )
+        if column.formula_class is not None:
+            holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        return holder
+
 
 class PersonEntity(Entity):
     is_person = True
@@ -125,13 +243,80 @@ class GroupEntity(Entity):
     flattened_roles = None
     roles_description = None
 
-    def __init__(self, simulation):
-        Entity.__init__(self, simulation)
-        self.members_entity_id = None
-        self._members_role = None
-        self._members_position = None
-        self.members_legacy_role = None
+    def __init__(self, simulation, entities_json = None):
+        Entity.__init__(self, simulation, entities_json)
+        if entities_json is None:
+            self.members_entity_id = None
+            self._members_role = None
+            self._members_position = None
+            self.members_legacy_role = None
         self.members = self.simulation.persons
+
+    def split_variables_and_roles_json(self, entity_object):
+        entity_object = entity_object.copy()  # Don't mutate function input
+
+        roles_definition = {
+            role.plural: entity_object.pop(role.plural or role.key, [])
+            for role in self.roles
+            }
+
+        return roles_definition, entity_object
+
+    def init_from_json(self, entities_json):
+        self.members_entity_id = np.empty(
+            self.simulation.persons.count,
+            dtype = np.int32
+            )
+        self.members_role = np.empty(
+            self.simulation.persons.count,
+            dtype = object
+            )
+        self.members_legacy_role = np.empty(
+            self.simulation.persons.count,
+            dtype = np.int32
+            )
+        self._members_position = None
+
+        self.persons_to_allocate = set(self.simulation.persons.ids)
+
+        Entity.init_from_json(self, entities_json)
+
+        for person in self.persons_to_allocate:  # We build a single-person entity for each person who hasn't been declared inside any entity
+            person_index = self.simulation.persons.ids.index(person)
+            entity_index = self.count
+            self.count += 1
+            self.step_size += 1  # Related to axes
+            self.ids.append(person)
+            self.members_entity_id[person_index] = entity_index
+            self.members_role[person_index] = self.flattened_roles[0]
+            self.members_legacy_role[person_index] = 0
+
+    def init_members(self, roles_json, entity_id):
+        for role_id, role_definition in roles_json.iteritems():
+            check_type(role_definition, list, [self.plural, entity_id, role_id])
+            for index, person_id in enumerate(role_definition):
+                check_type(person_id, basestring, [self.plural, entity_id, role_id, str(index)])
+                if person_id not in self.simulation.persons.ids:
+                    raise SituationParsingError([self.plural, entity_id, role_id],
+                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                            person_id, entity_id, role_id, self.simulation.persons.plural)
+                        )
+                if person_id not in self.persons_to_allocate:
+                    raise SituationParsingError([self.plural, entity_id, role_id],
+                        "{} has been declared more than once in {}".format(
+                            person_id, self.plural)
+                        )
+                self.persons_to_allocate.discard(person_id)
+
+        entity_index = self.ids.index(entity_id)
+        for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
+            person_index = self.simulation.persons.ids.index(person_id)
+            self.members_entity_id[person_index] = entity_index
+            self.members_role[person_index] = person_role
+            self.members_legacy_role[person_index] = person_legacy_role
+
+        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
+        self.roles_count = self.members_legacy_role.max() + 1
 
     @property
     def members_role(self):
@@ -280,6 +465,9 @@ class Role(object):
         self.plural = description.get('plural')
         self.max = description.get('max')
         self.subroles = None
+
+    def __repr__(self):
+        return "Role({})".format(self.key)
 
 
 class Projector(object):

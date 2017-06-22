@@ -13,31 +13,81 @@ host: null
 schemes:
   - "https"
 tags:
-- name: "Parameters"
-  description: "A parameter is a numeric property of the legislation that can evolve over time."
-  externalDocs:
-    description: "Parameter official documentation"
-    url: "https://doc.openfisca.fr/parameters.html"
-- name: "Variables"
-  description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
-  externalDocs:
-    description: "Variable official documentation"
-    url: "https://doc.openfisca.fr/variables.html"
+  - name: "Parameters"
+    description: "A parameter is a numeric property of the legislation that can evolve over time."
+    externalDocs:
+      description: "Parameter official documentation"
+      url: "https://doc.openfisca.fr/parameters.html"
+  - name: "Variables"
+    description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
+    externalDocs:
+      description: "Variable official documentation"
+      url: "https://doc.openfisca.fr/variables.html"
+  - name: "Calculations"
 paths:
+  /calculate:
+    post:
+      summary: "Run a simulation"
+      tags:
+        - Calculations
+      operationId: "calculate"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "Situation"
+        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value.'
+        required: true
+        schema:
+          $ref: '#/definitions/SituationInput'
+      responses:
+        200:
+          description: "The calculation result is sent back in the response body"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: '#/definitions/SituationOutput'
+        404:
+          description: "A variable mentioned in the input siutation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
+          schema:
+            $ref: '#/definitions/SituationInput'
+        400:
+          description: "The request is invalid. Details about the error are sent back in the response body"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
+              type: "string"
+            Country-Package-Version:
+              description: "The version of the country package currently loaded in this API server"
+              type: "string"
   /parameters:
     get:
       tags:
-      - "Parameters"
+        - "Parameters"
       summary: "List all available parameters"
       operationId: "getParameters"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "The list of parameters is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -61,9 +111,9 @@ paths:
       responses:
         200:
           description: "The requested parameter's information is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -72,9 +122,9 @@ paths:
             $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -90,9 +140,9 @@ paths:
       responses:
         200:
           description: "The list of variables is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -116,9 +166,9 @@ paths:
       responses:
         200:
           description: "The requested variable's information is sent back in the response body"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
@@ -127,13 +177,14 @@ paths:
             $ref: "#/definitions/Variable"
         404:
           description: "The requested variable does not exist"
-          headers :
-            Country-Package :
-              description : "The name of the country package currently loaded in this API server"
+          headers:
+            Country-Package:
+              description: "The name of the country package currently loaded in this API server"
               type: "string"
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
+
 
 definitions:
   Parameter:
@@ -203,11 +254,11 @@ definitions:
          $ref: "#/definitions/Formula"
       id:
         type: "string"
-      reference :
+      reference:
         type: "array"
         items:
-          type : "string"
-      source :
+          type: "string"
+      source:
         type: "string"
       valueType:
          type: "string"
@@ -255,3 +306,78 @@ definitions:
       type: "number"
       format: "float"
 
+
+  SituationInput:
+    example:
+      persons:
+        Bill:
+          salary:
+            "2017-05": 2000
+            "2017-04": 4000
+            "2017-03": 5000
+            "2017-02": 300
+            "2017-01": 2000
+          income_tax:
+            "2017-05": null
+            "2017-04": null
+            "2017-03": null
+            "2017-02": null
+            "2017-01": null
+
+        Bob:
+          salary:
+            "2017-05": 2000
+            "2017-04": 2000
+            "2017-03": 2000
+            "2017-02": 2000
+            "2017-01": 2000
+        Janet: {}
+      households:
+        first_household:
+          parents: [Bill, Bob]
+          children: [Janet]
+          housing_tax:
+              "2017": null
+          accomodation_size:
+              "2017-01": 300
+              "2017-02": 300
+              "2017-03": 300
+              "2017-04": 300
+              "2017-05": 300
+
+  SituationOutput:
+    example:
+      persons:
+        Bill:
+          salary:
+            "2017-05": 2000
+            "2017-04": 4000
+            "2017-03": 5000
+            "2017-02": 300
+            "2017-01": 2000
+          income_tax:
+            "2017-05": 200
+            "2017-04": 500
+            "2017-03": 700
+            "2017-02": 0
+            "2017-01": 200
+        Bob:
+          salary:
+            "2017-05": 2000
+            "2017-04": 2000
+            "2017-03": 2000
+            "2017-02": 2000
+            "2017-01": 2000
+        Janet:
+      households:
+        first_household:
+          parents: [Bill, Bob]
+          children: [Janet]
+          housing_tax:
+              "2017": 345
+          accomodation_size:
+              "2017-01": 300
+              "2017-02": 300
+              "2017-03": 300
+              "2017-04": 300
+              "2017-05": 300

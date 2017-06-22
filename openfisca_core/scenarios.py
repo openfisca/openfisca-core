@@ -49,15 +49,17 @@ class AbstractScenario(object):
             if self.input_variables is not None:
                 # Note: For set_input to work, handle days, before months, before years => use sorted().
                 for variable_name, array_by_period in sorted(self.input_variables.iteritems()):
-                    holder = simulation.get_or_new_holder(variable_name)
+                    holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
                     entity = holder.entity
                     for period, array in array_by_period.iteritems():
                         if entity.count == 0:
                             entity.count = len(array)
+                            entity.ids = range(entity.count)
                         holder.set_input(period, array)
 
             if persons.count == 0:
                 persons.count = 1
+                persons.ids = range(persons.count)
 
             for entity in simulation.entities.itervalues():
                 if entity is persons:
@@ -76,6 +78,7 @@ class AbstractScenario(object):
 
                 if entity.count == 0:
                     entity.count = max(entity.members_entity_id) + 1
+                    entity.ids = range(entity.count)
                 else:
                     assert entity.count == max(entity.members_entity_id) + 1
         else:
@@ -95,7 +98,7 @@ class AbstractScenario(object):
                 if self.axes is not None:
                     cache_buffer[variable_name][period] = value
                 else:
-                    holder = simulation.get_or_new_holder(variable_name)
+                    holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
                     holder.set_input(period, value)
 
             for entity in simulation.entities.itervalues():
@@ -103,6 +106,7 @@ class AbstractScenario(object):
                 count = steps_count * step_size
                 entity.count = count
                 entity.step_size = step_size
+                entity.ids = [entity_instance[u'id'] for entity_instance in test_case[entity.plural]]
 
             persons_step_size = persons.step_size
 
@@ -233,7 +237,7 @@ class AbstractScenario(object):
 
                 # We pour the buffer in the real cache
                 for variable, values in cache_buffer.iteritems():
-                    holder = simulation.get_or_new_holder(variable)
+                    holder = simulation.get_variable_entity(variable).get_holder(variable)
                     for period, array in values.iteritems():
                         holder.set_input(period, array)
 
@@ -714,7 +718,7 @@ def iter_over_entity_members(entity_description, scenario_entity):
         legacy_role_i = 0
         for role in entity_description.roles:
             role_name = role.plural or role.key
-            individus = scenario_entity[role_name]
+            individus = scenario_entity.get(role_name)
 
             if individus:
                 if not type(individus) == list:

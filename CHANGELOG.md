@@ -1,5 +1,33 @@
 # Changelog
 
+## 14.1.0 - [#528](https://github.com/openfisca/openfisca-core/pull/528)
+
+#### New features
+
+- Introduce `/calculate` route in the preview API
+  - Allows to run calculations.
+  - Takes a simulation `JSON` as an input, and returns a copy of the input extended with calculation results.
+
+- Handle `500` errors in the preview API
+    - In this case, the API returns a JSON with details about the error.
+
+- Allows simulations to be built from a JSON using their constructor
+  - For instance `Simulation(simulation_json = {"persons": {...}, "households": {...}}, tax_benefit_system = tax_benefit_system)`
+
+- Allows entities to be built from a JSON using their constructor
+  - For instance `Household(simulation, {"first_household": {...}})`
+
+- Introduce `tax_benefit_system.get_variables(entity = None)`
+  - Allows to get all variables contained in a tax and benefit system, with filtering by entity
+
+#### Deprecations
+
+- Deprecate `simulation.holder_by_name`, `simulation.get_holder`, `get_or_new_holder`
+  - These functionalities are now provided by `entity.get_holder(name)`
+
+- Deprecate constructor `Holder(simulation, column)`
+  - A `Holder` should now be instanciated with `Holder(entity = entity, column = column)`
+
 ## 14.0.1 - [#527](https://github.com/openfisca/openfisca-core/pull/527)
 
 * Improve error message and add stack trace when a module import fails

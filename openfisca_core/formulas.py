@@ -478,7 +478,7 @@ class Formula(object):
                 step['default_input_variables'] = has_only_default_input_variables = all(
                     np.all(input_holder.get_array(input_variable_period) == input_holder.column.default)
                     for input_holder, input_variable_period in (
-                        (simulation.get_holder(input_variable_name), input_variable_period1)
+                        (simulation.get_variable_entity(input_variable_name).get_holder(input_variable_name), input_variable_period1)
                         for input_variable_name, input_variable_period1 in input_variables_infos
                         )
                     )
@@ -554,7 +554,7 @@ class Formula(object):
                 if with_input_variables_details:
                     input_variables_json = []
                     for variable_name in sorted(variables_name):
-                        variable_holder = simulation.get_or_new_holder(variable_name)
+                        variable_holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
                         variable_column = variable_holder.column
                         input_variables_json.append(collections.OrderedDict((
                             ('entity', variable_holder.entity.key),
