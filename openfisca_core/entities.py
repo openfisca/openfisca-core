@@ -59,12 +59,11 @@ class Entity(object):
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
 
-            holder = self.get_holder(variable_name)
-
             if not isinstance(variable_values, dict):
                 raise SituationParsingError([self.plural, entity_id, variable_name],
                     'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
+            holder = self.get_holder(variable_name)
             for date, value in variable_values.iteritems():
                 try:
                     period = make_period(date)
