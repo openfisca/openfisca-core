@@ -41,15 +41,15 @@ class Entity(object):
             check_type(entity_object, dict, [self.plural, entity_id])
             if not self.is_person:
                 roles_json, variables_json = self.split_variables_and_roles_json(entity_object)
-                self.build_roles(roles_json, entity_id)
+                self.init_members(roles_json, entity_id)
             else:
                 variables_json = entity_object
-            self.build_variables(variables_json, entity_id)
+            self.init_variable_values(variables_json, entity_id)
 
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init()
 
-    def build_variables(self, entity_object, entity_id):
+    def init_variable_values(self, entity_object, entity_id):
         entity_index = self.ids.index(entity_id)
         for variable_name, variable_values in entity_object.iteritems():
             try:
@@ -293,7 +293,7 @@ class GroupEntity(Entity):
             self.members_role[person_index] = self.flattened_roles[0]
             self.members_legacy_role[person_index] = 0
 
-    def build_roles(self, roles_json, entity_id):
+    def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for person_id in role_definition:

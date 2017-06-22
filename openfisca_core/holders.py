@@ -3,6 +3,7 @@
 
 from __future__ import division
 import warnings
+import os
 
 import numpy as np
 
@@ -266,11 +267,15 @@ class Holder(object):
                 raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
             if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
-                error_message = u'Unable to set a value for variable {0} for {1}-long period {2}. {0} is only defined for {3}s. Please adapt your input. If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'.format(
-                    self.column.name,
-                    period.unit,
-                    period,
-                    self.column.definition_period
+                error_message = os.linesep.join([
+                    u'Unable to set a value for variable {0} for {1}-long period {2}.',
+                    u'{0} is only defined for {3}s. Please adapt your input.',
+                    u'If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'
+                    ]).format(
+                        self.column.name,
+                        period.unit,
+                        period,
+                        self.column.definition_period
                     ).encode('utf-8')
 
                 raise PeriodMismatchError(
