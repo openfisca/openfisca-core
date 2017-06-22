@@ -24,14 +24,14 @@ class Entity(object):
         self.simulation = simulation
         self._holders = {}
         if entities_json is not None:
-            self.build_from_json(entities_json)
+            self.init_from_json(entities_json)
         else:
             self.entities_json = None
             self.count = 0
             self.ids = []
             self.step_size = 0
 
-    def build_from_json(self, entities_json):
+    def init_from_json(self, entities_json):
         check_type(entities_json, dict, [self.plural])
         self.entities_json = entities_json
         self.count = len(entities_json)
@@ -265,7 +265,7 @@ class GroupEntity(Entity):
 
         return roles_definition, entity_object
 
-    def build_from_json(self, entities_json):
+    def init_from_json(self, entities_json):
         self.members_entity_id = np.empty(
             self.simulation.persons.count,
             dtype = np.int32
@@ -282,7 +282,7 @@ class GroupEntity(Entity):
 
         self.persons_to_allocate = set(self.simulation.persons.ids)
 
-        Entity.build_from_json(self, entities_json)
+        Entity.init_from_json(self, entities_json)
 
         for person in self.persons_to_allocate:  # We build a single-person entity for each person who hasn't been declared inside any entity
             person_index = self.simulation.persons.ids.index(person)
