@@ -258,7 +258,7 @@ class GroupEntity(Entity):
         entity_object = entity_object.copy()  # Don't mutate function input
 
         roles_definition = {
-            role.plural: entity_object.pop(role.plural, [])
+            role.plural: entity_object.pop(role.plural or role.key, [])
             for role in self.roles
             }
 
