@@ -12,7 +12,7 @@ This package requires Python 2.7
 
 If you're developping your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/18.2.1/setup.py#L53).
 
-If you want to contribute to OpenFisca-Core itself, welcome! To install it locally in developpment mode:
+If you want to contribute to OpenFisca-Core itself, welcome! To install it locally in development mode:
 
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
