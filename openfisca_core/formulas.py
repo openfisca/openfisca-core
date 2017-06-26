@@ -580,7 +580,7 @@ class Formula(object):
                         ),
                     start_instant = (None if dated_formula['start_instant'] is None
                         else str(dated_formula['start_instant'])),
-                    stop_instant = (None if dated_formula['stop_instant'] is None
+                    stop_instant = (None if dated_formula.get('stop_instant') is None
                         else str(dated_formula['stop_instant'])),
                     )
                 for dated_formula in self.dated_formulas
