@@ -1,5 +1,15 @@
 # Changelog
 
+## 14.1.2 - [#535](https://github.com/openfisca/openfisca-core/pull/535)
+
+#### Bug fix
+
+- Fix `formula.graph_parameters` and `formula.to_json`
+  - Bugs were introduced in `14.0.0`
+
+- Fix `simulation.graph`
+  - A bug was introduced in `14.1.0`
+
 ## 14.1.1 - [#533](https://github.com/openfisca/openfisca-core/pull/533)
 
 #### Bug fix
