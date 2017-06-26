@@ -532,8 +532,22 @@ class Formula(object):
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""
-        for dated_formula in self.dated_formulas:
-            dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
+        if self.dated_formulas is not None:
+            for dated_formula in self.dated_formulas:
+                dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
+        else:
+            holder = self.holder
+            column = holder.column
+            simulation = holder.simulation
+            variables_name, parameters_name = get_input_variables_and_parameters(column)
+            if variables_name is not None:
+                for variable_name in sorted(variables_name):
+                    variable_holder = simulation.get_or_new_holder(variable_name)
+                    variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
+                    edges.append({
+                        'from': variable_holder.column.name,
+                        'to': column.name,
+                        })
 
     def formula_to_json(self, function, get_input_variables_and_parameters = None, with_input_variables_details = False):
         if function is None:
