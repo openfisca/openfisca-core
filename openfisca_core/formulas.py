@@ -610,10 +610,10 @@ def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
 
-def missing_value(formula, simulation, period):
+def missing_value(formula, simulation, period, *extra_params):
     function = formula.find_function(period)
     if function is not None:
-        return function(simulation, period)
+        return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
     column = holder.column
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
