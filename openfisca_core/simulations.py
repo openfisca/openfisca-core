@@ -247,7 +247,7 @@ class Simulation(object):
         return reference_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+        self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def legislation_at(self, instant, reference = False):
         if isinstance(instant, periods.Period):
