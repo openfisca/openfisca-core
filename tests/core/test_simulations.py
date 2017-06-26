@@ -3,6 +3,7 @@
 from openfisca_country_template import CountryTaxBenefitSystem
 
 from openfisca_core.formulas import Formula
+from openfisca_core.simulations import Simulation
 
 tax_benefit_system = CountryTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
@@ -25,3 +26,29 @@ def test_calculate__holder_attribute_content():
 
     assert issubclass(simulation_holder.formula.__class__, Formula)
     assert len(simulation_holder.formula.dated_formulas) > 0  # contains formulas instances
+
+
+def test_clone():
+    simulation = Simulation(
+        tax_benefit_system = tax_benefit_system,
+        simulation_json = {
+            "persons": {
+                "bill": {"salary": {"2017-01": 3000}},
+                },
+            })
+
+    simulation_clone = simulation.clone()
+    assert simulation != simulation_clone
+
+    for entity_id, entity in simulation.entities.iteritems():
+        assert entity != simulation_clone.entities[entity_id]
+        assert entity.entities_json == simulation_clone.entities[entity_id].entities_json
+
+    assert simulation.persons != simulation_clone.persons
+
+    salary_holder = simulation.person.get_holder('salary')
+    salary_holder_clone = simulation_clone.person.get_holder('salary')
+
+    assert salary_holder != salary_holder_clone
+    assert salary_holder_clone.simulation == simulation_clone
+    assert salary_holder_clone.entity == simulation_clone.person
