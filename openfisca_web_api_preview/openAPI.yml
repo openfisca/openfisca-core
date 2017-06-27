@@ -306,78 +306,58 @@ definitions:
       type: "number"
       format: "float"
 
-
   SituationInput:
     example:
-      persons:
+      individus:
         Bill:
-          salary:
-            "2017-05": 2000
-            "2017-04": 4000
-            "2017-03": 5000
-            "2017-02": 300
-            "2017-01": 2000
-          income_tax:
-            "2017-05": null
-            "2017-04": null
-            "2017-03": null
-            "2017-02": null
-            "2017-01": null
-
+          salaire_de_base:
+            "2017": 20000
         Bob:
-          salary:
-            "2017-05": 2000
-            "2017-04": 2000
-            "2017-03": 2000
-            "2017-02": 2000
-            "2017-01": 2000
+          salaire_de_base:
+            "2017": 30000
         Janet: {}
-      households:
-        first_household:
+      menages:
+        menage_1:
+          personne_de_reference: [Bill]
+          conjoint: [Bob]
+          enfants: [Janet]
+          revenu_disponible:
+            "2017": null
+          impots_directs:
+            "2017": null
+      familles:
+        famille_1:
           parents: [Bill, Bob]
-          children: [Janet]
-          housing_tax:
-              "2017": null
-          accomodation_size:
-              "2017-01": 300
-              "2017-02": 300
-              "2017-03": 300
-              "2017-04": 300
-              "2017-05": 300
+          enfants: [Janet]
+      foyer_fiscaux:
+        foyer_fiscal_1:
+          declarants: [Bill, Bob]
+          personnes_a_charge: [Janet]
 
   SituationOutput:
     example:
-      persons:
+      individus:
         Bill:
-          salary:
-            "2017-05": 2000
-            "2017-04": 4000
-            "2017-03": 5000
-            "2017-02": 300
-            "2017-01": 2000
-          income_tax:
-            "2017-05": 200
-            "2017-04": 500
-            "2017-03": 700
-            "2017-02": 0
-            "2017-01": 200
+          salaire_de_base:
+            "2017": 20000
         Bob:
-          salary:
-            "2017-05": 2000
-            "2017-04": 2000
-            "2017-03": 2000
-            "2017-02": 2000
-            "2017-01": 2000
-        Janet:
-      households:
-        first_household:
+          salaire_de_base:
+            "2017": 30000
+        Janet: {}
+      menages:
+        menage_1:
+          personne_de_reference: [Bill]
+          conjoint: [Bob]
+          enfants: [Janet]
+          revenu_disponible:
+            "2017": 44629
+          impots_directs:
+            "2017": -1690
+      familles:
+        famille_1:
           parents: [Bill, Bob]
-          children: [Janet]
-          housing_tax:
-              "2017": 345
-          accomodation_size:
-              "2017-01": 300
-              "2017-02": 300
-              "2017-03": 300
-              "2017-04": 300
-              "2017-05": 300
+          enfants: [Janet]
+      foyer_fiscaux:
+        foyer_fiscal_1:
+          declarants: [Bill, Bob]
+          personnes_a_charge: [Janet]
