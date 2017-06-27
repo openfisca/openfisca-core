@@ -82,7 +82,7 @@ class Simulation(object):
         for entity_class in self.tax_benefit_system.group_entities:
             if simulation_json:
                 entities_json = copied_simulation_json.pop(entity_class.plural, {})
-                entities = entity_class(self, entities_json)
+                entities = entity_class(self, entities_json or {})
             else:
                 entities = entity_class(self)
             self.entities[entity_class.key] = entities
