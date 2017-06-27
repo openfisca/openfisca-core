@@ -290,6 +290,9 @@ class GroupEntity(Entity):
             self.members_role[person_index] = self.flattened_roles[0]
             self.members_legacy_role[person_index] = 0
 
+        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
+        self.roles_count = self.members_legacy_role.max() + 1
+
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
@@ -313,9 +316,6 @@ class GroupEntity(Entity):
             self.members_entity_id[person_index] = entity_index
             self.members_role[person_index] = person_role
             self.members_legacy_role[person_index] = person_legacy_role
-
-        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
-        self.roles_count = self.members_legacy_role.max() + 1
 
     @property
     def members_role(self):
