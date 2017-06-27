@@ -280,15 +280,12 @@ class GroupEntity(Entity):
 
         Entity.init_from_json(self, entities_json)
 
-        for person in self.persons_to_allocate:  # We build a single-person entity for each person who hasn't been declared inside any entity
-            person_index = self.simulation.persons.ids.index(person)
-            entity_index = self.count
-            self.count += 1
-            self.step_size += 1  # Related to axes
-            self.ids.append(person)
-            self.members_entity_id[person_index] = entity_index
-            self.members_role[person_index] = self.flattened_roles[0]
-            self.members_legacy_role[person_index] = 0
+        if self.persons_to_allocate:
+            unallocated_person = self.persons_to_allocate.pop()
+            raise SituationParsingError([self.plural],
+                '{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
+                    unallocated_person, self.simulation.persons.plural, self.key)
+                )
 
         #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
         self.roles_count = self.members_legacy_role.max() + 1
