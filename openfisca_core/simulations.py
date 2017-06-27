@@ -71,7 +71,7 @@ class Simulation(object):
 
             if not persons_json:
                 raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                    'No person found. At least one person must be defined to run a simulation.')
+                    'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key).encode('utf-8'))
             self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         else:
             self.persons = self.tax_benefit_system.person_entity(self)
@@ -91,7 +91,9 @@ class Simulation(object):
         if simulation_json and copied_simulation_json:  # The JSON should be empty now that all the entities have been extracted
             unexpected_key = copied_simulation_json.keys()[0]
             raise SituationParsingError([unexpected_key],
-                'This entity is not defined in the loaded tax and benefit system.')
+                'This entity is not defined in the loaded tax and benefit system. The defined entities are {}.'.format(
+                    ', '.join((entity.plural for entity in self.tax_benefit_system.entities))).encode('utf-8')
+                )
 
     @property
     def holder_by_name(self):
