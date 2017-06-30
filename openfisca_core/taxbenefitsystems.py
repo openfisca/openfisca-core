@@ -14,7 +14,7 @@ import traceback
 
 from setuptools import find_packages
 
-from . import conv, legislations, legislationsxml
+from . import conv, legislations, legislationsyaml
 from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
@@ -70,7 +70,7 @@ class TaxBenefitSystem(object):
         self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self.legislation_xml_info_list = []
+        self.legislation_yaml_dirs = []
         self._legislation_json = legislation_json
 
         self.entities = entities
@@ -248,9 +248,9 @@ class TaxBenefitSystem(object):
                 raise ValueError(message)
 
         self.add_variables_from_directory(extension_directory)
-        param_file = path.join(extension_directory, 'parameters.xml')
-        if path.isfile(param_file):
-            self.add_legislation_params(param_file)
+        param_dir = path.join(extension_directory, 'parameters')
+        if path.isdir(param_dir):
+            self.add_legislation_params(param_dir)
 
     def apply_reform(self, reform_path):
         """
@@ -318,32 +318,24 @@ class TaxBenefitSystem(object):
             )
         self.neutralize_variable(column_name)
 
-    def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+    def add_legislation_params(self, path_to_yaml_dir):
         """
-        Adds an XML file to the legislation parameters.
+        Adds a YAML dir to the legislation parameters.
 
-        :param path_to_xml_file: Absolute path towards the XML legislation file.
-        :param path_in_legislation_tree: Legislation path where the legislation node is added.
+        :param path_to_yaml_dir: Absolute path towards the YAML legislation directory.
 
         Exemples:
 
-        >>> self.add_legislation_params('/path/to/parameters/root.xml')
-        >>> self.add_legislation_params('/path/to/parameters/taxes/income_tax.xml', 'taxes.income_tax')
+        >>> self.add_legislation_params('/path/to/yaml/parameters/dir')
         """
-        if path_in_legislation_tree is not None:
-            path_in_legislation_tree = path_in_legislation_tree.split('.')
-        else:
-            path_in_legislation_tree = []
 
-        self.legislation_xml_info_list.append(
-            (path_to_xml_file, path_in_legislation_tree)
-            )
+        self.legislation_yaml_dirs.append(path_to_yaml_dir)
         # New parameters have been added, the legislation will have to be recomputed next time we need it.
         # Not very optimized, but today incremental building of the legislation is not implemented.
         self._legislation_json = None
 
     def compute_legislation(self, with_source_file_infos = False):
-        legislation_json = legislationsxml.load_legislation(self.legislation_xml_info_list)
+        legislation_json = legislationsyaml.load_legislation(self.legislation_yaml_dirs)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         self._legislation_json = legislation_json
