@@ -4,31 +4,174 @@
 """Handle legislative parameters in JSON format."""
 
 
-import logging
+import os
 
-from . import conv, periods, taxscales
+import yaml
+from jsonschema import validate
+
+from . import taxscales
 
 
-def N_(message):
-    return message
+node_keywords = ['type', 'reference', 'description']
 
+schema_node_meta = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Node metadata YAML file",
+    "description": "A file named _.yaml that contains metadata about a parameter node.",
+    "type": "object",
+    "properties": {
+        "type": {
+            "enum": ["node"],
+            },
+        "description": {
+            "type": "string",
+            },
+        "reference": {
+            "type": "string",
+            },
+        },
+    "required": ["type"],
+    "additionalProperties": False,
+    }
 
-log = logging.getLogger(__name__)
-units = [
-    u'currency',
-    u'day',
-    u'hour',
-    u'month',
-    u'year',
-    ]
+schema_yaml = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "YAML parameter file",
+    "description": "A YAML file that can contain a node, a parameter or a scale.",
+    "definitions": {
+        "value": {
+            "anyOf": [
+                {
+                    "type": "number",
+                    },
+                {
+                    "type": "boolean",
+                    },
+                {
+                    "type": "null",
+                    },
+                ],
+            },
+        "values_history": {
+            "type": "object",
+            "patternProperties": {
+                "^\d{4}-\d{2}-\d{2}$": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": ["expected"],
+                            },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "expected": {"$ref": "#/definitions/value"},
+                                "reference": {
+                                    "type": "string",
+                                    },
+                                },
+                            "required": ["expected"],
+                            "additionalProperties": False,
+                            },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "value": {"$ref": "#/definitions/value"},
+                                "reference": {
+                                    "type": "string",
+                                    },
+                                },
+                            "required": ["value"],
+                            "additionalProperties": False,
+                            },
+                        ],
+                    },
+                },
+            "additionalProperties": False,
+            },
+        "node": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": ["node"],
+                    },
+                "description": {
+                    "type": "string",
+                    },
+                "reference": {
+                    "type": "string",
+                    },
+                },
+            "required": ["type"],
+            "additionalProperties": {"$ref": "#/definitions/node_or_parameter_of_scale"},
+            },
+        "parameter": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": ["parameter"],
+                    },
+                "description": {
+                    "type": "string",
+                    },
+                "reference": {
+                    "type": "string",
+                    },
+                "unit": {
+                    "type": "string",
+                    "enum": ['/1', 'currency'],
+                    },
+                "values": {"$ref": "#/definitions/values_history"},
+                },
+            "required": ["type", "values"],
+            "additionalProperties": False,
+            },
+        "scale": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": ["scale"],
+                    },
+                "description": {
+                    "type": "string",
+                    },
+                "reference": {
+                    "type": "string",
+                    },
+                "brackets": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {"$ref": "#/definitions/values_history"},
+                            "threshold": {"$ref": "#/definitions/values_history"},
+                            "rate": {"$ref": "#/definitions/values_history"},
+                            "base": {"$ref": "#/definitions/values_history"},
+                            },
+                        "additionalProperties": False,
+                        },
+                    },
+                },
+            "required": ["type", "brackets"],
+            "additionalProperties": False,
+            },
+        "node_or_parameter_of_scale": {
+            "anyOf": [
+                {"$ref": "#/definitions/node"},
+                {"$ref": "#/definitions/parameter"},
+                {"$ref": "#/definitions/scale"},
+                ],
+            },
+        },
+    "$ref": "#/definitions/node_or_parameter_of_scale",
+    }
 
 
 class ParameterNotFound(Exception):
-    def __init__(self, name, instant, variable_name = None):
+    def __init__(self, name, instant_str, variable_name = None):
         assert name is not None
-        assert instant is not None
+        assert instant_str is not None
         self.name = name
-        self.instant = instant
+        self.instant_str = instant_str
         self.variable_name = variable_name
         message = u"The parameter '{}'".format(name)
         if variable_name is not None:
@@ -38,335 +181,258 @@ class ParameterNotFound(Exception):
             ).format(name, variable_name, instant)
         super(ParameterNotFound, self).__init__(message)
 
-    def to_json(self):
-        self_json = {
-            'instant': unicode(self.instant),
-            'message': unicode(self),
-            'parameter_name': self.name,
-            }
-        if self.variable_name is not None:
-            self_json['variable_name'] = self.variable_name
-        return self_json
+
+class ExceptionValueIsUnknown(Exception):
+    pass
 
 
-class CompactNode(object):
-    # Note: Legislation attributes are set explicitely by compact_dated_node_json
-    # (ie they are not computed by a magic method).
+class ValueAtInstant(object):
+    def __init__(self, name, instant_str, yaml_data=None, value=None):
+        """
+            Can be instanciated from YAML data (use yaml_data), or dynamically for reforms.
 
-    instant = None
-    name = None
+            name : name of the parameter, eg "a.b.param"
+            instant_str : Date of the value.
+            yaml_data : Data extracted from the yaml. If set, value should not be set.
+            value : Used if and only if yaml_data=None. If value=None, the parameter is removed from the legislation.
+        """
+        self.name = name
+        self.instant_str = instant_str
 
-    def __delitem__(self, key):
-        del self.__dict__[key]
+        if yaml_data is not None:
+            if yaml_data == 'expected' or yaml_data == {'expected': None}:
+                raise ExceptionValueIsUnknown()
+            elif 'expected' in yaml_data:
+                self.value = yaml_data['expected']
+            elif yaml_data['value'] is None:
+                self.value = None
+            else:
+                self.value = yaml_data['value']
 
-    # Reminder: __getattr__ is called only when attribute is not found.
-    def __getattr__(self, key):
-        name = u'.'.join([self.name, key]) \
-            if self.name is not None \
-            else key
-        raise ParameterNotFound(
-            instant = self.instant,
-            name = name,
-            )
+        else:
+            self.value = value
 
-    def __getitem__(self, key):
-        return self.__dict__[key]
+    def __eq__(self, other):
+        return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
-    def __init__(self, instant, name = None):
-        assert instant is not None
-        self.instant = instant
+
+class ValuesHistory(object):
+    def __init__(self, name, yaml_data=None, values_list=None):
+        """
+            name : name of the parameter, eg "a.b.param"
+            yaml_data : Data extracted from the yaml. If set, values_list should not be set.
+            values_list : List of ValueAtInstant objects. If set, yaml_data should not be set.
+        """
         self.name = name
 
-    def __iter__(self):
-        return self.__dict__.iterkeys()
+        if yaml_data:
+            instants = sorted(yaml_data.keys(), reverse=True)    # sort by antechronological order
+            assert len(set(instants)) == len(instants), "Instants in values history should be unique"
+            values_list = []
+            for instant_str in instants:
+                instant_info = yaml_data[instant_str]
+                if instant_info is None:
+                    print(yaml_data)
+                try:
+                    value_at_instant = ValueAtInstant(name, instant_str, yaml_data=instant_info)
+                except ExceptionValueIsUnknown:
+                    pass
+                else:
+                    values_list.append(value_at_instant)
+        else:
+            values_list = sorted(values_list, key=lambda x: x.instant_str, reverse=True)
+
+        self.values_list = values_list
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+        return 'ValuesHistory "{}"\n'.format(self.name) + ''.join('  {}: {}\n'.format(value.instant_str, value.value) for value in self.values_list)
 
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
+    def __eq__(self, other):
+        return (self.name == other.name) and (self.values_list == other.values_list)
 
-    def combine_tax_scales(self):
-        """Combine all the MarginalRateTaxScales in the node into a single MarginalRateTaxScale."""
-        combined_tax_scales = None
-        for name, child in self.iteritems():
-            if name == 'name' or name == 'instant':
-                continue
-            if not isinstance(child, taxscales.AbstractTaxScale):
-                log.info(u'Skipping {} with value {} because it is not a tax scale'.format(name, child))
-                continue
+    def get_at_instant(self, instant_str):
+        for value_at_instant in self.values_list:
+            if value_at_instant.instant_str <= instant_str:
+                return value_at_instant.value
+        return None
 
-            if combined_tax_scales is None:
-                combined_tax_scales = taxscales.MarginalRateTaxScale(name = name)
-                combined_tax_scales.add_bracket(0, 0)
-            combined_tax_scales.add_tax_scale(child)
-        return combined_tax_scales
 
-    def copy(self, deep = False):
-        new = self.__class__()
-        for name, value in self.iteritems():
-            if deep:
-                if isinstance(value, CompactNode):
-                    new[name] = value.copy(deep = deep)
-                elif isinstance(value, taxscales.AbstractTaxScale):
-                    new[name] = value.copy()
+class Bracket(object):
+    def __init__(self, name, yaml_data):
+        self.name = name
+
+        for key, value in yaml_data.items():
+            if key in {'amount', 'rate', 'threshold', 'base'}:
+                new_child_name = compose_name(name, key)
+                new_child = ValuesHistory(new_child_name, value)
+                setattr(self, key, new_child)
+
+    def get_at_instant(self, instant_str):
+        return BracketAtInstant(self.name, self, instant_str)
+
+
+class BracketAtInstant(object):
+    '''This class is used temporarily in Scale._get_at_instant, before the construction of a tax scale'''
+    def __init__(self, name, bracket, instant_str):
+        self.name = name
+        self.instant_str = instant_str
+
+        for key in ['amount', 'rate', 'threshold', 'base']:
+            if hasattr(bracket, key):
+                new_child = getattr(bracket, key).get_at_instant(instant_str)
+                if new_child is not None:
+                    setattr(self, key, new_child)
+
+
+class Scale(object):
+    def __init__(self, name, yaml_data):
+        self.name = name
+
+        brackets = []
+        for i, bracket_data in enumerate(yaml_data['brackets']):
+            bracket_name = str(i)
+            bracket = Bracket(bracket_name, bracket_data)
+            brackets.append(bracket)
+        self.brackets = brackets
+
+    def get_at_instant(self, instant_str):
+        brackets = [bracket.get_at_instant(instant_str) for bracket in self.brackets]
+
+        if any(hasattr(bracket, 'amount') for bracket in brackets):
+            scale = taxscales.AmountTaxScale()
+            for bracket in brackets:
+                if hasattr(bracket, 'amount') and hasattr(bracket, 'threshold'):
+                    amount = bracket.amount
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, amount)
+        else:
+            scale = taxscales.MarginalRateTaxScale()
+
+            for bracket in brackets:
+                if hasattr(bracket, 'base'):
+                    base = bracket.base
                 else:
-                    new[name] = value
-            else:
-                new[name] = value
-        return new
-
-    def get(self, key, default = None):
-        return self.__dict__.get(key, default)
-
-    def items(self):
-        return self.__dict__.items()
-
-    def iteritems(self):
-        return self.__dict__.iteritems()
-
-    def iterkeys(self):
-        return self.__dict__.iterkeys()
-
-    def itervalues(self):
-        return self.__dict__.itervalues()
-
-    def keys(self):
-        return self.__dict__.keys()
-
-    def pop(self, key, default = None):
-        return self.__dict__.pop(key, default)
-
-    def scale_tax_scales(self, factor):
-        """Scale all the MarginalRateTaxScales in the node."""
-        scaled_node = CompactNode()
-        for key, child in self.iteritems():
-            scaled_node[key] = child.scale_tax_scales(factor)
-        return scaled_node
-
-    def update(self, value):
-        if isinstance(value, CompactNode):
-            value = value.__dict__
-        return self.__dict__.update(value)
-
-    def values(self):
-        return self.__dict__.values()
+                    base = 1.
+                if hasattr(bracket, 'rate') and hasattr(bracket, 'threshold'):
+                    rate = bracket.rate
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, rate * base)
+            return scale
 
 
-class TracedCompactNode(object):
-    """
-    A proxy for CompactNode which stores the a simulation instance. Used for simulations with trace mode enabled.
+class Node(object):
+    def __init__(self, name, path=None, yaml_data=None, children=None):
+        """
+            name : name of the node, eg "a.b"
+            path : directory of YAML files describing the node
+            yaml_data : Data extracted from a yaml file describing a Node
+            children : Dictionary of ValuesHistory or Scale objects indexed by name.
 
-    Overload __delitem__, __getitem__ and __setitem__ even if __getattribute__ is defined because of:
-    https://stackoverflow.com/questions/11360020/why-is-getattribute-not-invoked-on-an-implicit-getitem-invocation
-    """
-    compact_node = None
-    simulation = None
-    traced_attributes_name = None
+            Only one of the 3 parameters path, yaml_data or children should be set.
+        """
+        assert isinstance(name, str)
+        self.name = name
 
-    def __init__(self, compact_node, simulation, traced_attributes_name):
-        self.compact_node = compact_node
-        self.simulation = simulation
-        self.traced_attributes_name = traced_attributes_name
+        def parse_child(child_name, child):
+            if child['type'] == 'parameter':
+                return ValuesHistory(child_name, child['values'])
+            elif child['type'] == 'scale':
+                return Scale(child_name, child)
+            elif child['type'] == 'node':
+                return Node(child_name, yaml_data=child)
 
-    def __delitem__(self, key):
-        del self.compact_node.__dict__[key]
+        if path:
+            self.children = {}
+            for child_name in os.listdir(path):
+                child_path = os.path.join(path, child_name)
+                if os.path.isfile(child_path):
+                    child_name, ext = os.path.splitext(child_name)
+                    assert ext == '.yaml', "The parameter directory should contain only YAML files."
+                    with open(child_path, 'r') as f:
+                        data = yaml.load(f)
 
-    # Reminder: __getattr__ is called only when attribute is not found.
+                    if child_name == '_':
+                        validate(data, schema_node_meta)
+                    else:
+                        validate(data, schema_yaml)
+                        child_name_expanded = compose_name(name, child_name)
+                        self.children[child_name] = parse_child(child_name_expanded, data)
+
+                elif os.path.isdir(child_path):
+                    child_name = os.path.basename(child_path)
+                    child_name_expanded = compose_name(name, child_name)
+                    self.children[child_name] = Node(child_name_expanded, path=child_path)
+                else:
+                    raise ValueError('Unexpected item {}'.format(child_path))
+
+        elif yaml_data:
+            self.children = {}
+            for child_name, child in yaml_data.items():
+                if child_name in node_keywords:
+                    continue
+                child_name_expanded = compose_name(name, child_name)
+                self.children[child_name] = parse_child(child_name_expanded, child)
+
+        else:
+            for child in children.values():
+                assert isinstance(child, Node) or isinstance(child, Scale) or isinstance(child, ValuesHistory), child
+            self.children = children
+
+    def get_at_instant(self, instant_str):
+        return NodeAtInstant(self.name, self, instant_str)
+
+    def merge(self, other):
+        for child_name, child in other.children.items():
+            self.children[child_name] = child
+
+
+class NodeAtInstant(object):
+    def __init__(self, name, node, instant_str):
+        self.name = name
+        self.instant_str = instant_str
+        self.children = {}
+        for child_name, child in node.children.items():
+            child_at_instant = child.get_at_instant(instant_str)
+            if child_at_instant is not None:
+                self.children[child_name] = child_at_instant
+
     def __getattr__(self, key):
-        value = getattr(self.compact_node, key)
-        if key in self.traced_attributes_name:
-            calling_frame = self.simulation.stack_trace[-1]
-            caller_parameters_infos = calling_frame['parameters_infos']
-            parameter_name = u'.'.join([self.compact_node.name, key]) \
-                if self.compact_node.name is not None \
-                else key
-            parameter_infos = {
-                "instant": str(self.compact_node.instant),
-                "name": parameter_name,
-                }
-            if isinstance(value, taxscales.AbstractTaxScale):
-                # Do not serialize value in JSON for tax scales since they are too big.
-                parameter_infos["@type"] = "Scale"
-            else:
-                parameter_infos.update({"@type": "Parameter", "value": value})
-            if parameter_infos not in caller_parameters_infos:
-                caller_parameters_infos.append(dict(sorted(parameter_infos.iteritems())))
-        return value
+        if key not in {'children'}:
+            if key not in self.children:
+                param_name = compose_name(self.name, key)
+                raise ParameterNotFound(param_name, self.instant_str)
+            return self.children[key]
 
     def __getitem__(self, key):
-        return self.compact_node.__dict__[key]
+        return getattr(self, key)
 
-    def __setitem__(self, key, value):
-        self.compact_node.__dict__[key] = value
-
-
-# Functions
+    def __iter__(self):
+        return iter(self.children)
 
 
-def compact_dated_node_json(dated_node_json, code = None, instant = None, parent_codes = None,
-        traced_simulation = None):
-    """
-    Compacts a dated node JSON into a hierarchy of CompactNode objects.
-
-    The "traced_simulation" argument can be used for simulations with trace mode enabled, this stores parameter values
-    in the traceback.
-    """
-    node_type = dated_node_json['@type']
-    if node_type == u'Node':
-        if code is None:
-            # Root node
-            assert instant is None, instant
-            instant = periods.instant(dated_node_json['instant'])
-        assert instant is not None
-        name = u'.'.join((parent_codes or []) + [code]) \
-            if code is not None \
-            else None
-        compact_node = CompactNode(instant = instant, name = name)
-        for key, value in dated_node_json['children'].iteritems():
-            child_parent_codes = None
-            if traced_simulation is not None:
-                child_parent_codes = [] if parent_codes is None else parent_codes[:]
-                if code is not None:
-                    child_parent_codes += [code]
-                child_parent_codes = child_parent_codes or None
-            compact_node.__dict__[key] = compact_dated_node_json(
-                value,
-                code = key,
-                instant = instant,
-                parent_codes = child_parent_codes,
-                traced_simulation = traced_simulation,
-                )
-        if traced_simulation is not None:
-            traced_children_code = [
-                key
-                for key, value in dated_node_json['children'].iteritems()
-                if value['@type'] != u'Node'
-                ]
-            # Only trace Nodes which have at least one Parameter child.
-            if traced_children_code:
-                compact_node = TracedCompactNode(
-                    compact_node = compact_node,
-                    simulation = traced_simulation,
-                    traced_attributes_name = traced_children_code,
-                    )
-        return compact_node
-    assert instant is not None
-    if node_type == u'Parameter':
-        return dated_node_json.get('value')
-    assert node_type == u'Scale'
-    if any('amount' in bracket for bracket in dated_node_json['brackets']):
-        # AmountTaxScale
-        tax_scale = taxscales.AmountTaxScale(name = code, option = dated_node_json.get('option'))
-        for dated_bracket_json in dated_node_json['brackets']:
-            amount = dated_bracket_json.get('amount')
-            assert not isinstance(amount, list)
-            threshold = dated_bracket_json.get('threshold')
-            assert not isinstance(threshold, list)
-            if amount is not None and threshold is not None:
-                tax_scale.add_bracket(threshold, amount)
-        return tax_scale
-
-    rates_kind = dated_node_json.get('rates_kind', None)
-    if rates_kind == "average":
-        # LinearAverageRateTaxScale
-        tax_scale = taxscales.LinearAverageRateTaxScale(
-            name = code,
-            option = dated_node_json.get('option'),
-            unit = dated_node_json.get('unit'),
-            )
+def compose_name(path, child_name):
+    if path:
+        return '{}.{}'.format(path, child_name)
     else:
-        # MarginalRateTaxScale
-        tax_scale = taxscales.MarginalRateTaxScale(name = code, option = dated_node_json.get('option'))
-
-    for dated_bracket_json in dated_node_json['brackets']:
-        base = dated_bracket_json.get('base', 1)
-        assert not isinstance(base, list)
-        rate = dated_bracket_json.get('rate')
-        assert not isinstance(rate, list)
-        threshold = dated_bracket_json.get('threshold')
-        assert not isinstance(threshold, list)
-        if rate is not None and threshold is not None:
-            tax_scale.add_bracket(threshold, rate * base)
-    return tax_scale
+        return child_name
 
 
-def generate_dated_bracket_json(bracket_json, instant_str):
-    dated_bracket_json = dict()
-    for key, value in bracket_json.iteritems():
-        if key in ('amount', 'base', 'rate', 'threshold'):
-            dated_value = generate_dated_json_value(value, instant_str)
-            if dated_value is not None:
-                dated_bracket_json[key] = dated_value
-        else:
-            dated_bracket_json[key] = value
-    return dated_bracket_json
+def load_legislation(path_list):
+    '''load_legislation() : load YAML directories
 
+    If several directories are parsed, newer children with the same name are not merged but overwrite previous ones.
+    '''
 
-def generate_dated_json_value(values_json, instant):
-    for value_json in values_json:
-        value_start = value_json.get('start')
-        if value_start <= instant:
-            if 'value' in value_json:
-                return value_json['value']
-            else:
-                return None
-    return None
+    assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'
 
+    legislations = []
+    for path in path_list:
+        legislation = Node('', path=path)
+        legislations.append(legislation)
 
-def generate_dated_legislation_json(legislation_json, instant):
-    instant_str = str(periods.instant(instant))
-    dated_legislation_json = generate_dated_node_json(legislation_json, instant_str)
-    if dated_legislation_json is None:  # special case when the legislation is empty
-        dated_legislation_json = dict({
-            '@type': u'Node',
-            'children': dict(),
-            })
-    dated_legislation_json['@context'] = u'https://openfisca.fr/contexts/dated-legislation.jsonld'
-    dated_legislation_json['instant'] = instant_str
-    return dated_legislation_json
+    base_legislation = legislations[0]
+    for i in range(1, len(legislations)):
+        legislation = legislations[i]
+        base_legislation.merge(legislation)
 
-
-def generate_dated_node_json(node_json, instant_str):
-    dated_node_json = dict()
-    for key, value in node_json.iteritems():
-        if key == 'children':
-            # Occurs when @type == 'Node'.
-            dated_children_json = type(value)(
-                (child_code, dated_child_json)
-                for child_code, dated_child_json in (
-                    (
-                        child_code,
-                        generate_dated_node_json(child_json, instant_str),
-                        )
-                    for child_code, child_json in value.iteritems()
-                    )
-                if dated_child_json is not None
-                )
-            if not dated_children_json:
-                return None
-            dated_node_json[key] = dated_children_json
-        elif key in ('start', ):
-            pass
-        elif key == 'brackets':
-            # Occurs when @type == 'Scale'.
-            dated_brackets_json = [
-                dated_bracket_json
-                for dated_bracket_json in (
-                    generate_dated_bracket_json(bracket_json, instant_str)
-                    for bracket_json in value
-                    )
-                if dated_bracket_json != dict()
-                ]
-            if not dated_brackets_json:
-                return None
-            dated_node_json[key] = dated_brackets_json
-        elif key == 'values':
-            # Occurs when @type == 'Parameter'.
-            dated_value = generate_dated_json_value(value, instant_str)
-            if dated_value is None:
-                return None
-            dated_node_json['value'] = dated_value
-        else:
-            dated_node_json[key] = value
-    return dated_node_json
+    return base_legislation

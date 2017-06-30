@@ -435,7 +435,7 @@ class Formula(object):
         except legislations.ParameterNotFound as exc:
             if exc.variable_name is None:
                 raise legislations.ParameterNotFound(
-                    instant = exc.instant,
+                    instant_str = exc.instant_str,
                     name = exc.name,
                     variable_name = column.name,
                     )

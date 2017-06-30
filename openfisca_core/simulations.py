@@ -12,11 +12,11 @@ from commons import empty_clone, stringify_array
 
 
 class Simulation(object):
-    compact_legislation_by_instant_cache = None
+    legislation_by_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
     period = None
-    baseline_compact_legislation_by_instant_cache = None
+    baseline_legislation_by_instant_cache = None
     stack_trace = None
     steps_count = 1
     tax_benefit_system = None
@@ -65,8 +65,8 @@ class Simulation(object):
             self.traceback = collections.OrderedDict()
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
-        self.compact_legislation_by_instant_cache = {}
-        self.baseline_compact_legislation_by_instant_cache = {}
+        self.legislation_by_instant_cache = {}
+        self.baseline_legislation_by_instant_cache = {}
 
         self.instantiate_entities(simulation_json)
 
@@ -210,15 +210,12 @@ class Simulation(object):
                 caller_input_variables_infos.append(variable_infos)
         return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
 
-    def get_compact_legislation(self, instant):
-        compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-        if compact_legislation is None:
-            compact_legislation = self.tax_benefit_system.get_compact_legislation(
-                instant = instant,
-                traced_simulation = self if self.trace else None,
-                )
-            self.compact_legislation_by_instant_cache[instant] = compact_legislation
-        return compact_legislation
+    def get_legislation_at_instant(self, instant):
+        legislation_at_instant = self.legislation_by_instant_cache.get(instant)
+        if legislation_at_instant is None:
+            legislation_at_instant = self.tax_benefit_system.get_legislation_at_instant(instant)
+            self.legislation_by_instant_cache[instant] = legislation_at_instant
+        return legislation_at_instant
 
     def get_holder(self, column_name, default = UnboundLocalError):
         warnings.warn(
@@ -245,15 +242,15 @@ class Simulation(object):
         entity = self.get_entity(column.entity)
         return entity.get_holder(column_name)
 
-    def get_baseline_compact_legislation(self, instant):
-        baseline_compact_legislation = self.baseline_compact_legislation_by_instant_cache.get(instant)
-        if baseline_compact_legislation is None:
-            baseline_compact_legislation = self.tax_benefit_system.get_baseline_compact_legislation(
+    def get_baseline_legislation_at_instant(self, instant):
+        baseline_legislation_at_instant = self.baseline_legislation_by_instant_cache.get(instant)
+        if baseline_legislation_at_instant is None:
+            baseline_legislation_at_instant = self.tax_benefit_system.get_baseline_legislation_at_instant(
                 instant = instant,
                 traced_simulation = self if self.trace else None,
                 )
-            self.baseline_compact_legislation_by_instant_cache[instant] = baseline_compact_legislation
-        return baseline_compact_legislation
+            self.baseline_legislation_by_instant_cache[instant] = baseline_legislation_at_instant
+        return baseline_legislation_at_instant
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
         self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
@@ -263,8 +260,8 @@ class Simulation(object):
             instant = instant.start
         assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
         if use_baseline:
-            return self.get_baseline_compact_legislation(instant)
-        return self.get_compact_legislation(instant)
+            return self.get_baseline_legislation_at_instant(instant)
+        return self.get_legislation_at_instant(instant)
 
     def find_traceback_step(self, variable_name, period):
         assert isinstance(period, periods.Period), period

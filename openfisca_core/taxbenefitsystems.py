@@ -14,7 +14,7 @@ import traceback
 
 from setuptools import find_packages
 
-from . import conv, legislations, legislationsyaml
+from . import conv, legislations
 from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
@@ -53,7 +53,7 @@ class TaxBenefitSystem(object):
     Represents the legislation.
     """
     _base_tax_benefit_system = None
-    compact_legislation_by_instant_cache = None
+    legislation_by_instant_cache = None
     person_key_plural = None
     preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -67,7 +67,7 @@ class TaxBenefitSystem(object):
 
     def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
         self.legislation_yaml_dirs = []
@@ -89,27 +89,20 @@ class TaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
-    def get_compact_legislation(self, instant, traced_simulation = None):
+    def get_legislation_at_instant(self, instant):
         legislation = self.get_legislation()
-        if traced_simulation is None:
-            compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None and legislation is not None:
-                dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
-                compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-                self.compact_legislation_by_instant_cache[instant] = compact_legislation
-        else:
-            dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
-            compact_legislation = legislations.compact_dated_node_json(
-                dated_legislation_json,
-                traced_simulation = traced_simulation,
-                )
-        return compact_legislation
+        instant_str = str(instant)
+        legislation_at_instant = self.legislation_by_instant_cache.get(instant)
+        if legislation_at_instant is None and legislation is not None:
+            legislation_at_instant = legislation.get_at_instant(instant_str)
+            self.legislation_by_instant_cache[instant] = legislation_at_instant
+        return legislation_at_instant
 
-    def get_baseline_compact_legislation(self, instant, traced_simulation = None):
+    def get_baseline_legislation_at_instant(self, instant):
         baseline = self.baseline
         if baseline is None:
-            return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
-        return baseline.get_baseline_compact_legislation(instant, traced_simulation = traced_simulation)
+            return self.get_legislation_at_instant(instant)
+        return baseline.get_baseline_legislation_at_instant(instant)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -335,7 +328,7 @@ class TaxBenefitSystem(object):
         self._legislation_json = None
 
     def compute_legislation(self, with_source_file_infos = False):
-        legislation_json = legislationsyaml.load_legislation(self.legislation_yaml_dirs)
+        legislation_json = legislations.load_legislation(self.legislation_yaml_dirs)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         self._legislation_json = legislation_json
