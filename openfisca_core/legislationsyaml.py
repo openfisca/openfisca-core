@@ -7,6 +7,16 @@ import os
 import yaml
 
 
+def values_dict_to_list(values_dict):
+    dates = sorted(values_dict.keys(), reverse=True)    # sort by antechronological order
+    values_list = []
+    for date in dates:
+        date_info = values_dict[date]
+        date_info['start'] = date
+        values_list.append(date_info)
+    return values_list
+
+
 def parse_dir(path):
     node_data = {'type': 'node', 'children': {}}
 
@@ -22,8 +32,13 @@ def parse_dir(path):
                 node_data.update(data)
             else:
                 if data['type'] == 'parameter':
+                    data['values'] = values_dict_to_list(data['values'])
                     node_data['children'][child_name] = data
                 elif data['type'] == 'scale':
+                    for bracket in data['brackets']:
+                        for key, value in bracket.items():
+                            if key in {'amount', 'rate', 'threshold', 'base'}:
+                                bracket[key] = values_dict_to_list(bracket[key])
                     node_data['children'][child_name] = data
         elif os.path.isdir(child_path):
             child_name = os.path.basename(child_path)
