@@ -18,8 +18,8 @@ json_unit_by_xml_json_type = dict(
 
 
 def load_xml_schema():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    filename_xml_schema = os.path.join(dir_path, 'legislation.xsd')
+    base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+    filename_xml_schema = os.path.join(base_path, 'legislation.xsd')
 
     with open(filename_xml_schema, 'r') as f:
         xmlschema_doc = etree.parse(f)
