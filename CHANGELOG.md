@@ -1,5 +1,11 @@
 # Changelog
 
+## 14.1.3 - [#541](https://github.com/openfisca/openfisca-core/pull/541)
+
+#### Minor Change
+
+- Rewrite `/calculate` example in the Open API spec so that it works for `Openfisca-France` 
+
 ## 14.1.2 - [#535](https://github.com/openfisca/openfisca-core/pull/535)
 
 #### Bug fix
