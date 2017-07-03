@@ -55,7 +55,7 @@ paths:
           schema:
             $ref: '#/definitions/SituationOutput'
         404:
-          description: "A variable mentioned in the input siutation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
+          description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
             Country-Package:
               description: "The name of the country package currently loaded in this API server"
@@ -63,8 +63,6 @@ paths:
             Country-Package-Version:
               description: "The version of the country package currently loaded in this API server"
               type: "string"
-          schema:
-            $ref: '#/definitions/SituationInput'
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
@@ -329,7 +327,7 @@ definitions:
         famille_1:
           parents: [Bill, Bob]
           enfants: [Janet]
-      foyer_fiscaux:
+      foyers_fiscaux:
         foyer_fiscal_1:
           declarants: [Bill, Bob]
           personnes_a_charge: [Janet]
@@ -350,14 +348,14 @@ definitions:
           conjoint: [Bob]
           enfants: [Janet]
           revenu_disponible:
-            "2017": 44629
+            "2017": 36585.89
           impots_directs:
-            "2017": -1690
+            "2017": -3733.72
       familles:
         famille_1:
           parents: [Bill, Bob]
           enfants: [Janet]
-      foyer_fiscaux:
+      foyers_fiscaux:
         foyer_fiscal_1:
           declarants: [Bill, Bob]
           personnes_a_charge: [Janet]
