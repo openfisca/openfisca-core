@@ -58,7 +58,7 @@ class TaxBenefitSystem(object):
         conv.test_isinstance(dict),
         conv.struct({}),
         ))
-    baseline = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
+    baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     Scenario = AbstractScenario
     cache_blacklist = None
     decomposition_file_path = None
@@ -103,11 +103,11 @@ class TaxBenefitSystem(object):
                 )
         return compact_legislation
 
-    def get_reference_compact_legislation(self, instant, traced_simulation = None):
+    def get_baseline_compact_legislation(self, instant, traced_simulation = None):
         baseline = self.baseline
         if baseline is None:
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
-        return baseline.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
+        return baseline.get_baseline_compact_legislation(instant, traced_simulation = traced_simulation)
 
     @classmethod
     def json_to_instance(cls, value, state = None):

@@ -360,7 +360,7 @@ class AbstractScenario(object):
 
     def new_simulation(self, debug = False, debug_all = False, use_baseline = False, trace = False, opt_out_cache = False):
         assert isinstance(use_baseline, (bool, int)), \
-            'Parameter use_baseline must be a boolean. When True, the reference tax-benefit system is used.'
+            'Parameter use_baseline must be a boolean. When True, the baseline tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
         if use_baseline:
             while True:

@@ -13,7 +13,7 @@ from .taxbenefitsystems import TaxBenefitSystem
 def compose_reforms(reforms, tax_benefit_system):
     """
     Compose reforms: the first reform is built with the given base tax-benefit system,
-    then each one is built with the previous one as the reference.
+    then each one is built with the previous one as the baseline.
     """
     def compose_reforms_reducer(memo, reform):
         reformed_tbs = reform(memo)
@@ -51,7 +51,7 @@ class Reform(TaxBenefitSystem):
 
     def modify_legislation_json(self, modifier_function):
         """
-        Copy the reference TaxBenefitSystem legislation_json attribute and return it.
+        Copy the baseline TaxBenefitSystem legislation_json attribute and return it.
         Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
         Validates the new legislation.
         """

@@ -846,16 +846,16 @@ def new_filled_column(
 
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-    # Add dated formulas defined in (optional) reference column when they are not overridden by new dated formulas.
+    # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
     if baseline_variable is not None:
-        for reference_dated_formula_class in baseline_variable.formula_class.dated_formulas_class:
-            reference_dated_formula_class = reference_dated_formula_class.copy()
+        for baseline_dated_formula_class in baseline_variable.formula_class.dated_formulas_class:
+            baseline_dated_formula_class = baseline_dated_formula_class.copy()
             for dated_formula_class in dated_formulas_class:
-                if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
+                if baseline_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
                     break
 
             else:
-                dated_formulas_class.append(reference_dated_formula_class)
+                dated_formulas_class.append(baseline_dated_formula_class)
         dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class

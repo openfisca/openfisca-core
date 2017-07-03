@@ -15,7 +15,7 @@ class Simulation(object):
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
     period = None
-    reference_compact_legislation_by_instant_cache = None
+    baseline_compact_legislation_by_instant_cache = None
     stack_trace = None
     steps_count = 1
     tax_benefit_system = None
@@ -65,7 +65,7 @@ class Simulation(object):
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self.compact_legislation_by_instant_cache = {}
-        self.reference_compact_legislation_by_instant_cache = {}
+        self.baseline_compact_legislation_by_instant_cache = {}
 
         self.instantiate_entities(simulation_json)
 
@@ -244,15 +244,15 @@ class Simulation(object):
         entity = self.get_entity(column.entity)
         return entity.get_holder(column_name)
 
-    def get_reference_compact_legislation(self, instant):
-        reference_compact_legislation = self.reference_compact_legislation_by_instant_cache.get(instant)
-        if reference_compact_legislation is None:
-            reference_compact_legislation = self.tax_benefit_system.get_reference_compact_legislation(
+    def get_baseline_compact_legislation(self, instant):
+        baseline_compact_legislation = self.baseline_compact_legislation_by_instant_cache.get(instant)
+        if baseline_compact_legislation is None:
+            baseline_compact_legislation = self.tax_benefit_system.get_baseline_compact_legislation(
                 instant = instant,
                 traced_simulation = self if self.trace else None,
                 )
-            self.reference_compact_legislation_by_instant_cache[instant] = reference_compact_legislation
-        return reference_compact_legislation
+            self.baseline_compact_legislation_by_instant_cache[instant] = baseline_compact_legislation
+        return baseline_compact_legislation
 
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
         self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
@@ -262,7 +262,7 @@ class Simulation(object):
             instant = instant.start
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
         if use_baseline:
-            return self.get_reference_compact_legislation(instant)
+            return self.get_baseline_compact_legislation(instant)
         return self.get_compact_legislation(instant)
 
     def find_traceback_step(self, variable_name, period):

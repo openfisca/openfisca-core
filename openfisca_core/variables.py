@@ -36,7 +36,7 @@ class Variable(object):
     def to_column(self, tax_benefit_system):
         entity = self.attributes.pop('entity', None)
 
-        # For reform variable that replaces the existing reference one
+        # For reform variable that replaces an existing baseline one
         baseline_variable = self.attributes.pop('baseline_variable', None)
         if baseline_variable:
             if not entity:
