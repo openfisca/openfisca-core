@@ -32,6 +32,11 @@ class Entity(object):
             self.step_size = 0
 
     def init_from_json(self, entities_json):
+        """
+            Initilalises entities from a JSON dictionnary.
+
+            This method, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`
+        """
         check_type(entities_json, dict, [self.plural])
         self.entities_json = entities_json
         self.count = len(entities_json)

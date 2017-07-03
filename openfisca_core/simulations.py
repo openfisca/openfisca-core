@@ -32,6 +32,13 @@ class Simulation(object):
             opt_out_cache = False,
             simulation_json = None
             ):
+        """
+            If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
+
+            This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
+
+            If no simulation_json is give, initilalises an empty simulation.
+        """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
         if period:
