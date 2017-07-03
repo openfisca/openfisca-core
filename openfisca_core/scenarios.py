@@ -358,16 +358,16 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, use_reference_tax_benefit_system = False, trace = False, opt_out_cache = False):
-        assert isinstance(use_reference_tax_benefit_system, (bool, int)), \
-            'Parameter use_reference_tax_benefit_system must be a boolean. When True, the reference tax-benefit system is used.'
+    def new_simulation(self, debug = False, debug_all = False, use_baseline = False, trace = False, opt_out_cache = False):
+        assert isinstance(use_baseline, (bool, int)), \
+            'Parameter use_baseline must be a boolean. When True, the reference tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
-        if use_reference_tax_benefit_system:
+        if use_baseline:
             while True:
-                reference_tax_benefit_system = tax_benefit_system.reference_tax_benefit_system
-                if reference_tax_benefit_system is None:
+                baseline = tax_benefit_system.baseline
+                if baseline is None:
                     break
-                tax_benefit_system = reference_tax_benefit_system
+                tax_benefit_system = baseline
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,

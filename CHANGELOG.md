@@ -7,9 +7,9 @@
 * Rename Variable attribute `url` to `reference`
   - As previously, this attribute can be a string, or a list of strings.
 * Remove variable attribute `law_reference`
-* `TaxBenefitSystem.reference` renamed to `TaxBenefitSystem.reference_tax_benefit_system`
-* Parameter `reference` of `AbstractScenario.new_simulation()` renamed to `use_reference_tax_benefit_system`
-* Parameter `reference` of `Simulation.legislation_at()` renamed to `use_reference_tax_benefit_system`
+* `TaxBenefitSystem.reference` renamed to `TaxBenefitSystem.baseline`
+* Parameter `reference` of `AbstractScenario.new_simulation()` renamed to `use_baseline`
+* Parameter `reference` of `Simulation.legislation_at()` renamed to `use_baseline`
 
 ## 14.1.4 - [#539](https://github.com/openfisca/openfisca-core/pull/539)
 

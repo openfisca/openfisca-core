@@ -257,11 +257,11 @@ class Simulation(object):
     def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
         self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
-    def legislation_at(self, instant, use_reference_tax_benefit_system = False):
+    def legislation_at(self, instant, use_baseline = False):
         if isinstance(instant, periods.Period):
             instant = instant.start
         assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
-        if use_reference_tax_benefit_system:
+        if use_baseline:
             return self.get_reference_compact_legislation(instant)
         return self.get_compact_legislation(instant)
 
