@@ -5,7 +5,10 @@
 #### Breaking changes - [#525](https://github.com/openfisca/openfisca-core/pull/525)
 
 * Rename Variable attribute `url` to `reference`
+  - This attribute is the legislative reference of a variable.
   - As previously, this attribute can be a string, or a list of strings.
+* Rename Variable attribute `reference` to `baseline_variable`
+  - This attibute is, for a variable defined in a reform, the baseline variable the reform variable is replacing.
 * Remove variable attribute `law_reference`
 * `TaxBenefitSystem.reference` renamed to `TaxBenefitSystem.baseline`
 * Parameter `reference` of `AbstractScenario.new_simulation()` renamed to `use_baseline`
