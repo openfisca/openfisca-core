@@ -32,6 +32,11 @@ class Entity(object):
             self.step_size = 0
 
     def init_from_json(self, entities_json):
+        """
+            Initilalises entities from a JSON dictionnary.
+
+            This method, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`
+        """
         check_type(entities_json, dict, [self.plural])
         self.entities_json = entities_json
         self.count = len(entities_json)
@@ -256,10 +261,9 @@ class GroupEntity(Entity):
         entity_object = entity_object.copy()  # Don't mutate function input
 
         roles_definition = {
-            role.plural: entity_object.pop(role.plural or role.key, [])
+            role.plural or role.key: entity_object.pop(role.plural or role.key, [])
             for role in self.roles
             }
-
         return roles_definition, entity_object
 
     def init_from_json(self, entities_json):
@@ -281,15 +285,15 @@ class GroupEntity(Entity):
 
         Entity.init_from_json(self, entities_json)
 
-        for person in self.persons_to_allocate:  # We build a single-person entity for each person who hasn't been declared inside any entity
-            person_index = self.simulation.persons.ids.index(person)
-            entity_index = self.count
-            self.count += 1
-            self.step_size += 1  # Related to axes
-            self.ids.append(person)
-            self.members_entity_id[person_index] = entity_index
-            self.members_role[person_index] = self.flattened_roles[0]
-            self.members_legacy_role[person_index] = 0
+        if self.persons_to_allocate:
+            unallocated_person = self.persons_to_allocate.pop()
+            raise SituationParsingError([self.plural],
+                '{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
+                    unallocated_person, self.simulation.persons.plural, self.key)
+                )
+
+        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
+        self.roles_count = self.members_legacy_role.max() + 1
 
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.iteritems():
@@ -314,9 +318,6 @@ class GroupEntity(Entity):
             self.members_entity_id[person_index] = entity_index
             self.members_role[person_index] = person_role
             self.members_legacy_role[person_index] = person_legacy_role
-
-        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
-        self.roles_count = self.members_legacy_role.max() + 1
 
     @property
     def members_role(self):

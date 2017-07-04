@@ -35,6 +35,11 @@ def test_clone():
             "persons": {
                 "bill": {"salary": {"2017-01": 3000}},
                 },
+            "households": {
+                "household": {
+                    "parents": ["bill"]
+                    }
+                }
             })
 
     simulation_clone = simulation.clone()

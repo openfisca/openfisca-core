@@ -1,5 +1,16 @@
 # Changelog
 
+## 14.1.4 - [#539](https://github.com/openfisca/openfisca-core/pull/539)
+
+#### New features
+
+- In the preview API `/calculate` route
+  - Handle roles with no plural
+  - Force all persons to be allocated to all entities
+  - Improve error messages
+  - Detect unexpected entity errors first
+- Document new simulation and entities constructors.
+
 ## 14.1.3 - [#541](https://github.com/openfisca/openfisca-core/pull/541)
 
 #### Minor Change

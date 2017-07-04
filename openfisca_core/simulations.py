@@ -32,6 +32,13 @@ class Simulation(object):
             opt_out_cache = False,
             simulation_json = None
             ):
+        """
+            If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
+
+            This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
+
+            If no simulation_json is give, initilalises an empty simulation.
+        """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
         if period:
@@ -65,13 +72,19 @@ class Simulation(object):
     def instantiate_entities(self, simulation_json):
         if simulation_json:
             check_type(simulation_json, dict, ['error'])
-            copied_simulation_json = simulation_json.copy()  # Avoid mutating the input
-
-            persons_json = copied_simulation_json.pop(self.tax_benefit_system.person_entity.plural, None)
+            allowed_entities = set(entity_class.plural for entity_class in self.tax_benefit_system.entities)
+            unexpected_entities = [entity for entity in simulation_json if entity not in allowed_entities]
+            if unexpected_entities:
+                unexpected_entity = unexpected_entities[0]
+                raise SituationParsingError([unexpected_entity],
+                    'This entity is not defined in the loaded tax and benefit system. The defined entities are {}.'.format(
+                        ', '.join(allowed_entities)).encode('utf-8')
+                    )
+            persons_json = simulation_json.get(self.tax_benefit_system.person_entity.plural, None)
 
             if not persons_json:
                 raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                    'No person found. At least one person must be defined to run a simulation.')
+                    'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key).encode('utf-8'))
             self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         else:
             self.persons = self.tax_benefit_system.person_entity(self)
@@ -81,17 +94,12 @@ class Simulation(object):
 
         for entity_class in self.tax_benefit_system.group_entities:
             if simulation_json:
-                entities_json = copied_simulation_json.pop(entity_class.plural, {})
-                entities = entity_class(self, entities_json)
+                entities_json = simulation_json.get(entity_class.plural)
+                entities = entity_class(self, entities_json or {})
             else:
                 entities = entity_class(self)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
-
-        if simulation_json and copied_simulation_json:  # The JSON should be empty now that all the entities have been extracted
-            unexpected_key = copied_simulation_json.keys()[0]
-            raise SituationParsingError([unexpected_key],
-                'This entity is not defined in the loaded tax and benefit system.')
 
     @property
     def holder_by_name(self):
