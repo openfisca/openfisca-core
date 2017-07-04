@@ -29,7 +29,7 @@ def test_formula_neutralization():
     scenario = reform.new_scenario().init_from_attributes(
         period = period
         )
-    simulation = scenario.new_simulation(debug = True, reference = True)
+    simulation = scenario.new_simulation(debug = True, use_baseline = True)
     basic_income = simulation.calculate('basic_income', period = period)
     assert_near(basic_income, 600)
     disposable_income = simulation.calculate('disposable_income', period = period)
@@ -98,7 +98,7 @@ def test_permanent_variable_neutralization():
             birth = '1980-01-01'
             ),
         )
-    simulation = scenario.new_simulation(reference = True)
+    simulation = scenario.new_simulation(use_baseline = True)
     with warnings.catch_warnings(record=True) as raised_warnings:
         reform_simulation = scenario.new_simulation()
         assert 'You cannot set a value for the variable' in raised_warnings[0].message.message

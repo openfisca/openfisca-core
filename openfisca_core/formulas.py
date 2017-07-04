@@ -628,7 +628,7 @@ def get_neutralized_column(column):
         entity = column.entity,
         is_neutralized = True,
         label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
-        reference_column = column,
+        baseline_variable = column,
         definition_period = column.definition_period,
         set_input = set_input_neutralized,
         )
@@ -686,105 +686,99 @@ def new_filled_column(
         entity = UnboundLocalError,
         is_neutralized = False,
         label = UnboundLocalError,
-        law_reference = UnboundLocalError,
         name = None,
-        reference_column = None,
+        baseline_variable = None,
         set_input = UnboundLocalError,
         source_code = UnboundLocalError,
         source_file_path = UnboundLocalError,
         start_line_number = UnboundLocalError,
         end = UnboundLocalError,
-        url = UnboundLocalError,
+        reference = UnboundLocalError,
         **specific_attributes
         ):
 
     # Validate arguments.
 
-    if reference_column is not None:
-        assert isinstance(reference_column, columns.Column)
+    if baseline_variable is not None:
+        assert isinstance(baseline_variable, columns.Column)
         if name is None:
-            name = reference_column.name
+            name = baseline_variable.name
 
     assert isinstance(name, unicode)
 
     if calculate_output is UnboundLocalError:
-        calculate_output = None if reference_column is None else reference_column.formula_class.calculate_output.im_func
+        calculate_output = None if baseline_variable is None else baseline_variable.formula_class.calculate_output.im_func
 
     if cerfa_field is UnboundLocalError:
-        cerfa_field = None if reference_column is None else reference_column.cerfa_field
+        cerfa_field = None if baseline_variable is None else baseline_variable.cerfa_field
     elif cerfa_field is not None:
         assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
 
     assert column is not None, """Missing attribute "column" in definition of filled column {}""".format(name)
     if column is UnboundLocalError:
-        assert reference_column is not None, """Missing attribute "column" in definition of filled column {}""".format(
+        assert baseline_variable is not None, """Missing attribute "column" in definition of filled column {}""".format(
             name)
-        column = reference_column.empty_clone()
+        column = baseline_variable.empty_clone()
     elif not isinstance(column, columns.Column):
         column = column()
         assert isinstance(column, columns.Column)
 
     if comments is UnboundLocalError:
-        comments = None if reference_column is None else reference_column.formula_class.comments
+        comments = None if baseline_variable is None else baseline_variable.formula_class.comments
     elif isinstance(comments, str):
         comments = comments.decode('utf-8')
 
     if default is UnboundLocalError:
-        default = column.default if reference_column is None else reference_column.default
+        default = column.default if baseline_variable is None else baseline_variable.default
 
     assert entity is not None, """Missing attribute "entity" in definition of filled column {}""".format(
         name)
     if entity is UnboundLocalError:
-        assert reference_column is not None, \
+        assert baseline_variable is not None, \
             """Missing attribute "entity" in definition of filled column {}""".format(name)
-        entity = reference_column.entity
+        entity = baseline_variable.entity
 
     if definition_period is UnboundLocalError:
-        if reference_column:
-            definition_period = reference_column.definition_period
+        if baseline_variable:
+            definition_period = baseline_variable.definition_period
         else:
             raise ValueError(u'definition_period missing in {}'.format(name).encode('utf-8'))
     if definition_period not in (MONTH, YEAR, ETERNITY):
         raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
     if label is UnboundLocalError:
-        label = None if reference_column is None else reference_column.label
+        label = None if baseline_variable is None else baseline_variable.label
     else:
         label = None if label is None else unicode(label)
 
-    if law_reference is UnboundLocalError:
-        law_reference = None if reference_column is None else reference_column.law_reference
-    else:
-        assert isinstance(law_reference, (basestring, list))
-
     if start_line_number is UnboundLocalError:
-        start_line_number = None if reference_column is None else reference_column.formula_class.start_line_number
+        start_line_number = None if baseline_variable is None else baseline_variable.formula_class.start_line_number
     elif isinstance(start_line_number, str):
         start_line_number = start_line_number.decode('utf-8')
 
     if set_input is UnboundLocalError:
-        set_input = None if reference_column is None else reference_column.formula_class.set_input.im_func
+        set_input = None if baseline_variable is None else baseline_variable.formula_class.set_input.im_func
 
     if source_code is UnboundLocalError:
-        source_code = None if reference_column is None else reference_column.formula_class.source_code
+        source_code = None if baseline_variable is None else baseline_variable.formula_class.source_code
     elif isinstance(source_code, str):
         source_code = source_code.decode('utf-8')
 
     if source_file_path is UnboundLocalError:
-        source_file_path = None if reference_column is None else reference_column.formula_class.source_file_path
+        source_file_path = None if baseline_variable is None else baseline_variable.formula_class.source_file_path
     elif isinstance(source_file_path, str):
         source_file_path = source_file_path.decode('utf-8')
 
     if end is UnboundLocalError:
-        end = None if reference_column is None else reference_column.end
+        end = None if baseline_variable is None else baseline_variable.end
 
-    if url is UnboundLocalError:
-        url = None if reference_column is None else reference_column.url
-    elif url is not None:
-        if isinstance(url, list):
-            url = map(unicode, url)
+    if reference is UnboundLocalError:
+        reference = None if baseline_variable is None else baseline_variable.reference
+    elif reference is not None:
+        if isinstance(reference, list):
+            reference = map(unicode, reference)
         else:
-            url = [unicode(url)]
+            reference = [unicode(reference)]
 
     # Build formula class and column.
 
@@ -814,10 +808,10 @@ def new_filled_column(
         base_function = requested_period_default_value
 
     if base_function is UnboundLocalError:
-        assert reference_column is not None \
-            and issubclass(reference_column.formula_class, Formula), \
+        assert baseline_variable is not None \
+            and issubclass(baseline_variable.formula_class, Formula), \
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
-        base_function = reference_column.formula_class.base_function
+        base_function = baseline_variable.formula_class.base_function
     else:
         assert base_function is not None, \
             """Missing attribute "base_function" in definition of filled column {}""".format(name)
@@ -852,16 +846,16 @@ def new_filled_column(
 
     dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
-    # Add dated formulas defined in (optional) reference column when they are not overridden by new dated formulas.
-    if reference_column is not None:
-        for reference_dated_formula_class in reference_column.formula_class.dated_formulas_class:
-            reference_dated_formula_class = reference_dated_formula_class.copy()
+    # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
+    if baseline_variable is not None:
+        for baseline_dated_formula_class in baseline_variable.formula_class.dated_formulas_class:
+            baseline_dated_formula_class = baseline_dated_formula_class.copy()
             for dated_formula_class in dated_formulas_class:
-                if reference_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
+                if baseline_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
                     break
 
             else:
-                dated_formulas_class.append(reference_dated_formula_class)
+                dated_formulas_class.append(baseline_dated_formula_class)
         dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
 
     formula_class_attributes['dated_formulas_class'] = dated_formulas_class
@@ -880,14 +874,13 @@ def new_filled_column(
         column.default = default
     if end is not None:
         column.end = end
-    if url is not None:
-        column.url = url
+    if reference is not None:
+        column.reference = reference
     column.entity = entity
     column.formula_class = formula_class
     column.definition_period = definition_period
     column.is_neutralized = is_neutralized
     column.label = label
-    column.law_reference = law_reference
     column.name = name
 
     return column

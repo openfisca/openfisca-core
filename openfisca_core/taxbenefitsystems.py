@@ -58,7 +58,7 @@ class TaxBenefitSystem(object):
         conv.test_isinstance(dict),
         conv.struct({}),
         ))
-    reference = None  # Reference tax-benefit system. Used only by reforms. Note: Reforms can be chained.
+    baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
     Scenario = AbstractScenario
     cache_blacklist = None
     decomposition_file_path = None
@@ -81,10 +81,10 @@ class TaxBenefitSystem(object):
     def base_tax_benefit_system(self):
         base_tax_benefit_system = self._base_tax_benefit_system
         if base_tax_benefit_system is None:
-            reference = self.reference
-            if reference is None:
+            baseline = self.baseline
+            if baseline is None:
                 return self
-            self._base_tax_benefit_system = base_tax_benefit_system = reference.base_tax_benefit_system
+            self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
     def get_compact_legislation(self, instant, traced_simulation = None):
@@ -103,11 +103,11 @@ class TaxBenefitSystem(object):
                 )
         return compact_legislation
 
-    def get_reference_compact_legislation(self, instant, traced_simulation = None):
-        reference = self.reference
-        if reference is None:
+    def get_baseline_compact_legislation(self, instant, traced_simulation = None):
+        baseline = self.baseline
+        if baseline is None:
             return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
-        return reference.get_reference_compact_legislation(instant, traced_simulation = traced_simulation)
+        return baseline.get_baseline_compact_legislation(instant, traced_simulation = traced_simulation)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -136,7 +136,7 @@ class TaxBenefitSystem(object):
         existing_column = self.get_column(name)
         if existing_column:
             if update:
-                attributes['reference'] = existing_column
+                attributes['baseline_variable'] = existing_column
             else:
                 # Variables that are dependencies of others (trough a conversion column) can be loaded automatically
                 # Is it still necessary ?
@@ -365,8 +365,8 @@ class TaxBenefitSystem(object):
             >>>    }
         """
         # Handle reforms
-        if self.reference:
-            return self.reference.get_package_metadata()
+        if self.baseline:
+            return self.baseline.get_package_metadata()
 
         fallback_metadata = {
             'name': self.__class__.__name__,

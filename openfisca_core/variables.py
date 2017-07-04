@@ -36,11 +36,11 @@ class Variable(object):
     def to_column(self, tax_benefit_system):
         entity = self.attributes.pop('entity', None)
 
-        # For reform variable that replaces the existing reference one
-        reference = self.attributes.pop('reference', None)
-        if reference:
+        # For reform variable that replaces an existing baseline one
+        baseline_variable = self.attributes.pop('baseline_variable', None)
+        if baseline_variable:
             if not entity:
-                entity = reference.entity
+                entity = baseline_variable.entity
 
         comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
 
@@ -60,7 +60,7 @@ class Variable(object):
             name = self.name,
             entity = entity,
             end = end_date,
-            reference_column = reference,
+            baseline_variable = baseline_variable,
             comments = comments,
             start_line_number = start_line_number,
             source_code = source_code,

@@ -72,8 +72,8 @@ def build_variable(variable, country_package_metadata):
             ),
         }
 
-    if variable.url:
-        result['references'] = variable.url
+    if variable.reference:
+        result['references'] = variable.reference
     if hasattr(variable.formula_class, 'function') and variable.formula_class.function:
         result['formulas'] = {
             '0001-01-01': build_formula(variable.formula_class, country_package_metadata)
