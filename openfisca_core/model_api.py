@@ -30,9 +30,9 @@ from .formulas import (  # noqa analysis:ignore
     DIVIDE,
     set_input_dispatch_by_period,
     set_input_divide_by_period,
-    missing_value
     )
 from .base_functions import (   # noqa analysis:ignore
+    missing_value,
     requested_period_added_value,
     requested_period_default_value,
     requested_period_last_or_next_value,

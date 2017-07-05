@@ -15,6 +15,7 @@ import numpy as np
 from . import columns, holders, legislations, periods
 from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
+    missing_value,
     permanent_default_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
@@ -608,15 +609,6 @@ def calculate_output_add(formula, period):
 
 def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
-
-
-def missing_value(formula, simulation, period, *extra_params):
-    function = formula.find_function(period)
-    if function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    holder = formula.holder
-    column = holder.column
-    raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
 
 
 def get_neutralized_column(column):
