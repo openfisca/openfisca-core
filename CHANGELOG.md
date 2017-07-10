@@ -1,5 +1,13 @@
 # Changelog
 
+# 16.0.0
+
+#### Breaking changes - [#545](https://github.com/openfisca/openfisca-core/pull/545)
+
+* Deprecate `parsers`
+  - They can no longer be installed through `pip install openfisca_core[parsers]`
+  - They can still install them directly with `pip install openfisca_parsers`, but they won't be maintained.
+
 ### 15.0.1 - [#538](https://github.com/openfisca/openfisca-core/pull/538)
 
 #### Bug fix
