@@ -94,3 +94,12 @@ def requested_period_last_or_next_value(formula, simulation, period, *extra_para
     # This formula is used for variables that are constants between events and period size independent.
     # It returns the latest known value for the requested period, or the next value if there is no past value.
     return requested_period_last_value(formula, simulation, period, *extra_params, accept_future_value = True)
+
+
+def missing_value(formula, simulation, period, *extra_params):
+    function = formula.find_function(period)
+    if function is not None:
+        return formula.exec_function(simulation, period, *extra_params)
+    holder = formula.holder
+    column = holder.column
+    raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))

@@ -1,5 +1,11 @@
 # Changelog
 
+### 15.0.1 - [#538](https://github.com/openfisca/openfisca-core/pull/538)
+
+#### Bug fix
+
+- Make `missing_value` base function compatible with v4 syntax and extra params
+
 # 15.0.0
 
 #### Breaking changes - [#525](https://github.com/openfisca/openfisca-core/pull/525)
