@@ -4,7 +4,7 @@ import os
 from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
 import dpath
-
+from openfisca_tracker.piwik import track
 
 from openfisca_core.simulations import Simulation, SituationParsingError
 from loader import build_data
@@ -87,6 +87,11 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             'Country-Package': data['country_package_metadata']['name'],
             'Country-Package-Version': data['country_package_metadata']['version']
             })
+        return response
+
+    @app.after_request
+    def track_requests(response):
+        track(request.url)
         return response
 
     @app.errorhandler(500)

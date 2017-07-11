@@ -35,6 +35,9 @@ setup(
             'openfisca-country-template >= 1.2.3rc0, <= 1.2.3',
             'openfisca-extension-template == 1.1.0',
             ],
+        'tracker': [
+            'openfisca-tracker',
+            ]
         },
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
