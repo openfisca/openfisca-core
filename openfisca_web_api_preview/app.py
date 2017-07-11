@@ -12,9 +12,6 @@ import traceback
 import logging
 
 
-TRACKER = u'https://openfisca.innocraft.cloud/piwik.php'
-TRACKER_IDSITE = 1
-
 log = logging.getLogger(__name__)
 
 
@@ -32,7 +29,9 @@ def init_tracker(url, idsite):
         log.info(message)
 
 
-def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
+def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
+               tracker_url = os.environ.get('TRACKER_URL'),
+               tracker_idsite = os.environ.get('TRACKER_IDSITE')):
     if country_package is None:
         raise ValueError(
             u"You must specify a country package to start the API. "
@@ -40,13 +39,18 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             .encode('utf-8')
             )
 
+    if not tracker_url or not tracker_idsite:
+        tracker = None
+    else:
+        log.debug('Start tracking on: ' + tracker_url)
+        tracker = init_tracker(tracker_url, tracker_idsite)
+
     app = Flask(__name__)
     CORS(app, origins = '*')
 
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(country_package)
-    tracker = init_tracker(TRACKER, TRACKER_IDSITE)
 
     @app.route('/parameters')
     def get_parameters():
