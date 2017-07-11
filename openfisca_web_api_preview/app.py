@@ -1,13 +1,35 @@
 # -*- coding: utf-8 -*-
 
 import os
+from os import linesep
 from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
 import dpath
-from openfisca_tracker.piwik import track
 
 from openfisca_core.simulations import Simulation, SituationParsingError
 from loader import build_data
+import traceback
+import logging
+
+
+TRACKER = u'https://openfisca.innocraft.cloud/piwik.php'
+TRACKER_IDSITE = 1
+
+log = logging.getLogger(__name__)
+
+
+def init_tracker(url, idsite):
+    try:
+        from openfisca_tracker.piwik import PiwikTracker
+        tracker = PiwikTracker(url, idsite)
+        return tracker
+
+    except ImportError:
+        message = linesep.join([traceback.format_exc(),
+                                u'Module `tracker` not activated.',
+                                u'See more at <https://github.com/openfisca/tracker>.'])
+
+        log.info(message)
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
@@ -24,6 +46,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(country_package)
+    tracker = init_tracker(TRACKER, TRACKER_IDSITE)
 
     @app.route('/parameters')
     def get_parameters():
@@ -91,7 +114,8 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
 
     @app.after_request
     def track_requests(response):
-        track(request.url)
+        if tracker:
+            tracker.track(request.url)
         return response
 
     @app.errorhandler(500)
