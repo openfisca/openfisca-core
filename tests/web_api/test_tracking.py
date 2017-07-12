@@ -11,18 +11,26 @@ from . import subject
 log = logging.getLogger(__name__)
 
 
-def time_requests(nb_requests, request):
+def time_requests(nb_requests, request_call):
     start_time = time.time()
 
     for i in range(nb_requests):
-        yield request
+        log.debug(request_call.__name__)
+        request_call()
 
     exec_time = time.time() - start_time
     log.info('{:2.6f} s'.format(exec_time))
 
 
+# Request without body
+
+
+def request_variables():
+    subject.get('/variables')
+
+
 def test_multiple_requests__variables():
-    time_requests(100, subject.get('/variables'))
+    time_requests(100, request_variables)
 
 
 def post_json(data = None, file = None):
@@ -33,7 +41,10 @@ def post_json(data = None, file = None):
     return subject.post('/calculate', data = data, content_type = 'application/json')
 
 
-def test_multiple_requests__calculate():
+# Request with json body
+
+
+def request_calculate():
     simulation_json = json.dumps({
         "persons": {
             "bill": {
@@ -77,5 +88,8 @@ def test_multiple_requests__calculate():
                 },
             }
         })
+    return post_json(simulation_json)
 
-    time_requests(100, post_json(simulation_json))
+
+def test_multiple_requests__calculate():
+    time_requests(100, request_calculate)
