@@ -12,7 +12,7 @@ import traceback
 import logging
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('gunicorn.error')
 
 
 def init_tracker(url, idsite):
@@ -21,8 +21,7 @@ def init_tracker(url, idsite):
         tracker = PiwikTracker(url, idsite)
 
         info = linesep.join([u'You chose to activate the `tracker` module. ',
-                             u'Tracking sent to: ',
-                             url,
+                             u'Tracking sent to: ' + url,
                              u'For more information, see <https://github.com/openfisca/tracker>.'])
         log.info(info)
         return tracker
