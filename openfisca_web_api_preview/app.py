@@ -19,12 +19,18 @@ def init_tracker(url, idsite):
     try:
         from openfisca_tracker.piwik import PiwikTracker
         tracker = PiwikTracker(url, idsite)
+
+        info = linesep.join([u'You chose to activate the `tracker` module. ',
+                             u'Tracking sent to: ',
+                             url,
+                             u'For more information, see <https://github.com/openfisca/tracker>.'])
+        log.info(info)
         return tracker
 
     except ImportError:
         message = linesep.join([traceback.format_exc(),
                                 u'Module `tracker` not activated.',
-                                u'See more at <https://github.com/openfisca/tracker>.'])
+                                u'To use this option, see more at <https://github.com/openfisca/tracker>.'])
 
         log.info(message)
 
@@ -42,7 +48,6 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
     if not tracker_url or not tracker_idsite:
         tracker = None
     else:
-        log.debug('Start tracking on: ' + tracker_url)
         tracker = init_tracker(tracker_url, tracker_idsite)
 
     app = Flask(__name__)
