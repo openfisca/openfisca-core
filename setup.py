@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '15.0.1',
+    version = '16.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -29,9 +29,6 @@ setup(
         'console_scripts': ['openfisca-run-test=openfisca_core.scripts.run_test:main'],
         },
     extras_require = {
-        'parsers': [
-            'OpenFisca-Parsers >= 1.0.2, < 2.0',
-            ],
         'test': [
             'nose',
             'flake8',
