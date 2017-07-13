@@ -92,7 +92,7 @@ variables_without_tracking_time = time_requests(100, request_variables, tracking
 print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
 
 print("/calculate route without tracking")
-variables_without_tracking_time = time_requests(100, request_variables, tracking = False)
+variables_without_tracking_time = time_requests(100, request_calculate, tracking = False)
 print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
 
 print("/variables route with tracking")
@@ -100,5 +100,5 @@ variables_without_tracking_time = time_requests(100, request_variables, tracking
 print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
 
 print("/calculate route with tracking")
-variables_without_tracking_time = time_requests(100, request_variables, tracking = True)
+variables_without_tracking_time = time_requests(100, request_calculate, tracking = True)
 print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
