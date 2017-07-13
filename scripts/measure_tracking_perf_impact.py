@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
 import time
 import json
-import logging
 
-
-import pkg_resources
 from openfisca_web_api_preview.app import create_app
 
 
@@ -14,53 +10,29 @@ TEST_COUNTRY_PACKAGE_NAME = 'openfisca_country_template'
 TRACKER_URL = 'https://openfisca.innocraft.cloud/piwik.php'
 TRACKER_IDSITE = 1
 
-ACTIVE_TRACKING = True
-log = logging.getLogger('gunicorn.info')
+api_with_tracking = create_app(TEST_COUNTRY_PACKAGE_NAME, TRACKER_URL, TRACKER_IDSITE).test_client()
+
+api_without_tracking = create_app(TEST_COUNTRY_PACKAGE_NAME).test_client()
 
 
-distribution = pkg_resources.get_distribution(TEST_COUNTRY_PACKAGE_NAME)
-
-if ACTIVE_TRACKING:
-    subject = create_app(TEST_COUNTRY_PACKAGE_NAME, TRACKER_URL, TRACKER_IDSITE).test_client()
-else:
-    subject = create_app(TEST_COUNTRY_PACKAGE_NAME).test_client()
-
-
-
-def time_requests(nb_requests, request_call):
+def time_requests(nb_requests, request_call, tracking):
     start_time = time.time()
 
     for i in range(nb_requests):
-        log.debug(request_call.__name__)
-        request_call()
+        if tracking:
+            request_call(api_with_tracking)
+        else:
+            request_call(api_without_tracking)
 
     exec_time = time.time() - start_time
-    log.info('{:2.6f} s'.format(exec_time))
+    return exec_time
 
 
-# Request without body
+def request_variables(api):
+    api.get('/variables')
 
 
-def request_variables():
-    subject.get('/variables')
-
-
-def test_multiple_requests__variables():
-    time_requests(100, request_variables)
-
-
-def post_json(data = None, file = None):
-    if file:
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', file)
-        with open(file_path, 'r') as file:
-            data = file.read()
-    return subject.post('/calculate', data = data, content_type = 'application/json')
-
-
-# Request with json body
-
-
-def request_calculate():
+def request_calculate(api):
     simulation_json = json.dumps({
         "persons": {
             "bill": {
@@ -104,8 +76,29 @@ def request_calculate():
                 },
             }
         })
-    return post_json(simulation_json)
+    return api.post('/calculate', data = simulation_json, content_type = 'application/json')
+
+
+def test_multiple_requests__variables():
+    time_requests(100, request_variables)
 
 
 def test_multiple_requests__calculate():
     time_requests(100, request_calculate)
+
+
+print("/variables route without tracking")
+variables_without_tracking_time = time_requests(100, request_variables, tracking = False)
+print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
+
+print("/calculate route without tracking")
+variables_without_tracking_time = time_requests(100, request_variables, tracking = False)
+print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
+
+print("/variables route with tracking")
+variables_without_tracking_time = time_requests(100, request_variables, tracking = True)
+print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
+
+print("/calculate route with tracking")
+variables_without_tracking_time = time_requests(100, request_variables, tracking = True)
+print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
