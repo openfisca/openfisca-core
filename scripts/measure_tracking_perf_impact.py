@@ -79,14 +79,6 @@ def request_calculate(api):
     return api.post('/calculate', data = simulation_json, content_type = 'application/json')
 
 
-def test_multiple_requests__variables():
-    time_requests(100, request_variables)
-
-
-def test_multiple_requests__calculate():
-    time_requests(100, request_calculate)
-
-
 print("/variables route without tracking")
 variables_without_tracking_time = time_requests(100, request_variables, tracking = False)
 print('100 calls take {:2.6f} s'.format(variables_without_tracking_time))
