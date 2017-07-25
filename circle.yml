@@ -16,7 +16,7 @@ test:
 deployment:
   master:
     branch: no_changelog_no_deploy
-    command: |
+    commands: |
       set -e
       if ! git rev-parse `python setup.py --version` 2>/dev/null ; then
         git tag `python setup.py --version`
