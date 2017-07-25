@@ -1,5 +1,8 @@
 # Changelog
 
+### 16.0.1
+   - replace pipy password in cicle.yml for tests
+ 
 # 16.0.0
 
 #### Breaking changes - [#545](https://github.com/openfisca/openfisca-core/pull/545)
