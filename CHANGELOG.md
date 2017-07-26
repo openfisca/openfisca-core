@@ -1,7 +1,7 @@
 # Changelog
 
 ### 16.0.0.dev0
-   - replace pipy password in cicle.yml for tests
+   - tests new deployment process with real pypi password
  
 # 16.0.0
 
