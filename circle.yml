@@ -17,5 +17,5 @@ deployment:
   master:
     branch: no_changelog_no_deploy
     commands:
-      - ./deploy-if-version-bump.sh
+      - sh ./deploy-if-version-bump.sh
 
