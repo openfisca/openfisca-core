@@ -10,6 +10,7 @@ import glob
 import os
 import sys
 import unittest
+import logging
 
 import nose
 import numpy as np
@@ -17,6 +18,8 @@ import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
+
+log = logging.getLogger(__name__)
 
 # Yaml module configuration
 
