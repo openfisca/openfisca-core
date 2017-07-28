@@ -35,3 +35,29 @@ COUNTRY_PACKAGE=openfisca_country_template gunicorn "openfisca_web_api_preview.a
 ```
 
 The `--workers k` (with `k >= 3`) option is necessary to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process.
+
+### Tracker
+
+The OpenFisca Web API comes with an [optional tracker](https://github.com/openfisca/tracker) which allows you to measure the usage of the API.
+
+#### Tracker installation
+
+The tracker is not installed by default. To install it, run:
+
+```sh
+pip install openfisca_core[tracker]  # Or `pip install --editable ".[tracker]"` for an editable installation
+```
+
+
+#### Tracker configuration
+
+The tracker is activated when these two environment variables are set:
+
+* `TRACKER_URL`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
+* `TRACKER_IDSITE`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
+
+For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
+
+```sh
+COUNTRY_PACKAGE=openfisca_country_template TRACKER_URL="https://stats.data.gouv.fr/piwik.php" TRACKER_IDSITE=4 gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
+```
