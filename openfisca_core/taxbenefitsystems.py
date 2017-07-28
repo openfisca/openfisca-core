@@ -40,6 +40,7 @@ class VariableNotFound(Exception):
             ])
         Exception.__init__(self, message.encode('utf-8'))
 
+
 class VariableNameConflict(Exception):
     """
     Exception raised when two variables with the same name are added to a tax and benefit system.
