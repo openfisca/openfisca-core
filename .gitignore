@@ -1,6 +1,7 @@
 .project
 .spyderproject
 .pydevproject
+.vscode
 .settings/
 build/
 dist/
