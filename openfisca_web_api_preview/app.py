@@ -21,16 +21,15 @@ def init_tracker(url, idsite):
         tracker = PiwikTracker(url, idsite)
 
         info = linesep.join([u'You chose to activate the `tracker` module. ',
-                             u'Tracking sent to: ' + url,
-                             u'For more information, see <https://github.com/openfisca/tracker>.'])
+                             u'Tracking data will be sent to: ' + url,
+                             u'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
         log.info(info)
         return tracker
 
     except ImportError:
         message = linesep.join([traceback.format_exc(),
-                                u'Module `tracker` not activated.',
-                                u'To use this option, see more at <https://github.com/openfisca/tracker>.'])
-
+                                u'You chose to activate the `tracker` module, but it is not installed.',
+                                u'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
         log.info(message)
 
 
