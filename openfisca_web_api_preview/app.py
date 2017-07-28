@@ -30,7 +30,7 @@ def init_tracker(url, idsite):
         message = linesep.join([traceback.format_exc(),
                                 u'You chose to activate the `tracker` module, but it is not installed.',
                                 u'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
-        log.info(message)
+        log.warn(message)
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
