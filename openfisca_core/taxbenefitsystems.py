@@ -327,15 +327,15 @@ class TaxBenefitSystem(object):
         # Not very optimized, but today incremental building of the legislation is not implemented.
         self._legislation_json = None
 
-    def compute_legislation(self, with_source_file_infos = False):
+    def compute_legislation(self):
         legislation_json = legislations.load_legislation(self.legislation_yaml_dirs)
         if self.preprocess_legislation is not None:
             legislation_json = self.preprocess_legislation(legislation_json)
         self._legislation_json = legislation_json
 
-    def get_legislation(self, with_source_file_infos = False):
+    def get_legislation(self):
         if self._legislation_json is None:
-            self.compute_legislation(with_source_file_infos = with_source_file_infos)
+            self.compute_legislation()
         return self._legislation_json
 
     def get_package_metadata(self):
