@@ -1,22 +1,52 @@
 # -*- coding: utf-8 -*-
 
 import os
+from os import linesep
 from flask import Flask, jsonify, abort, request, make_response
 from flask_cors import CORS
 import dpath
 
-
 from openfisca_core.simulations import Simulation, SituationParsingError
 from loader import build_data
+import traceback
+import logging
 
 
-def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
+log = logging.getLogger('gunicorn.error')
+
+
+def init_tracker(url, idsite):
+    try:
+        from openfisca_tracker.piwik import PiwikTracker
+        tracker = PiwikTracker(url, idsite)
+
+        info = linesep.join([u'You chose to activate the `tracker` module. ',
+                             u'Tracking data will be sent to: ' + url,
+                             u'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
+        log.info(info)
+        return tracker
+
+    except ImportError:
+        message = linesep.join([traceback.format_exc(),
+                                u'You chose to activate the `tracker` module, but it is not installed.',
+                                u'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
+        log.warn(message)
+
+
+def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
+               tracker_url = os.environ.get('TRACKER_URL'),
+               tracker_idsite = os.environ.get('TRACKER_IDSITE')):
     if country_package is None:
         raise ValueError(
             u"You must specify a country package to start the API. "
             u"For instance, `COUNTRY_PACKAGE=openfisca_france flask run`"
             .encode('utf-8')
             )
+
+    if not tracker_url or not tracker_idsite:
+        tracker = None
+    else:
+        tracker = init_tracker(tracker_url, tracker_idsite)
 
     app = Flask(__name__)
     CORS(app, origins = '*')
@@ -87,6 +117,12 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE')):
             'Country-Package': data['country_package_metadata']['name'],
             'Country-Package-Version': data['country_package_metadata']['version']
             })
+        return response
+
+    @app.after_request
+    def track_requests(response):
+        if tracker:
+            tracker.track(request.url)
         return response
 
     @app.errorhandler(500)

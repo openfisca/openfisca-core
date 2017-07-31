@@ -1,5 +1,10 @@
 # Changelog
 
+## 16.1.0
+
+* Enable API monitoring with Piwik
+  - See the [documentation](https://github.com/openfisca/openfisca-core/#tracker)
+
 # 16.0.0
 
 #### Breaking changes - [#545](https://github.com/openfisca/openfisca-core/pull/545)
