@@ -1,8 +1,0 @@
-<NODE code="root">
-  <NODE code="impot">
-    <CODE code="taux" description="Taux d'impôt sur les salaires" format="percent">
-      This is a comment. I should not be here !
-      <VALUE deb="2016-01-01" valeur="0.35" />
-    </CODE>
-  </NODE>
-</NODE>

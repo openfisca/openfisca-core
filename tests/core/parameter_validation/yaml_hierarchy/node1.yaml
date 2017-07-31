@@ -1,0 +1,6 @@
+type: node
+node2:
+  type: parameter
+  values:
+    '2015-12-01':
+      value: 1.0
