@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import collections
-import json
 
-from biryani.strings import deep_encode
-
-from . import conv, legislations
+from . import legislations
 from .taxbenefitsystems import TaxBenefitSystem
 
 
@@ -16,7 +12,7 @@ class Reform(TaxBenefitSystem):
     def __init__(self, baseline):
         self.baseline = baseline
         self._legislation_json = baseline.get_legislation()
-        self.compact_legislation_by_instant_cache = baseline.compact_legislation_by_instant_cache
+        self.legislation_by_instant_cache = baseline.legislation_by_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
@@ -51,23 +47,9 @@ class Reform(TaxBenefitSystem):
                 modifier_function.__name__,
                 modifier_function.__module__,
                 )
-        reform_legislation_json, errors = legislations.validate_legislation_json(reform_legislation_json)
-        if errors is not None:
-            errors = conv.embed_error(reform_legislation_json, 'errors', errors)
-            if errors is None:
-                legislation_json_str = json.dumps(
-                    deep_encode(reform_legislation_json),
-                    ensure_ascii = False,
-                    indent = 2,
-                    )
-                raise ValueError('The modified legislation_json of the reform "{}" is invalid: {}'.format(
-                    self.key.encode('utf-8'), legislation_json_str))
-            raise ValueError(u'{} for: {}'.format(
-                unicode(json.dumps(errors, ensure_ascii = False, indent = 2, sort_keys = True)),
-                unicode(json.dumps(reform_legislation_json, ensure_ascii = False, indent = 2)),
-                ).encode('utf-8'))
+        assert isinstance(reform_legislation_json, legislations.Node)
         self._legislation_json = reform_legislation_json
-        self.compact_legislation_by_instant_cache = {}
+        self.legislation_by_instant_cache = {}
 
 
 def update_legislation(legislation_json, path = None, period = None, value = None, start = None, stop = None):
