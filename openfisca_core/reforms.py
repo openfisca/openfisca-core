@@ -89,38 +89,15 @@ def update_legislation(legislation_json, path = None, period = None, value = Non
 
     Returns the modified `legislation_json`.
 
-    This function does not modify its arguments.
+    This function modifies `legislation_json`.
+
+    This function is deprecated, use ValuesHistory.update() instead.
     """
-    assert value is not None
-    if period is not None:
-        assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
-        start = period.start
-        stop = period.stop
-    assert start is not None, u'start must be provided, or period'
 
-    def build_node(node, path_index):
-        if isinstance(node, collections.Sequence):
-            return [
-                build_node(child_node, path_index + 1) if path[path_index] == index else child_node
-                for index, child_node in enumerate(node)
-                ]
-        elif isinstance(node, collections.Mapping):
-            return collections.OrderedDict((
-                (
-                    key,
-                    (
-                        update_items(child_node, start, stop, value)
-                        if path_index == len(path) - 1
-                        else build_node(child_node, path_index + 1)
-                        )
-                    if path[path_index] == key
-                    else child_node
-                    )
-                for key, child_node in node.iteritems()
-                ))
-        else:
-            raise ValueError(u'Unexpected type for node: {!r}'.format(node))
+    current_node = legislation_json
+    for child_name in path:
+        current_node = current_node[child_name]
 
-    updated_legislation = build_node(legislation_json, 0)
-    return updated_legislation
+    current_node.update(period=period, start=start, stop=stop, value=value)
 
+    return legislation_json
