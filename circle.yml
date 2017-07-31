@@ -17,4 +17,4 @@ deployment:
   master:
     branch: master
     commands:
-      - sh ./deploy-if-version-bump.sh
+      - ./deploy-if-version-bump.sh
