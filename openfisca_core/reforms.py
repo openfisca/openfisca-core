@@ -10,18 +10,6 @@ from . import conv, legislations
 from .taxbenefitsystems import TaxBenefitSystem
 
 
-def compose_reforms(reforms, tax_benefit_system):
-    """
-    Compose reforms: the first reform is built with the given base tax-benefit system,
-    then each one is built with the previous one as the baseline.
-    """
-    def compose_reforms_reducer(memo, reform):
-        reformed_tbs = reform(memo)
-        return reformed_tbs
-    final_tbs = reduce(compose_reforms_reducer, reforms, tax_benefit_system)
-    return final_tbs
-
-
 class Reform(TaxBenefitSystem):
     name = None
 

@@ -377,45 +377,6 @@ def test_wrong_reform():
     wrong_reform(tax_benefit_system)
 
 
-def test_compose_reforms():
-
-    class first_reform(Reform):
-        class new_variable(Variable):
-            column = columns.IntCol
-            label = u"Nouvelle variable introduite par la réforme"
-            entity = Household
-            definition_period = MONTH
-
-            def formula(self, simulation, period):
-                return self.zeros() + 10
-
-        def apply(self):
-            self.add_variable(self.new_variable)
-
-    class second_reform(Reform):
-        class new_variable(Variable):
-            column = columns.IntCol
-            label = u"Nouvelle variable introduite par la réforme"
-            entity = Household
-            definition_period = MONTH
-
-            def formula(self, simulation, period):
-                return self.zeros() + 20
-
-        def apply(self):
-            self.update_variable(self.new_variable)
-
-    reform = reforms.compose_reforms([first_reform, second_reform], tax_benefit_system)
-    year = 2013
-    scenario = reform.new_scenario().init_from_attributes(
-        period = year,
-        )
-
-    reform_simulation = scenario.new_simulation(debug = True)
-    new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
-    assert_near(new_variable1, 20, absolute_error_margin = 0)
-
-
 def test_modify_legislation():
 
     def modify_legislation_json(reference_legislation_json_copy):
