@@ -256,6 +256,54 @@ class ValuesHistory(object):
                 return value_at_instant.value
         return None
 
+    def update(self, period=None, start=None, stop=None, value=None):
+        if period is not None:
+            assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
+            start = period.start
+            stop = period.stop
+        assert start is not None, u'start must be provided, or period'
+        start_str = str(start)
+        stop_str = str(stop.offset(1, 'day')) if stop else None
+
+        old_values = self.values_list
+        new_values = []
+        n = len(old_values)
+        i = 0
+
+        # Future intervals : not affected
+        if stop_str:
+            while (i < n) and (old_values[i].instant_str >= stop_str):
+                new_values.append(old_values[i])
+                i += 1
+
+        # Right-overlapped interval
+        if stop_str:
+            if new_values and (stop_str == new_values[-1].instant_str):
+                pass  # such interval is empty
+            else:
+                if i < n:
+                    overlapped_value = old_values[i].value
+                    new_interval = ValueAtInstant(self.name, stop_str, yaml_data=None, value=overlapped_value)
+                    new_values.append(new_interval)
+                else:
+                    new_interval = ValueAtInstant(self.name, stop_str, yaml_data=None, value=None)
+                    new_values.append(new_interval)
+
+        # Insert new interval
+        new_interval = ValueAtInstant(self.name, start_str, yaml_data=None, value=value)
+        new_values.append(new_interval)
+
+        # Remove covered intervals
+        while (i < n) and (old_values[i].instant_str >= start_str):
+            i += 1
+
+        # Past intervals : not affected
+        while i < n:
+            new_values.append(old_values[i])
+            i += 1
+
+        self.values_list = new_values
+
 
 class Bracket(object):
     def __init__(self, name, yaml_data):
