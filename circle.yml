@@ -15,6 +15,6 @@ test:
     - ./check-version-bump.sh
 deployment:
   master:
-    branch: master
+    branch: no_changelog_no_deploy
     commands:
       - ./deploy-if-version-bump.sh
