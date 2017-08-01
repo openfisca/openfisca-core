@@ -1,40 +1,38 @@
-from collections import OrderedDict
+import os
+
 from nose.tools import assert_equal
 
-from openfisca_web_api_preview.loader.parameters import build_values, get_value
+from openfisca_core import legislations
+from openfisca_web_api_preview.loader.parameters import transform_values_history, get_value
 
 
-def test_build_values():
-    values = [
-        OrderedDict([('start', u'2017-01-01'), ('value', 0.02)]),
-        OrderedDict([('start', u'2015-01-01'), ('value', 0.04)]),
-        OrderedDict([('start', u'2013-01-01'), ('value', 0.03)])
-        ]
+dir_path = os.path.dirname(__file__)
 
-    values_json = {
+
+def test_transform_values_history():
+    file_path = os.path.join(dir_path, 'test_helpers.yaml')
+    parameter = legislations.load_file(name='dummy_name', file_path=file_path)
+
+    values = {
         '2017-01-01': 0.02,
         '2015-01-01': 0.04,
         '2013-01-01': 0.03,
         }
-    assert_equal(build_values(values), values_json)
+    assert_equal(transform_values_history(parameter), values)
 
 
-def test_build_values_with_stop_date():
-    values = [
-        OrderedDict([('start', u'2018-01-01')]),
-        OrderedDict([('start', u'2017-01-01'), ('stop', u'2017-12-31'), ('value', 0.02)]),
-        OrderedDict([('start', u'2015-01-01'), ('stop', u'2016-12-31'), ('value', 0.04)]),
-        OrderedDict([('start', u'2013-01-01'), ('stop', u'2014-12-31'), ('value', 0.03)])
-        ]
+def test_transform_values_history_with_stop_date():
+    file_path = os.path.join(dir_path, 'test_helpers_with_stop_date.yaml')
+    parameter = legislations.load_file(name='dummy_name', file_path=file_path)
 
-    values_json = {
+    values = {
         '2018-01-01': None,
         '2017-01-01': 0.02,
         '2015-01-01': 0.04,
         '2013-01-01': 0.03,
         }
 
-    assert_equal(build_values(values), values_json)
+    assert_equal(transform_values_history(parameter), values)
 
 
 def test_get_value():
