@@ -23,7 +23,6 @@ else:
 
 param_dir = os.path.join(COUNTRY_DIR, 'parameters')
 param_files = [
-    '__root__.xml',
     'benefits.xml',
     'general.xml',
     'taxes.xml',
