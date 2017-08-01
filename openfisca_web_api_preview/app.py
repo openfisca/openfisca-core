@@ -127,7 +127,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        response = jsonify({"error": "Internal server error: " + e.message})
+        response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
         response.status_code = 500
         return response
 
