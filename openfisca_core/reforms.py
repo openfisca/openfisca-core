@@ -50,24 +50,3 @@ class Reform(TaxBenefitSystem):
         assert isinstance(reform_legislation_json, legislations.Node)
         self._legislation_json = reform_legislation_json
         self.legislation_at_instant_cache = {}
-
-
-def update_legislation(legislation_json, path = None, period = None, value = None, start = None, stop = None):
-    """
-    Update legislation JSON with a value defined for a specific couple of period defined by
-    its start and stop instant or a period object.
-
-    Returns the modified `legislation_json`.
-
-    This function modifies `legislation_json`.
-
-    This function is deprecated, use ValuesHistory.update() instead.
-    """
-
-    current_node = legislation_json
-    for child_name in path:
-        current_node = current_node[child_name]
-
-    current_node.update(period=period, start=start, stop=stop, value=value)
-
-    return legislation_json
