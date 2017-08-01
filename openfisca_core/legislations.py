@@ -187,27 +187,27 @@ class ExceptionValueIsUnknown(Exception):
 
 
 class ValueAtInstant(object):
-    def __init__(self, name, instant_str, yaml_data=None, value=None):
+    def __init__(self, name, instant_str, validated_yaml=None, value=None):
         """
-            Can be instanciated from YAML data (use yaml_data), or dynamically for reforms.
+            Can be instanciated from YAML data (use validated_yaml), or dynamically for reforms.
 
             name : name of the parameter, eg "a.b.param"
             instant_str : Date of the value.
-            yaml_data : Data extracted from the yaml. If set, value should not be set.
-            value : Used if and only if yaml_data=None. If value=None, the parameter is removed from the legislation.
+            validated_yaml : Data extracted from the yaml. If set, value should not be set.
+            value : Used if and only if validated_yaml=None. If value=None, the parameter is removed from the legislation.
         """
         self.name = name
         self.instant_str = instant_str
 
-        if yaml_data is not None:
-            if yaml_data == 'expected' or yaml_data == {'expected': None}:
+        if validated_yaml is not None:
+            if validated_yaml == 'expected' or validated_yaml == {'expected': None}:
                 raise ExceptionValueIsUnknown()
-            elif 'expected' in yaml_data:
-                self.value = yaml_data['expected']
-            elif yaml_data['value'] is None:
+            elif 'expected' in validated_yaml:
+                self.value = validated_yaml['expected']
+            elif validated_yaml['value'] is None:
                 self.value = None
             else:
-                self.value = yaml_data['value']
+                self.value = validated_yaml['value']
 
         else:
             self.value = value
@@ -217,24 +217,24 @@ class ValueAtInstant(object):
 
 
 class ValuesHistory(object):
-    def __init__(self, name, yaml_data=None, values_list=None):
+    def __init__(self, name, validated_yaml=None, values_list=None):
         """
             name : name of the parameter, eg "a.b.param"
-            yaml_data : Data extracted from the yaml. If set, values_list should not be set.
-            values_list : List of ValueAtInstant objects. If set, yaml_data should not be set.
+            validated_yaml : Data extracted from the yaml. If set, values_list should not be set.
+            values_list : List of ValueAtInstant objects. If set, validated_yaml should not be set.
         """
         self.name = name
 
-        if yaml_data:
-            instants = sorted(yaml_data.keys(), reverse=True)    # sort by antechronological order
+        if validated_yaml:
+            instants = sorted(validated_yaml.keys(), reverse=True)    # sort by antechronological order
             assert len(set(instants)) == len(instants), "Instants in values history should be unique"
             values_list = []
             for instant_str in instants:
-                instant_info = yaml_data[instant_str]
+                instant_info = validated_yaml[instant_str]
                 if instant_info is None:
-                    print(yaml_data)
+                    print(validated_yaml)
                 try:
-                    value_at_instant = ValueAtInstant(name, instant_str, yaml_data=instant_info)
+                    value_at_instant = ValueAtInstant(name, instant_str, validated_yaml=instant_info)
                 except ExceptionValueIsUnknown:
                     pass
                 else:
@@ -283,14 +283,14 @@ class ValuesHistory(object):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    new_interval = ValueAtInstant(self.name, stop_str, yaml_data=None, value=overlapped_value)
+                    new_interval = ValueAtInstant(self.name, stop_str, validated_yaml=None, value=overlapped_value)
                     new_values.append(new_interval)
                 else:
-                    new_interval = ValueAtInstant(self.name, stop_str, yaml_data=None, value=None)
+                    new_interval = ValueAtInstant(self.name, stop_str, validated_yaml=None, value=None)
                     new_values.append(new_interval)
 
         # Insert new interval
-        new_interval = ValueAtInstant(self.name, start_str, yaml_data=None, value=value)
+        new_interval = ValueAtInstant(self.name, start_str, validated_yaml=None, value=value)
         new_values.append(new_interval)
 
         # Remove covered intervals
@@ -306,10 +306,10 @@ class ValuesHistory(object):
 
 
 class Bracket(object):
-    def __init__(self, name, yaml_data):
+    def __init__(self, name, validated_yaml):
         self.name = name
 
-        for key, value in yaml_data.items():
+        for key, value in validated_yaml.items():
             if key in {'amount', 'rate', 'threshold', 'base'}:
                 new_child_name = compose_name(name, key)
                 new_child = ValuesHistory(new_child_name, value)
@@ -333,11 +333,11 @@ class BracketAtInstant(object):
 
 
 class Scale(object):
-    def __init__(self, name, yaml_data):
+    def __init__(self, name, validated_yaml):
         self.name = name
 
         brackets = []
-        for i, bracket_data in enumerate(yaml_data['brackets']):
+        for i, bracket_data in enumerate(validated_yaml['brackets']):
             bracket_name = str(i)
             bracket = Bracket(bracket_name, bracket_data)
             brackets.append(bracket)
@@ -369,14 +369,14 @@ class Scale(object):
 
 
 class Node(object):
-    def __init__(self, name, path=None, yaml_data=None, children=None):
+    def __init__(self, name, path=None, validated_yaml=None, children=None):
         """
             name : name of the node, eg "a.b"
-            path : directory of YAML files describing the node
-            yaml_data : Data extracted from a yaml file describing a Node
+            path : directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : Node, Bracket, Scale, ValuesHistory and ValueAtInstant.
+            validated_yaml : Data extracted from a yaml file describing a Node
             children : Dictionary of ValuesHistory or Scale objects indexed by name.
 
-            Only one of the 3 parameters path, yaml_data or children should be set.
+            Only one of the 3 parameters path, validated_yaml or children should be set.
         """
         assert isinstance(name, str)
         self.name = name
@@ -387,7 +387,7 @@ class Node(object):
             elif child['type'] == 'scale':
                 return Scale(child_name, child)
             elif child['type'] == 'node':
-                return Node(child_name, yaml_data=child)
+                return Node(child_name, validated_yaml=child)
 
         if path:
             self.children = {}
@@ -413,9 +413,9 @@ class Node(object):
                 else:
                     raise ValueError('Unexpected item {}'.format(child_path))
 
-        elif yaml_data:
+        elif validated_yaml:
             self.children = {}
-            for child_name, child in yaml_data.items():
+            for child_name, child in validated_yaml.items():
                 if child_name in node_keywords:
                     continue
                 child_name_expanded = compose_name(name, child_name)
