@@ -231,8 +231,6 @@ class ValuesHistory(object):
             values_list = []
             for instant_str in instants:
                 instant_info = validated_yaml[instant_str]
-                if instant_info is None:
-                    print(validated_yaml)
                 try:
                     value_at_instant = ValueAtInstant(name, instant_str, validated_yaml=instant_info)
                 except ExceptionValueIsUnknown:
@@ -305,6 +303,18 @@ class ValuesHistory(object):
         self.values_list = new_values
 
 
+class Parameter(ValuesHistory):
+    def __init__(self, name, validated_yaml=None, values_list=None):
+        if validated_yaml:
+            if 'description' in validated_yaml:
+                self.description = validated_yaml['description']
+
+            values = validated_yaml['values']
+            super(Parameter, self).__init__(name, validated_yaml=values, values_list=None)
+        elif values_list:
+            super(Parameter, self).__init__(name, validated_yaml=None, values_list=values_list)
+
+
 class Bracket(object):
     def __init__(self, name, validated_yaml):
         self.name = name
@@ -335,6 +345,8 @@ class BracketAtInstant(object):
 class Scale(object):
     def __init__(self, name, validated_yaml):
         self.name = name
+        if 'description' in validated_yaml:
+            self.description = validated_yaml['description']
 
         brackets = []
         for i, bracket_data in enumerate(validated_yaml['brackets']):
@@ -368,37 +380,41 @@ class Scale(object):
             return scale
 
 
+def _parse_child(child_name, child):
+    if child['type'] == 'parameter':
+        return Parameter(child_name, child)
+    elif child['type'] == 'scale':
+        return Scale(child_name, child)
+    elif child['type'] == 'node':
+        return Node(child_name, validated_yaml=child)
+
+
+def _validate_against_schema(file_path, parsed_yaml, schema):
+    try:
+        jsonschema.validate(parsed_yaml, schema)
+    except jsonschema.exceptions.ValidationError:
+        raise ValueError('Invalid parameter file {}'.format(file_path))
+
+
 class Node(object):
-    def __init__(self, name, path=None, validated_yaml=None, children=None):
+    def __init__(self, name, directory_path=None, validated_yaml=None, children=None):
         """
             name : name of the node, eg "a.b"
-            path : directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : Node, Bracket, Scale, ValuesHistory and ValueAtInstant.
+            directory_path : directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : Node, Bracket, Scale, ValuesHistory and ValueAtInstant.
             validated_yaml : Data extracted from a yaml file describing a Node
             children : Dictionary of ValuesHistory or Scale objects indexed by name.
 
-            Only one of the 3 parameters path, validated_yaml or children should be set.
+            Only one of the 3 parameters directory_path, validated_yaml or children should be set.
+
+            The attribute name is not updated if the legislation is modified, for example by a legislation preprocessing.
         """
         assert isinstance(name, str)
         self.name = name
 
-        def _parse_child(child_name, child):
-            if child['type'] == 'parameter':
-                return ValuesHistory(child_name, child['values'])
-            elif child['type'] == 'scale':
-                return Scale(child_name, child)
-            elif child['type'] == 'node':
-                return Node(child_name, validated_yaml=child)
-
-        def _validate_against_schema(file_path, parsed_yaml, schema):
-            try:
-                jsonschema.validate(parsed_yaml, schema)
-            except jsonschema.exceptions.ValidationError:
-                raise ValueError('Invalid parameter file {}'.format(file_path))
-
-        if path:
+        if directory_path:
             self.children = {}
-            for child_name in os.listdir(path):
-                child_path = os.path.join(path, child_name)
+            for child_name in os.listdir(directory_path):
+                child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
                     child_name, ext = os.path.splitext(child_name)
                     assert ext == '.yaml', "The parameter directory should contain only YAML files."
@@ -415,7 +431,7 @@ class Node(object):
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = compose_name(name, child_name)
-                    self.children[child_name] = Node(child_name_expanded, path=child_path)
+                    self.children[child_name] = Node(child_name_expanded, directory_path=child_path)
                 else:
                     raise ValueError('Unexpected item {}'.format(child_path))
 
@@ -438,6 +454,13 @@ class Node(object):
     def _merge(self, other):
         for child_name, child in other.children.items():
             self.children[child_name] = child
+
+
+def load_file(name, file_path):
+    with open(file_path, 'r') as f:
+        data = yaml.load(f)
+    _validate_against_schema(file_path, data, schema_yaml)
+    return _parse_child(name, data)
 
 
 class NodeAtInstant(object):
@@ -480,8 +503,8 @@ def load_legislation(path_list):
     assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'
 
     legislations = []
-    for path in path_list:
-        legislation = Node('', path=path)
+    for directory_path in path_list:
+        legislation = Node('', directory_path=directory_path)
         legislations.append(legislation)
 
     base_legislation = legislations[0]
