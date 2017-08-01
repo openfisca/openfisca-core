@@ -17,7 +17,6 @@ from ...legislations import node_keywords
 # Load
 
 def load_xml_schema():
-    base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
     filename_xml_schema = 'legislation.xsd'
 
     with open(filename_xml_schema, 'r') as f:
@@ -170,11 +169,9 @@ def transform_etree_to_json_root(xml_trees):
 # Merge
 
 def merge(name_list, json_list, path_list):
-    # The first json tree is special
-    merged_json = json_list[0]
-    assert not path_list[0]
+    merged_json = {'type': 'node'}
 
-    for name, json_tree, path in zip(name_list, json_list, path_list)[1:]:
+    for name, json_tree, path in zip(name_list, json_list, path_list):
         pointer = merged_json
         for key in path:
             if key in pointer:
