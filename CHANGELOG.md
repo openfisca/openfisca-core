@@ -1,5 +1,7 @@
 # Changelog
 
+## Some new stuff
+
 ## 16.1.0
 
 * Enable API monitoring with Piwik
