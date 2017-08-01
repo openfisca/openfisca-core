@@ -118,7 +118,7 @@ schema_yaml = {
                     },
                 "unit": {
                     "type": "string",
-                    "enum": ['/1', 'currency'],
+                    "enum": ['/1', 'currency', 'year'],
                     },
                 "values": {"$ref": "#/definitions/values_history"},
                 },
@@ -136,6 +136,10 @@ schema_yaml = {
                     },
                 "reference": {
                     "type": "string",
+                    },
+                "unit": {
+                    "type": "string",
+                    "enum": ['/1', 'currency', 'year'],
                     },
                 "brackets": {
                     "type": "array",
@@ -435,7 +439,7 @@ class Node(object):
                 else:
                     raise ValueError('Unexpected item {}'.format(child_path))
 
-        elif validated_yaml:
+        elif validated_yaml is not None:
             self.children = {}
             for child_name, child in validated_yaml.items():
                 if child_name in node_keywords:
