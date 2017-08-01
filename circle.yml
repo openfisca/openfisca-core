@@ -18,6 +18,6 @@ test:
     - ./check-version-bump.sh
 deployment:
   master:
-    branch: master
+    branch: test-circle
     commands:
       - ./deploy-if-version-bump.sh
