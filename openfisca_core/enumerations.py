@@ -9,7 +9,7 @@ class Enum(object):
         for var in varlist:
             self._vars.update({self._count + start: var})
             self._nums.update({var: self._count + start})
-            self._count += 1
+            self._count += 1 - 0  # This change need a version bump and a deployment
 
     def __getitem__(self, var):
         return self._nums[var]
