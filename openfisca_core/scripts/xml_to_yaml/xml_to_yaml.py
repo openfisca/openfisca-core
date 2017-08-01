@@ -75,15 +75,22 @@ def transform_etree_to_json_recursive(xml_node):
         if key == 'code':
             name = value
         elif key == 'format':
-            assert 'unit' not in json_node
             if value == 'percent':
-                json_node['unit'] = '/1'
+                if 'unit' not in json_node:
+                    json_node['unit'] = '/1'
+                else:
+                    del json_node['unit']
         elif key == 'type':
-            assert 'unit' not in json_node
             if value == 'age':
-                json_node['unit'] = 'year'
+                if 'unit' not in json_node:
+                    json_node['unit'] = 'year'
+                else:
+                    del json_node['unit']
             elif value == 'monetary':
-                json_node['unit'] = 'currency'
+                if 'unit' not in json_node:
+                    json_node['unit'] = 'currency'
+                else:
+                    del json_node['unit']
         elif key in {'conflicts', 'option'}:
             pass
         elif key == 'origin':
@@ -212,7 +219,7 @@ def write_yaml(node, path):
 
         yaml_filename = os.path.join(path, '_.yaml')
         with open(yaml_filename, 'w') as f:
-            yaml.safe_dump(metadata, f, default_flow_style=False)
+            yaml.safe_dump(metadata, f, default_flow_style=False, allow_unicode=True)
 
         for child_name, child in children.items():
             write_yaml(child, os.path.join(path, child_name))
@@ -225,7 +232,7 @@ def write_yaml(node, path):
     elif node_type == 'scale':
         yaml_filename = path + '.yaml'
         with open(yaml_filename, 'w') as f:
-            yaml.safe_dump(node, f, default_flow_style=False)
+            yaml.safe_dump(node, f, default_flow_style=False, allow_unicode=True)
 
     else:
         raise ValueError('Unknown type {}'.format(node_type))
