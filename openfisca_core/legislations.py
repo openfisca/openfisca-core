@@ -7,7 +7,7 @@
 import os
 
 import yaml
-from jsonschema import validate
+import jsonschema
 
 from . import taxscales
 
@@ -389,6 +389,12 @@ class Node(object):
             elif child['type'] == 'node':
                 return Node(child_name, validated_yaml=child)
 
+        def _validate_against_schema(file_path, parsed_yaml, schema):
+            try:
+                jsonschema.validate(parsed_yaml, schema)
+            except jsonschema.exceptions.ValidationError:
+                raise ValueError('Invalid parameter file {}'.format(file_path))
+
         if path:
             self.children = {}
             for child_name in os.listdir(path):
@@ -400,9 +406,9 @@ class Node(object):
                         data = yaml.load(f)
 
                     if child_name == '_':
-                        validate(data, schema_node_meta)
+                        _validate_against_schema(child_path, data, schema_node_meta)
                     else:
-                        validate(data, schema_yaml)
+                        _validate_against_schema(child_path, data, schema_yaml)
                         child_name_expanded = compose_name(name, child_name)
                         self.children[child_name] = _parse_child(child_name_expanded, data)
 

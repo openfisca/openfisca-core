@@ -3,7 +3,6 @@
 import os
 
 import yaml
-import jsonschema
 
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 from openfisca_country_template.entities import entities
@@ -29,7 +28,7 @@ def test_indentation():
         content = str(e)
         assert len(content) < 1000
         for keyword in {'indentation/param.yaml', 'line 2', 'mapping values are not allowed here'}:
-            assert keyword in content
+            assert keyword in content, content
     else:
         assert False, "This test should raise a ScannerError."
 
@@ -39,13 +38,13 @@ def test_wrong_scale():
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
         tbs.compute_legislation()
-    except jsonschema.exceptions.ValidationError as e:
+    except ValueError as e:
         content = str(e)
         assert len(content) < 1500
-        for keyword in {'is not valid under any of the given schemas'}:
-            assert keyword in content
+        for keyword in {'Invalid', 'parameter', 'scale.yaml'}:
+            assert keyword in content, content
     else:
-        assert False, "This test should raise a ValidationError."
+        assert False, "This test should raise a ValueError."
 
 
 def test_wrong_type():
@@ -53,13 +52,13 @@ def test_wrong_type():
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
         tbs.compute_legislation()
-    except jsonschema.exceptions.ValidationError as e:
+    except ValueError as e:
         content = str(e)
         assert len(content) < 1000
-        for keyword in {'thistypedoesnotexist', 'node'}:
-            assert keyword in content
+        for keyword in {'Invalid', 'parameter', '_.yaml'}:
+            assert keyword in content, content
     else:
-        assert False, "This test should raise a ValidationError."
+        assert False, "This test should raise a ValueError."
 
 
 def test_wrong_value():
@@ -67,13 +66,13 @@ def test_wrong_value():
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
         tbs.compute_legislation()
-    except jsonschema.exceptions.ValidationError as e:
+    except ValueError as e:
         content = str(e)
         assert len(content) < 1000
-        for keyword in {'is not valid under any of the given schemas'}:
-            assert keyword in content
+        for keyword in {'Invalid', 'parameter', 'param.yaml'}:
+            assert keyword in content, content
     else:
-        assert False, "This test should raise a ValidationError."
+        assert False, "This test should raise a ValueError."
 
 
 def test_references():
