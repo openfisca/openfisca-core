@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-''' xml_to_json_extension_template.py : Parse XML parameter files for Extension-Template and convert them to YAML files. Comments are NOT transformed.
+''' xml_to_yaml_extension_template.py : Parse XML parameter files for Extension-Template and convert them to YAML files. Comments are NOT transformed.
 
 Usage :
-  `python xml_to_json_extension_template.py output_dir`
+  `python xml_to_yaml_extension_template.py output_dir`
 or just (output is written in a directory called `yaml_parameters`):
-  `python xml_to_json_extension_template.py`
+  `python xml_to_yaml_extension_template.py`
 '''
 
 import sys
 import os
 
-from openfisca_core.scripts.xml_to_json import xml_to_json
+from openfisca_core.scripts.xml_to_yaml import xml_to_yaml
 import openfisca_extension_template
 
 if len(sys.argv) > 1:
@@ -28,4 +28,4 @@ legislation_xml_info_list = [
     for param_file in param_files
     ]
 
-xml_to_json.write_legislation(legislation_xml_info_list, target_path)
+xml_to_yaml.write_legislation(legislation_xml_info_list, target_path)

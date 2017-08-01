@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-''' xml_to_json.py : Parse XML parameter files and convert them to YAML files
+''' xml_to_yaml.py : Parse XML parameter files and convert them to YAML files
 
 Comments are NOT converted.
 '''
@@ -17,7 +17,8 @@ from ...legislations import node_keywords
 # Load
 
 def load_xml_schema():
-    filename_xml_schema = 'legislation.xsd'
+    dir_path = os.path.dirname(__file__)
+    filename_xml_schema = os.path.join(dir_path, 'legislation.xsd')
 
     with open(filename_xml_schema, 'r') as f:
         xmlschema_doc = etree.parse(f)
