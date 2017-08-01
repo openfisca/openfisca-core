@@ -250,7 +250,7 @@ class ValuesHistory(object):
     def __eq__(self, other):
         return (self.name == other.name) and (self.values_list == other.values_list)
 
-    def get_at_instant(self, instant_str):
+    def _get_at_instant(self, instant_str):
         for value_at_instant in self.values_list:
             if value_at_instant.instant_str <= instant_str:
                 return value_at_instant.value
@@ -315,7 +315,7 @@ class Bracket(object):
                 new_child = ValuesHistory(new_child_name, value)
                 setattr(self, key, new_child)
 
-    def get_at_instant(self, instant_str):
+    def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
 
 
@@ -327,7 +327,7 @@ class BracketAtInstant(object):
 
         for key in ['amount', 'rate', 'threshold', 'base']:
             if hasattr(bracket, key):
-                new_child = getattr(bracket, key).get_at_instant(instant_str)
+                new_child = getattr(bracket, key)._get_at_instant(instant_str)
                 if new_child is not None:
                     setattr(self, key, new_child)
 
@@ -343,8 +343,8 @@ class Scale(object):
             brackets.append(bracket)
         self.brackets = brackets
 
-    def get_at_instant(self, instant_str):
-        brackets = [bracket.get_at_instant(instant_str) for bracket in self.brackets]
+    def _get_at_instant(self, instant_str):
+        brackets = [bracket._get_at_instant(instant_str) for bracket in self.brackets]
 
         if any(hasattr(bracket, 'amount') for bracket in brackets):
             scale = taxscales.AmountTaxScale()
@@ -381,7 +381,7 @@ class Node(object):
         assert isinstance(name, str)
         self.name = name
 
-        def parse_child(child_name, child):
+        def _parse_child(child_name, child):
             if child['type'] == 'parameter':
                 return ValuesHistory(child_name, child['values'])
             elif child['type'] == 'scale':
@@ -404,7 +404,7 @@ class Node(object):
                     else:
                         validate(data, schema_yaml)
                         child_name_expanded = compose_name(name, child_name)
-                        self.children[child_name] = parse_child(child_name_expanded, data)
+                        self.children[child_name] = _parse_child(child_name_expanded, data)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
@@ -419,17 +419,17 @@ class Node(object):
                 if child_name in node_keywords:
                     continue
                 child_name_expanded = compose_name(name, child_name)
-                self.children[child_name] = parse_child(child_name_expanded, child)
+                self.children[child_name] = _parse_child(child_name_expanded, child)
 
         else:
             for child in children.values():
                 assert isinstance(child, Node) or isinstance(child, Scale) or isinstance(child, ValuesHistory), child
             self.children = children
 
-    def get_at_instant(self, instant_str):
+    def _get_at_instant(self, instant_str):
         return NodeAtInstant(self.name, self, instant_str)
 
-    def merge(self, other):
+    def _merge(self, other):
         for child_name, child in other.children.items():
             self.children[child_name] = child
 
@@ -440,7 +440,7 @@ class NodeAtInstant(object):
         self.instant_str = instant_str
         self.children = {}
         for child_name, child in node.children.items():
-            child_at_instant = child.get_at_instant(instant_str)
+            child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
                 self.children[child_name] = child_at_instant
 
@@ -481,6 +481,6 @@ def load_legislation(path_list):
     base_legislation = legislations[0]
     for i in range(1, len(legislations)):
         legislation = legislations[i]
-        base_legislation.merge(legislation)
+        base_legislation._merge(legislation)
 
     return base_legislation

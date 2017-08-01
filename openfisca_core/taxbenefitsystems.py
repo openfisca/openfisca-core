@@ -94,7 +94,7 @@ class TaxBenefitSystem(object):
         instant_str = str(instant)
         legislation_at_instant = self.legislation_at_instant_cache.get(instant)
         if legislation_at_instant is None and legislation is not None:
-            legislation_at_instant = legislation.get_at_instant(instant_str)
+            legislation_at_instant = legislation._get_at_instant(instant_str)
             self.legislation_at_instant_cache[instant] = legislation_at_instant
         return legislation_at_instant
 
