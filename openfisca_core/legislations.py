@@ -383,6 +383,12 @@ class Scale(object):
                     scale.add_bracket(threshold, rate * base)
             return scale
 
+    def __getitem__(self, key):
+        if isinstance(key, int) and key < len(self.brackets):
+            return self.brackets[key]
+        else:
+            raise KeyError(key)
+
 
 def _parse_child(child_name, child):
     if child['type'] == 'parameter':
@@ -449,7 +455,7 @@ class Node(object):
 
         else:
             for child in children.values():
-                assert isinstance(child, Node) or isinstance(child, Scale) or isinstance(child, ValuesHistory), child
+                assert isinstance(child, Node) or isinstance(child, Scale) or isinstance(child, Parameter), child
             self.children = children
 
     def _get_at_instant(self, instant_str):
@@ -458,6 +464,17 @@ class Node(object):
     def _merge(self, other):
         for child_name, child in other.children.items():
             self.children[child_name] = child
+
+    def add_child(self, name, child):
+        assert name not in self.children
+        assert isinstance(child, Node) or isinstance(child, Parameter) or isinstance(child, Scale)
+        self.children[name] = child
+
+    def __getattr__(self, key):
+        if key in self.children:
+            return self.children[key]
+        else:
+            raise AttributeError(key)
 
 
 def load_file(name, file_path):
@@ -478,13 +495,12 @@ class NodeAtInstant(object):
                 self.children[child_name] = child_at_instant
 
     def __getattr__(self, key):
-        if key not in {'children'}:
-            if key not in self.children:
-                param_name = compose_name(self.name, key)
-                raise ParameterNotFound(param_name, self.instant_str)
-            return self.children[key]
+        if key not in self.children:
+            param_name = compose_name(self.name, key)
+            raise ParameterNotFound(param_name, self.instant_str)
+        return self.children[key]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key):  # deprecated
         return getattr(self, key)
 
     def __iter__(self):
