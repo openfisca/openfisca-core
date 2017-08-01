@@ -2,6 +2,7 @@ Thank you for wanting to contribute to OpenFisca! :smiley:
 
 TL;DR: [GitHub Flow](https://guides.github.com/introduction/flow/), [SemVer](http://semver.org/), sweat on naming and messages.
 
+This change does not need a version bump, nor a deployment.
 
 ## Pull requests
 
