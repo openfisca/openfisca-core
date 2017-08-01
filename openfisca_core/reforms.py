@@ -12,7 +12,7 @@ class Reform(TaxBenefitSystem):
     def __init__(self, baseline):
         self.baseline = baseline
         self._legislation_json = baseline.get_legislation()
-        self.legislation_by_instant_cache = baseline.legislation_by_instant_cache
+        self.legislation_at_instant_cache = baseline.legislation_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
@@ -49,7 +49,7 @@ class Reform(TaxBenefitSystem):
                 )
         assert isinstance(reform_legislation_json, legislations.Node)
         self._legislation_json = reform_legislation_json
-        self.legislation_by_instant_cache = {}
+        self.legislation_at_instant_cache = {}
 
 
 def update_legislation(legislation_json, path = None, period = None, value = None, start = None, stop = None):

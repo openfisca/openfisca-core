@@ -53,7 +53,7 @@ class TaxBenefitSystem(object):
     Represents the legislation.
     """
     _base_tax_benefit_system = None
-    legislation_by_instant_cache = None
+    legislation_at_instant_cache = None
     person_key_plural = None
     preprocess_legislation = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -67,7 +67,7 @@ class TaxBenefitSystem(object):
 
     def __init__(self, entities, legislation_json = None):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.legislation_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
         self.legislation_yaml_dirs = []
@@ -92,10 +92,10 @@ class TaxBenefitSystem(object):
     def get_legislation_at_instant(self, instant):
         legislation = self.get_legislation()
         instant_str = str(instant)
-        legislation_at_instant = self.legislation_by_instant_cache.get(instant)
+        legislation_at_instant = self.legislation_at_instant_cache.get(instant)
         if legislation_at_instant is None and legislation is not None:
             legislation_at_instant = legislation.get_at_instant(instant_str)
-            self.legislation_by_instant_cache[instant] = legislation_at_instant
+            self.legislation_at_instant_cache[instant] = legislation_at_instant
         return legislation_at_instant
 
     def get_baseline_legislation_at_instant(self, instant):
