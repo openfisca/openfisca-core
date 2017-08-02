@@ -4,6 +4,8 @@ import datetime
 import inspect
 import textwrap
 
+from openfisca_core.columns import EnumCol
+
 
 def get_next_day(date):
     parsed_date = date
@@ -46,6 +48,11 @@ def build_formula(formula, country_package_metadata):
         }
 
 
+def get_variable_type(variable):
+    column_type = variable.__class__.__name__
+    return 'String' if column_type == 'EnumCol' else column_type.replace('Col', '')
+
+
 def build_formulas(dated_formulas, country_package_metadata):
     def get_start_or_default(dated_formula):
         return dated_formula['start_instant'].date.isoformat() if dated_formula['start_instant'] else '0001-01-01'
@@ -60,7 +67,7 @@ def build_variable(variable, country_package_metadata):
     result = {
         'id': variable.name,
         'description': variable.label,
-        'valueType': variable.__class__.__name__.replace('Col', ''),
+        'valueType': get_variable_type(variable),
         'defaultValue': format_value(variable.default),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
@@ -83,6 +90,9 @@ def build_variable(variable, country_package_metadata):
 
         if variable.end:
             result['formulas'][get_next_day(variable.end)] = None
+
+    if isinstance(variable, EnumCol):
+        result['possibleValues'] = variable.enum.list
 
     return result
 

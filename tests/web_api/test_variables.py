@@ -109,6 +109,19 @@ def test_variable_with_start_and_stop_date():
     assert_in('formula', variable['formulas']['1980-01-01']['content'])
 
 
+def test_variable_with_enum():
+    response = subject.get('/variable/housing_occupancy_status')
+    variable = json.loads(response.data)
+    assert_equal(variable['valueType'], 'String')
+    assert_in('possibleValues', variable.keys())
+    assert_equal(variable['possibleValues'], [
+        u'Tenant',
+        u'Owner',
+        u'Free logder',
+        u'Homeless']
+        )
+
+
 dated_variable_response = subject.get('/variable/basic_income')
 dated_variable = json.loads(dated_variable_response.data)
 
