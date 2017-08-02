@@ -23,7 +23,7 @@ def test_indentation():
     path_to_json = os.path.join(BASE_DIR, 'indentation')
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
-        tbs.compute_legislation()
+        tbs.get_legislation()
     except yaml.scanner.ScannerError as e:
         content = str(e)
         assert len(content) < 1000
@@ -37,7 +37,7 @@ def test_wrong_scale():
     path_to_json = os.path.join(BASE_DIR, 'wrong_scale')
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
-        tbs.compute_legislation()
+        tbs.get_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1500
@@ -51,7 +51,7 @@ def test_wrong_type():
     path_to_json = os.path.join(BASE_DIR, 'wrong_type')
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
-        tbs.compute_legislation()
+        tbs.get_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
@@ -65,7 +65,7 @@ def test_wrong_value():
     path_to_json = os.path.join(BASE_DIR, 'wrong_value')
     tbs = TestTaxBenefitSystem(path_to_json)
     try:
-        tbs.compute_legislation()
+        tbs.get_legislation()
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
@@ -84,7 +84,7 @@ def test_references():
 def test_filesystem_hierarchy():
     path_to_json = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     tbs = TestTaxBenefitSystem(path_to_json)
-    tbs.compute_legislation()
+    tbs.get_legislation()
     legislation = tbs.get_legislation_at_instant('2016-01-01')
     assert legislation.node1.node2 == 1.0
 
@@ -92,6 +92,6 @@ def test_filesystem_hierarchy():
 def test_yaml_hierarchy():
     path_to_json = os.path.join(BASE_DIR, 'yaml_hierarchy')
     tbs = TestTaxBenefitSystem(path_to_json)
-    tbs.compute_legislation()
+    tbs.get_legislation()
     legislation = tbs.get_legislation_at_instant('2016-01-01')
     assert legislation.node1.node2 == 1.0

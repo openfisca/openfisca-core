@@ -12,7 +12,7 @@ from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_core.legislations import ValueAtInstant, ValuesHistory, Node
+from openfisca_core.legislations import ValueAtInstant, ValuesHistory, Node, Parameter
 from openfisca_country_template.entities import Household
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -390,7 +390,7 @@ def test_modify_legislation():
         reform_legislation_subtree = Node(
             'new_node',
             children = {
-                'new_param': ValuesHistory('new_param', values_list = [
+                'new_param': Parameter('new_param', values_list = [
                     ValueAtInstant('new_param', "2000-01-01", value=True),
                     ValueAtInstant('new_param', "2015-01-01", value=None),
                     ]),
