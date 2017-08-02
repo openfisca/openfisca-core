@@ -113,6 +113,7 @@ def test_variable_with_enum():
     response = subject.get('/variable/housing_occupancy_status')
     variable = json.loads(response.data)
     assert_equal(variable['valueType'], 'String')
+    assert_equal(variable['defaultValue'], 'Tenant')
     assert_in('possibleValues', variable.keys())
     assert_equal(variable['possibleValues'], [
         u'Tenant',

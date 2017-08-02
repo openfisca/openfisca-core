@@ -11,6 +11,10 @@ In the preview web API, for variables of type `Enum`:
   - For instance, is `housing_occupancy_status` is calculated for `2017-01`, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now returned, instead of `{"housing_occupancy_status": {"2017-01": 0}}`.
 * In the `/variable/<variable_name>` route, document possible values. 
 * In the Open API specification, document possible values following JSON schema. 
+* In the `/variable/<variable_name>` route:
+  - Document possible values
+  - Use a string as a default value (instead of the enum default indice)
+* In the Open API specification, document possible values following JSON schema.  
 
 ### 16.1.1
 

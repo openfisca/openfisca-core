@@ -13,10 +13,13 @@ def get_next_day(date):
     return next_day.isoformat().split('T')[0]
 
 
-def format_value(value):
-    if isinstance(value, datetime.date):
-        return value.isoformat()
-    return value
+def get_default_value(variable):
+    default_value = variable.default
+    if isinstance(default_value, datetime.date):
+        return default_value.isoformat()
+    if isinstance(variable, EnumCol):
+        return variable.enum._vars[default_value]
+    return default_value
 
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
@@ -68,7 +71,7 @@ def build_variable(variable, country_package_metadata):
         'id': variable.name,
         'description': variable.label,
         'valueType': get_variable_type(variable),
-        'defaultValue': format_value(variable.default),
+        'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
         'source': build_source_url(
