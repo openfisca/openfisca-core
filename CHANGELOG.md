@@ -1,5 +1,9 @@
 # Changelog
 
+## 16.1.1
+
+* Return valid JSON types in the Open API specification
+
 ## 16.1.0
 
 * Enable API monitoring with Piwik

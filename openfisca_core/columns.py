@@ -199,7 +199,8 @@ class BoolCol(Column):
     default = False
     dtype = np.bool
     is_period_size_independent = True
-    json_type = 'Boolean'
+    json_type = 'boolean'
+    val_type = 'boolean'
 
     @property
     def input_to_dated_python(self):
@@ -219,7 +220,7 @@ class DateCol(Column):
     '''
     dtype = 'datetime64[D]'
     is_period_size_independent = True
-    json_type = 'Date'
+    json_type = 'string'
     val_type = 'date'
 
     def __init__(self, default = None, **kwargs):
@@ -273,7 +274,8 @@ class FixedStrCol(Column):
     default = u''
     dtype = None
     is_period_size_independent = True
-    json_type = 'String'
+    json_type = 'string'
+    val_type = 'string'
     max_length = None
 
     def __init__(self, max_length = None, **kwargs):
@@ -307,7 +309,8 @@ class FloatCol(Column):
     A column of float 32
     '''
     dtype = np.float32
-    json_type = 'Float'
+    json_type = 'number'
+    val_type = 'float'
 
     @property
     def input_to_dated_python(self):
@@ -326,7 +329,8 @@ class IntCol(Column):
     A column of integer
     '''
     dtype = np.int32
-    json_type = 'Integer'
+    json_type = 'number'
+    val_type = 'int'
 
     @property
     def input_to_dated_python(self):
@@ -344,7 +348,8 @@ class StrCol(Column):
     default = u''
     dtype = object
     is_period_size_independent = True
-    json_type = 'String'
+    json_type = 'string'
+    val_type = 'string'
 
     @property
     def input_to_dated_python(self):
@@ -401,7 +406,8 @@ class EnumCol(IntCol):
     enum = None
     index_by_slug = None
     is_period_size_independent = True
-    json_type = 'Enumeration'
+    val_type = 'enum'
+    json_type = 'string'
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)

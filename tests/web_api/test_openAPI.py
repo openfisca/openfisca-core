@@ -34,7 +34,7 @@ def test_entity_definition():
     assert_in('children', dpath.get(body, 'definitions/Household/properties'))
     assert_in('salary', dpath.get(body, 'definitions/Person/properties'))
     assert_in('rent', dpath.get(body, 'definitions/Household/properties'))
-    assert_equal('Float', dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type'))
+    assert_equal('number', dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type'))
 
 
 def test_situation_definition():
