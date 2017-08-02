@@ -2,7 +2,7 @@
 
 from httplib import OK, NOT_FOUND
 import json
-from nose.tools import assert_equal, assert_regexp_matches, assert_items_equal, assert_in, assert_is_none
+from nose.tools import assert_equal, assert_regexp_matches, assert_items_equal, assert_in, assert_is_none, assert_not_in
 from . import subject
 
 # /variables
@@ -86,11 +86,6 @@ def test_variable_value():
         yield check_variable_value, key, expected_value
 
 
-# def test_null_values_are_dropped():
-#     # TODO: use age
-#     assert_not_in('references', variable.keys())
-
-
 def test_variable_formula_github_link():
     assert_regexp_matches(variable['formulas']['0001-01-01']['source'], GITHUB_URL_REGEX)
 
@@ -98,6 +93,12 @@ def test_variable_formula_github_link():
 def test_variable_formula_content():
     formula_code = "def formula(person, period, legislation):\n    return person('salary', period) * legislation(period).taxes.income_tax_rate\n"
     assert_equal(variable['formulas']['0001-01-01']['content'], formula_code)
+
+
+def test_null_values_are_dropped():
+    variable_response = subject.get('/variable/age')
+    variable = json.loads(variable_response.data)
+    assert_not_in('references', variable.keys())
 
 
 def test_variable_with_start_and_stop_date():
