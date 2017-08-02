@@ -11,7 +11,7 @@ class Reform(TaxBenefitSystem):
 
     def __init__(self, baseline):
         self.baseline = baseline
-        self._legislation_json = baseline.get_legislation()
+        self._legislation = baseline.get_legislation()
         self.legislation_at_instant_cache = baseline.legislation_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
@@ -39,14 +39,14 @@ class Reform(TaxBenefitSystem):
         Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
         Validates the new legislation.
         """
-        baseline_legislation_json = self.baseline.get_legislation()
-        baseline_legislation_json_copy = copy.deepcopy(baseline_legislation_json)
-        reform_legislation_json = modifier_function(baseline_legislation_json_copy)
-        assert reform_legislation_json is not None, \
-            'modifier_function {} in module {} must return the modified legislation_json'.format(
+        baseline_legislation = self.baseline.get_legislation()
+        baseline_legislation_copy = copy.deepcopy(baseline_legislation)
+        reform_legislation = modifier_function(baseline_legislation_copy)
+        assert reform_legislation is not None, \
+            'modifier_function {} in module {} must return the modified legislation'.format(
                 modifier_function.__name__,
                 modifier_function.__module__,
                 )
-        assert isinstance(reform_legislation_json, legislations.Node)
-        self._legislation_json = reform_legislation_json
+        assert isinstance(reform_legislation, legislations.Node)
+        self._legislation = reform_legislation
         self.legislation_at_instant_cache = {}

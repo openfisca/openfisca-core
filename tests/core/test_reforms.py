@@ -386,7 +386,7 @@ def test_wrong_reform():
 
 def test_modify_legislation():
 
-    def modify_legislation_json(reference_legislation_json_copy):
+    def modify_legislation(reference_legislation_copy):
         reform_legislation_subtree = Node(
             'new_node',
             children = {
@@ -396,12 +396,12 @@ def test_modify_legislation():
                     ]),
                 },
             )
-        reference_legislation_json_copy.children['new_node'] = reform_legislation_subtree
-        return reference_legislation_json_copy
+        reference_legislation_copy.children['new_node'] = reform_legislation_subtree
+        return reference_legislation_copy
 
     class test_modify_legislation(Reform):
         def apply(self):
-            self.modify_legislation_json(modifier_function = modify_legislation_json)
+            self.modify_legislation(modifier_function = modify_legislation)
 
     reform = test_modify_legislation(tax_benefit_system)
 

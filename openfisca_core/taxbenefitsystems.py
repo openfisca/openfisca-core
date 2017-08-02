@@ -71,7 +71,7 @@ class TaxBenefitSystem(object):
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
         self.legislation_yaml_dirs = []
-        self._legislation_json = legislation_json
+        self._legislation = legislation
 
         self.entities = entities
         if entities is None or len(entities) == 0:
@@ -325,18 +325,18 @@ class TaxBenefitSystem(object):
         self.legislation_yaml_dirs.append(path_to_yaml_dir)
         # New parameters have been added, the legislation will have to be recomputed next time we need it.
         # Not very optimized, but today incremental building of the legislation is not implemented.
-        self._legislation_json = None
+        self._legislation = None
 
-    def compute_legislation(self):
-        legislation_json = legislations.load_legislation(self.legislation_yaml_dirs)
+    def _compute_legislation(self):
+        legislation = legislations.load_legislation(self.legislation_yaml_dirs)
         if self.preprocess_legislation is not None:
-            legislation_json = self.preprocess_legislation(legislation_json)
-        self._legislation_json = legislation_json
+            legislation = self.preprocess_legislation(legislation)
+        self._legislation = legislation
 
     def get_legislation(self):
-        if self._legislation_json is None:
-            self.compute_legislation()
-        return self._legislation_json
+        if self._legislation is None:
+            self._compute_legislation()
+        return self._legislation
 
     def get_package_metadata(self):
         """

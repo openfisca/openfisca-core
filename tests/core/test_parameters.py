@@ -8,9 +8,9 @@ from test_countries import tax_benefit_system
 
 
 def test_get_at_instant():
-    legislation_json = tax_benefit_system.get_legislation()
-    assert isinstance(legislation_json, legislations.Node), legislation_json
-    legislation_at_instant = legislation_json._get_at_instant('2016-01-01')
+    legislation = tax_benefit_system.get_legislation()
+    assert isinstance(legislation, legislations.Node), legislation
+    legislation_at_instant = legislation._get_at_instant('2016-01-01')
     assert isinstance(legislation_at_instant, legislations.NodeAtInstant), legislation_at_instant
     assert_equal(legislation_at_instant.taxes.income_tax_rate, 0.15)
     assert_equal(legislation_at_instant.benefits.basic_income, 600)
