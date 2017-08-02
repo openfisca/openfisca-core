@@ -7,6 +7,7 @@ from flask_cors import CORS
 import dpath
 
 from openfisca_core.simulations import Simulation, SituationParsingError
+from openfisca_core.columns import EnumCol
 from loader import build_data
 import traceback
 import logging
@@ -90,10 +91,11 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
 
     @app.route('/calculate', methods=['POST'])
     def calculate():
+        tax_benefit_system = data['tax_benefit_system']
         request.on_json_loading_failed = handle_invalid_json
         input_data = request.get_json()
         try:
-            simulation = Simulation(tax_benefit_system = data['tax_benefit_system'], simulation_json = input_data)
+            simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
 
@@ -106,6 +108,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
             entity = simulation.get_entity(plural = entity_plural)
             entity_index = entity.ids.index(entity_id)
             entity_result = result[entity_index]
+
+            variable = tax_benefit_system.get_column(variable_name)
+            if isinstance(variable, EnumCol):
+                entity_result = variable.enum._vars[entity_result]
 
             dpath.util.set(input_data, path, entity_result)
 
