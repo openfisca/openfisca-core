@@ -109,3 +109,30 @@ def test_basic_calculation():
     assert_equal(dpath.get(response_json, 'persons/bob/basic_income/2017-12'), 600)
     assert_equal(dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12'), 816)  # From social_security_contribution.yaml test
     assert_equal(dpath.get(response_json, 'households/first_household/housing_tax/2017'), 3000)
+
+
+def test_enums_sending_index():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {},
+            },
+        "households": {
+            "_": {
+                "parents": ['bill'],
+                "housing_tax": {
+                    "2017": None
+                    },
+                "accomodation_size": {
+                    "2017-01": 300
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": 2  # Free lodger
+                    }
+                },
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert_equal(response.status_code, OK)
+    response_json = json.loads(response.data)
+    assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
