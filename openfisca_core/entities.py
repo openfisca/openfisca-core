@@ -13,6 +13,7 @@ from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
 from taxbenefitsystems import VariableNotFound
+from columns import EnumCol
 
 
 class Entity(object):
@@ -79,6 +80,8 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
+                    if isinstance(holder.column, EnumCol) and isinstance(value, basestring):
+                        value = holder.column.enum[value]
 
                     try:
                         array[entity_index] = value

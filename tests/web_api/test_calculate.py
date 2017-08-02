@@ -136,3 +136,30 @@ def test_enums_sending_index():
     assert_equal(response.status_code, OK)
     response_json = json.loads(response.data)
     assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
+
+
+def test_enums_sending_string():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {},
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                "housing_tax": {
+                    "2017": None
+                    },
+                "accomodation_size": {
+                    "2017-01": 300
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": "Free logder"
+                    }
+                },
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert_equal(response.status_code, OK)
+    response_json = json.loads(response.data)
+    assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
