@@ -4,6 +4,8 @@ import os
 
 import yaml
 
+from openfisca_core.columns import EnumCol
+
 
 OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'openAPI.yml')
 
@@ -28,10 +30,15 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
 
 
 def get_variable_json_schema(variable):
-    return {
+    result = {
         'type': 'object',
         'additionalProperties': {'type': variable.json_type},
         }
+
+    if isinstance(variable, EnumCol):
+        result['additionalProperties']['enum'] = variable.enum.list
+
+    return result
 
 
 def get_entity_json_schema(entity, tax_benefit_system):
