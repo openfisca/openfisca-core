@@ -7,9 +7,36 @@ from .taxbenefitsystems import TaxBenefitSystem
 
 
 class Reform(TaxBenefitSystem):
+    """A modified TaxBenefitSystem
+
+    A reformed TaxBenefitSystem must subclass `Reform` and implement a method `apply()`. Such a function can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation.
+
+    Example:
+
+    >>> from openfisca_core import reforms, legislations
+    >>>
+    >>> def modify_my_legislation(legislation):
+    >>>     # Add new parameters
+    >>>     new_params = legislations.load_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+    >>>     legislation.add_child('reform_name', new_params)
+    >>>
+    >>>     # Update a value
+    >>>     legislation.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
+    >>>
+    >>>    return legislation
+    >>>
+    >>> class MyReform(reforms.Reform):
+    >>>    def apply(self):
+    >>>        self.add_variable(some_variable)
+    >>>        self.update_variable(some_other_variable)
+    >>>        self.modify_legislation(modifier_function=modify_my_legislation)
+    """
     name = None
 
     def __init__(self, baseline):
+        """
+        :param baseline: Baseline TaxBenefitSystem.
+        """
         self.baseline = baseline
         self._legislation = baseline.get_legislation()
         self.legislation_at_instant_cache = baseline.legislation_at_instant_cache
@@ -33,11 +60,11 @@ class Reform(TaxBenefitSystem):
             key = u'.'.join([baseline_full_key, key])
         return key
 
-    def modify_legislation_json(self, modifier_function):
+    def modify_legislation(self, modifier_function):
         """
-        Copy the baseline TaxBenefitSystem legislation_json attribute and return it.
-        Used by reforms which need to modify the legislation_json, usually in the build_reform() function.
-        Validates the new legislation.
+        Used by reforms which need to modify the legislation parameters.
+
+        :param modifier_function: A function that takes an object of type `openfisca_core.legislations.Node` ad should return an object of the same type.
         """
         baseline_legislation = self.baseline.get_legislation()
         baseline_legislation_copy = copy.deepcopy(baseline_legislation)

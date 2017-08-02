@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-"""Handle legislative parameters in JSON format."""
+"""Handle legislative parameters."""
 
 
 import os
@@ -171,7 +171,14 @@ schema_yaml = {
 
 
 class ParameterNotFound(Exception):
+    """Exception raised when a parameter is not found in the legislation.
+    """
     def __init__(self, name, instant_str, variable_name = None):
+        """
+        :param name: Name of the parameter
+        :instant_str: Instant where the parameter does not exist, in the format `YYYY-MM-DD`.
+        :variable_name: If the parameter was queried during the computation of a variable, name of that variable.
+        """
         assert name is not None
         assert instant_str is not None
         self.name = name
@@ -192,13 +199,14 @@ class ExceptionValueIsUnknown(Exception):
 
 class ValueAtInstant(object):
     def __init__(self, name, instant_str, validated_yaml=None, value=None):
-        """
-            Can be instanciated from YAML data (use validated_yaml), or dynamically for reforms.
+        """A value defined for a given instant.
 
-            name : name of the parameter, eg "a.b.param"
-            instant_str : Date of the value.
-            validated_yaml : Data extracted from the yaml. If set, value should not be set.
-            value : Used if and only if validated_yaml=None. If value=None, the parameter is removed from the legislation.
+        Can be instanciated from YAML data (use `validated_yaml`), or given `value`. The later case can be used for reforms.
+
+        :param name: name of the parameter, eg "taxes.some_tax.some_param"
+        :param instant_str: Date of the value in the format `YYYY-MM-DD`.
+        :param validated_yaml: Data loaded from a YAML file and validated. If set, `value` should not be set.
+        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is removed from the legislation.
         """
         self.name = name
         self.instant_str = instant_str
@@ -222,10 +230,13 @@ class ValueAtInstant(object):
 
 class ValuesHistory(object):
     def __init__(self, name, validated_yaml=None, values_list=None):
-        """
-            name : name of the parameter, eg "a.b.param"
-            validated_yaml : Data extracted from the yaml. If set, values_list should not be set.
-            values_list : List of ValueAtInstant objects. If set, validated_yaml should not be set.
+        """A value defined for several periods.
+
+        Can be instanciated from YAML data (use `validated_yaml`), or given a list of ValueAtInstant. The later case can be used for reforms.
+
+        :param name: name of the parameter, eg "taxes.some_tax.some_param"
+        :param validated_yaml: Data extracted from the yaml. If set, `values_list` should not be set.
+        :param values_list: : List of `ValueAtInstant` objects. If set, `validated_yaml` should not be set.
         """
         self.name = name
 
@@ -259,6 +270,13 @@ class ValuesHistory(object):
         return None
 
     def update(self, period=None, start=None, stop=None, value=None):
+        """Change the value for a given period.
+
+        :param period: Period where the value is modified. If set, `start` and `stop` should be `None`.
+        :param start: Start of the period. Instance of `openfisca_core.periods.Instant`. If set, `period` should be `None`.
+        :param stop: Stop of the period. Instance of `openfisca_core.periods.Instant`. If set, `period` should be `None`.
+        :param value: New value. If `None`, the parameter is removed from the legislation for the given period.
+        """
         if period is not None:
             assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
             start = period.start
@@ -308,6 +326,10 @@ class ValuesHistory(object):
 
 
 class Parameter(ValuesHistory):
+    """A wrapper over a `ValuesHistory` object.
+
+    Use this class to represent a parameter of the legislation. Use directly a `ValuesHistory` to represent values of a member of a scale bracket.
+    """
     def __init__(self, name, validated_yaml=None, values_list=None):
         if validated_yaml:
             if 'description' in validated_yaml:
@@ -320,12 +342,20 @@ class Parameter(ValuesHistory):
 
 
 class Bracket(object):
+    """A bracket of a scale.
+
+    Currently, such an object can only be constructed from validated YAML data. Such an object could be constructed from `ValuesHistory` objects to define reforms.
+    """
     def __init__(self, name, validated_yaml):
+        """
+        :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
+        :param validated_yaml: Data extracted from a YAML file.
+        """
         self.name = name
 
         for key, value in validated_yaml.items():
             if key in {'amount', 'rate', 'threshold', 'base'}:
-                new_child_name = compose_name(name, key)
+                new_child_name = _compose_name(name, key)
                 new_child = ValuesHistory(new_child_name, value)
                 setattr(self, key, new_child)
 
@@ -334,8 +364,16 @@ class Bracket(object):
 
 
 class BracketAtInstant(object):
-    '''This class is used temporarily in Scale._get_at_instant, before the construction of a tax scale'''
+    """A bracket of a scale at a given instant.
+
+    This class is used temporarily in `Scale._get_at_instant()`, before the construction of a tax scale.
+    """
     def __init__(self, name, bracket, instant_str):
+        """
+        :param name: Name of the bracket, eg "taxes.some_scale.bracket_3"
+        :param bracket: Original `Bracket` object.
+        :param instant_str: Date in the format `YYYY-MM-DD`.
+        """
         self.name = name
         self.instant_str = instant_str
 
@@ -347,7 +385,15 @@ class BracketAtInstant(object):
 
 
 class Scale(object):
+    """A scale.
+
+    Currently, such an object can only be constructed from validated YAML data. Such an object could be constructed from `Bracket` objects to define reforms.
+    """
     def __init__(self, name, validated_yaml):
+        """
+        :param name: name of the scale, eg "taxes.some_scale"
+        :param validated_yaml: Data extracted from a YAML file.
+        """
         self.name = name
         if 'description' in validated_yaml:
             self.description = validated_yaml['description']
@@ -407,16 +453,18 @@ def _validate_against_schema(file_path, parsed_yaml, schema):
 
 
 class Node(object):
+    """Node containt parameters of the legislation.
+
+    Can be instanciated from YAML data (use `directory_path` or `validated_yaml`), or given legislation objects already constructed. The later case can be used for reforms.
+
+    Only one of the 3 parameters `directory_path`, `validated_yaml` or `children` should be set.
+    """
     def __init__(self, name, directory_path=None, validated_yaml=None, children=None):
         """
-            name : name of the node, eg "a.b"
-            directory_path : directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : Node, Bracket, Scale, ValuesHistory and ValueAtInstant.
-            validated_yaml : Data extracted from a yaml file describing a Node
-            children : Dictionary of ValuesHistory or Scale objects indexed by name.
-
-            Only one of the 3 parameters directory_path, validated_yaml or children should be set.
-
-            The attribute name is not updated if the legislation is modified, for example by a legislation preprocessing.
+        :param name: Name of the node, eg "taxes.some_tax".
+        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
+        :param validated_yaml` : Data extracted from a YAML file describing a Node.
+        :param children: Dictionary of `Parameter or Scale` objects indexed by their name.
         """
         assert isinstance(name, str)
         self.name = name
@@ -435,12 +483,12 @@ class Node(object):
                         _validate_against_schema(child_path, data, schema_node_meta)
                     else:
                         _validate_against_schema(child_path, data, schema_yaml)
-                        child_name_expanded = compose_name(name, child_name)
+                        child_name_expanded = _compose_name(name, child_name)
                         self.children[child_name] = _parse_child(child_name_expanded, data)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
-                    child_name_expanded = compose_name(name, child_name)
+                    child_name_expanded = _compose_name(name, child_name)
                     self.children[child_name] = Node(child_name_expanded, directory_path=child_path)
                 else:
                     raise ValueError('Unexpected item {}'.format(child_path))
@@ -450,7 +498,7 @@ class Node(object):
             for child_name, child in validated_yaml.items():
                 if child_name in node_keywords:
                     continue
-                child_name_expanded = compose_name(name, child_name)
+                child_name_expanded = _compose_name(name, child_name)
                 self.children[child_name] = _parse_child(child_name_expanded, child)
 
         else:
@@ -466,6 +514,12 @@ class Node(object):
             self.children[child_name] = child
 
     def add_child(self, name, child):
+        """
+        Add a new child to the node.
+
+        :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
+        :param child: The new child, an instance of `Scale` or `Parameter` or `Node`.
+        """
         assert name not in self.children
         assert isinstance(child, Node) or isinstance(child, Parameter) or isinstance(child, Scale)
         self.children[name] = child
@@ -478,6 +532,11 @@ class Node(object):
 
 
 def load_file(name, file_path):
+    """
+    Load parameters from a YAML file.
+
+    :returns: An instance of `Node` or `Scale` or `Parameter`.
+    """
     with open(file_path, 'r') as f:
         data = yaml.load(f)
     _validate_against_schema(file_path, data, schema_yaml)
@@ -485,7 +544,14 @@ def load_file(name, file_path):
 
 
 class NodeAtInstant(object):
+    """Parameters of the legislation, at a given instant.
+    """
     def __init__(self, name, node, instant_str):
+        """
+        :param name: Name of the node.
+        :param node: Original `Node` instance.
+        :param instant_str: A date in the format `YYYY-MM-DD`.
+        """
         self.name = name
         self.instant_str = instant_str
         self.children = {}
@@ -496,7 +562,7 @@ class NodeAtInstant(object):
 
     def __getattr__(self, key):
         if key not in self.children:
-            param_name = compose_name(self.name, key)
+            param_name = _compose_name(self.name, key)
             raise ParameterNotFound(param_name, self.instant_str)
         return self.children[key]
 
@@ -507,7 +573,7 @@ class NodeAtInstant(object):
         return iter(self.children)
 
 
-def compose_name(path, child_name):
+def _compose_name(path, child_name):
     if path:
         return '{}.{}'.format(path, child_name)
     else:
@@ -515,9 +581,11 @@ def compose_name(path, child_name):
 
 
 def load_legislation(path_list):
-    '''load_legislation() : load YAML directories
+    '''Load the parameters of a legislation from a directory containing YAML files.
 
     If several directories are parsed, newer children with the same name are not merged but overwrite previous ones.
+
+    :param path_list: List of absolute paths.
     '''
 
     assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'

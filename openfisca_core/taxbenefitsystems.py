@@ -23,7 +23,14 @@ log = logging.getLogger(__name__)
 
 
 class VariableNotFound(Exception):
+    """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
+    """
+
     def __init__(self, variable_name, tax_benefit_system):
+        """
+        :param variable_name: Name of the variable that was queried.
+        :param tax_benefit_system: Tax benefits system that does not contain `variable_name`
+        """
         country_package_metadata = tax_benefit_system.get_package_metadata()
         country_package_name = country_package_metadata['name']
         country_package_version = country_package_metadata['version']
@@ -50,7 +57,7 @@ class VariableNameConflict(Exception):
 
 class TaxBenefitSystem(object):
     """
-    Represents the legislation.
+    Represents the legislation. It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
     """
     _base_tax_benefit_system = None
     legislation_at_instant_cache = None
@@ -65,7 +72,11 @@ class TaxBenefitSystem(object):
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities, legislation_json = None):
+    def __init__(self, entities, legislation = None):
+        """
+        :param entities: Entities used by the tax benefit system.
+        :param legislation: Parameters defined for the tax benefit system. Can be defined later.
+        """
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self.legislation_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
@@ -88,21 +99,6 @@ class TaxBenefitSystem(object):
                 return self
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
-
-    def get_legislation_at_instant(self, instant):
-        legislation = self.get_legislation()
-        instant_str = str(instant)
-        legislation_at_instant = self.legislation_at_instant_cache.get(instant)
-        if legislation_at_instant is None and legislation is not None:
-            legislation_at_instant = legislation._get_at_instant(instant_str)
-            self.legislation_at_instant_cache[instant] = legislation_at_instant
-        return legislation_at_instant
-
-    def get_baseline_legislation_at_instant(self, instant):
-        baseline = self.baseline
-        if baseline is None:
-            return self.get_legislation_at_instant(instant)
-        return baseline.get_baseline_legislation_at_instant(instant)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -334,9 +330,35 @@ class TaxBenefitSystem(object):
         self._legislation = legislation
 
     def get_legislation(self):
+        """
+        Get the legislation parameters of the tax benefit system.
+
+        :returns: The legislation parameters for all the dates.
+        """
         if self._legislation is None:
             self._compute_legislation()
         return self._legislation
+
+    def get_baseline_legislation_at_instant(self, instant):
+        baseline = self.baseline
+        if baseline is None:
+            return self.get_legislation_at_instant(instant)
+        return baseline.get_baseline_legislation_at_instant(instant)
+
+    def get_legislation_at_instant(self, instant):
+        """Compute the parameters of the legislation at a given instant
+
+        :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
+        :returns: The parameters of the legislation at a given instant.
+        """
+
+        legislation = self.get_legislation()
+        instant_str = str(instant)
+        legislation_at_instant = self.legislation_at_instant_cache.get(instant)
+        if legislation_at_instant is None and legislation is not None:
+            legislation_at_instant = legislation._get_at_instant(instant_str)
+            self.legislation_at_instant_cache[instant] = legislation_at_instant
+        return legislation_at_instant
 
     def get_package_metadata(self):
         """

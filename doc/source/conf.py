@@ -13,3 +13,4 @@ html_static_path = ['_static']
 html_context = {
     'css_files': ['_static/css/custom.css']
     }
+autoclass_content = 'both'

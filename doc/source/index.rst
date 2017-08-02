@@ -7,6 +7,8 @@ Modules:
    :maxdepth: 1
 
    tax-benefit-system
+   legislations
+   reforms
    test_runner
 
 Scripts:
