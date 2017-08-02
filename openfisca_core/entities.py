@@ -83,7 +83,7 @@ class Entity(object):
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
                         raise SituationParsingError([self.plural, entity_id, variable_name, date],
-                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+                    'Invalid type: must be of type {}.'.format(holder.column.val_type))
 
                     holder.buffer[period] = array
 
