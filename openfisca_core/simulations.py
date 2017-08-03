@@ -3,6 +3,7 @@
 
 import collections
 import warnings
+from os import linesep
 
 import dpath
 
@@ -323,6 +324,7 @@ class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join(path)
+        message = message.strip(linesep).replace(linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, self.error)
