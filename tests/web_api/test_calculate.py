@@ -184,3 +184,27 @@ def test_enum_output():
     assert_equal(response.status_code, OK)
     response_json = json.loads(response.data)
     assert_equal(dpath.get(response_json, "households/_/housing_occupancy_status/2017-01"), "Tenant")
+
+
+def test_enum_wrong_value():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {},
+            },
+        "households": {
+            "_": {
+                "parents": ["bill"],
+                "housing_occupancy_status": {
+                    "2017-01": "Unknown value logder"
+                    }
+                },
+            }
+        })
+
+    response = post_json(simulation_json)
+    assert_equal(response.status_code, BAD_REQUEST)
+    response_json = json.loads(response.data)
+    assert_in(
+        "Possible values are ['Tenant', 'Owner', 'Free logder', 'Homeless']",
+        dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
+        )
