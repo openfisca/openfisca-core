@@ -33,7 +33,7 @@ setup(
             'nose',
             'flake8',
             'openfisca-country-template == 1.2.4',
-            'openfisca-extension-template == 1.1.0',
+            'openfisca-extension-template == 1.1.1',
             ],
         'tracker': [
             'openfisca-tracker',
@@ -48,7 +48,8 @@ setup(
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
         'lxml >= 3.7',
-        'dpath == 1.4.0'
+        'dpath == 1.4.0',
+        'jsonschema >= 2.6',
         ],
     message_extractors = {
         'openfisca_core': [
