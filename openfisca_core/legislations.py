@@ -344,20 +344,34 @@ class Parameter(ValuesHistory):
 class Bracket(object):
     """A bracket of a scale.
 
-    Currently, such an object can only be constructed from validated YAML data. Such an object could be constructed from `ValuesHistory` objects to define reforms.
+    Can be instanciated from YAML data (use `validated_yaml`), or given ValuesHistory objects. The later case can be used for reforms.
     """
-    def __init__(self, name, validated_yaml):
+    def __init__(self, name, validated_yaml=None, amount=None, rate=None, base=None, threshold=None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param validated_yaml: Data extracted from a YAML file.
+        :param validated_yaml: Data extracted from the yaml. If set, `amount`, `rate`, `threshold`, `base` should not be set.
+        :param amount: `ValuesHistory` object. If set, `validated_yaml` should not be set.
+        :param rate: `ValuesHistory` object. If set, `validated_yaml` should not be set.
+        :param base: `ValuesHistory` object. If set, `validated_yaml` should not be set.
+        :param threshold: `ValuesHistory` object. If set, `validated_yaml` should not be set.
         """
         self.name = name
 
-        for key, value in validated_yaml.items():
-            if key in {'amount', 'rate', 'threshold', 'base'}:
-                new_child_name = _compose_name(name, key)
-                new_child = ValuesHistory(new_child_name, value)
-                setattr(self, key, new_child)
+        if validated_yaml is not None:
+            for key, value in validated_yaml.items():
+                if key in {'amount', 'rate', 'threshold', 'base'}:
+                    new_child_name = _compose_name(name, key)
+                    new_child = ValuesHistory(new_child_name, value)
+                    setattr(self, key, new_child)
+        else:
+            if amount is not None:
+                self.amount = amount
+            if rate is not None:
+                self.rate = rate
+            if base is not None:
+                self.base = base
+            if threshold is not None:
+                self.threshold = threshold
 
     def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
