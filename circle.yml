@@ -1,6 +1,9 @@
 machine:
   python:
-    version: 2.7.12
+    version: 2.7.12  # this specific version is preinstalled on the CI servers and allows faster builds
+  environment:
+    PYPI_USERNAME: openfisca-bot
+    # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
 
 dependencies:
   override:
@@ -17,8 +20,4 @@ deployment:
   master:
     branch: master
     commands:
-      - git tag `python setup.py --version`
-      - git push --tags
-      - python setup.py bdist_wheel
-      - twine upload dist/* --username openfisca-bot --password $PYPI_PASSWORD
-      - ssh deploy-new-api@api-test.openfisca.fr
+      - ./deploy-if-version-bump.sh
