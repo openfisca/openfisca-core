@@ -10,6 +10,7 @@ import glob
 import os
 import sys
 import unittest
+import logging
 
 import nose
 import numpy as np
@@ -17,6 +18,8 @@ import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
+
+log = logging.getLogger(__name__)
 
 # Yaml module configuration
 
@@ -142,10 +145,11 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
             )
 
         def check():
-            print("=" * len(title))
-            print(title)
-            print("=" * len(title))
-            _run_test(period_str, test, verbose, options)
+            try:
+                _run_test(period_str, test, verbose, options)
+            except AssertionError:
+                log.error(title)
+                raise
 
         yield unittest.FunctionTestCase(check)
 

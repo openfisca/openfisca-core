@@ -14,6 +14,7 @@ import calendar
 import collections
 import datetime
 import re
+from os import linesep
 
 from . import conv
 
@@ -765,7 +766,12 @@ def period(value):
             return Period((YEAR, Instant((date.year, date.month, 1)), 1))
 
     def raise_error(value):
-        raise ValueError(u"Invalid period '{}'. Legal period formats are documented here: <https://doc.openfisca.fr/periodsinstants.html#api>".format(value).encode('utf-8'))
+        message = linesep.join([
+            u"Expected a period (eg. '2017', '2017-01', ...); got: '{}'.".format(value).encode('utf-8'),
+            u"Learn more about legal period formats in OpenFisca:",
+            u"<https://doc.openfisca.fr/periodsinstants.html#api>."
+            ])
+        raise ValueError(message)
 
     if value == 'ETERNITY':
         return Period((u'eternity', instant(datetime.date.min), float("inf")))

@@ -3,6 +3,7 @@
 
 import collections
 import warnings
+from os import linesep
 
 import dpath
 
@@ -260,7 +261,7 @@ class Simulation(object):
     def legislation_at(self, instant, use_baseline = False):
         if isinstance(instant, periods.Period):
             instant = instant.start
-        assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
+        assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
         if use_baseline:
             return self.get_baseline_compact_legislation(instant)
         return self.get_compact_legislation(instant)
@@ -323,6 +324,7 @@ class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join(path)
+        message = message.strip(linesep).replace(linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, self.error)

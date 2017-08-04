@@ -30,9 +30,12 @@ class ParameterNotFound(Exception):
         self.name = name
         self.instant = instant
         self.variable_name = variable_name
-        message = u'Legislation parameter "{}" was not found at instant "{}"'.format(name, instant)
+        message = u"The parameter '{}'".format(name)
         if variable_name is not None:
-            message += u' by variable "{}"'.format(variable_name)
+            message += u" requested by variable '{}'".format(variable_name)
+        message += (
+            u" was not found in the {2} tax and benefit system."
+            ).format(name, variable_name, instant)
         super(ParameterNotFound, self).__init__(message)
 
     def to_json(self):

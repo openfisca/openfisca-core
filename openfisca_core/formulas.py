@@ -9,6 +9,7 @@ import datetime
 import logging
 import warnings
 import re
+from os import linesep
 
 import numpy as np
 
@@ -446,8 +447,13 @@ class Formula(object):
                 ))
             raise
 
-        assert isinstance(array, np.ndarray), u"Function {}@{}<{}>() --> <{}>{} doesn't return a numpy array".format(
-            column.name, entity.key, str(period), str(period), array).encode('utf-8')
+        assert isinstance(array, np.ndarray), (linesep.join([
+            u"You tried to compute the formula '{0}' for the period '{1}'.".format(column.name, str(period)).encode('utf-8'),
+            u"The formula '{0}@{1}' should return a Numpy array;".format(column.name, str(period)).encode('utf-8'),
+            u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
+            u"Learn more about Numpy arrays and vectorial computing:",
+            u"<https://doc.openfisca.fr/coding-the-legislation/25_vectorial_computing.html.>"
+            ]))
         entity_count = entity.count
         assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(

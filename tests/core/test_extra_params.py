@@ -72,7 +72,6 @@ def test_get_extra_param_names():
 
 
 def test_json_conversion():
-    print(formula_3_holder.to_value_json())
     assert str(formula_3_holder.to_value_json()) == \
         "{'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}"
 
