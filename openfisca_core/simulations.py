@@ -260,7 +260,7 @@ class Simulation(object):
     def legislation_at(self, instant, use_baseline = False):
         if isinstance(instant, periods.Period):
             instant = instant.start
-        assert isinstance(instant, periods.Instant), "Expected an instant. Got: {}".format(instant)
+        assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
         if use_baseline:
             return self.get_baseline_compact_legislation(instant)
         return self.get_compact_legislation(instant)

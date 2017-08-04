@@ -31,13 +31,14 @@ class VariableNotFound(Exception):
             country_package_id = '{}@{}'.format(country_package_name, country_package_version)
         else:
             country_package_id = country_package_name
-        message = (
-            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({2}). "
-            u"Are you sure you spelled '{0}' correctly? "
-            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system. Look at its changelog to learn about renames and removals and update your code. If it is an official package, it is probably available on <https://github.com/openfisca/{1}/blob/master/CHANGELOG.md>."
-            ).format(variable_name, country_package_name, country_package_id)
+        message = linesep.join([
+            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}).".format(variable_name, country_package_id),
+            u"Are you sure you spelled '{0}' correctly?".format(variable_name),
+            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
+            u"Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
+            u"it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
+            ])
         Exception.__init__(self, message.encode('utf-8'))
-
 
 class VariableNameConflict(Exception):
     """
@@ -183,7 +184,11 @@ class TaxBenefitSystem(object):
         try:
             module_name = path.splitext(path.basename(file_path))[0]
             module_directory = path.dirname(file_path)
-            module = load_module(module_name, *find_module(module_name, [module_directory]))
+            try:
+                module = load_module(module_name, *find_module(module_name, [module_directory]))
+            except NameError as e:
+                logging.error(str(e) + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
+                raise
             potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)

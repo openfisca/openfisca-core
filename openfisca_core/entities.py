@@ -2,6 +2,7 @@
 
 import traceback
 import warnings
+from os import linesep
 
 import numpy as np
 import dpath
@@ -149,10 +150,12 @@ class Entity(object):
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
-            raise ValueError(
-                "Variable {} is not defined for {} but for {}".format(
-                    variable_name, self.plural, variable_entity.plural)
-                )
+            message = linesep.join([
+                u"You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
+                u"however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
+                u"Learn more about entities in our documentation:",
+                u"<https://doc.openfisca.fr/coding-the-legislation/50_entities.html>."])
+            raise ValueError(message)
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:

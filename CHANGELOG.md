@@ -1,5 +1,13 @@
 # Changelog
 
+### 16.1.1
+
+#### Minor Change
+
+* Enhance logs
+    - Replace prints by proper logs
+    - Give clear and concise feedback to users when a formula cannot compute.
+
 ## 16.1.0
 
 * Enable API monitoring with Piwik
