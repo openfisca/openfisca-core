@@ -13,6 +13,7 @@ from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
 from taxbenefitsystems import VariableNotFound
+from columns import EnumCol
 
 
 class Entity(object):
@@ -58,32 +59,42 @@ class Entity(object):
     def init_variable_values(self, entity_object, entity_id):
         entity_index = self.ids.index(entity_id)
         for variable_name, variable_values in entity_object.iteritems():
+            path_in_json = [self.plural, entity_id, variable_name]
             try:
                 self.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError([self.plural, entity_id, variable_name], e.message)
+                raise SituationParsingError(path_in_json, e.message)
             except VariableNotFound as e:  # The variable doesn't exist
-                raise SituationParsingError([self.plural, entity_id, variable_name], e.message, code = 404)
+                raise SituationParsingError(path_in_json, e.message, code = 404)
 
             if not isinstance(variable_values, dict):
-                raise SituationParsingError([self.plural, entity_id, variable_name],
+                raise SituationParsingError(path_in_json,
                     'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             holder = self.get_holder(variable_name)
             for date, value in variable_values.iteritems():
+                path_in_json.append(date)
                 try:
                     period = make_period(date)
                 except ValueError as e:
-                    raise SituationParsingError([self.plural, entity_id, variable_name, date], e.message)
+                    raise SituationParsingError(path_in_json, e.message)
                 if value is not None:
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-
+                    if isinstance(holder.column, EnumCol) and isinstance(value, basestring):
+                        try:
+                            value = holder.column.enum[value]
+                        except KeyError:
+                            raise SituationParsingError(path_in_json,
+                                "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
+                                    value, variable_name, "', '".join(holder.column.enum.list)
+                                    ).encode('utf-8')
+                                )
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
-                        raise SituationParsingError([self.plural, entity_id, variable_name, date],
+                        raise SituationParsingError(path_in_json,
                     'Invalid type: must be of type {}.'.format(holder.column.json_type))
 
                     holder.buffer[period] = array

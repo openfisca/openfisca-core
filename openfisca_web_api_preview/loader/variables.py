@@ -4,6 +4,8 @@ import datetime
 import inspect
 import textwrap
 
+from openfisca_core.columns import EnumCol
+
 
 def get_next_day(date):
     parsed_date = date
@@ -11,10 +13,13 @@ def get_next_day(date):
     return next_day.isoformat().split('T')[0]
 
 
-def format_value(value):
-    if isinstance(value, datetime.date):
-        return value.isoformat()
-    return value
+def get_default_value(variable):
+    default_value = variable.default
+    if isinstance(default_value, datetime.date):
+        return default_value.isoformat()
+    if isinstance(variable, EnumCol):
+        return variable.enum._vars[default_value]
+    return default_value
 
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
@@ -46,6 +51,11 @@ def build_formula(formula, country_package_metadata):
         }
 
 
+def get_variable_type(variable):
+    column_type = variable.__class__.__name__
+    return 'String' if column_type == 'EnumCol' else column_type.replace('Col', '')
+
+
 def build_formulas(dated_formulas, country_package_metadata):
     def get_start_or_default(dated_formula):
         return dated_formula['start_instant'].date.isoformat() if dated_formula['start_instant'] else '0001-01-01'
@@ -60,8 +70,8 @@ def build_variable(variable, country_package_metadata):
     result = {
         'id': variable.name,
         'description': variable.label,
-        'valueType': variable.__class__.__name__.replace('Col', ''),
-        'defaultValue': format_value(variable.default),
+        'valueType': get_variable_type(variable),
+        'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
         'source': build_source_url(
@@ -83,6 +93,9 @@ def build_variable(variable, country_package_metadata):
 
         if variable.end:
             result['formulas'][get_next_day(variable.end)] = None
+
+    if isinstance(variable, EnumCol):
+        result['possibleValues'] = variable.enum.list
 
     return result
 

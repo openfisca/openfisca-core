@@ -6,6 +6,7 @@ class Enum(object):
         self._vars = {}
         self._nums = {}
         self._count = 0
+        self.list = varlist
         for var in varlist:
             self._vars.update({self._count + start: var})
             self._nums.update({var: self._count + start})
