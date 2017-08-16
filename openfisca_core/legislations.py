@@ -482,7 +482,7 @@ class Node(object):
                     with open(child_path, 'r') as f:
                         data = yaml.load(f)
 
-                    if child_name == '_':
+                    if child_name == 'index':
                         _validate_against_schema(child_path, data, schema_node_meta)
                     else:
                         _validate_against_schema(child_path, data, schema_yaml)
