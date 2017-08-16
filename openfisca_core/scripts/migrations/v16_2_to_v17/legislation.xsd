@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="NODE" type="nodeType"/>
+
+    <xs:group name="valuesHistory">
+        <xs:sequence>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="VALUE" type="valueType"/>
+                <xs:element name="END" type="endType"/>
+                <xs:element name="PLACEHOLDER" type="placeholderType"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:complexType name="nodeType">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="NODE" type="nodeType"/>
+                <xs:element name="CODE" type="codeType"/>
+                <xs:element name="BAREME" type="baremeType"/>
+            </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="code" type="xs:string" use="required"/>
+        <xs:attribute name="description" type="xs:string"/>
+        <xs:attribute name="origin" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="codeType">
+        <xs:group ref="valuesHistory"/>
+        <xs:attribute name="code"  type="xs:string" use="required"/>
+        <xs:attribute name="description" type="xs:string"/>
+        <xs:attribute name="format" type="xs:string"/>
+        <xs:attribute name="origin" type="xs:string"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="conflicts" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="endType">
+        <xs:attribute name="deb" type="xs:date" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="valueType">
+        <xs:attribute name="deb" type="xs:date" use="required"/>
+        <xs:attribute name="valeur" type="xs:float" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="baremeType">
+        <xs:sequence>
+            <xs:element name="TRANCHE" type="trancheType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="code" type="xs:string" use="required"/>
+        <xs:attribute name="description" type="xs:string"/>
+        <xs:attribute name="origin" type="xs:string"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="conflicts" type="xs:string"/>
+        <xs:attribute name="option" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="trancheType">
+        <xs:all>
+            <xs:element name="ASSIETTE" type="assietteType" minOccurs="0"/>
+            <xs:element name="SEUIL" type="seuilType"/>
+            <xs:element name="TAUX" type="tauxType" minOccurs="0"/>
+            <xs:element name="MONTANT" type="montantType" minOccurs="0"/>
+        </xs:all>
+        <xs:attribute name="code" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="assietteType">
+        <xs:group ref="valuesHistory"/>
+    </xs:complexType>
+
+    <xs:complexType name="tauxType">
+        <xs:group ref="valuesHistory"/>
+    </xs:complexType>
+
+    <xs:complexType name="montantType">
+        <xs:group ref="valuesHistory"/>
+    </xs:complexType>
+
+    <xs:complexType name="seuilType">
+        <xs:group ref="valuesHistory"/>
+        <xs:attribute name="conflicts" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="placeholderType">
+        <xs:attribute name="deb" type="xs:date" use="required"/>
+    </xs:complexType>
+
+</xs:schema>
