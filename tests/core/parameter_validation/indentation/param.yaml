@@ -1,4 +1,4 @@
-type: parameter
+description: Some parameter
   values:
   '2015-12-01':
     value: 1.0

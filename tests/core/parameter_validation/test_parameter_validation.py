@@ -47,20 +47,6 @@ def test_wrong_scale():
         assert False, "This test should raise a ValueError."
 
 
-def test_wrong_type():
-    path_to_json = os.path.join(BASE_DIR, 'wrong_type')
-    tbs = TestTaxBenefitSystem(path_to_json)
-    try:
-        tbs.get_legislation()
-    except ValueError as e:
-        content = str(e)
-        assert len(content) < 1000
-        for keyword in {'Invalid', 'parameter', '_.yaml'}:
-            assert keyword in content, content
-    else:
-        assert False, "This test should raise a ValueError."
-
-
 def test_wrong_value():
     path_to_json = os.path.join(BASE_DIR, 'wrong_value')
     tbs = TestTaxBenefitSystem(path_to_json)

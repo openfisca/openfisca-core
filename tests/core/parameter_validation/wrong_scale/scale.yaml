@@ -8,7 +8,6 @@ brackets:
 - rate:
     '2013-01-01':
       value: 0.1
-  treshold:
+  treshold:   # threshold
     '2013-01-01':
       value: 12000.0
-type: scale

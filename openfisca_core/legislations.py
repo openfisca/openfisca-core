@@ -12,7 +12,7 @@ import jsonschema
 from . import taxscales
 
 
-node_keywords = ['type', 'reference', 'description']
+node_keywords = ['reference', 'description']
 
 schema_node_meta = {
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -20,9 +20,6 @@ schema_node_meta = {
     "description": "A file named _.yaml that contains metadata about a parameter node.",
     "type": "object",
     "properties": {
-        "type": {
-            "enum": ["node"],
-            },
         "description": {
             "type": "string",
             },
@@ -30,7 +27,6 @@ schema_node_meta = {
             "type": "string",
             },
         },
-    "required": ["type"],
     "additionalProperties": False,
     }
 
@@ -91,9 +87,6 @@ schema_yaml = {
         "node": {
             "type": "object",
             "properties": {
-                "type": {
-                    "enum": ["node"],
-                    },
                 "description": {
                     "type": "string",
                     },
@@ -101,15 +94,14 @@ schema_yaml = {
                     "type": "string",
                     },
                 },
-            "required": ["type"],
-            "additionalProperties": {"$ref": "#/definitions/node_or_parameter_of_scale"},
+            "patternProperties": {
+                "(?!^(brackets|values)$)": {"$ref": "#/definitions/node_or_parameter_of_scale"},
+                },
+            "additionalProperties": False,
             },
         "parameter": {
             "type": "object",
             "properties": {
-                "type": {
-                    "enum": ["parameter"],
-                    },
                 "description": {
                     "type": "string",
                     },
@@ -122,15 +114,12 @@ schema_yaml = {
                     },
                 "values": {"$ref": "#/definitions/values_history"},
                 },
-            "required": ["type", "values"],
+            "required": ["values"],
             "additionalProperties": False,
             },
         "scale": {
             "type": "object",
             "properties": {
-                "type": {
-                    "enum": ["scale"],
-                    },
                 "description": {
                     "type": "string",
                     },
@@ -155,7 +144,7 @@ schema_yaml = {
                         },
                     },
                 },
-            "required": ["type", "brackets"],
+            "required": ["brackets"],
             "additionalProperties": False,
             },
         "node_or_parameter_of_scale": {
@@ -451,11 +440,11 @@ class Scale(object):
 
 
 def _parse_child(child_name, child):
-    if child['type'] == 'parameter':
+    if 'values' in child:
         return Parameter(child_name, child)
-    elif child['type'] == 'scale':
+    elif 'brackets' in child:
         return Scale(child_name, child)
-    elif child['type'] == 'node':
+    else:
         return Node(child_name, validated_yaml=child)
 
 
