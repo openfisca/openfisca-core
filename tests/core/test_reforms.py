@@ -12,7 +12,7 @@ from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_core.legislations import ValueAtInstant, ValuesHistory, Node, Parameter
+from openfisca_core.legislations import ValuesHistory, Node
 from openfisca_country_template.entities import Household
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -115,173 +115,101 @@ def test_update_items():
     yield (
         check_update_items,
         u'Replace an item by a new item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2013-01-01", value=0.0),
-            ValueAtInstant('dummy_name', "2014-01-01", value=None),
-            ]),
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         periods.period(2013).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2013-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2014-01-01", value=None),
-            ]),
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}, "2014-01-01": {'value': None}}),
         )
     yield (
         check_update_items,
         u'Replace an item by a new item in a list of items, the last being open',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2014-01-01", value=9.53),
-            ValueAtInstant('dummy_name', "2015-01-01", value=9.61),
-            ValueAtInstant('dummy_name', "2016-01-01", value=9.67),
-            ]),
+        ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 9.61}, "2016-01-01": {'value': 9.67}}),
         periods.period(2015).start,
         periods.period(2015).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2014-01-01", value=9.53),
-            ValueAtInstant('dummy_name', "2015-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2016-01-01", value=9.67),
-            ]),
+        ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 1.0}, "2016-01-01": {'value': 9.67}}),
         )
     yield (
         check_update_items,
         u'Open the stop instant to the future',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2013-01-01", value=0.0),
-            ValueAtInstant('dummy_name', "2014-01-01", value=None),
-            ]),
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         None,  # stop instant
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2013-01-01", value=1.0),
-            ]),
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item in the middle of an existing item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2010-01-01", value=0.0),
-            ValueAtInstant('dummy_name', "2014-01-01", value=None),
-            ]),
+        ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2011).start,
         periods.period(2011).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2010-01-01", value=0.0),
-            ValueAtInstant('dummy_name', "2011-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2012-01-01", value=0.0),
-            ValueAtInstant('dummy_name', "2014-01-01", value=None),
-            ]),
+        ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2011-01-01": {'value': 1.0}, "2012-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item coming after the last open item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2015).start,
         None,  # stop instant
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ValueAtInstant('dummy_name', "2015-01-01", value=1.0),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}, "2015-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item starting at the same date than the last open item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         periods.period(2014).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2015-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}, "2015-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting at the same date than the last open item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         None,  # stop instant
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=1.0),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item coming before the first item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         periods.period(2005).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2005-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new item coming before the first item with a hole',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2003).start,
         periods.period(2003).stop,
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2003-01-01", value=1.0),
-            ValueAtInstant('dummy_name', "2004-01-01", value=None),
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2003-01-01": {'value': 1.0}, "2004-01-01": {'value': None}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting before the start date of the first item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         None,  # stop instant
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2005-01-01", value=1.0),
-            ]),
+        ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting at the same date than the first item',
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=0.055),
-            ValueAtInstant('dummy_name', "2014-01-01", value=0.14),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2006).start,
         None,  # stop instant
         1.0,
-        ValuesHistory('dummy_name', values_list = [
-            ValueAtInstant('dummy_name', "2006-01-01", value=1.0),
-            ]),
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 1.0}}),
         )
 
 
@@ -389,11 +317,10 @@ def test_modify_legislation():
     def modify_legislation(reference_legislation_copy):
         reform_legislation_subtree = Node(
             'new_node',
-            children = {
-                'new_param': Parameter('new_param', values_list = [
-                    ValueAtInstant('new_param', "2000-01-01", value=True),
-                    ValueAtInstant('new_param', "2015-01-01", value=None),
-                    ]),
+            validated_yaml = {
+                'new_param': {
+                    'values': {"2000-01-01": {'value': True}, "2015-01-01": {'value': None}}
+                    },
                 },
             )
         reference_legislation_copy.children['new_node'] = reform_legislation_subtree

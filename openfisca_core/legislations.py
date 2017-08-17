@@ -220,31 +220,26 @@ class ValueAtInstant(object):
 
 
 class ValuesHistory(object):
-    def __init__(self, name, validated_yaml=None, values_list=None):
+    def __init__(self, name, validated_yaml):
         """A value defined for several periods.
 
-        Can be instanciated from YAML data (use `validated_yaml`), or given a list of ValueAtInstant. The later case can be used for reforms.
-
         :param name: name of the parameter, eg "taxes.some_tax.some_param"
-        :param validated_yaml: Data extracted from the yaml. If set, `values_list` should not be set.
-        :param values_list: : List of `ValueAtInstant` objects. If set, `validated_yaml` should not be set.
+        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
 
-        if validated_yaml:
-            instants = sorted(validated_yaml.keys(), reverse=True)    # sort by antechronological order
-            assert len(set(instants)) == len(instants), "Instants in values history should be unique"
-            values_list = []
-            for instant_str in instants:
-                instant_info = validated_yaml[instant_str]
-                try:
-                    value_at_instant = ValueAtInstant(name, instant_str, validated_yaml=instant_info)
-                except ExceptionValueIsUnknown:
-                    pass
-                else:
-                    values_list.append(value_at_instant)
-        else:
-            values_list = sorted(values_list, key=lambda x: x.instant_str, reverse=True)
+        instants = sorted(validated_yaml.keys(), reverse=True)    # sort by antechronological order
+        assert len(set(instants)) == len(instants), "Instants in values history should be unique"
+
+        values_list = []
+        for instant_str in instants:
+            instant_info = validated_yaml[instant_str]
+            try:
+                value_at_instant = ValueAtInstant(name, instant_str, validated_yaml=instant_info)
+            except ExceptionValueIsUnknown:
+                pass
+            else:
+                values_list.append(value_at_instant)
 
         self.values_list = values_list
 
@@ -321,48 +316,29 @@ class Parameter(ValuesHistory):
 
     Use this class to represent a parameter of the legislation. Use directly a `ValuesHistory` to represent values of a member of a scale bracket.
     """
-    def __init__(self, name, validated_yaml=None, values_list=None):
-        if validated_yaml:
-            if 'description' in validated_yaml:
-                self.description = validated_yaml['description']
+    def __init__(self, name, validated_yaml):
+        if 'description' in validated_yaml:
+            self.description = validated_yaml['description']
 
-            values = validated_yaml['values']
-            super(Parameter, self).__init__(name, validated_yaml=values, values_list=None)
-        elif values_list:
-            super(Parameter, self).__init__(name, validated_yaml=None, values_list=values_list)
+        values = validated_yaml['values']
+        super(Parameter, self).__init__(name, validated_yaml=values)
 
 
 class Bracket(object):
     """A bracket of a scale.
-
-    Can be instanciated from YAML data (use `validated_yaml`), or given ValuesHistory objects. The later case can be used for reforms.
     """
     def __init__(self, name, validated_yaml=None, amount=None, rate=None, base=None, threshold=None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param validated_yaml: Data extracted from the yaml. If set, `amount`, `rate`, `threshold`, `base` should not be set.
-        :param amount: `ValuesHistory` object. If set, `validated_yaml` should not be set.
-        :param rate: `ValuesHistory` object. If set, `validated_yaml` should not be set.
-        :param base: `ValuesHistory` object. If set, `validated_yaml` should not be set.
-        :param threshold: `ValuesHistory` object. If set, `validated_yaml` should not be set.
+        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
 
-        if validated_yaml is not None:
-            for key, value in validated_yaml.items():
-                if key in {'amount', 'rate', 'threshold', 'base'}:
-                    new_child_name = _compose_name(name, key)
-                    new_child = ValuesHistory(new_child_name, value)
-                    setattr(self, key, new_child)
-        else:
-            if amount is not None:
-                self.amount = amount
-            if rate is not None:
-                self.rate = rate
-            if base is not None:
-                self.base = base
-            if threshold is not None:
-                self.threshold = threshold
+        for key, value in validated_yaml.items():
+            if key in {'amount', 'rate', 'threshold', 'base'}:
+                new_child_name = _compose_name(name, key)
+                new_child = ValuesHistory(new_child_name, value)
+                setattr(self, key, new_child)
 
     def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
@@ -391,13 +367,11 @@ class BracketAtInstant(object):
 
 class Scale(object):
     """A scale.
-
-    Currently, such an object can only be constructed from validated YAML data. Such an object could be constructed from `Bracket` objects to define reforms.
     """
     def __init__(self, name, validated_yaml):
         """
         :param name: name of the scale, eg "taxes.some_scale"
-        :param validated_yaml: Data extracted from a YAML file.
+        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
         if 'description' in validated_yaml:
@@ -460,16 +434,13 @@ def _validate_against_schema(file_path, parsed_yaml, schema):
 class Node(object):
     """Node containt parameters of the legislation.
 
-    Can be instanciated from YAML data (use `directory_path` or `validated_yaml`), or given legislation objects already constructed. The later case can be used for reforms.
-
-    Only one of the 3 parameters `directory_path`, `validated_yaml` or `children` should be set.
+    Can be instanciated from YAML data already parsed and validated (use `validated_yaml`), or given the path of a directory containing YAML files.
     """
     def __init__(self, name, directory_path=None, validated_yaml=None, children=None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
         :param directory_path: : Directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
         :param validated_yaml` : Data extracted from a YAML file describing a Node.
-        :param children: Dictionary of `Parameter or Scale` objects indexed by their name.
         """
         assert isinstance(name, str)
         self.name = name
@@ -498,18 +469,13 @@ class Node(object):
                 else:
                     raise ValueError('Unexpected item {}'.format(child_path))
 
-        elif validated_yaml is not None:
+        else:
             self.children = {}
             for child_name, child in validated_yaml.items():
                 if child_name in node_keywords:
                     continue
                 child_name_expanded = _compose_name(name, child_name)
                 self.children[child_name] = _parse_child(child_name_expanded, child)
-
-        else:
-            for child in children.values():
-                assert isinstance(child, Node) or isinstance(child, Scale) or isinstance(child, Parameter), child
-            self.children = children
 
     def _get_at_instant(self, instant_str):
         return NodeAtInstant(self.name, self, instant_str)
