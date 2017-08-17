@@ -528,6 +528,9 @@ class Node(object):
         self.children[name] = child
 
     def __getattr__(self, key):
+        if not hasattr(self, 'children'):   # during deserialization, self.children does not yet exist
+            raise AttributeError(key)
+        
         if key in self.children:
             return self.children[key]
         else:
