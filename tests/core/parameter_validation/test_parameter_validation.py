@@ -4,8 +4,7 @@ import os
 
 import yaml
 
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem
-from openfisca_country_template.entities import entities
+from openfisca_core.legislations import Node
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -13,17 +12,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-class TestTaxBenefitSystem(TaxBenefitSystem):
-    def __init__(self, path_to_json):
-        TaxBenefitSystem.__init__(self, entities)
-        self.add_legislation_params(path_to_json)
-
-
 def test_indentation():
-    path_to_json = os.path.join(BASE_DIR, 'indentation')
-    tbs = TestTaxBenefitSystem(path_to_json)
+    path = os.path.join(BASE_DIR, 'indentation')
     try:
-        tbs.get_legislation()
+        Node('', directory_path=path)
     except yaml.scanner.ScannerError as e:
         content = str(e)
         assert len(content) < 1000
@@ -34,10 +26,9 @@ def test_indentation():
 
 
 def test_wrong_scale():
-    path_to_json = os.path.join(BASE_DIR, 'wrong_scale')
-    tbs = TestTaxBenefitSystem(path_to_json)
+    path = os.path.join(BASE_DIR, 'wrong_scale')
     try:
-        tbs.get_legislation()
+        Node('', directory_path=path)
     except ValueError as e:
         content = str(e)
         assert len(content) < 1500
@@ -48,10 +39,9 @@ def test_wrong_scale():
 
 
 def test_wrong_value():
-    path_to_json = os.path.join(BASE_DIR, 'wrong_value')
-    tbs = TestTaxBenefitSystem(path_to_json)
+    path = os.path.join(BASE_DIR, 'wrong_value')
     try:
-        tbs.get_legislation()
+        Node('', directory_path=path)
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
@@ -68,16 +58,14 @@ def test_references():
 
 
 def test_filesystem_hierarchy():
-    path_to_json = os.path.join(BASE_DIR, 'filesystem_hierarchy')
-    tbs = TestTaxBenefitSystem(path_to_json)
-    tbs.get_legislation()
-    legislation = tbs.get_legislation_at_instant('2016-01-01')
-    assert legislation.node1.node2 == 1.0
+    path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
+    parameters = Node('', directory_path=path)
+    parameters_at_instant = parameters._get_at_instant('2016-01-01')
+    assert parameters_at_instant.node1.node2 == 1.0
 
 
 def test_yaml_hierarchy():
-    path_to_json = os.path.join(BASE_DIR, 'yaml_hierarchy')
-    tbs = TestTaxBenefitSystem(path_to_json)
-    tbs.get_legislation()
-    legislation = tbs.get_legislation_at_instant('2016-01-01')
-    assert legislation.node1.node2 == 1.0
+    path = os.path.join(BASE_DIR, 'yaml_hierarchy')
+    parameters = Node('', directory_path=path)
+    parameters_at_instant = parameters._get_at_instant('2016-01-01')
+    assert parameters_at_instant.node1.node2 == 1.0
