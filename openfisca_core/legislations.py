@@ -88,19 +88,18 @@ schema_yaml = {
             },
         "node": {
             "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    },
-                "reference": {
-                    "type": "string",
-                    },
-                },
             "patternProperties": {
-                "(?!^(brackets|values)$)": {"$ref": "#/definitions/node_or_parameter_of_scale"},
+                "^(?!(brackets|values|description|reference)$)": {"$ref": "#/definitions/node_or_parameter_of_scale"},
+                "^description$": {
+                    "type": "string",
+                    },
+                "^reference$": {
+                    "type": "string",
+                    },
                 },
             "additionalProperties": False,
             },
+
         "parameter": {
             "type": "object",
             "properties": {
@@ -140,6 +139,7 @@ schema_yaml = {
                             "amount": {"$ref": "#/definitions/values_history"},
                             "threshold": {"$ref": "#/definitions/values_history"},
                             "rate": {"$ref": "#/definitions/values_history"},
+                            "average_rate": {"$ref": "#/definitions/values_history"},
                             "base": {"$ref": "#/definitions/values_history"},
                             },
                         "additionalProperties": False,
@@ -327,7 +327,7 @@ class Parameter(ValuesHistory):
 class Bracket(object):
     """A bracket of a scale.
     """
-    def __init__(self, name, validated_yaml=None, amount=None, rate=None, base=None, threshold=None):
+    def __init__(self, name, validated_yaml=None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
         :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
@@ -335,7 +335,7 @@ class Bracket(object):
         self.name = name
 
         for key, value in validated_yaml.items():
-            if key in {'amount', 'rate', 'threshold', 'base'}:
+            if key in {'amount', 'rate', 'average_rate', 'threshold', 'base'}:
                 new_child_name = _compose_name(name, key)
                 new_child = ValuesHistory(new_child_name, value)
                 setattr(self, key, new_child)
@@ -358,7 +358,7 @@ class BracketAtInstant(object):
         self.name = name
         self.instant_str = instant_str
 
-        for key in ['amount', 'rate', 'threshold', 'base']:
+        for key in ['amount', 'rate', 'average_rate', 'threshold', 'base']:
             if hasattr(bracket, key):
                 new_child = getattr(bracket, key)._get_at_instant(instant_str)
                 if new_child is not None:
@@ -394,6 +394,19 @@ class Scale(object):
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
+        elif any(hasattr(bracket, 'average_rate') for bracket in brackets):
+            scale = taxscales.LinearAverageRateTaxScale()
+
+            for bracket in brackets:
+                if hasattr(bracket, 'base'):
+                    base = bracket.base
+                else:
+                    base = 1.
+                if hasattr(bracket, 'average_rate') and hasattr(bracket, 'threshold'):
+                    average_rate = bracket.average_rate
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, average_rate * base)
+            return scale
         else:
             scale = taxscales.MarginalRateTaxScale()
 
