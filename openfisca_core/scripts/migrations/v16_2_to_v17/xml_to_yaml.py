@@ -7,11 +7,30 @@ Comments are NOT converted.
 '''
 
 import os
+import re
 
 from lxml import etree
 import yaml
 
 from openfisca_core.legislations import node_keywords
+
+
+def custom_str_representer(dumper, data):
+    if re.match(r'^\d{4}-\d{2}-\d{2}$', data):
+        tag = u'tag:yaml.org,2002:timestamp'
+        return dumper.represent_scalar(tag, data)
+    return dumper.represent_str(data)
+
+
+def custom_unicode_representer(dumper, data):
+    if re.match(r'^\d{4}-\d{2}-\d{2}$', data):
+        tag = u'tag:yaml.org,2002:timestamp'
+        return dumper.represent_scalar(tag, data)
+    return dumper.represent_unicode(data)
+
+
+yaml.add_representer(str, custom_str_representer, Dumper=yaml.SafeDumper)
+yaml.add_representer(unicode, custom_unicode_representer, Dumper=yaml.SafeDumper)
 
 
 # Load
