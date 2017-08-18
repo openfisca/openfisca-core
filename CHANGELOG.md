@@ -111,6 +111,14 @@
 
 * The function `reforms.compose_reforms()` is removed.
 
+* The word "legislation" is replaced by the word "parameters" in several variables and methods. It reduces the ambiguity between the legislation as a tax and benefit system and the legislation as the parameters.
+  - `TaxBenefitSystem.add_legislation_params()` -> `TaxBenefitSystem.add_parameter_path()`
+  - `TaxBenefitSystem.get_legislation()` -> `TaxBenefitSystem.get_parameters()`
+  - `TaxBenefitSystem.preprocess_legislation` -> `TaxBenefitSystem.preprocess_parameters`
+  - `Reform.modify_legislation_json()` -> `Reform.modify_parameters()`
+  - `Simulation.legislation_at()` -> `Simulation.parameters_at()` In this case the old name is not removed. It was already deprecated but still widely used in openfisca-france.
+
+
 #### New features
 
 * In reforms, new parameters can be added from a YAML file.
@@ -144,24 +152,19 @@
   - The validation of the XML files was performed against a XML schema defined in `legislation.xsd`. Now the YAML files are loaded with the library `yaml` and then validated against a json schema using the library `jsonschema`.
   - Parameters are cached in a file `parameters.pickle`. Modification of a YAML file is detected using the file name, the date of last modification and the size of the file.
 
-* The word "legislation" is replaced by the word "parameters" in several internal variables and internal method. It Reduced the ambiguity between the legislation as a tax and benefit system and the legislation as the parameters.
-  - `TaxBenefitSystem.add_legislation_params()` -> `TaxBenefitSystem.add_parameter_path()`
+* The word "legislation" is replaced by the word "parameters" in several internal variables and internal methods. It Reduced the ambiguity between the legislation as a tax and benefit system and the legislation as the parameters.
   - `TaxBenefitSystem._legislation_json` -> `TaxBenefitSystem._parameters`
-  - `TaxBenefitSystem.compact_legislation_by_instant_cache` -> `TaxBenefitSystem.parameters_at_instant_cache`
-  - `TaxBenefitSystem.get_legislation` -> `TaxBenefitSystem.get_parameters`
-  - `TaxBenefitSystem.preprocess_legislation` -> `TaxBenefitSystem.preprocess_parameters`
-  - `TaxBenefitSystem.legislation_xml_info_list` -> `TaxBenefitSystem.parameters_yaml_dirs`
-  - `TaxBenefitSystem.get_compact_legislation()` -> `TaxBenefitSystem.get_parameters_at_instant()`
+  - `TaxBenefitSystem.compact_legislation_by_instant_cache` -> `TaxBenefitSystem._parameters_at_instant_cache`
+  - `TaxBenefitSystem.legislation_xml_info_list` -> `TaxBenefitSystem._parameters_yaml_dirs`
+  - `TaxBenefitSystem.get_compact_legislation()` -> `TaxBenefitSystem._get_parameters_at_instant()`
   - `TaxBenefitSystem.compute_legislation()` -> `TaxBenefitSystem._compute_parameters()`
-  - `TaxBenefitSystem.get_baseline_compact_legislation()` -> `TaxBenefitSystem.get_baseline_parameters_at_instant()`
-  - `Reform.modify_legislation_json()` -> `Reform.modify_parameters()`
-  - `Simulation.compact_legislation_by_instant_cache` -> `Simulation.parameters_at_instant_cache`
+  - `TaxBenefitSystem.get_baseline_compact_legislation()` -> `TaxBenefitSystem._get_baseline_parameters_at_instant()`
+  - `Simulation.compact_legislation_by_instant_cache` -> `Simulation._parameters_at_instant_cache`
   - `Simulation.baseline_compact_legislation_by_instant_cache` -> `Simulation.baseline_parameters_at_instant_cache`
-  - `Simulation.get_compact_legislation()` -> `Simulation.get_parameters_at_instant()`
-  - `Simulation.get_baseline_compact_legislation()` -> `Simulation.get_baseline_parameters_at_instant()`
-  - `Simulation.legislation_at()` -> `Simulation.parameters_at()` In this cas the old name is not removed. It was already deprecated but still widely used in openfisca-france.
+  - `Simulation.get_compact_legislation()` -> `Simulation._get_parameters_at_instant()`
+  - `Simulation.get_baseline_compact_legislation()` -> `Simulation._get_baseline_parameters_at_instant()`
 
-* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
+* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem._get_parameters_at_instant()`). This parameter had no effect.
 
 * The optional parameter `with_source_file_infos` is removed in functions `TaxBenefitSystem.compute_legislation()` (now `TaxBenefitSystem._compute_parameters()`) and `TaxBenefitSystem.get_legislation()`. This parameter had no effect.
 
