@@ -12,7 +12,7 @@ import re
 from lxml import etree
 import yaml
 
-from openfisca_core.legislations import node_keywords
+from openfisca_core.parameters import node_keywords
 
 
 def custom_str_representer(dumper, data):

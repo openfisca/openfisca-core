@@ -14,7 +14,8 @@ import traceback
 
 from setuptools import find_packages
 
-from . import conv, legislations
+import conv
+from parameters import load_parameters
 from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
@@ -60,9 +61,9 @@ class TaxBenefitSystem(object):
     Represents the legislation. It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
     """
     _base_tax_benefit_system = None
-    legislation_at_instant_cache = None
+    parameters_at_instant_cache = None
     person_key_plural = None
-    preprocess_legislation = None
+    preprocess_parameters = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -72,17 +73,17 @@ class TaxBenefitSystem(object):
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities, legislation = None):
+    def __init__(self, entities, parameters = None):
         """
         :param entities: Entities used by the tax benefit system.
-        :param legislation: Parameters defined for the tax benefit system. Can be defined later.
+        :param parameters: Parameters defined for the tax benefit system. Can be defined later.
         """
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.legislation_at_instant_cache = {}  # weakref.WeakValueDictionary()
+        self.parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self.legislation_yaml_dirs = []
-        self._legislation = legislation
+        self.parameters_yaml_dirs = []
+        self._parameters = parameters
 
         self.entities = entities
         if entities is None or len(entities) == 0:
@@ -239,7 +240,7 @@ class TaxBenefitSystem(object):
         self.add_variables_from_directory(extension_directory)
         param_dir = path.join(extension_directory, 'parameters')
         if path.isdir(param_dir):
-            self.add_legislation_params(param_dir)
+            self.add_parameter_path(param_dir)
 
     def apply_reform(self, reform_path):
         """
@@ -307,58 +308,58 @@ class TaxBenefitSystem(object):
             )
         self.neutralize_variable(column_name)
 
-    def add_legislation_params(self, path_to_yaml_dir):
+    def add_parameter_path(self, path_to_yaml_dir):
         """
         Adds a YAML dir to the legislation parameters.
 
-        :param path_to_yaml_dir: Absolute path towards the YAML legislation directory.
+        :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
 
         Exemples:
 
-        >>> self.add_legislation_params('/path/to/yaml/parameters/dir')
+        >>> self.add_parameter_path('/path/to/yaml/parameters/dir')
         """
 
-        self.legislation_yaml_dirs.append(path_to_yaml_dir)
-        # New parameters have been added, the legislation will have to be recomputed next time we need it.
-        # Not very optimized, but today incremental building of the legislation is not implemented.
-        self._legislation = None
+        self.parameters_yaml_dirs.append(path_to_yaml_dir)
+        # New parameters have been added, the parameters will have to be recomputed next time we need it.
+        # Not very optimized, but today incremental building of the parameters is not implemented.
+        self._parameters = None
 
-    def _compute_legislation(self):
-        legislation = legislations.load_legislation(self.legislation_yaml_dirs)
-        if self.preprocess_legislation is not None:
-            legislation = self.preprocess_legislation(legislation)
-        self._legislation = legislation
+    def _compute_parameters(self):
+        parameters = load_parameters(self.parameters_yaml_dirs)
+        if self.preprocess_parameters is not None:
+            parameters = self.preprocess_parameters(parameters)
+        self._parameters = parameters
 
-    def get_legislation(self):
+    def get_parameters(self):
         """
         Get the legislation parameters of the tax benefit system.
 
         :returns: The legislation parameters for all the dates.
         """
-        if self._legislation is None:
-            self._compute_legislation()
-        return self._legislation
+        if self._parameters is None:
+            self._compute_parameters()
+        return self._parameters
 
-    def get_baseline_legislation_at_instant(self, instant):
+    def get_baseline_parameters_at_instant(self, instant):
         baseline = self.baseline
         if baseline is None:
-            return self.get_legislation_at_instant(instant)
-        return baseline.get_baseline_legislation_at_instant(instant)
+            return self.get_parameters_at_instant(instant)
+        return baseline.get_baseline_parameters_at_instant(instant)
 
-    def get_legislation_at_instant(self, instant):
+    def get_parameters_at_instant(self, instant):
         """Compute the parameters of the legislation at a given instant
 
         :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
         """
 
-        legislation = self.get_legislation()
+        parameters = self.get_parameters()
         instant_str = str(instant)
-        legislation_at_instant = self.legislation_at_instant_cache.get(instant)
-        if legislation_at_instant is None and legislation is not None:
-            legislation_at_instant = legislation._get_at_instant(instant_str)
-            self.legislation_at_instant_cache[instant] = legislation_at_instant
-        return legislation_at_instant
+        parameters_at_instant = self.parameters_at_instant_cache.get(instant)
+        if parameters_at_instant is None and parameters is not None:
+            parameters_at_instant = parameters._get_at_instant(instant_str)
+            self.parameters_at_instant_cache[instant] = parameters_at_instant
+        return parameters_at_instant
 
     def get_package_metadata(self):
         """

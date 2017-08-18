@@ -7,7 +7,7 @@ Modules:
    :maxdepth: 1
 
    tax-benefit-system
-   legislations
+   parameters
    reforms
    test_runner
 
@@ -23,10 +23,10 @@ Web-API routes:
 .. toctree::
    :maxdepth: 1
 
-   parameter
-   parameters
-   variable
-   variables
+   webapi_parameter
+   webapi_parameters
+   webapi_variable
+   webapi_variables
 
 
 

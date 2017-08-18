@@ -42,4 +42,4 @@ from .variables import Variable  # noqa analysis:ignore
 from .formula_helpers import apply_thresholds, switch  # noqa analysis:ignore
 from .periods import MONTH, YEAR, ETERNITY  # noqa analysis:ignore
 from .reforms import Reform  # noqa analysis:ignore
-from openfisca_core import legislations  # noqa analysis:ignore
+from .parameters import Node, Scale, Bracket, ValuesHistory  # noqa analysis:ignore

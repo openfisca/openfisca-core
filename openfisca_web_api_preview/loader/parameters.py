@@ -72,12 +72,12 @@ def walk_node(node, parameters, path_fragments):
 
 
 def build_parameters(tax_benefit_system):
-    legislation = tax_benefit_system.get_legislation()
-    parameters = []
+    original_parameters = tax_benefit_system.get_parameters()
+    transformed_parameters = []
     walk_node(
-        legislation,
-        parameters = parameters,
+        original_parameters,
+        parameters = transformed_parameters,
         path_fragments = [],
         )
 
-    return {parameter['id']: parameter for parameter in parameters}
+    return {parameter['id']: parameter for parameter in transformed_parameters}

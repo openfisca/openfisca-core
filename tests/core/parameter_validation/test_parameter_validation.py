@@ -5,7 +5,7 @@ import os
 import yaml
 import jsonschema
 
-from openfisca_core.legislations import Node, schema_index, schema_yaml
+from openfisca_core.parameters import Node, schema_index, schema_yaml
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

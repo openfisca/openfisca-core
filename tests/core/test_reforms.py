@@ -12,7 +12,7 @@ from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_core.legislations import ValuesHistory, Node
+from openfisca_core.parameters import ValuesHistory, Node
 from openfisca_country_template.entities import Household
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -312,10 +312,10 @@ def test_wrong_reform():
     wrong_reform(tax_benefit_system)
 
 
-def test_modify_legislation():
+def test_modify_parameters():
 
-    def modify_legislation(reference_legislation_copy):
-        reform_legislation_subtree = Node(
+    def modify_parameters(reference_parameters):
+        reform_parameters_subtree = Node(
             'new_node',
             validated_yaml = {
                 'new_param': {
@@ -323,18 +323,18 @@ def test_modify_legislation():
                     },
                 },
             )
-        reference_legislation_copy.children['new_node'] = reform_legislation_subtree
-        return reference_legislation_copy
+        reference_parameters.children['new_node'] = reform_parameters_subtree
+        return reference_parameters
 
-    class test_modify_legislation(Reform):
+    class test_modify_parameters(Reform):
         def apply(self):
-            self.modify_legislation(modifier_function = modify_legislation)
+            self.modify_parameters(modifier_function = modify_parameters)
 
-    reform = test_modify_legislation(tax_benefit_system)
+    reform = test_modify_parameters(tax_benefit_system)
 
-    legislation_new_node = reform.get_legislation().children['new_node']
-    assert legislation_new_node is not None
+    parameters_new_node = reform.get_parameters().children['new_node']
+    assert parameters_new_node is not None
 
     instant = Instant((2013, 1, 1))
-    compact_legislation = reform.get_legislation_at_instant(instant)
-    assert compact_legislation.new_node.new_param is True
+    parameters_at_instant = reform.get_parameters_at_instant(instant)
+    assert parameters_at_instant.new_node.new_param is True

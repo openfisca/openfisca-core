@@ -173,7 +173,7 @@ validator_yaml = jsonschema.Draft4Validator(schema_yaml)
 
 
 class ParameterNotFound(Exception):
-    """Exception raised when a parameter is not found in the legislation.
+    """Exception raised when a parameter is not found in the parameters.
     """
     def __init__(self, name, instant_str, variable_name = None):
         """
@@ -208,7 +208,7 @@ class ValueAtInstant(object):
         :param name: name of the parameter, eg "taxes.some_tax.some_param"
         :param instant_str: Date of the value in the format `YYYY-MM-DD`.
         :param validated_yaml: Data loaded from a YAML file and validated. If set, `value` should not be set.
-        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is removed from the legislation.
+        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is removed from the legislation parameters.
         """
         self.name = name
         self.instant_str = instant_str
@@ -272,7 +272,7 @@ class ValuesHistory(object):
         :param period: Period where the value is modified. If set, `start` and `stop` should be `None`.
         :param start: Start of the period. Instance of `openfisca_core.periods.Instant`. If set, `period` should be `None`.
         :param stop: Stop of the period. Instance of `openfisca_core.periods.Instant`. If set, `period` should be `None`.
-        :param value: New value. If `None`, the parameter is removed from the legislation for the given period.
+        :param value: New value. If `None`, the parameter is removed from the legislation parameters for the given period.
         """
         if period is not None:
             assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
@@ -456,7 +456,7 @@ def _validate_against_schema(file_path, parsed_yaml, validator):
 
 
 class Node(object):
-    """Node containt parameters of the legislation.
+    """Node contains parameters of the legislation.
 
     Can be instanciated from YAML data already parsed and validated (use `validated_yaml`), or given the path of a directory containing YAML files.
     """
@@ -578,7 +578,7 @@ def _compose_name(path, child_name):
         return child_name
 
 
-def load_legislation(path_list):
+def load_parameters(path_list):
     '''Load the parameters of a legislation from a directory containing YAML files.
 
     If several directories are parsed, newer children with the same name are not merged but overwrite previous ones.

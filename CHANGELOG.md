@@ -39,7 +39,7 @@
 * Refactor the internal representation and the interface of legislation parameters
   - The parameters of a legislation are wraped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python objects.
   - The parameters of a legislation at a given instant are wraped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
-  - The syntax to modify an existing legislation (used in reforms) is changed. The function `reforms.update_legislation()` is replaced by the function `ValuesHistory.update()`. A legislation can be navigated using the operator `.` (e.g. `legislation.parent_node.child_node.parameter`)
+  - The syntax to modify existing parameters (used in reforms) is changed. The function `reforms.update_legislation()` is replaced by the function `ValuesHistory.update()`. Parameters can be navigated using the operator `.` (e.g. `parameters.parent_node.child_node.parameter`)
 
     Before:
     ```python
@@ -53,28 +53,28 @@
 
     Now:
     ```python
-    legislation.impot_revenu.bareme[1].threshold.update(period=reform_period, value=6011*inflator)
+    parameters.impot_revenu.bareme[1].threshold.update(period=reform_period, value=6011)
     ```
 
-  - Parameters can be added from YAML file in reforms. The function `legislations.load_file()` loads a YAML file. The function `Node.add_child()` adds a new child to an existing legislation node.
+  - Parameters can be added from YAML file in reforms. The function `parameters.load_file()` loads a YAML file. The function `Node.add_child()` adds a new child to an existing legislation node.
 
     Example:
     ```python
     import os
-    from openfisca_core import legislations
+    from openfisca_core.parameters import load_file
 
     dir_path = os.path.dirname(__file__)
 
-    def reform_modify_legislation(legislation):
+    def reform_modify_parameters(parameters):
         file_path = os.path.join(dir_path, 'plf2016.yaml')
-        reform_legislation_subtree = legislations.load_file(name='plf2016', file_path=file_path)
-        legislation.add_child('plf2016', reform_legislation_subtree)
-        return legislation
+        reform_parameters_subtree = load_file(name='plf2016', file_path=file_path)
+        parameters.add_child('plf2016', reform_parameters_subtree)
+        return parameters
 
     ...
     ```
   
-  - Although loading a YAML file is now the prefered way to extend a legislation for a reform, new nodes can still still can be defined dynamically using a python object. However the syntax is different.
+  - Although loading a YAML file is now the prefered way to extend parameters for a reform, new nodes can still still can be defined dynamically using a python object. This can be useful when using dynamically computed values. However the syntax is different.
 
     Before :
     ```python
@@ -109,17 +109,17 @@
 
     Now:
     ```python
-    from openfisca_core.legislations import Node
+    from openfisca_core.parameters import Node
 
     inflation = .001
-    reform_legislation_subtree = Node('plf2016_conterfactual', validated_yaml = {
+    reform_parameters_subtree = Node('plf2016_conterfactual', validated_yaml = {
         'decote_seuil_celib': {'values': {"2015-01-01": {'value': round(1135 * (1 + inflation))}, "2016-01-01": {'value': None}}},
         'decote_seuil_couple': {'values': {"2015-01-01": {'value': round(1870 * (1 + inflation))}, "2065-01-01": {'value': None}}},
         })
-    reference_legislation_copy.add_child('plf2016_conterfactual', reform_legislation_subtree)
+    reference_parameters.add_child('plf2016_conterfactual', reform_parameters_subtree)
     ```
 
-  - A legislation is provided at a given instant with the function `TaxBenefitSystem.get_legislation_at_instant()` instead of `TaxBenefitSystem.get_compact_legislation()`. Apart from that change, the interface provided to use a legislation at a given date is not modified.
+  - Parameters are computed for a given instant with the function `TaxBenefitSystem.get_parameters_at_instant()` instead of `TaxBenefitSystem.get_compact_legislation()`. Apart from that change, the interface provided to access parameters at a given instant is not modified.
 
 * Miscellaneous
   - The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()`. This parameter had no effect.
@@ -131,7 +131,7 @@
 
 * The variables `*legislation_json*` are replaced by `*legislation*` because the format json is no longer used.
 * The expression "compact legislation" is replaced by the expression "legislation at instant". For example, `taxbenefitsystem.compact_legislation_by_instant_cache` is renamed as `taxbenefitsystem.legislation_at_instant_cache`.
-* The file `legislations.py` and the classes defined inside are responsible both for loading and accessing the legislation. Before the loading was implemented in `legislationsxml.py` and the other processings were implemented in `legislations.py`
+* The file `parameters.py` and the classes defined inside are responsible both for loading and accessing the parameters. Before the loading was implemented in `legislationsxml.py` and the other processings were implemented in `legislations.py`
 * The validation of the XML files was performed against a XML schema defined in `legislations.xsd`. Now the YAML files are loaded with the library `yaml` and then validated against a json schema using the library `jsonschema`.
 * Parameters are cached in a file `parameters.pickle`. Modification of the YAML files are detected using the file name, the date of last modification and the size of the file.
 * In the API preview, the transformation of the legislation is updated accordingly.

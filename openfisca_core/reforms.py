@@ -2,34 +2,35 @@
 
 import copy
 
-from . import legislations
+from .parameters import Node
 from .taxbenefitsystems import TaxBenefitSystem
 
 
 class Reform(TaxBenefitSystem):
     """A modified TaxBenefitSystem
 
-    In OpenFisca, a reform is a modified TaxBenefitSystem. It can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation. All reforms must subclass `Reform` and implement a math `apply()`. Such a function can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation.
+    In OpenFisca, a reform is a modified TaxBenefitSystem. It can add or replace variables and call `self.modify_parameters()` to modify the parameters of the legislation. All reforms must subclass `Reform` and implement a math `apply()`. Such a function can add or replace variables and call `self.modify_parameters()` to modify the parameters of the legislation.
 
     Example:
 
-    >>> from openfisca_core import reforms, legislations
+    >>> from openfisca_core import reforms
+    >>> from openfisca_core.parameters import load_file
     >>>
-    >>> def modify_my_legislation(legislation):
+    >>> def modify_my_parameters(parameters):
     >>>     # Add new parameters
-    >>>     new_params = legislations.load_file(name='reform_name', file_path='path_to_yaml_file.yaml')
-    >>>     legislation.add_child('reform_name', new_params)
+    >>>     new_parameters = load_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+    >>>     parameters.add_child('reform_name', new_parameters)
     >>>
     >>>     # Update a value
-    >>>     legislation.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
+    >>>     parameters.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
     >>>
-    >>>    return legislation
+    >>>    return parameters
     >>>
     >>> class MyReform(reforms.Reform):
     >>>    def apply(self):
     >>>        self.add_variable(some_variable)
     >>>        self.update_variable(some_other_variable)
-    >>>        self.modify_legislation(modifier_function=modify_my_legislation)
+    >>>        self.modify_parameters(modifier_function=modify_my_parameters)
     """
     name = None
 
@@ -38,8 +39,8 @@ class Reform(TaxBenefitSystem):
         :param baseline: Baseline TaxBenefitSystem.
         """
         self.baseline = baseline
-        self._legislation = baseline.get_legislation()
-        self.legislation_at_instant_cache = baseline.legislation_at_instant_cache
+        self._parameters = baseline.get_parameters()
+        self.parameters_at_instant_cache = baseline.parameters_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
@@ -60,22 +61,22 @@ class Reform(TaxBenefitSystem):
             key = u'.'.join([baseline_full_key, key])
         return key
 
-    def modify_legislation(self, modifier_function):
+    def modify_parameters(self, modifier_function):
         """
         Make modifications on the parameters of the legislation
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.
 
-        :param modifier_function: A function that takes an object of type `openfisca_core.legislations.Node` and should return an object of the same type.
+        :param modifier_function: A function that takes an object of type `openfisca_core.parameters.Node` and should return an object of the same type.
         """
-        baseline_legislation = self.baseline.get_legislation()
-        baseline_legislation_copy = copy.deepcopy(baseline_legislation)
-        reform_legislation = modifier_function(baseline_legislation_copy)
-        assert reform_legislation is not None, \
-            'modifier_function {} in module {} must return the modified legislation'.format(
+        baseline_parameters = self.baseline.get_parameters()
+        baseline_parameters_copy = copy.deepcopy(baseline_parameters)
+        reform_parameters = modifier_function(baseline_parameters_copy)
+        assert reform_parameters is not None, \
+            'modifier_function {} in module {} must return the modified parameters'.format(
                 modifier_function.__name__,
                 modifier_function.__module__,
                 )
-        assert isinstance(reform_legislation, legislations.Node)
-        self._legislation = reform_legislation
-        self.legislation_at_instant_cache = {}
+        assert isinstance(reform_parameters, Node)
+        self._parameters = reform_parameters
+        self.parameters_at_instant_cache = {}
