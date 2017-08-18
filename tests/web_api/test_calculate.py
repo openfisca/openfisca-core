@@ -111,37 +111,10 @@ def test_basic_calculation():
     assert_equal(dpath.get(response_json, 'households/first_household/housing_tax/2017'), 3000)
 
 
-def test_enums_sending_index():
-    simulation_json = json.dumps({
-        "persons": {
-            "bill": {},
-            },
-        "households": {
-            "_": {
-                "parents": ['bill'],
-                "housing_tax": {
-                    "2017": None
-                    },
-                "accomodation_size": {
-                    "2017-01": 300
-                    },
-                "housing_occupancy_status": {
-                    "2017-01": 2  # Free lodger
-                    }
-                },
-            }
-        })
-
-    response = post_json(simulation_json)
-    assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
-    assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
-
-
 def test_enums_sending_string():
     simulation_json = json.dumps({
         "persons": {
-            "bill": {},
+            "bill": {}
             },
         "households": {
             "_": {
@@ -153,9 +126,9 @@ def test_enums_sending_string():
                     "2017-01": 300
                     },
                 "housing_occupancy_status": {
-                    "2017-01": "Free logder"
+                    "2017-01": "free_lodger"
                     }
-                },
+                }
             }
         })
 
@@ -183,7 +156,7 @@ def test_enum_output():
     response = post_json(simulation_json)
     assert_equal(response.status_code, OK)
     response_json = json.loads(response.data)
-    assert_equal(dpath.get(response_json, "households/_/housing_occupancy_status/2017-01"), "Tenant")
+    assert_equal(dpath.get(response_json, "households/_/housing_occupancy_status/2017-01"), "tenant")
 
 
 def test_enum_wrong_value():
@@ -205,6 +178,6 @@ def test_enum_wrong_value():
     assert_equal(response.status_code, BAD_REQUEST)
     response_json = json.loads(response.data)
     assert_in(
-        "Possible values are ['Tenant', 'Owner', 'Free logder', 'Homeless']",
+        "Possible values are ['free_lodger', 'homeless', 'owner', 'tenant']",
         dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
         )
