@@ -81,3 +81,9 @@ def test_wrong_bareme():
             assert keyword in content
     else:
         assert False, "This test should raise a ValueError."
+
+
+def test_references():
+    path_to_xml = os.path.join(BASE_DIR, 'references.xml')
+    tbs = TestTaxBenefitSystem(path_to_xml)
+    tbs.compute_legislation()
