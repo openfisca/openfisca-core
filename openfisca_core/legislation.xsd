@@ -29,7 +29,7 @@
 
     <xs:complexType name="codeType">
         <xs:group ref="valuesHistory"/>
-        <xs:attribute name="code"  type="xs:string" use="required"/>
+        <xs:attribute name="code" type="xs:string" use="required"/>
         <xs:attribute name="description" type="xs:string"/>
         <xs:attribute name="format" type="xs:string"/>
         <xs:attribute name="origin" type="xs:string"/>
