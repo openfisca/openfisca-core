@@ -40,7 +40,7 @@ class Reform(TaxBenefitSystem):
         """
         self.baseline = baseline
         self._parameters = baseline.get_parameters()
-        self.parameters_at_instant_cache = baseline.parameters_at_instant_cache
+        self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
@@ -79,4 +79,4 @@ class Reform(TaxBenefitSystem):
                 )
         assert isinstance(reform_parameters, Node)
         self._parameters = reform_parameters
-        self.parameters_at_instant_cache = {}
+        self._parameters_at_instant_cache = {}

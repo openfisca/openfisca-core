@@ -61,7 +61,7 @@ class TaxBenefitSystem(object):
     Represents the legislation. It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
     """
     _base_tax_benefit_system = None
-    parameters_at_instant_cache = None
+    _parameters_at_instant_cache = None
     person_key_plural = None
     preprocess_parameters = None
     json_to_attributes = staticmethod(conv.pipe(
@@ -79,10 +79,10 @@ class TaxBenefitSystem(object):
         :param parameters: Parameters defined for the tax benefit system. Can be defined later.
         """
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
+        self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self.parameters_yaml_dirs = []
+        self._parameters_yaml_dirs = []
         self._parameters = parameters
 
         self.entities = entities
@@ -319,13 +319,13 @@ class TaxBenefitSystem(object):
         >>> self.add_parameter_path('/path/to/yaml/parameters/dir')
         """
 
-        self.parameters_yaml_dirs.append(path_to_yaml_dir)
+        self._parameters_yaml_dirs.append(path_to_yaml_dir)
         # New parameters have been added, the parameters will have to be recomputed next time we need it.
         # Not very optimized, but today incremental building of the parameters is not implemented.
         self._parameters = None
 
     def _compute_parameters(self):
-        parameters = load_parameters(self.parameters_yaml_dirs)
+        parameters = load_parameters(self._parameters_yaml_dirs)
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
         self._parameters = parameters
@@ -340,13 +340,13 @@ class TaxBenefitSystem(object):
             self._compute_parameters()
         return self._parameters
 
-    def get_baseline_parameters_at_instant(self, instant):
+    def _get_baseline_parameters_at_instant(self, instant):
         baseline = self.baseline
         if baseline is None:
-            return self.get_parameters_at_instant(instant)
-        return baseline.get_baseline_parameters_at_instant(instant)
+            return self._get_parameters_at_instant(instant)
+        return baseline._get_baseline_parameters_at_instant(instant)
 
-    def get_parameters_at_instant(self, instant):
+    def _get_parameters_at_instant(self, instant):
         """Compute the parameters of the legislation at a given instant
 
         :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
@@ -355,10 +355,10 @@ class TaxBenefitSystem(object):
 
         parameters = self.get_parameters()
         instant_str = str(instant)
-        parameters_at_instant = self.parameters_at_instant_cache.get(instant)
+        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and parameters is not None:
             parameters_at_instant = parameters._get_at_instant(instant_str)
-            self.parameters_at_instant_cache[instant] = parameters_at_instant
+            self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
     def get_package_metadata(self):

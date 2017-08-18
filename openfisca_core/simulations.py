@@ -12,7 +12,7 @@ from commons import empty_clone, stringify_array
 
 
 class Simulation(object):
-    parameters_at_instant_cache = None
+    _parameters_at_instant_cache = None
     debug = False
     debug_all = False  # When False, log only formula calls with non-default parameters.
     period = None
@@ -65,7 +65,7 @@ class Simulation(object):
             self.traceback = collections.OrderedDict()
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
-        self.parameters_at_instant_cache = {}
+        self._parameters_at_instant_cache = {}
         self.baseline_parameters_at_instant_cache = {}
 
         self.instantiate_entities(simulation_json)
@@ -210,11 +210,11 @@ class Simulation(object):
                 caller_input_variables_infos.append(variable_infos)
         return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
 
-    def get_parameters_at_instant(self, instant):
-        parameters_at_instant = self.parameters_at_instant_cache.get(instant)
+    def _get_parameters_at_instant(self, instant):
+        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None:
-            parameters_at_instant = self.tax_benefit_system.get_parameters_at_instant(instant)
-            self.parameters_at_instant_cache[instant] = parameters_at_instant
+            parameters_at_instant = self.tax_benefit_system._get_parameters_at_instant(instant)
+            self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
     def get_holder(self, column_name, default = UnboundLocalError):
@@ -242,10 +242,10 @@ class Simulation(object):
         entity = self.get_entity(column.entity)
         return entity.get_holder(column_name)
 
-    def get_baseline_parameters_at_instant(self, instant):
-        baseline_parameters_at_instant = self.baseline_parameters_at_instant_cache.get(instant)
+    def _get_baseline_parameters_at_instant(self, instant):
+        baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
         if baseline_parameters_at_instant is None:
-            baseline_parameters_at_instant = self.tax_benefit_system.get_baseline_parameters_at_instant(
+            baseline_parameters_at_instant = self.tax_benefit_system._get_baseline_parameters_at_instant(
                 instant = instant,
                 traced_simulation = self if self.trace else None,
                 )
@@ -260,8 +260,8 @@ class Simulation(object):
             instant = instant.start
         assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
         if use_baseline:
-            return self.get_baseline_parameters_at_instant(instant)
-        return self.get_parameters_at_instant(instant)
+            return self._get_baseline_parameters_at_instant(instant)
+        return self._get_parameters_at_instant(instant)
 
     def legislation_at(self, instant, use_baseline = False):
         '"Legislation" is the old and deprecated way to call parameters. Use parameters_at() instead.'

@@ -25,31 +25,31 @@ def test_param_values():
 
     for date, value in dated_values.iteritems():
         assert_equal(
-            tax_benefit_system.get_parameters_at_instant(date).taxes.income_tax_rate,
+            tax_benefit_system._get_parameters_at_instant(date).taxes.income_tax_rate,
             value
             )
 
 
 @raises(ParameterNotFound)
 def test_param_before_it_is_defined():
-    tax_benefit_system.get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
+    tax_benefit_system._get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
 
 
 # The placeholder should have no effect on the parameter computation
 def test_param_with_placeholder():
     assert_equal(
-        tax_benefit_system.get_parameters_at_instant('2018-01-01').taxes.income_tax_rate,
+        tax_benefit_system._get_parameters_at_instant('2018-01-01').taxes.income_tax_rate,
         0.15
         )
 
 
 def test_stopped_parameter_before_end_value():
     assert_equal(
-        tax_benefit_system.get_parameters_at_instant('2011-12-31').benefits.housing_allowance,
+        tax_benefit_system._get_parameters_at_instant('2011-12-31').benefits.housing_allowance,
         0.25
         )
 
 
 @raises(ParameterNotFound)
 def test_stopped_parameter_after_end_value():
-    tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
+    tax_benefit_system._get_parameters_at_instant('2016-12-01').benefits.housing_allowance
