@@ -9,7 +9,7 @@ from .taxbenefitsystems import TaxBenefitSystem
 class Reform(TaxBenefitSystem):
     """A modified TaxBenefitSystem
 
-    A reformed TaxBenefitSystem must subclass `Reform` and implement a method `apply()`. Such a function can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation.
+    In OpenFisca, a reform is a modified TaxBenefitSystem. It can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation. All reforms must subclass `Reform` and implement a math `apply()`. Such a function can add or replace variables and call `self.modify_legislation()` to modify the parameters of the legislation.
 
     Example:
 
@@ -62,9 +62,11 @@ class Reform(TaxBenefitSystem):
 
     def modify_legislation(self, modifier_function):
         """
-        Used by reforms which need to modify the legislation parameters.
+        Make modifications on the parameters of the legislation
 
-        :param modifier_function: A function that takes an object of type `openfisca_core.legislations.Node` ad should return an object of the same type.
+        Call this function in `apply()` if the reform asks for legislation parameter modifications.
+
+        :param modifier_function: A function that takes an object of type `openfisca_core.legislations.Node` and should return an object of the same type.
         """
         baseline_legislation = self.baseline.get_legislation()
         baseline_legislation_copy = copy.deepcopy(baseline_legislation)
