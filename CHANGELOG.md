@@ -1,5 +1,10 @@
 # Changelog
 
+## 16.3.0
+
+- Support `reference` attributes on all parameter XML nodes.
+  - You can now add a `reference` on a `<VALUE>`, for example.
+
 ## 16.2.0
 
 In the preview web API, for variables of type `Enum`:
