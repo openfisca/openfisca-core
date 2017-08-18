@@ -16,7 +16,7 @@ from . import taxscales
 
 node_keywords = ['reference', 'description']
 
-schema_node_meta = {
+schema_index = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Node metadata YAML file",
     "description": "A file named _.yaml that contains metadata about a parameter node.",
@@ -159,6 +159,17 @@ schema_yaml = {
         },
     "$ref": "#/definitions/node_or_parameter_of_scale",
     }
+
+
+def date_constructor(loader, node):
+    return node.value
+
+
+yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor)
+
+
+validator_index = jsonschema.Draft4Validator(schema_index)
+validator_yaml = jsonschema.Draft4Validator(schema_yaml)
 
 
 class ParameterNotFound(Exception):
@@ -437,9 +448,9 @@ def _parse_child(child_name, child):
         return Node(child_name, validated_yaml=child)
 
 
-def _validate_against_schema(file_path, parsed_yaml, schema):
+def _validate_against_schema(file_path, parsed_yaml, validator):
     try:
-        jsonschema.validate(parsed_yaml, schema)
+        validator.validate(parsed_yaml)
     except jsonschema.exceptions.ValidationError:
         raise ValueError('Invalid parameter file {}'.format(file_path))
 
@@ -469,9 +480,9 @@ class Node(object):
                         data = yaml.load(f)
 
                     if child_name == 'index':
-                        _validate_against_schema(child_path, data, schema_node_meta)
+                        _validate_against_schema(child_path, data, validator_index)
                     else:
-                        _validate_against_schema(child_path, data, schema_yaml)
+                        _validate_against_schema(child_path, data, validator_yaml)
                         child_name_expanded = _compose_name(name, child_name)
                         self.children[child_name] = _parse_child(child_name_expanded, data)
 
@@ -526,7 +537,7 @@ def load_file(name, file_path):
     """
     with open(file_path, 'r') as f:
         data = yaml.load(f)
-    _validate_against_schema(file_path, data, schema_yaml)
+    _validate_against_schema(file_path, data, validator_yaml)
     return _parse_child(name, data)
 
 

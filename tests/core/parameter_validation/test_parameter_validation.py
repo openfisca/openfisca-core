@@ -3,13 +3,19 @@
 import os
 
 import yaml
+import jsonschema
 
-from openfisca_core.legislations import Node
+from openfisca_core.legislations import Node, schema_index, schema_yaml
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 year = 2016
+
+
+def test_schemas():
+    jsonschema.Draft4Validator.check_schema(schema_index)
+    jsonschema.Draft4Validator.check_schema(schema_yaml)
 
 
 def test_indentation():
