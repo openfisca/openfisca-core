@@ -29,7 +29,7 @@
 
     <xs:complexType name="codeType">
         <xs:group ref="valuesHistory"/>
-        <xs:attribute name="code"  type="xs:string" use="required"/>
+        <xs:attribute name="code" type="xs:string" use="required"/>
         <xs:attribute name="description" type="xs:string"/>
         <xs:attribute name="format" type="xs:string"/>
         <xs:attribute name="origin" type="xs:string"/>
@@ -40,11 +40,13 @@
 
     <xs:complexType name="endType">
         <xs:attribute name="deb" type="xs:date" use="required"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="valueType">
         <xs:attribute name="deb" type="xs:date" use="required"/>
         <xs:attribute name="valeur" type="xs:float" use="required"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="baremeType">
@@ -68,27 +70,33 @@
             <xs:element name="MONTANT" type="montantType" minOccurs="0"/>
         </xs:all>
         <xs:attribute name="code" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="assietteType">
         <xs:group ref="valuesHistory"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="tauxType">
         <xs:group ref="valuesHistory"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="montantType">
         <xs:group ref="valuesHistory"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="seuilType">
         <xs:group ref="valuesHistory"/>
         <xs:attribute name="conflicts" type="xs:string"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="placeholderType">
         <xs:attribute name="deb" type="xs:date" use="required"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
 </xs:schema>

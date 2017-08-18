@@ -1,20 +1,25 @@
 # Changelog
 
+## 16.3.0
+
+- Support `reference` attributes on all parameter XML nodes.
+  - You can now add a `reference` on a `<VALUE>`, for example.
+
 ## 16.2.0
 
 In the preview web API, for variables of type `Enum`:
 
-* Accept and recommand to use strings as simulation inputs, instead of the enum indices.
+* Accept and recommend to use strings as simulation inputs, instead of the enum indices.
   - For instance, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now accepted and prefered to `{"housing_occupancy_status": {"2017-01": 0}}`).
   - Using the enum indices as inputs is _still accepted_ for backward compatibility, but _should not_ be encouraged.
 * Return strings instead of enum indices.
   - For instance, is `housing_occupancy_status` is calculated for `2017-01`, `{"housing_occupancy_status": {"2017-01": "Tenant"}}` is now returned, instead of `{"housing_occupancy_status": {"2017-01": 0}}`.
-* In the `/variable/<variable_name>` route, document possible values. 
-* In the Open API specification, document possible values following JSON schema. 
+* In the `/variable/<variable_name>` route, document possible values.
+* In the Open API specification, document possible values following JSON schema.
 * In the `/variable/<variable_name>` route:
   - Document possible values
   - Use a string as a default value (instead of the enum default indice)
-* In the Open API specification, document possible values following JSON schema.  
+* In the Open API specification, document possible values following JSON schema.
 
 ### 16.1.1
 
@@ -75,7 +80,7 @@ In the preview web API, for variables of type `Enum`:
 
 #### Minor Change
 
-- Rewrite `/calculate` example in the Open API spec so that it works for `Openfisca-France` 
+- Rewrite `/calculate` example in the Open API spec so that it works for `Openfisca-France`
 
 ### 14.1.2 - [#535](https://github.com/openfisca/openfisca-core/pull/535)
 
@@ -133,7 +138,7 @@ In the preview web API, for variables of type `Enum`:
 - In variables:
   - Merge `Variable` and `DatedVariable`.
     - `Variable` can now handle formula evolution over time.
-  - Remove `start_date` attribute 
+  - Remove `start_date` attribute
   - Rename `stop_date` attribute to `end`
     - Introduce end string format `end = 'YYYY-MM-DD'`
 - In formulas:
