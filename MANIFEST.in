@@ -1,3 +1,2 @@
 recursive-include openfisca_core/scripts *
-include openfisca_core/legislation.xsd
 include openfisca_web_api_preview/openAPI.yml
