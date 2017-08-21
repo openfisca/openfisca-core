@@ -5,6 +5,8 @@ import os
 import yaml
 import jsonschema
 
+from nose.tools import assert_in, raises
+
 from openfisca_core.parameters import Node, schema_index, schema_yaml
 
 
@@ -18,6 +20,7 @@ def test_schemas():
     jsonschema.Draft4Validator.check_schema(schema_yaml)
 
 
+@raises(yaml.scanner.ScannerError)
 def test_indentation():
     path = os.path.join(BASE_DIR, 'indentation')
     try:
@@ -25,12 +28,12 @@ def test_indentation():
     except yaml.scanner.ScannerError as e:
         content = str(e)
         assert len(content) < 1000
-        for keyword in {'indentation/param.yaml', 'line 2', 'mapping values are not allowed here'}:
-            assert keyword in content, content
-    else:
-        assert False, "This test should raise a ScannerError."
+        for keyword in {'indentation/param.yaml', 'line 2', 'mapping values are not allowed'}:
+            assert_in(keyword, content)
+        raise
 
 
+@raises(ValueError)
 def test_wrong_scale():
     path = os.path.join(BASE_DIR, 'wrong_scale')
     try:
@@ -38,12 +41,12 @@ def test_wrong_scale():
     except ValueError as e:
         content = str(e)
         assert len(content) < 1500
-        for keyword in {'Invalid', 'parameter', 'scale.yaml'}:
-            assert keyword in content, content
-    else:
-        assert False, "This test should raise a ValueError."
+        for keyword in {'Invalid bracket attribute', 'scale[1]', 'treshold'}:
+            assert_in(keyword, content)
+        raise
 
 
+@raises(ValueError)
 def test_wrong_value():
     path = os.path.join(BASE_DIR, 'wrong_value')
     try:
@@ -51,10 +54,9 @@ def test_wrong_value():
     except ValueError as e:
         content = str(e)
         assert len(content) < 1000
-        for keyword in {'Invalid', 'parameter', 'param.yaml'}:
-            assert keyword in content, content
-    else:
-        assert False, "This test should raise a ValueError."
+        for keyword in {'Invalid value', 'param[2015-12-01]', '1A'}:
+            assert_in(keyword, content)
+        raise
 
 
 def test_references():

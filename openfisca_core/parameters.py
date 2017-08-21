@@ -6,6 +6,7 @@
 
 import os
 import logging
+import re
 
 import yaml
 import jsonschema
@@ -166,6 +167,7 @@ schema_yaml = {
     "$ref": "#/definitions/node_or_parameter_of_scale",
     }
 
+instant_pattern = re.compile("^\d{4}-\d{2}-\d{2}$")
 
 def date_constructor(loader, node):
     return node.value
@@ -207,18 +209,25 @@ class ExceptionValueIsUnknown(Exception):
 
 
 class ValueAtInstant(object):
+    allowed_value_types = [int, float, bool, type(None)]
     def __init__(self, name, instant_str, validated_yaml=None, value=None):
         """A value defined for a given instant.
 
-        Can be instanciated from YAML data (use `validated_yaml`), or given `value`. The later case can be used for reforms.
+        Can be instanciated from YAML data (use `validated_yaml`), or given `value`.
 
         :param name: name of the parameter, eg "taxes.some_tax.some_param"
         :param instant_str: Date of the value in the format `YYYY-MM-DD`.
         :param validated_yaml: Data loaded from a YAML file and validated. If set, `value` should not be set.
-        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is removed from the legislation parameters.
+        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is considered not defined at instant_str.
         """
         self.name = name
         self.instant_str = instant_str
+
+        if not validated_yaml == 'expected':
+            for key in ['expected', 'value']:
+                value = validated_yaml.get(key)
+                if type(value) not in self.allowed_value_types:
+                    raise ValueError("Invalid value in {}: {}".format(name, value).encode('utf-8'))
 
         if validated_yaml is not None:
             if validated_yaml == 'expected' or validated_yaml == {'expected': None}:
@@ -253,7 +262,7 @@ class ValuesHistory(object):
         for instant_str in instants:
             instant_info = validated_yaml[instant_str]
             try:
-                value_at_instant = ValueAtInstant(name, instant_str, validated_yaml=instant_info)
+                value_at_instant = ValueAtInstant(_compose_name(name, instant_str), instant_str, validated_yaml=instant_info)
             except ExceptionValueIsUnknown:
                 pass
             else:
@@ -357,6 +366,9 @@ class Bracket(object):
                 new_child_name = _compose_name(name, key)
                 new_child = ValuesHistory(new_child_name, value)
                 setattr(self, key, new_child)
+            else:
+                raise ValueError("Invalid bracket attribute in {}: {}".format(name, key).encode('utf-8'))
+
 
     def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
@@ -397,7 +409,7 @@ class Scale(object):
 
         brackets = []
         for i, bracket_data in enumerate(validated_yaml['brackets']):
-            bracket_name = str(i)
+            bracket_name = _compose_name(name, i)
             bracket = Bracket(bracket_name, bracket_data)
             brackets.append(bracket)
         self.brackets = brackets
@@ -455,11 +467,11 @@ def _parse_child(child_name, child):
         return Node(child_name, validated_yaml=child)
 
 
-def _validate_against_schema(file_path, parsed_yaml, validator):
-    try:
-        validator.validate(parsed_yaml)
-    except jsonschema.exceptions.ValidationError:
-        raise ValueError('Invalid parameter file {}'.format(file_path))
+# def _validate_against_schema(file_path, parsed_yaml, validator):
+#     try:
+#         validator.validate(parsed_yaml)
+#     except jsonschema.exceptions.ValidationError:
+#         raise ValueError('Invalid parameter file {}'.format(file_path))
 
 
 class Node(object):
@@ -487,9 +499,10 @@ class Node(object):
                         data = yaml.load(f, Loader = Loader)
 
                     if child_name == 'index':
-                        _validate_against_schema(child_path, data, validator_index)
+                        pass
+                        # _validate_against_schema(child_path, data, validator_index)
                     else:
-                        _validate_against_schema(child_path, data, validator_yaml)
+                        # _validate_against_schema(child_path, data, validator_yaml)
                         child_name_expanded = _compose_name(name, child_name)
                         self.children[child_name] = _parse_child(child_name_expanded, data)
 
@@ -544,7 +557,7 @@ def load_file(name, file_path):
     """
     with open(file_path, 'r') as f:
         data = yaml.load(f)
-    _validate_against_schema(file_path, data, validator_yaml)
+    # _validate_against_schema(file_path, data, validator_yaml)
     return _parse_child(name, data)
 
 
@@ -580,6 +593,8 @@ class NodeAtInstant(object):
 
 def _compose_name(path, child_name):
     if path:
+        if isinstance(child_name, int)or instant_pattern.match(child_name):
+            return '{}[{}]'.format(path, child_name)
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
@@ -594,22 +609,6 @@ def load_parameters(path_list):
     '''
 
     assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     parameter_trees = []
