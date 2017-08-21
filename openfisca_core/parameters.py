@@ -6,12 +6,20 @@
 
 import os
 import hashlib
+import logging
 
 import yaml
 import jsonschema
 
 from . import taxscales
 
+log = logging.getLogger(__name__)
+
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    log.warning("...") # TODO: add a warning message to suggest installing libyaml
+    from yaml import Loader
 
 node_keywords = ['reference', 'description']
 
@@ -164,7 +172,8 @@ def date_constructor(loader, node):
     return node.value
 
 
-yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor)
+
+yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
 
 
 validator_index = jsonschema.Draft4Validator(schema_index)
@@ -476,7 +485,7 @@ class Node(object):
                     child_name, ext = os.path.splitext(child_name)
                     assert ext == '.yaml', "The parameter directory should contain only YAML files."
                     with open(child_path, 'r') as f:
-                        data = yaml.load(f)
+                        data = yaml.load(f, Loader = Loader)
 
                     if child_name == 'index':
                         _validate_against_schema(child_path, data, validator_index)
