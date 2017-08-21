@@ -6,7 +6,6 @@
 
 import os
 import hashlib
-import pickle
 
 import yaml
 import jsonschema
@@ -588,74 +587,26 @@ def load_parameters(path_list):
 
     assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'
 
-    def hash_parameter_tree(path):
-        def get_filepaths(directory):
-            filepaths = []
-            dirpaths = []
 
-            for root, directories, files in os.walk(directory):
-                assert len(root) >= len(path)
-                assert root[:len(path)] == path
-                root = root[len(path):]
 
-                for filename in files:
-                    filepath = os.path.join(root, filename)
-                    filepaths.append(filepath)
-                for dirname in directories:
-                    dirpath = os.path.join(root, dirname)
-                    dirpaths.append(dirpath)
 
-            return filepaths, dirpaths
 
-        message = hashlib.md5()
 
-        filepaths, dirpaths = get_filepaths('openfisca-france/openfisca_france/parameters')
 
-        dirpaths = sorted(dirpaths)
-        for dirpath in dirpaths:
-            message.update(dirpath + '\n')
 
-        filepaths = sorted(filepaths)
-        for filepath in filepaths:
-            message.update(filepath + ',')
-            statinfo = os.stat(filepath)
-            message.update(str(statinfo.st_size) + ',')
-            message.update(str(statinfo.st_mtime) + '\n')
 
-        return message.hexdigest()
 
-    def get_cache_filename(path):
-        return path + '.pickle'
 
-    def load_cached_parameter_tree(path):
-        parameter_tree_hash = hash_parameter_tree(path)
 
-        cache_filename = get_cache_filename(path)
-        if os.path.isfile(cache_filename):
-            with open(cache_filename, 'rb') as f:
-                cached_parameter_tree_hash, cached_parameter_tree = pickle.load(f)
-                if parameter_tree_hash == cached_parameter_tree_hash:
-                    return parameter_tree_hash, cached_parameter_tree
 
-        return parameter_tree_hash, None
 
-    def save_parameter_tree(path, parameters_hash, parameters):
-        cache_filename = get_cache_filename(path)
-        with open(cache_filename, 'wb') as f:
-            pickle.dump((parameters_hash, parameters), f)
 
-    def load_parameter_tree(path):
-        parameter_tree_hash, parameter_tree = load_cached_parameter_tree(path)
 
-        if not parameter_tree:
-            parameter_tree = Node('', directory_path=path)
-            save_parameter_tree(path, parameter_tree_hash, parameter_tree)
 
-        return parameter_tree
 
     parameter_trees = []
     for path in path_list:
-        parameter_tree = load_parameter_tree(path)
+        parameter_tree = Node('', directory_path=path)
         parameter_trees.append(parameter_tree)
 
     base_parameter_tree = parameter_trees[0]
