@@ -5,7 +5,6 @@
 
 
 import os
-import hashlib
 import logging
 
 import yaml
