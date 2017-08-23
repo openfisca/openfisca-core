@@ -61,11 +61,11 @@ class Variable(object):
             if isinstance(reference, unicode) or isinstance(reference, str):
                 reference = [reference]
             elif isinstance(reference, list):
-                reference = reference
+                pass
             elif isinstance(reference, tuple):
                 reference = list(reference)
             else:
-                raise TypeError('The reference of the variable {} is a {} instead of a String.'.format(self.name, type(reference)))
+                raise TypeError('The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(self.name, type(reference)))
 
         return new_filled_column(
             name = self.name,
