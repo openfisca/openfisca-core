@@ -18,7 +18,7 @@ def test_transform_values_history():
         '2015-01-01': 0.04,
         '2013-01-01': 0.03,
         }
-    assert_equal(transform_values_history(parameter), values)
+    assert_equal(transform_values_history(parameter.values_history), values)
 
 
 def test_transform_values_history_with_stop_date():
@@ -32,7 +32,7 @@ def test_transform_values_history_with_stop_date():
         '2013-01-01': 0.03,
         }
 
-    assert_equal(transform_values_history(parameter), values)
+    assert_equal(transform_values_history(parameter.values_history), values)
 
 
 def test_get_value():

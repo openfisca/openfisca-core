@@ -9,7 +9,6 @@ import logging
 import re
 
 import yaml
-import jsonschema
 
 from . import taxscales
 
@@ -22,11 +21,12 @@ except ImportError:
         "libyaml is not installed in your environement. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml' so that it is used in your Python environement.")
     from yaml import Loader
 
+
 instant_pattern = re.compile("^\d{4}-\d{2}-\d{2}$")
+
 
 def date_constructor(loader, node):
     return node.value
-
 
 
 yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
@@ -113,7 +113,6 @@ class ValueAtInstant(object):
         else:
             self.value = yaml_object['value']
 
-
     def validate(self, yaml_object):
         keys = yaml_object.keys()
         for key in keys:
@@ -129,7 +128,7 @@ class ValueAtInstant(object):
 
 
 class ValuesHistory(object):
-    def __init__(self, name, yaml_object, file_path):
+    def __init__(self, name, yaml_object, file_path = None):
         """
             A value defined for several periods.
 
@@ -150,8 +149,8 @@ class ValuesHistory(object):
             if not instant_pattern.match(instant_str):
                 raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
-                .format(instant_str, self.name).encode('utf-8'),
-                file_path)
+                    .format(instant_str, self.name).encode('utf-8'),
+                    file_path)
 
             instant_info = yaml_object[instant_str]
 
@@ -246,8 +245,7 @@ class Parameter(object):
         self.description = yaml_object.get('description')
 
         values = yaml_object['values']
-        self.values = ValuesHistory(name, yaml_object = values, file_path = file_path)
-
+        self.values_history = ValuesHistory(name, yaml_object = values, file_path = file_path)
 
     def validate(self, yaml_object):
         keys = yaml_object.keys()
@@ -259,9 +257,8 @@ class Parameter(object):
                     self.file_path
                     )
 
-
     def _get_at_instant(self, instant_str):
-        return self.values._get_at_instant(instant_str)
+        return self.values_history._get_at_instant(instant_str)
 
 
 class Bracket(object):
@@ -410,19 +407,12 @@ def _parse_child(child_name, child, child_path):
         return Node(child_name, yaml_object = child, file_path = child_path)
 
 
-# def _validate_against_schema(file_path, parsed_yaml, validator):
-#     try:
-#         validator.validate(parsed_yaml)
-#     except jsonschema.exceptions.ValidationError:
-#         raise ParameterParsingError('Invalid parameter file {}'.format(file_path))
-
-
 class Node(object):
     """Node contains parameters of the legislation.
 
     Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
-    def __init__(self, name, directory_path = None, yaml_object = None):
+    def __init__(self, name, directory_path = None, yaml_object = None, file_path = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
         :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
@@ -453,9 +443,14 @@ class Node(object):
 
         else:
             self.children = {}
+            if not isinstance(yaml_object, dict):
+                raise ParameterParsingError(
+                    "'{}' must be of type object.".format(self.name).encode("utf-8"),
+                    file_path
+                    )
             for child_name, child in yaml_object.items():
                 child_name_expanded = _compose_name(name, child_name)
-                self.children[child_name] = _parse_child(child_name_expanded, child)
+                self.children[child_name] = _parse_child(child_name_expanded, child, file_path)
 
     def _get_at_instant(self, instant_str):
         return NodeAtInstant(self.name, self, instant_str)
@@ -493,7 +488,7 @@ def load_file(name, file_path):
     """
     with open(file_path, 'r') as f:
         data = yaml.load(f)
-    return _parse_child(name, data)
+    return _parse_child(name, data, file_path)
 
 
 class NodeAtInstant(object):

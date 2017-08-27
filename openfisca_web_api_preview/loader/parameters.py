@@ -67,7 +67,7 @@ def walk_node(node, parameters, path_fragments):
             if child_type == 'Scale':
                 object_transformed['brackets'] = transform_scale(child)
             elif child_type == 'Parameter':
-                object_transformed['values'] = transform_values_history(child)
+                object_transformed['values'] = transform_values_history(child.values_history)
             parameters.append(object_transformed)
 
 

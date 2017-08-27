@@ -1,6 +1,4 @@
-description : A dummy description
-reference: A dummy reference
-node2:
+param:
   description : A dummy description
   reference: A dummy reference
   values:
