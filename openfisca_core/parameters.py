@@ -18,52 +18,9 @@ log = logging.getLogger(__name__)
 try:
     from yaml import CLoader as Loader
 except ImportError:
-    log.warning("...") # TODO: add a warning message to suggest installing libyaml
+    log.warning(
+        "libyaml is not installed in your environement. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml' so that it is used in your Python environement.")
     from yaml import Loader
-
-node_keywords = ['reference', 'description']
-
-schema_yaml = {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "YAML parameter file",
-    "description": "A YAML file that can contain a node, a parameter or a scale.",
-    "definitions": {
-        "value": {
-            "anyOf": [
-                {
-                    "type": "number",
-                    },
-                {
-                    "type": "boolean",
-                    },
-                {
-                    "type": "null",
-                    },
-                ],
-            },
-        "node": {
-            "type": "object",
-            "patternProperties": {
-                "^(?!(brackets|values|description|reference)$)": {"$ref": "#/definitions/node_or_parameter_of_scale"},
-                "^description$": {
-                    "type": "string",
-                    },
-                "^reference$": {
-                    "type": "string",
-                    },
-                },
-            "additionalProperties": False,
-            },
-        "node_or_parameter_of_scale": {
-            "anyOf": [
-                {"$ref": "#/definitions/node"},
-                {"$ref": "#/definitions/parameter"},
-                {"$ref": "#/definitions/scale"},
-                ],
-            },
-        },
-    "$ref": "#/definitions/node_or_parameter_of_scale",
-    }
 
 instant_pattern = re.compile("^\d{4}-\d{2}-\d{2}$")
 
@@ -73,9 +30,6 @@ def date_constructor(loader, node):
 
 
 yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
-
-
-validator_yaml = jsonschema.Draft4Validator(schema_yaml)
 
 
 class ParameterNotFound(Exception):
@@ -101,10 +55,6 @@ class ParameterNotFound(Exception):
         super(ParameterNotFound, self).__init__(message)
 
 
-class ExceptionValueIsUnknown(Exception):
-    pass
-
-
 class ValueAtInstant(object):
     allowed_value_types = [int, float, bool, type(None)]
     allowed_keys = set(['value', 'unit', 'reference'])
@@ -117,7 +67,7 @@ class ValueAtInstant(object):
 
             :param name: name of the parameter, eg "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-            :param yaml_object: Data loaded from a YAML file and validated. If set, `value` should not be set.
+            :param yaml_object: Data loaded from a YAML file. If set, `value` should not be set.
             :param value: Used if and only if `yaml_object=None`. If `value=None`, the parameter is considered not defined at instant_str.
         """
         self.name = name
@@ -296,7 +246,7 @@ class Bracket(object):
     def __init__(self, name, yaml_object = None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
         self.validate(yaml_object)
@@ -349,7 +299,7 @@ class Scale(object):
     def __init__(self, name, yaml_object):
         """
         :param name: name of the scale, eg "taxes.some_scale"
-        :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
         self.validate(yaml_object)
@@ -442,10 +392,10 @@ class Node(object):
 
     Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
-    def __init__(self, name, directory_path=None, yaml_object=None, children=None):
+    def __init__(self, name, directory_path = None, yaml_object = None, children = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
-        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
+        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
         :param yaml_object` : Data extracted from a YAML file describing a Node.
         """
         assert isinstance(name, str)
@@ -463,9 +413,7 @@ class Node(object):
 
                     if child_name == 'index':
                         pass
-                        # _validate_against_schema(child_path, data, validator_index)
                     else:
-                        # _validate_against_schema(child_path, data, validator_yaml)
                         child_name_expanded = _compose_name(name, child_name)
                         self.children[child_name] = _parse_child(child_name_expanded, data)
 
@@ -479,8 +427,6 @@ class Node(object):
         else:
             self.children = {}
             for child_name, child in yaml_object.items():
-                if child_name in node_keywords:
-                    continue
                 child_name_expanded = _compose_name(name, child_name)
                 self.children[child_name] = _parse_child(child_name_expanded, child)
 
@@ -520,7 +466,6 @@ def load_file(name, file_path):
     """
     with open(file_path, 'r') as f:
         data = yaml.load(f)
-    # _validate_against_schema(file_path, data, validator_yaml)
     return _parse_child(name, data)
 
 
