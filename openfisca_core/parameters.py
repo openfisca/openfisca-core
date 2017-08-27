@@ -23,22 +23,6 @@ except ImportError:
 
 node_keywords = ['reference', 'description']
 
-schema_index = {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Node metadata YAML file",
-    "description": "A file named _.yaml that contains metadata about a parameter node.",
-    "type": "object",
-    "properties": {
-        "description": {
-            "type": "string",
-            },
-        "reference": {
-            "type": "string",
-            },
-        },
-    "additionalProperties": False,
-    }
-
 schema_yaml = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "YAML parameter file",
@@ -106,25 +90,6 @@ schema_yaml = {
                 },
             "additionalProperties": False,
             },
-
-        "parameter": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    },
-                "reference": {
-                    "type": "string",
-                    },
-                "unit": {
-                    "type": "string",
-                    "enum": ['/1', 'currency', 'year'],
-                    },
-                "values": {"$ref": "#/definitions/values_history"},
-                },
-            "required": ["values"],
-            "additionalProperties": False,
-            },
         "scale": {
             "type": "object",
             "properties": {
@@ -177,7 +142,6 @@ def date_constructor(loader, node):
 yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
 
 
-validator_index = jsonschema.Draft4Validator(schema_index)
 validator_yaml = jsonschema.Draft4Validator(schema_yaml)
 
 
@@ -338,17 +302,34 @@ class ValuesHistory(object):
         self.values_list = new_values
 
 
-class Parameter(ValuesHistory):
-    """A wrapper over a `ValuesHistory` object.
-
-    Use this class to represent a parameter of the legislation. Use directly a `ValuesHistory` to represent values of a member of a scale bracket.
+class Parameter(object):
     """
-    def __init__(self, name, validated_yaml):
-        if 'description' in validated_yaml:
-            self.description = validated_yaml['description']
+        Represents a parameter of the legislation.
+    """
+    allowed_keys = set(['values', 'description', 'unit', 'reference'])
 
-        values = validated_yaml['values']
-        super(Parameter, self).__init__(name, validated_yaml=values)
+    def __init__(self, name, yaml_object):
+        self.name = name
+        self.validate(yaml_object)
+        if 'description' in yaml_object:
+            self.description = yaml_object['description']
+
+        values = yaml_object['values']
+        self.values = ValuesHistory(name, validated_yaml = values)
+
+
+    def validate(self, yaml_object):
+        keys = yaml_object.keys()
+        for key in keys:
+            if key not in self.allowed_keys:
+                raise ValueError(
+                    "Unexpected property '{}' in parameter '{}'. Allowed properties are {}."
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    )
+
+
+    def _get_at_instant(self, instant_str):
+        return self.values._get_at_instant(instant_str)
 
 
 class Bracket(object):
@@ -464,7 +445,7 @@ def _parse_child(child_name, child):
     elif 'brackets' in child:
         return Scale(child_name, child)
     else:
-        return Node(child_name, validated_yaml=child)
+        return Node(child_name, validated_yaml = child)
 
 
 # def _validate_against_schema(file_path, parsed_yaml, validator):
