@@ -317,7 +317,7 @@ def test_modify_parameters():
     def modify_parameters(reference_parameters):
         reform_parameters_subtree = Node(
             'new_node',
-            validated_yaml = {
+            yaml_object = {
                 'new_param': {
                     'values': {"2000-01-01": {'value': True}, "2015-01-01": {'value': None}}
                     },

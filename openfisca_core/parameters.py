@@ -41,42 +41,6 @@ schema_yaml = {
                     },
                 ],
             },
-        "values_history": {
-            "type": "object",
-            "patternProperties": {
-                "^\d{4}-\d{2}-\d{2}$": {
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "enum": ["expected"],
-                            },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "expected": {"$ref": "#/definitions/value"},
-                                "reference": {
-                                    "type": "string",
-                                    },
-                                },
-                            "required": ["expected"],
-                            "additionalProperties": False,
-                            },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "value": {"$ref": "#/definitions/value"},
-                                "reference": {
-                                    "type": "string",
-                                    },
-                                },
-                            "required": ["value"],
-                            "additionalProperties": False,
-                            },
-                        ],
-                    },
-                },
-            "additionalProperties": False,
-            },
         "node": {
             "type": "object",
             "patternProperties": {
@@ -143,63 +107,90 @@ class ExceptionValueIsUnknown(Exception):
 
 class ValueAtInstant(object):
     allowed_value_types = [int, float, bool, type(None)]
-    def __init__(self, name, instant_str, validated_yaml=None, value=None):
-        """A value defined for a given instant.
+    allowed_keys = set(['value', 'unit', 'reference'])
 
-        Can be instanciated from YAML data (use `validated_yaml`), or given `value`.
+    def __init__(self, name, instant_str, yaml_object = None, value = None):
+        """
+            A value defined for a given instant.
 
-        :param name: name of the parameter, eg "taxes.some_tax.some_param"
-        :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-        :param validated_yaml: Data loaded from a YAML file and validated. If set, `value` should not be set.
-        :param value: Used if and only if `validated_yaml=None`. If `value=None`, the parameter is considered not defined at instant_str.
+            Can be instanciated from YAML data (use `yaml_object`), or given `value`.
+
+            :param name: name of the parameter, eg "taxes.some_tax.some_param"
+            :param instant_str: Date of the value in the format `YYYY-MM-DD`.
+            :param yaml_object: Data loaded from a YAML file and validated. If set, `value` should not be set.
+            :param value: Used if and only if `yaml_object=None`. If `value=None`, the parameter is considered not defined at instant_str.
         """
         self.name = name
         self.instant_str = instant_str
 
-        if not validated_yaml == 'expected':
-            for key in ['expected', 'value']:
-                value = validated_yaml.get(key)
-                if type(value) not in self.allowed_value_types:
-                    raise ValueError("Invalid value in {}: {}".format(name, value).encode('utf-8'))
+        if yaml_object is None:
+            self.value = None
+            return
 
-        if validated_yaml is not None:
-            if validated_yaml == 'expected' or validated_yaml == {'expected': None}:
-                raise ExceptionValueIsUnknown()
-            elif 'expected' in validated_yaml:
-                self.value = validated_yaml['expected']
-            elif validated_yaml['value'] is None:
-                self.value = None
-            else:
-                self.value = validated_yaml['value']
+        self.validate(yaml_object)
+
+        if not isinstance(yaml_object, dict):
+            raise ValueError("'{}' must be of type object."
+                .format(self.name).encode("utf-8"))
+        try:
+            value = yaml_object['value']
+        except KeyError:
+            raise ValueError("Missing 'value' property for {}".format(name).encode('utf-8'))
+        if type(value) not in self.allowed_value_types:
+            raise ValueError("Invalid value in {}: {}".format(name, value).encode('utf-8'))
 
         else:
-            self.value = value
+            self.value = yaml_object['value']
+
+
+    def validate(self, yaml_object):
+        keys = yaml_object.keys()
+        for key in keys:
+            if key not in self.allowed_keys:
+                raise ValueError(
+                    "Unexpected property '{}' in '{}'. Allowed properties are {}."
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    )
 
     def __eq__(self, other):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
 
-class ValuesHistory(object):
-    def __init__(self, name, validated_yaml):
-        """A value defined for several periods.
 
-        :param name: name of the parameter, eg "taxes.some_tax.some_param"
-        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+# "values_history": {
+#     "type": "object",
+#     "patternProperties": {
+#         "^\d{4}-\d{2}-\d{2}$": {
+#     "additionalProperties": False,
+#             },
+
+class ValuesHistory(object):
+    def __init__(self, name, yaml_object):
+        """
+            A value defined for several periods.
+
+            :param name: name of the parameter, eg "taxes.some_tax.some_param"
+            :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
 
-        instants = sorted(validated_yaml.keys(), reverse=True)    # sort by antechronological order
-        assert len(set(instants)) == len(instants), "Instants in values history should be unique"
+        if not isinstance(yaml_object, dict):
+            raise ValueError("'{}' must be of type object."
+                .format(self.name).encode("utf-8"))
+
+        instants = sorted(yaml_object.keys(), reverse = True)  # sort by antechronological order
 
         values_list = []
         for instant_str in instants:
-            instant_info = validated_yaml[instant_str]
-            try:
-                value_at_instant = ValueAtInstant(_compose_name(name, instant_str), instant_str, validated_yaml=instant_info)
-            except ExceptionValueIsUnknown:
-                pass
-            else:
-                values_list.append(value_at_instant)
+            instant_info = yaml_object[instant_str]
+
+            #  Ignore expected values, as they are just metadata
+            if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
+                continue
+
+            name = _compose_name(name, instant_str)
+            value_at_instant = ValueAtInstant(name, instant_str, yaml_object = instant_info)
+            values_list.append(value_at_instant)
 
         self.values_list = values_list
 
@@ -249,14 +240,14 @@ class ValuesHistory(object):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    new_interval = ValueAtInstant(self.name, stop_str, validated_yaml=None, value=overlapped_value)
+                    new_interval = ValueAtInstant(self.name, stop_str, yaml_object=None, value=overlapped_value)
                     new_values.append(new_interval)
                 else:
-                    new_interval = ValueAtInstant(self.name, stop_str, validated_yaml=None, value=None)
+                    new_interval = ValueAtInstant(self.name, stop_str, yaml_object=None, value=None)
                     new_values.append(new_interval)
 
         # Insert new interval
-        new_interval = ValueAtInstant(self.name, start_str, validated_yaml=None, value=value)
+        new_interval = ValueAtInstant(self.name, start_str, yaml_object=None, value=value)
         new_values.append(new_interval)
 
         # Remove covered intervals
@@ -283,7 +274,7 @@ class Parameter(object):
         self.description = yaml_object.get('description')
 
         values = yaml_object['values']
-        self.values = ValuesHistory(name, validated_yaml = values)
+        self.values = ValuesHistory(name, yaml_object = values)
 
 
     def validate(self, yaml_object):
@@ -306,15 +297,15 @@ class Bracket(object):
     """
     allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
 
-    def __init__(self, name, validated_yaml = None):
+    def __init__(self, name, yaml_object = None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+        :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
-        self.validate(validated_yaml)
+        self.validate(yaml_object)
 
-        for key, value in validated_yaml.items():
+        for key, value in yaml_object.items():
             new_child_name = _compose_name(name, key)
             new_child = ValuesHistory(new_child_name, value)
             setattr(self, key, new_child)
@@ -440,7 +431,7 @@ def _parse_child(child_name, child):
     elif 'brackets' in child:
         return Scale(child_name, child)
     else:
-        return Node(child_name, validated_yaml = child)
+        return Node(child_name, yaml_object = child)
 
 
 # def _validate_against_schema(file_path, parsed_yaml, validator):
@@ -453,13 +444,13 @@ def _parse_child(child_name, child):
 class Node(object):
     """Node contains parameters of the legislation.
 
-    Can be instanciated from YAML data already parsed and validated (use `validated_yaml`), or given the path of a directory containing YAML files.
+    Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
-    def __init__(self, name, directory_path=None, validated_yaml=None, children=None):
+    def __init__(self, name, directory_path=None, yaml_object=None, children=None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
         :param directory_path: : Directory of YAML files describing the node. YAML files are parsed, validated and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
-        :param validated_yaml` : Data extracted from a YAML file describing a Node.
+        :param yaml_object` : Data extracted from a YAML file describing a Node.
         """
         assert isinstance(name, str)
         self.name = name
@@ -491,7 +482,7 @@ class Node(object):
 
         else:
             self.children = {}
-            for child_name, child in validated_yaml.items():
+            for child_name, child in yaml_object.items():
                 if child_name in node_keywords:
                     continue
                 child_name_expanded = _compose_name(name, child_name)
