@@ -156,21 +156,13 @@ class ValueAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
 
-
-# "values_history": {
-#     "type": "object",
-#     "patternProperties": {
-#         "^\d{4}-\d{2}-\d{2}$": {
-#     "additionalProperties": False,
-#             },
-
 class ValuesHistory(object):
     def __init__(self, name, yaml_object):
         """
             A value defined for several periods.
 
             :param name: name of the parameter, eg "taxes.some_tax.some_param"
-            :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+            :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
 
@@ -182,6 +174,10 @@ class ValuesHistory(object):
 
         values_list = []
         for instant_str in instants:
+            if not instant_pattern.match(instant_str):
+                raise ValueError("Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
+                .format(instant_str, self.name).encode('utf-8'))
+
             instant_info = yaml_object[instant_str]
 
             #  Ignore expected values, as they are just metadata
