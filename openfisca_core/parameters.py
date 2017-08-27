@@ -55,11 +55,23 @@ class ParameterNotFound(Exception):
         super(ParameterNotFound, self).__init__(message)
 
 
+class ParameterParsingError(Exception):
+
+    def __init__(self, message, file = None):
+        if file is not None:
+            message = (
+                "Error parsing parameter file '{}':".format(file)
+                + os.linesep
+                + message
+                ).encode('utf-8')
+        super(ParameterParsingError, self).__init__(message)
+
+
 class ValueAtInstant(object):
     allowed_value_types = [int, float, bool, type(None)]
     allowed_keys = set(['value', 'unit', 'reference'])
 
-    def __init__(self, name, instant_str, yaml_object = None, value = None):
+    def __init__(self, name, instant_str, yaml_object = None, value = None, file_path = None):
         """
             A value defined for a given instant.
 
@@ -72,6 +84,7 @@ class ValueAtInstant(object):
         """
         self.name = name
         self.instant_str = instant_str
+        self.file_path = file_path
 
         if yaml_object is None:
             self.value = None
@@ -80,14 +93,22 @@ class ValueAtInstant(object):
         self.validate(yaml_object)
 
         if not isinstance(yaml_object, dict):
-            raise ValueError("'{}' must be of type object."
-                .format(self.name).encode("utf-8"))
+            raise ParameterParsingError(
+                "'{}' must be of type object.".format(self.name).encode("utf-8"),
+                file_path
+                )
         try:
             value = yaml_object['value']
         except KeyError:
-            raise ValueError("Missing 'value' property for {}".format(name).encode('utf-8'))
+            raise ParameterParsingError(
+                "Missing 'value' property for {}".format(name).encode('utf-8'),
+                file_path
+                )
         if type(value) not in self.allowed_value_types:
-            raise ValueError("Invalid value in {}: {}".format(name, value).encode('utf-8'))
+            raise ParameterParsingError(
+                "Invalid value in {} : {}".format(name, value).encode('utf-8'),
+                file_path
+                )
 
         else:
             self.value = yaml_object['value']
@@ -97,9 +118,10 @@ class ValueAtInstant(object):
         keys = yaml_object.keys()
         for key in keys:
             if key not in self.allowed_keys:
-                raise ValueError(
+                raise ParameterParsingError(
                     "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8'),
+                    self.file_path
                     )
 
     def __eq__(self, other):
@@ -107,7 +129,7 @@ class ValueAtInstant(object):
 
 
 class ValuesHistory(object):
-    def __init__(self, name, yaml_object):
+    def __init__(self, name, yaml_object, file_path):
         """
             A value defined for several periods.
 
@@ -117,16 +139,19 @@ class ValuesHistory(object):
         self.name = name
 
         if not isinstance(yaml_object, dict):
-            raise ValueError("'{}' must be of type object."
-                .format(self.name).encode("utf-8"))
+            raise ParameterParsingError(
+                "'{}' must be of type object.".format(self.name).encode("utf-8"),
+                file_path)
 
         instants = sorted(yaml_object.keys(), reverse = True)  # sort by antechronological order
 
         values_list = []
         for instant_str in instants:
             if not instant_pattern.match(instant_str):
-                raise ValueError("Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
-                .format(instant_str, self.name).encode('utf-8'))
+                raise ParameterParsingError(
+                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
+                .format(instant_str, self.name).encode('utf-8'),
+                file_path)
 
             instant_info = yaml_object[instant_str]
 
@@ -135,7 +160,7 @@ class ValuesHistory(object):
                 continue
 
             name = _compose_name(name, instant_str)
-            value_at_instant = ValueAtInstant(name, instant_str, yaml_object = instant_info)
+            value_at_instant = ValueAtInstant(name, instant_str, yaml_object = instant_info, file_path = file_path)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -214,22 +239,24 @@ class Parameter(object):
     """
     allowed_keys = set(['values', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, yaml_object):
+    def __init__(self, name, yaml_object, file_path):
         self.name = name
+        self.file_path = file_path
         self.validate(yaml_object)
         self.description = yaml_object.get('description')
 
         values = yaml_object['values']
-        self.values = ValuesHistory(name, yaml_object = values)
+        self.values = ValuesHistory(name, yaml_object = values, file_path = file_path)
 
 
     def validate(self, yaml_object):
         keys = yaml_object.keys()
         for key in keys:
             if key not in self.allowed_keys:
-                raise ValueError(
+                raise ParameterParsingError(
                     "Unexpected property '{}' in parameter '{}'. Allowed properties are {}."
-                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8'),
+                    self.file_path
                     )
 
 
@@ -243,7 +270,7 @@ class Bracket(object):
     """
     allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
 
-    def __init__(self, name, yaml_object = None):
+    def __init__(self, name, yaml_object = None, file_path = None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
@@ -253,14 +280,14 @@ class Bracket(object):
 
         for key, value in yaml_object.items():
             new_child_name = _compose_name(name, key)
-            new_child = ValuesHistory(new_child_name, value)
+            new_child = ValuesHistory(new_child_name, value, file_path)
             setattr(self, key, new_child)
 
     def validate(self, yaml_object):
         keys = yaml_object.keys()
         for key in keys:
             if key not in self.allowed_keys:
-                raise ValueError(
+                raise ParameterParsingError(
                     "Unexpected property '{}' in bracket '{}'. Allowed properties are {}."
                     .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
                     )
@@ -296,19 +323,20 @@ class Scale(object):
     """
     allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, yaml_object):
+    def __init__(self, name, yaml_object, file_path):
         """
         :param name: name of the scale, eg "taxes.some_scale"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
+        self.file_path = file_path
         self.validate(yaml_object)
         self.description = yaml_object.get('description')
 
         brackets = []
         for i, bracket_data in enumerate(yaml_object['brackets']):
             bracket_name = _compose_name(name, i)
-            bracket = Bracket(bracket_name, bracket_data)
+            bracket = Bracket(bracket_name, bracket_data, file_path)
             brackets.append(bracket)
         self.brackets = brackets
 
@@ -316,15 +344,17 @@ class Scale(object):
         keys = yaml_object.keys()
         for key in keys:
             if key not in self.allowed_keys:
-                raise ValueError(
+                raise ParameterParsingError(
                     "Unexpected property '{}' in scale '{}'. Allowed properties are {}."
-                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8'),
+                    self.file_path
                     )
 
         if not isinstance(yaml_object['brackets'], list):
-            raise ValueError(
+            raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be a list."
-                .format(self.name).encode('utf-8')
+                .format(self.name).encode('utf-8'),
+                self.file_path
                 )
 
     def _get_at_instant(self, instant_str):
@@ -371,20 +401,20 @@ class Scale(object):
             raise KeyError(key)
 
 
-def _parse_child(child_name, child):
+def _parse_child(child_name, child, child_path):
     if 'values' in child:
-        return Parameter(child_name, child)
+        return Parameter(child_name, child, child_path)
     elif 'brackets' in child:
-        return Scale(child_name, child)
+        return Scale(child_name, child, child_path)
     else:
-        return Node(child_name, yaml_object = child)
+        return Node(child_name, yaml_object = child, file_path = child_path)
 
 
 # def _validate_against_schema(file_path, parsed_yaml, validator):
 #     try:
 #         validator.validate(parsed_yaml)
 #     except jsonschema.exceptions.ValidationError:
-#         raise ValueError('Invalid parameter file {}'.format(file_path))
+#         raise ParameterParsingError('Invalid parameter file {}'.format(file_path))
 
 
 class Node(object):
@@ -392,13 +422,12 @@ class Node(object):
 
     Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
-    def __init__(self, name, directory_path = None, yaml_object = None, children = None):
+    def __init__(self, name, directory_path = None, yaml_object = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
         :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
         :param yaml_object` : Data extracted from a YAML file describing a Node.
         """
-        assert isinstance(name, str)
         self.name = name
 
         if directory_path:
@@ -415,14 +444,12 @@ class Node(object):
                         pass
                     else:
                         child_name_expanded = _compose_name(name, child_name)
-                        self.children[child_name] = _parse_child(child_name_expanded, data)
+                        self.children[child_name] = _parse_child(child_name_expanded, data, child_path)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = _compose_name(name, child_name)
-                    self.children[child_name] = Node(child_name_expanded, directory_path=child_path)
-                else:
-                    raise ValueError('Unexpected item {}'.format(child_path))
+                    self.children[child_name] = Node(child_name_expanded, directory_path = child_path)
 
         else:
             self.children = {}
@@ -516,15 +543,15 @@ def load_parameters(path_list):
     :param path_list: List of absolute paths.
     '''
 
-    assert len(path_list) >= 1, 'Trying to load parameters with no YAML directory given !'
-
+    if not len(path_list) >= 1:
+        raise ValueError('Trying to load parameters with no YAML directory given !')
 
     parameter_trees = []
     for path in path_list:
-        parameter_tree = Node('', directory_path=path)
+        parameter_tree = Node('', directory_path = path)
         parameter_trees.append(parameter_tree)
 
-    base_parameter_tree = parameter_trees[0]
+    base_parameter_tree = parameter_trees[0]  # is this really useful ?
     for i in range(1, len(parameter_trees)):
         parameter_tree = parameter_trees[i]
         base_parameter_tree._merge(parameter_tree)
