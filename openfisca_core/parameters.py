@@ -90,37 +90,6 @@ schema_yaml = {
                 },
             "additionalProperties": False,
             },
-        "scale": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string",
-                    },
-                "reference": {
-                    "type": "string",
-                    },
-                "unit": {
-                    "type": "string",
-                    "enum": ['/1', 'currency', 'year'],
-                    },
-                "brackets": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "amount": {"$ref": "#/definitions/values_history"},
-                            "threshold": {"$ref": "#/definitions/values_history"},
-                            "rate": {"$ref": "#/definitions/values_history"},
-                            "average_rate": {"$ref": "#/definitions/values_history"},
-                            "base": {"$ref": "#/definitions/values_history"},
-                            },
-                        "additionalProperties": False,
-                        },
-                    },
-                },
-            "required": ["brackets"],
-            "additionalProperties": False,
-            },
         "node_or_parameter_of_scale": {
             "anyOf": [
                 {"$ref": "#/definitions/node"},
@@ -311,8 +280,7 @@ class Parameter(object):
     def __init__(self, name, yaml_object):
         self.name = name
         self.validate(yaml_object)
-        if 'description' in yaml_object:
-            self.description = yaml_object['description']
+        self.description = yaml_object.get('description')
 
         values = yaml_object['values']
         self.values = ValuesHistory(name, validated_yaml = values)
@@ -333,23 +301,32 @@ class Parameter(object):
 
 
 class Bracket(object):
-    """A bracket of a scale.
     """
-    def __init__(self, name, validated_yaml=None):
+        A sclale bracket.
+    """
+    allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
+
+    def __init__(self, name, validated_yaml = None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
         :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
+        self.validate(validated_yaml)
 
         for key, value in validated_yaml.items():
-            if key in {'amount', 'rate', 'average_rate', 'threshold', 'base'}:
-                new_child_name = _compose_name(name, key)
-                new_child = ValuesHistory(new_child_name, value)
-                setattr(self, key, new_child)
-            else:
-                raise ValueError("Invalid bracket attribute in {}: {}".format(name, key).encode('utf-8'))
+            new_child_name = _compose_name(name, key)
+            new_child = ValuesHistory(new_child_name, value)
+            setattr(self, key, new_child)
 
+    def validate(self, yaml_object):
+        keys = yaml_object.keys()
+        for key in keys:
+            if key not in self.allowed_keys:
+                raise ValueError(
+                    "Unexpected property '{}' in bracket '{}'. Allowed properties are {}."
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    )
 
     def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
@@ -377,23 +354,41 @@ class BracketAtInstant(object):
 
 
 class Scale(object):
-    """A scale.
     """
-    def __init__(self, name, validated_yaml):
+        A scale.
+    """
+    allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
+
+    def __init__(self, name, yaml_object):
         """
         :param name: name of the scale, eg "taxes.some_scale"
-        :param validated_yaml: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
+        :param yaml_object: Data loaded from a YAML file and validated. In case of a reform, the data can also be created dynamically.
         """
         self.name = name
-        if 'description' in validated_yaml:
-            self.description = validated_yaml['description']
+        self.validate(yaml_object)
+        self.description = yaml_object.get('description')
 
         brackets = []
-        for i, bracket_data in enumerate(validated_yaml['brackets']):
+        for i, bracket_data in enumerate(yaml_object['brackets']):
             bracket_name = _compose_name(name, i)
             bracket = Bracket(bracket_name, bracket_data)
             brackets.append(bracket)
         self.brackets = brackets
+
+    def validate(self, yaml_object):
+        keys = yaml_object.keys()
+        for key in keys:
+            if key not in self.allowed_keys:
+                raise ValueError(
+                    "Unexpected property '{}' in scale '{}'. Allowed properties are {}."
+                    .format(key, self.name, list(self.allowed_keys)).encode('utf-8')
+                    )
+
+        if not isinstance(yaml_object['brackets'], list):
+            raise ValueError(
+                "Property 'brackets' of scale '{}' must be a list."
+                .format(self.name).encode('utf-8')
+                )
 
     def _get_at_instant(self, instant_str):
         brackets = [bracket._get_at_instant(instant_str) for bracket in self.brackets]
