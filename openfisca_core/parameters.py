@@ -102,7 +102,7 @@ class ValueAtInstant(AbstractParameter):
     allowed_keys = set(['value', 'unit', 'reference'])
     type = dict
 
-    def __init__(self, name, instant_str, yaml_object = None, value = None, file_path = None):
+    def __init__(self, name, instant_str, yaml_object = None, file_path = None):
         """
             A value defined for a given instant.
 
@@ -111,7 +111,6 @@ class ValueAtInstant(AbstractParameter):
             :param name: name of the parameter, eg "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
             :param yaml_object: Data loaded from a YAML file. If set, `value` should not be set.
-            :param value: Used if and only if `yaml_object=None`. If `value=None`, the parameter is considered not defined at instant_str.
         """
         self.name = name
         self.instant_str = instant_str
@@ -141,6 +140,9 @@ class ValueAtInstant(AbstractParameter):
 
     def __eq__(self, other):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
+
+    def __repr__(self):
+        return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
 class ValuesHistory(AbstractParameter):
@@ -174,8 +176,8 @@ class ValuesHistory(AbstractParameter):
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
                 continue
 
-            name = _compose_name(name, instant_str)
-            value_at_instant = ValueAtInstant(name, instant_str, yaml_object = instant_info, file_path = file_path)
+            value_name = _compose_name(name, instant_str)
+            value_at_instant = ValueAtInstant(value_name, instant_str, yaml_object = instant_info, file_path = file_path)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -192,7 +194,7 @@ class ValuesHistory(AbstractParameter):
                 return value_at_instant.value
         return None
 
-    def update(self, period=None, start=None, stop=None, value=None):
+    def update(self, period = None, start = None, stop = None, value = None):
         """Change the value for a given period.
 
         :param period: Period where the value is modified. If set, `start` and `stop` should be `None`.
@@ -226,14 +228,17 @@ class ValuesHistory(AbstractParameter):
             else:
                 if i < n:
                     overlapped_value = old_values[i].value
-                    new_interval = ValueAtInstant(self.name, stop_str, yaml_object=None, value=overlapped_value)
+                    value_name = _compose_name(self.name, stop_str)
+                    new_interval = ValueAtInstant(value_name, stop_str, yaml_object = {'value': overlapped_value})
                     new_values.append(new_interval)
                 else:
-                    new_interval = ValueAtInstant(self.name, stop_str, yaml_object=None, value=None)
+                    value_name = _compose_name(self.name, stop_str)
+                    new_interval = ValueAtInstant(value_name, stop_str, yaml_object = {'value': None})
                     new_values.append(new_interval)
 
         # Insert new interval
-        new_interval = ValueAtInstant(self.name, start_str, yaml_object=None, value=value)
+        value_name = _compose_name(self.name, start_str)
+        new_interval = ValueAtInstant(value_name, start_str, yaml_object = {'value': value})
         new_values.append(new_interval)
 
         # Remove covered intervals
@@ -279,8 +284,6 @@ class Bracket(AbstractParameter):
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         """
-        # if not isinstance(yaml_object, dict):
-        #     import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
         self.name = name
         self.file_path = file_path
         self.validate(yaml_object)
