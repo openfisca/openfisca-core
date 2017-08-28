@@ -331,27 +331,6 @@ class TaxBenefitSystem(object):
 
         self.parameters = parameters
 
-    def get_parameters(self):
-        """
-        Get the legislation parameters of the tax benefit system.
-
-        :returns: The legislation parameters for all the dates.
-        """
-        return self.parameters
-
-    def get_legislation(self):
-        """
-        DEPRECATED
-        Get the legislation parameters of the tax benefit system.
-        
-        Retro-compatibility function for: 
-        - https://github.com/openfisca/openfisca-web-api
-        - And deprecated https://github.com/openfisca/openfisca-parsers
-        
-        :returns: get_parameters()
-        """
-        return self.get_parameters()
-
     def _get_baseline_parameters_at_instant(self, instant):
         baseline = self.baseline
         if baseline is None:
@@ -365,7 +344,7 @@ class TaxBenefitSystem(object):
         :returns: The parameters of the legislation at a given instant.
         """
 
-        parameters = self.get_parameters()
+        parameters = self.parameters
         instant_str = str(instant)
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and parameters is not None:

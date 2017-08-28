@@ -7,7 +7,7 @@ from test_countries import tax_benefit_system
 
 
 def test_get_at_instant():
-    parameters = tax_benefit_system.get_parameters()
+    parameters = tax_benefit_system.parameters
     assert isinstance(parameters, ParameterNode), parameters
     parameters_at_instant = parameters._get_at_instant('2016-01-01')
     assert isinstance(parameters_at_instant, ParameterNodeAtInstant), parameters_at_instant

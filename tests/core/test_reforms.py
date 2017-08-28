@@ -332,7 +332,7 @@ def test_modify_parameters():
 
     reform = test_modify_parameters(tax_benefit_system)
 
-    parameters_new_node = reform.get_parameters().children['new_node']
+    parameters_new_node = reform.parameters.children['new_node']
     assert parameters_new_node is not None
 
     instant = Instant((2013, 1, 1))

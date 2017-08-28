@@ -43,7 +43,7 @@ class Reform(TaxBenefitSystem):
         :param baseline: Baseline TaxBenefitSystem.
         """
         self.baseline = baseline
-        self.parameters = baseline.get_parameters()
+        self.parameters = baseline.parameters
         self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
@@ -73,14 +73,13 @@ class Reform(TaxBenefitSystem):
 
         :param modifier_function: A function that takes an object of type :any:`ParameterNode` and should return an object of the same type.
         """
-        baseline_parameters = self.baseline.get_parameters()
+        baseline_parameters = self.baseline.parameters
         baseline_parameters_copy = copy.deepcopy(baseline_parameters)
         reform_parameters = modifier_function(baseline_parameters_copy)
         if not isinstance(reform_parameters, ParameterNode):
             return ValueError(
-                'modifier_function {} in module {} must return a ParameterNode'.format(
-                modifier_function.__name__,
-                modifier_function.__module__,
-                ))
+                'modifier_function {} in module {} must return a ParameterNode'
+                .format(modifier_function.__name__, modifier_function.__module__,)
+                )
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}

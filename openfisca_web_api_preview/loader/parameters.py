@@ -72,7 +72,7 @@ def walk_node(node, parameters, path_fragments):
 
 
 def build_parameters(tax_benefit_system):
-    original_parameters = tax_benefit_system.get_parameters()
+    original_parameters = tax_benefit_system.parameters
     transformed_parameters = []
     walk_node(
         original_parameters,

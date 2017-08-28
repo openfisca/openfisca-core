@@ -263,10 +263,6 @@ class Simulation(object):
             return self._get_baseline_parameters_at_instant(instant)
         return self._get_parameters_at_instant(instant)
 
-    def legislation_at(self, instant, use_baseline = False):
-        '"Legislation" is the old and deprecated way to call parameters. Use parameters_at() instead.'
-        return self.parameters_at(instant, use_baseline)
-
     def find_traceback_step(self, variable_name, period):
         assert isinstance(period, periods.Period), period
         column = self.tax_benefit_system.get_column(variable_name, check_existence=True)
