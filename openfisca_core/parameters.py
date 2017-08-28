@@ -22,7 +22,8 @@ except ImportError:
     from yaml import Loader
 
 
-instant_pattern = re.compile("^\d{4}-\d{2}-\d{2}$")
+PARAM_FILE_EXTENSIONS = set(['.yaml', '.yml'])
+INSTANT_PATTERN = re.compile("^\d{4}-\d{2}-\d{2}$")
 
 
 def date_constructor(loader, node):
@@ -146,7 +147,7 @@ class ValuesHistory(object):
 
         values_list = []
         for instant_str in instants:
-            if not instant_pattern.match(instant_str):
+            if not INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
                     "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                     .format(instant_str, self.name).encode('utf-8'),
@@ -412,6 +413,7 @@ class Node(object):
 
     Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
+
     def __init__(self, name, directory_path = None, yaml_object = None, file_path = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
@@ -426,7 +428,9 @@ class Node(object):
                 child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
                     child_name, ext = os.path.splitext(child_name)
-                    assert ext == '.yaml', "The parameter directory should contain only YAML files."
+                    if ext not in PARAM_FILE_EXTENSIONS:
+                        log.info("Ignoring file '{}'. Only YAML parameters files are parsed.".format(child_path).encode('utf-8'))
+                        pass
                     with open(child_path, 'r') as f:
                         data = yaml.load(f, Loader = Loader)
 
@@ -523,7 +527,7 @@ class NodeAtInstant(object):
 
 def _compose_name(path, child_name):
     if path:
-        if isinstance(child_name, int)or instant_pattern.match(child_name):
+        if isinstance(child_name, int)or INSTANT_PATTERN.match(child_name):
             return '{}[{}]'.format(path, child_name)
         return '{}.{}'.format(path, child_name)
     else:
