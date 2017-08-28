@@ -290,6 +290,9 @@ class Parameter(AbstractParameter):
     def _get_at_instant(self, instant_str):
         return self.values_history._get_at_instant(instant_str)
 
+    def update(self, **args):
+        return self.values_history.update(**args)
+
 
 class Bracket(AbstractParameter):
     """
