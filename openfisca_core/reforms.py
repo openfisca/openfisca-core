@@ -7,30 +7,34 @@ from .taxbenefitsystems import TaxBenefitSystem
 
 
 class Reform(TaxBenefitSystem):
-    """A modified TaxBenefitSystem
+    """
+        A modified TaxBenefitSystem
 
-    In OpenFisca, a reform is a modified TaxBenefitSystem. It can add or replace variables and call `self.modify_parameters()` to modify the parameters of the legislation. All reforms must subclass `Reform` and implement a math `apply()`. Such a function can add or replace variables and call `self.modify_parameters()` to modify the parameters of the legislation.
 
-    Example:
+        All reforms must subclass `Reform` and implement a method `apply()`.
 
-    >>> from openfisca_core import reforms
-    >>> from openfisca_core.parameters import load_parameter_file
-    >>>
-    >>> def modify_my_parameters(parameters):
-    >>>     # Add new parameters
-    >>>     new_parameters = load_parameter_file(name='reform_name', file_path='path_to_yaml_file.yaml')
-    >>>     parameters.add_child('reform_name', new_parameters)
-    >>>
-    >>>     # Update a value
-    >>>     parameters.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
-    >>>
-    >>>    return parameters
-    >>>
-    >>> class MyReform(reforms.Reform):
-    >>>    def apply(self):
-    >>>        self.add_variable(some_variable)
-    >>>        self.update_variable(some_other_variable)
-    >>>        self.modify_parameters(modifier_function=modify_my_parameters)
+        In this method, the reform can add or replace variables and call :any:`modify_parameters` to modify the parameters of the legislation.
+
+        Example:
+
+        >>> from openfisca_core import reforms
+        >>> from openfisca_core.parameters import load_parameter_file
+        >>>
+        >>> def modify_my_parameters(parameters):
+        >>>     # Add new parameters
+        >>>     new_parameters = load_parameter_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+        >>>     parameters.add_child('reform_name', new_parameters)
+        >>>
+        >>>     # Update a value
+        >>>     parameters.taxes.some_tax.some_param.update(period=some_period, value=1000.0)
+        >>>
+        >>>    return parameters
+        >>>
+        >>> class MyReform(reforms.Reform):
+        >>>    def apply(self):
+        >>>        self.add_variable(some_variable)
+        >>>        self.update_variable(some_other_variable)
+        >>>        self.modify_parameters(modifier_function = modify_my_parameters)
     """
     name = None
 
@@ -67,7 +71,7 @@ class Reform(TaxBenefitSystem):
 
         Call this function in `apply()` if the reform asks for legislation parameter modifications.
 
-        :param modifier_function: A function that takes an object of type `openfisca_core.parameters.Node` and should return an object of the same type.
+        :param modifier_function: A function that takes an object of type :any:`ParameterNode` and should return an object of the same type.
         """
         baseline_parameters = self.baseline.get_parameters()
         baseline_parameters_copy = copy.deepcopy(baseline_parameters)
