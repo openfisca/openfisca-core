@@ -38,6 +38,7 @@ def test_parsing_errors():
         ('wrong_type_in_scale', {'must be of type object'}),
         ('wrong_type_in_brackets', {'must be of type array'}),
         ('wrong_type_in_bracket', {'must be of type object'}),
+        ('missing_value', {'missing', 'value'}),
         ]
 
     for test in tests:
