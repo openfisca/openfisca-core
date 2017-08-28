@@ -240,7 +240,7 @@ class TaxBenefitSystem(object):
         param_dir = path.join(extension_directory, 'parameters')
         if path.isdir(param_dir):
             extension_parameters = ParameterNode(directory_path = param_dir)
-            self._parameters._merge(extension_parameters)
+            self._parameters.merge(extension_parameters)
 
     def apply_reform(self, reform_path):
         """

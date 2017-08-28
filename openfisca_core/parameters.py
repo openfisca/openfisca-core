@@ -44,8 +44,6 @@ class ParameterNotFound(Exception):
         :param instant_str: Instant where the parameter does not exist, in the format `YYYY-MM-DD`.
         :param variable_name: If the parameter was queried during the computation of a variable, name of that variable.
         """
-        assert name is not None
-        assert instant_str is not None
         self.name = name
         self.instant_str = instant_str
         self.variable_name = variable_name
@@ -82,16 +80,16 @@ class ParameterParsingError(Exception):
 
 class AbstractParameter(object):
     allowed_keys = None
-    type = None
+    _yaml_object_type = None
     type_map = {
         dict: 'object',
         list: 'array',
         }
 
     def validate(self, yaml_object):
-        if self.type is not None and not isinstance(yaml_object, self.type):
+        if self._yaml_object_type is not None and not isinstance(yaml_object, self._yaml_object_type):
             raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, self.type_map[self.type]).encode("utf-8"),
+                "'{}' must be of type {}.".format(self.name, self.type_map[self._yaml_object_type]).encode("utf-8"),
                 self.file_path
                 )
 
@@ -107,12 +105,13 @@ class AbstractParameter(object):
 
 
 class ValueAtInstant(AbstractParameter):
-    allowed_value_types = [int, float, bool, type(None)]
     """
         A value of a parameter at a given instant.
     """
+
+    allowed_value_yaml_object_types = [int, float, bool, type(None)]
     allowed_keys = set(['value', 'unit', 'reference'])
-    type = dict
+    _yaml_object_type = dict
 
     def __init__(self, name, instant_str, yaml_object = None, file_path = None):
         """
@@ -140,7 +139,7 @@ class ValueAtInstant(AbstractParameter):
                 "Missing 'value' property for {}".format(self.name).encode('utf-8'),
                 self.file_path
                 )
-        if type(value) not in self.allowed_value_types:
+        if type(value) not in self.allowed_value_yaml_object_types:
             raise ParameterParsingError(
                 "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
                 self.file_path
@@ -154,13 +153,9 @@ class ValueAtInstant(AbstractParameter):
 
 
 class ValuesHistory(AbstractParameter):
-    type = dict
     """
         This history of a parameter values.
 
-    def __init__(self, name, yaml_object, file_path = None):
-        """
-            A value defined for several periods.
         :param name: name of the parameter, eg "taxes.some_tax.some_param"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
 
@@ -168,6 +163,10 @@ class ValuesHistory(AbstractParameter):
 
            List of the values, in anti-chronological order
     """
+
+    _yaml_object_type = dict
+
+    def __init__(self, name, yaml_object, file_path = None):
         self.name = name
         self.file_path = file_path
 
@@ -216,10 +215,12 @@ class ValuesHistory(AbstractParameter):
         :param value: New value. If `None`, the parameter is removed from the legislation parameters for the given period.
         """
         if period is not None:
-            assert start is None and stop is None, u'period parameter can\'t be used with start and stop'
+            if start is not None and stop is not None:
+                raise ValueError(u"period parameter can't be used with start and stop")
             start = period.start
             stop = period.stop
-        assert start is not None, u'start must be provided, or period'
+        if start is None:
+            raise ValueError("You must provide either a start or a period")
         start_str = str(start)
         stop_str = str(stop.offset(1, 'day')) if stop else None
 
@@ -272,7 +273,6 @@ class Parameter(AbstractParameter):
     """
     allowed_keys = set(['values', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, yaml_object, file_path):
     def __init__(self, name, yaml_object, file_path = None):
         """
             :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
@@ -296,7 +296,7 @@ class Bracket(AbstractParameter):
         A scale bracket.
     """
     allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
-    type = dict
+    _yaml_object_type = dict
 
     def __init__(self, name, yaml_object = None, file_path = None):
         """
@@ -422,13 +422,11 @@ def _parse_child(child_name, child, child_path):
 
 
 class ParameterNode(AbstractParameter):
-    type = dict
     """
         A node in the legislation `parameter tree <https://doc.openfisca.fr/coding-the-legislation/legislation_parameters.html>`_.
     """
     _yaml_object_type = dict
 
-    def __init__(self, name = '', directory_path = None, yaml_object = None, file_path = None):
     def __init__(self, name = "", directory_path = None, yaml_object = None, file_path = None):
         """
         Instanciate a ParameterNode either from a dict, (using `yaml_object`), or from a directory containing YAML files (using `directory_path`).
@@ -488,8 +486,10 @@ class ParameterNode(AbstractParameter):
         :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
         :param child: The new child, an instance of :any:`Scale` or :any:`Parameter` or :any:`ParameterNode`.
         """
-        assert name not in self.children
-        assert isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)
+        if name in self.children:
+            raise ValueError("{} has already a child named {}".format(self.name, name)).encode('utf-8')
+        if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)):
+            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)).encode('utf-8'))
         self.children[name] = child
 
     def __getattr__(self, key):
