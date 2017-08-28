@@ -353,7 +353,7 @@ class Scale(object):
 
         if not isinstance(yaml_object['brackets'], list):
             raise ParameterParsingError(
-                "Property 'brackets' of scale '{}' must be a list."
+                "Property 'brackets' of scale '{}' must be of type array."
                 .format(self.name).encode('utf-8'),
                 self.file_path
                 )
@@ -501,7 +501,7 @@ def load_parameter_file(file_path, name = ''):
     with open(file_path, 'r') as f:
         try:
             data = yaml.load(f, Loader = Loader)
-        except yaml.scanner.ScannerError:
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(
                 "Invalid YAML. Check the traceback above for more details.",
