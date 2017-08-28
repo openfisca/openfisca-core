@@ -452,9 +452,9 @@ class ParameterNode(AbstractParameter):
                 child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
                     child_name, ext = os.path.splitext(child_name)
-                    if ext not in PARAM_FILE_EXTENSIONS:
-                        log.info("Ignoring file '{}'. Only YAML parameters files are parsed.".format(child_path).encode('utf-8'))
-                        pass
+                    # We ignore non-YAML files, and index.yaml files, curently used to store metadatas
+                    if ext not in PARAM_FILE_EXTENSIONS or child_name == 'index':
+                        continue
 
                     child_name_expanded = _compose_name(name, child_name)
                     child = load_parameter_file(child_path, child_name_expanded)
@@ -472,6 +472,7 @@ class ParameterNode(AbstractParameter):
             self.file_path = file_path
             self.validate(data)
             self.children = {}
+            data.pop('description', None)  # We allow to set a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
             for child_name, child in data.items():
                 child_name_expanded = _compose_name(name, child_name)
                 child = _parse_child(child_name_expanded, child, file_path)
