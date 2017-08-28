@@ -457,12 +457,16 @@ class ParameterNode(AbstractParameter):
                         pass
 
                     child_name_expanded = _compose_name(name, child_name)
-                    self.children[child_name] = load_parameter_file(child_path, child_name_expanded)
+                    child = load_parameter_file(child_path, child_name_expanded)
+                    self.children[child_name] = child
+                    setattr(self, child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = _compose_name(name, child_name)
-                    self.children[child_name] = ParameterNode(child_name_expanded, directory_path = child_path)
+                    child = ParameterNode(child_name_expanded, directory_path = child_path)
+                    self.children[child_name] = child
+                    setattr(self, child_name, child)
 
         else:
             self.file_path = file_path
@@ -470,7 +474,9 @@ class ParameterNode(AbstractParameter):
             self.children = {}
             for child_name, child in data.items():
                 child_name_expanded = _compose_name(name, child_name)
-                self.children[child_name] = _parse_child(child_name_expanded, child, file_path)
+                child = _parse_child(child_name_expanded, child, file_path)
+                self.children[child_name] = child
+                setattr(self, child_name, child)
 
     def _get_at_instant(self, instant_str):
         return ParameterNodeAtInstant(self.name, self, instant_str)
@@ -496,15 +502,7 @@ class ParameterNode(AbstractParameter):
         if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)):
             raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)).encode('utf-8'))
         self.children[name] = child
-
-    def __getattr__(self, key):
-        if not hasattr(self, 'children'):   # during deserialization, self.children does not yet exist
-            raise AttributeError(key)
-
-        if key in self.children:
-            return self.children[key]
-        else:
-            raise AttributeError(key)
+        setattr(self, name, child)
 
 
 def load_parameter_file(file_path, name = ''):
@@ -543,25 +541,26 @@ class ParameterNodeAtInstant(object):
         :param node: Original :any:`ParameterNode` instance.
         :param instant_str: A date in the format `YYYY-MM-DD`.
         """
-        self.name = name
-        self.instant_str = instant_str
-        self.children = {}
+
+        # The "technical" attributes are hidden, so that the node children can be easily browsed with auto-completion without pollution
+        self._name = name
+        self._instant_str = instant_str
+        self._children = {}
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
-                self.children[child_name] = child_at_instant
+                self._children[child_name] = child_at_instant
+                setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
-        if key not in self.children:
-            param_name = _compose_name(self.name, key)
-            raise ParameterNotFound(param_name, self.instant_str)
-        return self.children[key]
+        param_name = _compose_name(self._name, key)
+        raise ParameterNotFound(param_name, self._instant_str)
 
     def __getitem__(self, key):  # deprecated
         return getattr(self, key)
 
     def __iter__(self):
-        return iter(self.children)
+        return iter(self._children)
 
 
 def _compose_name(path, child_name):
