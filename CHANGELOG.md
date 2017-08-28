@@ -120,7 +120,6 @@
 * Remove parameter `legislation_json` in constructor
 * Remove methods/attributes:
   - `compact_legislation_by_instant_cache`
-  - `get_compact_legislation`
   - `get_baseline_compact_legislation`
   - `compute_legislation`
   - `get_legislation`
@@ -128,6 +127,7 @@
 * Rename
   - `preprocess_legislation` -> `preprocess_parameters`
   - `add_legislation_params` -> `load_parameters`
+  - `get_compact_legislation` -> `get_parameters_at_instant`
     + The signature of the method has changed. Check the [documentation](http://openfisca.readthedocs.io/en/latest/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.load_parameters).
 
 ##### Simulation
@@ -185,7 +185,7 @@
   - `Simulation.get_compact_legislation()` -> `Simulation._get_parameters_at_instant()`
   - `Simulation.get_baseline_compact_legislation()` -> `Simulation._get_baseline_parameters_at_instant()`
 
-* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem._get_parameters_at_instant()`). This parameter had no effect.
+* The optionnal parameter `traced_simulation` is removed in function `TaxBenefitSystem.get_compact_legislation()` (now `TaxBenefitSystem.get_parameters_at_instant()`). This parameter had no effect.
 
 * The optional parameter `with_source_file_infos` is removed in functions `TaxBenefitSystem.compute_legislation()` (now `TaxBenefitSystem._compute_parameters()`) and `TaxBenefitSystem.get_legislation()`. This parameter had no effect.
 

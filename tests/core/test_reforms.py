@@ -336,5 +336,5 @@ def test_modify_parameters():
     assert parameters_new_node is not None
 
     instant = Instant((2013, 1, 1))
-    parameters_at_instant = reform._get_parameters_at_instant(instant)
+    parameters_at_instant = reform.get_parameters_at_instant(instant)
     assert parameters_at_instant.new_node.new_param is True

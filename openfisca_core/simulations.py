@@ -213,7 +213,7 @@ class Simulation(object):
     def _get_parameters_at_instant(self, instant):
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None:
-            parameters_at_instant = self.tax_benefit_system._get_parameters_at_instant(instant)
+            parameters_at_instant = self.tax_benefit_system.get_parameters_at_instant(instant)
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
