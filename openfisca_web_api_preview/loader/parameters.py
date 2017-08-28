@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from openfisca_core.parameters import Parameter, ParameterNode, Scale
+
 
 def transform_values_history(values_history):
     values_history_transformed = {}
@@ -56,17 +58,16 @@ def walk_node(node, parameters, path_fragments):
     children = node.children
 
     for child_name, child in children.items():
-        child_type = type(child).__name__
-        if child_type == 'ParameterNode':
+        if isinstance(child, ParameterNode):
             walk_node(child, parameters, path_fragments + [child_name])
         else:
             object_transformed = {
                 'description': getattr(child, "description", None),
                 'id': u'.'.join(path_fragments + [child_name]),
                 }
-            if child_type == 'Scale':
+            if isinstance(child, Scale):
                 object_transformed['brackets'] = transform_scale(child)
-            elif child_type == 'Parameter':
+            elif isinstance(child, Parameter):
                 object_transformed['values'] = transform_values_history(child.values_history)
             parameters.append(object_transformed)
 
