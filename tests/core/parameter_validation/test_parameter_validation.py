@@ -45,12 +45,6 @@ def test_parsing_errors():
         yield (check,) + test
 
 
-def test_references():
-    path_to_xml = os.path.join(BASE_DIR, 'references.xml')
-    tbs = TestTaxBenefitSystem(path_to_xml)
-    tbs.compute_legislation()
-
-
 def test_filesystem_hierarchy():
     path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     parameters = ParameterNode('', directory_path = path)

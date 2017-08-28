@@ -52,7 +52,7 @@ class ParameterNotFound(Exception):
             message += u" requested by variable '{}'".format(variable_name)
         message += (
             u" was not found in the {2} tax and benefit system."
-            ).format(name, variable_name, instant)
+            ).format(name, variable_name, instant_str)
         super(ParameterNotFound, self).__init__(message)
 
 
@@ -472,7 +472,9 @@ class ParameterNode(AbstractParameter):
             self.file_path = file_path
             self.validate(data)
             self.children = {}
-            data.pop('description', None)  # We allow to set a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
+            # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
+            data.pop('reference', None)
+            data.pop('description', None)
             for child_name, child in data.items():
                 child_name_expanded = _compose_name(name, child_name)
                 child = _parse_child(child_name_expanded, child, file_path)
