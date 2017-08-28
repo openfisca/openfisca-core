@@ -4,7 +4,9 @@
 
 #### Breaking changes
 
-* The parameters of a legislation are read from a directory `parameters` containing YAML files instead of XML files
+##### Parameter files
+
+* Load the legislation parameters from a directory `parameters` containing YAML files, instead of XML files
 
   Before:
   ```XML
@@ -34,10 +36,14 @@
           value: 0.3
   ```
 
-  - The XML attributes `format` and `type` are replaced by the YAML attribute `unit` than can take as values `year`, `currency` and `/1`.
+  - The XML attributes `format` and `type` are replaced by the YAML attribute `unit`, which is a free text field.
 
-* In reforms, remove `reforms.update_legislation()`.
-  - To modify an existing parameter, use method `ValuesHistory.update()`.
+##### reforms
+
+* Rename `Reform.modify_legislation_json()` -> `Reform.modify_parameters()`
+* Remove `reforms.compose_reforms()`.
+* Remove `reforms.update_legislation()`.
+  - To modify an existing parameter, use `ValuesHistory.update()` instead.
   - You can navigate the parameters using `.` (e.g. `parameters.taxes.tax_on_salaries.public_sector.rate`)
   - Before:
     ```python
@@ -50,10 +56,10 @@
     ```
   - Now:
     ```python
-    parameters.impot_revenu.bareme[1].threshold.update(period=reform_period, value=6011)
+    parameters.impot_revenu.bareme[1].threshold.update(period = reform_period, value = 6011)
     ```
 
-* In reform, the syntax to create new parameters is changed.
+* Change the syntax to dynamically create new parameters
   - Before :
     ```python
     reform_legislation_subtree = {
@@ -90,7 +96,7 @@
     from openfisca_core.parameters import ParameterNode
 
     inflation = .001
-    reform_parameters_subtree = Node('plf2016_conterfactual', validated_yaml = {
+    reform_parameters_subtree = ParameterNode('plf2016_conterfactual', data = {
         'decote_seuil_celib': {
           'values': {
             "2015-01-01": {'value': round(1135 * (1 + inflation))},
@@ -107,23 +113,37 @@
     reference_parameters.add_child('plf2016_conterfactual', reform_parameters_subtree)
     ```
 
-  - This way of creating parameters is deprecated (see below), except when using dynamically computed values. It is the case in the example because `round(1135 * (1 + inflation))` is computed at run time.
+  - Note that this way of creating parameters is only recommanded when using dynamically computed values (for instance `round(1135 * (1 + inflation))` in the previous example). If the values are static, the new parameters can be directly built from YAML (See New features section).
 
-* The function `reforms.compose_reforms()` is removed.
+##### TaxBenefitSystem
 
-* The word "legislation" is replaced by the word "parameters" in several variables and methods. It reduces the ambiguity between the legislation as a tax and benefit system and the legislation as the parameters.
-  - `TaxBenefitSystem.add_legislation_params()` -> `TaxBenefitSystem.add_parameter_path()`
-  - `TaxBenefitSystem.get_legislation()` -> `TaxBenefitSystem.get_parameters()`
-  - `TaxBenefitSystem.preprocess_legislation` -> `TaxBenefitSystem.preprocess_parameters`
-  - `Reform.modify_legislation_json()` -> `Reform.modify_parameters()`
-  - `Simulation.legislation_at()` -> `Simulation.parameters_at()` In this case the old name is not removed. It was already deprecated but still widely used in openfisca-france.
+* Remove parameter `legislation_json` in constructor
+* Remove methods/attributes:
+  - `compact_legislation_by_instant_cache`
+  - `get_compact_legislation`
+  - `get_baseline_compact_legislation`
+  - `compute_legislation`
+  - `get_legislation`
+    + We can now directly use the `parameters` attribute.
+* Rename
+  - `preprocess_legislation` -> `preprocess_parameters`
+  - `add_legislation_params` -> `load_parameters`
+    + The signature of the method has changed. Check the [documentation](http://openfisca.readthedocs.io/en/latest/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.load_parameters).
 
+##### Simulation
+
+* Remove methods/attributes:
+  - `compact_legislation_by_instant_cache`
+  - `get_baseline_compact_legislation`
+* Rename
+    `baseline_compact_legislation_by_instant_cache` -> `baseline_parameters_at_instant_cache`
+    `legislation_at` -> `parameters_at`
 
 #### New features
 
 * In reforms, new parameters can be added from a YAML file.
   - The function `parameters.load_parameter_file()` loads a YAML file.
-  - The function `Node.add_child()` adds a new child to an existing legislation node.
+  - The function `ParameterNode.add_child()` adds a new child to an existing legislation node.
   - Example:
     ```python
     import os
@@ -133,34 +153,35 @@
 
     def reform_modify_parameters(parameters):
         file_path = os.path.join(dir_path, 'plf2016.yaml')
-        reform_parameters_subtree = load_parameter_file(name='plf2016', file_path=file_path)
+        reform_parameters_subtree = load_parameter_file(name = 'plf2016', file_path=file_path)
         parameters.add_child('plf2016', reform_parameters_subtree)
         return parameters
 
     ...
     ```
 
-* In module model_api, add classes that are needed to build reforms. In module `parameters` : `load_parameter_file, Node, Scale, Bracket, Parameter, ValuesHistory` In module `periods` : `period`.
+* In module model_api, add classes that are needed to build reforms:
+  - `load_parameter_file`
+  - `ParameterNodeNode`
+  - `Scale`
+  - `Bracket`
+  - `Parameter`
+  - `ValuesHistory`
+  - `periods.period`.
 
 
 #### Technical changes
 
 * Refactor the internal representation and the interface of legislation parameters
-  - The parameters of a legislation are wraped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python objects.
+  - The parameters of a legislation are wraped into the classes `Node`, `Parameter`, `Scale`, `Bracket`, `ValuesHistory`, `ValueAtInstant` instead of bare python dict.
   - The parameters of a legislation at a given instant are wraped into the classes `NodeAtInstant`, `ValueAtInstant` and tax scales instead of bare python objects.
   - The file `parameters.py` and the classes defined inside are responsible both for loading and accessing the parameters. Before the loading was implemented in `legislationsxml.py` and the other processings were implemented in `legislations.py`
-  - The validation of the XML files was performed against a XML schema defined in `legislation.xsd`. Now the YAML files are loaded with the library `yaml` and then validated against a json schema using the library `jsonschema`.
-  - Parameters are cached in a file `parameters.pickle`. Modification of a YAML file is detected using the file name, the date of last modification and the size of the file.
+  - The validation of the XML files was performed against a XML schema defined in `legislation.xsd`. Now the YAML files are loaded with the library `yaml` and then validated in basic Python.
 
 * The word "legislation" is replaced by the word "parameters" in several internal variables and internal methods. It Reduced the ambiguity between the legislation as a tax and benefit system and the legislation as the parameters.
-  - `TaxBenefitSystem._legislation_json` -> `TaxBenefitSystem._parameters`
   - `TaxBenefitSystem.compact_legislation_by_instant_cache` -> `TaxBenefitSystem._parameters_at_instant_cache`
-  - `TaxBenefitSystem.legislation_xml_info_list` -> `TaxBenefitSystem._parameters_yaml_dirs`
-  - `TaxBenefitSystem.get_compact_legislation()` -> `TaxBenefitSystem._get_parameters_at_instant()`
-  - `TaxBenefitSystem.compute_legislation()` -> `TaxBenefitSystem._compute_parameters()`
   - `TaxBenefitSystem.get_baseline_compact_legislation()` -> `TaxBenefitSystem._get_baseline_parameters_at_instant()`
   - `Simulation.compact_legislation_by_instant_cache` -> `Simulation._parameters_at_instant_cache`
-  - `Simulation.baseline_compact_legislation_by_instant_cache` -> `Simulation.baseline_parameters_at_instant_cache`
   - `Simulation.get_compact_legislation()` -> `Simulation._get_parameters_at_instant()`
   - `Simulation.get_baseline_compact_legislation()` -> `Simulation._get_baseline_parameters_at_instant()`
 
