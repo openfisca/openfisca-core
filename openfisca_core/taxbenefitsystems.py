@@ -82,7 +82,6 @@ class TaxBenefitSystem(object):
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self._parameters_yaml_dirs = []
         self._parameters = parameters
 
         self.entities = entities
@@ -308,26 +307,22 @@ class TaxBenefitSystem(object):
             )
         self.neutralize_variable(column_name)
 
-    def add_parameter_path(self, path_to_yaml_dir):
+    def load_parameters(self, path_to_yaml_dir):
         """
-        Adds a YAML dir to the legislation parameters.
+        Loads the legislation parameter for a directory containing YAML parameters files.
 
         :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
 
         Exemples:
 
-        >>> self.add_parameter_path('/path/to/yaml/parameters/dir')
+        >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        self._parameters_yaml_dirs.append(path_to_yaml_dir)
-        # New parameters have been added, the parameters will have to be recomputed next time we need it.
-        # Not very optimized, but today incremental building of the parameters is not implemented.
-        self._parameters = None
+        parameters = load_parameters(path_to_yaml_dir)
 
-    def _compute_parameters(self):
-        parameters = load_parameters(self._parameters_yaml_dirs)
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
+
         self._parameters = parameters
 
     def get_parameters(self):
@@ -336,8 +331,6 @@ class TaxBenefitSystem(object):
 
         :returns: The legislation parameters for all the dates.
         """
-        if self._parameters is None:
-            self._compute_parameters()
         return self._parameters
 
     def get_legislation(self):

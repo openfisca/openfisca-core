@@ -545,25 +545,11 @@ def _compose_name(path, child_name):
         return child_name
 
 
-def load_parameters(path_list):
-    '''Load the parameters of a legislation from a directory containing YAML files.
+def load_parameters(path_to_yaml_dir):
+    """
+        Load parameters from a directory containing YAML files.
 
-    If several directories are parsed, newer children with the same name are not merged but overwrite previous ones.
+        :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
+    """
 
-    :param path_list: List of absolute paths.
-    '''
-
-    if not len(path_list) >= 1:
-        raise ValueError('Trying to load parameters with no YAML directory given !')
-
-    parameter_trees = []
-    for path in path_list:
-        parameter_tree = Node('', directory_path = path)
-        parameter_trees.append(parameter_tree)
-
-    base_parameter_tree = parameter_trees[0]  # is this really useful ?
-    for i in range(1, len(parameter_trees)):
-        parameter_tree = parameter_trees[i]
-        base_parameter_tree._merge(parameter_tree)
-
-    return base_parameter_tree
+    return Node('', directory_path = path_to_yaml_dir)
