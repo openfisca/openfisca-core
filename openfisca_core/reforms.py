@@ -76,11 +76,11 @@ class Reform(TaxBenefitSystem):
         baseline_parameters = self.baseline.get_parameters()
         baseline_parameters_copy = copy.deepcopy(baseline_parameters)
         reform_parameters = modifier_function(baseline_parameters_copy)
-        assert reform_parameters is not None, \
-            'modifier_function {} in module {} must return the modified parameters'.format(
+        if not isinstance(reform_parameters, ParameterNode):
+            return ValueError(
+                'modifier_function {} in module {} must return a ParameterNode'.format(
                 modifier_function.__name__,
                 modifier_function.__module__,
-                )
-        assert isinstance(reform_parameters, ParameterNode)
+                ))
         self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
