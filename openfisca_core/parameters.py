@@ -435,27 +435,17 @@ class ParameterNode(object):
                     if ext not in PARAM_FILE_EXTENSIONS:
                         log.info("Ignoring file '{}'. Only YAML parameters files are parsed.".format(child_path).encode('utf-8'))
                         pass
-                    with open(child_path, 'r') as f:
-                        try:
-                            data = yaml.load(f, Loader = Loader)
-                        except yaml.scanner.ScannerError:
-                            stack_trace = traceback.format_exc()
-                            raise ParameterParsingError(
-                                "Invalid YAML. Check the traceback above for more details.",
-                                child_path,
-                                stack_trace
-                                )
 
                     if child_name == 'index':
                         pass
-                    else:
-                        child_name_expanded = _compose_name(name, child_name)
-                        self.children[child_name] = _parse_child(child_name_expanded, data, child_path)
+
+                    child_name_expanded = _compose_name(name, child_name)
+                    self.children[child_name] = load_parameter_file(child_name_expanded, child_path)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = _compose_name(name, child_name)
-                    self.children[child_name] = Node(child_name_expanded, directory_path = child_path)
+                    self.children[child_name] = ParameterNode(child_name_expanded, directory_path = child_path)
 
         else:
             self.children = {}
@@ -498,12 +488,27 @@ class ParameterNode(object):
 
 def load_parameter_file(name, file_path):
     """
-    Load parameters from a YAML file.
+    Load parameters from a YAML file (or a directory containing YAML files).
 
-    :returns: An instance of `Node` or `Scale` or `Parameter`.
+    :returns: An instance of `ParameterNode` or `Scale` or `Parameter`.
     """
+
+    if not os.path.exists(file_path):
+        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+    if os.path.isdir(file_path):
+        return ParameterNode(name, directory_path = file_path)
+
     with open(file_path, 'r') as f:
-        data = yaml.load(f)
+        try:
+            data = yaml.load(f, Loader = Loader)
+        except yaml.scanner.ScannerError:
+            stack_trace = traceback.format_exc()
+            raise ParameterParsingError(
+                "Invalid YAML. Check the traceback above for more details.",
+                file_path,
+                stack_trace
+                )
+
     return _parse_child(name, data, file_path)
 
 
