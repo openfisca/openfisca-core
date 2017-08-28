@@ -195,7 +195,12 @@ class ValuesHistory(AbstractParameter):
         self.values_list = values_list
 
     def __repr__(self):
-        return 'ValuesHistory "{}"\n'.format(self.name) + ''.join('  {}: {}\n'.format(value.instant_str, value.value) for value in self.values_list)
+        return os.linesep.join([
+            'ValuesHistory "{}"'.format(self.name),
+            os.linesep.join([
+                '  {}: {}'.format(value.instant_str, value.value) for value in self.values_list
+                ])
+            ])
 
     def __eq__(self, other):
         return (self.name == other.name) and (self.values_list == other.values_list)
