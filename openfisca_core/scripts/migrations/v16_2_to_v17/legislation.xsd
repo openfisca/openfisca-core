@@ -45,6 +45,7 @@
     <xs:complexType name="valueType">
         <xs:attribute name="deb" type="xs:date" use="required"/>
         <xs:attribute name="valeur" type="xs:float" use="required"/>
+        <xs:attribute name="reference" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="baremeType">
