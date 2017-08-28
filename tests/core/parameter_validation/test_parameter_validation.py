@@ -2,8 +2,6 @@
 
 import os
 
-import yaml
-
 from nose.tools import assert_in, raises
 
 from openfisca_core.parameters import Node, ParameterParsingError
@@ -14,43 +12,27 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 year = 2016
 
 
-@raises(yaml.scanner.ScannerError)
-def test_indentation():
-    path = os.path.join(BASE_DIR, 'indentation')
-    try:
-        Node('', directory_path=path)
-    except yaml.scanner.ScannerError as e:
-        content = str(e)
-        assert len(content) < 1000
-        for keyword in {'indentation/param.yaml', 'line 2', 'mapping values are not allowed'}:
-            assert_in(keyword, content)
-        raise
-
-
 @raises(ParameterParsingError)
-def test_wrong_scale():
-    path = os.path.join(BASE_DIR, 'wrong_scale')
+def check(file_name, keywords):
+    path = os.path.join(BASE_DIR, file_name)
     try:
-        Node('', directory_path=path)
+        Node('', directory_path = path)
     except ParameterParsingError as e:
         content = str(e)
-        assert len(content) < 1500
-        for keyword in {'Unexpected property', 'scale[1]', 'treshold'}:
+        for keyword in keywords:
             assert_in(keyword, content)
         raise
 
 
-@raises(ParameterParsingError)
-def test_wrong_value():
-    path = os.path.join(BASE_DIR, 'wrong_value')
-    try:
-        Node('', directory_path=path)
-    except ParameterParsingError as e:
-        content = str(e)
-        assert len(content) < 1000
-        for keyword in {'Invalid value', 'param[2015-12-01]', '1A'}:
-            assert_in(keyword, content)
-        raise
+def test_parsing_errors():
+    tests = [
+        ('indentation', {'indentation/param.yaml', 'line 2', 'mapping values are not allowed'}),
+        ('wrong_scale', {'Unexpected property', 'scale[1]', 'treshold'}),
+        ('wrong_value', {'Invalid value', 'param[2015-12-01]', '1A'})
+        ]
+
+    for test in tests:
+        yield (check,) + test
 
 
 def test_references():

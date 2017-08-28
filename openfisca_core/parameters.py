@@ -7,6 +7,7 @@
 import os
 import logging
 import re
+import traceback
 
 import yaml
 
@@ -22,7 +23,7 @@ except ImportError:
     from yaml import Loader
 
 
-PARAM_FILE_EXTENSIONS = set(['.yaml', '.yml'])
+PARAM_FILE_EXTENSIONS = {'.yaml', '.yml'}
 INSTANT_PATTERN = re.compile("^\d{4}-\d{2}-\d{2}$")
 
 
@@ -58,13 +59,15 @@ class ParameterNotFound(Exception):
 
 class ParameterParsingError(Exception):
 
-    def __init__(self, message, file = None):
+    def __init__(self, message, file = None, traceback = None):
         if file is not None:
             message = (
                 "Error parsing parameter file '{}':".format(file)
                 + os.linesep
                 + message
                 ).encode('utf-8')
+        if traceback is not None:
+            message = os.linesep + traceback + os.linesep + message
         super(ParameterParsingError, self).__init__(message)
 
 
@@ -432,7 +435,15 @@ class Node(object):
                         log.info("Ignoring file '{}'. Only YAML parameters files are parsed.".format(child_path).encode('utf-8'))
                         pass
                     with open(child_path, 'r') as f:
-                        data = yaml.load(f, Loader = Loader)
+                        try:
+                            data = yaml.load(f, Loader = Loader)
+                        except yaml.scanner.ScannerError:
+                            stack_trace = traceback.format_exc()
+                            raise ParameterParsingError(
+                                "Invalid YAML. Check the traceback above for more details.",
+                                child_path,
+                                stack_trace
+                                )
 
                     if child_name == 'index':
                         pass
