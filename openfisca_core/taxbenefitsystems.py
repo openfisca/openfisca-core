@@ -58,7 +58,17 @@ class VariableNameConflict(Exception):
 
 class TaxBenefitSystem(object):
     """
-    Represents the legislation. It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
+    Represents the legislation.
+
+    It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
+
+    :param entities: Entities used by the tax benefit system.
+    :param string parameters: Directory containing the YAML parameter files.
+
+
+    .. py:attribute:: parameters
+
+       :any:`ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
     _parameters_at_instant_cache = None
@@ -73,16 +83,11 @@ class TaxBenefitSystem(object):
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities, parameters = None):
-        """
-        :param entities: Entities used by the tax benefit system.
-        :param parameters: Parameters defined for the tax benefit system. Can be defined later.
-        """
+    def __init__(self, entities):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self._parameters = parameters
 
         self.entities = entities
         if entities is None or len(entities) == 0:
@@ -240,7 +245,7 @@ class TaxBenefitSystem(object):
         param_dir = path.join(extension_directory, 'parameters')
         if path.isdir(param_dir):
             extension_parameters = ParameterNode(directory_path = param_dir)
-            self._parameters.merge(extension_parameters)
+            self.parameters.merge(extension_parameters)
 
     def apply_reform(self, reform_path):
         """
@@ -324,7 +329,7 @@ class TaxBenefitSystem(object):
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
 
-        self._parameters = parameters
+        self.parameters = parameters
 
     def get_parameters(self):
         """
@@ -332,7 +337,7 @@ class TaxBenefitSystem(object):
 
         :returns: The legislation parameters for all the dates.
         """
-        return self._parameters
+        return self.parameters
 
     def get_legislation(self):
         """

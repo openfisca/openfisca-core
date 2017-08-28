@@ -39,7 +39,7 @@ class Reform(TaxBenefitSystem):
         :param baseline: Baseline TaxBenefitSystem.
         """
         self.baseline = baseline
-        self._parameters = baseline.get_parameters()
+        self.parameters = baseline.get_parameters()
         self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
         self.column_by_name = baseline.column_by_name.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
@@ -78,5 +78,5 @@ class Reform(TaxBenefitSystem):
                 modifier_function.__module__,
                 )
         assert isinstance(reform_parameters, ParameterNode)
-        self._parameters = reform_parameters
+        self.parameters = reform_parameters
         self._parameters_at_instant_cache = {}
