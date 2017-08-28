@@ -456,9 +456,6 @@ class ParameterNode(AbstractParameter):
                         log.info("Ignoring file '{}'. Only YAML parameters files are parsed.".format(child_path).encode('utf-8'))
                         pass
 
-                    if child_name == 'index':
-                        pass
-
                     child_name_expanded = _compose_name(name, child_name)
                     self.children[child_name] = load_parameter_file(child_path, child_name_expanded)
 
