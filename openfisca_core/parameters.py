@@ -80,21 +80,21 @@ class ParameterParsingError(Exception):
 
 class AbstractParameter(object):
     allowed_keys = None
-    _yaml_object_type = None
+    _data_type = None
     type_map = {
         dict: 'object',
         list: 'array',
         }
 
-    def validate(self, yaml_object):
-        if self._yaml_object_type is not None and not isinstance(yaml_object, self._yaml_object_type):
+    def validate(self, data):
+        if self._data_type is not None and not isinstance(data, self._data_type):
             raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, self.type_map[self._yaml_object_type]).encode("utf-8"),
+                "'{}' must be of type {}.".format(self.name, self.type_map[self._data_type]).encode("utf-8"),
                 self.file_path
                 )
 
         if self.allowed_keys is not None:
-            keys = yaml_object.keys()
+            keys = data.keys()
             for key in keys:
                 if key not in self.allowed_keys:
                     raise ParameterParsingError(
@@ -109,37 +109,37 @@ class ValueAtInstant(AbstractParameter):
         A value of a parameter at a given instant.
     """
 
-    allowed_value_yaml_object_types = [int, float, bool, type(None)]
+    allowed_value_data_types = [int, float, bool, type(None)]
     allowed_keys = set(['value', 'unit', 'reference'])
-    _yaml_object_type = dict
+    _data_type = dict
 
-    def __init__(self, name, instant_str, yaml_object = None, file_path = None):
+    def __init__(self, name, instant_str, data = None, file_path = None):
         """
             :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-            :param yaml_object: Data loaded from a YAML file.
+            :param data: Data, usually loaded from a YAML file.
         """
         self.name = name
         self.instant_str = instant_str
         self.file_path = file_path
 
-        if yaml_object is None:
+        if data is None:
             self.value = None
             return
 
-        self.validate(yaml_object)
-        self.value = yaml_object['value']
+        self.validate(data)
+        self.value = data['value']
 
-    def validate(self, yaml_object):
-        super(ValueAtInstant, self).validate(yaml_object)
+    def validate(self, data):
+        super(ValueAtInstant, self).validate(data)
         try:
-            value = yaml_object['value']
+            value = data['value']
         except KeyError:
             raise ParameterParsingError(
                 "Missing 'value' property for {}".format(self.name).encode('utf-8'),
                 self.file_path
                 )
-        if type(value) not in self.allowed_value_yaml_object_types:
+        if type(value) not in self.allowed_value_data_types:
             raise ParameterParsingError(
                 "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
                 self.file_path
@@ -157,22 +157,22 @@ class ValuesHistory(AbstractParameter):
         This history of a parameter values.
 
         :param name: name of the parameter, eg "taxes.some_tax.some_param"
-        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
 
         .. py:attribute:: values_list
 
            List of the values, in anti-chronological order
     """
 
-    _yaml_object_type = dict
+    _data_type = dict
 
-    def __init__(self, name, yaml_object, file_path = None):
+    def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
 
-        self.validate(yaml_object)
+        self.validate(data)
 
-        instants = sorted(yaml_object.keys(), reverse = True)  # sort by antechronological order
+        instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
 
         values_list = []
         for instant_str in instants:
@@ -182,14 +182,14 @@ class ValuesHistory(AbstractParameter):
                     .format(instant_str, self.name).encode('utf-8'),
                     file_path)
 
-            instant_info = yaml_object[instant_str]
+            instant_info = data[instant_str]
 
             #  Ignore expected values, as they are just metadata
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
                 continue
 
             value_name = _compose_name(name, instant_str)
-            value_at_instant = ValueAtInstant(value_name, instant_str, yaml_object = instant_info, file_path = file_path)
+            value_at_instant = ValueAtInstant(value_name, instant_str, data = instant_info, file_path = file_path)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -248,16 +248,16 @@ class ValuesHistory(AbstractParameter):
                 if i < n:
                     overlapped_value = old_values[i].value
                     value_name = _compose_name(self.name, stop_str)
-                    new_interval = ValueAtInstant(value_name, stop_str, yaml_object = {'value': overlapped_value})
+                    new_interval = ValueAtInstant(value_name, stop_str, data = {'value': overlapped_value})
                     new_values.append(new_interval)
                 else:
                     value_name = _compose_name(self.name, stop_str)
-                    new_interval = ValueAtInstant(value_name, stop_str, yaml_object = {'value': None})
+                    new_interval = ValueAtInstant(value_name, stop_str, data = {'value': None})
                     new_values.append(new_interval)
 
         # Insert new interval
         value_name = _compose_name(self.name, start_str)
-        new_interval = ValueAtInstant(value_name, start_str, yaml_object = {'value': value})
+        new_interval = ValueAtInstant(value_name, start_str, data = {'value': value})
         new_values.append(new_interval)
 
         # Remove covered intervals
@@ -278,19 +278,19 @@ class Parameter(AbstractParameter):
     """
     allowed_keys = set(['values', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, yaml_object, file_path = None):
+    def __init__(self, name, data, file_path = None):
         """
             :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
-            :param yaml_object: Data loaded from a YAML file.
+            :param data: Data loaded from a YAML file.
             :param file_path: File the parameter was loaded from.
         """
         self.name = name
         self.file_path = file_path
-        self.validate(yaml_object)
-        self.description = yaml_object.get('description')
+        self.validate(data)
+        self.description = data.get('description')
 
-        values = yaml_object['values']
-        self.values_history = ValuesHistory(name, yaml_object = values, file_path = file_path)
+        values = data['values']
+        self.values_history = ValuesHistory(name, data = values, file_path = file_path)
 
     def _get_at_instant(self, instant_str):
         return self.values_history._get_at_instant(instant_str)
@@ -304,19 +304,19 @@ class Bracket(AbstractParameter):
         A scale bracket.
     """
     allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
-    _yaml_object_type = dict
+    _data_type = dict
 
-    def __init__(self, name, yaml_object = None, file_path = None):
+    def __init__(self, name, data = None, file_path = None):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         :param file_path: File the parameter was loaded from.
         """
         self.name = name
         self.file_path = file_path
-        self.validate(yaml_object)
+        self.validate(data)
 
-        for key, value in yaml_object.items():
+        for key, value in data.items():
             new_child_name = _compose_name(name, key)
             new_child = ValuesHistory(new_child_name, value, file_path)
             setattr(self, key, new_child)
@@ -351,18 +351,18 @@ class Scale(AbstractParameter):
     """
     allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, yaml_object, file_path):
+    def __init__(self, name, data, file_path):
         """
         :param name: name of the scale, eg "taxes.some_scale"
-        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
         :param file_path: File the parameter was loaded from.
         """
         self.name = name
         self.file_path = file_path
-        self.validate(yaml_object)
-        self.description = yaml_object.get('description')
+        self.validate(data)
+        self.description = data.get('description')
 
-        if not isinstance(yaml_object['brackets'], list):
+        if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be of type array."
                 .format(self.name).encode('utf-8'),
@@ -370,7 +370,7 @@ class Scale(AbstractParameter):
                 )
 
         brackets = []
-        for i, bracket_data in enumerate(yaml_object['brackets']):
+        for i, bracket_data in enumerate(data['brackets']):
             bracket_name = _compose_name(name, i)
             bracket = Bracket(bracket_name, bracket_data, file_path)
             brackets.append(bracket)
@@ -426,23 +426,23 @@ def _parse_child(child_name, child, child_path):
     elif 'brackets' in child:
         return Scale(child_name, child, child_path)
     else:
-        return ParameterNode(child_name, yaml_object = child, file_path = child_path)
+        return ParameterNode(child_name, data = child, file_path = child_path)
 
 
 class ParameterNode(AbstractParameter):
     """
         A node in the legislation `parameter tree <https://doc.openfisca.fr/coding-the-legislation/legislation_parameters.html>`_.
     """
-    _yaml_object_type = dict
+    _data_type = dict
 
-    def __init__(self, name = "", directory_path = None, yaml_object = None, file_path = None):
+    def __init__(self, name = "", directory_path = None, data = None, file_path = None):
         """
-        Instanciate a ParameterNode either from a dict, (using `yaml_object`), or from a directory containing YAML files (using `directory_path`).
+        Instanciate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
 
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
-        :param string yaml_object: Object representing the parameter node. It usually has been extracted from a YAML file.
-        :param string file_path: YAML file from which the `yaml_object` has been extracted from.
+        :param string data: Object representing the parameter node. It usually has been extracted from a YAML file.
+        :param string file_path: YAML file from which the `data` has been extracted from.
         """
         self.name = name
 
@@ -466,9 +466,9 @@ class ParameterNode(AbstractParameter):
 
         else:
             self.file_path = file_path
-            self.validate(yaml_object)
+            self.validate(data)
             self.children = {}
-            for child_name, child in yaml_object.items():
+            for child_name, child in data.items():
                 child_name_expanded = _compose_name(name, child_name)
                 self.children[child_name] = _parse_child(child_name_expanded, child, file_path)
 
