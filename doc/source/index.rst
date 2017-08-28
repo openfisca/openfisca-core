@@ -7,6 +7,8 @@ Modules:
    :maxdepth: 1
 
    tax-benefit-system
+   parameters
+   reforms
    test_runner
 
 Scripts:
@@ -15,19 +17,6 @@ Scripts:
    :maxdepth: 1
 
    openfisca-run-test
-
-Web-API routes:
-
-.. toctree::
-   :maxdepth: 1
-
-   parameter
-   parameters
-   variable
-   variables
-
-
-
 
 Indices and tables
 ==================

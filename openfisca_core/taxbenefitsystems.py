@@ -14,7 +14,8 @@ import traceback
 
 from setuptools import find_packages
 
-from . import conv, legislations, legislationsxml
+import conv
+from parameters import ParameterNode
 from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
@@ -23,7 +24,14 @@ log = logging.getLogger(__name__)
 
 
 class VariableNotFound(Exception):
+    """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
+    """
+
     def __init__(self, variable_name, tax_benefit_system):
+        """
+        :param variable_name: Name of the variable that was queried.
+        :param tax_benefit_system: Tax benefits system that does not contain `variable_name`
+        """
         country_package_metadata = tax_benefit_system.get_package_metadata()
         country_package_name = country_package_metadata['name']
         country_package_version = country_package_metadata['version']
@@ -51,11 +59,21 @@ class VariableNameConflict(Exception):
 class TaxBenefitSystem(object):
     """
     Represents the legislation.
+
+    It stores parameters (values defined for everyone) and variables (values defined for some given entity e.g. a person).
+
+    :param entities: Entities used by the tax benefit system.
+    :param string parameters: Directory containing the YAML parameter files.
+
+
+    .. py:attribute:: parameters
+
+       :any:`ParameterNode` containing the legislation parameters
     """
     _base_tax_benefit_system = None
-    compact_legislation_by_instant_cache = None
+    _parameters_at_instant_cache = None
     person_key_plural = None
-    preprocess_legislation = None
+    preprocess_parameters = None
     json_to_attributes = staticmethod(conv.pipe(
         conv.test_isinstance(dict),
         conv.struct({}),
@@ -65,13 +83,11 @@ class TaxBenefitSystem(object):
     cache_blacklist = None
     decomposition_file_path = None
 
-    def __init__(self, entities, legislation_json = None):
+    def __init__(self, entities):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
-        self.compact_legislation_by_instant_cache = {}  # weakref.WeakValueDictionary()
+        self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.column_by_name = {}
         self.automatically_loaded_variable = set()
-        self.legislation_xml_info_list = []
-        self._legislation_json = legislation_json
 
         self.entities = entities
         if entities is None or len(entities) == 0:
@@ -88,28 +104,6 @@ class TaxBenefitSystem(object):
                 return self
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
-
-    def get_compact_legislation(self, instant, traced_simulation = None):
-        legislation = self.get_legislation()
-        if traced_simulation is None:
-            compact_legislation = self.compact_legislation_by_instant_cache.get(instant)
-            if compact_legislation is None and legislation is not None:
-                dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
-                compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-                self.compact_legislation_by_instant_cache[instant] = compact_legislation
-        else:
-            dated_legislation_json = legislations.generate_dated_legislation_json(legislation, instant)
-            compact_legislation = legislations.compact_dated_node_json(
-                dated_legislation_json,
-                traced_simulation = traced_simulation,
-                )
-        return compact_legislation
-
-    def get_baseline_compact_legislation(self, instant, traced_simulation = None):
-        baseline = self.baseline
-        if baseline is None:
-            return self.get_compact_legislation(instant, traced_simulation = traced_simulation)
-        return baseline.get_baseline_compact_legislation(instant, traced_simulation = traced_simulation)
 
     @classmethod
     def json_to_instance(cls, value, state = None):
@@ -248,9 +242,10 @@ class TaxBenefitSystem(object):
                 raise ValueError(message)
 
         self.add_variables_from_directory(extension_directory)
-        param_file = path.join(extension_directory, 'parameters.xml')
-        if path.isfile(param_file):
-            self.add_legislation_params(param_file)
+        param_dir = path.join(extension_directory, 'parameters')
+        if path.isdir(param_dir):
+            extension_parameters = ParameterNode(directory_path = param_dir)
+            self.parameters.merge(extension_parameters)
 
     def apply_reform(self, reform_path):
         """
@@ -318,40 +313,44 @@ class TaxBenefitSystem(object):
             )
         self.neutralize_variable(column_name)
 
-    def add_legislation_params(self, path_to_xml_file, path_in_legislation_tree = None):
+    def load_parameters(self, path_to_yaml_dir):
         """
-        Adds an XML file to the legislation parameters.
+        Loads the legislation parameter for a directory containing YAML parameters files.
 
-        :param path_to_xml_file: Absolute path towards the XML legislation file.
-        :param path_in_legislation_tree: Legislation path where the legislation node is added.
+        :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
 
         Exemples:
 
-        >>> self.add_legislation_params('/path/to/parameters/root.xml')
-        >>> self.add_legislation_params('/path/to/parameters/taxes/income_tax.xml', 'taxes.income_tax')
+        >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
-        if path_in_legislation_tree is not None:
-            path_in_legislation_tree = path_in_legislation_tree.split('.')
-        else:
-            path_in_legislation_tree = []
 
-        self.legislation_xml_info_list.append(
-            (path_to_xml_file, path_in_legislation_tree)
-            )
-        # New parameters have been added, the legislation will have to be recomputed next time we need it.
-        # Not very optimized, but today incremental building of the legislation is not implemented.
-        self._legislation_json = None
+        parameters = ParameterNode('', directory_path = path_to_yaml_dir)
 
-    def compute_legislation(self, with_source_file_infos = False):
-        legislation_json = legislationsxml.load_legislation(self.legislation_xml_info_list)
-        if self.preprocess_legislation is not None:
-            legislation_json = self.preprocess_legislation(legislation_json)
-        self._legislation_json = legislation_json
+        if self.preprocess_parameters is not None:
+            parameters = self.preprocess_parameters(parameters)
 
-    def get_legislation(self, with_source_file_infos = False):
-        if self._legislation_json is None:
-            self.compute_legislation(with_source_file_infos = with_source_file_infos)
-        return self._legislation_json
+        self.parameters = parameters
+
+    def _get_baseline_parameters_at_instant(self, instant):
+        baseline = self.baseline
+        if baseline is None:
+            return self.get_parameters_at_instant(instant)
+        return baseline._get_baseline_parameters_at_instant(instant)
+
+    def get_parameters_at_instant(self, instant):
+        """Compute the parameters of the legislation at a given instant
+
+        :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
+        :returns: The parameters of the legislation at a given instant.
+        """
+
+        parameters = self.parameters
+        instant_str = str(instant)
+        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
+        if parameters_at_instant is None and parameters is not None:
+            parameters_at_instant = parameters._get_at_instant(instant_str)
+            self._parameters_at_instant_cache[instant] = parameters_at_instant
+        return parameters_at_instant
 
     def get_package_metadata(self):
         """

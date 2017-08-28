@@ -108,6 +108,7 @@ def test_shell_script_with_reform():
 
 def test_shell_script_with_extension():
     extension_dir = openfisca_extension_template.__path__[0]
-    command = ['openfisca-run-test', extension_dir, '-c', 'openfisca_country_template', '-e', extension_dir]
+    tests_dir = os.path.join(extension_dir, 'tests')
+    command = ['openfisca-run-test', tests_dir, '-c', 'openfisca_country_template', '-e', extension_dir]
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)

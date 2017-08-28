@@ -5,7 +5,7 @@ import collections
 import copy
 from xml.etree import ElementTree
 
-from . import conv, decompositionsxml, legislations
+from . import conv, decompositionsxml, parameters
 
 
 def calculate(simulations, decomposition_json):
@@ -27,7 +27,7 @@ def calculate(simulations, decomposition_json):
             for simulation_index, simulation in enumerate(simulations):
                 try:
                     array = simulation.calculate_output(node['code'], simulation.period)
-                except legislations.ParameterNotFound as exc:
+                except parameters.ParameterNotFound as exc:
                     exc.simulation_index = simulation_index
                     raise
                 holder = simulation.get_holder(node['code'])

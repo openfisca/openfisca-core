@@ -13,7 +13,8 @@ from os import linesep
 
 import numpy as np
 
-from . import columns, holders, legislations, periods
+from . import columns, holders, periods
+from .parameters import ParameterNotFound
 from .periods import MONTH, YEAR, ETERNITY
 from .base_functions import (
     missing_value,
@@ -432,10 +433,10 @@ class Formula(object):
                 raise
             simulation.max_nb_cycles = None
             return holder.put_in_cache(self.default_values(), period, extra_params)
-        except legislations.ParameterNotFound as exc:
+        except ParameterNotFound as exc:
             if exc.variable_name is None:
-                raise legislations.ParameterNotFound(
-                    instant = exc.instant,
+                raise ParameterNotFound(
+                    instant_str = exc.instant_str,
                     name = exc.name,
                     variable_name = column.name,
                     )
@@ -531,11 +532,11 @@ class Formula(object):
         else:
             entity = self.holder.entity
             function = function.im_func
-            legislation = simulation.legislation_at
+            parameters_at = simulation.parameters_at
             if function.func_code.co_argcount == 2:
                 return function(entity, period)
             else:
-                return function(entity, period, legislation, *extra_params)
+                return function(entity, period, parameters_at, *extra_params)
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""

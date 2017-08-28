@@ -6,12 +6,13 @@ import warnings
 from nose.tools import raises
 from nose.tools import assert_equal
 
-from openfisca_core import columns, periods, reforms
+from openfisca_core import columns, periods
 from openfisca_core.periods import MONTH
 from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
+from openfisca_core.parameters import ValuesHistory, ParameterNode
 from openfisca_country_template.entities import Household
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -107,174 +108,108 @@ def test_permanent_variable_neutralization():
 
 
 def test_update_items():
-    def check_update_items(description, items, start_instant, stop_instant, value, expected_items):
-        new_items = reforms.update_items(items, start_instant, stop_instant, value)
-        assert_equal(map(dict, new_items), expected_items)
+    def check_update_items(description, value_history, start_instant, stop_instant, value, expected_items):
+        value_history.update(period=None, start=start_instant, stop=stop_instant, value=value)
+        assert_equal(value_history, expected_items)
 
     yield (
         check_update_items,
         u'Replace an item by a new item',
-        [
-            {"start": "2014-01-01", },
-            {"start": "2013-01-01", "value": 0.0},
-            ],
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         periods.period(2013).stop,
         1.0,
-        [
-            {"start": "2014-01-01", },
-            {"start": "2013-01-01", "value": 1.0},
-            ],
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}, "2014-01-01": {'value': None}}),
         )
     yield (
         check_update_items,
         u'Replace an item by a new item in a list of items, the last being open',
-        [
-            {'start': u'2016-01-01', 'value': 9.67},
-            {'start': u'2015-01-01', 'value': 9.61},
-            {'start': u'2014-01-01', 'value': 9.53},
-            ],
+        ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 9.61}, "2016-01-01": {'value': 9.67}}),
         periods.period(2015).start,
         periods.period(2015).stop,
         1.0,
-        [
-            {'start': u'2016-01-01', 'value': 9.67},
-            {'start': u'2015-01-01', 'value': 1.0},
-            {'start': u'2014-01-01', 'value': 9.53},
-            ],
+        ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 1.0}, "2016-01-01": {'value': 9.67}}),
         )
     yield (
         check_update_items,
         u'Open the stop instant to the future',
-        [
-            {"start": "2014-01-01", },
-            {"start": "2013-01-01", "value": 0.0},
-            ],
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         None,  # stop instant
         1.0,
-        [{"start": "2013-01-01", "value": 1.0}],
+        ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item in the middle of an existing item',
-        [
-            {"start": "2014-01-01", },
-            {"start": "2010-01-01", "value": 0.0},
-            ],
+        ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2011).start,
         periods.period(2011).stop,
         1.0,
-        [
-            {"start": "2014-01-01", },
-            {"start": "2012-01-01", "value": 0.0},
-            {"start": "2011-01-01", "value": 1.0},
-            {"start": "2010-01-01", "value": 0.0},
-            ],
+        ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2011-01-01": {'value': 1.0}, "2012-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item coming after the last open item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2015).start,
         None,  # stop instant
         1.0,
-        [
-            {"start": "2015-01-01", "value": 1},
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}, "2015-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item starting at the same date than the last open item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         periods.period(2014).stop,
         1.0,
-        [
-            {"start": "2015-01-01", "value": 0.14},
-            {"start": "2014-01-01", "value": 1.0},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}, "2015-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting at the same date than the last open item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         None,  # stop instant
         1.0,
-        [
-            {"start": "2014-01-01", "value": 1.0},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new item coming before the first item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         periods.period(2005).stop,
         1.0,
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            {"start": "2005-01-01", "value": 1.0},
-            ],
+        ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new item coming before the first item with a hole',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2003).start,
         periods.period(2003).stop,
         1.0,
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            {"start": "2004-01-01", },
-            {"start": "2003-01-01", "value": 1.0},
-            ],
+        ValuesHistory('dummy_name', {"2003-01-01": {'value': 1.0}, "2004-01-01": {'value': None}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting before the start date of the first item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         None,  # stop instant
         1.0,
-        [{"start": "2005-01-01", "value": 1.0}],
+        ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}}),
         )
     yield (
         check_update_items,
         u'Insert a new open item starting at the same date than the first item',
-        [
-            {"start": "2014-01-01", "value": 0.14},
-            {"start": "2006-01-01", "value": 0.055},
-            ],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2006).start,
         None,  # stop instant
         1.0,
-        [{"start": "2006-01-01", "value": 1.0}],
+        ValuesHistory('dummy_name', {"2006-01-01": {'value': 1.0}}),
         )
 
 
@@ -377,75 +312,29 @@ def test_wrong_reform():
     wrong_reform(tax_benefit_system)
 
 
-def test_compose_reforms():
+def test_modify_parameters():
 
-    class first_reform(Reform):
-        class new_variable(Variable):
-            column = columns.IntCol
-            label = u"Nouvelle variable introduite par la réforme"
-            entity = Household
-            definition_period = MONTH
-
-            def formula(self, simulation, period):
-                return self.zeros() + 10
-
-        def apply(self):
-            self.add_variable(self.new_variable)
-
-    class second_reform(Reform):
-        class new_variable(Variable):
-            column = columns.IntCol
-            label = u"Nouvelle variable introduite par la réforme"
-            entity = Household
-            definition_period = MONTH
-
-            def formula(self, simulation, period):
-                return self.zeros() + 20
-
-        def apply(self):
-            self.update_variable(self.new_variable)
-
-    reform = reforms.compose_reforms([first_reform, second_reform], tax_benefit_system)
-    year = 2013
-    scenario = reform.new_scenario().init_from_attributes(
-        period = year,
-        )
-
-    reform_simulation = scenario.new_simulation(debug = True)
-    new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
-    assert_near(new_variable1, 20, absolute_error_margin = 0)
-
-
-def test_modify_legislation():
-
-    def modify_legislation_json(reference_legislation_json_copy):
-        reform_legislation_subtree = {
-            "@type": "Node",
-            "description": "Node added to the legislation by the reform",
-            "children": {
-                "new_param": {
-                    "@type": "Parameter",
-                    "description": "New parameter",
-                    "format": "boolean",
-                    "values": [
-                        {'start': u'2015-01-01'},
-                        {'start': u'2000-01-01', 'value': True}
-                        ],
+    def modify_parameters(reference_parameters):
+        reform_parameters_subtree = ParameterNode(
+            'new_node',
+            data = {
+                'new_param': {
+                    'values': {"2000-01-01": {'value': True}, "2015-01-01": {'value': None}}
                     },
                 },
-            }
-        reference_legislation_json_copy['children']['new_node'] = reform_legislation_subtree
-        return reference_legislation_json_copy
+            )
+        reference_parameters.children['new_node'] = reform_parameters_subtree
+        return reference_parameters
 
-    class test_modify_legislation(Reform):
+    class test_modify_parameters(Reform):
         def apply(self):
-            self.modify_legislation_json(modifier_function = modify_legislation_json)
+            self.modify_parameters(modifier_function = modify_parameters)
 
-    reform = test_modify_legislation(tax_benefit_system)
+    reform = test_modify_parameters(tax_benefit_system)
 
-    legislation_new_node = reform.get_legislation()['children']['new_node']
-    assert legislation_new_node is not None
+    parameters_new_node = reform.parameters.children['new_node']
+    assert parameters_new_node is not None
 
     instant = Instant((2013, 1, 1))
-    compact_legislation = reform.get_compact_legislation(instant)
-    assert compact_legislation.new_node.new_param is True
+    parameters_at_instant = reform.get_parameters_at_instant(instant)
+    assert parameters_at_instant.new_node.new_param is True

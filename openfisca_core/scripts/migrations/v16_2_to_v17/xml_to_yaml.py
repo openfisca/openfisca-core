@@ -1,24 +1,42 @@
 # -*- coding: utf-8 -*-
 
 
-"""Handle legislative parameters in XML format (and convert then to JSON)."""
+''' xml_to_yaml.py : Parse XML parameter files and convert them to YAML files
+
+Comments are NOT converted.
+'''
 
 import os
+import re
 
 from lxml import etree
+import yaml
+
+node_keywords = ['reference', 'description']
 
 
-json_unit_by_xml_json_type = dict(
-    age = u'year',
-    days = u'day',
-    hours = u'hour',
-    monetary = u'currency',
-    months = u'month',
-    )
+def custom_str_representer(dumper, data):
+    if re.match(r'^\d{4}-\d{2}-\d{2}$', data):
+        tag = u'tag:yaml.org,2002:timestamp'
+        return dumper.represent_scalar(tag, data)
+    return dumper.represent_str(data)
 
+
+def custom_unicode_representer(dumper, data):
+    if re.match(r'^\d{4}-\d{2}-\d{2}$', data):
+        tag = u'tag:yaml.org,2002:timestamp'
+        return dumper.represent_scalar(tag, data)
+    return dumper.represent_unicode(data)
+
+
+yaml.add_representer(str, custom_str_representer, Dumper=yaml.SafeDumper)
+yaml.add_representer(unicode, custom_unicode_representer, Dumper=yaml.SafeDumper)
+
+
+# Load
 
 def load_xml_schema():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.dirname(__file__)
     filename_xml_schema = os.path.join(dir_path, 'legislation.xsd')
 
     with open(filename_xml_schema, 'r') as f:
@@ -43,26 +61,28 @@ def parse_and_validate_xml(xmlschema, legislation_xml_info_list):
 
 
 def transform_values_history(children, value_format):
-    value_list = []
+    values = {}
     for child in children:
+        if child.tag == etree.Comment:
+            print('Warning : ignoring comment "{}"'.format(child))
+            continue
+
+        date = child.attrib['deb']
+        assert date not in values
+
         if child.tag == 'VALUE':
             value = child.attrib['valeur']
             if value_format == bool:
                 value = bool(int(value))
             else:
                 value = float(value)
-            value_list.append({
-                'start': child.attrib['deb'],
-                'value': value,
-                })
+            values[date] = {'value': value}
         elif child.tag == 'END':
-            value_list.append({
-                'start': child.attrib['deb'],
-                })
+            values[date] = {'value': None}
+        elif child.tag == 'PLACEHOLDER':
+            values[date] = "expected"
 
-    value_list_sorted = sorted(value_list, key = lambda x: x['start'])[::-1]
-
-    return value_list_sorted
+    return values
 
 
 def transform_etree_to_json_recursive(xml_node):
@@ -74,42 +94,50 @@ def transform_etree_to_json_recursive(xml_node):
         if key == 'code':
             name = value
         elif key == 'format':
-            if value == 'bool':
-                json_node['format'] = 'boolean'
-                value_format = bool
-            elif value == 'percent':
-                json_node['format'] = 'rate'
-            else:
-                json_node['format'] = value
+            if value == 'percent':
+                if 'unit' not in json_node:
+                    json_node['unit'] = '/1'
+                else:
+                    del json_node['unit']
         elif key == 'type':
-            json_node['unit'] = json_unit_by_xml_json_type.get(value)
-        elif key == 'conflicts':
-            json_node['conflicts'] = value.split(',')
-        elif key in {'description', 'origin', 'option', 'reference'}:
-            json_node[key] = value
+            if value == 'age':
+                if 'unit' not in json_node:
+                    json_node['unit'] = 'year'
+                else:
+                    del json_node['unit']
+            elif value == 'monetary':
+                if 'unit' not in json_node:
+                    json_node['unit'] = 'currency'
+                else:
+                    del json_node['unit']
+        elif key in {'conflicts', 'option'}:
+            pass
+        elif key == 'origin':
+            if 'reference' not in json_node:
+                json_node['reference'] = value
+        elif key in {'description', 'reference'}:
+            json_node[key] = unicode(value)
         else:
             raise ValueError(u'Unknown attribute "{}": "{}"'.format(key, value).encode('utf-8'))
 
     if xml_node.tag == 'NODE':
-        json_node['@type'] = 'Node'
+        json_node['type'] = 'node'
 
-        children = dict()
         for child in xml_node:
             child_name, new_child = transform_etree_to_json_recursive(child)
             if child_name:
-                children[child_name] = new_child
+                json_node[child_name] = new_child
             else:
                 assert new_child == {}  # comment
-        json_node['children'] = children
 
     elif xml_node.tag == 'CODE':
-        json_node['@type'] = 'Parameter'
+        json_node['type'] = 'parameter'
 
         value_list = transform_values_history(xml_node, value_format)
         json_node['values'] = value_list
 
     elif xml_node.tag == 'BAREME':
-        json_node['@type'] = 'Scale'
+        json_node['type'] = 'scale'
 
         brackets = []
         for child in xml_node:
@@ -165,24 +193,23 @@ def transform_etree_to_json_root(xml_trees):
     return name_list, json_list
 
 
-def merge(name_list, json_list, path_list):
-    # The first json tree is special
-    merged_json = json_list[0]
-    assert not path_list[0]
+# Merge
 
-    for name, json_tree, path in zip(name_list, json_list, path_list)[1:]:
+def merge(name_list, json_list, path_list):
+    merged_json = {'type': 'node'}
+
+    for name, json_tree, path in zip(name_list, json_list, path_list):
         pointer = merged_json
         for key in path:
-            if key in pointer['children']:
-                pointer = pointer['children'][key]
+            if key in pointer:
+                pointer = pointer[key]
             else:
-                pointer['children'][key] = {
-                    '@type': 'Node',
-                    'children': {},
+                pointer[key] = {
+                    'type': 'node',
                     }
 
-        assert name not in pointer['children'], u'{} is defined twice'.format('.'.join(path) + '.' + 'name').encode('utf-8')
-        pointer['children'][name] = json_tree
+        assert name not in pointer, u'{} is defined twice'.format('.'.join(path) + '.' + 'name').encode('utf-8')
+        pointer[name] = json_tree
 
     return merged_json
 
@@ -198,3 +225,42 @@ def load_legislation(legislation_xml_info_list):
     merged_json = merge(name_list, json_list, path_list)
 
     return merged_json
+
+
+# Write YAML
+
+def write_yaml(node, path):
+    node_type = node['type']
+    del node['type']
+
+    if node_type == 'node':
+        os.mkdir(path)
+        metadata = {k: node[k] for k in node_keywords if k in node}
+        children = {k: node[k] for k in node if k not in node_keywords}
+
+        if metadata:
+            yaml_filename = os.path.join(path, 'index.yaml')
+            with open(yaml_filename, 'w') as f:
+                yaml.safe_dump(metadata, f, default_flow_style=False, allow_unicode=True)
+
+        for child_name, child in children.items():
+            write_yaml(child, os.path.join(path, child_name))
+
+    elif node_type == 'parameter':
+        yaml_filename = path + '.yaml'
+        with open(yaml_filename, 'w') as f:
+            yaml.safe_dump(node, f, default_flow_style=False, allow_unicode=True)
+
+    elif node_type == 'scale':
+        yaml_filename = path + '.yaml'
+        with open(yaml_filename, 'w') as f:
+            yaml.safe_dump(node, f, default_flow_style=False, allow_unicode=True)
+
+    else:
+        raise ValueError('Unknown type {}'.format(node_type))
+
+
+def write_legislation(legislation_xml_info_list, path):
+    params_tree = load_legislation(legislation_xml_info_list)
+
+    write_yaml(params_tree, path)

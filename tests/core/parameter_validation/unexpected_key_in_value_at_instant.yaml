@@ -1,0 +1,4 @@
+values:
+  2015-12-01:
+    value: 100
+    unexpected_key: ...
