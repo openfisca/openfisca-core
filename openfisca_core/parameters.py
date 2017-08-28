@@ -35,13 +35,14 @@ yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = 
 
 
 class ParameterNotFound(Exception):
-    """Exception raised when a parameter is not found in the parameters.
+    """
+        Exception raised when a parameter is not found in the parameters.
     """
     def __init__(self, name, instant_str, variable_name = None):
         """
         :param name: Name of the parameter
-        :instant_str: Instant where the parameter does not exist, in the format `YYYY-MM-DD`.
-        :variable_name: If the parameter was queried during the computation of a variable, name of that variable.
+        :param instant_str: Instant where the parameter does not exist, in the format `YYYY-MM-DD`.
+        :param variable_name: If the parameter was queried during the computation of a variable, name of that variable.
         """
         assert name is not None
         assert instant_str is not None
@@ -58,8 +59,16 @@ class ParameterNotFound(Exception):
 
 
 class ParameterParsingError(Exception):
+    """
+        Exception raised when a parameter cannot be parsed.
+    """
 
     def __init__(self, message, file = None, traceback = None):
+        """
+        :param message: Error message
+        :param file: Parameter file which caused the error (optional)
+        :param traceback: Traceback (optional)
+        """
         if file is not None:
             message = (
                 "Error parsing parameter file '{}':".format(file)
@@ -99,18 +108,17 @@ class AbstractParameter(object):
 
 class ValueAtInstant(AbstractParameter):
     allowed_value_types = [int, float, bool, type(None)]
+    """
+        A value of a parameter at a given instant.
+    """
     allowed_keys = set(['value', 'unit', 'reference'])
     type = dict
 
     def __init__(self, name, instant_str, yaml_object = None, file_path = None):
         """
-            A value defined for a given instant.
-
-            Can be instanciated from YAML data (use `yaml_object`), or given `value`.
-
-            :param name: name of the parameter, eg "taxes.some_tax.some_param"
+            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-            :param yaml_object: Data loaded from a YAML file. If set, `value` should not be set.
+            :param yaml_object: Data loaded from a YAML file.
         """
         self.name = name
         self.instant_str = instant_str
@@ -147,14 +155,19 @@ class ValueAtInstant(AbstractParameter):
 
 class ValuesHistory(AbstractParameter):
     type = dict
+    """
+        This history of a parameter values.
 
     def __init__(self, name, yaml_object, file_path = None):
         """
             A value defined for several periods.
+        :param name: name of the parameter, eg "taxes.some_tax.some_param"
+        :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
 
-            :param name: name of the parameter, eg "taxes.some_tax.some_param"
-            :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
-        """
+        .. py:attribute:: values_list
+
+           List of the values, in anti-chronological order
+    """
         self.name = name
         self.file_path = file_path
 
@@ -255,11 +268,17 @@ class ValuesHistory(AbstractParameter):
 
 class Parameter(AbstractParameter):
     """
-        Represents a parameter of the legislation.
+        A parameter of the legislation.
     """
     allowed_keys = set(['values', 'description', 'unit', 'reference'])
 
     def __init__(self, name, yaml_object, file_path):
+    def __init__(self, name, yaml_object, file_path = None):
+        """
+            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
+            :param yaml_object: Data loaded from a YAML file.
+            :param file_path: File the parameter was loaded from.
+        """
         self.name = name
         self.file_path = file_path
         self.validate(yaml_object)
@@ -283,6 +302,7 @@ class Bracket(AbstractParameter):
         """
         :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param file_path: File the parameter was loaded from.
         """
         self.name = name
         self.file_path = file_path
@@ -298,9 +318,8 @@ class Bracket(AbstractParameter):
 
 
 class BracketAtInstant(AbstractParameter):
-    """A bracket of a scale at a given instant.
-
-    This class is used temporarily in `Scale._get_at_instant()`, before the construction of a tax scale.
+    """
+        A scale bracket at a given instant.
     """
     def __init__(self, name, bracket, instant_str):
         """
@@ -320,7 +339,7 @@ class BracketAtInstant(AbstractParameter):
 
 class Scale(AbstractParameter):
     """
-        A scale.
+        A parameter scale (for instance a  marginal scale).
     """
     allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
 
@@ -328,6 +347,7 @@ class Scale(AbstractParameter):
         """
         :param name: name of the scale, eg "taxes.some_scale"
         :param yaml_object: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param file_path: File the parameter was loaded from.
         """
         self.name = name
         self.file_path = file_path
@@ -404,16 +424,19 @@ def _parse_child(child_name, child, child_path):
 class ParameterNode(AbstractParameter):
     type = dict
     """
-        ParameterNode contains parameters of the legislation.
-
-        Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
+        A node in the legislation `parameter tree <https://doc.openfisca.fr/coding-the-legislation/legislation_parameters.html>`_.
     """
+    _yaml_object_type = dict
 
     def __init__(self, name = '', directory_path = None, yaml_object = None, file_path = None):
+    def __init__(self, name = "", directory_path = None, yaml_object = None, file_path = None):
         """
-        :param name: Name of the node, eg "taxes.some_tax".
-        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `ParameterNode`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
-        :param yaml_object` : Data extracted from a YAML file describing a ParameterNode.
+        Instanciate a ParameterNode either from a dict, (using `yaml_object`), or from a directory containing YAML files (using `directory_path`).
+
+        :param string name: Name of the node, eg "taxes.some_tax".
+        :param string directory_path: Directory containing YAML files describing the node.
+        :param string yaml_object: Object representing the parameter node. It usually has been extracted from a YAML file.
+        :param string file_path: YAML file from which the `yaml_object` has been extracted from.
         """
         self.name = name
 
@@ -449,7 +472,12 @@ class ParameterNode(AbstractParameter):
     def _get_at_instant(self, instant_str):
         return ParameterNodeAtInstant(self.name, self, instant_str)
 
-    def _merge(self, other):
+    def merge(self, other):
+        """
+        Merges another ParameterNode into the current node.
+
+        In case of child name conflict, the other node child will replace the current node child.
+        """
         for child_name, child in other.children.items():
             self.children[child_name] = child
 
@@ -458,7 +486,7 @@ class ParameterNode(AbstractParameter):
         Add a new child to the node.
 
         :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
-        :param child: The new child, an instance of `Scale` or `Parameter` or `ParameterNode`.
+        :param child: The new child, an instance of :any:`Scale` or :any:`Parameter` or :any:`ParameterNode`.
         """
         assert name not in self.children
         assert isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)
@@ -478,7 +506,7 @@ def load_parameter_file(file_path, name = ''):
     """
     Load parameters from a YAML file (or a directory containing YAML files).
 
-    :returns: An instance of `ParameterNode` or `Scale` or `Parameter`.
+    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
     """
 
     if not os.path.exists(file_path):
@@ -501,12 +529,13 @@ def load_parameter_file(file_path, name = ''):
 
 
 class ParameterNodeAtInstant(object):
-    """Parameters of the legislation, at a given instant.
+    """
+        Parameter node of the legislation, at a given instant.
     """
     def __init__(self, name, node, instant_str):
         """
         :param name: Name of the node.
-        :param node: Original `ParameterNode` instance.
+        :param node: Original :any:`ParameterNode` instance.
         :param instant_str: A date in the format `YYYY-MM-DD`.
         """
         self.name = name
