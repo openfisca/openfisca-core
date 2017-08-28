@@ -57,7 +57,7 @@ def walk_node(node, parameters, path_fragments):
 
     for child_name, child in children.items():
         child_type = type(child).__name__
-        if child_type == 'Node':
+        if child_type == 'ParameterNode':
             walk_node(child, parameters, path_fragments + [child_name])
         else:
             object_transformed = {

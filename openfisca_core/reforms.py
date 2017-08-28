@@ -2,7 +2,7 @@
 
 import copy
 
-from .parameters import Node
+from .parameters import ParameterNode
 from .taxbenefitsystems import TaxBenefitSystem
 
 
@@ -14,11 +14,11 @@ class Reform(TaxBenefitSystem):
     Example:
 
     >>> from openfisca_core import reforms
-    >>> from openfisca_core.parameters import load_file
+    >>> from openfisca_core.parameters import load_parameter_file
     >>>
     >>> def modify_my_parameters(parameters):
     >>>     # Add new parameters
-    >>>     new_parameters = load_file(name='reform_name', file_path='path_to_yaml_file.yaml')
+    >>>     new_parameters = load_parameter_file(name='reform_name', file_path='path_to_yaml_file.yaml')
     >>>     parameters.add_child('reform_name', new_parameters)
     >>>
     >>>     # Update a value
@@ -77,6 +77,6 @@ class Reform(TaxBenefitSystem):
                 modifier_function.__name__,
                 modifier_function.__module__,
                 )
-        assert isinstance(reform_parameters, Node)
+        assert isinstance(reform_parameters, ParameterNode)
         self._parameters = reform_parameters
         self._parameters_at_instant_cache = {}

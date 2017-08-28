@@ -4,7 +4,7 @@ import os
 
 from nose.tools import assert_in, raises
 
-from openfisca_core.parameters import Node, ParameterParsingError
+from openfisca_core.parameters import ParameterNode, ParameterParsingError
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

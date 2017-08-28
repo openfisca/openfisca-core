@@ -12,7 +12,7 @@ from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ValuesHistory, Node
+from openfisca_core.parameters import ValuesHistory, ParameterNode
 from openfisca_country_template.entities import Household
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
@@ -315,7 +315,7 @@ def test_wrong_reform():
 def test_modify_parameters():
 
     def modify_parameters(reference_parameters):
-        reform_parameters_subtree = Node(
+        reform_parameters_subtree = ParameterNode(
             'new_node',
             yaml_object = {
                 'new_param': {

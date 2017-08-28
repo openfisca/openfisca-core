@@ -87,7 +87,7 @@
 
   - Now:
     ```python
-    from openfisca_core.parameters import Node
+    from openfisca_core.parameters import ParameterNode
 
     inflation = .001
     reform_parameters_subtree = Node('plf2016_conterfactual', validated_yaml = {
@@ -122,25 +122,25 @@
 #### New features
 
 * In reforms, new parameters can be added from a YAML file.
-  - The function `parameters.load_file()` loads a YAML file.
+  - The function `parameters.load_parameter_file()` loads a YAML file.
   - The function `Node.add_child()` adds a new child to an existing legislation node.
   - Example:
     ```python
     import os
-    from openfisca_core.parameters import load_file
+    from openfisca_core.parameters import load_parameter_file
 
     dir_path = os.path.dirname(__file__)
 
     def reform_modify_parameters(parameters):
         file_path = os.path.join(dir_path, 'plf2016.yaml')
-        reform_parameters_subtree = load_file(name='plf2016', file_path=file_path)
+        reform_parameters_subtree = load_parameter_file(name='plf2016', file_path=file_path)
         parameters.add_child('plf2016', reform_parameters_subtree)
         return parameters
 
     ...
     ```
 
-* In module model_api, add classes that are needed to build reforms. In module `parameters` : `load_file, Node, Scale, Bracket, Parameter, ValuesHistory` In module `periods` : `period`.
+* In module model_api, add classes that are needed to build reforms. In module `parameters` : `load_parameter_file, Node, Scale, Bracket, Parameter, ValuesHistory` In module `periods` : `period`.
 
 
 #### Technical changes

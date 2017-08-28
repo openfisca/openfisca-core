@@ -408,20 +408,21 @@ def _parse_child(child_name, child, child_path):
     elif 'brackets' in child:
         return Scale(child_name, child, child_path)
     else:
-        return Node(child_name, yaml_object = child, file_path = child_path)
+        return ParameterNode(child_name, yaml_object = child, file_path = child_path)
 
 
-class Node(object):
-    """Node contains parameters of the legislation.
+class ParameterNode(object):
+    """
+        ParameterNode contains parameters of the legislation.
 
-    Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
+        Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
 
     def __init__(self, name, directory_path = None, yaml_object = None, file_path = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
-        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `Node`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
-        :param yaml_object` : Data extracted from a YAML file describing a Node.
+        :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `ParameterNode`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
+        :param yaml_object` : Data extracted from a YAML file describing a ParameterNode.
         """
         self.name = name
 
@@ -468,7 +469,7 @@ class Node(object):
                 self.children[child_name] = _parse_child(child_name_expanded, child, file_path)
 
     def _get_at_instant(self, instant_str):
-        return NodeAtInstant(self.name, self, instant_str)
+        return ParameterNodeAtInstant(self.name, self, instant_str)
 
     def _merge(self, other):
         for child_name, child in other.children.items():
@@ -479,10 +480,10 @@ class Node(object):
         Add a new child to the node.
 
         :param name: Name of the child that must be used to access that child. Should not contain anything that could interfere with the operator `.` (dot).
-        :param child: The new child, an instance of `Scale` or `Parameter` or `Node`.
+        :param child: The new child, an instance of `Scale` or `Parameter` or `ParameterNode`.
         """
         assert name not in self.children
-        assert isinstance(child, Node) or isinstance(child, Parameter) or isinstance(child, Scale)
+        assert isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)
         self.children[name] = child
 
     def __getattr__(self, key):
@@ -495,7 +496,7 @@ class Node(object):
             raise AttributeError(key)
 
 
-def load_file(name, file_path):
+def load_parameter_file(name, file_path):
     """
     Load parameters from a YAML file.
 
@@ -506,13 +507,13 @@ def load_file(name, file_path):
     return _parse_child(name, data, file_path)
 
 
-class NodeAtInstant(object):
+class ParameterNodeAtInstant(object):
     """Parameters of the legislation, at a given instant.
     """
     def __init__(self, name, node, instant_str):
         """
         :param name: Name of the node.
-        :param node: Original `Node` instance.
+        :param node: Original `ParameterNode` instance.
         :param instant_str: A date in the format `YYYY-MM-DD`.
         """
         self.name = name

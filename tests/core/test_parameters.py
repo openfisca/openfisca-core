@@ -2,15 +2,15 @@
 
 from nose.tools import assert_equal, raises
 
-from openfisca_core.parameters import ParameterNotFound, Node, NodeAtInstant
+from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant
 from test_countries import tax_benefit_system
 
 
 def test_get_at_instant():
     parameters = tax_benefit_system.get_parameters()
-    assert isinstance(parameters, Node), parameters
+    assert isinstance(parameters, ParameterNode), parameters
     parameters_at_instant = parameters._get_at_instant('2016-01-01')
-    assert isinstance(parameters_at_instant, NodeAtInstant), parameters_at_instant
+    assert isinstance(parameters_at_instant, ParameterNodeAtInstant), parameters_at_instant
     assert_equal(parameters_at_instant.taxes.income_tax_rate, 0.15)
     assert_equal(parameters_at_instant.benefits.basic_income, 600)
 
