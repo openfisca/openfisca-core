@@ -406,7 +406,7 @@ class ParameterNode(AbstractParameter):
         Can be instanciated from YAML data already parsed and validated (use `yaml_object`), or given the path of a directory containing YAML files.
     """
 
-    def __init__(self, name, directory_path = None, yaml_object = None, file_path = None):
+    def __init__(self, name = '', directory_path = None, yaml_object = None, file_path = None):
         """
         :param name: Name of the node, eg "taxes.some_tax".
         :param directory_path: : Directory of YAML files describing the node. YAML files are parsed and transformed to python objects : `ParameterNode`, `Bracket`, `Scale`, `ValuesHistory` and `ValueAtInstant`.
