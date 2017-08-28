@@ -544,13 +544,3 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
-
-
-def load_parameters(path_to_yaml_dir):
-    """
-        Load parameters from a directory containing YAML files.
-
-        :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
-    """
-
-    return Node('', directory_path = path_to_yaml_dir)

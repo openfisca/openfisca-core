@@ -15,7 +15,7 @@ import traceback
 from setuptools import find_packages
 
 import conv
-from parameters import load_parameters
+from parameters import ParameterNode
 from variables import Variable
 from scenarios import AbstractScenario
 from formulas import get_neutralized_column
@@ -318,7 +318,7 @@ class TaxBenefitSystem(object):
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
 
-        parameters = load_parameters(path_to_yaml_dir)
+        parameters = ParameterNode('', directory_path = path_to_yaml_dir)
 
         if self.preprocess_parameters is not None:
             parameters = self.preprocess_parameters(parameters)
