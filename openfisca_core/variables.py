@@ -58,7 +58,7 @@ class Variable(object):
 
         reference = self.attributes.pop('reference', None)
         if reference:
-            if isinstance(reference, unicode) or isinstance(reference, str):
+            if isinstance(reference, basestring):
                 reference = [reference]
             elif isinstance(reference, list):
                 pass
@@ -66,6 +66,12 @@ class Variable(object):
                 reference = list(reference)
             else:
                 raise TypeError('The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(self.name, type(reference)))
+
+            for element in reference:
+                if not isinstance(element, basestring):
+                    raise TypeError(
+                        'The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(
+                            self.name, type(reference)))
 
         return new_filled_column(
             name = self.name,
