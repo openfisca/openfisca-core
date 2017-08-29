@@ -20,6 +20,7 @@ class Entity(object):
     key = None
     plural = None
     label = None
+    doc = None
     is_person = False
 
     def __init__(self, simulation, entities_json = None):
@@ -153,6 +154,7 @@ class Entity(object):
             'key': cls.key,
             'label': cls.label,
             'plural': cls.plural,
+            'doc': cls.doc,
             'roles': cls.roles_description,
             }
 
@@ -478,6 +480,7 @@ class Role(object):
         self.key = description['key']
         self.label = description.get('label')
         self.plural = description.get('plural')
+        self.doc = description.get('doc')
         self.max = description.get('max')
         self.subroles = None
 
@@ -543,9 +546,9 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def build_entity(key, plural, label, roles = None, is_person = False):
+def build_entity(key, plural, label, doc, roles = None, is_person = False):
     entity_class_name = key.title()
-    attributes = {'key': key, 'plural': plural, 'label': label, 'roles_description': roles}
+    attributes = {'key': key, 'plural': plural, 'label': label, 'doc': doc, 'roles_description': roles}
     if is_person:
         entity_class = type(entity_class_name, (PersonEntity,), attributes)
     elif roles:
