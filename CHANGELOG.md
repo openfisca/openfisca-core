@@ -1,5 +1,12 @@
 # Changelog
 
+### 17.0.1
+
+#### Minor Change
+
+- Handle the case where the user accidentally puts a coma at the end of a variable reference so it has no consequence on the API output.
+- All variable references are transformed into lists of strings.
+
 # 17.0.0 - [#552](https://github.com/openfisca/openfisca-core/pull/552)
 
 #### Breaking changes
@@ -192,7 +199,6 @@
 * In the API preview, update the internal transformation of the parameters.
 
 * In the directory `script`, add a subdirectory `migrations`.
-
 
 ## 16.3.0
 
