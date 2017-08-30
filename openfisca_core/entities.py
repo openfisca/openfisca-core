@@ -2,6 +2,7 @@
 
 import traceback
 import warnings
+import textwrap
 from os import linesep
 
 import numpy as np
@@ -480,7 +481,7 @@ class Role(object):
         self.key = description['key']
         self.label = description.get('label')
         self.plural = description.get('plural')
-        self.doc = description.get('doc')
+        self.doc = textwrap.dedent(description.get('doc', ""))
         self.max = description.get('max')
         self.subroles = None
 
@@ -548,7 +549,7 @@ class UniqueRoleToEntityProjector(Projector):
 
 def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
     entity_class_name = key.title()
-    attributes = {'key': key, 'plural': plural, 'label': label, 'doc': doc, 'roles_description': roles}
+    attributes = {'key': key, 'plural': plural, 'label': label, 'doc': textwrap.dedent(doc), 'roles_description': roles}
     if is_person:
         entity_class = type(entity_class_name, (PersonEntity,), attributes)
     elif roles:
