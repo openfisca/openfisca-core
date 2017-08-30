@@ -1,6 +1,10 @@
 # Changelog
 
-### 17.1.0
+### 17.1.1
+
+- Reference the new address of the documentation
+
+## 17.1.0
 
 - Allow to document entities and entities roles
   - Add attribute `Entity.doc` (e.g. `Household.doc`)
@@ -545,7 +549,7 @@ These breaking changes only concern variable and tax and benefit system **metada
   - Change `periods.period` signature.
     - It now only accepts strings.
   - Restrict the possible inputs for `periods.period`
-    - The authorized formats are listed in [the doc](https://doc.openfisca.fr/periodsinstants.html)
+    - The authorized formats are listed in [the doc](http://openfisca.org/doc/periodsinstants.html)
   - Deprecate and remove:
     - `periods.json_or_python_to_period`
     - `periods.make_json_or_python_to_period`
@@ -607,7 +611,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 #### Documentation
 
-* the attribute `definition_period` is documented here : https://doc.openfisca.fr/coding-the-legislation/35_periods.html
+* the attribute `definition_period` is documented here : http://openfisca.org/doc/coding-the-legislation/35_periods.html
 
 ### 5.0.2
 

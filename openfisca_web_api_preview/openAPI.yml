@@ -3,7 +3,7 @@ info:
   title: "{COUNTRY_PACKAGE_NAME} Web API"
   description: "The OpenFisca Web API lets you get up-to-date information and formulas included in the {COUNTRY_PACKAGE_NAME} legislation."
   version: "0.1.0"
-  termsOfService: "https://doc.openfisca.fr/publishing.html"
+  termsOfService: "http://openfisca.org/doc/publishing.html"
   contact:
     email: "contact@openfisca.fr"
   license:
@@ -17,12 +17,12 @@ tags:
     description: "A parameter is a numeric property of the legislation that can evolve over time."
     externalDocs:
       description: "Parameter official documentation"
-      url: "https://doc.openfisca.fr/parameters.html"
+      url: "http://openfisca.org/doc/parameters.html"
   - name: "Variables"
     description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
     externalDocs:
       description: "Variable official documentation"
-      url: "https://doc.openfisca.fr/variables.html"
+      url: "http://openfisca.org/doc/variables.html"
   - name: "Calculations"
 paths:
   /calculate:
