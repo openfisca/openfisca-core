@@ -1,5 +1,11 @@
 # Changelog
 
+### 17.1.0
+
+- Allow to document entities and entities roles
+  - Add attribute `Entity.doc` (e.g. `Household.doc`)
+  - Add attribute `Role.doc` (e.g. `Household.CHILD.doc`)
+
 ### 17.0.1
 
 #### Minor Change
