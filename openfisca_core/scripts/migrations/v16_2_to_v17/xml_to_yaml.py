@@ -80,7 +80,13 @@ def transform_values_history(children, value_format):
         elif child.tag == 'END':
             values[date] = {'value': None}
         elif child.tag == 'PLACEHOLDER':
-            values[date] = "expected"
+            values[date] = 'expected'
+
+        if 'reference' in child.attrib:
+            if values[date] == 'expected':
+                values[date] = {'expected': None, 'reference': child.attrib['reference']}
+            else:
+                values[date]['reference'] = child.attrib['reference']
 
     return values
 
@@ -260,7 +266,7 @@ def write_yaml(node, path):
         raise ValueError('Unknown type {}'.format(node_type))
 
 
-def write_legislation(legislation_xml_info_list, path):
+def write_parameters(legislation_xml_info_list, path):
     params_tree = load_legislation(legislation_xml_info_list)
 
     write_yaml(params_tree, path)
