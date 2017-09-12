@@ -769,7 +769,7 @@ def period(value):
         message = linesep.join([
             u"Expected a period (eg. '2017', '2017-01', ...); got: '{}'.".format(value).encode('utf-8'),
             u"Learn more about legal period formats in OpenFisca:",
-            u"<https://doc.openfisca.fr/periodsinstants.html#api>."
+            u"<http://openfisca.org/doc/periodsinstants.html#api>."
             ])
         raise ValueError(message)
 

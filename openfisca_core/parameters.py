@@ -431,7 +431,7 @@ def _parse_child(child_name, child, child_path):
 
 class ParameterNode(AbstractParameter):
     """
-        A node in the legislation `parameter tree <https://doc.openfisca.fr/coding-the-legislation/legislation_parameters.html>`_.
+        A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
     _data_type = dict
 

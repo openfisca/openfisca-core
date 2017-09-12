@@ -453,7 +453,7 @@ class Formula(object):
             u"The formula '{0}@{1}' should return a Numpy array;".format(column.name, str(period)).encode('utf-8'),
             u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
             u"Learn more about Numpy arrays and vectorial computing:",
-            u"<https://doc.openfisca.fr/coding-the-legislation/25_vectorial_computing.html.>"
+            u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
         entity_count = entity.count
         assert array.size == entity_count, \
