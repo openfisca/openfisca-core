@@ -1,5 +1,10 @@
 # Changelog
 
+### 17.1.2 [#569](https://github.com/openfisca/openfisca-core/pull/569)
+
+- Fix migration script `xml_to_yaml.py`
+  - The attributes `reference` of nodes `END`, `VALUE`, `PLACEHOLDER`, `BAREME`, `TRANCHE`, `ASSIETTE`, `TAUX`, `MONTANT`, `SEUIL` were not parsed. Now they are parsed to YAML.
+
 ### 17.1.1
 
 - Reference the new address of the documentation
