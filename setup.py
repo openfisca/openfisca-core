@@ -43,6 +43,7 @@ setup(
     install_requires = [
         'Biryani[datetimeconv] >= 0.10.4',
         'numpy >= 1.11, < 1.13',
+        'numpy-indexed == 0.3.4',
         'PyYAML >= 3.10',
         'flask == 0.12',
         'flask-cors == 3.0.2',

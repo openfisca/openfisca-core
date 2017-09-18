@@ -10,6 +10,8 @@ import re
 import traceback
 
 import yaml
+import numpy as np
+import numpy_indexed as npi
 
 from . import taxscales
 
@@ -559,11 +561,63 @@ class ParameterNodeAtInstant(object):
         param_name = _compose_name(self._name, key)
         raise ParameterNotFound(param_name, self._instant_str)
 
-    def __getitem__(self, key):  # deprecated
-        return getattr(self, key)
+    def __getitem__(self, key):
+        # If fancy indexing is used, cast to a vectorial node
+        if isinstance(key, np.ndarray):
+            return self._to_vectorial_node()[key]
+        return self._children[key]
 
     def __iter__(self):
         return iter(self._children)
+
+
+    def _to_vectorial_node(self):
+        _check_nodes_isomorphic(self._children.values())
+        subnodes_name = self._children.keys()
+        vectorial_subnodes = tuple([
+            self[subnode_name]._to_vectorial_node().vector if isinstance(self[subnode_name], ParameterNodeAtInstant) else self[subnode_name]
+            for subnode_name in subnodes_name
+            ])
+        structured_array = np.array(
+            [vectorial_subnodes],
+            dtype = [
+                (subnode_name, subnode.dtype if isinstance(subnode, np.recarray) else 'float')
+                for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
+                ]
+            )
+
+        return VectorialParameterNodeAtInstant(structured_array.view(np.recarray))
+
+
+class VectorialParameterNodeAtInstant(object):
+
+    def __init__(self, vector):
+        self.vector = vector
+
+    def __getattr__(self, attribute):
+        result = getattr(self.vector, attribute)
+        if isinstance(result, np.recarray):
+            return VectorialParameterNodeAtInstant(result)
+        return result
+
+    def __getitem__(self, key):
+        if isinstance(key, np.ndarray):
+            key = key.astype('str')
+            dtype = self.vector[key[0]].dtype
+            names = [name for name in self.dtype.names]
+            values = np.asarray([self.vector[name][0] for name in names])
+            idx = npi.indices(names, key)  # Key error is raised here if there is an unknown key
+            remapped_array = values[idx]
+
+            result = np.array(remapped_array, dtype=dtype)  # ValueError is raised here if dtype is float but the array contains tuple.
+            if np.issubdtype(dtype, np.record):
+                return VectorialParameterNodeAtInstant(result.view(np.recarray))
+            return result
+        else:
+            result =  self.vector[key]
+            if isinstance(result, np.recarray):
+                return VectorialParameterNodeAtInstant(result)
+            return result
 
 
 def _compose_name(path, child_name):
