@@ -197,10 +197,7 @@ class ValuesHistory(AbstractParameter):
 
     def __repr__(self):
         return os.linesep.join([
-            'ValuesHistory "{}"'.format(self.name),
-            os.linesep.join([
-                '  {}: {}'.format(value.instant_str, value.value) for value in self.values_list
-                ])
+            '{}: {}'.format(value.instant_str, value.value) for value in self.values_list
             ])
 
     def __eq__(self, other):
@@ -298,6 +295,9 @@ class Parameter(AbstractParameter):
 
     def update(self, **args):
         return self.values_history.update(**args)
+
+    def __repr__(self):
+        return self.values_history.__repr__()
 
 
 class Bracket(AbstractParameter):
@@ -509,6 +509,12 @@ class ParameterNode(AbstractParameter):
         self.children[name] = child
         setattr(self, name, child)
 
+    def __repr__(self):
+        return os.linesep.join(
+            [os.linesep.join(
+                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
+                for name, value in self.children.iteritems()]
+            )
 
 def load_parameter_file(file_path, name = ''):
     """
@@ -570,6 +576,12 @@ class ParameterNodeAtInstant(object):
     def __iter__(self):
         return iter(self._children)
 
+    def __repr__(self):
+        return os.linesep.join(
+            [os.linesep.join(
+                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
+                for name, value in self._children.iteritems()]
+            )
 
 class VectorialParameterNodeAtInstant(object):
     """
@@ -741,3 +753,7 @@ def contains_nan(vector):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
         return np.isnan(np.min(vector))
+
+
+def indent(text):
+    return "  {}".format(text.replace("\n", "\n  "))
