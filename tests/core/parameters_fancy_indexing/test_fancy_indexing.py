@@ -77,3 +77,12 @@ P_2 = node_2._get_at_instant('2015-01-01')
 def test_with_properties_starting_by_number():
     city_code = np.asarray(['75012', '75007', '75015'])
     assert_near(P_2[city_code], [100, 300, 200])
+
+
+node_3 = ParameterNode(directory_path = LOCAL_DIR).bareme
+P_3 = node_3._get_at_instant('2015-01-01')
+
+@raises(NotImplementedError)
+def test_with_bareme():
+    city_code = np.asarray(['75012', '75007', '75015'])
+    assert_near(P_3[city_code], [100, 300, 200])

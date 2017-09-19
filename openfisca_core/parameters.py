@@ -660,6 +660,8 @@ def _check_nodes_isomorphic(nodes):
             assert first_node._children.keys() == node._children.keys()
             children.extend(node._children.values())
         _check_nodes_isomorphic(children)
-    elif isinstance(first_node, float):
+    elif isinstance(first_node, float) or isinstance(first_node, int):
         for node in nodes[1:]:
-            assert isinstance(node, float)
+            assert isinstance(node, float) or isinstance(node, int)
+    elif isinstance(first_node, taxscales.MarginalRateTaxScale):
+        raise NotImplementedError
