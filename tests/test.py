@@ -4,7 +4,7 @@ import numpy as np
 from nose.tools import raises
 
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant
+from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter
 
 node = ParameterNode('rate', data = {
   "single": {
@@ -115,15 +115,22 @@ def test_triple_fancy_indexing():
     assert_near(P[family_status][housing_occupancy_status][zone], [100, 200, 300, 400, 500, 600, 700, 800])
 
 
-# @raises(KeyError)
-# def test_wrong_key():
-#     vector = np.asarray(['personnes_seules', 'couples', 'toto'])
-#     loyers_plafond.zone1[vector]
+@raises(KeyError)
+def test_wrong_key():
+    zone = np.asarray(['z1', 'z2', 'z2', 'toto'])
+    P.single.owner[zone]
 
 
-# def test_inhomogenous():
-#     # Last field is a subnode, but doesn't have the same structure
-#     # vector = np.asarray(['zone1', 'zone2', 'colocation'])
-#     vector_2 = np.asarray(['toto', 'zone2', 'zone1'])
-#     import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
-#     loyers_plafond[vector_2].personnes_seules:
+@raises(AssertionError)
+def test_inhomogenous():
+    node.couple.owner.add_child('toto', Parameter('toto', {
+        "values": {
+          "2015-01-01": {
+            "value": 1000
+          },
+        }
+      }))
+
+    P = node._get_at_instant('2015-01-01')
+    housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
+    P.couple[housing_occupancy_status]
