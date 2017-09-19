@@ -68,3 +68,12 @@ def test_inhomogenous():
     P = node._get_at_instant('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
     P.couple[housing_occupancy_status]
+
+
+node_2 = ParameterNode(directory_path = LOCAL_DIR).local_tax
+P_2 = node_2._get_at_instant('2015-01-01')
+
+
+def test_with_properties_starting_by_number():
+    city_code = np.asarray(['75012', '75007', '75015'])
+    assert_near(P_2[city_code], [100, 300, 200])

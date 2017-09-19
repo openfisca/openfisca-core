@@ -478,6 +478,7 @@ class ParameterNode(AbstractParameter):
             data.pop('reference', None)
             data.pop('description', None)
             for child_name, child in data.items():
+                child_name = str(child_name)
                 child_name_expanded = _compose_name(name, child_name)
                 child = _parse_child(child_name_expanded, child, file_path)
                 self.children[child_name] = child
