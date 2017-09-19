@@ -420,8 +420,30 @@ class ParameterNode(ValidableParameter, DatableParameter):
 
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
-        :param string data: Object representing the parameter node. It usually has been extracted from a YAML file.
+        :param dict data: Object representing the parameter node. It usually has been extracted from a YAML file.
         :param string file_path: YAML file from which the `data` has been extracted from.
+
+
+        Building from data:
+
+        >>> node = ParameterNode('basic_income', data = {
+            'amount': {
+              'values': {
+                "2015-01-01": {'value': 550},
+                "2016-01-01": {'value': 600}
+                }
+              },
+            'min_age': {
+              'values': {
+                "2015-01-01": {'value': 25},
+                "2016-01-01": {'value': 18}
+                }
+              },
+            })
+
+        Building from a directory:
+
+        >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name = name
 
