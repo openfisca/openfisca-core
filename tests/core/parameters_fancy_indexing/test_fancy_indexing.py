@@ -1,82 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 import numpy as np
 from nose.tools import raises
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter
 
-node = ParameterNode('rate', data = {
-  "single": {
-    "owner": {
-      "z1": {
-        "values": {
-          "2015-01-01": {
-            "value": 100
-          },
-        }
-      },
-      "z2": {
-        "values": {
-          "2015-01-01": {
-            "value": 200
-          },
-        }
-      },
-    },
-    "tenant": {
-      "z1": {
-        "values": {
-          "2015-01-01": {
-            "value": 300
-          },
-        }
-      },
-      "z2": {
-        "values": {
-          "2015-01-01": {
-            "value": 400
-          },
-        }
-      },
-    }
-  },
-  "couple": {
-    "owner": {
-      "z1": {
-        "values": {
-          "2015-01-01": {
-            "value": 500
-          },
-        }
-      },
-      "z2": {
-        "values": {
-          "2015-01-01": {
-            "value": 600
-          },
-        }
-      },
-    },
-    "tenant": {
-      "z1": {
-        "values": {
-          "2015-01-01": {
-            "value": 700
-          },
-        }
-      },
-      "z2": {
-        "values": {
-          "2015-01-01": {
-            "value": 800
-          },
-        }
-      },
-    }
-  }
-})
+LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
+node = ParameterNode(directory_path = LOCAL_DIR).rate
 P = node._get_at_instant('2015-01-01')
 
 
