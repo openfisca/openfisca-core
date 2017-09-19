@@ -627,3 +627,20 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
+
+
+def _check_nodes_isomorphic(nodes):
+    """
+        Check than several nodes (or parameters, or baremes) have the same structure.
+    """
+    first_node = nodes[0]
+    if isinstance(first_node, ParameterNodeAtInstant):
+        children = first_node._children.values()
+        for node in nodes[1:]:
+            assert isinstance(node, ParameterNodeAtInstant)
+            assert first_node._children.keys() == node._children.keys()
+            children.extend(node._children.values())
+        _check_nodes_isomorphic(children)
+    elif isinstance(first_node, float):
+        for node in nodes[1:]:
+            assert isinstance(node, float)
