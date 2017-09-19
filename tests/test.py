@@ -90,6 +90,12 @@ def test_on_node():
     assert_near(P.single[housing_occupancy_status].z1, [100,  100, 300, 300])
     assert_near(P.single[housing_occupancy_status]['z1'], [100,  100, 300, 300])
 
+
+def test_double_fancy_indexing():
+    zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
+    housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
+    assert_near(P.single[housing_occupancy_status][zone], [100, 200, 400, 300])
+
 # @raises(KeyError)
 # def test_wrong_key():
 #     vector = np.asarray(['personnes_seules', 'couples', 'toto'])

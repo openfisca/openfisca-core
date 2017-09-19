@@ -605,19 +605,20 @@ class VectorialParameterNodeAtInstant(object):
             key = key.astype('str')
             dtype = self.vector[key[0]].dtype
             names = [name for name in self.dtype.names]
-            values = np.asarray([self.vector[name][0] for name in names])
             idx = npi.indices(names, key)  # Key error is raised here if there is an unknown key
-            remapped_array = values[idx]
+            if len(self.vector) == 1:
+                values = np.asarray([self.vector[name][0] for name in names])
+                remapped_array = values[idx]
+            else:
+                values = np.asarray([self.vector[name] for name in names])
+                remapped_array = np.diag(values[idx]) # We cannot do a select, as we can't do multiplication on tuples
 
-            result = np.array(remapped_array, dtype=dtype)  # ValueError is raised here if dtype is float but the array contains tuple.
+            result = np.array(remapped_array, dtype = dtype)  # ValueError is raised here if dtype is float but the array contains tuple.
             if np.issubdtype(dtype, np.record):
                 return VectorialParameterNodeAtInstant(result.view(np.recarray))
             return result
-        else:
-            result =  self.vector[key]
-            if isinstance(result, np.recarray):
-                return VectorialParameterNodeAtInstant(result)
-            return result
+        elif isinstance(key, basestring):
+            return self.__getattr__(key)
 
 
 def _compose_name(path, child_name):
