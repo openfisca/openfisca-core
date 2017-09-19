@@ -590,6 +590,9 @@ class ParameterNodeAtInstant(object):
 
 
 class VectorialParameterNodeAtInstant(object):
+    """
+        Parameter node of the legislation at a given instant which has been vectorized: it may differ for each entity.
+    """
 
     def __init__(self, vector):
         self.vector = vector
@@ -600,25 +603,39 @@ class VectorialParameterNodeAtInstant(object):
             return VectorialParameterNodeAtInstant(result)
         return result
 
-    def __getitem__(self, key):
-        if isinstance(key, np.ndarray):
-            key = key.astype('str')
-            dtype = self.vector[key[0]].dtype
-            names = [name for name in self.dtype.names]
-            idx = npi.indices(names, key)  # Key error is raised here if there is an unknown key
-            if len(self.vector) == 1:
-                values = np.asarray([self.vector[name][0] for name in names])
-                remapped_array = values[idx]
-            else:
-                values = np.asarray([self.vector[name] for name in names])
-                remapped_array = np.diag(values[idx]) # We cannot do a select, as we can't do multiplication on tuples
 
-            result = np.array(remapped_array, dtype = dtype)  # ValueError is raised here if dtype is float but the array contains tuple.
+    def __getitem__(self, key):
+        # If the key is a string, just get the subnode
+        if isinstance(key, basestring):
+            return self.__getattr__(key)
+        # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
+        elif isinstance(key, np.ndarray):
+            if not np.issubdtype(key.dtype, np.str):
+                key = key.astype('str')  # In case the key is a number vector, stringify it
+            names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
+            # TODO: Handle key error, raised in the next line if there is an unknown key
+            indices = npi.indices(names, key) # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
+
+            # In the case of one-level fancy indexing, such as parameters.rate[zone], we just have one value per subnode.
+            # The underlying vector thus has only one element
+            if len(self.vector) == 1:
+                values = np.asarray([self.vector[name][0] for name in names])  # Get the values corresponding to the names, e.g. [100, 200]
+                remapped_array = values[indices]  # Use numpy index array to get the right values, e.g. [100, 200, 100]
+
+            # In the case of multi-level fancy indexing, such as parameters.rate[status][zone], there are several value per subnode (one per entity)
+            # The underlying vector thus has several elements: one for each possible "status"
+            else:
+                values = np.asarray([self.vector[name] for name in names])  # 2-D matrix. Each lines correponds to a subnode of the parameter. Each column corresponds to an entity.
+                remapped_array = np.diag(values[indices])  # 2-D matrix. Line i corresponds to the subnode matching to the ith entity. Column j corresponds to the value for entity j resulting from previous indexing (parameters.rate[status] in our example). Therefore only the diagonal elements are relevant. Note: using np.select does not work, as we can multiply recarrays.
+
+            dtype = self.vector[key[0]].dtype  # We assume than the dtype of the result is the dtype of the first subnode. This is not an issue as we previously checked that all subnodes had a similar structure.
+            result = np.array(remapped_array, dtype = dtype)  # ValueError is raised here if dtype is float but the array contains tuple. Should not happen, since we checked the structure were consistent.
+
+            # If the result is not a leaf, wrap the result in a vectorial node.
             if np.issubdtype(dtype, np.record):
                 return VectorialParameterNodeAtInstant(result.view(np.recarray))
+
             return result
-        elif isinstance(key, basestring):
-            return self.__getattr__(key)
 
 
 def _compose_name(path, child_name):
