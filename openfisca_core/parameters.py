@@ -510,7 +510,6 @@ class ParameterNode(AbstractParameter):
         self.children[name] = child
         setattr(self, name, child)
 
-
 def load_parameter_file(file_path, name = ''):
     """
     Load parameters from a YAML file (or a directory containing YAML files).
@@ -572,8 +571,51 @@ class ParameterNodeAtInstant(object):
         return iter(self._children)
 
 
+    def check_node_vectorisable(self):
+        """
+            Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
+        """
+
+        def raise_inhomogeneity_error(node_with_key, node_without_key, missing_key):
+            message = "Cannot use fancy indexing on parameter node '{}', as '{}' exists, but '{}' doesn't. To use fancy indexing on parameter node, its children must be homogenous. See more at https://doc.openfisca.org/xxx.".format(
+                self._name,
+                '.'.join([node_with_key._name, missing_key]),
+                '.'.join([node_without_key._name, missing_key]),
+                ).encode('utf-8')
+            raise ValueError(message)
+
+
+        def check_nodes_isomorphic(nodes):
+            """
+                Check than several nodes (or parameters, or baremes) have the same structure.
+            """
+            first_node = nodes[0]
+            if isinstance(first_node, ParameterNodeAtInstant):
+                children = first_node._children.values()
+                for node in nodes[1:]:
+                    assert isinstance(node, ParameterNodeAtInstant)
+                    first_node_keys = first_node._children.keys()
+                    node_keys = node._children.keys()
+                    if not first_node_keys == node_keys:
+                        missing_keys = set(first_node_keys).difference(node_keys)
+                        if missing_keys:
+                            raise_inhomogeneity_error(first_node, node, missing_keys.pop())
+                        missing_key = set(node_keys).difference(first_node_keys).pop()
+                        raise_inhomogeneity_error(node, first_node, missing_key)
+                    children.extend(node._children.values())
+                check_nodes_isomorphic(children)
+            elif isinstance(first_node, float) or isinstance(first_node, int):
+                for node in nodes[1:]:
+                    assert isinstance(node, float) or isinstance(node, int)
+            elif isinstance(first_node, taxscales.MarginalRateTaxScale):
+                raise NotImplementedError
+
+        check_nodes_isomorphic(self._children.values())
+
+
+
     def _to_vectorial_node(self):
-        _check_nodes_isomorphic(self._children.values())
+        self.check_node_vectorisable()
         subnodes_name = self._children.keys()
         vectorial_subnodes = tuple([
             self[subnode_name]._to_vectorial_node().vector if isinstance(self[subnode_name], ParameterNodeAtInstant) else self[subnode_name]
@@ -653,22 +695,3 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
-
-
-def _check_nodes_isomorphic(nodes):
-    """
-        Check than several nodes (or parameters, or baremes) have the same structure.
-    """
-    first_node = nodes[0]
-    if isinstance(first_node, ParameterNodeAtInstant):
-        children = first_node._children.values()
-        for node in nodes[1:]:
-            assert isinstance(node, ParameterNodeAtInstant)
-            assert first_node._children.keys() == node._children.keys()
-            children.extend(node._children.values())
-        _check_nodes_isomorphic(children)
-    elif isinstance(first_node, float) or isinstance(first_node, int):
-        for node in nodes[1:]:
-            assert isinstance(node, float) or isinstance(node, int)
-    elif isinstance(first_node, taxscales.MarginalRateTaxScale):
-        raise NotImplementedError

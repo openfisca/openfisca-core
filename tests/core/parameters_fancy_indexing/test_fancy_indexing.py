@@ -3,7 +3,7 @@
 import os
 
 import numpy as np
-from nose.tools import raises
+from nose.tools import raises, assert_in
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter, ParameterNotFound
@@ -51,11 +51,15 @@ def test_triple_fancy_indexing():
 @raises(ParameterNotFound)
 def test_wrong_key():
     zone = np.asarray(['z1', 'z2', 'z2', 'toto'])
-    P.single.owner[zone]
+    try:
+        P.single.owner[zone]
+    except ParameterNotFound as e:
+        assert_in("'rate.single.owner.toto' was not found", e.message)
+        raise
 
-
-@raises(AssertionError)
+@raises(ValueError)
 def test_inhomogenous():
+    parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.owner.add_child('toto', Parameter('toto', {
         "values": {
           "2015-01-01": {
@@ -66,7 +70,32 @@ def test_inhomogenous():
 
     P = parameters.rate._get_at_instant('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
-    P.couple[housing_occupancy_status]
+    try:
+        P.couple[housing_occupancy_status]
+    except ValueError as e:
+        assert_in("'rate.couple.owner.toto' exists", e.message)
+        assert_in("'rate.couple.tenant.toto' doesn't", e.message)
+        raise
+
+@raises(ValueError)
+def test_inhomogenous_2():
+    parameters = ParameterNode(directory_path = LOCAL_DIR)
+    parameters.rate.couple.tenant.add_child('toto', Parameter('toto', {
+        "values": {
+          "2015-01-01": {
+            "value": 1000
+          },
+        }
+      }))
+
+    P = parameters.rate._get_at_instant('2015-01-01')
+    housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
+    try:
+        P.couple[housing_occupancy_status]
+    except ValueError as e:
+        assert_in("'rate.couple.tenant.toto' exists", e.message)
+        assert_in("'rate.couple.owner.toto' doesn't", e.message)
+        raise
 
 
 P_2 = parameters.local_tax._get_at_instant('2015-01-01')
