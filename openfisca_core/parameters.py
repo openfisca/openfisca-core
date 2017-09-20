@@ -701,7 +701,6 @@ class VectorialParameterNodeAtInstant(object):
             return VectorialParameterNodeAtInstant(result)
         return result
 
-
     def __getitem__(self, key):
         # If the key is a string, just get the subnode
         if isinstance(key, basestring):
@@ -713,7 +712,7 @@ class VectorialParameterNodeAtInstant(object):
             names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
             # TODO: Handle key error, raised in the next line if there is an unknown key
             try:
-                indices = npi.indices(names, key) # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
+                indices = npi.indices(names, key)  # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
             except KeyError:
                 unexpected_key = set(key).difference(self.vector.dtype.names).pop()
                 raise ParameterNotFound('.'.join([self._name, unexpected_key]), self._instant_str)

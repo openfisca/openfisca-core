@@ -6,13 +6,14 @@ import numpy as np
 from nose.tools import raises, assert_in
 
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter, ParameterNotFound
+from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
 parameters = ParameterNode(directory_path = LOCAL_DIR)
 
 P = parameters.rate._get_at_instant('2015-01-01')
+
 
 def test_on_leaf():
     zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
@@ -22,8 +23,8 @@ def test_on_leaf():
 def test_on_node():
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
     node = P.single[housing_occupancy_status]
-    assert_near(node.z1, [100,  100, 300, 300])
-    assert_near(node['z1'], [100,  100, 300, 300])
+    assert_near(node.z1, [100, 100, 300, 300])
+    assert_near(node['z1'], [100, 100, 300, 300])
 
 
 def test_double_fancy_indexing():
@@ -48,6 +49,7 @@ def test_triple_fancy_indexing():
     zone = np.asarray(['z1', 'z2', 'z1', 'z2', 'z1', 'z2', 'z1', 'z2'])
     assert_near(P[family_status][housing_occupancy_status][zone], [100, 200, 300, 400, 500, 600, 700, 800])
 
+
 @raises(ParameterNotFound)
 def test_wrong_key():
     zone = np.asarray(['z1', 'z2', 'z2', 'toto'])
@@ -57,16 +59,17 @@ def test_wrong_key():
         assert_in("'rate.single.owner.toto' was not found", e.message)
         raise
 
+
 @raises(ValueError)
 def test_inhomogenous():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.owner.add_child('toto', Parameter('toto', {
         "values": {
-          "2015-01-01": {
-            "value": 1000
-          },
-        }
-      }))
+            "2015-01-01": {
+                "value": 1000
+                },
+            }
+        }))
 
     P = parameters.rate._get_at_instant('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
@@ -77,16 +80,17 @@ def test_inhomogenous():
         assert_in("'rate.couple.tenant.toto' doesn't", e.message)
         raise
 
+
 @raises(ValueError)
 def test_inhomogenous_2():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.tenant.add_child('toto', Parameter('toto', {
         "values": {
-          "2015-01-01": {
-            "value": 1000
-          },
-        }
-      }))
+            "2015-01-01": {
+                "value": 1000
+                },
+            }
+        }))
 
     P = parameters.rate._get_at_instant('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
@@ -97,16 +101,17 @@ def test_inhomogenous_2():
         assert_in("'rate.couple.owner.toto' doesn't", e.message)
         raise
 
+
 @raises(ValueError)
 def test_inhomogenous_3():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.tenant.add_child('z4', ParameterNode('toto', data = {
         'amount': {
-          'values': {
-            "2015-01-01": {'value': 550},
-            "2016-01-01": {'value': 600}
+            'values': {
+                "2015-01-01": {'value': 550},
+                "2016-01-01": {'value': 600}
+                }
             }
-          }
         }))
 
     P = parameters.rate._get_at_instant('2015-01-01')
@@ -121,12 +126,14 @@ def test_inhomogenous_3():
 
 P_2 = parameters.local_tax._get_at_instant('2015-01-01')
 
+
 def test_with_properties_starting_by_number():
     city_code = np.asarray(['75012', '75007', '75015'])
     assert_near(P_2[city_code], [100, 300, 200])
 
 
 P_3 = parameters.bareme._get_at_instant('2015-01-01')
+
 
 @raises(NotImplementedError)
 def test_with_bareme():
