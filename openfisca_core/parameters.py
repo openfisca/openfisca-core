@@ -316,14 +316,23 @@ class Bracket(AbstractParameter):
         self.name = name
         self.file_path = file_path
         self.validate(data)
+        self.children = {}
 
         for key, value in data.items():
             new_child_name = _compose_name(name, key)
             new_child = ValuesHistory(new_child_name, value, file_path)
+            self.children[key] = new_child
             setattr(self, key, new_child)
 
     def _get_at_instant(self, instant_str):
         return BracketAtInstant(self.name, self, instant_str)
+
+    def __repr__(self):
+        return os.linesep.join(
+            [os.linesep.join(
+                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
+                for name, value in self.children.iteritems()]
+            )
 
 
 class BracketAtInstant(AbstractParameter):
