@@ -587,7 +587,7 @@ class ParameterNodeAtInstant(object):
                 ]
             )
 
-        return VectorialParameterNodeAtInstant(structured_array.view(np.recarray))
+        return VectorialParameterNodeAtInstant(self._name, structured_array.view(np.recarray), self._instant_str)
 
 
 class VectorialParameterNodeAtInstant(object):
@@ -595,8 +595,11 @@ class VectorialParameterNodeAtInstant(object):
         Parameter node of the legislation at a given instant which has been vectorized: it may differ for each entity.
     """
 
-    def __init__(self, vector):
+    def __init__(self, name, vector, instant_str):
+
         self.vector = vector
+        self._name = name
+        self._instant_str = instant_str
 
     def __getattr__(self, attribute):
         result = getattr(self.vector, attribute)
@@ -615,7 +618,11 @@ class VectorialParameterNodeAtInstant(object):
                 key = key.astype('str')  # In case the key is a number vector, stringify it
             names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
             # TODO: Handle key error, raised in the next line if there is an unknown key
-            indices = npi.indices(names, key) # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
+            try:
+                indices = npi.indices(names, key) # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
+            except KeyError:
+                unexpected_key = set(key).difference(self.vector.dtype.names).pop()
+                raise ParameterNotFound('.'.join([self._name, unexpected_key]), self._instant_str)
 
             # In the case of one-level fancy indexing, such as parameters.rate[zone], we just have one value per subnode.
             # The underlying vector thus has only one element
@@ -634,7 +641,7 @@ class VectorialParameterNodeAtInstant(object):
 
             # If the result is not a leaf, wrap the result in a vectorial node.
             if np.issubdtype(dtype, np.record):
-                return VectorialParameterNodeAtInstant(result.view(np.recarray))
+                return VectorialParameterNodeAtInstant(self._name, result.view(np.recarray), self._instant_str)
 
             return result
 

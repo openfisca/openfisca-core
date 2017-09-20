@@ -6,13 +6,13 @@ import numpy as np
 from nose.tools import raises
 
 from openfisca_core.tools import assert_near
-from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter
+from openfisca_core.parameters import ParameterNode, ParameterNodeAtInstant, Parameter, ParameterNotFound
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
-node = ParameterNode(directory_path = LOCAL_DIR).rate
-P = node._get_at_instant('2015-01-01')
+parameters = ParameterNode(directory_path = LOCAL_DIR)
 
+P = parameters.rate._get_at_instant('2015-01-01')
 
 def test_on_leaf():
     zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
@@ -48,8 +48,7 @@ def test_triple_fancy_indexing():
     zone = np.asarray(['z1', 'z2', 'z1', 'z2', 'z1', 'z2', 'z1', 'z2'])
     assert_near(P[family_status][housing_occupancy_status][zone], [100, 200, 300, 400, 500, 600, 700, 800])
 
-
-@raises(KeyError)
+@raises(ParameterNotFound)
 def test_wrong_key():
     zone = np.asarray(['z1', 'z2', 'z2', 'toto'])
     P.single.owner[zone]
@@ -57,7 +56,7 @@ def test_wrong_key():
 
 @raises(AssertionError)
 def test_inhomogenous():
-    node.couple.owner.add_child('toto', Parameter('toto', {
+    parameters.rate.couple.owner.add_child('toto', Parameter('toto', {
         "values": {
           "2015-01-01": {
             "value": 1000
@@ -65,22 +64,19 @@ def test_inhomogenous():
         }
       }))
 
-    P = node._get_at_instant('2015-01-01')
+    P = parameters.rate._get_at_instant('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
     P.couple[housing_occupancy_status]
 
 
-node_2 = ParameterNode(directory_path = LOCAL_DIR).local_tax
-P_2 = node_2._get_at_instant('2015-01-01')
-
+P_2 = parameters.local_tax._get_at_instant('2015-01-01')
 
 def test_with_properties_starting_by_number():
     city_code = np.asarray(['75012', '75007', '75015'])
     assert_near(P_2[city_code], [100, 300, 200])
 
 
-node_3 = ParameterNode(directory_path = LOCAL_DIR).bareme
-P_3 = node_3._get_at_instant('2015-01-01')
+P_3 = parameters.bareme._get_at_instant('2015-01-01')
 
 @raises(NotImplementedError)
 def test_with_bareme():
