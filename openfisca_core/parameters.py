@@ -374,6 +374,12 @@ class Scale(AbstractParameter):
         else:
             raise KeyError(key)
 
+    def __repr__(self):
+        return os.linesep.join([
+            '-' + indent(repr(bracket))[1:]
+            for bracket in self.brackets
+            ])
+
 
 def _parse_child(child_name, child, child_path):
     if 'values' in child:
