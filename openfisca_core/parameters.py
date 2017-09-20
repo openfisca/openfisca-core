@@ -300,61 +300,6 @@ class Parameter(AbstractParameter):
         return self.values_history.__repr__()
 
 
-class Bracket(AbstractParameter):
-    """
-        A scale bracket.
-    """
-    allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
-    _data_type = dict
-
-    def __init__(self, name, data = None, file_path = None):
-        """
-        :param name: name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
-        :param file_path: File the parameter was loaded from.
-        """
-        self.name = name
-        self.file_path = file_path
-        self.validate(data)
-        self.children = {}
-
-        for key, value in data.items():
-            new_child_name = _compose_name(name, key)
-            new_child = ValuesHistory(new_child_name, value, file_path)
-            self.children[key] = new_child
-            setattr(self, key, new_child)
-
-    def _get_at_instant(self, instant_str):
-        return BracketAtInstant(self.name, self, instant_str)
-
-    def __repr__(self):
-        return os.linesep.join(
-            [os.linesep.join(
-                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
-                for name, value in self.children.iteritems()]
-            )
-
-
-class BracketAtInstant(AbstractParameter):
-    """
-        A scale bracket at a given instant.
-    """
-    def __init__(self, name, bracket, instant_str):
-        """
-        :param name: Name of the bracket, eg "taxes.some_scale.bracket_3"
-        :param bracket: Original `Bracket` object.
-        :param instant_str: Date in the format `YYYY-MM-DD`.
-        """
-        self.name = name
-        self.instant_str = instant_str
-
-        for key in ['amount', 'rate', 'average_rate', 'threshold', 'base']:
-            if hasattr(bracket, key):
-                new_child = getattr(bracket, key)._get_at_instant(instant_str)
-                if new_child is not None:
-                    setattr(self, key, new_child)
-
-
 class Scale(AbstractParameter):
     """
         A parameter scale (for instance a  marginal scale).
@@ -382,7 +327,7 @@ class Scale(AbstractParameter):
         brackets = []
         for i, bracket_data in enumerate(data['brackets']):
             bracket_name = _compose_name(name, i)
-            bracket = Bracket(bracket_name, bracket_data, file_path)
+            bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
         self.brackets = brackets
 
@@ -435,6 +380,8 @@ def _parse_child(child_name, child, child_path):
         return Parameter(child_name, child, child_path)
     elif 'brackets' in child:
         return Scale(child_name, child, child_path)
+    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
+        return ValuesHistory(child_name, child, child_path)
     else:
         return ParameterNode(child_name, data = child, file_path = child_path)
 
@@ -524,6 +471,14 @@ class ParameterNode(AbstractParameter):
                 ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
                 for name, value in self.children.iteritems()]
             )
+
+
+class Bracket(ParameterNode):
+    """
+        A scale bracket.
+    """
+    allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
+
 
 def load_parameter_file(file_path, name = ''):
     """
