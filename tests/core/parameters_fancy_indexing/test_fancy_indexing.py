@@ -97,6 +97,27 @@ def test_inhomogenous_2():
         assert_in("'rate.couple.owner.toto' doesn't", e.message)
         raise
 
+@raises(ValueError)
+def test_inhomogenous_3():
+    parameters = ParameterNode(directory_path = LOCAL_DIR)
+    parameters.rate.couple.tenant.add_child('z4', ParameterNode('toto', data = {
+        'amount': {
+          'values': {
+            "2015-01-01": {'value': 550},
+            "2016-01-01": {'value': 600}
+            }
+          }
+        }))
+
+    P = parameters.rate._get_at_instant('2015-01-01')
+    zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
+    try:
+        P.couple.tenant[zone]
+    except ValueError as e:
+        assert_in("'rate.couple.tenant.z4' is a node", e.message)
+        assert_in("'rate.couple.tenant.z2' is not", e.message)
+        raise
+
 
 P_2 = parameters.local_tax._get_at_instant('2015-01-01')
 
@@ -110,4 +131,9 @@ P_3 = parameters.bareme._get_at_instant('2015-01-01')
 @raises(NotImplementedError)
 def test_with_bareme():
     city_code = np.asarray(['75012', '75007', '75015'])
-    assert_near(P_3[city_code], [100, 300, 200])
+    try:
+        P_3[city_code], [100, 300, 200]
+    except NotImplementedError as e:
+        assert_in("'bareme.75016' is a 'MarginalRateTaxScale'", e.message)
+        assert_in("has not been implemented", e.message)
+        raise

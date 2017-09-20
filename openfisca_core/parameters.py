@@ -504,7 +504,7 @@ class ParameterNode(AbstractParameter):
         :param child: The new child, an instance of :any:`Scale` or :any:`Parameter` or :any:`ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name)).encode('utf-8')
+            raise ValueError("{} has already a child named {}".format(self.name, name).encode('utf-8'))
         if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)):
             raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)).encode('utf-8'))
         self.children[name] = child
@@ -575,43 +575,92 @@ class ParameterNodeAtInstant(object):
         """
             Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
         """
+        MESSAGE_PART_1 = "Cannot use fancy indexing on parameter node '{}', as"
+        MESSAGE_PART_3 = "To use fancy indexing on parameter node, its children must be homogenous."
+        MESSAGE_PART_4 = "See more at <http://openfisca.org/doc/coding-the-legislation/legislation_parameters#computing-a-parameter-that-depends-on-a-variable>."
 
-        def raise_inhomogeneity_error(node_with_key, node_without_key, missing_key):
-            message = "Cannot use fancy indexing on parameter node '{}', as '{}' exists, but '{}' doesn't. To use fancy indexing on parameter node, its children must be homogenous. See more at https://doc.openfisca.org/xxx.".format(
+        def raise_key_inhomogeneity_error(node_with_key, node_without_key, missing_key):
+            message = " ".join([
+                MESSAGE_PART_1,
+                "'{}' exists, but '{}' doesn't.",
+                MESSAGE_PART_3,
+                MESSAGE_PART_4,
+                ]).format(
                 self._name,
                 '.'.join([node_with_key._name, missing_key]),
                 '.'.join([node_without_key._name, missing_key]),
                 ).encode('utf-8')
+
             raise ValueError(message)
 
+        def raise_type_inhomogeneity_error(node_name, non_node_name):
+            message = " ".join([
+                MESSAGE_PART_1,
+                "'{}' is a node, but '{}' is not.",
+                MESSAGE_PART_3,
+                MESSAGE_PART_4,
+                ]).format(
+                self._name,
+                node_name,
+                non_node_name,
+                ).encode('utf-8')
 
-        def check_nodes_isomorphic(nodes):
+            raise ValueError(message)
+
+        def raise_not_implemented(node_name, node_type):
+            message = " ".join([
+                MESSAGE_PART_1,
+                "'{}' is a '{}', and fancy indexing has not been implemented yet on this kind of parameters.",
+                MESSAGE_PART_4,
+                ]).format(
+                self._name,
+                node_name,
+                node_type,
+                ).encode('utf-8')
+            raise NotImplementedError(message)
+
+        def extract_named_children(node):
+            return {
+                '.'.join([node._name, key]): value
+                for key, value in node._children.iteritems()
+                }
+
+        def check_nodes_homogeneous(named_nodes):
             """
                 Check than several nodes (or parameters, or baremes) have the same structure.
             """
+            names = named_nodes.keys()
+            nodes = named_nodes.values()
             first_node = nodes[0]
+            first_name = names[0]
             if isinstance(first_node, ParameterNodeAtInstant):
-                children = first_node._children.values()
-                for node in nodes[1:]:
-                    assert isinstance(node, ParameterNodeAtInstant)
+                children = extract_named_children(first_node)
+                for node, name in zip(nodes, names)[1:]:
+                    if not isinstance(node, ParameterNodeAtInstant):
+                        raise_type_inhomogeneity_error(first_name, name)
                     first_node_keys = first_node._children.keys()
                     node_keys = node._children.keys()
                     if not first_node_keys == node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
                         if missing_keys:
-                            raise_inhomogeneity_error(first_node, node, missing_keys.pop())
+                            raise_key_inhomogeneity_error(first_node, node, missing_keys.pop())
                         missing_key = set(node_keys).difference(first_node_keys).pop()
-                        raise_inhomogeneity_error(node, first_node, missing_key)
-                    children.extend(node._children.values())
-                check_nodes_isomorphic(children)
+                        raise_key_inhomogeneity_error(node, first_node, missing_key)
+                    children.update(extract_named_children(node))
+                check_nodes_homogeneous(children)
             elif isinstance(first_node, float) or isinstance(first_node, int):
-                for node in nodes[1:]:
-                    assert isinstance(node, float) or isinstance(node, int)
-            elif isinstance(first_node, taxscales.MarginalRateTaxScale):
-                raise NotImplementedError
+                for node, name in zip(nodes, names)[1:]:
+                    if isinstance(node, int) or isinstance(node, float):
+                        pass
+                    elif isinstance(node, ParameterNodeAtInstant):
+                        raise_type_inhomogeneity_error(name, first_name)
+                    else:
+                        raise_not_implemented(name, type(node).__name__)
 
-        check_nodes_isomorphic(self._children.values())
+            else:
+                raise_not_implemented(first_name, type(first_node).__name__)
 
+        check_nodes_homogeneous(extract_named_children(self))
 
 
     def _to_vectorial_node(self):
