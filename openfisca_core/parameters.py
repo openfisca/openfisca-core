@@ -564,14 +564,40 @@ class ParameterNodeAtInstant(object):
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, np.ndarray):
-            return self._to_vectorial_node()[key]
+            return VectorialParameterNodeAtInstant.build_from_node(self)[key]
         return self._children[key]
 
     def __iter__(self):
         return iter(self._children)
 
 
-    def check_node_vectorisable(self):
+
+
+class VectorialParameterNodeAtInstant(object):
+    """
+        Parameter node of the legislation at a given instant which has been vectorized: it may differ for each entity.
+    """
+
+    @classmethod
+    def build_from_node(cls, node):
+        cls.check_node_vectorisable(node)
+        subnodes_name = node._children.keys()
+        vectorial_subnodes = tuple([
+            cls.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], ParameterNodeAtInstant) else node[subnode_name]
+            for subnode_name in subnodes_name
+            ])
+        structured_array = np.array(
+            [vectorial_subnodes],
+            dtype = [
+                (subnode_name, subnode.dtype if isinstance(subnode, np.recarray) else 'float')
+                for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
+                ]
+            )
+
+        return VectorialParameterNodeAtInstant(node._name, structured_array.view(np.recarray), node._instant_str)
+
+    @classmethod
+    def check_node_vectorisable(cls, node):
         """
             Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
         """
@@ -586,9 +612,9 @@ class ParameterNodeAtInstant(object):
                 MESSAGE_PART_3,
                 MESSAGE_PART_4,
                 ]).format(
-                self._name,
-                '.'.join([node_with_key._name, missing_key]),
-                '.'.join([node_without_key._name, missing_key]),
+                node._name,
+                '.'.join([node_with_key, missing_key]),
+                '.'.join([node_without_key, missing_key]),
                 ).encode('utf-8')
 
             raise ValueError(message)
@@ -600,7 +626,7 @@ class ParameterNodeAtInstant(object):
                 MESSAGE_PART_3,
                 MESSAGE_PART_4,
                 ]).format(
-                self._name,
+                node._name,
                 node_name,
                 non_node_name,
                 ).encode('utf-8')
@@ -613,7 +639,7 @@ class ParameterNodeAtInstant(object):
                 "'{}' is a '{}', and fancy indexing has not been implemented yet on this kind of parameters.",
                 MESSAGE_PART_4,
                 ]).format(
-                self._name,
+                node._name,
                 node_name,
                 node_type,
                 ).encode('utf-8')
@@ -642,10 +668,11 @@ class ParameterNodeAtInstant(object):
                     node_keys = node._children.keys()
                     if not first_node_keys == node_keys:
                         missing_keys = set(first_node_keys).difference(node_keys)
-                        if missing_keys:
-                            raise_key_inhomogeneity_error(first_node, node, missing_keys.pop())
-                        missing_key = set(node_keys).difference(first_node_keys).pop()
-                        raise_key_inhomogeneity_error(node, first_node, missing_key)
+                        if missing_keys:  # If the first_node has a key that node hasn't
+                            raise_key_inhomogeneity_error(first_name, name, missing_keys.pop())
+                        else:  # If If the node has a key that first_node doesn't have
+                            missing_key = set(node_keys).difference(first_node_keys).pop()
+                            raise_key_inhomogeneity_error(name, first_name, missing_key)
                     children.update(extract_named_children(node))
                 check_nodes_homogeneous(children)
             elif isinstance(first_node, float) or isinstance(first_node, int):
@@ -660,31 +687,7 @@ class ParameterNodeAtInstant(object):
             else:
                 raise_not_implemented(first_name, type(first_node).__name__)
 
-        check_nodes_homogeneous(extract_named_children(self))
-
-
-    def _to_vectorial_node(self):
-        self.check_node_vectorisable()
-        subnodes_name = self._children.keys()
-        vectorial_subnodes = tuple([
-            self[subnode_name]._to_vectorial_node().vector if isinstance(self[subnode_name], ParameterNodeAtInstant) else self[subnode_name]
-            for subnode_name in subnodes_name
-            ])
-        structured_array = np.array(
-            [vectorial_subnodes],
-            dtype = [
-                (subnode_name, subnode.dtype if isinstance(subnode, np.recarray) else 'float')
-                for (subnode_name, subnode) in zip(subnodes_name, vectorial_subnodes)
-                ]
-            )
-
-        return VectorialParameterNodeAtInstant(self._name, structured_array.view(np.recarray), self._instant_str)
-
-
-class VectorialParameterNodeAtInstant(object):
-    """
-        Parameter node of the legislation at a given instant which has been vectorized: it may differ for each entity.
-    """
+        check_nodes_homogeneous(extract_named_children(node))
 
     def __init__(self, name, vector, instant_str):
 
