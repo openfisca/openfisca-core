@@ -564,8 +564,7 @@ class ParameterNodeAtInstant(object):
     def __getitem__(self, key):
         # If fancy indexing is used, cast to a vectorial node
         if isinstance(key, np.ndarray):
-            key_filter = np.unique(key)
-            return VectorialParameterNodeAtInstant.build_from_node(self, key_filter)[key]
+            return VectorialParameterNodeAtInstant.build_from_node(self)[key]
         return self._children[key]
 
     def __iter__(self):
@@ -578,15 +577,9 @@ class VectorialParameterNodeAtInstant(object):
     """
 
     @classmethod
-    def build_from_node(cls, node, key_filter = None):
-        """
-        Builds a vectorial node for a ParameterNodeAtInstant.
-        If key_filter is set, only the child in key_filter are taken into account.
-        """
-        cls.check_node_vectorisable(node, key_filter)
+    def build_from_node(cls, node):
+        cls.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
-        if key_filter is not None:
-            subnodes_name = [name for name in subnodes_name if name in key_filter]
         vectorial_subnodes = tuple([
             cls.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], ParameterNodeAtInstant) else node[subnode_name]
             for subnode_name in subnodes_name
@@ -602,7 +595,7 @@ class VectorialParameterNodeAtInstant(object):
         return VectorialParameterNodeAtInstant(node._name, structured_array.view(np.recarray), node._instant_str)
 
     @classmethod
-    def check_node_vectorisable(cls, node, key_filter = None):
+    def check_node_vectorisable(cls, node):
         """
             Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
         """
@@ -650,11 +643,10 @@ class VectorialParameterNodeAtInstant(object):
                 ).encode('utf-8')
             raise NotImplementedError(message)
 
-        def extract_named_children(node, key_filter = None):
+        def extract_named_children(node):
             return {
                 '.'.join([node._name, key]): value
                 for key, value in node._children.iteritems()
-                if key_filter is None or key in key_filter
                 }
 
         def check_nodes_homogeneous(named_nodes):
@@ -693,7 +685,7 @@ class VectorialParameterNodeAtInstant(object):
             else:
                 raise_not_implemented(first_name, type(first_node).__name__)
 
-        check_nodes_homogeneous(extract_named_children(node, key_filter))
+        check_nodes_homogeneous(extract_named_children(node))
 
     def __init__(self, name, vector, instant_str):
 
