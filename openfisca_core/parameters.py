@@ -108,6 +108,9 @@ class ValidableParameter(object):
 
 class DatableParameter(object):
 
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
     def get_at_instant(self, instant):
         instant = str(instant)
         if not INSTANT_PATTERN.match(instant):
