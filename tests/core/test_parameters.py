@@ -9,7 +9,7 @@ from test_countries import tax_benefit_system
 def test_get_at_instant():
     parameters = tax_benefit_system.parameters
     assert isinstance(parameters, ParameterNode), parameters
-    parameters_at_instant = parameters._get_at_instant('2016-01-01')
+    parameters_at_instant = parameters('2016-01-01')
     assert isinstance(parameters_at_instant, ParameterNodeAtInstant), parameters_at_instant
     assert_equal(parameters_at_instant.taxes.income_tax_rate, 0.15)
     assert_equal(parameters_at_instant.benefits.basic_income, 600)
@@ -53,3 +53,14 @@ def test_stopped_parameter_before_end_value():
 @raises(ParameterNotFound)
 def test_stopped_parameter_after_end_value():
     tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
+
+
+def test_parameter_for_period():
+    income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
+    assert_equal(income_tax_rate("2015"), income_tax_rate("2015-01-01"))
+
+
+@raises(ValueError)
+def test_wrong_value():
+    income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
+    income_tax_rate("test")
