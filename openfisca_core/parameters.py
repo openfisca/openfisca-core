@@ -11,7 +11,6 @@ import traceback
 
 import yaml
 import numpy as np
-import numpy_indexed as npi
 
 from . import taxscales
 
@@ -717,30 +716,16 @@ class VectorialParameterNodeAtInstant(object):
             if not np.issubdtype(key.dtype, np.str):
                 key = key.astype('str')  # In case the key is a number vector, stringify it
             names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
-            # TODO: Handle key error, raised in the next line if there is an unknown key
-            try:
-                indices = npi.indices(names, key)  # For each item of the key vector, get its corresponding index in names, e.g. [0, 1, 0]
-            except KeyError:
+            default = np.full_like(self.vector[key[0]], np.nan)  # In case of unexpected key, we will set the corresponding value to NaN.
+            conditions = [key == name for name in names]
+            values = [self.vector[name] for name in names]
+            result = np.select(conditions, values, default)
+            if contains_nan(result):
                 unexpected_key = set(key).difference(self.vector.dtype.names).pop()
                 raise ParameterNotFound('.'.join([self._name, unexpected_key]), self._instant_str)
 
-            # In the case of one-level fancy indexing, such as parameters.rate[zone], we just have one value per subnode.
-            # The underlying vector thus has only one element
-            if len(self.vector) == 1:
-                values = np.asarray([self.vector[name][0] for name in names])  # Get the values corresponding to the names, e.g. [100, 200]
-                remapped_array = values[indices]  # Use numpy index array to get the right values, e.g. [100, 200, 100]
-
-            # In the case of multi-level fancy indexing, such as parameters.rate[status][zone], there are several value per subnode (one per entity)
-            # The underlying vector thus has several elements: one for each possible "status"
-            else:
-                values = np.asarray([self.vector[name] for name in names])  # 2-D matrix. Each lines correponds to a subnode of the parameter. Each column corresponds to an entity.
-                remapped_array = np.diag(values[indices])  # 2-D matrix. Line i corresponds to the subnode matching to the ith entity. Column j corresponds to the value for entity j resulting from previous indexing (parameters.rate[status] in our example). Therefore only the diagonal elements are relevant. Note: using np.select does not work, as we can multiply recarrays.
-
-            dtype = self.vector[key[0]].dtype  # We assume than the dtype of the result is the dtype of the first subnode. This is not an issue as we previously checked that all subnodes had a similar structure.
-            result = np.array(remapped_array, dtype = dtype)  # ValueError is raised here if dtype is float but the array contains tuple. Should not happen, since we checked the structure were consistent.
-
             # If the result is not a leaf, wrap the result in a vectorial node.
-            if np.issubdtype(dtype, np.record):
+            if np.issubdtype(result.dtype, np.record):
                 return VectorialParameterNodeAtInstant(self._name, result.view(np.recarray), self._instant_str)
 
             return result
@@ -753,3 +738,10 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
+
+
+def contains_nan(vector):
+    if np.issubdtype(vector.dtype, np.record):
+        return any([contains_nan(vector[name]) for name in vector.dtype.names])
+    else:
+        return np.isnan(np.min(vector))
