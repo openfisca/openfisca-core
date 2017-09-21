@@ -13,6 +13,7 @@ import yaml
 import numpy as np
 
 from . import taxscales
+from . import periods
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ def date_constructor(loader, node):
 yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
 
 
-class ParameterNotFound(Exception):
+class ParameterNotFound(AttributeError):
     """
         Exception raised when a parameter is not found in the parameters.
     """
@@ -79,7 +80,7 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class AbstractParameter(object):
+class ValidableParameter(object):
     allowed_keys = None
     _data_type = None
     type_map = {
@@ -105,7 +106,19 @@ class AbstractParameter(object):
                         )
 
 
-class ValueAtInstant(AbstractParameter):
+class DatableParameter(object):
+
+    def get_at_instant(self, instant):
+        instant = str(instant)
+        if not INSTANT_PATTERN.match(instant):
+            try:
+                instant = str(periods.period(instant).start)
+            except ValueError:
+                raise ValueError("'{}' is neither a valid instant, nor a valid period.".format(instant).encode('utf-8'))
+        return self._calculate_at_instant(instant)
+
+
+class ValueAtInstant(ValidableParameter):
     """
         A value of a parameter at a given instant.
     """
@@ -153,7 +166,7 @@ class ValueAtInstant(AbstractParameter):
         return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
-class ValuesHistory(AbstractParameter):
+class ValuesHistory(ValidableParameter, DatableParameter):
     """
         This history of a parameter values.
 
@@ -203,7 +216,7 @@ class ValuesHistory(AbstractParameter):
     def __eq__(self, other):
         return (self.name == other.name) and (self.values_list == other.values_list)
 
-    def _get_at_instant(self, instant_str):
+    def _calculate_at_instant(self, instant_str):
         for value_at_instant in self.values_list:
             if value_at_instant.instant_str <= instant_str:
                 return value_at_instant.value
@@ -270,7 +283,7 @@ class ValuesHistory(AbstractParameter):
         self.values_list = new_values
 
 
-class Parameter(AbstractParameter):
+class Parameter(ValidableParameter, DatableParameter):
     """
         A parameter of the legislation.
     """
@@ -290,8 +303,8 @@ class Parameter(AbstractParameter):
         values = data['values']
         self.values_history = ValuesHistory(name, data = values, file_path = file_path)
 
-    def _get_at_instant(self, instant_str):
-        return self.values_history._get_at_instant(instant_str)
+    def _calculate_at_instant(self, instant_str):
+        return self.values_history.get_at_instant(instant_str)
 
     def update(self, **args):
         return self.values_history.update(**args)
@@ -300,7 +313,7 @@ class Parameter(AbstractParameter):
         return self.values_history.__repr__()
 
 
-class Scale(AbstractParameter):
+class Scale(ValidableParameter, DatableParameter):
     """
         A parameter scale (for instance a  marginal scale).
     """
@@ -331,8 +344,8 @@ class Scale(AbstractParameter):
             brackets.append(bracket)
         self.brackets = brackets
 
-    def _get_at_instant(self, instant_str):
-        brackets = [bracket._get_at_instant(instant_str) for bracket in self.brackets]
+    def _calculate_at_instant(self, instant_str):
+        brackets = [bracket.get_at_instant(instant_str) for bracket in self.brackets]
 
         if any(hasattr(bracket, 'amount') for bracket in brackets):
             scale = taxscales.AmountTaxScale()
@@ -392,7 +405,7 @@ def _parse_child(child_name, child, child_path):
         return ParameterNode(child_name, data = child, file_path = child_path)
 
 
-class ParameterNode(AbstractParameter):
+class ParameterNode(ValidableParameter, DatableParameter):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
@@ -445,7 +458,7 @@ class ParameterNode(AbstractParameter):
                 self.children[child_name] = child
                 setattr(self, child_name, child)
 
-    def _get_at_instant(self, instant_str):
+    def _calculate_at_instant(self, instant_str):
         return ParameterNodeAtInstant(self.name, self, instant_str)
 
     def merge(self, other):
@@ -528,7 +541,7 @@ class ParameterNodeAtInstant(object):
         self._instant_str = instant_str
         self._children = {}
         for child_name, child in node.children.items():
-            child_at_instant = child._get_at_instant(instant_str)
+            child_at_instant = child.get_at_instant(instant_str)
             if child_at_instant is not None:
                 self._children[child_name] = child_at_instant
                 setattr(self, child_name, child_at_instant)
@@ -552,6 +565,7 @@ class ParameterNodeAtInstant(object):
                 ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
                 for name, value in self._children.iteritems()]
             )
+
 
 class VectorialParameterNodeAtInstant(object):
     """

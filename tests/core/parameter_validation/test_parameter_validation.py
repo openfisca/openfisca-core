@@ -48,12 +48,12 @@ def test_parsing_errors():
 def test_filesystem_hierarchy():
     path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     parameters = ParameterNode('', directory_path = path)
-    parameters_at_instant = parameters._get_at_instant('2016-01-01')
+    parameters_at_instant = parameters('2016-01-01')
     assert parameters_at_instant.node1.param == 1.0
 
 
 def test_yaml_hierarchy():
     path = os.path.join(BASE_DIR, 'yaml_hierarchy')
     parameters = ParameterNode('', directory_path = path)
-    parameters_at_instant = parameters._get_at_instant('2016-01-01')
+    parameters_at_instant = parameters('2016-01-01')
     assert parameters_at_instant.node1.param == 1.0

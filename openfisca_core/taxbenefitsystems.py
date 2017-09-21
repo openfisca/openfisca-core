@@ -338,7 +338,8 @@ class TaxBenefitSystem(object):
         return baseline._get_baseline_parameters_at_instant(instant)
 
     def get_parameters_at_instant(self, instant):
-        """Compute the parameters of the legislation at a given instant
+        """
+        Compute the parameters of the legislation at a given instant
 
         :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
@@ -348,7 +349,7 @@ class TaxBenefitSystem(object):
         instant_str = str(instant)
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
         if parameters_at_instant is None and parameters is not None:
-            parameters_at_instant = parameters._get_at_instant(instant_str)
+            parameters_at_instant = parameters.get_at_instant(instant_str)
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
