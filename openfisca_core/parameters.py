@@ -577,13 +577,13 @@ class VectorialParameterNodeAtInstant(object):
         Vectorized parameters allow requests such as parameters.housing_benefit[zipcode], where zipcode is a vector
     """
 
-    @classmethod
-    def build_from_node(cls, node):
-        cls.check_node_vectorisable(node)
+    @staticmethod
+    def build_from_node(node):
+        VectorialParameterNodeAtInstant.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
         # Recursively vectorize the children of the node
         vectorial_subnodes = tuple([
-            cls.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], ParameterNodeAtInstant) else node[subnode_name]
+            VectorialParameterNodeAtInstant.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], ParameterNodeAtInstant) else node[subnode_name]
             for subnode_name in subnodes_name
             ])
         # A vectorial node is a wrapper around a numpy recarray
@@ -598,8 +598,8 @@ class VectorialParameterNodeAtInstant(object):
 
         return VectorialParameterNodeAtInstant(node._name, recarray.view(np.recarray), node._instant_str)
 
-    @classmethod
-    def check_node_vectorisable(cls, node):
+    @staticmethod
+    def check_node_vectorisable(node):
         """
             Check that a node can be casted to a vectorial node, in order to be able to use fancy indexing.
         """
