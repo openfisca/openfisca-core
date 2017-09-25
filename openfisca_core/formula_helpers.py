@@ -45,3 +45,12 @@ def switch(conditions, value_by_condition):
         for condition in value_by_condition.keys()
         ]
     return np.select(condlist, value_by_condition.values())
+
+
+def concat(this, that):
+    if isinstance(this, np.ndarray) and not np.issubdtype(this.dtype, np.str):
+        this = this.astype('str')
+    if isinstance(that, np.ndarray) and not np.issubdtype(that.dtype, np.str):
+        that = that.astype('str')
+
+    return np.core.defchararray.add(this, that)

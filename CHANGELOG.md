@@ -1,5 +1,34 @@
 # Changelog
 
+## 17.2.0 [#570](https://github.com/openfisca/openfisca-core/pull/570)
+
+- Enable to calculate parameters according to a variable
+
+For instance, if a parameter `rate` depends on a variable `zone` that can take the values `z1` or `z2`:
+
+In `rate.yaml`:
+
+```
+z1:
+  values:
+    '2015-01-01':
+      value: 100
+z2:
+  values:
+    '2015-01-01':
+      value: 200
+```
+
+Then it is now possible to use:
+
+```
+zone = household('zone', period)
+rate = parameters(period).rate[zone]
+```
+
+
+For more information, check the [documentation](http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html#computing-a-parameter-that-depends-on-a-variable-fancy-indexing)
+
 ### 17.1.2 [#569](https://github.com/openfisca/openfisca-core/pull/569)
 
 - Fix migration script `xml_to_yaml.py`

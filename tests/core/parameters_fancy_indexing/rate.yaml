@@ -1,0 +1,38 @@
+single:
+  owner:
+    z1:
+      values:
+        '2015-01-01':
+          value: 100
+    z2:
+      values:
+        '2015-01-01':
+          value: 200
+  tenant:
+    z1:
+      values:
+        '2015-01-01':
+          value: 300
+    z2:
+      values:
+        '2015-01-01':
+          value: 400
+couple:
+  owner:
+    z1:
+      values:
+        '2015-01-01':
+          value: 500
+    z2:
+      values:
+        '2015-01-01':
+          value: 600
+  tenant:
+    z1:
+      values:
+        '2015-01-01':
+          value: 700
+    z2:
+      values:
+        '2015-01-01':
+          value: 800
