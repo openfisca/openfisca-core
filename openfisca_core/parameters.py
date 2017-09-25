@@ -573,18 +573,22 @@ class ParameterNodeAtInstant(object):
 
 class VectorialParameterNodeAtInstant(object):
     """
-        Parameter node of the legislation at a given instant which has been vectorized: it may differ for each entity.
+        Parameter node of the legislation at a given instant which has been vectorized.
+        Vectorized parameters allow requests such as parameters.housing_benefit[zipcode], where zipcode is a vector
     """
 
     @classmethod
     def build_from_node(cls, node):
         cls.check_node_vectorisable(node)
         subnodes_name = node._children.keys()
+        # Recursively vectorize the children of the node
         vectorial_subnodes = tuple([
             cls.build_from_node(node[subnode_name]).vector if isinstance(node[subnode_name], ParameterNodeAtInstant) else node[subnode_name]
             for subnode_name in subnodes_name
             ])
-        structured_array = np.array(
+        # A vectorial node is a wrapper around a numpy recarray
+        # We first build the recarray
+        recarray = np.array(
             [vectorial_subnodes],
             dtype = [
                 (subnode_name, subnode.dtype if isinstance(subnode, np.recarray) else 'float')
@@ -592,7 +596,7 @@ class VectorialParameterNodeAtInstant(object):
                 ]
             )
 
-        return VectorialParameterNodeAtInstant(node._name, structured_array.view(np.recarray), node._instant_str)
+        return VectorialParameterNodeAtInstant(node._name, recarray.view(np.recarray), node._instant_str)
 
     @classmethod
     def check_node_vectorisable(cls, node):
