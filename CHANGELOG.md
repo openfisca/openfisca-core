@@ -1,5 +1,41 @@
 # Changelog
 
+## 17.3.0 [#578](https://github.com/openfisca/openfisca-core/pull/578)
+
+#### New features
+
+- Improve the representations of parameters when navigating the legislation in Python.
+
+For instance:
+```
+tax_benefit_system.parameters.benefits
+
+>>> basic_income:
+>>>   2015-12-01: 600.0
+>>> housing_allowance:
+>>>   2016-12-01: None
+>>>   2010-01-01: 0.25
+```
+
+- Be more flexible about parameters definitions
+
+The two following expressions are for instance striclty equivalent:
+
+```
+Parameter("taux", {"2015-01-01": 2000})
+Parameter("taux", {"values": {"2015-01-01":{"value": 2000}}})
+```
+
+- Request parameter at a given date with the `parameters.benefits('2015-07-01')` notation.
+- Make sure `parameters.benefits('2015-07-01')` and `parameters.benefits('2015-07')` return the same value.
+- Raise an error when calling `parameters.benefits('invalid_key')`.
+- Improve errors when `parameter.update` is used with wrong arguments
+
+#### Deprecations
+
+- Deprecate `ValuesHistory` class. Use `Parameter` instead.
+- Deprecate `parameter.values_history`. Just use `parameter` instead.
+
 ## 17.2.0 [#570](https://github.com/openfisca/openfisca-core/pull/570)
 
 - Enable to calculate parameters according to a variable
