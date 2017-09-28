@@ -81,29 +81,28 @@ class ParameterParsingError(Exception):
 
 
 class ValidableParameter(object):
-    allowed_keys = None
-    _data_type = None
     type_map = {
         dict: 'object',
         list: 'array',
         }
 
-    def validate(self, data):
-        if self._data_type is not None and not isinstance(data, self._data_type):
+    def validate(self, data, data_type = None, allowed_keys = None):
+        if data_type is not None and not isinstance(data, data_type):
             raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, self.type_map[self._data_type]).encode("utf-8"),
+                "'{}' must be of type {}.".format(self.name, self.type_map[data_type]).encode("utf-8"),
                 self.file_path
                 )
 
-        if self.allowed_keys is not None:
+        if allowed_keys is not None:
             keys = data.keys()
             for key in keys:
-                if key not in self.allowed_keys:
+                if key not in allowed_keys:
                     raise ParameterParsingError(
                         "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                        .format(key, self.name, list(self.allowed_keys)).encode('utf-8'),
+                        .format(key, self.name, list(allowed_keys)).encode('utf-8'),
                         self.file_path
                         )
+
 
 
 class DatableParameter(object):
@@ -126,9 +125,8 @@ class ValueAtInstant(ValidableParameter):
         A value of a parameter at a given instant.
     """
 
-    allowed_value_data_types = [int, float, bool, type(None)]
-    allowed_keys = set(['value', 'unit', 'reference'])
-    _data_type = dict
+    _allowed_value_data_types = [int, float, bool, type(None)]
+    _allowed_keys = set(['value', 'unit', 'reference'])
 
     def __init__(self, name, instant_str, data = None, file_path = None):
         """
@@ -148,7 +146,7 @@ class ValueAtInstant(ValidableParameter):
         self.value = data['value']
 
     def validate(self, data):
-        super(ValueAtInstant, self).validate(data)
+        super(ValueAtInstant, self).validate(data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError:
@@ -156,7 +154,7 @@ class ValueAtInstant(ValidableParameter):
                 "Missing 'value' property for {}".format(self.name).encode('utf-8'),
                 self.file_path
                 )
-        if type(value) not in self.allowed_value_data_types:
+        if type(value) not in self._allowed_value_data_types:
             raise ParameterParsingError(
                 "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
                 self.file_path
@@ -169,25 +167,31 @@ class ValueAtInstant(ValidableParameter):
         return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
-class ValuesHistory(ValidableParameter, DatableParameter):
+class Parameter(ValidableParameter, DatableParameter):
     """
         This history of a parameter values.
 
-        :param name: name of the parameter, eg "taxes.some_tax.some_param"
-        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
+        :param data: Data loaded from a YAML file.
+        :param file_path: File the parameter was loaded from.
 
         .. py:attribute:: values_list
 
            List of the values, in anti-chronological order
     """
 
-    _data_type = dict
-
     def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
+        self.validate(data, data_type = dict)
+        self.values_history = self  # Only for retro-compatibility
 
-        self.validate(data)
+
+        if data.get('values'):
+            self.validate(data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
+            self.description = data.get('description')
+            data = data['values']
+            self.validate(data, data_type = dict)
 
         instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
 
@@ -288,41 +292,16 @@ class ValuesHistory(ValidableParameter, DatableParameter):
         self.values_list = new_values
 
 
-class Parameter(ValidableParameter, DatableParameter):
-    """
-        A parameter of the legislation.
-    """
-    allowed_keys = set(['values', 'description', 'unit', 'reference'])
-
-    def __init__(self, name, data, file_path = None):
-        """
-            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
-            :param data: Data loaded from a YAML file.
-            :param file_path: File the parameter was loaded from.
-        """
-        self.name = name
-        self.file_path = file_path
-        self.validate(data)
-        self.description = data.get('description')
-
-        values = data['values']
-        self.values_history = ValuesHistory(name, data = values, file_path = file_path)
-
-    def _calculate_at_instant(self, instant_str):
-        return self.values_history.get_at_instant(instant_str)
-
-    def update(self, *args, **kwargs):
-        return self.values_history.update(*args, **kwargs)
-
-    def __repr__(self):
-        return self.values_history.__repr__()
+# Only for retro-compatibility
+class ValuesHistory(Parameter):
+    pass
 
 
 class Scale(ValidableParameter, DatableParameter):
     """
         A parameter scale (for instance a  marginal scale).
     """
-    allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
+    _allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
 
     def __init__(self, name, data, file_path):
         """
@@ -332,7 +311,7 @@ class Scale(ValidableParameter, DatableParameter):
         """
         self.name = name
         self.file_path = file_path
-        self.validate(data)
+        self.validate(data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
 
         if not isinstance(data['brackets'], list):
@@ -405,7 +384,7 @@ def _parse_child(child_name, child, child_path):
     elif 'brackets' in child:
         return Scale(child_name, child, child_path)
     elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
-        return ValuesHistory(child_name, child, child_path)
+        return Parameter(child_name, child, child_path)
     else:
         return ParameterNode(child_name, data = child, file_path = child_path)
 
@@ -414,7 +393,8 @@ class ParameterNode(ValidableParameter, DatableParameter):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
-    _data_type = dict
+
+    _allowed_keys = None  # By default, no restriction on the keys
 
     def __init__(self, name = "", directory_path = None, data = None, file_path = None):
         """
@@ -473,7 +453,7 @@ class ParameterNode(ValidableParameter, DatableParameter):
 
         else:
             self.file_path = file_path
-            self.validate(data)
+            self.validate(data, data_type = dict, allowed_keys = self._allowed_keys)
             self.children = {}
             # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
             data.pop('reference', None)
@@ -523,7 +503,7 @@ class Bracket(ParameterNode):
     """
         A scale bracket.
     """
-    allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
+    _allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
 
 
 def load_parameter_file(file_path, name = ''):
