@@ -309,8 +309,8 @@ class Parameter(ValidableParameter, DatableParameter):
     def _calculate_at_instant(self, instant_str):
         return self.values_history.get_at_instant(instant_str)
 
-    def update(self, **args):
-        return self.values_history.update(**args)
+    def update(self, *args, **kwargs):
+        return self.values_history.update(*args, **kwargs)
 
     def __repr__(self):
         return self.values_history.__repr__()
