@@ -104,7 +104,6 @@ class ValidableParameter(object):
                         )
 
 
-
 class DatableParameter(object):
 
     def __call__(self, instant):
@@ -138,8 +137,9 @@ class ValueAtInstant(ValidableParameter):
         self.instant_str = instant_str
         self.file_path = file_path
 
-        if data is None:
-            self.value = None
+        # Accept { 2015-01-01: 4000 }
+        if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
+            self.value = data
             return
 
         self.validate(data)
@@ -185,7 +185,6 @@ class Parameter(ValidableParameter, DatableParameter):
         self.file_path = file_path
         self.validate(data, data_type = dict)
         self.values_history = self  # Only for retro-compatibility
-
 
         if data.get('values'):
             self.validate(data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
