@@ -339,7 +339,7 @@ class TaxBenefitSystem(object):
 
     def get_parameters_at_instant(self, instant):
         """
-        Compute the parameters of the legislation at a given instant
+        Get the parameters of the legislation at a given instant
 
         :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
         :returns: The parameters of the legislation at a given instant.

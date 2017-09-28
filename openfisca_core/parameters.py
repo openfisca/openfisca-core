@@ -169,11 +169,29 @@ class ValueAtInstant(ValidableParameter):
 
 class Parameter(ValidableParameter, DatableParameter):
     """
-        This history of a parameter values.
+        A parameter of the legislation. Parameters can change over time.
 
         :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
         :param data: Data loaded from a YAML file.
         :param file_path: File the parameter was loaded from.
+
+
+        Instantiate a parameter without metadata:
+
+        >>>  Parameter('rate', data = {
+                "2015-01-01": 550,
+                "2016-01-01": 600
+                })
+
+        Instantiate a parameter with metadata:
+
+        >>>  Parameter('rate', data = {
+                'description': 'Income tax rate applied on salaries'
+                'values': {
+                    "2015-01-01": {'value': 550, reference = 'http://taxes.gov/income_tax/2015'},
+                    "2016-01-01": {'value': 600, reference = 'http://taxes.gov/income_tax/2016'}
+                    }
+                })
 
         .. py:attribute:: values_list
 
