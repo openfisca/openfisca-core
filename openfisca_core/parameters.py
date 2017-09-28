@@ -53,8 +53,8 @@ class ParameterNotFound(AttributeError):
         if variable_name is not None:
             message += u" requested by variable '{}'".format(variable_name)
         message += (
-            u" was not found in the {2} tax and benefit system."
-            ).format(name, variable_name, instant_str)
+            u" was not found in the {} tax and benefit system."
+            ).format(instant_str)
         super(ParameterNotFound, self).__init__(message)
 
 
