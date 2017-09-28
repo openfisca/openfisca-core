@@ -234,8 +234,10 @@ class ValuesHistory(ValidableParameter, DatableParameter):
         :param value: New value. If `None`, the parameter is removed from the legislation parameters for the given period.
         """
         if period is not None:
-            if start is not None and stop is not None:
-                raise ValueError(u"period parameter can't be used with start and stop")
+            if start is not None or stop is not None:
+                raise TypeError(u"Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
+            if isinstance(period, basestring):
+                period = periods.period(period)
             start = period.start
             stop = period.stop
         if start is None:
