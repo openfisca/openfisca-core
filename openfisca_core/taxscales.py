@@ -7,6 +7,7 @@ from bisect import bisect_left, bisect_right
 import copy
 import logging
 import itertools
+import os
 
 import numpy as np
 from numpy import maximum as max_, minimum as min_
@@ -73,6 +74,12 @@ class AbstractRateTaxScale(AbstractTaxScale):
                 for threshold, rate in itertools.izip(self.thresholds, self.rates)
                 ),
             ))
+    def __repr__(self):
+        from .parameters import indent  # Need to import here to avoid a circular dependency
+        return indent(os.linesep.join([
+                '- threshold: {}{}  rate: {}'.format(threshold, os.linesep, rate)
+                for (threshold, rate) in zip(self.thresholds, self.rates)
+                ]))
 
     def add_bracket(self, threshold, rate):
         if threshold in self.thresholds:
