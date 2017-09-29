@@ -120,6 +120,7 @@ class Holder(object):
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
+        self.simulation.tracer.start(self.column.name, period)
         column = self.column
 
         # Check that the requested period matches definition_period
@@ -145,15 +146,18 @@ class Holder(object):
         # First look for a value already cached
         holder_or_dated_holder = self.get_from_cache(period, extra_params)
         if holder_or_dated_holder.array is not None:
+            self.simulation.tracer.stop(self.column.name, period, holder_or_dated_holder.array)
             return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
         dated_holder = self.formula.compute(period = period, **parameters)
         formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
+        self.simulation.tracer.stop(self.column.name, period, dated_holder.array)
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):
+        self.simulation.tracer.start(self.column.name, period)
         # Check that the requested period matches definition_period
         if self.column.definition_period == YEAR and period.unit == periods.MONTH:
             raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
@@ -181,9 +185,11 @@ class Holder(object):
                 array += dated_holder.array
             sub_period = sub_period.offset(1)
 
+        self.simulation.tracer.stop(self.column.name, period, array)
         return DatedHolder(self, period, array, parameters.get('extra_params'))
 
     def compute_divide(self, period, **parameters):
+        self.simulation.tracer.start(self.column.name, period)
         # Check that the requested period matches definition_period
         if self.column.definition_period != YEAR:
             raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
@@ -197,9 +203,12 @@ class Holder(object):
             computation_period = period.this_year
             dated_holder = self.compute(period = computation_period, **parameters)
             array = dated_holder.array / 12.
+            self.simulation.tracer.stop(self.column.name, period, array)
             return DatedHolder(self, period, array, parameters.get('extra_params'))
         elif period.unit == periods.YEAR:
-            return self.compute(period, **parameters)
+            result = self.compute(period, **parameters)
+            self.simulation.tracer.stop(self.column.name, period, result)
+            return result
 
         raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
             self.column.name,
