@@ -399,8 +399,6 @@ class Formula(object):
         entity = holder.entity
         simulation = holder.simulation
         debug = simulation.debug
-        debug_all = simulation.debug_all
-        trace = simulation.trace
 
         assert (period is not None) or (column.definition_period == ETERNITY)
 
@@ -416,12 +414,6 @@ class Formula(object):
 
         try:
             self.check_for_cycle(period)
-            if debug or trace:
-                simulation.stack_trace.append(dict(
-                    parameters_infos = [],
-                    input_variables_infos = [],
-                    variable_name = column.name,
-                    ))
             if extra_params:
                 array = self.base_function(simulation, period, *extra_params)
             else:
@@ -472,29 +464,6 @@ class Formula(object):
                 pass
         if array.dtype != column.dtype:
             array = array.astype(column.dtype)
-
-        if debug or trace:
-            variable_infos = (column.name, period)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = step = dict(
-                    holder = holder,
-                    )
-            step.update(simulation.stack_trace.pop())
-            input_variables_infos = step['input_variables_infos']
-            if not debug_all or trace:
-                step['default_input_variables'] = has_only_default_input_variables = all(
-                    np.all(input_holder.get_array(input_variable_period) == input_holder.column.default)
-                    for input_holder, input_variable_period in (
-                        (simulation.get_variable_entity(input_variable_name).get_holder(input_variable_name), input_variable_period1)
-                        for input_variable_name, input_variable_period1 in input_variables_infos
-                        )
-                    )
-            step['is_computed'] = True
-            if debug and (debug_all or not has_only_default_input_variables):
-                log.info(u'<=> {}@{}<{}>({}) --> <{}>{}'.format(column.name, entity.key, str(period),
-                    simulation.stringify_input_variables_infos(input_variables_infos), str(period),
-                    stringify_array(array)))
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:

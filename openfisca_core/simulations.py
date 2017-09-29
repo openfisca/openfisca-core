@@ -1,32 +1,27 @@
 # -*- coding: utf-8 -*-
 
 
-import collections
 import warnings
 from os import linesep
 
 import dpath
 
 import periods
-from commons import empty_clone, stringify_array
+from commons import empty_clone
 
 
 class Simulation(object):
     _parameters_at_instant_cache = None
     debug = False
-    debug_all = False  # When False, log only formula calls with non-default parameters.
     period = None
     baseline_parameters_at_instant_cache = None
-    stack_trace = None
     steps_count = 1
     tax_benefit_system = None
     trace = False
-    traceback = None
 
     def __init__(
             self,
             debug = False,
-            debug_all = False,
             period = None,
             tax_benefit_system = None,
             trace = False,
@@ -38,7 +33,7 @@ class Simulation(object):
 
             This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
 
-            If no simulation_json is give, initilalises an empty simulation.
+            If no simulation_json is given, initilalises an empty simulation.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
@@ -54,15 +49,9 @@ class Simulation(object):
 
         if debug:
             self.debug = True
-        if debug_all:
-            assert debug
-            self.debug_all = True
-        if trace:
+        if debug or trace:
             self.trace = True
         self.opt_out_cache = opt_out_cache
-        if debug or trace:
-            self.stack_trace = collections.deque()
-            self.traceback = collections.OrderedDict()
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self._parameters_at_instant_cache = {}
@@ -132,7 +121,7 @@ class Simulation(object):
         holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.calculate_output(period)
 
-    def clone(self, debug = False, debug_all = False, trace = False):
+    def clone(self, debug = False, trace = False):
         """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
         new = empty_clone(self)
         new_dict = new.__dict__
@@ -152,8 +141,6 @@ class Simulation(object):
 
         if debug:
             new_dict['debug'] = True
-        if debug_all:
-            new_dict['debug_all'] = True
         if trace:
             new_dict['trace'] = True
         if debug or trace:
@@ -165,12 +152,6 @@ class Simulation(object):
     def compute(self, column_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        if (self.debug or self.trace) and self.stack_trace:
-            variable_infos = (column_name, period)
-            calling_frame = self.stack_trace[-1]
-            caller_input_variables_infos = calling_frame['input_variables_infos']
-            if variable_infos not in caller_input_variables_infos:
-                caller_input_variables_infos.append(variable_infos)
         holder = self.get_variable_entity(column_name).get_holder(column_name)
         result = holder.compute(period = period, **parameters)
         return result
@@ -178,36 +159,18 @@ class Simulation(object):
     def compute_add(self, column_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        if (self.debug or self.trace) and self.stack_trace:
-            variable_infos = (column_name, period)
-            calling_frame = self.stack_trace[-1]
-            caller_input_variables_infos = calling_frame['input_variables_infos']
-            if variable_infos not in caller_input_variables_infos:
-                caller_input_variables_infos.append(variable_infos)
         holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_add(period = period, **parameters)
 
     def compute_divide(self, column_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        if (self.debug or self.trace) and self.stack_trace:
-            variable_infos = (column_name, period)
-            calling_frame = self.stack_trace[-1]
-            caller_input_variables_infos = calling_frame['input_variables_infos']
-            if variable_infos not in caller_input_variables_infos:
-                caller_input_variables_infos.append(variable_infos)
         holder = self.get_variable_entity(column_name).get_holder(column_name)
         return holder.compute_divide(period = period, **parameters)
 
     def get_array(self, column_name, period):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        if (self.debug or self.trace) and self.stack_trace:
-            variable_infos = (column_name, period)
-            calling_frame = self.stack_trace[-1]
-            caller_input_variables_infos = calling_frame['input_variables_infos']
-            if variable_infos not in caller_input_variables_infos:
-                caller_input_variables_infos.append(variable_infos)
         return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
 
     def _get_parameters_at_instant(self, instant):
@@ -262,33 +225,6 @@ class Simulation(object):
         if use_baseline:
             return self._get_baseline_parameters_at_instant(instant)
         return self._get_parameters_at_instant(instant)
-
-    def find_traceback_step(self, variable_name, period):
-        assert isinstance(period, periods.Period), period
-        column = self.tax_benefit_system.get_column(variable_name, check_existence=True)
-        step = self.traceback.get((variable_name, period))
-        if step is None and column.is_period_size_independent:
-            period = None
-        step = self.traceback.get((variable_name, period))
-        return step
-
-    def stringify_variable_for_period_with_array(self, variable_name, period):
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return u'{}@{}<{}>{}'.format(
-            variable_name,
-            holder.entity.key,
-            str(period),
-            stringify_array(holder.get_array(period)),
-            )
-
-    def stringify_input_variables_infos(self, input_variables_infos):
-        return u', '.join(
-            self.stringify_variable_for_period_with_array(
-                variable_name=input_variable_name,
-                period=input_variable_period,
-                )
-            for input_variable_name, input_variable_period in input_variables_infos
-            )
 
     # Fixme: to rewrite
     def to_input_variables_json(self):

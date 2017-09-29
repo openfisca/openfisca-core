@@ -84,13 +84,6 @@ class Holder(object):
     def array(self, array):
         if self.column.definition_period != ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
-        if self.simulation.debug or self.simulation.trace:
-            variable_infos = (self.column.name, None)
-            step = self.simulation.traceback.get(variable_infos)
-            if step is None:
-                self.simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
         self._array = array
 
     def calculate(self, period, **parameters):
@@ -309,13 +302,6 @@ class Holder(object):
         if self.column.definition_period == ETERNITY:
             self.array = value
 
-        if simulation.debug or simulation.trace:
-            variable_infos = (self.column.name, period)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
         array_by_period = self._array_by_period
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
