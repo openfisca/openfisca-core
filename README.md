@@ -41,7 +41,7 @@ Test it by running:
 ```sh
 curl http://localhost:5000/parameters
 ```
-For more information about endpoints and input formatting, see the [official documentation](http://openfisca.org/doc/openfisca-web-api/index.html).
+For more information about endpoints and input formatting, see the [official documentation](http://openfisca.org/doc/openfisca-web-api).
 
 ### Tracker
 
