@@ -64,7 +64,7 @@ For more information, check the [documentation](http://openfisca.org/doc/coding-
   <NODE code="root">
     <NODE code="impot">
       <CODE code="taux" description="" format="percent">
-        <END deb="2016-01-01"/>   
+        <END deb="2016-01-01"/>
         <VALUE deb="2015-01-01" valeur="0.32" />
         <VALUE deb="1998-01-01" valeur="0.3" />
       </CODE>
