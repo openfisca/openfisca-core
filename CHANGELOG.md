@@ -1,5 +1,9 @@
 # Changelog
 
+### 17.2.1 [#581](https://github.com/openfisca/openfisca-core/pull/581)
+
+- Add the possibility to track API visitor's IP
+
 ## 17.2.0 [#570](https://github.com/openfisca/openfisca-core/pull/570)
 
 - Enable to calculate parameters according to a variable
