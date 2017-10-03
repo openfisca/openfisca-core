@@ -5,7 +5,7 @@ import json
 from nose.tools import assert_equal, assert_items_equal, assert_is_instance
 from httplib import OK
 import dpath
-from openfisca_country_template.situation_examples import single
+from openfisca_country_template.situation_examples import single, couple
 
 from . import subject
 
@@ -24,3 +24,14 @@ def test_trace_basic():
         )
     basic_income_dep = dpath.util.get(disposable_income_dep, 'basic_income<2017-01>/dependencies')
     assert_items_equal(basic_income_dep, ['age<2017-01>'])
+
+
+def test_trace_with_repetition():
+    simulation_json = json.dumps(couple)
+    response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
+    assert_equal(response.status_code, OK)
+    response_json = json.loads(response.data)
+    basic_income_dep_1 = dpath.util.get(response_json, 'total_benefits<2017-01>/dependencies/basic_income<2017-01>/dependencies')
+    basic_income_dep_2 = dpath.util.get(response_json, 'disposable_income<2017-01>/dependencies/basic_income<2017-01>/dependencies')
+    assert_equal(basic_income_dep_1, basic_income_dep_2)
+

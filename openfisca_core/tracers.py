@@ -5,12 +5,18 @@ class Tracer(object):
     def __init__(self):
         self.trace = {}
         self.stack = [self.trace]
+        self.computed_variables = {}
 
     def start(self, variable_name, period):
         key = "{}<{}>".format(variable_name, period).encode('utf-8')
         current = self.stack[-1]
-        if not current.get(key):
+        if current.get(key):
+            pass  # Ignore variables which have already been computed, for instance if the same variable is requested for 2 persons
+        elif self.computed_variables.get(key):
+            current[key] = self.computed_variables[key]
+        else:
             current[key] = {'dependencies' : {}}
+            self.computed_variables[key] = current[key]
         self.stack.append(current[key])
         self.stack.append(current[key]['dependencies'])
 
