@@ -34,7 +34,14 @@ OpenFisca-Core provides a Web-API. To run it with the mock country package `open
 COUNTRY_PACKAGE=openfisca_country_template gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
 ```
 
-The `--workers k` (with `k >= 3`) option is necessary to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process.
+The `--workers k` (with `k >= 3`) option is necessary to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process.  
+
+Test it by running:
+
+```sh
+curl http://localhost:5000/parameters
+```
+For more information about endpoints and input formatting, see the [official documentation](http://openfisca.org/doc/openfisca-web-api).
 
 ### Tracker
 
