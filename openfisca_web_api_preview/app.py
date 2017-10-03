@@ -135,8 +135,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
             entity_plural, entity_id, variable_name, period = path.split('/')
             simulation.calculate(variable_name, period).tolist()
 
-
-        return jsonify(simulation.tracer.trace)
+        return jsonify({
+            "trace": simulation.tracer.trace,
+            "entitiesDescription": {entity.plural: entity.ids for entity in simulation.entities.itervalues()},
+            })
 
     @app.after_request
     def apply_headers(response):
