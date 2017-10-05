@@ -4,36 +4,35 @@ class Tracer(object):
 
     def __init__(self):
         self.trace = {}
-        self.stack = [self.trace]
-        self.degub_stack = []
-        self.computed_variables = {}
+        self.stack = [('#', self.trace)]
+        # self.computed_variables = {}
+
+    @staticmethod
+    def _get_key(variable_name, period):
+        return "{}<{}>".format(variable_name, period).encode('utf-8')
 
     def start(self, variable_name, period):
-        key = "{}<{}>".format(variable_name, period).encode('utf-8')
-        if key in self.degub_stack:
-            pass # should not happen
-        current = self.stack[-1]
+        key = self._get_key(variable_name, period)
+        path, current = self.stack[-1]
         if current.get(key):
             pass  # Ignore variables which have already been computed, for instance if the same variable is requested for 2 persons
-        elif self.computed_variables.get(key):
-            current[key] = self.computed_variables[key]
+        # elif self.computed_variables.get(key):
+        #     current[key] = { "$ref": self.computed_variables[key]}
         else:
             current[key] = {'dependencies' : {}}
-            self.computed_variables[key] = current[key]
-        self.stack.append(current[key])
-        self.stack.append(current[key]['dependencies'])
-        self.degub_stack.append(key)
+            # self.computed_variables[key] = current[key]
+        self.stack.append(('/'.join([path, key]), current[key]['dependencies']))
 
     def stop(self, variable_name, period, result):
-        key = "{}<{}>".format(variable_name, period).encode('utf-8')
-        if not key == self.degub_stack[-1]:
+        key = self._get_key(variable_name, period)
+        path = self.stack[-1][0]
+        expected_key = path.rsplit('/', 1)[1]
+        if not key == expected_key:
             raise ValueError(
-                "Something went wrong with the simulation tracer: result of {0} was expected, got results for {1} instead. This does not make sense as computation of {0} started before computation of {1}."
-                .format(self.degub_stack[-1], key).encode('utf-8')
+                u"Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
+                .format(expected_key, key).encode('utf-8')
                 )
-        self.stack.pop()  # Get out of dependencies
-        current = self.stack[-1]
-        current['value'] = result.tolist()
-        self.stack.pop()  # Get out of current node
-        self.degub_stack.pop()
+        self.stack.pop()
+        parent_node = self.stack[-1][1]
+        parent_node[key]['value'] = result.tolist()
 
