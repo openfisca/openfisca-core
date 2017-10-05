@@ -157,7 +157,6 @@ class Holder(object):
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):
-        self.simulation.tracer.start(self.column.name, period)
         # Check that the requested period matches definition_period
         if self.column.definition_period == YEAR and period.unit == periods.MONTH:
             raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
@@ -185,11 +184,9 @@ class Holder(object):
                 array += dated_holder.array
             sub_period = sub_period.offset(1)
 
-        self.simulation.tracer.stop(self.column.name, period, array)
         return DatedHolder(self, period, array, parameters.get('extra_params'))
 
     def compute_divide(self, period, **parameters):
-        self.simulation.tracer.start(self.column.name, period)
         # Check that the requested period matches definition_period
         if self.column.definition_period != YEAR:
             raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
@@ -203,12 +200,9 @@ class Holder(object):
             computation_period = period.this_year
             dated_holder = self.compute(period = computation_period, **parameters)
             array = dated_holder.array / 12.
-            self.simulation.tracer.stop(self.column.name, period, array)
             return DatedHolder(self, period, array, parameters.get('extra_params'))
         elif period.unit == periods.YEAR:
-            result = self.compute(period, **parameters)
-            self.simulation.tracer.stop(self.column.name, period, result)
-            return result
+            return self.compute(period, **parameters)
 
         raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
             self.column.name,
