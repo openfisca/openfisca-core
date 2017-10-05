@@ -4,8 +4,8 @@ class Tracer(object):
 
     def __init__(self):
         self.trace = {}
-        self.stack = [('#', self.trace)]
-        # self.computed_variables = {}
+        self.stack = [('#/trace', self.trace)]
+        self.computed_variables = {}
 
     @staticmethod
     def _get_key(variable_name, period):
@@ -14,19 +14,24 @@ class Tracer(object):
     def start(self, variable_name, period):
         key = self._get_key(variable_name, period)
         path, current = self.stack[-1]
+        next_path = '/'.join([path, key, 'dependencies'])
         if current.get(key):
-            pass  # Ignore variables which have already been computed, for instance if the same variable is requested for 2 persons
-        # elif self.computed_variables.get(key):
-        #     current[key] = { "$ref": self.computed_variables[key]}
+            # Ignore variables which have already been computed, for instance if the same variable is requested for 2 persons
+            next_node = None
+        elif self.computed_variables.get(key):
+            next_node = None
+            current[key] = { '$ref': self.computed_variables[key]}
         else:
             current[key] = {'dependencies' : {}}
-            # self.computed_variables[key] = current[key]
-        self.stack.append(('/'.join([path, key]), current[key]['dependencies']))
+            self.computed_variables[key] = next_path.rstrip('/dependencies')
+            next_node = current[key]['dependencies']
+        self.stack.append((next_path, next_node))
 
     def stop(self, variable_name, period, result):
         key = self._get_key(variable_name, period)
         path = self.stack[-1][0]
-        expected_key = path.rsplit('/', 1)[1]
+        expected_key = path.rsplit('/', 2)[1]
+
         if not key == expected_key:
             raise ValueError(
                 u"Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
@@ -34,5 +39,7 @@ class Tracer(object):
                 )
         self.stack.pop()
         parent_node = self.stack[-1][1]
-        parent_node[key]['value'] = result.tolist()
+        # Don't rewrite the value if it already exists, or if the node is a reference to another node.
+        if not parent_node[key].get('value') and not parent_node[key].get('$ref'):
+            parent_node[key]['value'] = result.tolist()
 
