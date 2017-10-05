@@ -8,11 +8,13 @@ class Tracer(object):
         self.computed_variables = {}
 
     @staticmethod
-    def _get_key(variable_name, period):
-        return "{}<{}>".format(variable_name, period).encode('utf-8')
+    def _get_key(variable_name, period, **parameters):
+        if parameters.get('extra_params'):
+            return u"{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params']))).encode('utf-8')
+        return u"{}<{}>".format(variable_name, period).encode('utf-8')
 
-    def start(self, variable_name, period):
-        key = self._get_key(variable_name, period)
+    def start(self, variable_name, period, **parameters):
+        key = self._get_key(variable_name, period, **parameters)
         path, current = self.stack[-1]
         next_path = '/'.join([path, key, 'dependencies'])
         if current.get(key):
@@ -27,8 +29,8 @@ class Tracer(object):
             next_node = current[key]['dependencies']
         self.stack.append((next_path, next_node))
 
-    def stop(self, variable_name, period, result):
-        key = self._get_key(variable_name, period)
+    def stop(self, variable_name, period, result, **parameters):
+        key = self._get_key(variable_name, period, **parameters)
         path = self.stack[-1][0]
         expected_key = path.rsplit('/', 2)[1]
 
