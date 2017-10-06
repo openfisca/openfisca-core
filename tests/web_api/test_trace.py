@@ -23,7 +23,7 @@ def test_trace_basic():
         disposable_income_dep,
         ['salary<2017-01>', 'basic_income<2017-01>', 'income_tax<2017-01>', 'social_security_contribution<2017-01>']
         )
-    basic_income_dep = dpath.util.get(disposable_income_dep, 'basic_income<2017-01>/dependencies')
+    basic_income_dep = dpath.util.get(response_json, 'trace/basic_income<2017-01>/dependencies')
     assert_items_equal(basic_income_dep, ['age<2017-01>'])
 
 
@@ -35,13 +35,3 @@ def test_entities_description():
         dpath.util.get(response_json, 'entitiesDescription/persons'),
         ['Javier', "Alicia"]
         )
-
-
-def test_trace_with_repetition():
-    simulation_json = json.dumps(couple)
-    response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
-    assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
-    basic_income_dep_2 = dpath.util.get(response_json, 'trace/disposable_income<2017-01>/dependencies/basic_income<2017-01>')
-    assert_equal(basic_income_dep_2['$ref'], '#/trace/total_benefits<2017-01>/dependencies/basic_income<2017-01>')
-    assert_equal(basic_income_dep_2.keys(), ['$ref'])
