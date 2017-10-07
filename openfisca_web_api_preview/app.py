@@ -124,7 +124,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
         request.on_json_loading_failed = handle_invalid_json
         input_data = request.get_json()
         try:
-            simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data)
+            simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data, trace = True)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
 

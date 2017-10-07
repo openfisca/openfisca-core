@@ -120,7 +120,8 @@ class Holder(object):
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
-        self.simulation.tracer.start(self.column.name, period, **parameters)
+        if self.simulation.trace:
+            self.simulation.tracer.start(self.column.name, period, **parameters)
         column = self.column
 
         # Check that the requested period matches definition_period
@@ -146,14 +147,16 @@ class Holder(object):
         # First look for a value already cached
         holder_or_dated_holder = self.get_from_cache(period, extra_params)
         if holder_or_dated_holder.array is not None:
-            self.simulation.tracer.stop(self.column.name, period, holder_or_dated_holder.array, **parameters)
+            if self.simulation.trace:
+                self.simulation.tracer.stop(self.column.name, period, holder_or_dated_holder.array, **parameters)
             return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
         dated_holder = self.formula.compute(period = period, **parameters)
         formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
-        self.simulation.tracer.stop(self.column.name, period, dated_holder.array, **parameters)
+        if self.simulation.trace:
+            self.simulation.tracer.stop(self.column.name, period, dated_holder.array, **parameters)
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):

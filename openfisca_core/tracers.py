@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class Tracer(object):
 
     def __init__(self):
@@ -27,7 +28,7 @@ class Tracer(object):
             self.requested_calculations.add(key)
 
         if not self.trace.get(key):
-            self.trace[key] = {'dependencies' : []}
+            self.trace[key] = {'dependencies': []}
         self.stack.append(key)
         self._computation_log.append((key, len(self.stack)))
 
@@ -44,7 +45,6 @@ class Tracer(object):
                 .format(expected_key, key).encode('utf-8')
                 )
         self.trace[key]['value'] = result.tolist()  # Cast numpy array into a python list
-
 
     def print_computation_log(self):
         for node, depth in self._computation_log:

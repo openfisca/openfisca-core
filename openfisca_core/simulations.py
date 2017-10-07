@@ -52,6 +52,7 @@ class Simulation(object):
             self.debug = True
         if debug or trace:
             self.trace = True
+            self.tracer = Tracer()
         self.opt_out_cache = opt_out_cache
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
@@ -59,7 +60,6 @@ class Simulation(object):
         self.baseline_parameters_at_instant_cache = {}
 
         self.instantiate_entities(simulation_json)
-        self.tracer = Tracer()
 
     def instantiate_entities(self, simulation_json):
         if simulation_json:
