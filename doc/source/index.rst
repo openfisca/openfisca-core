@@ -10,6 +10,7 @@ Modules:
    parameters
    reforms
    test_runner
+   tracer
 
 Scripts:
 

@@ -2,7 +2,42 @@
 
 
 class Tracer(object):
+    """
+        A tracer that records simulation steps to enable exploring calculation steps in details.
 
+        .. py:attribute:: requested_calculations
+
+            ``set`` containing calculations that have been directly requested by the client.
+
+            Value example:
+
+            >>> {'income_tax<2017-01>', 'basic_income<2017-01>'}
+
+        .. py:attribute:: stack
+
+            ``list`` of the calculations that have started, but have not finished. The first item is one of the :attr:`requested_calculations`, and each other item is a dependency of the one preceding him. Note that after a calculation is finished, :attr:`stack` is always `[]``.
+
+            Value example:
+
+            >>> ['income_tax<2017-01>', 'global_income<2017-01>', 'salary<2017-01>']
+
+        .. py:attribute:: trace
+
+            ``dict`` containing, for each calculation, its result and its immediate dependencies.
+
+            Value example:
+
+            .. code-block:: python
+
+              {
+                'income_tax<2017-01': {
+                  'dependencies':['global_income<2017-01>', 'nb_children<2017-01>']
+                  'value': 600
+                  },
+                'global_income<2017-01>': {...}
+              }
+
+    """
     def __init__(self):
         self.requested_calculations = set()
         self.stack = []
@@ -18,6 +53,10 @@ class Tracer(object):
     def start(self, variable_name, period, **parameters):
         """
             Record that OpenFisca started computing a variable.
+
+            :param str variable_name: Name of the variable starting to be computed
+            :param Period period: Period for which the variable is being computed
+            :param list parameters: Parameter with which the variable is being computed
         """
         key = self._get_key(variable_name, period, **parameters)
 
@@ -35,6 +74,11 @@ class Tracer(object):
     def stop(self, variable_name, period, result, **parameters):
         """
             Record that OpenFisca finished computing a variable.
+
+            :param str variable_name: Name of the variable starting to be computed
+            :param Period period: Period for which the variable is being computed
+            :param numpy.ndarray result: Result of the computation
+            :param list parameters: Parameter with which the variable is being computed
         """
         key = self._get_key(variable_name, period, **parameters)
         expected_key = self.stack.pop()
@@ -47,6 +91,9 @@ class Tracer(object):
         self.trace[key]['value'] = result.tolist()  # Cast numpy array into a python list
 
     def print_computation_log(self):
+        """
+            Print the computation log of a simulation
+        """
         for node, depth in self._computation_log:
             value = self.trace[node]['value']
             print("{}{} >> {}".format('  ' * depth, node, value))
