@@ -138,6 +138,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
         return jsonify({
             "trace": simulation.tracer.trace,
             "entitiesDescription": {entity.plural: entity.ids for entity in simulation.entities.itervalues()},
+            "requestedCalculations": list(simulation.tracer.requested_calculations)
             })
 
     @app.after_request

@@ -3,6 +3,7 @@
 class Tracer(object):
 
     def __init__(self):
+        self.requested_calculations = set()
         self.stack = []
         self.trace = {}
 
@@ -15,9 +16,11 @@ class Tracer(object):
     def start(self, variable_name, period, **parameters):
         key = self._get_key(variable_name, period, **parameters)
 
-        if self.stack:
+        if self.stack:  # The variable is a dependency of another variable
             parent = self.stack[-1]
             self.trace[parent]['dependencies'].append(key)
+        else:  # The variable has been requested by the client
+            self.requested_calculations.add(key)
 
         if not self.trace.get(key):
             self.trace[key] = {'dependencies' : []}
