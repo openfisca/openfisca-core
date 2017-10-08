@@ -139,7 +139,7 @@ paths:
             $ref: '#/commons/Headers'
   /trace:
     post:
-      summary: "Explore a simulation's steps in details"
+      summary: "Explore a simulation's steps in details. Warning : this route is still currently under experimentation. You are very welcome to use it and send us precious feedback, but keep in mind that its input and output might change without any major version bump."
       tags:
         - Calculations
       operationId: "trace"
