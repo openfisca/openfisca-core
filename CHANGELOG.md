@@ -1,5 +1,33 @@
 # Changelog
 
+## 18.0.0 [#582](https://github.com/openfisca/openfisca-core/pull/582)
+
+#### New features
+
+Add tracing to get details about all the intermediate calculations of a simulation
+
+- Introduce new Web API route `/trace` to get a simulation's detailed calculation steps
+  - See the [swagger documentation for OpenFisca-France](https://legislation.openfisca.fr/swagger)
+
+- Introduce `simulation.tracer.print_computation_log` to print a simulation's detailed calculation steps
+  - This is available if the `trace` argument has been set to `True` in the `Simulation` constructor.
+  - See the [reference documentation](https://openfisca.readthedocs.io/en/latest/tracer.html) about the tracer.
+
+_Warning: Both of these features are still currently under experimentation. You are very welcome to use them and send us precious feedback, but keep in mind that the way they are used and the results they give might change without any major version bump._
+
+#### Breaking changes
+
+- Deprecate and remove:
+  - `simulation.traceback`
+  - `simulation.stack_trace`
+  - `simulation.find_traceback_step`
+  - `simulation.stringify_input_variables_infos`
+  - `simulation.stringify_variable_for_period_with_array`
+
+- Remove argument `debug_all` from:
+  - `Scenario.new_simulation` method
+  - `Simulation` constructor
+
 ### 17.2.1 [#581](https://github.com/openfisca/openfisca-core/pull/581)
 
 - Add the possibility to track API visitor's IP
