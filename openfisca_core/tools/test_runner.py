@@ -110,12 +110,13 @@ def run_tests(tax_benefit_system, paths, options = {}):
     +-------------------------------+-----------+-------------------------------------------+
 
     """
+    argv = sys.argv[:1]  # Nose crashes if it gets any unexpected argument.
+    if options.get('verbose'):
+        argv.append('--nocapture')  # Do not capture output when verbose mode is activated
     return nose.run(
         # The suite argument must be a lambda for nose to run the tests lazily
         suite = lambda: generate_tests(tax_benefit_system, paths, options),
-        # Nose crashes if it gets any unexpected argument.
-        argv = sys.argv[:1],
-        # testRunner = nose.core.TextTestRunner(stream = open(os.devnull, 'w')),
+        argv = argv,
         )
 
 
@@ -219,24 +220,29 @@ def _run_test(period_str, test, verbose = False, options = {}):
 
     scenario = test['scenario']
     scenario.suggest()
-    simulation = scenario.new_simulation(debug = verbose)
+    simulation = scenario.new_simulation(trace = verbose)
     output_variables = test.get(u'output_variables')
     if output_variables is not None:
-        for variable_name, expected_value in output_variables.iteritems():
-            if isinstance(expected_value, dict):
-                for requested_period, expected_value_at_period in expected_value.iteritems():
+        try:
+            for variable_name, expected_value in output_variables.iteritems():
+                if isinstance(expected_value, dict):
+                    for requested_period, expected_value_at_period in expected_value.iteritems():
+                        assert_near(
+                            simulation.calculate(variable_name, requested_period),
+                            expected_value_at_period,
+                            absolute_error_margin = absolute_error_margin,
+                            message = u'{}@{}: '.format(variable_name, requested_period),
+                            relative_error_margin = relative_error_margin,
+                            )
+                else:
                     assert_near(
-                        simulation.calculate(variable_name, requested_period),
-                        expected_value_at_period,
+                        simulation.calculate(variable_name),
+                        expected_value,
                         absolute_error_margin = absolute_error_margin,
-                        message = u'{}@{}: '.format(variable_name, requested_period),
+                        message = u'{}@{}: '.format(variable_name, period_str),
                         relative_error_margin = relative_error_margin,
                         )
-            else:
-                assert_near(
-                    simulation.calculate(variable_name),
-                    expected_value,
-                    absolute_error_margin = absolute_error_margin,
-                    message = u'{}@{}: '.format(variable_name, period_str),
-                    relative_error_margin = relative_error_margin,
-                    )
+        finally:
+            if verbose:
+                print("Computation log:")
+                simulation.tracer.print_computation_log()
