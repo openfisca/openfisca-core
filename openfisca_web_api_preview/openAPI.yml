@@ -46,32 +46,17 @@ paths:
         200:
           description: "The calculation result is sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
           schema:
             $ref: '#/definitions/SituationOutput'
         404:
           description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
   /parameters:
     get:
       tags:
@@ -84,12 +69,7 @@ paths:
         200:
           description: "The list of parameters is sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
           schema:
             $ref: '#/definitions/Parameters'
   /parameter/{parameterID}:
@@ -110,23 +90,13 @@ paths:
         200:
           description: "The requested parameter's information is sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
           schema:
             $ref: "#/definitions/Parameter"
         404:
           description: "The requested parameter does not exist"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
   /variables:
     get:
       tags:
@@ -139,12 +109,7 @@ paths:
         200:
           description: "The list of variables is sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
           schema:
             $ref: "#/definitions/Variables"
   /variable/{variableID}:
@@ -165,24 +130,45 @@ paths:
         200:
           description: "The requested variable's information is sent back in the response body"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
+            $ref: '#/commons/Headers'
           schema:
             $ref: "#/definitions/Variable"
         404:
           description: "The requested variable does not exist"
           headers:
-            Country-Package:
-              description: "The name of the country package currently loaded in this API server"
-              type: "string"
-            Country-Package-Version:
-              description: "The version of the country package currently loaded in this API server"
-              type: "string"
-
+            $ref: '#/commons/Headers'
+  /trace:
+    post:
+      summary: "Explore a simulation's steps in details"
+      tags:
+        - Calculations
+      operationId: "trace"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "Situation"
+        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value.'
+        required: true
+        schema:
+          $ref: '#/definitions/SituationInput'
+      responses:
+        200:
+          description: "The calculation details are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+          schema:
+            $ref: '#/definitions/Trace'
+        404:
+          description: "A variable mentioned in the input situation does not exist in the loaded tax and benefit system. Details are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+        400:
+          description: "The request is invalid. Details about the error are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
 
 definitions:
   Parameter:
@@ -359,3 +345,53 @@ definitions:
         foyer_fiscal_1:
           declarants: [Bill, Bob]
           personnes_a_charge: [Janet]
+
+  Trace:
+    type: object
+    properties:
+      requestedCalculations:
+        type: array
+        items:
+          type: string
+      entitiesDescription:
+        type: object
+        properties: null  # Will be dynamically added by the Web API
+      trace:
+        type: object
+        additionalProperties:
+          type: object
+          properties:
+            value:
+              type: array
+              items:
+                type: any
+            dependencies:
+              type: array
+              items:
+                type: string
+    example:
+      requestedCalculations: [revenu_disponible<2017>]
+      entitiesDescription:
+        individus: [Bill, Bob, Janet]
+        menages: [menage_1]
+        familles: [famille_1]
+        foyers_fiscaux: [foyer_fiscal_1]
+      trace:
+        revenu_disponible<2017>:
+          value: 18000
+          dependencies: [impots<2017>, salaire<2017>]
+        impots<2017>:
+          value: 2000
+          dependencies: [salaire<2017>]
+        salaire<2017>:
+          value: 20000
+          dependencies: []
+
+commons:
+  Headers:
+    Country-Package:
+      description: "The name of the country package currently loaded in this API server"
+      type: "string"
+    Country-Package-Version:
+      description: "The version of the country package currently loaded in this API server"
+      type: "string"

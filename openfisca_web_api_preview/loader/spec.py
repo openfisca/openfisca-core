@@ -25,6 +25,10 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
     situation_schema = get_situation_json_schema(tax_benefit_system)
     spec['definitions']['SituationInput'].update(situation_schema)
     spec['definitions']['SituationOutput'].update(situation_schema)
+    spec['definitions']['Trace']['properties']['entitiesDescription']['properties'] = {
+        entity.plural: {'type': 'array', 'items': {"type": "string"}}
+        for entity in tax_benefit_system.entities
+        }
 
     return spec
 
