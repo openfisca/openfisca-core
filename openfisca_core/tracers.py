@@ -90,6 +90,29 @@ class Tracer(object):
                 )
         self.trace[key]['value'] = result.tolist()  # Cast numpy array into a python list
 
+    def record_calculation_abortion(self, variable_name, period, **parameters):
+        """
+            Record that OpenFisca aborted computing a variable. This removes all trace of this computation.
+
+            :param str variable_name: Name of the variable starting to be computed
+            :param Period period: Period for which the variable is being computed
+            :param list parameters: Parameter with which the variable is being computed
+        """
+        key = self._get_key(variable_name, period, **parameters)
+        expected_key = self.stack.pop()
+
+        if not key == expected_key:
+            raise ValueError(
+                u"Something went wrong with the simulation tracer: calculation of '{1}' was aborted, whereas the last variable we started computing was '{0}'."
+                .format(expected_key, key).encode('utf-8')
+                )
+
+        self._computation_log.pop()
+        if self.stack:
+            parent = self.stack[-1]
+            self.trace[parent]['dependencies'].remove(key)
+        del self.trace[key]
+
     def print_computation_log(self):
         """
             Print the computation log of a simulation

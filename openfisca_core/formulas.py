@@ -421,16 +421,11 @@ class Formula(object):
         except CycleError:
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
+                if simulation.trace:
+                    simulation.tracer.record_calculation_abortion(column.name, period, **parameters)
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise
             simulation.max_nb_cycles = None
-            # Due to a cycle detection, we are aborting many calculations. They will thus never be finished. We need to remove them from the trace.
-            stack = simulation.tracer.stack
-            key_in_tracer = u'{}<{}>'.format(column.name, period)
-            index_in_stack = stack.index(key_in_tracer)
-            simulation.tracer.stack = stack[:index_in_stack + 1]  # The last calculation we keep is the one we are about to return a result for
-            simulation.tracer.trace[key_in_tracer]['dependencies'] = []
-
             return holder.put_in_cache(self.default_values(), period, extra_params)
         except ParameterNotFound as exc:
             if exc.variable_name is None:
