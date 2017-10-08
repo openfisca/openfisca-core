@@ -50,7 +50,7 @@ class Tracer(object):
             return u"{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params']))).encode('utf-8')
         return u"{}<{}>".format(variable_name, period).encode('utf-8')
 
-    def start(self, variable_name, period, **parameters):
+    def record_calculation_start(self, variable_name, period, **parameters):
         """
             Record that OpenFisca started computing a variable.
 
@@ -71,7 +71,7 @@ class Tracer(object):
         self.stack.append(key)
         self._computation_log.append((key, len(self.stack)))
 
-    def stop(self, variable_name, period, result, **parameters):
+    def record_calculation_end(self, variable_name, period, result, **parameters):
         """
             Record that OpenFisca finished computing a variable.
 
