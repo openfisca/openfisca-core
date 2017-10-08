@@ -129,7 +129,7 @@ class Simulation(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'debug_all', 'trace'):
+            if key not in ('debug', 'trace', 'tracer'):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)
@@ -146,8 +146,10 @@ class Simulation(object):
         if trace:
             new_dict['trace'] = True
         if debug or trace:
-            new_dict['stack_trace'] = collections.deque()
-            new_dict['traceback'] = collections.OrderedDict()
+            if self.debug or self.trace:
+                new_dict['tracer'] = self.tracer.clone()
+            else:
+                new_dict['tracer'] = Tracer()
 
         return new
 

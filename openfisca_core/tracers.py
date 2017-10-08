@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import copy
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +49,14 @@ class Tracer(object):
         self.stack = []
         self.trace = {}
         self._computation_log = []
+
+    def clone(self):
+        new = Tracer()
+        new.requested_calculations = copy.copy(self.requested_calculations)
+        new.stack = copy.copy(self.stack)
+        new.trace = copy.deepcopy(self.trace)
+        new._computation_log = copy.copy(self._computation_log)
+        return new
 
     @staticmethod
     def _get_key(variable_name, period, **parameters):
