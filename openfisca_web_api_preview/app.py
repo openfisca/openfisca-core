@@ -36,10 +36,11 @@ def init_tracker(url, idsite, tracker_token):
 
 
 def create_app(country_package,
-               extensions,
-               tracker_url,
-               tracker_idsite,
-               tracker_token):
+               extensions = None,
+               tracker_url = None,
+               tracker_idsite = None,
+               tracker_token = None
+               ):
 
     if country_package is None:
         raise ValueError(
