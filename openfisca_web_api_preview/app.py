@@ -3,6 +3,7 @@
 import os
 from os import linesep
 from flask import Flask, jsonify, abort, request, make_response
+from werkzeug.contrib.fixers import ProxyFix
 from flask_cors import CORS
 import dpath
 
@@ -51,6 +52,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
         tracker = init_tracker(tracker_url, tracker_idsite, tracker_token)
 
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies = 1)  # Fix request.remote_addr to get the real client IP address
     CORS(app, origins = '*')
 
     app.url_map.strict_slashes = False  # Accept url like /parameters/
