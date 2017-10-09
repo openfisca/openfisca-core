@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from gunicorn.app.base import BaseApplication
+from gunicorn.six import iteritems
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments, detect_country_package
 from ..app import create_app
@@ -13,14 +14,13 @@ DEFAULT_PORT = '5000'
 BASE_CONF = {
     'bind': '%s:%s' % ('127.0.0.1', DEFAULT_PORT),
     'workers': '3',
-    'debug': 'true',
 }
 
 
 def new_configured_app():
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
-    parser.add_argument('-t', '--tracker_url', action = 'store', help = "tracking service url", type = string)
+    parser.add_argument('-t', '--tracker_url', action = 'store', help = "tracking service url", type = str)
     parser.add_argument('-s', '--tracker_idsite', action = 'store', help = "tracking service id site", type = int)
     parser = add_tax_benefit_system_arguments(parser)
     args = parser.parse_args()
@@ -46,5 +46,9 @@ class StandaloneApplication(BaseApplication):
         return self.application
 
 
-if __name__ == '__main__':
+def main():
     StandaloneApplication(new_configured_app(), BASE_CONF).run()
+
+
+if __name__ == '__main__':
+    sys.exit(main())
