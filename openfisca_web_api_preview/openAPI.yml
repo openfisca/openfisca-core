@@ -38,7 +38,7 @@ paths:
       parameters:
       - in: "body"
         name: "Situation"
-        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value.'
+        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: http://openfisca.org/doc/openfisca-web-api/input-output-data.html'
         required: true
         schema:
           $ref: '#/definitions/SituationInput'
