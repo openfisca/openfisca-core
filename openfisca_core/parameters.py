@@ -199,7 +199,6 @@ class ParameterNode(object):
                     self.children[child_name] = child
                     setattr(self, child_name, child)
 
-class DatableParameter(object):
         else:
             self.file_path = file_path
             super_validate(self.name, self.file_path, data, data_type=dict, allowed_keys=self._allowed_keys)
@@ -224,7 +223,6 @@ class DatableParameter(object):
                 instant = str(periods.period(instant).start)
             except ValueError:
                 raise ValueError("'{}' is neither a valid instant, nor a valid period.".format(instant).encode('utf-8'))
-        return self._calculate_at_instant(instant)
 
         return ParameterNodeAtInstant(self.name, self, instant)
 
@@ -529,6 +527,18 @@ class Parameter(object):
     def __eq__(self, other):
         return (self.name == other.name) and (self.values_list == other.values_list)
 
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(instant)
+        if not INSTANT_PATTERN.match(instant):
+            try:
+                instant = str(periods.period(instant).start)
+            except ValueError:
+                raise ValueError("'{}' is neither a valid instant, nor a valid period.".format(instant).encode('utf-8'))
+        return self._calculate_at_instant(instant)
+
     def _calculate_at_instant(self, instant_str):
         for value_at_instant in self.values_list:
             if value_at_instant.instant_str <= instant_str:
@@ -677,6 +687,18 @@ class Scale(object):
             bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
         self.brackets = brackets
+
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(instant)
+        if not INSTANT_PATTERN.match(instant):
+            try:
+                instant = str(periods.period(instant).start)
+            except ValueError:
+                raise ValueError("'{}' is neither a valid instant, nor a valid period.".format(instant).encode('utf-8'))
+        return self._calculate_at_instant(instant)
 
     def _calculate_at_instant(self, instant_str):
         brackets = [bracket.get_at_instant(instant_str) for bracket in self.brackets]
