@@ -6,7 +6,7 @@ from openfisca_core.parameters import load_parameter_file
 from openfisca_web_api_preview.loader.parameters import transform_values_history, get_value
 
 
-dir_path = os.path.dirname(__file__)
+dir_path = os.path.join(os.path.dirname(__file__), 'assets')
 
 
 def test_transform_values_history():

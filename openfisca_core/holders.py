@@ -84,13 +84,6 @@ class Holder(object):
     def array(self, array):
         if self.column.definition_period != ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
-        if self.simulation.debug or self.simulation.trace:
-            variable_infos = (self.column.name, None)
-            step = self.simulation.traceback.get(variable_infos)
-            if step is None:
-                self.simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
         self._array = array
 
     def calculate(self, period, **parameters):
@@ -127,6 +120,8 @@ class Holder(object):
 
         The returned dated holder is always of the requested period and this method never returns None.
         """
+        if self.simulation.trace:
+            self.simulation.tracer.record_calculation_start(self.column.name, period, **parameters)
         column = self.column
 
         # Check that the requested period matches definition_period
@@ -152,12 +147,16 @@ class Holder(object):
         # First look for a value already cached
         holder_or_dated_holder = self.get_from_cache(period, extra_params)
         if holder_or_dated_holder.array is not None:
+            if self.simulation.trace:
+                self.simulation.tracer.record_calculation_end(self.column.name, period, holder_or_dated_holder.array, **parameters)
             return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
         # Request a computation
         dated_holder = self.formula.compute(period = period, **parameters)
         formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
+        if self.simulation.trace:
+            self.simulation.tracer.record_calculation_end(self.column.name, period, dated_holder.array, **parameters)
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):
@@ -309,13 +308,6 @@ class Holder(object):
         if self.column.definition_period == ETERNITY:
             self.array = value
 
-        if simulation.debug or simulation.trace:
-            variable_infos = (self.column.name, period)
-            step = simulation.traceback.get(variable_infos)
-            if step is None:
-                simulation.traceback[variable_infos] = dict(
-                    holder = self,
-                    )
         array_by_period = self._array_by_period
         if array_by_period is None:
             self._array_by_period = array_by_period = {}

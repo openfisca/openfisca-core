@@ -358,7 +358,7 @@ class AbstractScenario(object):
                 value = value, state = state or conv.default_state)
         return json_to_instance
 
-    def new_simulation(self, debug = False, debug_all = False, use_baseline = False, trace = False, opt_out_cache = False):
+    def new_simulation(self, debug = False, use_baseline = False, trace = False, opt_out_cache = False):
         assert isinstance(use_baseline, (bool, int)), \
             'Parameter use_baseline must be a boolean. When True, the baseline tax-benefit system is used.'
         tax_benefit_system = self.tax_benefit_system
@@ -370,7 +370,6 @@ class AbstractScenario(object):
                 tax_benefit_system = baseline
         simulation = simulations.Simulation(
             debug = debug,
-            debug_all = debug_all,
             period = self.period,
             tax_benefit_system = tax_benefit_system,
             trace = trace,
