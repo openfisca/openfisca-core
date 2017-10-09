@@ -17,10 +17,8 @@ def extract_description(items):
 def build_data(country_package_name, extensions):
     tax_benefit_system = build_tax_benefit_system(country_package_name, extensions, reforms = None)
     country_package_metadata = tax_benefit_system.get_package_metadata()
-
     parameters = build_parameters(tax_benefit_system)
     variables = build_variables(tax_benefit_system, country_package_metadata)
-
     openAPI_spec = build_openAPI_specification(tax_benefit_system, country_package_metadata)
     return {
         'tax_benefit_system': tax_benefit_system,

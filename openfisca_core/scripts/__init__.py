@@ -29,6 +29,7 @@ def add_tax_benefit_system_arguments(parser):
 
     return parser
 
+
 def build_tax_benefit_system(country_package_name, extensions, reforms):
     if country_package_name is None:
         country_package_name = detect_country_package()

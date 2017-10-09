@@ -6,10 +6,8 @@ from flask import Flask, jsonify, abort, request, make_response
 from werkzeug.contrib.fixers import ProxyFix
 from flask_cors import CORS
 import dpath
-import importlib
 
 from openfisca_core.simulations import Simulation, SituationParsingError
-from openfisca_core.scripts import detect_country_package
 from openfisca_core.columns import EnumCol
 
 from loader import build_data
