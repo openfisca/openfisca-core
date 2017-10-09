@@ -224,7 +224,7 @@ class DatableParameter(object):
             )
 
 
-class Parameter(ValidableParameter, DatableParameter):
+class ParameterNodeAtInstant(object):
     """
         Parameter node of the legislation, at a given instant.
     """
@@ -613,7 +613,7 @@ class ValueAtInstant(object):
         return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
-class Scale(ValidableParameter, DatableParameter):
+class Scale(object):
     """
         A parameter scale (for instance a  marginal scale).
     """
@@ -705,7 +705,7 @@ def _parse_child(child_name, child, child_path):
         return ParameterNode(child_name, data = child, file_path = child_path)
 
 
-class ParameterNode(ValidableParameter, DatableParameter):
+class Bracket(ParameterNode):
     """
         A scale bracket.
     """
