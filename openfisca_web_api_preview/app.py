@@ -36,9 +36,11 @@ def init_tracker(url, idsite, tracker_token):
 
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
+               extensions = os.environ.get('EXTENSIONS'),
                tracker_url = os.environ.get('TRACKER_URL'),
                tracker_token = os.environ.get('TRACKER_TOKEN'),
                tracker_idsite = os.environ.get('TRACKER_IDSITE')):
+
     if country_package is None:
         raise ValueError(
             u"You must specify a country package to start the API. "
@@ -57,7 +59,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
 
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
-    data = build_data(country_package)
+    data = build_data(country_package, extensions)
 
     @app.route('/parameters')
     def get_parameters():
