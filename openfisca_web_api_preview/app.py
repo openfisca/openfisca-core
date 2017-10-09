@@ -129,7 +129,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
     @app.after_request
     def track_requests(response):
         if tracker:
-            tracker.track(request.url, request.remote_addr)
+            if request.headers.get('dnt'):
+                tracker.track(request.url)
+            else:
+                tracker.track(request.url, request.remote_addr)
         return response
 
     @app.errorhandler(500)
