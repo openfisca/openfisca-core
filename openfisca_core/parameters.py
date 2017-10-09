@@ -117,22 +117,11 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class ValidableParameter(object):
-    type_map = {
-        dict: 'object',
-        list: 'array',
-        }
 class ParameterNode(object):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
-    def validate(self, data, data_type = None, allowed_keys = None):
-        if data_type is not None and not isinstance(data, data_type):
-            raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, self.type_map[data_type]).encode("utf-8"),
-                self.file_path
-                )
     _allowed_keys = None  # By default, no restriction on the keys
 
     def __init__(self, name="", directory_path=None, data=None, file_path=None):
@@ -178,15 +167,6 @@ class ParameterNode(object):
                     if ext not in PARAM_FILE_EXTENSIONS or child_name == 'index':
                         continue
 
-        if allowed_keys is not None:
-            keys = data.keys()
-            for key in keys:
-                if key not in allowed_keys:
-                    raise ParameterParsingError(
-                        "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                        .format(key, self.name, list(allowed_keys)).encode('utf-8'),
-                        self.file_path
-                        )
                     child_name_expanded = _compose_name(name, child_name)
                     child = load_parameter_file(child_path, child_name_expanded)
                     self.children[child_name] = child
@@ -491,11 +471,14 @@ class Parameter(object):
     def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
+        super_validate(self.name, self.file_path, data, data_type = dict)
         self.values_history = self  # Only for retro-compatibility
 
         if data.get('values'):
+            super_validate(self.name, self.file_path, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
             data = data['values']
+            super_validate(self.name, self.file_path, data, data_type = dict)
 
         instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
 
@@ -671,7 +654,7 @@ class Scale(object):
         """
         self.name = name
         self.file_path = file_path
-        self.validate(data, data_type = dict, allowed_keys = self._allowed_keys)
+        super_validate(self.name, self.file_path, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
 
         if not isinstance(data['brackets'], list):
@@ -775,6 +758,29 @@ def contains_nan(vector):
 
 def indent(text):
     return "  {}".format(text.replace("\n", "\n  "))
+
+
+def super_validate(name, file_path, data, data_type = None, allowed_keys = None):
+    type_map = {
+        dict: 'object',
+        list: 'array',
+        }
+
+    if data_type is not None and not isinstance(data, data_type):
+        raise ParameterParsingError(
+            "'{}' must be of type {}.".format(name, type_map[data_type]).encode("utf-8"),
+            file_path
+            )
+
+    if allowed_keys is not None:
+        keys = data.keys()
+        for key in keys:
+            if key not in allowed_keys:
+                raise ParameterParsingError(
+                    "Unexpected property '{}' in '{}'. Allowed properties are {}."
+                    .format(key, name, list(allowed_keys)).encode('utf-8'),
+                    file_path
+                    )
 
 
 # Only for retro-compatibility
