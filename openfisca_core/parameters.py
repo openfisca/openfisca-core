@@ -561,9 +561,6 @@ class Parameter(object):
         self.values_list = new_values
 
 
-# Only for retro-compatibility
-class ValuesHistory(Parameter):
-    pass
 class ValueAtInstant(object):
     """
         A value of a parameter at a given instant.
@@ -757,3 +754,6 @@ def load_parameter_file(file_path, name = ''):
                 )
 
     return _parse_child(name, data, file_path)
+# Only for retro-compatibility
+class ValuesHistory(Parameter):
+    pass
