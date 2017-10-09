@@ -35,16 +35,16 @@ def init_tracker(url, idsite, tracker_token):
         log.warn(message)
 
 
-def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
-               extensions = os.environ.get('EXTENSIONS'),
+def create_app(country_package,
+               extensions,
                tracker_url = os.environ.get('TRACKER_URL'),
                tracker_token = os.environ.get('TRACKER_TOKEN'),
                tracker_idsite = os.environ.get('TRACKER_IDSITE')):
 
     if country_package is None:
         raise ValueError(
-            u"You must specify a country package to start the API. "
-            u"For instance, `COUNTRY_PACKAGE=openfisca_france flask run`"
+            u"You must specify a country package with `-c` option to start the API. "
+            u"For instance, `-c openfisca_france`"
             .encode('utf-8')
             )
 

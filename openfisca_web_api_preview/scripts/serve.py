@@ -3,43 +3,48 @@
 import os
 import sys
 import argparse
-from wsgiref.simple_server import make_server
+from gunicorn.app.base import BaseApplication
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments, detect_country_package
 from ..app import create_app
-# from _tkinter import create
-# from ..application import make_app
 
-HOST_NAME = 'localhost'
+
+DEFAULT_PORT = '5000'
 BASE_CONF = {
+    'bind': '%s:%s' % ('127.0.0.1', DEFAULT_PORT),
+    'workers': '3',
     'debug': 'true',
-    }
+}
 
-# old:
-# paster serve --reload development-france.ini 
 
-# COUNTRY_PACKAGE=openfisca_country_template 
-# gunicorn "openfisca_web_api_preview.app:create_app()" 
-# --bind localhost:5000 --workers 3
-# TRACKER_URL
-# TRACKER_IDSITE
-def main():
+def new_configured_app():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--port', action = 'store', default = 5000, help = "port to serve on", type = int)
+    parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
+    parser.add_argument('-t', '--tracker_url', action = 'store', help = "tracking service url", type = string)
+    parser.add_argument('-s', '--tracker_idsite', action = 'store', help = "tracking service id site", type = int)
     parser = add_tax_benefit_system_arguments(parser)
     args = parser.parse_args()
 
-    tracker_url = os.environ.get('TRACKER_URL')
-    tracker_idsite = os.environ.get('TRACKER_IDSITE')
+    app = create_app(args.country_package, args.extensions, args.tracker_url, args.tracker_idsite)
+    return app
 
-    app = create_app(args.country_package, args.extensions, tracker_url, tracker_idsite)
-    httpd = make_server(HOST_NAME, args.port, app)
-    print u'Serving on http://{}:{}/'.format(HOST_NAME, args.port)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        return
+
+class StandaloneApplication(BaseApplication):
+
+    def __init__(self, app, options=None):
+        self.options = options or {}
+        self.application = app
+        super(StandaloneApplication, self).__init__()
+
+    def load_config(self):
+        config = dict([(key, value) for key, value in iteritems(self.options)
+                       if key in self.cfg.settings and value is not None])
+        for key, value in iteritems(config):
+            self.cfg.set(key.lower(), value)
+
+    def load(self):
+        return self.application
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    StandaloneApplication(new_configured_app(), BASE_CONF).run()
