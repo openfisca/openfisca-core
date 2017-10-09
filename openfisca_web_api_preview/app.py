@@ -37,9 +37,9 @@ def init_tracker(url, idsite, tracker_token):
 
 def create_app(country_package,
                extensions,
-               tracker_url = os.environ.get('TRACKER_URL'),
-               tracker_token = os.environ.get('TRACKER_TOKEN'),
-               tracker_idsite = os.environ.get('TRACKER_IDSITE')):
+               tracker_url,
+               tracker_idsite,
+               tracker_token):
 
     if country_package is None:
         raise ValueError(
