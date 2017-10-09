@@ -36,6 +36,32 @@ def date_constructor(loader, node):
 yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
 
 
+def load_parameter_file(file_path, name = ''):
+    """
+    Load parameters from a YAML file (or a directory containing YAML files).
+
+    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
+    """
+
+    if not os.path.exists(file_path):
+        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+    if os.path.isdir(file_path):
+        return ParameterNode(name, directory_path = file_path)
+
+    with open(file_path, 'r') as f:
+        try:
+            data = yaml.load(f, Loader = Loader)
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
+            stack_trace = traceback.format_exc()
+            raise ParameterParsingError(
+                "Invalid YAML. Check the traceback above for more details.",
+                file_path,
+                stack_trace
+                )
+
+    return _parse_child(name, data, file_path)
+
+
 class ParameterNotFound(AttributeError):
     """
         Exception raised when a parameter is not found in the parameters.
@@ -56,6 +82,17 @@ class ParameterNotFound(AttributeError):
             u" was not found in the {} tax and benefit system."
             ).format(instant_str)
         super(ParameterNotFound, self).__init__(message)
+
+
+def _parse_child(child_name, child, child_path):
+    if 'values' in child:
+        return Parameter(child_name, child, child_path)
+    elif 'brackets' in child:
+        return Scale(child_name, child, child_path)
+    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
+        return Parameter(child_name, child, child_path)
+    else:
+        return ParameterNode(child_name, data=child, file_path=child_path)
 
 
 class ParameterParsingError(Exception):
@@ -691,17 +728,6 @@ class Scale(object):
             ])
 
 
-def _parse_child(child_name, child, child_path):
-    if 'values' in child:
-        return Parameter(child_name, child, child_path)
-    elif 'brackets' in child:
-        return Scale(child_name, child, child_path)
-    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
-        return Parameter(child_name, child, child_path)
-    else:
-        return ParameterNode(child_name, data = child, file_path = child_path)
-
-
 class Bracket(ParameterNode):
     """
         A scale bracket.
@@ -729,31 +755,6 @@ def indent(text):
     return "  {}".format(text.replace("\n", "\n  "))
 
 
-
-def load_parameter_file(file_path, name = ''):
-    """
-    Load parameters from a YAML file (or a directory containing YAML files).
-
-    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
-    """
-
-    if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
-    if os.path.isdir(file_path):
-        return ParameterNode(name, directory_path = file_path)
-
-    with open(file_path, 'r') as f:
-        try:
-            data = yaml.load(f, Loader = Loader)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
-            stack_trace = traceback.format_exc()
-            raise ParameterParsingError(
-                "Invalid YAML. Check the traceback above for more details.",
-                file_path,
-                stack_trace
-                )
-
-    return _parse_child(name, data, file_path)
 # Only for retro-compatibility
 class ValuesHistory(Parameter):
     pass
