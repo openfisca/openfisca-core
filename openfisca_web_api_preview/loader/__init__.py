@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from tax_benefit_system import build_tax_benefit_system
+# from tax_benefit_system import build_tax_benefit_system
+from openfisca_core.scripts import build_tax_benefit_system
 from parameters import build_parameters
 from variables import build_variables
 from spec import build_openAPI_specification
@@ -14,12 +15,8 @@ def extract_description(items):
 
 
 def build_data(country_package_name, extensions):
-    tax_benefit_system = build_tax_benefit_system(country_package_name)
+    tax_benefit_system = build_tax_benefit_system(country_package_name, extensions, reforms = None)
     country_package_metadata = tax_benefit_system.get_package_metadata()
-
-    if extensions is not None:
-        for extension in extensions:
-            tax_benefit_system.load_extension(extension)
 
     parameters = build_parameters(tax_benefit_system)
     variables = build_variables(tax_benefit_system, country_package_metadata)

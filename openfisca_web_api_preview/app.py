@@ -6,9 +6,12 @@ from flask import Flask, jsonify, abort, request, make_response
 from werkzeug.contrib.fixers import ProxyFix
 from flask_cors import CORS
 import dpath
+import importlib
 
 from openfisca_core.simulations import Simulation, SituationParsingError
+from openfisca_core.scripts import detect_country_package
 from openfisca_core.columns import EnumCol
+
 from loader import build_data
 import traceback
 import logging
@@ -42,12 +45,7 @@ def create_app(country_package,
                tracker_token = None
                ):
 
-    if country_package is None:
-        raise ValueError(
-            u"You must specify a country package with `-c` option to start the API. "
-            u"For instance, `-c openfisca_france`"
-            .encode('utf-8')
-            )
+    # country_package defined here or detected in openfisca_core.scripts.build_tax_benefit_system.
 
     if not tracker_url or not tracker_idsite:
         tracker = None

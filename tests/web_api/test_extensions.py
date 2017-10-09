@@ -6,10 +6,9 @@ from openfisca_web_api_preview.app import create_app
 
 
 TEST_COUNTRY_PACKAGE_NAME = 'openfisca_country_template'
-TEST_EXTENSION_PACKAGE_NAME = 'openfisca_extension_template'
+TEST_EXTENSION_PACKAGE_NAME = ['openfisca_extension_template']
 
 extended_subject = create_app(TEST_COUNTRY_PACKAGE_NAME, TEST_EXTENSION_PACKAGE_NAME).test_client()
-assert_equal(extended_subject, )
 
 
 def test_return_code():

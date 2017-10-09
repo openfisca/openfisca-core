@@ -29,8 +29,7 @@ def add_tax_benefit_system_arguments(parser):
 
     return parser
 
-
-def build_tax_benefit_sytem(country_package_name, extensions, reforms):
+def build_tax_benefit_system(country_package_name, extensions, reforms):
     if country_package_name is None:
         country_package_name = detect_country_package()
     try:
@@ -57,6 +56,10 @@ def build_tax_benefit_sytem(country_package_name, extensions, reforms):
             tax_benefit_system = tax_benefit_system.apply_reform(reform_path)
 
     return tax_benefit_system
+
+
+# For retro-compatibility:
+build_tax_benefit_sytem = build_tax_benefit_system
 
 
 def detect_country_package():
