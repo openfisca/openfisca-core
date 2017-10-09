@@ -1,5 +1,9 @@
 # Changelog
 
+### 18.0.1 [#584](https://github.com/openfisca/openfisca-core/pull/584)
+
+- Add a link in `openAPI.yml` to the OpenFisca documentation page explaining the web API inputs and outputs for the /calculate route.
+
 ## 18.0.0 [#582](https://github.com/openfisca/openfisca-core/pull/582)
 
 #### New features
