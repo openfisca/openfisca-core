@@ -5,6 +5,7 @@ import argparse
 from gunicorn.app.base import BaseApplication
 from gunicorn.six import iteritems
 
+import server_configuration
 from openfisca_core.scripts import add_minimal_tax_benefit_system_arguments
 from ..app import create_app
 
@@ -30,9 +31,12 @@ def new_configured_app():
     args, unknown_args = parser.parse_known_args()
 
     if args.configuration_file:
-        print u'Reading configuration file `{}` instead of command line configuration...'.format(BASE_CONF_FILE)
-        # TODO BASE_CONF.update(BASE_CONF_FILE)
-        # print BASE_CONF
+        # This makes a dict out of the explicit variables in server_configuration
+        custom_configuration = [item for item in dir(server_configuration) if not item.startswith("__")]
+        # replace/create the relevant elements in the BASE_CONF
+        for item in custom_configuration:
+            BASE_CONF[item] = eval('server_configuration.' + item)
+
     else:
         if unknown_args:
             print u'Ignoring these unknown arguments: {}'.format(unknown_args)
