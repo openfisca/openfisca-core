@@ -16,10 +16,10 @@ import logging
 log = logging.getLogger('gunicorn.error')
 
 
-def init_tracker(url, idsite):
+def init_tracker(url, idsite, tracker_token):
     try:
         from openfisca_tracker.piwik import PiwikTracker
-        tracker = PiwikTracker(url, idsite)
+        tracker = PiwikTracker(url, idsite, tracker_token)
 
         info = linesep.join([u'You chose to activate the `tracker` module. ',
                              u'Tracking data will be sent to: ' + url,
@@ -36,6 +36,7 @@ def init_tracker(url, idsite):
 
 def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
                tracker_url = os.environ.get('TRACKER_URL'),
+               tracker_token = os.environ.get('TRACKER_TOKEN'),
                tracker_idsite = os.environ.get('TRACKER_IDSITE')):
     if country_package is None:
         raise ValueError(
@@ -47,7 +48,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
     if not tracker_url or not tracker_idsite:
         tracker = None
     else:
-        tracker = init_tracker(tracker_url, tracker_idsite)
+        tracker = init_tracker(tracker_url, tracker_idsite, tracker_token)
 
     app = Flask(__name__)
     CORS(app, origins = '*')
@@ -128,7 +129,10 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
     @app.after_request
     def track_requests(response):
         if tracker:
-            tracker.track(request.url)
+            if request.headers.get('dnt'):
+                tracker.track(request.url)
+            else:
+                tracker.track(request.url, request.remote_addr)
         return response
 
     @app.errorhandler(500)
