@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import imp
+import os.path
 import argparse
+
 from gunicorn.app.base import BaseApplication
 from gunicorn.six import iteritems
 
-import server_configuration
 from openfisca_core.scripts import add_minimal_tax_benefit_system_arguments
 from ..app import create_app
+from imp import load_module
 
 
 DEFAULT_PORT = '5000'
@@ -21,7 +24,7 @@ DEFAULT_CONFIGURATION_FILE = "./server_configuration.py"
 
 def new_configured_app():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--configuration_file', action = 'store_true', help = "read this gunicorn configuration file: " + DEFAULT_CONFIGURATION_FILE)
+    parser.add_argument('-f', '--configuration_file', action = 'store', help = "read this gunicorn configuration file", type = str)
     parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
     parser = add_minimal_tax_benefit_system_arguments(parser)
 
@@ -31,12 +34,17 @@ def new_configured_app():
     args, unknown_args = parser.parse_known_args()
 
     if args.configuration_file:
-        # This makes a dict out of the explicit variables in server_configuration
-        custom_configuration = [item for item in dir(server_configuration) if not item.startswith("__")]
-        # replace/create the relevant elements in the DEFAULT_CONFIGURATION
+        module_name = os.path.splitext(os.path.basename(args.configuration_file))[0]
+        module_directory = os.path.dirname(args.configuration_file)
+        module = imp.load_module(module_name, *imp.find_module(module_name, [module_directory]))
+
+        # Make a dict out of the explicit variables in server configuration file:
+        custom_configuration = [item for item in dir(module) if not item.startswith("__")]
+        print custom_configuration
+
+        # Replace/Create the relevant elements in the DEFAULT_CONFIGURATION:
         for item in custom_configuration:
-            DEFAULT_CONFIGURATION[item] = eval('server_configuration.' + item)
-        print DEFAULT_CONFIGURATION
+            DEFAULT_CONFIGURATION[item] = getattr(module, item)
     else:
         if unknown_args:
             print u'Ignoring these unknown arguments: {}'.format(unknown_args)
