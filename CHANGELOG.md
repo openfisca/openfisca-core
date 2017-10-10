@@ -1,5 +1,10 @@
 # Changelog
 
+### 18.0.2 [#585](https://github.com/openfisca/openfisca-core/pull/585)
+
+- Track the real visitor IP in the web API
+  - Handle the nginx proxy
+
 ### 18.0.1 [#584](https://github.com/openfisca/openfisca-core/pull/584)
 
 - Add a link in `openAPI.yml` to the OpenFisca documentation page explaining the web API inputs and outputs for the /calculate route.
