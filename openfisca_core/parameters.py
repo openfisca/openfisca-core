@@ -79,7 +79,7 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class ValueAtInstant(object):
+class ParameterAtInstant(object):
     """
         A value of a parameter at a given instant.
     """
@@ -124,7 +124,7 @@ class ValueAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
+        return "ParameterAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
 class Parameter(object):
@@ -187,7 +187,7 @@ class Parameter(object):
                 continue
 
             value_name = _compose_name(name, instant_str)
-            value_at_instant = ValueAtInstant(value_name, instant_str, data = instant_info, file_path = file_path)
+            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = file_path)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -249,16 +249,16 @@ class Parameter(object):
                 if i < n:
                     overlapped_value = old_values[i].value
                     value_name = _compose_name(self.name, stop_str)
-                    new_interval = ValueAtInstant(value_name, stop_str, data = {'value': overlapped_value})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': overlapped_value})
                     new_values.append(new_interval)
                 else:
                     value_name = _compose_name(self.name, stop_str)
-                    new_interval = ValueAtInstant(value_name, stop_str, data = {'value': None})
+                    new_interval = ParameterAtInstant(value_name, stop_str, data = {'value': None})
                     new_values.append(new_interval)
 
         # Insert new interval
         value_name = _compose_name(self.name, start_str)
-        new_interval = ValueAtInstant(value_name, start_str, data = {'value': value})
+        new_interval = ParameterAtInstant(value_name, start_str, data = {'value': value})
         new_values.append(new_interval)
 
         # Remove covered intervals
