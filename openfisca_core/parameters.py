@@ -80,30 +80,6 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class ValidableParameter(object):
-    type_map = {
-        dict: 'object',
-        list: 'array',
-        }
-
-    def validate(self, data, data_type = None, allowed_keys = None):
-        if data_type is not None and not isinstance(data, data_type):
-            raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, self.type_map[data_type]).encode("utf-8"),
-                self.file_path
-                )
-
-        if allowed_keys is not None:
-            keys = data.keys()
-            for key in keys:
-                if key not in allowed_keys:
-                    raise ParameterParsingError(
-                        "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                        .format(key, self.name, list(allowed_keys)).encode('utf-8'),
-                        self.file_path
-                        )
-
-
 class DatableParameter(object):
 
     def __call__(self, instant):
@@ -119,7 +95,7 @@ class DatableParameter(object):
         return self._calculate_at_instant(instant)
 
 
-class ValueAtInstant(ValidableParameter):
+class ValueAtInstant(object):
     """
         A value of a parameter at a given instant.
     """
@@ -146,7 +122,7 @@ class ValueAtInstant(ValidableParameter):
         self.value = data['value']
 
     def validate(self, data):
-        super(ValueAtInstant, self).validate(data, data_type = dict, allowed_keys = self._allowed_keys)
+        validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError:
@@ -167,7 +143,7 @@ class ValueAtInstant(ValidableParameter):
         return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
-class Parameter(ValidableParameter, DatableParameter):
+class Parameter(DatableParameter):
     """
         A parameter of the legislation. Parameters can change over time.
 
@@ -201,14 +177,14 @@ class Parameter(ValidableParameter, DatableParameter):
     def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
-        self.validate(data, data_type = dict)
+        validate_parameter(self, data, data_type = dict)
         self.values_history = self  # Only for retro-compatibility
 
         if data.get('values'):
-            self.validate(data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
+            validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
             data = data['values']
-            self.validate(data, data_type = dict)
+            validate_parameter(self, data, data_type = dict)
 
         instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
 
@@ -314,7 +290,7 @@ class ValuesHistory(Parameter):
     pass
 
 
-class Scale(ValidableParameter, DatableParameter):
+class Scale(DatableParameter):
     """
         A parameter scale (for instance a  marginal scale).
     """
@@ -328,7 +304,7 @@ class Scale(ValidableParameter, DatableParameter):
         """
         self.name = name
         self.file_path = file_path
-        self.validate(data, data_type = dict, allowed_keys = self._allowed_keys)
+        validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
 
         if not isinstance(data['brackets'], list):
@@ -406,7 +382,7 @@ def _parse_child(child_name, child, child_path):
         return ParameterNode(child_name, data = child, file_path = child_path)
 
 
-class ParameterNode(ValidableParameter, DatableParameter):
+class ParameterNode(DatableParameter):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
@@ -470,7 +446,7 @@ class ParameterNode(ValidableParameter, DatableParameter):
 
         else:
             self.file_path = file_path
-            self.validate(data, data_type = dict, allowed_keys = self._allowed_keys)
+            validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             self.children = {}
             # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
             data.pop('reference', None)
@@ -749,11 +725,35 @@ class VectorialParameterNodeAtInstant(object):
 
 def _compose_name(path, child_name):
     if path:
-        if isinstance(child_name, int)or INSTANT_PATTERN.match(child_name):
+        if isinstance(child_name, int) or INSTANT_PATTERN.match(child_name):
             return '{}[{}]'.format(path, child_name)
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
+
+
+
+def validate_parameter(parameter, data, data_type = None, allowed_keys = None):
+    type_map = {
+        dict: 'object',
+        list: 'array',
+        }
+
+    if data_type is not None and not isinstance(data, data_type):
+        raise ParameterParsingError(
+            "'{}' must be of type {}.".format(parameter.name, type_map[data_type]).encode("utf-8"),
+            parameter.file_path
+            )
+
+    if allowed_keys is not None:
+        keys = data.keys()
+        for key in keys:
+            if key not in allowed_keys:
+                raise ParameterParsingError(
+                    "Unexpected property '{}' in '{}'. Allowed properties are {}."
+                    .format(key, parameter.name, list(allowed_keys)).encode('utf-8'),
+                    parameter.file_path
+                    )
 
 
 def contains_nan(vector):
