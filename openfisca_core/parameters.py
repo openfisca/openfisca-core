@@ -106,7 +106,7 @@ class ValueAtInstant(object):
         self.value = data['value']
 
     def validate(self, data):
-        validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError:
@@ -161,14 +161,14 @@ class Parameter(object):
     def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
-        validate_parameter(self, data, data_type = dict)
+        _validate_parameter(self, data, data_type = dict)
         self.values_history = self  # Only for retro-compatibility
 
         if data.get('values'):
-            validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
+            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
             data = data['values']
-            validate_parameter(self, data, data_type = dict)
+            _validate_parameter(self, data, data_type = dict)
 
         instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
 
@@ -292,7 +292,7 @@ class Scale(object):
         """
         self.name = name
         self.file_path = file_path
-        validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
 
         if not isinstance(data['brackets'], list):
@@ -438,7 +438,7 @@ class ParameterNode(object):
 
         else:
             self.file_path = file_path
-            validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+            _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             self.children = {}
             # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
             data.pop('reference', None)
@@ -728,7 +728,7 @@ def _compose_name(path, child_name):
         return child_name
 
 
-def validate_parameter(parameter, data, data_type = None, allowed_keys = None):
+def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
     type_map = {
         dict: 'object',
         list: 'array',
