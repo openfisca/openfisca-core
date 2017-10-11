@@ -6,7 +6,6 @@
 
 import os
 import logging
-import re
 import traceback
 
 import yaml
@@ -14,6 +13,7 @@ import numpy as np
 
 from . import taxscales
 from . import periods
+from periods import INSTANT_PATTERN
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,6 @@ except ImportError:
 
 
 PARAM_FILE_EXTENSIONS = {'.yaml', '.yml'}
-INSTANT_PATTERN = re.compile("^\d{4}-\d{2}-\d{2}$")
 
 
 def date_constructor(loader, node):
@@ -80,21 +79,6 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class DatableParameter(object):
-
-    def __call__(self, instant):
-        return self.get_at_instant(instant)
-
-    def get_at_instant(self, instant):
-        instant = str(instant)
-        if not INSTANT_PATTERN.match(instant):
-            try:
-                instant = str(periods.period(instant).start)
-            except ValueError:
-                raise ValueError("'{}' is neither a valid instant, nor a valid period.".format(instant).encode('utf-8'))
-        return self._calculate_at_instant(instant)
-
-
 class ValueAtInstant(object):
     """
         A value of a parameter at a given instant.
@@ -143,7 +127,7 @@ class ValueAtInstant(object):
         return "ValueAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
-class Parameter(DatableParameter):
+class Parameter(object):
     """
         A parameter of the legislation. Parameters can change over time.
 
@@ -216,9 +200,13 @@ class Parameter(DatableParameter):
     def __eq__(self, other):
         return (self.name == other.name) and (self.values_list == other.values_list)
 
-    def _calculate_at_instant(self, instant_str):
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(periods.instant(instant))
         for value_at_instant in self.values_list:
-            if value_at_instant.instant_str <= instant_str:
+            if value_at_instant.instant_str <= instant:
                 return value_at_instant.value
         return None
 
@@ -290,7 +278,7 @@ class ValuesHistory(Parameter):
     pass
 
 
-class Scale(DatableParameter):
+class Scale(object):
     """
         A parameter scale (for instance a  marginal scale).
     """
@@ -321,8 +309,12 @@ class Scale(DatableParameter):
             brackets.append(bracket)
         self.brackets = brackets
 
-    def _calculate_at_instant(self, instant_str):
-        brackets = [bracket.get_at_instant(instant_str) for bracket in self.brackets]
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(periods.instant(instant))
+        brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
         if any(hasattr(bracket, 'amount') for bracket in brackets):
             scale = taxscales.AmountTaxScale()
@@ -382,7 +374,7 @@ def _parse_child(child_name, child, child_path):
         return ParameterNode(child_name, data = child, file_path = child_path)
 
 
-class ParameterNode(DatableParameter):
+class ParameterNode(object):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
@@ -458,8 +450,12 @@ class ParameterNode(DatableParameter):
                 self.children[child_name] = child
                 setattr(self, child_name, child)
 
-    def _calculate_at_instant(self, instant_str):
-        return ParameterNodeAtInstant(self.name, self, instant_str)
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(periods.instant(instant))
+        return ParameterNodeAtInstant(self.name, self, instant)
 
     def merge(self, other):
         """
@@ -730,7 +726,6 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
-
 
 
 def validate_parameter(parameter, data, data_type = None, allowed_keys = None):
