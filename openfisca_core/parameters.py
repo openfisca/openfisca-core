@@ -14,6 +14,7 @@ import numpy as np
 from . import taxscales
 from . import periods
 from periods import INSTANT_PATTERN
+from tools import indent
 
 log = logging.getLogger(__name__)
 
@@ -758,5 +759,3 @@ def contains_nan(vector):
         return np.isnan(np.min(vector))
 
 
-def indent(text):
-    return "  {}".format(text.replace("\n", "\n  "))

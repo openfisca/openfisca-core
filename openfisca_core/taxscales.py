@@ -13,6 +13,7 @@ import numpy as np
 from numpy import maximum as max_, minimum as min_
 
 from .commons import empty_clone
+from tools import indent
 
 log = logging.getLogger(__name__)
 
@@ -67,7 +68,6 @@ class AbstractRateTaxScale(AbstractTaxScale):
         self.rates = []
 
     def __repr__(self):
-        from .parameters import indent  # Need to import here to avoid a circular dependency
         return indent(os.linesep.join([
             '- threshold: {}{}  rate: {}'.format(threshold, os.linesep, rate)
             for (threshold, rate) in zip(self.thresholds, self.rates)
