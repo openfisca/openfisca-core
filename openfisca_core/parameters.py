@@ -363,17 +363,6 @@ class Scale(object):
             ])
 
 
-def _parse_child(child_name, child, child_path):
-    if 'values' in child:
-        return Parameter(child_name, child, child_path)
-    elif 'brackets' in child:
-        return Scale(child_name, child, child_path)
-    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
-        return Parameter(child_name, child, child_path)
-    else:
-        return ParameterNode(child_name, data = child, file_path = child_path)
-
-
 class ParameterNode(object):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
@@ -717,6 +706,17 @@ class VectorialParameterNodeAtInstant(object):
                 return VectorialParameterNodeAtInstant(self._name, result.view(np.recarray), self._instant_str)
 
             return result
+
+
+def _parse_child(child_name, child, child_path):
+    if 'values' in child:
+        return Parameter(child_name, child, child_path)
+    elif 'brackets' in child:
+        return Scale(child_name, child, child_path)
+    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
+        return Parameter(child_name, child, child_path)
+    else:
+        return ParameterNode(child_name, data = child, file_path = child_path)
 
 
 def _compose_name(path, child_name):
