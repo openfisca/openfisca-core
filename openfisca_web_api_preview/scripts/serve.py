@@ -7,6 +7,7 @@ import argparse
 
 from gunicorn.app.base import BaseApplication
 from gunicorn.six import iteritems
+from gunicorn import config
 
 from openfisca_core.scripts import add_minimal_tax_benefit_system_arguments
 from ..app import create_app
@@ -14,23 +15,24 @@ from imp import load_module
 
 
 DEFAULT_PORT = '5000'
-DEFAULT_CONFIGURATION = {
+gunicorn_configuration = {
     'bind': '127.0.0.1:{}'.format(DEFAULT_PORT),
     'workers': '3',
     }
 
-DEFAULT_CONFIGURATION_FILE = "./server_configuration.py"
-
 
 def new_configured_app():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--configuration_file', action = 'store', help = "read this gunicorn configuration file", type = str)
-    parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
-    parser = add_minimal_tax_benefit_system_arguments(parser)
 
+    # Define OpenFisca modules configuration
+    parser = add_minimal_tax_benefit_system_arguments(parser)
+    # Define server configuration
+    parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
     parser.add_argument('--tracker_url', action = 'store', help = "tracking service url", type = str)
     parser.add_argument('--tracker_idsite', action = 'store', help = "tracking service id site", type = int)
+    parser.add_argument('-f', '--configuration_file', action = 'store', help = "gunicorn configuration file", type = str)
 
+    # Read user configuration
     args, unknown_args = parser.parse_known_args()
 
     if args.configuration_file:
@@ -40,15 +42,16 @@ def new_configured_app():
 
         # Make a dict out of the explicit variables in server configuration file:
         custom_configuration = [item for item in dir(module) if not item.startswith("__")]
-        print custom_configuration
 
-        # Replace/Create the relevant elements in the DEFAULT_CONFIGURATION:
+        # Gunicorn configuration file overloads default configuration
         for item in custom_configuration:
-            DEFAULT_CONFIGURATION[item] = getattr(module, item)
-    else:
-        if unknown_args:
-            print u'Ignoring these unknown arguments: {}'.format(unknown_args)
+            gunicorn_configuration[item] = getattr(module, item)
 
+    if unknown_args:
+        # Command line configuration overloads all gunicorn configuration
+        parser = config.Config().parser()
+        gunicorn_configuration.update(vars(parser.parse_args(unknown_args)))
+    print gunicorn_configuration
     app = create_app(args.country_package, args.extensions, args.tracker_url, args.tracker_idsite)
     return app, unknown_args
 
@@ -74,7 +77,7 @@ class StandaloneApplication(BaseApplication):
 
 def main():
     app, unknown_args = new_configured_app()
-    StandaloneApplication(app, DEFAULT_CONFIGURATION).run()
+    StandaloneApplication(app, gunicorn_configuration).run()
 
 
 if __name__ == '__main__':
