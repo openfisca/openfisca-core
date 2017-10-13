@@ -43,10 +43,7 @@ class Column(object):
         self.variable = variable
 
     def __getattr__(self, name):
-        try:
-            return getattr(self.variable, name)
-        except:
-            import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
+        return getattr(self.variable, name)
 
     def empty_clone(self):
         return self.__class__()
@@ -121,13 +118,13 @@ class Column(object):
             self_json['entity'] = self.entity.key
         if self.label is not None:
             self_json['label'] = self.label
-        start_line_number = self.formula_class.start_line_number
+        start_line_number = self.formula.start_line_number
         if start_line_number is not None:
             self_json['start_line_number'] = start_line_number
-        source_code = self.formula_class.source_code
+        source_code = self.formula.source_code
         if source_code is not None:
             self_json['source_code'] = source_code
-        source_file_path = self.formula_class.source_file_path
+        source_file_path = self.formula.source_file_path
         if source_file_path is not None:
             self_json['source_file_path'] = source_file_path
         if self.name is not None:
@@ -184,14 +181,6 @@ class DateCol(Column):
     A column of Datetime 64 to store dates of people
     '''
     val_type = 'date'
-
-    def __init__(self, default = None, **kwargs):
-        super(DateCol, self).__init__(**kwargs)
-        if default is None:
-            warnings.warn('DateCol.default not given, using 1970-01-01', DeprecationWarning)
-            # default = datetime.date.fromtimestamp(0)  # 0 == 1970-01-01
-        assert isinstance(default, datetime.date), default
-        self.default = default
 
     @property
     def input_to_dated_python(self):

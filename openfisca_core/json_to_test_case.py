@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
+from columns import make_column_from_variable
 
 from . import conv
 
@@ -30,7 +31,8 @@ def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_syst
         entity_json[key] = value
 
     def check_variable(value, key):
-        column = tax_benefit_system.column_by_name[key]
+        variable = tax_benefit_system.column_by_name[key]
+        column = make_column_from_variable(variable)
         if column.entity != entity_class:
             raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key).encode('utf-8'))
         value, error = column.json_to_python(value)

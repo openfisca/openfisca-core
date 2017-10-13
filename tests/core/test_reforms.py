@@ -216,7 +216,7 @@ def test_update_items():
 def test_add_variable():
 
     class new_variable(Variable):
-        column = columns.IntCol
+        value_type = 'Int'
         label = u"Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH
@@ -245,7 +245,7 @@ def test_add_variable():
 
 def test_add_dated_variable():
     class new_dated_variable(Variable):
-        column = columns.IntCol
+        value_type = 'Int'
         label = u"Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH

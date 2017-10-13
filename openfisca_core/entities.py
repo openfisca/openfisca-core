@@ -83,7 +83,7 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-                    if isinstance(holder.column, EnumCol) and isinstance(value, basestring):
+                    if holder.variable.value_type == 'Enum' and isinstance(value, basestring):
                         try:
                             value = holder.column.enum[value]
                         except KeyError:

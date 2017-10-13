@@ -11,13 +11,13 @@ from openfisca_country_template.entities import Person
 
 
 class choice(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
 
 class uses_multiplication(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     label = u'Variable with formula that uses multiplication'
     definition_period = MONTH
@@ -29,7 +29,7 @@ class uses_multiplication(Variable):
 
 
 class uses_switch(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     label = u'Variable with formula that uses switch'
     definition_period = MONTH

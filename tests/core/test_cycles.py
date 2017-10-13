@@ -15,7 +15,7 @@ from openfisca_core.tools import assert_near
 
 # 1 <--> 2 with same period
 class variable1(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -24,7 +24,7 @@ class variable1(Variable):
 
 
 class variable2(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -34,7 +34,7 @@ class variable2(Variable):
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
 class variable3(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -43,7 +43,7 @@ class variable3(Variable):
 
 
 class variable4(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -54,7 +54,7 @@ class variable4(Variable):
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
 #   <---
 class variable5(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -64,7 +64,7 @@ class variable5(Variable):
 
 
 class variable6(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -75,7 +75,7 @@ class variable6(Variable):
 
 # december cotisation depending on november value
 class cotisation(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -89,7 +89,7 @@ class cotisation(Variable):
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
 #   <---
 class variable7(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 
@@ -99,7 +99,7 @@ class variable7(Variable):
 
 
 class variable8(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
 

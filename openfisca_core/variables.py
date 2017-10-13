@@ -7,7 +7,6 @@ import datetime
 
 import numpy as np
 
-import columns
 import entities
 from formulas import Formula
 from periods import MONTH, YEAR, ETERNITY
@@ -67,9 +66,14 @@ VALUE_TYPES = {
         'default': datetime.date.fromtimestamp(0),  # 0 == 1970-01-01
         'json_type': 'Date',
         'is_period_size_independent': True,
+        },
+    'PeriodSizeIndependentInt': {
+        'dtype': np.int32,
+        'default': 0,
+        'json_type': 'Integer',
+        'is_period_size_independent': True
+        }
     }
-}
-
 
 
 class Variable(object):
@@ -96,22 +100,6 @@ class Variable(object):
         self.base_function = self.set_base_function(attributes.pop('base_function', None))
         self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
         self.is_neutralized = False
-
-        # Fill column attributes. To remove when we merge Columns and variables.
-        # if self.cerfa_field is not None:
-        #     self.column.cerfa_field = self.cerfa_field
-        # if self.default != self.column.default:
-        #     self.column.default = self.default
-        # if self.end is not None:
-        #     self.column.end = self.end
-        # if self.reference is not None:
-        #     self.column.reference = self.reference
-        # self.column.entity = self.entity
-        # self.column.formula_class = self.formula
-        # self.column.definition_period = self.definition_period
-        # self.column.is_neutralized = False
-        # self.column.label = self.label
-        # self.column.name = self.name
 
     def set_value_type(self, value_type):
         if not value_type and self.baseline_variable:
@@ -157,7 +145,7 @@ class Variable(object):
         if not definition_period:
             raise ValueError("Missing attribute 'definition_period' in definition of variable {}".format(self.name).encode('utf-8'))
         if definition_period not in (MONTH, YEAR, ETERNITY):
-            raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
+            raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, self.name).encode('utf-8'))
 
         return definition_period
 
@@ -256,3 +244,8 @@ class Variable(object):
             source_code, start_line_number = None, None
 
         return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number.decode('utf-8')
+
+    def clone(self):
+        clone = self.__class__()
+        clone.formula = type(self.formula.__name__, self.formula.__bases__, dict(self.formula.__dict__))  # Class clone
+        return clone

@@ -10,6 +10,7 @@ import numpy as np
 from . import periods
 from .commons import empty_clone
 from .periods import MONTH, YEAR, ETERNITY
+from columns import make_column_from_variable
 
 
 class DatedHolder(object):
@@ -42,7 +43,8 @@ class DatedHolder(object):
         return self.holder.entity
 
     def to_value_json(self, use_label = False):
-        transform_dated_value_to_json = self.holder.variable.transform_dated_value_to_json
+        column = make_column_from_variable(self.holder.variable)
+        transform_dated_value_to_json = column.transform_dated_value_to_json
         return [
             transform_dated_value_to_json(cell, use_label = use_label)
             for cell in self.array.tolist()
@@ -334,8 +336,8 @@ class Holder(object):
         return function.__func__.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
-        variable = self.variable
-        transform_dated_value_to_json = variable.transform_dated_value_to_json
+        column = make_column_from_variable(self.variable)
+        transform_dated_value_to_json = column.transform_dated_value_to_json
 
         def extra_params_to_json_key(extra_params, period):
             return '{' + ', '.join(
@@ -343,7 +345,7 @@ class Holder(object):
                     for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
-        if variable.definition_period == ETERNITY:
+        if self.variable.definition_period == ETERNITY:
             array = self._array
             if array is None:
                 return None

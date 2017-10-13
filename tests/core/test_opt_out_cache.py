@@ -8,14 +8,14 @@ from openfisca_core.periods import MONTH
 
 
 class input(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     label = u"Input variable"
     definition_period = MONTH
 
 
 class intermediate(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     label = u"Intermediate result that don't need to be cached"
     definition_period = MONTH
@@ -25,7 +25,7 @@ class intermediate(Variable):
 
 
 class output(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     label = u'Output variable'
     definition_period = MONTH

@@ -18,7 +18,7 @@ def new_simulation(tax_benefit_system, month):
 
 
 class input_variable(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
     label = u"Input variable. No formula."
@@ -28,7 +28,7 @@ tax_benefit_system.add_variable(input_variable)
 
 
 class variable_with_formula(Variable):
-    column = IntCol
+    value_type = 'Int'
     entity = Person
     definition_period = MONTH
     label = u"Variable with formula"
@@ -53,7 +53,7 @@ def test_is_input_variable():
 
 def test_attribute_content__formula_class():
     variable_as_column = tax_benefit_system.column_by_name['variable_with_formula']
-    formula_class = variable_as_column.formula_class
+    formula_class = variable_as_column.formula
 
     assert issubclass(formula_class, Formula)
     assert formula_class.__name__ == 'variable_with_formula'

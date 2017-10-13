@@ -644,14 +644,13 @@ def get_neutralized_column(column):
         Return a new neutralized column (to be used by reforms).
         A neutralized column always returns its default value, and does not cache anything.
     """
-    return new_filled_column(
-        entity = column.entity,
-        is_neutralized = True,
-        label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
-        baseline_variable = column,
-        definition_period = column.definition_period,
-        set_input = set_input_neutralized,
-        )
+    result = column.clone()
+    result.is_neutralized = True
+    result.label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
+    result.set_input = set_input_neutralized
+    result.formula.set_input = set_input_neutralized
+
+    return result
 
 
 def deduce_formula_date_from_name(attribute_name):
