@@ -13,7 +13,7 @@ from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
-from taxbenefitsystems import VariableNotFound
+from errors import VariableNotFound
 from columns import EnumCol
 
 
