@@ -29,7 +29,9 @@ class Variable(object):
         self.end = self.set_end(attributes.pop('end', None))
         self.reference = self.set_reference(attributes.pop('reference', None))
         self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
+        self.set_input = attributes.pop('set_inputs', None)
         self.calculate_output = attributes.pop('calculate_output', None)
+        self.base_function = self.set_base_function(attributes.pop('calculate_output', None))
 
 
         # self.variable_class = variable_class
@@ -93,6 +95,24 @@ class Variable(object):
     def set_cerfa_field(self, cerfa_field):
         if cerfa_field:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
+
+    def set_base_function(self, base_function):
+        if self.definition_period == ETERNITY:
+            if base_function and not base_function == permanent_default_value:
+                raise ValueError('Unexpected base_function {}'.format(base_function))
+            return permanent_default_value
+
+        if self.column.is_period_size_independent:
+            if base_function is None:
+                return requested_period_last_value
+            if base_function in [missing_value, requested_period_last_value, requested_period_last_or_next_value]
+                return base_function
+            raise ValueError('Unexpected base_function {}'.format(base_function))
+
+        if base_function is None:
+            return requested_period_default_value
+
+        return base_function
 
 
     @classmethod
@@ -254,45 +274,26 @@ class Variable(object):
         # Build formula class and column.
 
         formula_class_attributes = {}
-        if __doc__ is not None:
-            formula_class_attributes['__doc__'] = __doc__
-        if __module__ is not None:
-            formula_class_attributes['__module__'] = __module__
-        if comments is not None:
-            formula_class_attributes['comments'] = comments
-        if start_line_number is not None:
-            formula_class_attributes['start_line_number'] = start_line_number
-        if source_code is not None:
-            formula_class_attributes['source_code'] = source_code
-        if source_file_path is not None:
-            formula_class_attributes['source_file_path'] = source_file_path
+        # if __doc__ is not None:
+        #     formula_class_attributes['__doc__'] = __doc__
+        # if __module__ is not None:
+        #     formula_class_attributes['__module__'] = __module__
+        # if comments is not None:
+        #     formula_class_attributes['comments'] = comments
+        # if start_line_number is not None:
+        #     formula_class_attributes['start_line_number'] = start_line_number
+        # if source_code is not None:
+        #     formula_class_attributes['source_code'] = source_code
+        # if source_file_path is not None:
+        #     formula_class_attributes['source_file_path'] = source_file_path
 
-        if column.definition_period == ETERNITY:
-            assert base_function == UnboundLocalError, 'Unexpected base_function {}'.format(base_function)
-            base_function = permanent_default_value
-        elif column.is_period_size_independent:
-            assert base_function in (missing_value, requested_period_last_value, requested_period_last_or_next_value, UnboundLocalError), \
-                'Unexpected base_function {}'.format(base_function)
-            if base_function is UnboundLocalError:
-                base_function = requested_period_last_value
-        elif base_function is UnboundLocalError:
-            base_function = requested_period_default_value
 
-        if base_function is UnboundLocalError:
-            assert baseline_variable is not None \
-                and issubclass(baseline_variable.formula_class, Formula), \
-                """Missing attribute "base_function" in definition of filled column {}""".format(name)
-            base_function = baseline_variable.formula_class.base_function
-        else:
-            assert base_function is not None, \
-                """Missing attribute "base_function" in definition of filled column {}""".format(name)
-        formula_class_attributes['base_function'] = base_function
 
-        if calculate_output is not None:
-            formula_class_attributes['calculate_output'] = calculate_output
+        # if calculate_output is not None:
+        #     formula_class_attributes['calculate_output'] = calculate_output
 
-        if set_input is not None:
-            formula_class_attributes['set_input'] = set_input
+        # if set_input is not None:
+        #     formula_class_attributes['set_input'] = set_input
 
         dated_formulas_class = []
         for function_name, function in specific_attributes.copy().iteritems():
