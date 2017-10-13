@@ -25,12 +25,12 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2
 
 class Column(object):
     cerfa_field = None
-    default = 0
-    dtype = float
+    # default = 0
+    # dtype = float
     end = None
     entity = None
     formula_class = None
-    is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
+    # is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
     definition_period = None
     # json_type = None  # Defined in sub-classes
     label = None
@@ -43,7 +43,7 @@ class Column(object):
     def __init__(
             self,
             cerfa_field = None,
-            default = None,
+            # default = None,
             end = None,
             entity = None,
             function = None,
@@ -76,10 +76,6 @@ class Column(object):
 
     def empty_clone(self):
         return self.__class__()
-
-    def is_input_variable(self):
-        """Returns true if the column (self) is an input variable."""
-        return self.formula_class.dated_formulas_class == []
 
     def json_default(self):
         return self.default
@@ -196,10 +192,10 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    default = False
-    dtype = np.bool
-    is_period_size_independent = True
-    json_type = 'Boolean'
+    # default = False
+    # dtype = np.bool
+    # is_period_size_independent = True
+    # json_type = 'Boolean'
 
     @property
     def input_to_dated_python(self):
@@ -217,16 +213,16 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    dtype = 'datetime64[D]'
-    is_period_size_independent = True
-    json_type = 'Date'
+    # dtype = 'datetime64[D]'
+    # is_period_size_independent = True
+    # json_type = 'Date'
     val_type = 'date'
 
     def __init__(self, default = None, **kwargs):
         super(DateCol, self).__init__(**kwargs)
         if default is None:
             warnings.warn('DateCol.default not given, using 1970-01-01', DeprecationWarning)
-            default = datetime.date.fromtimestamp(0)  # 0 == 1970-01-01
+            # default = datetime.date.fromtimestamp(0)  # 0 == 1970-01-01
         assert isinstance(default, datetime.date), default
         self.default = default
 
@@ -270,10 +266,10 @@ class DateCol(Column):
 
 
 class FixedStrCol(Column):
-    default = u''
-    dtype = None
-    is_period_size_independent = True
-    json_type = 'String'
+    # default = u''
+    # dtype = None
+    # is_period_size_independent = True
+    # json_type = 'String'
     max_length = None
 
     def __init__(self, max_length = None, **kwargs):
@@ -306,8 +302,8 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    dtype = np.float32
-    json_type = 'Float'
+    # dtype = np.float32
+    # json_type = 'Float'
 
     @property
     def input_to_dated_python(self):
@@ -325,8 +321,8 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    dtype = np.int32
-    json_type = 'Integer'
+    # dtype = np.int32
+    # json_type = 'Integer'
 
     @property
     def input_to_dated_python(self):
@@ -341,10 +337,10 @@ class IntCol(Column):
 
 
 class StrCol(Column):
-    default = u''
-    dtype = object
-    is_period_size_independent = True
-    json_type = 'String'
+    # default = u''
+    # dtype = object
+    # is_period_size_independent = True
+    # json_type = 'String'
 
     @property
     def input_to_dated_python(self):
@@ -369,8 +365,8 @@ class AgeCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    default = -9999
-    is_period_size_independent = True
+    # default = -9999
+    # is_period_size_independent = True
 
     @property
     def input_to_dated_python(self):
@@ -397,11 +393,11 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    dtype = np.int16
+    # dtype = np.int16
     enum = None
     index_by_slug = None
-    is_period_size_independent = True
-    json_type = 'Enumeration'
+    # is_period_size_independent = True
+    # json_type = 'Enumeration'
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)
@@ -490,5 +486,5 @@ class EnumCol(IntCol):
         return value
 
 
-class PeriodSizeIndependentIntCol(IntCol):
-    is_period_size_independent = True
+# class PeriodSizeIndependentIntCol(IntCol):
+#     is_period_size_independent = True

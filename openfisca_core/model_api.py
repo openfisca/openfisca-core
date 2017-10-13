@@ -19,7 +19,7 @@ from .columns import (  # noqa analysis:ignore
     FixedStrCol,
     FloatCol,
     IntCol,
-    PeriodSizeIndependentIntCol,
+    # PeriodSizeIndependentIntCol,
     StrCol,
     )
 from .enumerations import Enum  # noqa analysis:ignore

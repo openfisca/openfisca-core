@@ -5,6 +5,8 @@ import inspect
 import textwrap
 import datetime
 
+import numpy as np
+
 import columns
 import entities
 from formulas import Formula
@@ -17,6 +19,58 @@ from base_functions import (
     requested_period_last_value,
     )
 
+VALUE_TYPES = {
+    'Bool': {
+        'dtype': np.bool,
+        'default': False,
+        'json_type': 'Boolean',
+        'is_period_size_independent': True
+        },
+    'Int': {
+        'dtype': np.int32,
+        'default': 0,
+        'json_type': 'Integer',
+        'is_period_size_independent': False
+        },
+    'Float': {
+        'dtype': np.float32,
+        'default': 0,
+        'json_type': 'Float',
+        'is_period_size_independent': False,
+        },
+    'Age': {
+        'dtype': np.int32,
+        'default': -9999,
+        'json_type': 'Integer',
+        'is_period_size_independent': True
+        },
+    'FixedStr': {
+        'dtype': None,
+        'default': u'',
+        'json_type': 'String',
+        'is_period_size_independent': True
+        },
+    'Str': {
+        'dtype': object,
+        'default': u'',
+        'json_type': 'String',
+        'is_period_size_independent': True
+        },
+    'Enum': {
+        'dtype': np.int16,
+        'default': 0,
+        'json_type': 'Enumeration',
+        'is_period_size_independent': True,
+        },
+    'Date': {
+        'dtype': 'datetime64[D]',
+        'default': datetime.date.fromtimestamp(0),  # 0 == 1970-01-01
+        'json_type': 'Date',
+        'is_period_size_independent': True,
+    }
+}
+
+
 
 class Variable(object):
 
@@ -24,7 +78,8 @@ class Variable(object):
         self.name = unicode(self.__class__.__name__)
         attributes = dict(self.__class__.__dict__)
         self.baseline_variable = baseline_variable
-        self.column = self.set_column(attributes.pop('column', None))
+        self.value_type = self.set_value_type(attributes.pop('value_type', None))
+        self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
         self.default = self.set_default(attributes.pop('default', None))
         self.entity = self.set_entity(attributes.pop('entity', None))
         self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
@@ -38,38 +93,43 @@ class Variable(object):
         self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
 
         # Fill column attributes. To remove when we merge Columns and variables.
-        if self.cerfa_field is not None:
-            self.column.cerfa_field = self.cerfa_field
-        if self.default != self.column.default:
-            self.column.default = self.default
-        if self.end is not None:
-            self.column.end = self.end
-        if self.reference is not None:
-            self.column.reference = self.reference
-        self.column.entity = self.entity
-        self.column.formula_class = self.formula
-        self.column.definition_period = self.definition_period
-        self.column.is_neutralized = False
-        self.column.label = self.label
-        self.column.name = self.name
+        # if self.cerfa_field is not None:
+        #     self.column.cerfa_field = self.cerfa_field
+        # if self.default != self.column.default:
+        #     self.column.default = self.default
+        # if self.end is not None:
+        #     self.column.end = self.end
+        # if self.reference is not None:
+        #     self.column.reference = self.reference
+        # self.column.entity = self.entity
+        # self.column.formula_class = self.formula
+        # self.column.definition_period = self.definition_period
+        # self.column.is_neutralized = False
+        # self.column.label = self.label
+        # self.column.name = self.name
 
-    def set_column(self, column):
-        if not column and self.baseline_variable:
-            return self.baseline_variable.empty_clone()  # So far, baseline_variable is still a column
-        if not column:
-            raise ValueError("Missing attribute 'column' in definition of variable {}".format(self.name).encode('utf-8'))
-        if isinstance(column, type) and issubclass(column, columns.Column):
-            return column()
-        if isinstance(column, columns.Column):
-            return column
+    def set_value_type(self, value_type):
+        if not value_type and self.baseline_variable:
+            return self.baseline_variable.value_type  # So far, baseline_variable is still a column
+        if not value_type:
+            raise ValueError("Missing attribute 'value_type' in definition of variable {}".format(self.name).encode('utf-8'))
+        if value_type in VALUE_TYPES:
+            return value_type
         else:
-            raise ValueError("Attribute 'column' invalid in '{}'".format(self.name).encode('utf-8'))
+            raise ValueError("Attribute 'value_type' invalid in '{}'".format(self.name).encode('utf-8'))
+
+    def set_possible_values(self, possible_values):
+        if not self.value_type == 'Enum' and possible_values:
+            raise ValueError("Unexpected attribute 'possible_values' in {}. 'possible_values' only make sense for enums".format(self.name).encode('utf-8'))
+        if self.value_type == 'Enum' and not possible_values:
+            raise ValueError("'possible_values' need to be set in {}, as its value type is 'enum'".format(self.name).encode('utf-8'))
+        return possible_values
 
     def set_default(self, default):
         if not default and self.baseline_variable:
             return self.baseline_variable.default
         if not default:
-            return self.column.default
+            return VALUE_TYPES[self.value_type]['default']
         return default
 
     def set_entity(self, entity):
@@ -143,7 +203,7 @@ class Variable(object):
                 raise ValueError('Unexpected base_function {}'.format(base_function))
             return permanent_default_value
 
-        if self.column.is_period_size_independent:
+        if VALUE_TYPES[self.value_type]['is_period_size_independent']:
             if base_function is None:
                 return requested_period_last_value
             if base_function in [missing_value, requested_period_last_value, requested_period_last_or_next_value]:
@@ -164,6 +224,10 @@ class Variable(object):
         if not calculate_output and self.baseline_variable:
             return self.baseline_variable.formula_class.calculate_output.im_func
         return calculate_output
+
+    def is_input_variable(self):
+        """Returns true if the column (self) is an input variable."""
+        return self.formula.dated_formulas_class == []
 
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):

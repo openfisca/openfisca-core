@@ -116,10 +116,9 @@ class TaxBenefitSystem(object):
         # We pass the variable_class just for introspection.
         variable = variable_class(baseline_variable = baseline_variable)
         # We need the tax and benefit system to identify columns mentioned by conversion variables.
-        column = variable.column
-        self.add_column(column)
+        self.add_column(variable)
 
-        return column
+        return variable
 
     def add_variable(self, variable):
         """
