@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from os import linesep
 
 class VariableNotFound(Exception):
     """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.

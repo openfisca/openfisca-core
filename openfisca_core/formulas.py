@@ -16,13 +16,6 @@ import numpy as np
 from . import columns, holders, periods
 from .parameters import ParameterNotFound
 from .periods import MONTH, YEAR, ETERNITY
-from .base_functions import (
-    missing_value,
-    permanent_default_value,
-    requested_period_default_value,
-    requested_period_last_or_next_value,
-    requested_period_last_value,
-    )
 from .commons import empty_clone, stringify_array
 
 
@@ -64,6 +57,64 @@ class Formula(object):
     base_function = None  # Class attribute. Overridden by subclasses
     dated_formulas = None  # A list of dictionaries containing a formula instance and a start instant
     dated_formulas_class = None  # A list of dictionaries containing a formula class and a start instant
+
+    @staticmethod
+    def build_formula_class(attributes, variable, baseline_variable = None):
+        """
+        Returns a sublclass of Formula, containting the extracted formula(s) of the variable (e.g. formula_2015_01)
+        """
+
+        formula_class_attributes = {}
+        if variable.calculate_output:
+            formula_class_attributes['calculate_output'] = variable.calculate_output
+        if variable.set_input:
+            formula_class_attributes['set_input'] = variable.set_input
+        formula_class_attributes['base_function'] = variable.base_function
+        formula_class_attributes['__doc__'] = attributes.pop('__doc__', None)
+        formula_class_attributes['__module__'] = attributes.pop('__module__', None)
+
+        dated_formulas_class = []
+        for function_name, function in attributes.copy().iteritems():
+            # Turn any formula into a dated formula
+            formula_start_date = deduce_formula_date_from_name(function_name)
+            if not formula_start_date:
+                # Current attribute isn't a formula
+                continue
+
+            if variable.end is not None:
+                assert variable.end >= formula_start_date, \
+                    'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(variable.name, variable.end, formula_start_date, function_name)
+            dated_formula_class_attributes = formula_class_attributes.copy()
+            dated_formula_class_attributes['formula'] = function
+            dated_formula_class = type(variable.name.encode('utf-8'), (Formula,), dated_formula_class_attributes)
+
+            del attributes[function_name]
+            dated_formulas_class.append(dict(
+                formula_class = dated_formula_class,
+                start_instant = periods.instant(formula_start_date),
+                ))
+
+        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+
+        # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
+        if baseline_variable is not None:
+            for baseline_dated_formula_class in baseline_variable.formula_class.dated_formulas_class:
+                baseline_dated_formula_class = baseline_dated_formula_class.copy()
+                for dated_formula_class in dated_formulas_class:
+                    if baseline_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
+                        break
+
+                else:
+                    dated_formulas_class.append(baseline_dated_formula_class)
+            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
+
+        formula_class_attributes['dated_formulas_class'] = dated_formulas_class
+
+        assert not attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(variable.name,
+            ', '.join(sorted(attributes.iterkeys())))
+
+        return type(variable.name.encode('utf-8'), (Formula,), formula_class_attributes)
+
 
     def __init__(self, holder = None):
         assert holder is not None

@@ -99,15 +99,11 @@ class TaxBenefitSystem(object):
 
     def load_variable(self, variable_class, update = False):
         name = unicode(variable_class.__name__)
-        variable_type = variable_class.__bases__[0]
-        attributes = dict(variable_class.__dict__)
 
         # Check if a Variable of same name is already registered.
-        existing_column = self.get_column(name)
-        if existing_column:
-            if update:
-                attributes['baseline_variable'] = existing_column
-            else:
+        baseline_variable = self.get_column(name)
+        if baseline_variable:
+            if not update:
                 # Variables that are dependencies of others (trough a conversion column) can be loaded automatically
                 # Is it still necessary ?
                 if name in self.automatically_loaded_variable:
@@ -116,10 +112,11 @@ class TaxBenefitSystem(object):
                 raise VariableNameConflict(
                     u'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
+
         # We pass the variable_class just for introspection.
-        variable = variable_type(name, attributes, variable_class)
+        variable = variable_class(baseline_variable = baseline_variable)
         # We need the tax and benefit system to identify columns mentioned by conversion variables.
-        column = variable.to_column(self)
+        column = variable.column
         self.add_column(column)
 
         return column
