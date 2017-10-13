@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import conv, periods, simulations, json_to_test_case
+from . import conv, periods, simulations, json_to_test_case, columns
 
 
 def N_(message):
@@ -470,7 +470,7 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
             if isinstance(variable_value, np.ndarray):
                 variable_array_by_period = {period: variable_value}
             else:
-                variable_array_by_period, error = column.make_json_to_array_by_period(period)(
+                variable_array_by_period, error = columns.make_column_from_variable(column).make_json_to_array_by_period(period)(
                     variable_value, state = state)
                 if error is not None:
                     error_by_variable_name[variable_name] = error

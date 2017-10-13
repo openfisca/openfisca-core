@@ -22,57 +22,31 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2
 
 # Base Column
 
+def make_column_from_variable(variable):
+    CONVERSION_MAP = {
+        'Bool': BoolCol,
+        'Int': IntCol,
+        'Float': FloatCol,
+        'Age': AgeCol,
+        'FixedStr': FixedStrCol,
+        'Str': StrCol,
+        'Enum': EnumCol,
+        'Date': DateCol,
+    }
+    return CONVERSION_MAP[variable.value_type](variable)
+
 
 class Column(object):
-    cerfa_field = None
-    # default = 0
-    # dtype = float
-    end = None
-    entity = None
-    formula_class = None
-    # is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
-    definition_period = None
-    # json_type = None  # Defined in sub-classes
-    label = None
-    name = None
-    start = None
-    survey_only = False
-    reference = None  # Either a single reference or a list of references
     val_type = None
 
-    def __init__(
-            self,
-            cerfa_field = None,
-            # default = None,
-            end = None,
-            entity = None,
-            function = None,
-            label = None,
-            start = None,
-            survey_only = False,
-            reference = None,
-            val_type = None
-            ):
-        if cerfa_field is not None:
-            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
-            self.cerfa_field = cerfa_field
-        if default is not None and default != self.default:
-            self.default = default
-        if end is not None:
-            self.end = end
-        if function is not None:
-            self.function = function
-        if label is not None:
-            self.label = label
-        if start is not None:
-            self.start = start
-        if survey_only:
-            self.survey_only = True
-        if reference is not None:
-            self.reference = reference
-        if val_type is not None and val_type != self.val_type:
-            self.val_type = val_type
-        self.is_neutralized = False
+    def __init__(self, variable):
+        self.variable = variable
+
+    def __getattr__(self, name):
+        try:
+            return getattr(self.variable, name)
+        except:
+            import nose.tools; nose.tools.set_trace(); import ipdb; ipdb.set_trace()
 
     def empty_clone(self):
         return self.__class__()
@@ -275,7 +249,7 @@ class FixedStrCol(Column):
     def __init__(self, max_length = None, **kwargs):
         super(FixedStrCol, self).__init__(**kwargs)
         assert isinstance(max_length, int)
-        self.dtype = '|S{}'.format(max_length)
+
         self.max_length = max_length
 
     def empty_clone(self):

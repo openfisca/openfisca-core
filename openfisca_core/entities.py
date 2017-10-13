@@ -220,13 +220,13 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        column = self.simulation.tax_benefit_system.get_column(variable_name)
+        variable = self.simulation.tax_benefit_system.get_column(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
-            column = column,
+            variable = variable,
             )
-        if column.formula_class is not None:
-            holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        if variable.formula is not None:
+            holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
 
 

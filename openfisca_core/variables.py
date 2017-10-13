@@ -45,7 +45,7 @@ VALUE_TYPES = {
         'is_period_size_independent': True
         },
     'FixedStr': {
-        'dtype': None,
+        'dtype': None,  # Dynamically set later
         'default': u'',
         'json_type': 'String',
         'is_period_size_independent': True
@@ -79,7 +79,11 @@ class Variable(object):
         attributes = dict(self.__class__.__dict__)
         self.baseline_variable = baseline_variable
         self.value_type = self.set_value_type(attributes.pop('value_type', None))
-        self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
+        self.dtype = VALUE_TYPES[self.value_type]['dtype']
+        if self.value_type == 'Enum':
+            self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
+        if self.value_type == 'FixedStr':
+            self.max_length = self.set_max_length(attributes.pop('max_length', None))
         self.default = self.set_default(attributes.pop('default', None))
         self.entity = self.set_entity(attributes.pop('entity', None))
         self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
@@ -91,6 +95,7 @@ class Variable(object):
         self.calculate_output = self.set_calculate_output(attributes.pop('calculate_output', None))
         self.base_function = self.set_base_function(attributes.pop('base_function', None))
         self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
+        self.is_neutralized = False
 
         # Fill column attributes. To remove when we merge Columns and variables.
         # if self.cerfa_field is not None:
@@ -119,11 +124,15 @@ class Variable(object):
             raise ValueError("Attribute 'value_type' invalid in '{}'".format(self.name).encode('utf-8'))
 
     def set_possible_values(self, possible_values):
-        if not self.value_type == 'Enum' and possible_values:
-            raise ValueError("Unexpected attribute 'possible_values' in {}. 'possible_values' only make sense for enums".format(self.name).encode('utf-8'))
-        if self.value_type == 'Enum' and not possible_values:
-            raise ValueError("'possible_values' need to be set in {}, as its value type is 'enum'".format(self.name).encode('utf-8'))
+        if not possible_values:
+            raise ValueError("'possible_values' need to be set in {}, as its value type is 'Enum'".format(self.name).encode('utf-8'))
         return possible_values
+
+    def set_max_length(self, max_length):
+        if not max_length:
+            raise ValueError("'max_length' need to be set in {}, as its value type is 'FixedStr'".format(self.name).encode('utf-8'))
+        self.dtype = '|S{}'.format(max_length)
+        return max_length
 
     def set_default(self, default):
         if not default and self.baseline_variable:
@@ -197,7 +206,7 @@ class Variable(object):
 
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
-            return self.baseline_variable.formula_class.base_function.im_func
+            return self.baseline_variable.formula.base_function.im_func
         if self.definition_period == ETERNITY:
             if base_function and not base_function == permanent_default_value:
                 raise ValueError('Unexpected base_function {}'.format(base_function))
@@ -217,12 +226,12 @@ class Variable(object):
 
     def set_set_input(self, set_input):
         if not set_input and self.baseline_variable:
-            return self.baseline_variable.formula_class.set_input.im_func
+            return self.baseline_variable.formula.set_input.im_func
         return set_input
 
     def set_calculate_output(self, calculate_output):
         if not calculate_output and self.baseline_variable:
-            return self.baseline_variable.formula_class.calculate_output.im_func
+            return self.baseline_variable.formula.calculate_output.im_func
         return calculate_output
 
     def is_input_variable(self):

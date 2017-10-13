@@ -98,7 +98,7 @@ class Formula(object):
 
         # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
         if baseline_variable is not None:
-            for baseline_dated_formula_class in baseline_variable.formula_class.dated_formulas_class:
+            for baseline_dated_formula_class in baseline_variable.formula.dated_formulas_class:
                 baseline_dated_formula_class = baseline_dated_formula_class.copy()
                 for dated_formula_class in dated_formulas_class:
                     if baseline_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
@@ -160,7 +160,7 @@ class Formula(object):
 
     def default_values(self):
         '''Return a new NumPy array which length is the entity count, filled with default values.'''
-        return self.zeros() + self.holder.column.default
+        return self.zeros() + self.holder.variable.default
 
     @property
     def real_formula(self):
@@ -409,7 +409,7 @@ class Formula(object):
                 )
         simulation = self.holder.simulation
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
-        column = self.holder.column
+        column = self.holder.variable
         variable_name = column.name
         if variable_name in requested_periods_by_variable_name:
             # Make sure the formula doesn't call itself for the same period it is being called for.
@@ -432,7 +432,7 @@ class Formula(object):
         requested_periods_by_variable_name[variable_name] and delete the latter if empty.
         """
         simulation = self.holder.simulation
-        column = self.holder.column
+        column = self.holder.variable
         variable_name = column.name
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
         if variable_name in requested_periods_by_variable_name:
@@ -446,7 +446,7 @@ class Formula(object):
         Return a DatedHolder after checking for cycles in formula.
         """
         holder = self.holder
-        column = holder.column
+        column = holder.variable
         entity = holder.entity
         simulation = holder.simulation
         debug = simulation.debug
@@ -528,7 +528,7 @@ class Formula(object):
         """
         Finds the last active formula for the time interval [period starting date, variable end attribute].
         """
-        end = self.holder.column.end
+        end = self.holder.variable.end
         if end and period.start.date > end:
             return None
 
@@ -567,7 +567,7 @@ class Formula(object):
                 dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
         else:
             holder = self.holder
-            column = holder.column
+            column = holder.variable
             simulation = holder.simulation
             variables_name, parameters_name = get_input_variables_and_parameters(column)
             if variables_name is not None:
@@ -575,7 +575,7 @@ class Formula(object):
                     variable_holder = simulation.get_or_new_holder(variable_name)
                     variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
                     edges.append({
-                        'from': variable_holder.column.name,
+                        'from': variable_holder.variable.name,
                         'to': column.name,
                         })
 
@@ -591,7 +591,7 @@ class Formula(object):
             ))
         if get_input_variables_and_parameters is not None:
             holder = self.holder
-            column = holder.column
+            column = holder.variable
             simulation = holder.simulation
             variables_name, parameters_name = get_input_variables_and_parameters(column)
             if variables_name:
@@ -599,7 +599,7 @@ class Formula(object):
                     input_variables_json = []
                     for variable_name in sorted(variables_name):
                         variable_holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
-                        variable_column = variable_holder.column
+                        variable_column = variable_holder.variable
                         input_variables_json.append(collections.OrderedDict((
                             ('entity', variable_holder.entity.key),
                             ('label', variable_column.label),
@@ -699,9 +699,9 @@ def set_input_dispatch_by_period(formula, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if formula.holder.column.definition_period == MONTH:
+    if formula.holder.variable.definition_period == MONTH:
         cached_period_unit = periods.MONTH
-    elif formula.holder.column.definition_period == YEAR:
+    elif formula.holder.variable.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
         raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
@@ -726,9 +726,9 @@ def set_input_divide_by_period(formula, period, array):
     period_size = period.size
     period_unit = period.unit
 
-    if formula.holder.column.definition_period == MONTH:
+    if formula.holder.variable.definition_period == MONTH:
         cached_period_unit = periods.MONTH
-    elif formula.holder.column.definition_period == YEAR:
+    elif formula.holder.variable.definition_period == YEAR:
         cached_period_unit = periods.YEAR
     else:
         raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
@@ -756,12 +756,12 @@ def set_input_divide_by_period(formula, period, array):
                 holder.put_in_cache(divided_array, sub_period)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.column.name, period, array, array - remaining_array).encode('utf-8'))
+        raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))
 
 
 def set_input_neutralized(formula, period, array):
     warnings.warn(
         u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
-        .format(formula.holder.column.name, array).encode('utf-8'),
+        .format(formula.holder.variable.name, array).encode('utf-8'),
         Warning
         )
