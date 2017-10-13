@@ -84,6 +84,7 @@ class Variable(object):
         self.baseline_variable = baseline_variable
         self.value_type = self.set_value_type(attributes.pop('value_type', None))
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
+        self.json_type = VALUE_TYPES[self.value_type]['json_type']
         if self.value_type == 'Enum':
             self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
         if self.value_type == 'FixedStr':
@@ -243,7 +244,7 @@ class Variable(object):
         except (IOError, TypeError):
             source_code, start_line_number = None, None
 
-        return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number.decode('utf-8')
+        return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number
 
     def clone(self):
         clone = self.__class__()

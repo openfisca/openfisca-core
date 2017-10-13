@@ -17,7 +17,7 @@ def permanent_default_value(formula, simulation, period, *extra_params):
 def requested_period_added_value(formula, simulation, period, *extra_params):
     # This formula is used for variables that can be added to match requested period.
     holder = formula.holder
-    column = holder.column
+    column = holder.variable
     period_size = period.size
     period_unit = period.unit
     if holder._array_by_period is not None and (period_size > 1 or period_unit == YEAR):
@@ -101,5 +101,5 @@ def missing_value(formula, simulation, period, *extra_params):
     if function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
-    column = holder.column
+    column = holder.variable
     raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))

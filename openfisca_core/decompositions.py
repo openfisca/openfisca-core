@@ -31,7 +31,7 @@ def calculate(simulations, decomposition_json):
                     exc.simulation_index = simulation_index
                     raise
                 holder = simulation.get_holder(node['code'])
-                column = holder.column
+                column = holder.variable
                 values.extend(
                     column.transform_value_to_json(value)
                     for value in new_test_case_array(holder, array).tolist()
