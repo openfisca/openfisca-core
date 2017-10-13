@@ -18,13 +18,20 @@ class Variable(object):
         name = unicode(variable_class.__name__)
         attributes = dict(variable_class.__dict__)
 
-    def __init__(self, name, attributes):
-        self.name = name
+    def __init__(self):
+        self.name = self.__class__.__name__
+        attributes = dict(self.__class__.__dict__)
         self.column = self.set_column(attributes.pop('column', None))
+        self.default = self.column.default
         self.entity = self.set_entity(attributes.pop('entity', None))
         self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
-        # self.label = label
-        # self.other_attributes = other_attributes
+        self.label = self.set_label(attributes.pop('label', None))
+        self.end = self.set_end(attributes.pop('end', None))
+        self.reference = self.set_reference(attributes.pop('reference', None))
+        self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
+        self.calculate_output = attributes.pop('calculate_output', None)
+
+
         # self.variable_class = variable_class
 
 
@@ -52,54 +59,19 @@ class Variable(object):
         if definition_period not in (MONTH, YEAR, ETERNITY):
             raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
+    def set_label(self, label):
+        if label:
+            return unicode(label)
 
-
-
-    def get_introspection_data(self, tax_benefit_system):
-        comments = inspect.getcomments(self.variable_class)
-
-        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
-        try:
-            absolute_file_path = inspect.getsourcefile(self.variable_class)
-        except TypeError:
-            source_file_path = None
-        else:
-            source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
-        try:
-            source_lines, start_line_number = inspect.getsourcelines(self.variable_class)
-            source_code = textwrap.dedent(''.join(source_lines))
-        except (IOError, TypeError):
-            source_code, start_line_number = None, None
-
-        return comments, source_file_path, source_code, start_line_number
-
-
-
-
-    def to_column(self, tax_benefit_system):
-        entity = self.attributes.pop('entity', None)
-
-        # For reform variable that replaces an existing baseline one
-        baseline_variable = self.attributes.pop('baseline_variable', None)
-        if baseline_variable:
-            if not entity:
-                entity = baseline_variable.entity
-
-        comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
-
-        if entity is None:
-            raise Exception('Variable {} must have an entity'.format(self.name))
-
-        end = self.attributes.pop('end', None)
-        end_date = None
+    def set_end(self, end):
         if end:
             assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
             try:
-                end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+                return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError:
                 raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
 
-        reference = self.attributes.pop('reference', None)
+    def set_reference(self, reference):
         if reference:
             if isinstance(reference, basestring):
                 reference = [reference]
@@ -116,19 +88,61 @@ class Variable(object):
                         'The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(
                             self.name, type(reference)))
 
-        return new_filled_column(
-            name = self.name,
-            entity = entity,
-            end = end_date,
-            baseline_variable = baseline_variable,
-            comments = comments,
-            start_line_number = start_line_number,
-            source_code = source_code,
-            source_file_path = source_file_path,
-            reference = reference,
-            **self.attributes
-            )
+        return reference
 
+    def set_cerfa_field(self, cerfa_field):
+        if cerfa_field:
+            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
+
+
+    @classmethod
+    def get_introspection_data(cls, tax_benefit_system):
+        comments = inspect.getcomments(cls)
+
+        # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
+        try:
+            absolute_file_path = inspect.getsourcefile(cls)
+        except TypeError:
+            source_file_path = None
+        else:
+            source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
+        try:
+            source_lines, start_line_number = inspect.getsourcelines(cls)
+            source_code = textwrap.dedent(''.join(source_lines))
+        except (IOError, TypeError):
+            source_code, start_line_number = None, None
+
+        return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number.decode('utf-8')
+
+
+    # def to_column(self, tax_benefit_system):
+        # entity = self.attributes.pop('entity', None)
+
+        # For reform variable that replaces an existing baseline one
+        # baseline_variable = self.attributes.pop('baseline_variable', None)
+        # if baseline_variable:
+        #     if not entity:
+        #         entity = baseline_variable.entity
+
+        # comments, source_file_path, source_code, start_line_number = self.get_introspection_data(tax_benefit_system)
+
+        # if entity is None:
+        #     raise Exception('Variable {} must have an entity'.format(self.name))
+
+
+
+        # return new_filled_column(
+        #     name = self.name,
+        #     entity = entity,
+        #     end = end_date,
+        #     baseline_variable = baseline_variable,
+        #     comments = comments,
+        #     start_line_number = start_line_number,
+        #     source_code = source_code,
+        #     source_file_path = source_file_path,
+        #     reference = reference,
+        #     **self.attributes
+        #     )
 
     def new_filled_column(
             __doc__ = None,
@@ -161,15 +175,15 @@ class Variable(object):
             if name is None:
                 name = baseline_variable.name
 
-        assert isinstance(name, unicode)
+        # assert isinstance(name, unicode)
 
-        if calculate_output is UnboundLocalError:
-            calculate_output = None if baseline_variable is None else baseline_variable.formula_class.calculate_output.im_func
+        # if calculate_output is UnboundLocalError:
+        #     calculate_output = None if baseline_variable is None else baseline_variable.formula_class.calculate_output.im_func
 
-        if cerfa_field is UnboundLocalError:
-            cerfa_field = None if baseline_variable is None else baseline_variable.cerfa_field
-        elif cerfa_field is not None:
-            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
+        # if cerfa_field is UnboundLocalError:
+        #     cerfa_field = None if baseline_variable is None else baseline_variable.cerfa_field
+        # elif cerfa_field is not None:
+        #     assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
 
         # assert column is not None, """Missing attribute "column" in definition of filled column {}""".format(name)
         # if column is UnboundLocalError:
@@ -180,13 +194,13 @@ class Variable(object):
         #     column = column()
         #     assert isinstance(column, columns.Column)
 
-        if comments is UnboundLocalError:
-            comments = None if baseline_variable is None else baseline_variable.formula_class.comments
-        elif isinstance(comments, str):
-            comments = comments.decode('utf-8')
+        # if comments is UnboundLocalError:
+        #     comments = None if baseline_variable is None else baseline_variable.formula_class.comments
+        # elif isinstance(comments, str):
+        #     comments = comments.decode('utf-8')
 
-        if default is UnboundLocalError:
-            default = column.default if baseline_variable is None else baseline_variable.default
+        # if default is UnboundLocalError:
+        #     default = column.default if baseline_variable is None else baseline_variable.default
 
         # assert entity is not None, """Missing attribute "entity" in definition of filled column {}""".format(
             # name)
@@ -203,39 +217,39 @@ class Variable(object):
         # if definition_period not in (MONTH, YEAR, ETERNITY):
         #     raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, name).encode('utf-8'))
 
-        if label is UnboundLocalError:
-            label = None if baseline_variable is None else baseline_variable.label
-        else:
-            label = None if label is None else unicode(label)
+        # if label is UnboundLocalError:
+        #     label = None if baseline_variable is None else baseline_variable.label
+        # else:
+        #     label = None if label is None else unicode(label)
 
-        if start_line_number is UnboundLocalError:
-            start_line_number = None if baseline_variable is None else baseline_variable.formula_class.start_line_number
-        elif isinstance(start_line_number, str):
-            start_line_number = start_line_number.decode('utf-8')
+        # if start_line_number is UnboundLocalError:
+        #     start_line_number = None if baseline_variable is None else baseline_variable.formula_class.start_line_number
+        # elif isinstance(start_line_number, str):
+        #     start_line_number = start_line_number.decode('utf-8')
 
-        if set_input is UnboundLocalError:
-            set_input = None if baseline_variable is None else baseline_variable.formula_class.set_input.im_func
+        # if set_input is UnboundLocalError:
+        #     set_input = None if baseline_variable is None else baseline_variable.formula_class.set_input.im_func
 
-        if source_code is UnboundLocalError:
-            source_code = None if baseline_variable is None else baseline_variable.formula_class.source_code
-        elif isinstance(source_code, str):
-            source_code = source_code.decode('utf-8')
+        # if source_code is UnboundLocalError:
+        #     source_code = None if baseline_variable is None else baseline_variable.formula_class.source_code
+        # elif isinstance(source_code, str):
+        #     source_code = source_code.decode('utf-8')
 
-        if source_file_path is UnboundLocalError:
-            source_file_path = None if baseline_variable is None else baseline_variable.formula_class.source_file_path
-        elif isinstance(source_file_path, str):
-            source_file_path = source_file_path.decode('utf-8')
+        # if source_file_path is UnboundLocalError:
+        #     source_file_path = None if baseline_variable is None else baseline_variable.formula_class.source_file_path
+        # elif isinstance(source_file_path, str):
+        #     source_file_path = source_file_path.decode('utf-8')
 
-        if end is UnboundLocalError:
-            end = None if baseline_variable is None else baseline_variable.end
+        # if end is UnboundLocalError:
+        #     end = None if baseline_variable is None else baseline_variable.end
 
-        if reference is UnboundLocalError:
-            reference = None if baseline_variable is None else baseline_variable.reference
-        elif reference is not None:
-            if isinstance(reference, list):
-                reference = map(unicode, reference)
-            else:
-                reference = [unicode(reference)]
+        # if reference is UnboundLocalError:
+        #     reference = None if baseline_variable is None else baseline_variable.reference
+        # elif reference is not None:
+        #     if isinstance(reference, list):
+        #         reference = map(unicode, reference)
+        #     else:
+        #         reference = [unicode(reference)]
 
         # Build formula class and column.
 
