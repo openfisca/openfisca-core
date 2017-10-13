@@ -112,7 +112,6 @@ class TaxBenefitSystem(object):
                 raise VariableNameConflict(
                     u'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
-
         # We pass the variable_class just for introspection.
         variable = variable_class(baseline_variable = baseline_variable)
         # We need the tax and benefit system to identify columns mentioned by conversion variables.

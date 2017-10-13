@@ -2,6 +2,7 @@
 
 from os import linesep
 
+
 class VariableNotFound(Exception):
     """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
     """
@@ -26,5 +27,3 @@ class VariableNotFound(Exception):
             u"it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
             ])
         Exception.__init__(self, message.encode('utf-8'))
-
-

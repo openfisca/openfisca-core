@@ -13,7 +13,7 @@ from os import linesep
 
 import numpy as np
 
-from . import columns, holders, periods
+from . import holders, periods
 from .parameters import ParameterNotFound
 from .periods import MONTH, YEAR, ETERNITY
 from .commons import empty_clone, stringify_array
@@ -114,7 +114,6 @@ class Formula(object):
             ', '.join(sorted(attributes.iterkeys())))
 
         return type(variable.name.encode('utf-8'), (Formula,), formula_class_attributes)
-
 
     def __init__(self, holder = None):
         assert holder is not None

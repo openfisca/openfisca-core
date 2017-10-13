@@ -6,7 +6,7 @@ import warnings
 from nose.tools import raises
 from nose.tools import assert_equal
 
-from openfisca_core import columns, periods
+from openfisca_core import periods
 from openfisca_core.periods import MONTH
 from openfisca_core.reforms import Reform
 from openfisca_core.variables import Variable

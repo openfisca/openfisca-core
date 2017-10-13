@@ -14,7 +14,6 @@ from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
 from errors import VariableNotFound
-from columns import EnumCol
 
 
 class Entity(object):

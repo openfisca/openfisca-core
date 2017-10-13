@@ -4,7 +4,6 @@
 import collections
 import datetime
 import re
-import warnings
 
 from biryani import strings
 import numpy as np
@@ -32,7 +31,8 @@ def make_column_from_variable(variable):
         'Str': StrCol,
         'Enum': EnumCol,
         'Date': DateCol,
-    }
+        'PeriodSizeIndependentInt': PeriodSizeIndependentIntCol,
+        }
     return CONVERSION_MAP[variable.value_type](variable)
 
 
@@ -166,10 +166,6 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    # default = False
-    # dtype = np.bool
-    # is_period_size_independent = True
-    # json_type = 'Boolean'
 
     @property
     def input_to_dated_python(self):
@@ -187,9 +183,6 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    # dtype = 'datetime64[D]'
-    # is_period_size_independent = True
-    # json_type = 'Date'
     val_type = 'date'
 
     def __init__(self, default = None, **kwargs):
@@ -240,10 +233,6 @@ class DateCol(Column):
 
 
 class FixedStrCol(Column):
-    # default = u''
-    # dtype = None
-    # is_period_size_independent = True
-    # json_type = 'String'
     max_length = None
 
     def __init__(self, max_length = None, **kwargs):
@@ -276,9 +265,6 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    # dtype = np.float32
-    # json_type = 'Float'
-
     @property
     def input_to_dated_python(self):
         return conv.input_to_float
@@ -295,9 +281,6 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    # dtype = np.int32
-    # json_type = 'Integer'
-
     @property
     def input_to_dated_python(self):
         return conv.input_to_int
@@ -311,10 +294,6 @@ class IntCol(Column):
 
 
 class StrCol(Column):
-    # default = u''
-    # dtype = object
-    # is_period_size_independent = True
-    # json_type = 'String'
 
     @property
     def input_to_dated_python(self):
@@ -339,8 +318,6 @@ class AgeCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    # default = -9999
-    # is_period_size_independent = True
 
     @property
     def input_to_dated_python(self):
@@ -367,11 +344,8 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    # dtype = np.int16
     enum = None
     index_by_slug = None
-    # is_period_size_independent = True
-    # json_type = 'Enumeration'
 
     def __init__(self, enum = None, **kwargs):
         super(EnumCol, self).__init__(**kwargs)
@@ -460,5 +434,5 @@ class EnumCol(IntCol):
         return value
 
 
-# class PeriodSizeIndependentIntCol(IntCol):
-#     is_period_size_independent = True
+class PeriodSizeIndependentIntCol(IntCol):
+    is_period_size_independent = True

@@ -4,7 +4,6 @@ import datetime
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.columns import IntCol
 from openfisca_core.formulas import Formula
 from openfisca_core.holders import Holder
 
@@ -87,6 +86,7 @@ def test_add__variable__deprecated_start_date():
 
 
 # end, no formula
+
 
 class variable__strange_end_attribute(Variable):
     column = IntCol

@@ -2,7 +2,6 @@ import openfisca_country_template as country_template
 from openfisca_country_template.entities import Person
 
 from openfisca_core.model_api import Variable
-from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 from openfisca_core.formulas import Formula
 

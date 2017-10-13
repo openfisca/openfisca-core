@@ -2,7 +2,6 @@
 
 
 from openfisca_core import periods
-from openfisca_core.columns import IntCol, BoolCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_country_template import CountryTaxBenefitSystem

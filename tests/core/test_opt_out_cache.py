@@ -4,7 +4,6 @@
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.variables import Variable
-from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 
 
