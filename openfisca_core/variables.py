@@ -23,17 +23,18 @@ class Variable(object):
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
         attributes = dict(self.__class__.__dict__)
+        self.baseline_variable = baseline_variable
         self.column = self.set_column(attributes.pop('column', None))
-        self.default = self.column.default
+        self.default = self.set_default(attributes.pop('default', None))
         self.entity = self.set_entity(attributes.pop('entity', None))
         self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
         self.label = self.set_label(attributes.pop('label', None))
         self.end = self.set_end(attributes.pop('end', None))
         self.reference = self.set_reference(attributes.pop('reference', None))
         self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
-        self.set_input = attributes.pop('set_input', None)
-        self.calculate_output = attributes.pop('calculate_output', None)
-        self.base_function = self.set_base_function(attributes.pop('calculate_output', None))
+        self.set_input = self.set_set_input(attributes.pop('set_input', None))
+        self.calculate_output = self.set_calculate_output(attributes.pop('calculate_output', None))
+        self.base_function = self.set_base_function(attributes.pop('base_function', None))
         self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
 
         # Fill column attributes. To remove when we merge Columns and variables.
@@ -52,11 +53,9 @@ class Variable(object):
         self.column.label = self.label
         self.column.name = self.name
 
-
-        # self.variable_class = variable_class
-
-
     def set_column(self, column):
+        if not column and self.baseline_variable:
+            return self.baseline_variable.empty_clone()  # So far, baseline_variable is still a column
         if not column:
             raise ValueError("Missing attribute 'column' in definition of variable {}".format(self.name).encode('utf-8'))
         if isinstance(column, type) and issubclass(column, columns.Column):
@@ -66,7 +65,16 @@ class Variable(object):
         else:
             raise ValueError("Attribute 'column' invalid in '{}'".format(self.name).encode('utf-8'))
 
+    def set_default(self, default):
+        if not default and self.baseline_variable:
+            return self.baseline_variable.default
+        if not default:
+            return self.column.default
+        return default
+
     def set_entity(self, entity):
+        if not entity and self.baseline_variable:
+            return self.baseline_variable.entity
         if not entity:
             raise ValueError("Missing attribute 'entity' in definition of variable {}".format(self.name).encode('utf-8'))
         if isinstance(entity, type) and issubclass(entity, entities.Entity):
@@ -75,6 +83,8 @@ class Variable(object):
             raise ValueError("Attribute 'entity' invalid in '{}'".format(self.name).encode('utf-8'))
 
     def set_definition_period(self, definition_period):
+        if not definition_period and self.baseline_variable:
+            return self.baseline_variable.definition_period
         if not definition_period:
             raise ValueError("Missing attribute 'definition_period' in definition of variable {}".format(self.name).encode('utf-8'))
         if definition_period not in (MONTH, YEAR, ETERNITY):
@@ -83,10 +93,14 @@ class Variable(object):
         return definition_period
 
     def set_label(self, label):
+        if not label and self.baseline_variable:
+            return self.baseline_variable.label
         if label:
             return unicode(label)
 
     def set_end(self, end):
+        if not end and self.baseline_variable:
+            return self.baseline_variable.end
         if end:
             assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
             try:
@@ -95,6 +109,8 @@ class Variable(object):
                 raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
 
     def set_reference(self, reference):
+        if not reference and self.baseline_variable:
+            return self.baseline_variable.reference
         if reference:
             if isinstance(reference, basestring):
                 reference = [reference]
@@ -114,10 +130,14 @@ class Variable(object):
         return reference
 
     def set_cerfa_field(self, cerfa_field):
+        if not cerfa_field and self.baseline_variable:
+            return self.baseline_variable.cerfa_field
         if cerfa_field:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
 
     def set_base_function(self, base_function):
+        if not base_function and self.baseline_variable:
+            return self.baseline_variable.formula_class.base_function.im_func
         if self.definition_period == ETERNITY:
             if base_function and not base_function == permanent_default_value:
                 raise ValueError('Unexpected base_function {}'.format(base_function))
@@ -134,6 +154,16 @@ class Variable(object):
             return requested_period_default_value
 
         return base_function
+
+    def set_set_input(self, set_input):
+        if not set_input and self.baseline_variable:
+            return self.baseline_variable.formula_class.set_input.im_func
+        return set_input
+
+    def set_calculate_output(self, calculate_output):
+        if not calculate_output and self.baseline_variable:
+            return self.baseline_variable.formula_class.calculate_output.im_func
+        return calculate_output
 
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):
