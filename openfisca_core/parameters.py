@@ -80,54 +80,6 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class ParameterAtInstant(object):
-    """
-        A value of a parameter at a given instant.
-    """
-
-    _allowed_value_data_types = [int, float, bool, type(None)]
-    _allowed_keys = set(['value', 'unit', 'reference'])
-
-    def __init__(self, name, instant_str, data = None, file_path = None):
-        """
-            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
-            :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-            :param data: Data, usually loaded from a YAML file.
-        """
-        self.name = name
-        self.instant_str = instant_str
-        self.file_path = file_path
-
-        # Accept { 2015-01-01: 4000 }
-        if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
-            self.value = data
-            return
-
-        self.validate(data)
-        self.value = data['value']
-
-    def validate(self, data):
-        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-        try:
-            value = data['value']
-        except KeyError:
-            raise ParameterParsingError(
-                "Missing 'value' property for {}".format(self.name).encode('utf-8'),
-                self.file_path
-                )
-        if type(value) not in self._allowed_value_data_types:
-            raise ParameterParsingError(
-                "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
-                self.file_path
-                )
-
-    def __eq__(self, other):
-        return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
-
-    def __repr__(self):
-        return "ParameterAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
-
-
 class Parameter(object):
     """
         A parameter of the legislation. Parameters can change over time.
@@ -274,94 +226,52 @@ class Parameter(object):
         self.values_list = new_values
 
 
-# Only for retro-compatibility
-class ValuesHistory(Parameter):
-    pass
-
-
-class Scale(object):
+class ParameterAtInstant(object):
     """
-        A parameter scale (for instance a  marginal scale).
+        A value of a parameter at a given instant.
     """
-    _allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
 
-    def __init__(self, name, data, file_path):
+    _allowed_value_data_types = [int, float, bool, type(None)]
+    _allowed_keys = set(['value', 'unit', 'reference'])
+
+    def __init__(self, name, instant_str, data = None, file_path = None):
         """
-        :param name: name of the scale, eg "taxes.some_scale"
-        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
-        :param file_path: File the parameter was loaded from.
+            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
+            :param instant_str: Date of the value in the format `YYYY-MM-DD`.
+            :param data: Data, usually loaded from a YAML file.
         """
         self.name = name
+        self.instant_str = instant_str
         self.file_path = file_path
-        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-        self.description = data.get('description')
 
-        if not isinstance(data['brackets'], list):
+        # Accept { 2015-01-01: 4000 }
+        if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
+            self.value = data
+            return
+
+        self.validate(data)
+        self.value = data['value']
+
+    def validate(self, data):
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        try:
+            value = data['value']
+        except KeyError:
             raise ParameterParsingError(
-                "Property 'brackets' of scale '{}' must be of type array."
-                .format(self.name).encode('utf-8'),
+                "Missing 'value' property for {}".format(self.name).encode('utf-8'),
+                self.file_path
+                )
+        if type(value) not in self._allowed_value_data_types:
+            raise ParameterParsingError(
+                "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
                 self.file_path
                 )
 
-        brackets = []
-        for i, bracket_data in enumerate(data['brackets']):
-            bracket_name = _compose_name(name, i)
-            bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
-            brackets.append(bracket)
-        self.brackets = brackets
-
-    def __call__(self, instant):
-        return self.get_at_instant(instant)
-
-    def get_at_instant(self, instant):
-        instant = str(periods.instant(instant))
-        brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
-
-        if any(hasattr(bracket, 'amount') for bracket in brackets):
-            scale = taxscales.AmountTaxScale()
-            for bracket in brackets:
-                if hasattr(bracket, 'amount') and hasattr(bracket, 'threshold'):
-                    amount = bracket.amount
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, amount)
-        elif any(hasattr(bracket, 'average_rate') for bracket in brackets):
-            scale = taxscales.LinearAverageRateTaxScale()
-
-            for bracket in brackets:
-                if hasattr(bracket, 'base'):
-                    base = bracket.base
-                else:
-                    base = 1.
-                if hasattr(bracket, 'average_rate') and hasattr(bracket, 'threshold'):
-                    average_rate = bracket.average_rate
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, average_rate * base)
-            return scale
-        else:
-            scale = taxscales.MarginalRateTaxScale()
-
-            for bracket in brackets:
-                if hasattr(bracket, 'base'):
-                    base = bracket.base
-                else:
-                    base = 1.
-                if hasattr(bracket, 'rate') and hasattr(bracket, 'threshold'):
-                    rate = bracket.rate
-                    threshold = bracket.threshold
-                    scale.add_bracket(threshold, rate * base)
-            return scale
-
-    def __getitem__(self, key):
-        if isinstance(key, int) and key < len(self.brackets):
-            return self.brackets[key]
-        else:
-            raise KeyError(key)
+    def __eq__(self, other):
+        return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        return os.linesep.join([
-            '-' + indent(repr(bracket))[1:]
-            for bracket in self.brackets
-            ])
+        return "ParameterAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
 
 
 class ParameterNode(object):
@@ -476,39 +386,6 @@ class ParameterNode(object):
                 ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
                 for name, value in self.children.iteritems()]
             )
-
-
-class Bracket(ParameterNode):
-    """
-        A scale bracket.
-    """
-    _allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
-
-
-def load_parameter_file(file_path, name = ''):
-    """
-    Load parameters from a YAML file (or a directory containing YAML files).
-
-    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
-    """
-
-    if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
-    if os.path.isdir(file_path):
-        return ParameterNode(name, directory_path = file_path)
-
-    with open(file_path, 'r') as f:
-        try:
-            data = yaml.load(f, Loader = Loader)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
-            stack_trace = traceback.format_exc()
-            raise ParameterParsingError(
-                "Invalid YAML. Check the traceback above for more details.",
-                file_path,
-                stack_trace
-                )
-
-    return _parse_child(name, data, file_path)
 
 
 class ParameterNodeAtInstant(object):
@@ -709,6 +586,124 @@ class VectorialParameterNodeAtInstant(object):
             return result
 
 
+class Scale(object):
+    """
+        A parameter scale (for instance a  marginal scale).
+    """
+    _allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
+
+    def __init__(self, name, data, file_path):
+        """
+        :param name: name of the scale, eg "taxes.some_scale"
+        :param data: Data loaded from a YAML file. In case of a reform, the data can also be created dynamically.
+        :param file_path: File the parameter was loaded from.
+        """
+        self.name = name
+        self.file_path = file_path
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
+        self.description = data.get('description')
+
+        if not isinstance(data['brackets'], list):
+            raise ParameterParsingError(
+                "Property 'brackets' of scale '{}' must be of type array."
+                .format(self.name).encode('utf-8'),
+                self.file_path
+                )
+
+        brackets = []
+        for i, bracket_data in enumerate(data['brackets']):
+            bracket_name = _compose_name(name, i)
+            bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
+            brackets.append(bracket)
+        self.brackets = brackets
+
+    def __call__(self, instant):
+        return self.get_at_instant(instant)
+
+    def get_at_instant(self, instant):
+        instant = str(periods.instant(instant))
+        brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
+
+        if any(hasattr(bracket, 'amount') for bracket in brackets):
+            scale = taxscales.AmountTaxScale()
+            for bracket in brackets:
+                if hasattr(bracket, 'amount') and hasattr(bracket, 'threshold'):
+                    amount = bracket.amount
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, amount)
+        elif any(hasattr(bracket, 'average_rate') for bracket in brackets):
+            scale = taxscales.LinearAverageRateTaxScale()
+
+            for bracket in brackets:
+                if hasattr(bracket, 'base'):
+                    base = bracket.base
+                else:
+                    base = 1.
+                if hasattr(bracket, 'average_rate') and hasattr(bracket, 'threshold'):
+                    average_rate = bracket.average_rate
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, average_rate * base)
+            return scale
+        else:
+            scale = taxscales.MarginalRateTaxScale()
+
+            for bracket in brackets:
+                if hasattr(bracket, 'base'):
+                    base = bracket.base
+                else:
+                    base = 1.
+                if hasattr(bracket, 'rate') and hasattr(bracket, 'threshold'):
+                    rate = bracket.rate
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, rate * base)
+            return scale
+
+    def __getitem__(self, key):
+        if isinstance(key, int) and key < len(self.brackets):
+            return self.brackets[key]
+        else:
+            raise KeyError(key)
+
+    def __repr__(self):
+        return os.linesep.join([
+            '-' + indent(repr(bracket))[1:]
+            for bracket in self.brackets
+            ])
+
+
+class Bracket(ParameterNode):
+    """
+        A scale bracket.
+    """
+    _allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
+
+
+def load_parameter_file(file_path, name = ''):
+    """
+    Load parameters from a YAML file (or a directory containing YAML files).
+
+    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
+    """
+
+    if not os.path.exists(file_path):
+        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+    if os.path.isdir(file_path):
+        return ParameterNode(name, directory_path = file_path)
+
+    with open(file_path, 'r') as f:
+        try:
+            data = yaml.load(f, Loader = Loader)
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
+            stack_trace = traceback.format_exc()
+            raise ParameterParsingError(
+                "Invalid YAML. Check the traceback above for more details.",
+                file_path,
+                stack_trace
+                )
+
+    return _parse_child(name, data, file_path)
+
+
 def _parse_child(child_name, child, child_path):
     if 'values' in child:
         return Parameter(child_name, child, child_path)
@@ -758,3 +753,7 @@ def contains_nan(vector):
     else:
         return np.isnan(np.min(vector))
 
+
+# Only for retro-compatibility
+class ValuesHistory(Parameter):
+    pass
