@@ -2,6 +2,7 @@
 
 import os
 
+
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
     import numpy as np
 

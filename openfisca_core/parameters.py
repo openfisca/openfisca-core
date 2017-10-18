@@ -156,7 +156,7 @@ class Parameter(object):
 
         .. py:attribute:: values_list
 
-           List of the values, in anti-chronological order
+           List of the values, in reverse chronological order
     """
 
     def __init__(self, name, data, file_path = None):
@@ -171,7 +171,7 @@ class Parameter(object):
             data = data['values']
             _validate_parameter(self, data, data_type = dict)
 
-        instants = sorted(data.keys(), reverse = True)  # sort by antechronological order
+        instants = sorted(data.keys(), reverse = True)  # sort in reverse chronological order
 
         values_list = []
         for instant_str in instants:
@@ -373,7 +373,7 @@ class ParameterNode(object):
 
     def __init__(self, name = "", directory_path = None, data = None, file_path = None):
         """
-        Instanciate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
+        Instantiate a ParameterNode either from a dict, (using `data`), or from a directory containing YAML files (using `directory_path`).
 
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
@@ -757,5 +757,4 @@ def contains_nan(vector):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
         return np.isnan(np.min(vector))
-
 

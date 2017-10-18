@@ -21,6 +21,8 @@ tax_benefit_system.parameters.benefits.basic_income
 >>>2015-12-01: 600.0
 ```
 
+- Request parameter at a given date with the `parameters.benefits('2015-07-01')` notation.
+
 - Be more flexible about parameters definitions
 
 The two following expressions are for instance striclty equivalent:
@@ -30,7 +32,6 @@ Parameter("taxes.rate", {"2015-01-01": 2000})
 Parameter("taxes.rate", {"values": {"2015-01-01":{"value": 2000}}})
 ```
 
-- Request parameter at a given date with the `parameters.benefits('2015-07-01')` notation.
 - Make sure `parameters.benefits('2015-07-01')` and `parameters.benefits('2015-07')` return the same value.
 - Raise an error when calling `parameters.benefits('invalid_key')`.
 - Improve errors when `parameter.update` is used with wrong arguments
