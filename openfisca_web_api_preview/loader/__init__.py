@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# from tax_benefit_system import build_tax_benefit_system
 from openfisca_core.scripts import build_tax_benefit_system
 from parameters import build_parameters
 from variables import build_variables
