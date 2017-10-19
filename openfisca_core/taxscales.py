@@ -7,11 +7,13 @@ from bisect import bisect_left, bisect_right
 import copy
 import logging
 import itertools
+import os
 
 import numpy as np
 from numpy import maximum as max_, minimum as min_
 
 from .commons import empty_clone
+from tools import indent
 
 log = logging.getLogger(__name__)
 
@@ -45,8 +47,8 @@ class AbstractTaxScale(object):
     def __ne__(self, other):
         raise NotImplementedError('Method "__ne__" is not implemented for {}'.format(self.__class__.__name__))
 
-    def __str__(self):
-        raise NotImplementedError('Method "__str__" is not implemented for {}'.format(self.__class__.__name__))
+    def __repr__(self):
+        raise NotImplementedError('Method "__repr__" is not implemented for {}'.format(self.__class__.__name__))
 
     def calc(self, base):
         raise NotImplementedError('Method "calc" is not implemented for {}'.format(self.__class__.__name__))
@@ -65,14 +67,11 @@ class AbstractRateTaxScale(AbstractTaxScale):
         super(AbstractRateTaxScale, self).__init__(name = name, option = option, unit = unit)
         self.rates = []
 
-    def __str__(self):
-        return '\n'.join(itertools.chain(
-            ['{}: {}'.format(self.__class__.__name__, self.name)],
-            (
-                '- {}  {}'.format(threshold, rate)
-                for threshold, rate in itertools.izip(self.thresholds, self.rates)
-                ),
-            ))
+    def __repr__(self):
+        return indent(os.linesep.join([
+            '- threshold: {}{}  rate: {}'.format(threshold, os.linesep, rate)
+            for (threshold, rate) in zip(self.thresholds, self.rates)
+            ]))
 
     def add_bracket(self, threshold, rate):
         if threshold in self.thresholds:
@@ -124,14 +123,12 @@ class AmountTaxScale(AbstractTaxScale):
         super(AmountTaxScale, self).__init__(name = name, option = option, unit = unit)
         self.amounts = []
 
-    def __str__(self):
-        return '\n'.join(itertools.chain(
-            ['{}: {}'.format(self.__class__.__name__, self.name)],
-            (
-                '- {}  {}'.format(threshold, amount)
-                for threshold, amount in itertools.izip(self.thresholds, self.amounts)
-                ),
-            ))
+    def __repr__(self):
+        from .parameters import indent  # Need to import here to avoid a circular dependency
+        return indent(os.linesep.join([
+            '- threshold: {}{}  amount: {}'.format(threshold, os.linesep, amount)
+            for (threshold, amount) in zip(self.thresholds, self.amounts)
+            ]))
 
     def add_bracket(self, threshold, amount):
         if threshold in self.thresholds:

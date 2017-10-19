@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
     import numpy as np
@@ -30,6 +32,10 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
             assert abs(target_value - value) <= abs(relative_error_margin * target_value), \
                 '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
                     abs(target_value - value), abs(relative_error_margin * target_value))
+
+
+def indent(text):
+    return "  {}".format(text.replace(os.linesep, "{}  ".format(os.linesep)))
 
 
 def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):

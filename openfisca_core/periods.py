@@ -23,6 +23,8 @@ MONTH = u'month'
 YEAR = u'year'
 ETERNITY = u'eternity'
 
+INSTANT_PATTERN = re.compile('^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01'
+
 
 def N_(message):
     return message
@@ -697,7 +699,11 @@ def instant(instant):
     """
     if instant is None:
         return None
+    if isinstance(instant, Instant):
+        return instant
     if isinstance(instant, basestring):
+        if not INSTANT_PATTERN.match(instant):
+            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant).encode('utf-8'))
         instant = Instant(
             int(fragment)
             for fragment in instant.split(u'-', 2)[:3]
