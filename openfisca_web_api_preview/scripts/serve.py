@@ -71,9 +71,8 @@ def update(configuration, new_options):
 
 class OpenFiscaWebAPIApplication(BaseApplication):
 
-    def __init__(self, app, options = None):
-        self.options = options or {}
-        self.application = app
+    def __init__(self, options):
+        self.options = options
         super(OpenFiscaWebAPIApplication, self).__init__()
 
     def load_config(self):
@@ -82,7 +81,16 @@ class OpenFiscaWebAPIApplication(BaseApplication):
                 self.cfg.set(key.lower(), value)
 
     def load(self):
-        return self.application
+        tax_benefit_system = build_tax_benefit_system(
+            self.options.get('country_package'),
+            self.options.get('extensions'),
+            self.options.get('reforms')
+            )
+        return create_app(
+            tax_benefit_system,
+            self.options.get('tracker_url'),
+            self.options.get('tracker_idsite')
+            )
 
 
 def main(parser = None):
@@ -96,9 +104,7 @@ def main(parser = None):
         'workers': DEFAULT_WORKERS_NUMBER,
         }
     configuration = read_user_configuration(configuration, parser)
-    tax_benefit_system = build_tax_benefit_system(configuration.get('country_package'), configuration.get('extensions'), configuration.get('reforms'))
-    app = create_app(tax_benefit_system, configuration.get('tracker_url'), configuration.get('tracker_idsite'))
-    OpenFiscaWebAPIApplication(app, configuration).run()
+    OpenFiscaWebAPIApplication(configuration).run()
 
 
 if __name__ == '__main__':
