@@ -65,12 +65,12 @@ def update(configuration, new_options):
     return configuration
 
 
-class StandaloneApplication(BaseApplication):
+class OpenFiscaWebAPIApplication(BaseApplication):
 
     def __init__(self, app, options = None):
         self.options = options or {}
         self.application = app
-        super(StandaloneApplication, self).__init__()
+        super(OpenFiscaWebAPIApplication, self).__init__()
 
     def load_config(self):
         for key, value in iteritems(self.options):
@@ -94,7 +94,7 @@ def main(parser = None):
     configuration = read_user_configuration(configuration, parser)
     tax_benefit_system = build_tax_benefit_system(configuration.get('country_package'), configuration.get('extensions'), configuration.get('reforms'))
     app = create_app(tax_benefit_system, configuration.get('tracker_url'), configuration.get('tracker_idsite'))
-    StandaloneApplication(app, configuration).run()
+    OpenFiscaWebAPIApplication(app, configuration).run()
 
 
 if __name__ == '__main__':
