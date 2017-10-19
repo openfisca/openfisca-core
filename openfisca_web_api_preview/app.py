@@ -36,14 +36,11 @@ def init_tracker(url, idsite, tracker_token):
         log.warn(message)
 
 
-def create_app(country_package,
-               extensions = None,
+def create_app(tax_benefit_system,
                tracker_url = None,
                tracker_idsite = None,
                tracker_token = None
                ):
-
-    # country_package defined here or detected in openfisca_core.scripts.build_tax_benefit_system.
 
     if not tracker_url or not tracker_idsite:
         tracker = None
@@ -56,7 +53,7 @@ def create_app(country_package,
 
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
-    data = build_data(country_package, extensions)
+    data = build_data(tax_benefit_system)
 
     @app.route('/parameters')
     def get_parameters():

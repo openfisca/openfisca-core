@@ -16,15 +16,9 @@ def handle_error(error_message):
     sys.exit(1)
 
 
-def add_minimal_tax_benefit_system_arguments(parser):
+def add_tax_benefit_system_arguments(parser):
     parser.add_argument('-c', '--country_package', action = 'store', help = u'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
     parser.add_argument('-e', '--extensions', action = 'store', help = u'extensions to load', nargs = '*')
-
-    return parser
-
-
-def add_tax_benefit_system_arguments(parser):
-    parser = add_minimal_tax_benefit_system_arguments(parser)
     parser.add_argument('-r', '--reforms', action = 'store', help = u'reforms to apply to the country package', nargs = '*')
 
     return parser

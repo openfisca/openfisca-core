@@ -8,7 +8,7 @@ from gunicorn.app.base import BaseApplication
 from gunicorn.six import iteritems
 from gunicorn import config
 
-from openfisca_core.scripts import add_minimal_tax_benefit_system_arguments
+from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_system
 from openfisca_web_api_preview.app import create_app
 
 
@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 
 def define_command_line_options(parser):
     # Define OpenFisca modules configuration
-    parser = add_minimal_tax_benefit_system_arguments(parser)
+    parser = add_tax_benefit_system_arguments(parser)
 
     # Define server configuration
     parser.add_argument('-p', '--port', action = 'store', help = "port to serve on", type = int)
@@ -92,7 +92,8 @@ def main(parser = None):
         'workers': DEFAULT_WORKERS_NUMBER,
         }
     configuration = read_user_configuration(configuration, parser)
-    app = create_app(configuration.get('country_package'), configuration.get('extensions'), configuration.get('tracker_url'), configuration.get('tracker_idsite'))
+    tax_benefit_system = build_tax_benefit_system(configuration.get('country_package'), configuration.get('extensions'), configuration.get('reforms'))
+    app = create_app(tax_benefit_system, configuration.get('tracker_url'), configuration.get('tracker_idsite'))
     StandaloneApplication(app, configuration).run()
 
 
