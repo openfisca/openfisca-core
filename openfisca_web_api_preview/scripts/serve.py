@@ -59,9 +59,9 @@ def read_user_configuration(default_configuration, command_line_parser):
                     configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
 
     # Command line configuration overloads all configuration
-    command_line_parser = config.Config().parser()
+    gunicorn_parser = config.Config().parser()
     configuration = update(configuration, vars(args))
-    configuration = update(configuration, unknown_args)
+    configuration = update(configuration, vars(gunicorn_parser.parse_args(unknown_args)))
 
     return configuration
 
