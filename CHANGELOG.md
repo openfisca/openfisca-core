@@ -1,5 +1,11 @@
 # Changelog
 
+## 18.2.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
+
+- Introduce `openfisca serve` command to serve the new API
+  - Read more in the [doc](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html)
+- Handle reforms and extensions in the new API
+
 ## 18.1.0 [#578](https://github.com/openfisca/openfisca-core/pull/578)
 
 #### New features
