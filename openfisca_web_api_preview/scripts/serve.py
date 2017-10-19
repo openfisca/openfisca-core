@@ -52,6 +52,10 @@ def read_user_configuration(default_configuration, command_line_parser):
     gunicorn_parser = config.Config().parser()
     configuration = update(configuration, vars(args))
     configuration = update(configuration, vars(gunicorn_parser.parse_args(unknown_args)))
+    if configuration['args']:
+        command_line_parser.print_help()
+        print('Unexpected positional argument {}'.format(configuration['args']))
+        sys.exit(1)
 
     return configuration
 
