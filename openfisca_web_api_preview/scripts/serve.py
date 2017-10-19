@@ -32,6 +32,7 @@ def define_command_line_options(parser):
     parser.add_argument('-p', '--port', action = 'store', help = "port to serve on", type = int)
     parser.add_argument('--tracker-url', action = 'store', help = "tracking service url", type = str)
     parser.add_argument('--tracker-idsite', action = 'store', help = "tracking service id site", type = int)
+    parser.add_argument('--tracker-token', action = 'store', help = "tracking service authentication token", type = str)
     parser.add_argument('-f', '--configuration-file', action = 'store', help = "configuration file", type = str)
 
     return parser
