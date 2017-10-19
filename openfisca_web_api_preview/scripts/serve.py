@@ -57,10 +57,8 @@ def read_user_configuration(default_configuration, command_line_parser):
 
 
 def update(configuration, new_options):
-    for key in new_options:
-        value = new_options[key]
-
-        if not configuration.get(key) or value:
+    for key, value in new_options.iteritems():
+        if value is not None:
             configuration[key] = value
             if key == "port":
                 configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
@@ -76,10 +74,7 @@ class StandaloneApplication(BaseApplication):
 
     def load_config(self):
         for key, value in iteritems(self.options):
-            if value is None:
-                log.debug('Undefined value for key `{}`.'.format(key))
-
-            if key in self.cfg.settings and value is not None:
+            if key in self.cfg.settings:
                 self.cfg.set(key.lower(), value)
 
     def load(self):
@@ -97,8 +92,7 @@ def main(parser = None):
         'workers': DEFAULT_WORKERS_NUMBER,
         }
     configuration = read_user_configuration(configuration, parser)
-
-    app = create_app(configuration['country_package'], configuration['extensions'], configuration['tracker_url'], configuration['tracker_idsite'])
+    app = create_app(configuration.get('country_package'), configuration.get('extensions'), configuration.get('tracker_url'), configuration.get('tracker_idsite'))
     StandaloneApplication(app, configuration).run()
 
 
