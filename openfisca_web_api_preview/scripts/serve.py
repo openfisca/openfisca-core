@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import imp
-import os.path
 import logging
 import argparse
 
@@ -12,7 +10,6 @@ from gunicorn import config
 
 from openfisca_core.scripts import add_minimal_tax_benefit_system_arguments
 from openfisca_web_api_preview.app import create_app
-from imp import load_module
 
 
 """
@@ -45,18 +42,11 @@ def read_user_configuration(default_configuration, command_line_parser):
     args, unknown_args = command_line_parser.parse_known_args()
 
     if args.configuration_file:
-        # Configuration file overloads default configuration
-        module_name = os.path.splitext(os.path.basename(args.configuration_file))[0]
-        module_directory = os.path.dirname(args.configuration_file)
-        module = imp.load_module(module_name, *imp.find_module(module_name, [module_directory]))
+        file_configuration = {}
+        execfile(args.configuration_file, {}, file_configuration)
 
-        file_configuration = [item for item in dir(module) if not item.startswith("__")]
-        for key in file_configuration:
-            value = getattr(module, key)
-            if value:
-                configuration[key] = value
-                if key == "port":
-                    configuration['bind'] = configuration['bind'][:-4] + str(configuration['port'])
+        # Configuration file overloads default configuration
+        update(configuration, file_configuration)
 
     # Command line configuration overloads all configuration
     gunicorn_parser = config.Config().parser()
