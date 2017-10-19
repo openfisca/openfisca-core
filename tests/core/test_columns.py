@@ -44,16 +44,16 @@ tax_benefit_system.add_variable(variable_with_formula)
 
 
 def test_is_input_variable():
-    variable_as_column = tax_benefit_system.column_by_name['input_variable']
-    assert variable_as_column.is_input_variable()
+    variable = tax_benefit_system.variables['input_variable']
+    assert variable.is_input_variable()
 
-    variable_as_column = tax_benefit_system.column_by_name['variable_with_formula']
-    assert not variable_as_column.is_input_variable()
+    variable = tax_benefit_system.variables['variable_with_formula']
+    assert not variable.is_input_variable()
 
 
 def test_attribute_content__formula_class():
-    variable_as_column = tax_benefit_system.column_by_name['variable_with_formula']
-    formula_class = variable_as_column.formula
+    variable = tax_benefit_system.variables['variable_with_formula']
+    formula_class = variable.formula
 
     assert issubclass(formula_class, Formula)
     assert formula_class.__name__ == 'variable_with_formula'

@@ -237,7 +237,7 @@ def test_add_variable():
         period = year,
         )
 
-    assert tax_benefit_system.get_column('new_variable') is None
+    assert tax_benefit_system.get_variable('new_variable') is None
     reform_simulation = scenario.new_simulation(debug = True)
     new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
     assert_near(new_variable1, 10, absolute_error_margin = 0)
@@ -290,8 +290,8 @@ def test_update_variable():
         period = year,
         )
 
-    disposable_income_reform = reform.get_column('disposable_income')
-    disposable_income_reference = tax_benefit_system.get_column('disposable_income')
+    disposable_income_reform = reform.get_variable('disposable_income')
+    disposable_income_reference = tax_benefit_system.get_variable('disposable_income')
 
     assert disposable_income_reform is not None
     assert disposable_income_reform.entity.plural == disposable_income_reference.entity.plural

@@ -104,7 +104,7 @@ class Variable(object):
 
     def set_value_type(self, value_type):
         if not value_type and self.baseline_variable:
-            return self.baseline_variable.value_type  # So far, baseline_variable is still a column
+            return self.baseline_variable.value_type
         if not value_type:
             raise ValueError("Missing attribute 'value_type' in definition of variable {}".format(self.name).encode('utf-8'))
         if value_type in VALUE_TYPES:
@@ -224,7 +224,7 @@ class Variable(object):
         return calculate_output
 
     def is_input_variable(self):
-        """Returns true if the column (self) is an input variable."""
+        """Returns true if the variable is an input variable."""
         return self.formula.dated_formulas_class == []
 
     @classmethod

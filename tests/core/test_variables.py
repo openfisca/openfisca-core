@@ -55,7 +55,7 @@ class variable__no_date(Variable):
 
 def test_before_add__variable__no_date():
     try:
-        tax_benefit_system.column_by_name['variable__no_date']
+        tax_benefit_system.variables['variable__no_date']
     except KeyError, e:
         assert e.message == 'variable__no_date'
     except:
@@ -64,7 +64,7 @@ def test_before_add__variable__no_date():
 
 def test_variable__no_date():
     tax_benefit_system.add_variable(variable__no_date)
-    variable = tax_benefit_system.column_by_name['variable__no_date']
+    variable = tax_benefit_system.variables['variable__no_date']
     assert variable.end is None
     assert len(variable.formula.dated_formulas_class) == 0
 
@@ -90,7 +90,7 @@ def test_variable__strange_end_attribute():
         raise
 
     # Check that Error at variable adding prevents it from registration in the taxbenefitsystem.
-    assert not tax_benefit_system.column_by_name.get('variable__strange_end_attribute')
+    assert not tax_benefit_system.variables.get('variable__strange_end_attribute')
 
 
 # end, no formula
@@ -107,7 +107,7 @@ tax_benefit_system.add_variable(variable__end_attribute)
 
 
 def test_variable__end_attribute():
-    variable = tax_benefit_system.column_by_name['variable__end_attribute']
+    variable = tax_benefit_system.variables['variable__end_attribute']
     assert variable.end == datetime.date(1989, 12, 31)
 
 
@@ -142,7 +142,7 @@ def test_call__end_attribute__one_simple_formula():
 
 
 def test_dates__end_attribute__one_simple_formula():
-    variable = tax_benefit_system.column_by_name['end_attribute__one_simple_formula']
+    variable = tax_benefit_system.variables['end_attribute__one_simple_formula']
     assert variable.end == datetime.date(1989, 12, 31)
 
     assert len(variable.formula.dated_formulas_class) == 1
@@ -200,7 +200,7 @@ def test_call__no_end_attribute__one_formula__start():
 
 
 def test_dates__no_end_attribute__one_formula__start():
-    variable = tax_benefit_system.column_by_name['no_end_attribute__one_formula__start']
+    variable = tax_benefit_system.variables['no_end_attribute__one_formula__start']
     assert variable.end is None
 
     assert len(variable.formula.dated_formulas_class) == 1
@@ -269,7 +269,7 @@ def test_call__no_end_attribute__formulas__start_formats():
 
 
 def test_dates__no_end_attribute__formulas__start_formats():
-    variable = tax_benefit_system.column_by_name['no_end_attribute__formulas__start_formats']
+    variable = tax_benefit_system.variables['no_end_attribute__formulas__start_formats']
     assert variable.end is None
     assert len(variable.formula.dated_formulas_class) == 2
 
@@ -333,7 +333,7 @@ def test_call__no_attribute__formulas__different_names__no_overlap():
 
 
 def test_dates__no_attribute__formulas__different_names__no_overlap():
-    variable = tax_benefit_system.column_by_name['no_attribute__formulas__different_names__no_overlap']
+    variable = tax_benefit_system.variables['no_attribute__formulas__different_names__no_overlap']
     assert len(variable.formula.dated_formulas_class) == 2
 
     i = 0
@@ -471,8 +471,8 @@ def test_clone__end_attribute__formulas__different_names():
     simulation_holder = simulation.person.get_holder('end_attribute__formulas__different_names')
 
     # clone
-    variable_as_column = tax_benefit_system.column_by_name['end_attribute__formulas__different_names']  # IntCol
-    new_holder = Holder(entity = simulation.person, variable = variable_as_column)
+    variable = tax_benefit_system.variables['end_attribute__formulas__different_names']  # IntCol
+    new_holder = Holder(entity = simulation.person, variable = variable)
     clone = simulation_holder.formula.clone(new_holder, keys_to_skip = None)
 
     # Check cloned formula:

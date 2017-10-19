@@ -161,7 +161,7 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
+        variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
             message = linesep.join([
                 u"You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
@@ -219,7 +219,7 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        variable = self.simulation.tax_benefit_system.get_column(variable_name)
+        variable = self.simulation.tax_benefit_system.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
             variable = variable,

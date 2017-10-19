@@ -31,7 +31,7 @@ def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_syst
         entity_json[key] = value
 
     def check_variable(value, key):
-        variable = tax_benefit_system.column_by_name[key]
+        variable = tax_benefit_system.variables[key]
         column = make_column_from_variable(variable)
         if column.entity != entity_class:
             raise ValueError(u"Variable {} is defined for entity {}. It cannot be set for entity {}.".format(key, column.entity.key, entity_class.key).encode('utf-8'))
@@ -45,7 +45,7 @@ def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_syst
             check_id(value)
         elif valid_roles.get(key) is not None:
             check_role(value, key)
-        elif tax_benefit_system.column_by_name.get(key) is not None:
+        elif tax_benefit_system.variables.get(key) is not None:
             check_variable(value, key)
         else:
             # We only import VariableNotFound here to avoid a circular dependency in imports

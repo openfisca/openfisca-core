@@ -106,7 +106,7 @@ def create_app(tax_benefit_system,
             entity_index = entity.ids.index(entity_id)
             entity_result = result[entity_index]
 
-            variable = tax_benefit_system.get_column(variable_name)
+            variable = tax_benefit_system.get_variable(variable_name)
             if variable.value_type == 'Enum':
                 entity_result = variable.possible_values._vars[entity_result]
 

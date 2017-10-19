@@ -96,5 +96,5 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
 def build_variables(tax_benefit_system, country_package_metadata):
     return {
         name: build_variable(variable, country_package_metadata, tax_benefit_system)
-        for name, variable in tax_benefit_system.column_by_name.iteritems()
+        for name, variable in tax_benefit_system.variables.iteritems()
         }

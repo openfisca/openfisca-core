@@ -45,7 +45,7 @@ class Reform(TaxBenefitSystem):
         self.baseline = baseline
         self.parameters = baseline.parameters
         self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
-        self.column_by_name = baseline.column_by_name.copy()
+        self.variables = baseline.variables.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
         self.key = unicode(self.__class__.__name__)

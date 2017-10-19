@@ -230,10 +230,10 @@ class Formula(object):
 
                 assert entity == array_or_dated_holder.entity, \
                     u"""Holder entity "{}" and given entity "{}" don't match""".format(entity.key,
-                        array_or_dated_holder.column.entity.key).encode('utf-8')
+                        array_or_dated_holder.variable.entity.key).encode('utf-8')
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.column.default
+                default = array_or_dated_holder.variable.default
         else:
             assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
 
@@ -259,7 +259,7 @@ class Formula(object):
                 target_array[boolean_filter] = array[entity_index_array[boolean_filter]]
             except:
                 log.error(u'An error occurred while transforming array for role {}[{}] in function {}'.format(
-                    entity.key, role, holder.column.name))
+                    entity.key, role, holder.variable.name))
                 raise
         return target_array
 
@@ -278,7 +278,7 @@ class Formula(object):
             assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.column.default
+                default = array_or_dated_holder.variable.default
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
@@ -299,7 +299,7 @@ class Formula(object):
             target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
         except:
             log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                entity.key, role, holder.column.name))
+                entity.key, role, holder.variable.name))
             raise
         return target_array
 
@@ -318,7 +318,7 @@ class Formula(object):
             assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.column.default
+                default = array_or_dated_holder.variable.default
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
@@ -344,7 +344,7 @@ class Formula(object):
                 target_array[entity_index_array[boolean_filter]] = array[boolean_filter]
             except:
                 log.error(u'An error occurred while filtering array for role {}[{}] in function {}'.format(
-                    entity.key, role, holder.column.name))
+                    entity.key, role, holder.variable.name))
                 raise
         return target_array_by_role
 
@@ -398,7 +398,7 @@ class Formula(object):
         """
         def get_error_message():
             return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
-                column.name,
+                variable.name,
                 period,
                 u', '.join(sorted(set(
                     u'{}<{}>'.format(variable_name, period2)
@@ -408,13 +408,13 @@ class Formula(object):
                 )
         simulation = self.holder.simulation
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
-        column = self.holder.variable
-        variable_name = column.name
+        variable = self.holder.variable
+        variable_name = variable.name
         if variable_name in requested_periods_by_variable_name:
             # Make sure the formula doesn't call itself for the same period it is being called for.
             # It would be a pure circular definition.
             requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and (column.definition_period != ETERNITY), get_error_message()
+            assert period not in requested_periods and (variable.definition_period != ETERNITY), get_error_message()
             if simulation.max_nb_cycles is None or len(requested_periods) > simulation.max_nb_cycles:
                 message = get_error_message()
                 if simulation.max_nb_cycles is None:
@@ -431,8 +431,8 @@ class Formula(object):
         requested_periods_by_variable_name[variable_name] and delete the latter if empty.
         """
         simulation = self.holder.simulation
-        column = self.holder.variable
-        variable_name = column.name
+        variable = self.holder.variable
+        variable_name = variable.name
         requested_periods_by_variable_name = simulation.requested_periods_by_variable_name
         if variable_name in requested_periods_by_variable_name:
             requested_periods_by_variable_name[variable_name].pop()
@@ -445,20 +445,20 @@ class Formula(object):
         Return a DatedHolder after checking for cycles in formula.
         """
         holder = self.holder
-        column = holder.variable
+        variable = holder.variable
         entity = holder.entity
         simulation = holder.simulation
         debug = simulation.debug
 
-        assert (period is not None) or (column.definition_period == ETERNITY)
+        assert (period is not None) or (variable.definition_period == ETERNITY)
 
         max_nb_cycles = parameters.get('max_nb_cycles')
         extra_params = parameters.get('extra_params')
         if max_nb_cycles is not None:
             simulation.max_nb_cycles = max_nb_cycles
 
-        # Note: Don't compute intersection with column.start & column.end, because holder already does it:
-        # output_period = output_period.intersection(periods.instant(column.start), periods.instant(column.end))
+        # Note: Don't compute intersection with variable.start & variable.end, because holder already does it:
+        # output_period = output_period.intersection(periods.instant(variable.start), periods.instant(variable.end))
         # Note: Don't verify that the function result has already been computed, because this is the task of
         # holder.compute().
 
@@ -472,7 +472,7 @@ class Formula(object):
             self.clean_cycle_detection_data()
             if max_nb_cycles is None:
                 if simulation.trace:
-                    simulation.tracer.record_calculation_abortion(column.name, period, **parameters)
+                    simulation.tracer.record_calculation_abortion(variable.name, period, **parameters)
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise
             simulation.max_nb_cycles = None
@@ -482,19 +482,19 @@ class Formula(object):
                 raise ParameterNotFound(
                     instant_str = exc.instant_str,
                     name = exc.name,
-                    variable_name = column.name,
+                    variable_name = variable.name,
                     )
             else:
                 raise
         except:
             log.error(u'An error occurred while calling formula {}@{}<{}> in module {}'.format(
-                column.name, entity.key, str(period), self.__module__,
+                variable.name, entity.key, str(period), self.__module__,
                 ))
             raise
 
         assert isinstance(array, np.ndarray), (linesep.join([
-            u"You tried to compute the formula '{0}' for the period '{1}'.".format(column.name, str(period)).encode('utf-8'),
-            u"The formula '{0}@{1}' should return a Numpy array;".format(column.name, str(period)).encode('utf-8'),
+            u"You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
+            u"The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
             u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
             u"Learn more about Numpy arrays and vectorial computing:",
             u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
@@ -502,7 +502,7 @@ class Formula(object):
         entity_count = entity.count
         assert array.size == entity_count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                column.name, entity.key, str(period), str(period), stringify_array(array),
+                variable.name, entity.key, str(period), str(period), stringify_array(array),
                 array.size, entity_count, entity.key).encode('utf-8')
         if debug:
             try:
@@ -510,12 +510,12 @@ class Formula(object):
                 if np.isnan(np.min(array)):
                     nan_count = np.count_nonzero(np.isnan(array))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        column.name, entity.key, str(period), str(period), stringify_array(array),
+                        variable.name, entity.key, str(period), str(period), stringify_array(array),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
-        if array.dtype != column.dtype:
-            array = array.astype(column.dtype)
+        if array.dtype != variable.dtype:
+            array = array.astype(variable.dtype)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
@@ -566,16 +566,16 @@ class Formula(object):
                 dated_formula['formula'].graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
         else:
             holder = self.holder
-            column = holder.variable
+            variable = holder.variable
             simulation = holder.simulation
-            variables_name, parameters_name = get_input_variables_and_parameters(column)
+            variables_name, parameters_name = get_input_variables_and_parameters(variable)
             if variables_name is not None:
                 for variable_name in sorted(variables_name):
                     variable_holder = simulation.get_or_new_holder(variable_name)
                     variable_holder.graph(edges, get_input_variables_and_parameters, nodes, visited)
                     edges.append({
                         'from': variable_holder.variable.name,
-                        'to': column.name,
+                        'to': variable.name,
                         })
 
     def formula_to_json(self, function, get_input_variables_and_parameters = None, with_input_variables_details = False):
@@ -590,19 +590,19 @@ class Formula(object):
             ))
         if get_input_variables_and_parameters is not None:
             holder = self.holder
-            column = holder.variable
+            variable = holder.variable
             simulation = holder.simulation
-            variables_name, parameters_name = get_input_variables_and_parameters(column)
+            variables_name, parameters_name = get_input_variables_and_parameters(variable)
             if variables_name:
                 if with_input_variables_details:
                     input_variables_json = []
                     for variable_name in sorted(variables_name):
                         variable_holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
-                        variable_column = variable_holder.variable
+                        variable_variable = variable_holder.variable
                         input_variables_json.append(collections.OrderedDict((
                             ('entity', variable_holder.entity.key),
-                            ('label', variable_column.label),
-                            ('name', variable_column.name),
+                            ('label', variable_variable.label),
+                            ('name', variable_variable.name),
                             )))
                     self_json['input_variables'] = input_variables_json
                 else:
@@ -639,14 +639,14 @@ def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
 
-def get_neutralized_column(column):
+def get_neutralized_variable(variable):
     """
-        Return a new neutralized column (to be used by reforms).
-        A neutralized column always returns its default value, and does not cache anything.
+        Return a new neutralized variable (to be used by reforms).
+        A neutralized variable always returns its default value, and does not cache anything.
     """
-    result = column.clone()
+    result = variable.clone()
     result.is_neutralized = True
-    result.label = u'[Neutralized]' if column.label is None else u'[Neutralized] {}'.format(column.label),
+    result.label = u'[Neutralized]' if variable.label is None else u'[Neutralized] {}'.format(variable.label),
     result.set_input = set_input_neutralized
     result.formula.set_input = set_input_neutralized
 
