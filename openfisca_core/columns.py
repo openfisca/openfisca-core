@@ -23,15 +23,12 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2
 
 def make_column_from_variable(variable):
     CONVERSION_MAP = {
-        'Bool': BoolCol,
-        'Int': IntCol,
-        'Float': FloatCol,
-        'Age': AgeCol,
-        'FixedStr': FixedStrCol,
-        'Str': StrCol,
-        'Enum': EnumCol,
-        'Date': DateCol,
-        'PeriodSizeIndependentInt': PeriodSizeIndependentIntCol,
+        bool: BoolCol,
+        int: IntCol,
+        float: FloatCol,
+        str: StrCol,
+        Enum: EnumCol,
+        datetime.date: DateCol,
         }
     return CONVERSION_MAP[variable.value_type](variable)
 
@@ -421,7 +418,3 @@ class EnumCol(IntCol):
         if use_label and self.enum is not None:
             return self.enum._vars.get(value, value)
         return value
-
-
-class PeriodSizeIndependentIntCol(IntCol):
-    is_period_size_independent = True

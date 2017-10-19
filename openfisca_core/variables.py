@@ -17,62 +17,46 @@ from base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
+from enumerations import Enum
+from datetime import date
 
 VALUE_TYPES = {
-    'Bool': {
+    bool: {
         'dtype': np.bool,
         'default': False,
         'json_type': 'Boolean',
         'is_period_size_independent': True
         },
-    'Int': {
+    int: {
         'dtype': np.int32,
         'default': 0,
         'json_type': 'Integer',
         'is_period_size_independent': False
         },
-    'Float': {
+    float: {
         'dtype': np.float32,
         'default': 0,
         'json_type': 'Float',
         'is_period_size_independent': False,
         },
-    'Age': {
-        'dtype': np.int32,
-        'default': -9999,
-        'json_type': 'Integer',
-        'is_period_size_independent': True
-        },
-    'FixedStr': {
-        'dtype': None,  # Dynamically set later
-        'default': u'',
-        'json_type': 'String',
-        'is_period_size_independent': True
-        },
-    'Str': {
+    str: {
         'dtype': object,
         'default': u'',
         'json_type': 'String',
         'is_period_size_independent': True
         },
-    'Enum': {
+    Enum: {
         'dtype': np.int16,
         'default': 0,
         'json_type': 'Enumeration',
         'is_period_size_independent': True,
         },
-    'Date': {
+    date: {
         'dtype': 'datetime64[D]',
         'default': datetime.date.fromtimestamp(0),  # 0 == 1970-01-01
         'json_type': 'Date',
         'is_period_size_independent': True,
         },
-    'PeriodSizeIndependentInt': {
-        'dtype': np.int32,
-        'default': 0,
-        'json_type': 'Integer',
-        'is_period_size_independent': True
-        }
     }
 
 
@@ -85,10 +69,12 @@ class Variable(object):
         self.value_type = self.set_value_type(attributes.pop('value_type', None))
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
-        if self.value_type == 'Enum':
+        if self.value_type == Enum:
             self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
-        if self.value_type == 'FixedStr':
-            self.max_length = self.set_max_length(attributes.pop('max_length', None))
+        if self.value_type == str:
+            self.max_length = attributes.pop('max_length', None)
+            if self.max_length:
+                self.dtype = '|S{}'.format(self.max_length)
         self.default = self.set_default(attributes.pop('default', None))
         self.entity = self.set_entity(attributes.pop('entity', None))
         self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
@@ -98,6 +84,7 @@ class Variable(object):
         self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
         self.set_input = self.set_set_input(attributes.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attributes.pop('calculate_output', None))
+        self.is_period_size_independent = self.set_is_period_size_independent(attributes.pop('is_period_size_independent', None))
         self.base_function = self.set_base_function(attributes.pop('base_function', None))
         self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
         self.is_neutralized = False
@@ -116,12 +103,6 @@ class Variable(object):
         if not possible_values:
             raise ValueError("'possible_values' need to be set in {}, as its value type is 'Enum'".format(self.name).encode('utf-8'))
         return possible_values
-
-    def set_max_length(self, max_length):
-        if not max_length:
-            raise ValueError("'max_length' need to be set in {}, as its value type is 'FixedStr'".format(self.name).encode('utf-8'))
-        self.dtype = '|S{}'.format(max_length)
-        return max_length
 
     def set_default(self, default):
         if not default and self.baseline_variable:
@@ -193,6 +174,14 @@ class Variable(object):
         if cerfa_field:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
 
+    def set_is_period_size_independent(self, is_period_size_independent):
+        if is_period_size_independent is None and self.baseline_variable:
+            return self.baseline_variable.is_period_size_independent
+        if is_period_size_independent is not None:
+            return is_period_size_independent
+        else:
+            return VALUE_TYPES[self.value_type]['is_period_size_independent']
+
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
             return self.baseline_variable.formula.base_function.im_func
@@ -201,7 +190,7 @@ class Variable(object):
                 raise ValueError('Unexpected base_function {}'.format(base_function))
             return permanent_default_value
 
-        if VALUE_TYPES[self.value_type]['is_period_size_independent']:
+        if self.is_period_size_independent:
             if base_function is None:
                 return requested_period_last_value
             if base_function in [missing_value, requested_period_last_value, requested_period_last_or_next_value]:

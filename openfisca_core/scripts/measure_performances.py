@@ -72,7 +72,7 @@ Individu = build_entity(
 
 
 class age_en_mois(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Individu
     label = u"Âge (en nombre de mois)"
 
@@ -92,7 +92,7 @@ class city_code(Variable):
 
 
 class salaire_brut(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Individu
     label = "Salaire brut"
 
@@ -100,7 +100,7 @@ class salaire_brut(Variable):
 # Calculated variables
 
 class age(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Individu
     label = u"Âge (en nombre d'années)"
 
@@ -126,7 +126,7 @@ class dom_tom(Variable):
 
 
 class revenu_disponible(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Individu
     label = u"Revenu disponible de l'individu"
 
@@ -138,7 +138,7 @@ class revenu_disponible(Variable):
 
 
 class rsa(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Individu
     label = u"RSA"
 
@@ -159,7 +159,7 @@ class rsa(Variable):
 
 
 class salaire_imposable(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Individu
     label = u"Salaire imposable"
 
@@ -171,7 +171,7 @@ class salaire_imposable(Variable):
 
 
 class salaire_net(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Individu
     label = u"Salaire net"
 

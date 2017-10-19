@@ -4,6 +4,8 @@ import datetime
 import inspect
 import textwrap
 
+from openfisca_core.enumerations import Enum
+
 
 def get_next_day(date):
     parsed_date = date
@@ -15,7 +17,7 @@ def get_default_value(variable):
     default_value = variable.default
     if isinstance(default_value, datetime.date):
         return default_value.isoformat()
-    if variable.value_type == 'Enum':
+    if variable.value_type == Enum:
         return variable.possible_values._vars[default_value]
     return default_value
 
@@ -87,7 +89,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
         if variable.end:
             result['formulas'][get_next_day(variable.end)] = None
 
-    if variable.value_type == 'Enum':
+    if variable.value_type == Enum:
         result['possibleValues'] = variable.possible_values.list
 
     return result

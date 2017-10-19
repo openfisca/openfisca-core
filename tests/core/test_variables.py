@@ -47,7 +47,7 @@ def check_error_at_add_variable(tax_benefit_system, variable, error_message_pref
 
 
 class variable__no_date(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable without date."
@@ -72,7 +72,7 @@ def test_variable__no_date():
 
 
 class variable__strange_end_attribute(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with dubious end attribute, no formula."
@@ -96,7 +96,7 @@ def test_variable__strange_end_attribute():
 # end, no formula
 
 class variable__end_attribute(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with end attribute, no formula."
@@ -114,7 +114,7 @@ def test_variable__end_attribute():
 # end, one formula without date
 
 class end_attribute__one_simple_formula(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with end attribute, one formula without date."
@@ -156,7 +156,7 @@ def test_dates__end_attribute__one_simple_formula():
 # formula, strange name
 
 class no_end_attribute__one_formula__strange_name(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable without end attribute, one stangely named formula."
@@ -173,7 +173,7 @@ def test_add__no_end_attribute__one_formula__strange_name():
 # formula, start
 
 class no_end_attribute__one_formula__start(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable without end attribute, one dated formula."
@@ -210,7 +210,7 @@ def test_dates__no_end_attribute__one_formula__start():
 
 
 class no_end_attribute__one_formula__eternity(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = ETERNITY  # For this entity, this variable shouldn't evolve through time
     label = u"Variable without end attribute, one dated formula."
@@ -235,7 +235,7 @@ def test_call__no_end_attribute__one_formula__eternity():
 # formula, different start formats
 
 class no_end_attribute__formulas__start_formats(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable without end attribute, multiple dated formulas."
@@ -287,7 +287,7 @@ def test_dates__no_end_attribute__formulas__start_formats():
 # Multiple formulas, different names with date overlap
 
 class no_attribute__formulas__different_names__dates_overlap(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable, no end attribute, multiple dated formulas with different names but same dates."
@@ -307,7 +307,7 @@ def test_add__no_attribute__formulas__different_names__dates_overlap():
 # formula(start), different names, no date overlap
 
 class no_attribute__formulas__different_names__no_overlap(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable, no end attribute, multiple dated formulas with different names and no date overlap."
@@ -353,7 +353,7 @@ def test_dates__no_attribute__formulas__different_names__no_overlap():
 # formula, start.
 
 class end_attribute__one_formula__start(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with end attribute, one dated formula."
@@ -383,7 +383,7 @@ def test_call__end_attribute__one_formula__start():
 # end < formula, start.
 
 class stop_attribute_before__one_formula__start(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with stop attribute only coming before formula start."
@@ -400,7 +400,7 @@ def test_add__stop_attribute_before__one_formula__start():
 # end, formula with dates intervals overlap.
 
 class end_attribute_restrictive__one_formula(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with end attribute, one dated formula and dates intervals overlap."
@@ -430,7 +430,7 @@ def test_call__end_attribute_restrictive__one_formula():
 # formulas of different names (without dates overlap on formulas)
 
 class end_attribute__formulas__different_names(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with end attribute, multiple dated formulas with different names."

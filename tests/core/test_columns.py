@@ -18,7 +18,7 @@ def new_simulation(tax_benefit_system, month):
 
 
 class input_variable(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Input variable. No formula."
@@ -28,7 +28,7 @@ tax_benefit_system.add_variable(input_variable)
 
 
 class variable_with_formula(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
     label = u"Variable with formula"

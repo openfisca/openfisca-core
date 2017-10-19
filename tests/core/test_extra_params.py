@@ -11,7 +11,7 @@ from openfisca_core.base_functions import requested_period_last_value
 
 
 class formula_1(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -20,7 +20,7 @@ class formula_1(Variable):
 
 
 class formula_2(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -29,7 +29,7 @@ class formula_2(Variable):
 
 
 class formula_3(Variable):
-    value_type = 'Int'
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -38,7 +38,7 @@ class formula_3(Variable):
 
 
 class formula_4(Variable):
-    value_type = 'Bool'
+    value_type = bool
     entity = Person
     base_function = requested_period_last_value
     definition_period = MONTH

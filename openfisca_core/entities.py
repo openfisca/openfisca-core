@@ -8,6 +8,7 @@ from os import linesep
 import numpy as np
 import dpath
 
+from enumerations import Enum
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
@@ -83,7 +84,7 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-                    if holder.variable.value_type == 'Enum' and isinstance(value, basestring):
+                    if holder.variable.value_type == Enum and isinstance(value, basestring):
                         try:
                             value = holder.variable.possible_values[value]
                         except KeyError:

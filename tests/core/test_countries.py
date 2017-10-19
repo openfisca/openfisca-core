@@ -16,7 +16,7 @@ tax_benefit_system = CountryTaxBenefitSystem()
 
 
 class income_tax_no_period(Variable):
-    value_type = 'Float'
+    value_type = float
     entity = Person
     label = u"Salaire net (buggy)"
     definition_period = MONTH
