@@ -82,6 +82,7 @@ class Variable(object):
         self.end = self.set_end(attributes.pop('end', None))
         self.reference = self.set_reference(attributes.pop('reference', None))
         self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
+        self.unit = self.set_unit(attributes.pop('unit', None))
         self.set_input = self.set_set_input(attributes.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attributes.pop('calculate_output', None))
         self.is_period_size_independent = self.set_is_period_size_independent(attributes.pop('is_period_size_independent', None))
@@ -173,6 +174,11 @@ class Variable(object):
             return self.baseline_variable.cerfa_field
         if cerfa_field:
             assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
+
+    def set_unit(self, unit):
+        if not unit and self.baseline_variable:
+            return self.baseline_variable.unit
+        return unit
 
     def set_is_period_size_independent(self, is_period_size_independent):
         if is_period_size_independent is None and self.baseline_variable:
