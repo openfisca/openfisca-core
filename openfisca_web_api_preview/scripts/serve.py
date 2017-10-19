@@ -30,9 +30,9 @@ def define_command_line_options(parser):
 
     # Define server configuration
     parser.add_argument('-p', '--port', action = 'store', help = "port to serve on", type = int)
-    parser.add_argument('--tracker_url', action = 'store', help = "tracking service url", type = str)
-    parser.add_argument('--tracker_idsite', action = 'store', help = "tracking service id site", type = int)
-    parser.add_argument('-f', '--configuration_file', action = 'store', help = "gunicorn configuration file", type = str)
+    parser.add_argument('--tracker-url', action = 'store', help = "tracking service url", type = str)
+    parser.add_argument('--tracker-idsite', action = 'store', help = "tracking service id site", type = int)
+    parser.add_argument('-f', '--configuration-file', action = 'store', help = "configuration file", type = str)
 
     return parser
 
