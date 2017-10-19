@@ -3,6 +3,7 @@
 import sys
 import imp
 import os.path
+import logging
 import argparse
 
 from gunicorn.app.base import BaseApplication
@@ -14,14 +15,19 @@ from ..app import create_app
 from imp import load_module
 
 
+"""
+    Define the `openfisca serve` command line interface.
+"""
+
 DEFAULT_PORT = '5000'
 HOST = '127.0.0.1'
 DEFAULT_WORKERS_NUMBER = '3'
 
 
-def define_command_line_options():
-    parser = argparse.ArgumentParser()
+log = logging.getLogger(__name__)
 
+
+def define_command_line_options(parser):
     # Define OpenFisca modules configuration
     parser = add_minimal_tax_benefit_system_arguments(parser)
 
@@ -81,7 +87,7 @@ class StandaloneApplication(BaseApplication):
     def load_config(self):
         for key, value in iteritems(self.options):
             if value is None:
-                print u'Undefined value for key `{}`.'.format(key)
+                log.debug('Undefined value for key `{}`.'.format(key))
 
             if key in self.cfg.settings and value is not None:
                 self.cfg.set(key.lower(), value)
@@ -90,8 +96,8 @@ class StandaloneApplication(BaseApplication):
         return self.application
 
 
-def main():
-    command_line_parser = define_command_line_options()
+def main(parser):
+    command_line_parser = define_command_line_options(parser)
 
     configuration = {
         'port': DEFAULT_PORT,
