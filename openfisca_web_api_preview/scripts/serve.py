@@ -32,7 +32,7 @@ def define_command_line_options(parser):
     parser = add_minimal_tax_benefit_system_arguments(parser)
 
     # Define server configuration
-    parser.add_argument('-p', '--port', action = 'store', default = DEFAULT_PORT, help = "port to serve on", type = int)
+    parser.add_argument('-p', '--port', action = 'store', help = "port to serve on", type = int)
     parser.add_argument('--tracker_url', action = 'store', help = "tracking service url", type = str)
     parser.add_argument('--tracker_idsite', action = 'store', help = "tracking service id site", type = int)
     parser.add_argument('-f', '--configuration_file', action = 'store', help = "gunicorn configuration file", type = str)
