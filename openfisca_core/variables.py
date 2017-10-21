@@ -110,6 +110,7 @@ class Variable(object):
             return self.baseline_variable.default
         if not default:
             return VALUE_TYPES[self.value_type]['default']
+        # We should check that default matches the type !!
         return default
 
     def set_entity(self, entity):

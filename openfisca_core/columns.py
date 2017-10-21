@@ -333,17 +333,9 @@ class EnumCol(IntCol):
     enum = None
     index_by_slug = None
 
-    def __init__(self, enum = None, **kwargs):
-        super(EnumCol, self).__init__(**kwargs)
-        assert isinstance(enum, Enum)
-        self.enum = enum
-
-    def empty_clone(self):
-        return self.__class__(enum = self.enum)
-
     @property
     def input_to_dated_python(self):
-        enum = self.enum
+        enum = self.variable.possible_values
         if enum is None:
             return conv.input_to_int
         # This converters accepts either an item number or an item name.
@@ -373,7 +365,7 @@ class EnumCol(IntCol):
 
     @property
     def json_to_dated_python(self):
-        enum = self.enum
+        enum = self.variable.possible_values
         if enum is None:
             return conv.pipe(
                 conv.test_isinstance((basestring, int)),
@@ -406,15 +398,15 @@ class EnumCol(IntCol):
 
     def to_json(self):
         self_json = super(EnumCol, self).to_json()
-        if self.enum is not None:
+        if self.variable.possible_values is not None:
             self_json['labels'] = collections.OrderedDict(
                 (index, label)
-                for label, index in self.enum
+                for label, index in self.variable.possible_values
                 )
         return self_json
 
     def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
-        if use_label and self.enum is not None:
-            return self.enum._vars.get(value, value)
+        if use_label and self.variable.possible_values is not None:
+            return self.variable.possible_values._vars.get(value, value)
         return value
