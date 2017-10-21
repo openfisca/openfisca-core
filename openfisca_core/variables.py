@@ -64,97 +64,72 @@ class Variable(object):
 
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
-        attributes = dict(self.__class__.__dict__)
+        attr = dict(self.__class__.__dict__)
         self.baseline_variable = baseline_variable
-        self.value_type = self.set_value_type(attributes.pop('value_type', None))
+        self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
         if self.value_type == Enum:
-            self.possible_values = self.set_possible_values(attributes.pop('possible_values', None))
+            self.possible_values = self.set(attr, 'possible_values', required = True, allowed_type = Enum)
         if self.value_type == str:
-            self.max_length = attributes.pop('max_length', None)
+            self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
-        self.default = self.set_default(attributes.pop('default', None))
-        self.entity = self.set_entity(attributes.pop('entity', None))
-        self.definition_period = self.set_definition_period(attributes.pop('definition_period', None))
-        self.label = self.set_label(attributes.pop('label', None))
-        self.end = self.set_end(attributes.pop('end', None))
-        self.reference = self.set_reference(attributes.pop('reference', None))
-        self.cerfa_field = self.set_cerfa_field(attributes.pop('cerfa_field', None))
-        self.unit = self.set_unit(attributes.pop('unit', None))
-        self.set_input = self.set_set_input(attributes.pop('set_input', None))
-        self.calculate_output = self.set_calculate_output(attributes.pop('calculate_output', None))
-        self.is_period_size_independent = self.set_is_period_size_independent(attributes.pop('is_period_size_independent', None))
-        self.base_function = self.set_base_function(attributes.pop('base_function', None))
-        self.formula = Formula.build_formula_class(attributes, self, baseline_variable)
+        default_type = int if self.value_type == Enum else self.value_type
+        self.default = self.set(attr, 'default', allowed_type = default_type, default = VALUE_TYPES[self.value_type]['default'])
+        self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
+        self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
+        self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)
+        self.end = self.set(attr, 'end', allowed_type = basestring, setter = self.set_end)
+        self.reference = self.set(attr, 'reference', setter = self.set_reference)
+        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (basestring, dict))
+        self.unit = self.set(attr, 'unit', allowed_type = basestring)
+        self.set_input = self.set_set_input(attr.pop('set_input', None))
+        self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
+        self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
+        self.base_function = self.set_base_function(attr.pop('base_function', None))
+        self.formula = Formula.build_formula_class(attr, self, baseline_variable)
         self.is_neutralized = False
 
-    def set_value_type(self, value_type):
-        if not value_type and self.baseline_variable:
-            return self.baseline_variable.value_type
-        if not value_type:
-            raise ValueError("Missing attribute 'value_type' in definition of variable {}".format(self.name).encode('utf-8'))
-        if value_type in VALUE_TYPES:
-            return value_type
-        else:
-            raise ValueError("Attribute 'value_type' invalid in '{}'".format(self.name).encode('utf-8'))
-
-    def set_possible_values(self, possible_values):
-        if not possible_values:
-            raise ValueError("'possible_values' need to be set in {}, as its value type is 'Enum'".format(self.name).encode('utf-8'))
-        if not isinstance(possible_values, Enum):
-            raise ValueError("Invalid possible_values attribute in {}: must be of type Enum".format(self.name).encode('utf-8'))
-
-        return possible_values
-
-    def set_default(self, default):
-        if not default and self.baseline_variable:
-            return self.baseline_variable.default
-        if not default:
-            return VALUE_TYPES[self.value_type]['default']
-        # We should check that default matches the type !!
-        return default
+    def set(self, attributes, attribute_name, required = False, allowed_values = None, allowed_type = None, setter = None, default = None):
+        value = attributes.pop(attribute_name, None)
+        if value is None and self.baseline_variable:
+            return getattr(self.baseline_variable, attribute_name)
+        if required and not value:
+            raise ValueError("Missing attribute '{}' in definition of variable '{}'.".format(attribute_name, self.name).encode('utf-8'))
+        if allowed_values is not None and value not in allowed_values:
+            raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'."
+                .format(value, attribute_name, self.name, allowed_values).encode('utf-8'))
+        if allowed_type is not None and value is not None and not isinstance(value, allowed_type):
+            if allowed_type == float and isinstance(value, int):
+                value = float(value)
+            else:
+                raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Must be of type '{}'."
+                    .format(value, attribute_name, self.name, allowed_type).encode('utf-8'))
+        if setter is not None:
+            value = setter(value)
+        if value is None and default is not None:
+            return default
+        return value
 
     def set_entity(self, entity):
-        if not entity and self.baseline_variable:
-            return self.baseline_variable.entity
-        if not entity:
-            raise ValueError("Missing attribute 'entity' in definition of variable {}".format(self.name).encode('utf-8'))
-        if isinstance(entity, type) and issubclass(entity, entities.Entity):
-            return entity
-        else:
-            raise ValueError("Attribute 'entity' invalid in '{}'".format(self.name).encode('utf-8'))
-
-    def set_definition_period(self, definition_period):
-        if not definition_period and self.baseline_variable:
-            return self.baseline_variable.definition_period
-        if not definition_period:
-            raise ValueError("Missing attribute 'definition_period' in definition of variable {}".format(self.name).encode('utf-8'))
-        if definition_period not in (MONTH, YEAR, ETERNITY):
-            raise ValueError(u'Incorrect definition_period ({}) in {}'.format(definition_period, self.name).encode('utf-8'))
-
-        return definition_period
+        if not isinstance(entity, type) or not issubclass(entity, entities.Entity):
+            raise ValueError("Invalid value '{}' for attribute 'entity' in variable '{}'. Must be a subclass of Entity."
+            .format(entity, self.name).encode('utf-8'))
+        return entity
 
     def set_label(self, label):
-        if not label and self.baseline_variable:
-            return self.baseline_variable.label
         if label:
             return unicode(label)
 
     def set_end(self, end):
-        if end is None and self.baseline_variable:
-            return self.baseline_variable.end
         if end:
-            assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError:
                 raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
 
     def set_reference(self, reference):
-        if not reference and self.baseline_variable:
-            return self.baseline_variable.reference
         if reference:
             if isinstance(reference, basestring):
                 reference = [reference]
@@ -172,25 +147,6 @@ class Variable(object):
                             self.name, type(reference)))
 
         return reference
-
-    def set_cerfa_field(self, cerfa_field):
-        if not cerfa_field and self.baseline_variable:
-            return self.baseline_variable.cerfa_field
-        if cerfa_field:
-            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
-
-    def set_unit(self, unit):
-        if not unit and self.baseline_variable:
-            return self.baseline_variable.unit
-        return unit
-
-    def set_is_period_size_independent(self, is_period_size_independent):
-        if is_period_size_independent is None and self.baseline_variable:
-            return self.baseline_variable.is_period_size_independent
-        if is_period_size_independent is not None:
-            return is_period_size_independent
-        else:
-            return VALUE_TYPES[self.value_type]['is_period_size_independent']
 
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
