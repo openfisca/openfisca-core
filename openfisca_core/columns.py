@@ -30,6 +30,8 @@ def make_column_from_variable(variable):
         Enum: EnumCol,
         datetime.date: DateCol,
         }
+    if variable.value_type == str and variable.max_length:
+        return FixedStrCol(variable)
     return CONVERSION_MAP[variable.value_type](variable)
 
 
@@ -219,20 +221,10 @@ class DateCol(Column):
 
 
 class FixedStrCol(Column):
-    max_length = None
-
-    def __init__(self, max_length = None, **kwargs):
-        super(FixedStrCol, self).__init__(**kwargs)
-        assert isinstance(max_length, int)
-
-        self.max_length = max_length
-
-    def empty_clone(self):
-        return self.__class__(max_length = self.max_length)
 
     @property
     def input_to_dated_python(self):
-        return conv.test(lambda value: len(value) <= self.max_length)
+        return conv.test(lambda value: len(value) <= self.variable.max_length)
 
     @property
     def json_to_dated_python(self):
@@ -243,7 +235,7 @@ class FixedStrCol(Column):
                 conv.function(unicode),
                 ),
             conv.test_isinstance(basestring),
-            conv.test(lambda value: len(value) <= self.max_length),
+            conv.test(lambda value: len(value) <= self.variable.max_length),
             )
 
 
@@ -330,7 +322,6 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    enum = None
     index_by_slug = None
 
     @property
