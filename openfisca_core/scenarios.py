@@ -164,7 +164,7 @@ class AbstractScenario(object):
                                     variable_periods.update(cell.iterkeys())
                             elif cell is not None:
                                 variable_periods.add(simulation_period)
-                        variable_default_value = column.default
+                        variable_default_value = column.default_value
                         # Note: For set_input to work, handle days, before months, before years => use sorted().
                         for variable_period in sorted(variable_periods, cmp = periods.compare_period_size):
                             variable_values = [
@@ -204,7 +204,7 @@ class AbstractScenario(object):
                         if array is None:
                             column = tbs.variables[axis_name]
                             array = np.empty(axis_entity_count, dtype = column.dtype)
-                            array.fill(column.default)
+                            array.fill(column.default_value)
                         array[axis['index']:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                         cache_buffer[axis_name][axis_period] = array
                 else:
@@ -230,7 +230,7 @@ class AbstractScenario(object):
                             if array is None:
                                 column = tbs.variables[axis_name]
                                 array = np.empty(axis_entity_count, dtype = column.dtype)
-                                array.fill(column.default)
+                                array.fill(column.default_value)
                             array[axis['index']:: axis_entity_step_size] = axis['min'] \
                                 + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                             cache_buffer[axis_name][axis_period] = array

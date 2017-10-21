@@ -159,7 +159,7 @@ class Formula(object):
 
     def default_values(self):
         '''Return a new NumPy array which length is the entity count, filled with default values.'''
-        return self.zeros() + self.holder.variable.default
+        return self.zeros() + self.holder.variable.default_value
 
     @property
     def real_formula(self):
@@ -233,7 +233,7 @@ class Formula(object):
                         array_or_dated_holder.variable.entity.key).encode('utf-8')
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.variable.default
+                default = array_or_dated_holder.variable.default_value
         else:
             assert entity in simulation.tax_benefit_system.entities, u"Unknown entity: {}".format(entity).encode('utf-8')
 
@@ -278,7 +278,7 @@ class Formula(object):
             assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.variable.default
+                default = array_or_dated_holder.variable.default_value
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(
@@ -318,7 +318,7 @@ class Formula(object):
             assert array_or_dated_holder.entity.is_person
             array = array_or_dated_holder.array
             if default is None:
-                default = array_or_dated_holder.variable.default
+                default = array_or_dated_holder.variable.default_value
         else:
             array = array_or_dated_holder
             assert isinstance(array, np.ndarray), u"Expected a holder or a Numpy array. Got: {}".format(array).encode(

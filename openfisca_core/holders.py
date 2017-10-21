@@ -374,7 +374,7 @@ class Holder(object):
     def default_array(self):
         array_size = self.entity.count
         array = np.empty(array_size, dtype = self.variable.dtype)
-        array.fill(self.variable.default)
+        array.fill(self.variable.default_value)
         return array
 
 

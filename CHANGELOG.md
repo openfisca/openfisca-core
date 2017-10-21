@@ -52,7 +52,7 @@ Now:
 ```py
 class is_citizen(Variable):
     value_type = bool
-    default = True
+    default_value = True
     entity = Person
     definition_period = MONTH
     label = "Whether the person is a citizen"
@@ -150,6 +150,7 @@ column = make_column_from_variable(variable)
   * Remove `column.start`, which was `None` since `14.0.0`
   * Replace `column.formula_class` by `variable.formula`
   * Replace `column.enum` by `variable.possible_values`
+  * Replace `column.default` by `variable.default_value`
 
 - In `formulas`:
   * Rename `get_neutralized_column` to `get_neutralized_variable`
@@ -167,11 +168,6 @@ class salary(Variable):
 
 salary_variable = salary()
 ```
-
-
-TODO:
-  - Doc variables attributes, and all renamed stuff
-  - `default` -> `default_value`
 
 # 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
 > Wrongfully published as 18.2.0

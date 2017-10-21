@@ -76,7 +76,7 @@ class Variable(object):
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
         default_type = int if self.value_type == Enum else self.value_type
-        self.default = self.set(attr, 'default', allowed_type = default_type, default = VALUE_TYPES[self.value_type]['default'])
+        self.default_value = self.set(attr, 'default_value', allowed_type = default_type, default = VALUE_TYPES[self.value_type]['default'])
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
         self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
         self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)

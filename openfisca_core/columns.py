@@ -48,7 +48,7 @@ class Column(object):
         return self.__class__()
 
     def json_default(self):
-        return self.default
+        return self.default_value
 
     def make_json_to_array_by_period(self, period):
         return conv.condition(
@@ -106,7 +106,7 @@ class Column(object):
             ))
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
-        if self.default is not None:
+        if self.default_value is not None:
             self_json['default'] = self.json_default()
         end = self.end
         if end is not None:
@@ -183,7 +183,7 @@ class DateCol(Column):
             )
 
     def json_default(self):
-        return unicode(np.array(self.default, self.dtype))
+        return unicode(np.array(self.default_value, self.dtype))
 
     @property
     def json_to_dated_python(self):
@@ -345,7 +345,7 @@ class EnumCol(IntCol):
             )
 
     def json_default(self):
-        return unicode(self.default) if self.default is not None else None
+        return unicode(self.default_value) if self.default_value is not None else None
 
     @property
     def json_to_dated_python(self):

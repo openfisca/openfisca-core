@@ -14,7 +14,7 @@ def get_next_day(date):
 
 
 def get_default_value(variable):
-    default_value = variable.default
+    default_value = variable.default_value
     if isinstance(default_value, datetime.date):
         return default_value.isoformat()
     if variable.value_type == Enum:
