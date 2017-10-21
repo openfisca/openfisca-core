@@ -242,6 +242,12 @@ class TaxBenefitSystem(object):
         return reform(self)
 
     def get_variable(self, variable_name, check_existence = False):
+        """
+        Get a variable from the tax and benefit system.
+
+        :param variable_name: Name of the requested variable.
+        :param check_existence: If True, raise an error if the requested variable does not exist.
+        """
         variables = self.variables.get(variable_name)
         if not variables and check_existence:
             raise VariableNotFound(variable_name, self)

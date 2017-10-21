@@ -7,6 +7,7 @@ Modules:
    :maxdepth: 1
 
    tax-benefit-system
+   variables
    parameters
    reforms
    test_runner

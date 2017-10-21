@@ -61,6 +61,82 @@ VALUE_TYPES = {
 
 
 class Variable(object):
+    """
+
+    A `variable <http://openfisca.org/doc/variables.html>`_ of the legislation.
+
+    Main attributes:
+
+       .. py:attribute: name
+
+           Name of the variable
+
+       .. py:attribute:: value_type
+
+           The value type of the variable. Possible value types in OpenFisca are ``int`` ``float`` ``bool`` ``str`` ``date`` and ``Enum``.
+
+       .. py:attribute:: entity
+
+           `Entity <http://openfisca.org/doc/person,_entities,_role.html>`_ the variable is defined for. For instance : ``Person``, ``Household``.
+
+       .. py:attribute:: definition_period
+
+           `Period <http://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``.
+
+       .. py:attribute:: label
+
+           Description of the variable
+
+       .. py:attribute:: reference
+
+           Legislative reference describing the variable.
+
+       .. py:attribute:: default_value
+
+           `Default value <http://openfisca.org/doc/variables.html#default-values>`_ of the variable.
+
+    Secondary attributes:
+
+       .. py:attribute:: baseline_variable
+
+           If the variable has been introduced in a `reform <http://openfisca.org/doc/reforms.html>`_ to replace another variable, baseline_variable is the replaced variable.
+
+       .. py:attribute:: dtype
+
+           Numpy `dtype <https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.dtype.html>`_ used under the hood for the variable.
+
+       .. py:attribute:: end
+
+           `Date <http://openfisca.org/doc/coding-the-legislation/40_legislation_evolutions.html#variable-end>`_  when the variable disappears from the legislation.
+
+       .. py:attribute:: formula
+
+           Formula used to calculate the variable
+
+       .. py:attribute:: is_neutralized
+
+           True if the variable is neutralized. Neutralized variables never use their formula, and only return their default values when calculated.
+
+       .. py:attribute:: json_type
+
+           JSON type corresponding to the variable.
+
+       .. py:attribute:: max_length
+
+           If the value type of the variable is ``str``, max length of the string allowed. ``None`` if there is no limit.
+
+       .. py:attribute:: possible_values
+
+           If the value type of the variable is ``Enum``, contains the values the variable can take.
+
+       .. py:attribute:: set_input
+
+           Function used to automatically process variable inputs defined for periods not matching the definition_period of the variable. See more on the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_. Possible values are ``set_input_dispatch_by_period``, ``set_input_divide_by_period``, or nothing.
+
+       .. py:attribute:: unit
+
+           Free text field describing the unit of the variable. Only used as metadata.
+    """
 
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
@@ -184,6 +260,13 @@ class Variable(object):
 
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):
+        """
+        Get instrospection data about the code of the variable.
+
+        :returns: (comments, source file path, source code, start line number)
+        :rtype: tuple
+
+        """
         comments = inspect.getcomments(cls)
 
         # Handle dynamically generated variable classes or Jupyter Notebooks, which have no source.
