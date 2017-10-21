@@ -128,13 +128,6 @@ class Column(object):
             self_json['source_file_path'] = source_file_path
         if self.name is not None:
             self_json['name'] = self.name
-        start = self.start
-        if start is not None:
-            if isinstance(start, datetime.date):
-                start = start.isoformat()
-            self_json['start'] = start
-        if self.survey_only:
-            self_json['survey_only'] = self.survey_only
         if self.reference is not None:
             self_json['reference'] = self.reference
         if self.val_type is not None:
