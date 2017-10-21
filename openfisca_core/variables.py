@@ -140,7 +140,7 @@ class Variable(object):
             return unicode(label)
 
     def set_end(self, end):
-        if not end and self.baseline_variable:
+        if end is None and self.baseline_variable:
             return self.baseline_variable.end
         if end:
             assert isinstance(end, str), 'Type error on {}. String expected. Found: {}'.format(self.name + '.end', type(end))
