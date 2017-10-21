@@ -103,6 +103,9 @@ class Variable(object):
     def set_possible_values(self, possible_values):
         if not possible_values:
             raise ValueError("'possible_values' need to be set in {}, as its value type is 'Enum'".format(self.name).encode('utf-8'))
+        if not isinstance(possible_values, Enum):
+            raise ValueError("Invalid possible_values attribute in {}: must be of type Enum".format(self.name).encode('utf-8'))
+
         return possible_values
 
     def set_default(self, default):
