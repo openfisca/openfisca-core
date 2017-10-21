@@ -148,7 +148,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
         def check():
             try:
                 _run_test(period_str, test, verbose, options)
-            except AssertionError:
+            except:
                 log.error(title)
                 raise
 
@@ -171,7 +171,11 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
 def _parse_test_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
-        tests = yaml.load(yaml_file)
+        try:
+            tests = yaml.load(yaml_file)
+        except yaml.scanner.ScannerError:
+            log.error("{} is not a valid YAML file".format(yaml_path).encode('utf-8'))
+            raise
 
     tests, error = conv.pipe(
         conv.make_item_to_singleton(),
@@ -196,9 +200,13 @@ def _parse_test_file(tax_benefit_system, yaml_path):
             for reform_path in reforms:
                 current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
-        test, error = scenarios.make_json_or_python_to_test(
-            tax_benefit_system = current_tax_benefit_system
-            )(test)
+        try:
+            test, error = scenarios.make_json_or_python_to_test(
+                tax_benefit_system = current_tax_benefit_system
+                )(test)
+        except:
+            log.error("{} is not a valid OpenFisca test file".format(yaml_path).encode('utf-8'))
+            raise
 
         if error is not None:
             embedding_error = conv.embed_error(test, u'errors', error)
