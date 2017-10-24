@@ -16,7 +16,7 @@ from openfisca_web_api_preview.app import create_app
     Define the `openfisca serve` command line interface.
 """
 
-DEFAULT_PORT = '8000'
+DEFAULT_PORT = '6000'
 HOST = '127.0.0.1'
 DEFAULT_WORKERS_NUMBER = '3'
 

@@ -17,7 +17,7 @@ def handle_error(error_message):
 
 
 def add_tax_benefit_system_arguments(parser):
-    parser.add_argument('-c', '--country_package', action = 'store', help = u'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
+    parser.add_argument('-c', '--country-package', action = 'store', help = u'country package to use. If not provided, an automatic detection will be attempted by scanning the python packages installed in your environment which name contains the word "openfisca".')
     parser.add_argument('-e', '--extensions', action = 'store', help = u'extensions to load', nargs = '*')
     parser.add_argument('-r', '--reforms', action = 'store', help = u'reforms to apply to the country package', nargs = '*')
 
@@ -73,7 +73,7 @@ def detect_country_package():
                 installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
-        handle_error(u'No country package has been detected on your environment. If your country package is installed but not detected, please use the --country_package option.')
+        handle_error(u'No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.')
     if len(installed_country_packages) > 1:
-        log.warning(u'Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country_package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
+        log.warning(u'Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country-package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
     return installed_country_packages[0]

@@ -7,4 +7,4 @@ test:
 	nosetests
 
 api:
-	openfisca-serve --country_package openfisca_country_template --extensions openfisca_extension_template
+	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template
