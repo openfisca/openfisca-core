@@ -40,7 +40,7 @@ def get_variable_json_schema(variable):
         }
 
     if variable.value_type == Enum:
-        result['additionalProperties']['enum'] = variable.possible_values.list
+        result['additionalProperties']['enum'] = (item.name for item in list(variable.possible_values))
 
     return result
 

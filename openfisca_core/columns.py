@@ -9,7 +9,6 @@ from biryani import strings
 import numpy as np
 
 from . import conv, periods
-from .enumerations import Enum
 
 """
 Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
@@ -317,10 +316,11 @@ class AgeCol(IntCol):
             )
 
 
-class EnumCol(IntCol):
+class EnumCol(Column):
     '''
     A column of integer with an enum
     '''
+
     index_by_slug = None
 
     @property
