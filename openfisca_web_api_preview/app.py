@@ -109,8 +109,7 @@ def create_app(tax_benefit_system,
 
             variable = tax_benefit_system.get_variable(variable_name)
             if variable.value_type == Enum:
-                entity_result = variable.possible_values._vars[entity_result]
-
+                entity_result = entity_result.value
             dpath.util.set(input_data, path, entity_result)
 
         return jsonify(input_data)

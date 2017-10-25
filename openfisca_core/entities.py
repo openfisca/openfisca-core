@@ -90,9 +90,10 @@ class Entity(object):
                         except KeyError:
                             raise SituationParsingError(path_in_json,
                                 "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
-                                    value, variable_name, "', '".join(holder.variable.possible_values.list)
+                                    value, variable_name, "', '".join(possible_values)
                                     ).encode('utf-8')
                                 )
+
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
