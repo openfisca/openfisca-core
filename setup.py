@@ -31,7 +31,7 @@ setup(
     extras_require = {
         'test': [
             'nose',
-            'flake8',
+            'flake8 == 3.4.1',
             'openfisca-country-template == 1.3.1',
             'openfisca-extension-template == 1.1.1',
             ],

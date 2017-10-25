@@ -21,7 +21,7 @@ Basic use
 
 .. code-block:: shell
 
-  openfisca serve --country_package openfisca_france
+  openfisca serve --country-package openfisca_france
 
 
 Serving extensions
@@ -29,7 +29,7 @@ Serving extensions
 
 .. code-block:: shell
 
-  openfisca serve --country_package openfisca_france --extensions openfisca_paris
+  openfisca serve --country-package openfisca_france --extensions openfisca_paris
 
 
 Serving reforms
@@ -37,7 +37,7 @@ Serving reforms
 
 .. code-block:: shell
 
-  openfisca serve --country_package openfisca_france --reforms openfisca_france.reforms.plf2015.plf2015
+  openfisca serve --country-package openfisca_france --reforms openfisca_france.reforms.plf2015.plf2015
 
 
 Using a configuration file
@@ -49,7 +49,7 @@ Using a configuration file
 
   port = 4000
   workers = 4
-  country_package = 'openfisca_france'
+  country-package = 'openfisca_france'
   extensions = ['openfisca_paris']
 
 **Command line:**

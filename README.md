@@ -28,10 +28,11 @@ make test
 
 ## Serving the API
 
-OpenFisca-Core provides a Web-API. To run it with the mock country package `openfisca_country_template`, run:
+OpenFisca-Core provides a Web-API. It is served on the `6000` port.  
+To run it with the mock country package `openfisca_country_template` and another port value as `5000`, run:
 
 ```sh
-openfisca serve --country_package openfisca_country_template --port 5000
+openfisca serve --country-package openfisca_country_template --port 5000
 ```
 
 To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html).
@@ -69,5 +70,5 @@ The tracker is activated when these two options are set:
 For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
 
 ```sh
-openfisca serve --country_package openfisca_country_template --port 5000 --tracker-url https://stats.data.gouv.fr/piwik.php --tracker-idsite 4 --tracker-token $TRACKER_TOKEN
+openfisca serve --country-package openfisca_country_template --port 5000 --tracker-url https://stats.data.gouv.fr/piwik.php --tracker-idsite 4 --tracker-token $TRACKER_TOKEN
 ```
