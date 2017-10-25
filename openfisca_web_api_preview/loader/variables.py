@@ -92,7 +92,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
             result['formulas'][get_next_day(variable.end)] = None
 
     if variable.value_type == Enum:
-        result['possibleValues'] = (item.value for item inlist(variable.possible_values))
+        result['possibleValues'] = (item.name for item in list(variable.possible_values))
 
     return result
 

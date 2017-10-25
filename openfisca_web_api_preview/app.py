@@ -125,7 +125,6 @@ def create_app(tax_benefit_system,
             abort(make_response(jsonify(e.error), e.code or 400))
 
         requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
-
         for computation in requested_computations:
             path = computation[0]
             entity_plural, entity_id, variable_name, period = path.split('/')

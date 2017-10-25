@@ -2,6 +2,7 @@
 
 import logging
 import copy
+from enum import Enum
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +103,13 @@ class Tracer(object):
                 u"Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
                 .format(expected_key, key).encode('utf-8')
                 )
-        self.trace[key]['value'] = result.tolist()  # Cast numpy array into a python list
+        intermediate_result = result.tolist()
+
+        if isinstance(intermediate_result[0], Enum):
+            for item in range(len(intermediate_result)):
+                intermediate_result[item] = intermediate_result[item].name
+
+        self.trace[key]['value'] = intermediate_result  # Cast numpy array into a python list
 
     def record_calculation_abortion(self, variable_name, period, **parameters):
         """
