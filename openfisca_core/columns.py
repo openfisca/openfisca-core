@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 
+from enum import Enum
 from . import conv, periods
 
 """

@@ -4,7 +4,7 @@ import datetime
 import inspect
 import textwrap
 
-from openfisca_core.enumerations import Enum
+from enum import Enum
 
 
 def get_next_day(date):
