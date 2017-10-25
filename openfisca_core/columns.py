@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import collections
 import datetime
 import re
@@ -368,5 +367,9 @@ class EnumCol(Column):
     def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         if use_label and self.variable.possible_values is not None:
-            return self.variable.possible_values._vars.get(value, value)
-        return value
+            return value.value
+        return value.name
+
+
+class PeriodSizeIndependentIntCol(IntCol):
+    is_period_size_independent = True
