@@ -5,7 +5,6 @@ import collections
 import datetime
 import re
 
-from biryani import strings
 import numpy as np
 
 from . import conv, periods
@@ -320,34 +319,19 @@ class EnumCol(Column):
     '''
     A column of integer with an enum
     '''
-
+    dtype = np.dtype('object')
+    is_period_size_independent = True
+    json_type = 'Enumeration'
     index_by_slug = None
 
     @property
     def input_to_dated_python(self):
         enum = self.variable.possible_values
         if enum is None:
-            return conv.input_to_int
-        # This converters accepts either an item number or an item name.
-        index_by_slug = self.index_by_slug
-        if index_by_slug is None:
-            self.index_by_slug = index_by_slug = dict(
-                (strings.slugify(name), index)
-                for index, name in sorted(enum._vars.iteritems())
-                )
-        return conv.condition(
-            conv.input_to_int,
-            conv.pipe(
-                # Verify that item index belongs to enumeration.
-                conv.input_to_int,
-                conv.test_in(enum._vars),
-                ),
-            conv.pipe(
-                # Convert item name to its index.
-                conv.input_to_slug,
-                conv.test_in(index_by_slug),
-                conv.function(lambda slug: index_by_slug[slug]),
-                ),
+            return conv.test_isinstance((basestring, basestring))
+        return conv.pipe(
+            # Verify that item index belongs to enumeration.
+            conv.test_in([item.name for item in list(enum)])
             )
 
     def json_default(self):
@@ -356,42 +340,28 @@ class EnumCol(Column):
     @property
     def json_to_dated_python(self):
         enum = self.variable.possible_values
+        possible_names = [item.name for item in list(enum)]
+
         if enum is None:
             return conv.pipe(
-                conv.test_isinstance((basestring, int)),
-                conv.anything_to_int,
-                )
-        # This converters accepts either an item number or an item name.
-        index_by_slug = self.index_by_slug
-        if index_by_slug is None:
-            self.index_by_slug = index_by_slug = dict(
-                (strings.slugify(name), index)
-                for index, name in sorted(enum._vars.iteritems())
+                conv.test_isinstance((basestring, basestring))
                 )
         return conv.pipe(
-            conv.test_isinstance((basestring, int)),
-            conv.condition(
-                conv.anything_to_int,
-                conv.pipe(
-                    # Verify that item index belongs to enumeration.
-                    conv.anything_to_int,
-                    conv.test_in(enum._vars),
-                    ),
-                conv.pipe(
-                    # Convert item name to its index.
-                    conv.input_to_slug,
-                    conv.test_in(index_by_slug),
-                    conv.function(lambda slug: index_by_slug[slug]),
-                    ),
-                ),
+            conv.test_isinstance((basestring, basestring)),
+            conv.pipe(
+                # Verify that item belongs to enumeration.
+                conv.test_in(possible_names),
+                # Transform that item into enum object.
+                conv.function(lambda enum_name: enum[enum_name])
+                )
             )
 
     def to_json(self):
         self_json = super(EnumCol, self).to_json()
         if self.variable.possible_values is not None:
             self_json['labels'] = collections.OrderedDict(
-                (index, label)
-                for label, index in self.variable.possible_values
+                (item.name, item.value)
+                for item in self.variable.possible_values
                 )
         return self_json
 
