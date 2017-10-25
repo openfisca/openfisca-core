@@ -86,14 +86,14 @@ class Entity(object):
                         array = holder.default_array()
                     if holder.variable.value_type == Enum and isinstance(value, basestring):
                         try:
-                            value = holder.variable.possible_values[value]
+                            value = holder.variable.name
                         except KeyError:
+                            possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
                                 "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
                                     value, variable_name, "', '".join(possible_values)
                                     ).encode('utf-8')
                                 )
-
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
