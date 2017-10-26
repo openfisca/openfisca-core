@@ -1,11 +1,16 @@
 # Changelog
 
-## 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
+# 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
 
-- Rename serving option `--country_package` to `--country-package`
-- Introduce `openfisca serve` command to serve the new API
-  - Read more in the [doc](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html)
-- Handle reforms and extensions in the new API
+#### Breaking changes
+
+- Change the way the API is started
+  * The previous command `COUNTRY_PACKAGE=openfisca_country gunicorn ...` does not work anymore 
+  * The new command to serve the API is `openfisca serve`.
+    * Read more in the [doc](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html)
+    * This command allows to serve reforms and extensions in the new API
+
+- In `openfisca-run-test` and `openfisca-serve`, rename option `--country_package` to `--country-package`
 
 ## 18.1.0 [#578](https://github.com/openfisca/openfisca-core/pull/578)
 
