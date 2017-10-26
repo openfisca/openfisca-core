@@ -1,7 +1,8 @@
 # Changelog
 
 # 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
-
+> Wrongfully published as 18.2.0
+ 
 #### Breaking changes
 
 - Change the way the API is started
