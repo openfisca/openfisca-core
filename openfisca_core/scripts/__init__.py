@@ -4,16 +4,10 @@ import traceback
 import importlib
 import logging
 import pkgutil
-import sys
 from os import linesep
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format='%(levelname)s: %(message)s')
-
-
-def handle_error(error_message):
-    log.error(error_message)
-    sys.exit(1)
 
 
 def add_tax_benefit_system_arguments(parser):
@@ -35,9 +29,9 @@ def build_tax_benefit_system(country_package_name, extensions, reforms):
                                 u'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
                                 u'See more at <https://github.com/openfisca/country-template#installing>.'])
 
-        handle_error(message)
+        raise ImportError(message)
     if not hasattr(country_package, 'CountryTaxBenefitSystem'):
-        handle_error(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
+        raise ImportError(u'`{}` does not seem to be a valid Openfisca country package.'.format(country_package_name))
 
     country_package = importlib.import_module(country_package_name)
     tax_benefit_system = country_package.CountryTaxBenefitSystem()
@@ -68,12 +62,12 @@ def detect_country_package():
                 message = linesep.join([traceback.format_exc(),
                                         u'Could not import module `{}`.'.format(module_name),
                                         u'Look at the stack trace above to determine the error that stopped installed modules detection.'])
-                handle_error(message)
+                raise ImportError(message)
             if hasattr(module, 'CountryTaxBenefitSystem'):
                 installed_country_packages.append(module_name)
 
     if len(installed_country_packages) == 0:
-        handle_error(u'No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.')
+        raise ImportError(u'No country package has been detected on your environment. If your country package is installed but not detected, please use the --country-package option.')
     if len(installed_country_packages) > 1:
         log.warning(u'Several country packages detected : `{}`. Using `{}` by default. To use another package, please use the --country-package option.'.format(', '.join(installed_country_packages), installed_country_packages[0]))
     return installed_country_packages[0]
