@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '18.1.0',
+    version = '18.2.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -26,12 +26,12 @@ setup(
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
         ],
     entry_points = {
-        'console_scripts': ['openfisca-run-test=openfisca_core.scripts.run_test:main'],
+        'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main', 'openfisca-run-test=openfisca_core.scripts.run_test:main'],
         },
     extras_require = {
         'test': [
             'nose',
-            'flake8',
+            'flake8 == 3.4.1',
             'openfisca-country-template == 1.3.1',
             'openfisca-extension-template == 1.1.1',
             ],

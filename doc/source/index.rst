@@ -18,6 +18,7 @@ Scripts:
    :maxdepth: 1
 
    openfisca-run-test
+   openfisca_serve
 
 Indices and tables
 ==================

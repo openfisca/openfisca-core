@@ -28,15 +28,18 @@ make test
 
 ## Serving the API
 
-OpenFisca-Core provides a Web-API. To run it with the mock country package `openfisca_country_template`, run:
+OpenFisca-Core provides a Web-API. It is served on the `6000` port.  
+To run it with the mock country package `openfisca_country_template` and another port value as `5000`, run:
 
 ```sh
-COUNTRY_PACKAGE=openfisca_country_template gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
+openfisca serve --country-package openfisca_country_template --port 5000
 ```
 
-The `--workers k` (with `k >= 3`) option is necessary to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process.  
+To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html).
 
-Test it by running:
+By default, the Web API uses 3 workers to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process. You can change the number of workers by specifying a `--workers k` option.
+
+You can test that the API is running by executing the command:
 
 ```sh
 curl http://localhost:5000/parameters
@@ -58,14 +61,14 @@ pip install openfisca_core[tracker]  # Or `pip install --editable ".[tracker]"` 
 
 #### Tracker configuration
 
-The tracker is activated when these two environment variables are set:
+The tracker is activated when these two options are set:
 
-* `TRACKER_URL`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
-* `TRACKER_IDSITE`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
-* `TRACKER_TOKEN`: A string. It defines the Piwik API Authentification token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentification token can be found in your Piwik interface, when you are logged.
+* `--tracker-url`: An URL ending with `piwik.php`. It defines the Piwik instance that will receive the tracking information. To use the main OpenFisca Piwik instance, use `https://stats.data.gouv.fr/piwik.php`.
+* `--tracker-idsite`: An integer. It defines the identifier of the tracked site on your Piwik instance. To use the main OpenFisca piwik instance, use `4`.
+* `--tracker-token`: A string. It defines the Piwik API Authentification token to differentiate API calls based on the user IP. Otherwise, all API calls will seem to come from your server. The Piwik API Authentification token can be found in your Piwik interface, when you are logged.
 
 For instance, to run the Web API with the mock country package `openfisca_country_template` and the tracker activated, run:
 
 ```sh
-COUNTRY_PACKAGE=openfisca_country_template TRACKER_URL="https://stats.data.gouv.fr/piwik.php" TRACKER_IDSITE=4 gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
+openfisca serve --country-package openfisca_country_template --port 5000 --tracker-url https://stats.data.gouv.fr/piwik.php --tracker-idsite 4 --tracker-token $TRACKER_TOKEN
 ```

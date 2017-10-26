@@ -7,4 +7,4 @@ test:
 	nosetests
 
 api:
-	COUNTRY_PACKAGE=openfisca_country_template gunicorn "openfisca_web_api_preview.app:create_app()" --bind localhost:5000 --workers 3
+	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template

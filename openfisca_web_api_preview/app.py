@@ -9,6 +9,7 @@ import dpath
 
 from openfisca_core.simulations import Simulation, SituationParsingError
 from openfisca_core.columns import EnumCol
+
 from loader import build_data
 import traceback
 import logging
@@ -35,16 +36,11 @@ def init_tracker(url, idsite, tracker_token):
         log.warn(message)
 
 
-def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
-               tracker_url = os.environ.get('TRACKER_URL'),
-               tracker_token = os.environ.get('TRACKER_TOKEN'),
-               tracker_idsite = os.environ.get('TRACKER_IDSITE')):
-    if country_package is None:
-        raise ValueError(
-            u"You must specify a country package to start the API. "
-            u"For instance, `COUNTRY_PACKAGE=openfisca_france flask run`"
-            .encode('utf-8')
-            )
+def create_app(tax_benefit_system,
+               tracker_url = None,
+               tracker_idsite = None,
+               tracker_token = None
+               ):
 
     if not tracker_url or not tracker_idsite:
         tracker = None
@@ -57,7 +53,7 @@ def create_app(country_package = os.environ.get('COUNTRY_PACKAGE'),
 
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
-    data = build_data(country_package)
+    data = build_data(tax_benefit_system)
 
     @app.route('/parameters')
     def get_parameters():
