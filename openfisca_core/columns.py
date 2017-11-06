@@ -11,6 +11,12 @@ import numpy as np
 from . import conv, periods
 from .enumerations import Enum
 
+"""
+Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
+Columns have not been removed from the code, as they are still used by the legacy API and by some reusers (especially for simulations with a big population)
+If you do need a column for retro-compatibility, you can use: column = make_column_from_variable(variable)
+"""
+
 
 def N_(message):
     return message
