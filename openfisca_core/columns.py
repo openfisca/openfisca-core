@@ -4,13 +4,18 @@
 import collections
 import datetime
 import re
-import warnings
 
 from biryani import strings
 import numpy as np
 
 from . import conv, periods
 from .enumerations import Enum
+
+"""
+Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
+Columns have not been removed from the code, as they are still used by the legacy API and by some reusers (especially for simulations with a big population)
+If you do need a column for retro-compatibility, you can use: column = make_column_from_variable(variable)
+"""
 
 
 def N_(message):
@@ -22,67 +27,34 @@ year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2
 
 # Base Column
 
+def make_column_from_variable(variable):
+    CONVERSION_MAP = {
+        bool: BoolCol,
+        int: IntCol,
+        float: FloatCol,
+        str: StrCol,
+        Enum: EnumCol,
+        datetime.date: DateCol,
+        }
+    if variable.value_type == str and variable.max_length:
+        return FixedStrCol(variable)
+    return CONVERSION_MAP[variable.value_type](variable)
+
 
 class Column(object):
-    cerfa_field = None
-    default = 0
-    dtype = float
-    end = None
-    entity = None
-    formula_class = None
-    is_period_size_independent = False  # When True, value of column doesn't depend from size of period (example: age)
-    definition_period = None
-    # json_type = None  # Defined in sub-classes
-    label = None
-    name = None
-    start = None
-    survey_only = False
-    reference = None  # Either a single reference or a list of references
     val_type = None
 
-    def __init__(
-            self,
-            cerfa_field = None,
-            default = None,
-            end = None,
-            entity = None,
-            function = None,
-            label = None,
-            start = None,
-            survey_only = False,
-            reference = None,
-            val_type = None
-            ):
-        if cerfa_field is not None:
-            assert isinstance(cerfa_field, (basestring, dict)), cerfa_field
-            self.cerfa_field = cerfa_field
-        if default is not None and default != self.default:
-            self.default = default
-        if end is not None:
-            self.end = end
-        if function is not None:
-            self.function = function
-        if label is not None:
-            self.label = label
-        if start is not None:
-            self.start = start
-        if survey_only:
-            self.survey_only = True
-        if reference is not None:
-            self.reference = reference
-        if val_type is not None and val_type != self.val_type:
-            self.val_type = val_type
-        self.is_neutralized = False
+    def __init__(self, variable):
+        self.variable = variable
+
+    def __getattr__(self, name):
+        return getattr(self.variable, name)
 
     def empty_clone(self):
         return self.__class__()
 
-    def is_input_variable(self):
-        """Returns true if the column (self) is an input variable."""
-        return self.formula_class.dated_formulas_class == []
-
     def json_default(self):
-        return self.default
+        return self.default_value
 
     def make_json_to_array_by_period(self, period):
         return conv.condition(
@@ -140,7 +112,7 @@ class Column(object):
             ))
         if self.cerfa_field is not None:
             self_json['cerfa_field'] = self.cerfa_field
-        if self.default is not None:
+        if self.default_value is not None:
             self_json['default'] = self.json_default()
         end = self.end
         if end is not None:
@@ -151,24 +123,17 @@ class Column(object):
             self_json['entity'] = self.entity.key
         if self.label is not None:
             self_json['label'] = self.label
-        start_line_number = self.formula_class.start_line_number
+        start_line_number = self.formula.start_line_number
         if start_line_number is not None:
             self_json['start_line_number'] = start_line_number
-        source_code = self.formula_class.source_code
+        source_code = self.formula.source_code
         if source_code is not None:
             self_json['source_code'] = source_code
-        source_file_path = self.formula_class.source_file_path
+        source_file_path = self.formula.source_file_path
         if source_file_path is not None:
             self_json['source_file_path'] = source_file_path
         if self.name is not None:
             self_json['name'] = self.name
-        start = self.start
-        if start is not None:
-            if isinstance(start, datetime.date):
-                start = start.isoformat()
-            self_json['start'] = start
-        if self.survey_only:
-            self_json['survey_only'] = self.survey_only
         if self.reference is not None:
             self_json['reference'] = self.reference
         if self.val_type is not None:
@@ -196,10 +161,6 @@ class BoolCol(Column):
     '''
     A column of boolean
     '''
-    default = False
-    dtype = np.bool
-    is_period_size_independent = True
-    json_type = 'Boolean'
 
     @property
     def input_to_dated_python(self):
@@ -217,18 +178,7 @@ class DateCol(Column):
     '''
     A column of Datetime 64 to store dates of people
     '''
-    dtype = 'datetime64[D]'
-    is_period_size_independent = True
-    json_type = 'Date'
     val_type = 'date'
-
-    def __init__(self, default = None, **kwargs):
-        super(DateCol, self).__init__(**kwargs)
-        if default is None:
-            warnings.warn('DateCol.default not given, using 1970-01-01', DeprecationWarning)
-            default = datetime.date.fromtimestamp(0)  # 0 == 1970-01-01
-        assert isinstance(default, datetime.date), default
-        self.default = default
 
     @property
     def input_to_dated_python(self):
@@ -239,7 +189,7 @@ class DateCol(Column):
             )
 
     def json_default(self):
-        return unicode(np.array(self.default, self.dtype))
+        return unicode(np.array(self.default_value, self.dtype))
 
     @property
     def json_to_dated_python(self):
@@ -270,24 +220,10 @@ class DateCol(Column):
 
 
 class FixedStrCol(Column):
-    default = u''
-    dtype = None
-    is_period_size_independent = True
-    json_type = 'String'
-    max_length = None
-
-    def __init__(self, max_length = None, **kwargs):
-        super(FixedStrCol, self).__init__(**kwargs)
-        assert isinstance(max_length, int)
-        self.dtype = '|S{}'.format(max_length)
-        self.max_length = max_length
-
-    def empty_clone(self):
-        return self.__class__(max_length = self.max_length)
 
     @property
     def input_to_dated_python(self):
-        return conv.test(lambda value: len(value) <= self.max_length)
+        return conv.test(lambda value: len(value) <= self.variable.max_length)
 
     @property
     def json_to_dated_python(self):
@@ -298,7 +234,7 @@ class FixedStrCol(Column):
                 conv.function(unicode),
                 ),
             conv.test_isinstance(basestring),
-            conv.test(lambda value: len(value) <= self.max_length),
+            conv.test(lambda value: len(value) <= self.variable.max_length),
             )
 
 
@@ -306,9 +242,6 @@ class FloatCol(Column):
     '''
     A column of float 32
     '''
-    dtype = np.float32
-    json_type = 'Float'
-
     @property
     def input_to_dated_python(self):
         return conv.input_to_float
@@ -325,9 +258,6 @@ class IntCol(Column):
     '''
     A column of integer
     '''
-    dtype = np.int32
-    json_type = 'Integer'
-
     @property
     def input_to_dated_python(self):
         return conv.input_to_int
@@ -341,10 +271,6 @@ class IntCol(Column):
 
 
 class StrCol(Column):
-    default = u''
-    dtype = object
-    is_period_size_independent = True
-    json_type = 'String'
 
     @property
     def input_to_dated_python(self):
@@ -369,8 +295,6 @@ class AgeCol(IntCol):
     '''
     A column of Int to store ages of people
     '''
-    default = -9999
-    is_period_size_independent = True
 
     @property
     def input_to_dated_python(self):
@@ -397,23 +321,11 @@ class EnumCol(IntCol):
     '''
     A column of integer with an enum
     '''
-    dtype = np.int16
-    enum = None
     index_by_slug = None
-    is_period_size_independent = True
-    json_type = 'Enumeration'
-
-    def __init__(self, enum = None, **kwargs):
-        super(EnumCol, self).__init__(**kwargs)
-        assert isinstance(enum, Enum)
-        self.enum = enum
-
-    def empty_clone(self):
-        return self.__class__(enum = self.enum)
 
     @property
     def input_to_dated_python(self):
-        enum = self.enum
+        enum = self.variable.possible_values
         if enum is None:
             return conv.input_to_int
         # This converters accepts either an item number or an item name.
@@ -439,11 +351,11 @@ class EnumCol(IntCol):
             )
 
     def json_default(self):
-        return unicode(self.default) if self.default is not None else None
+        return unicode(self.default_value) if self.default_value is not None else None
 
     @property
     def json_to_dated_python(self):
-        enum = self.enum
+        enum = self.variable.possible_values
         if enum is None:
             return conv.pipe(
                 conv.test_isinstance((basestring, int)),
@@ -476,19 +388,15 @@ class EnumCol(IntCol):
 
     def to_json(self):
         self_json = super(EnumCol, self).to_json()
-        if self.enum is not None:
+        if self.variable.possible_values is not None:
             self_json['labels'] = collections.OrderedDict(
                 (index, label)
-                for label, index in self.enum
+                for label, index in self.variable.possible_values
                 )
         return self_json
 
     def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
-        if use_label and self.enum is not None:
-            return self.enum._vars.get(value, value)
+        if use_label and self.variable.possible_values is not None:
+            return self.variable.possible_values._vars.get(value, value)
         return value
-
-
-class PeriodSizeIndependentIntCol(IntCol):
-    is_period_size_independent = True

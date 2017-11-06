@@ -14,7 +14,6 @@ import numpy as np
 from numpy.core.defchararray import startswith
 
 from openfisca_core import periods, simulations
-from openfisca_core.columns import BoolCol, DateCol, FixedStrCol, FloatCol, IntCol
 from openfisca_core.periods import ETERNITY
 from openfisca_core.entities import build_entity
 from openfisca_core.variables import Variable
@@ -73,26 +72,27 @@ Individu = build_entity(
 
 
 class age_en_mois(Variable):
-    column = IntCol
+    value_type = int
     entity = Individu
     label = u"Âge (en nombre de mois)"
 
 
 class birth(Variable):
-    column = DateCol
+    value_type = 'Date'
     entity = Individu
     label = u"Date de naissance"
 
 
 class city_code(Variable):
-    column = FixedStrCol(max_length = 5)
+    value_type = 'FixedStr'
+    max_length = 5
     entity = Famille
-    column.definition_period = ETERNITY
+    definition_period = ETERNITY
     label = u"""Code INSEE "city_code" de la commune de résidence de la famille"""
 
 
 class salaire_brut(Variable):
-    column = FloatCol
+    value_type = float
     entity = Individu
     label = "Salaire brut"
 
@@ -100,7 +100,7 @@ class salaire_brut(Variable):
 # Calculated variables
 
 class age(Variable):
-    column = IntCol
+    value_type = int
     entity = Individu
     label = u"Âge (en nombre d'années)"
 
@@ -115,7 +115,7 @@ class age(Variable):
 
 
 class dom_tom(Variable):
-    column = BoolCol
+    value_type = 'Bool'
     entity = Famille
     label = u"La famille habite-t-elle les DOM-TOM ?"
 
@@ -126,7 +126,7 @@ class dom_tom(Variable):
 
 
 class revenu_disponible(Variable):
-    column = FloatCol
+    value_type = float
     entity = Individu
     label = u"Revenu disponible de l'individu"
 
@@ -138,7 +138,7 @@ class revenu_disponible(Variable):
 
 
 class rsa(Variable):
-    column = FloatCol
+    value_type = float
     entity = Individu
     label = u"RSA"
 
@@ -159,7 +159,7 @@ class rsa(Variable):
 
 
 class salaire_imposable(Variable):
-    column = FloatCol
+    value_type = float
     entity = Individu
     label = u"Salaire imposable"
 
@@ -171,7 +171,7 @@ class salaire_imposable(Variable):
 
 
 class salaire_net(Variable):
-    column = FloatCol
+    value_type = float
     entity = Individu
     label = u"Salaire net"
 

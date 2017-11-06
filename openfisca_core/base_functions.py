@@ -17,13 +17,13 @@ def permanent_default_value(formula, simulation, period, *extra_params):
 def requested_period_added_value(formula, simulation, period, *extra_params):
     # This formula is used for variables that can be added to match requested period.
     holder = formula.holder
-    column = holder.column
+    variable = holder.variable
     period_size = period.size
     period_unit = period.unit
     if holder._array_by_period is not None and (period_size > 1 or period_unit == YEAR):
         after_instant = period.start.offset(period_size, period_unit)
         if period_size > 1:
-            array = formula.zeros(dtype = column.dtype)
+            array = formula.zeros(dtype = variable.dtype)
             sub_period = period.start.period(period_unit)
             while sub_period.start < after_instant:
                 sub_array = holder._array_by_period.get(sub_period)
@@ -35,7 +35,7 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
             if array is not None:
                 return array
         if period_unit == YEAR:
-            array = formula.zeros(dtype = column.dtype)
+            array = formula.zeros(dtype = variable.dtype)
             month = period.start.period(u'month')
             while month.start < after_instant:
                 month_array = holder._array_by_period.get(month)
@@ -101,5 +101,5 @@ def missing_value(formula, simulation, period, *extra_params):
     if function is not None:
         return formula.exec_function(simulation, period, *extra_params)
     holder = formula.holder
-    column = holder.column
-    raise ValueError(u"Missing value for variable {} at {}".format(column.name, period))
+    variable = holder.variable
+    raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))

@@ -4,19 +4,18 @@
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.variables import Variable
-from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 
 
 class input(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     label = u"Input variable"
     definition_period = MONTH
 
 
 class intermediate(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     label = u"Intermediate result that don't need to be cached"
     definition_period = MONTH
@@ -26,7 +25,7 @@ class intermediate(Variable):
 
 
 class output(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     label = u'Output variable'
     definition_period = MONTH

@@ -9,44 +9,17 @@ import importlib
 import logging
 import inspect
 import pkg_resources
-import warnings
 import traceback
-
 from setuptools import find_packages
 
 import conv
 from parameters import ParameterNode
 from variables import Variable
 from scenarios import AbstractScenario
-from formulas import get_neutralized_column
+from formulas import get_neutralized_variable
+from errors import VariableNotFound
 
 log = logging.getLogger(__name__)
-
-
-class VariableNotFound(Exception):
-    """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
-    """
-
-    def __init__(self, variable_name, tax_benefit_system):
-        """
-        :param variable_name: Name of the variable that was queried.
-        :param tax_benefit_system: Tax benefits system that does not contain `variable_name`
-        """
-        country_package_metadata = tax_benefit_system.get_package_metadata()
-        country_package_name = country_package_metadata['name']
-        country_package_version = country_package_metadata['version']
-        if country_package_version:
-            country_package_id = '{}@{}'.format(country_package_name, country_package_version)
-        else:
-            country_package_id = country_package_name
-        message = linesep.join([
-            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}).".format(variable_name, country_package_id),
-            u"Are you sure you spelled '{0}' correctly?".format(variable_name),
-            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
-            u"Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
-            u"it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
-            ])
-        Exception.__init__(self, message.encode('utf-8'))
 
 
 class VariableNameConflict(Exception):
@@ -86,8 +59,7 @@ class TaxBenefitSystem(object):
     def __init__(self, entities):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
-        self.column_by_name = {}
-        self.automatically_loaded_variable = set()
+        self.variables = {}
 
         self.entities = entities
         if entities is None or len(entities) == 0:
@@ -125,30 +97,17 @@ class TaxBenefitSystem(object):
 
     def load_variable(self, variable_class, update = False):
         name = unicode(variable_class.__name__)
-        variable_type = variable_class.__bases__[0]
-        attributes = dict(variable_class.__dict__)
 
-        # Check if a Variable of same name is already registered.
-        existing_column = self.get_column(name)
-        if existing_column:
-            if update:
-                attributes['baseline_variable'] = existing_column
-            else:
-                # Variables that are dependencies of others (trough a conversion column) can be loaded automatically
-                # Is it still necessary ?
-                if name in self.automatically_loaded_variable:
-                    self.automatically_loaded_variable.remove(name)
-                    return self.get_column(name)
-                raise VariableNameConflict(
-                    u'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
+        # Check if a Variable with the same name is already registered.
+        baseline_variable = self.get_variable(name)
+        if baseline_variable and not update:
+            raise VariableNameConflict(
+                u'Variable "{}" is already defined. Use `update_variable` to replace it.'.format(name))
 
-        # We pass the variable_class just for introspection.
-        variable = variable_type(name, attributes, variable_class)
-        # We need the tax and benefit system to identify columns mentioned by conversion variables.
-        column = variable.to_column(self)
-        self.add_column(column)
+        variable = variable_class(baseline_variable = baseline_variable)
+        self.variables[variable.name] = variable
 
-        return column
+        return variable
 
     def add_variable(self, variable):
         """
@@ -282,17 +241,17 @@ class TaxBenefitSystem(object):
 
         return reform(self)
 
-    def add_column(self, column):
-        self.column_by_name[column.name] = column
+    def get_variable(self, variable_name, check_existence = False):
+        """
+        Get a variable from the tax and benefit system.
 
-    def get_column(self, column_name, check_existence = False):
-        column = self.column_by_name.get(column_name)
-        if not column and check_existence:
-            raise VariableNotFound(column_name, self)
-        return column
-
-    def update_column(self, column_name, new_column):
-        self.column_by_name[column_name] = new_column
+        :param variable_name: Name of the requested variable.
+        :param check_existence: If True, raise an error if the requested variable does not exist.
+        """
+        variables = self.variables.get(variable_name)
+        if not variables and check_existence:
+            raise VariableNotFound(variable_name, self)
+        return variables
 
     def neutralize_variable(self, variable_name):
         """
@@ -302,16 +261,7 @@ class TaxBenefitSystem(object):
 
         Trying to set inputs for a neutralized variable has no effect except raising a warning.
         """
-        self.update_column(variable_name, get_neutralized_column(self.get_column(variable_name)))
-
-    def neutralize_column(self, column_name):
-        warnings.warn(
-            u"The neutralize_column method has been renamed to neutralize_variable. "
-            u"neutralize_column has thus been deprecated and will be removed in the next major version. "
-            u"Please update your code.",
-            Warning
-            )
-        self.neutralize_variable(column_name)
+        self.variables[variable_name] = get_neutralized_variable(self.get_variable(variable_name))
 
     def load_parameters(self, path_to_yaml_dir):
         """
@@ -415,10 +365,10 @@ class TaxBenefitSystem(object):
 
         """
         if not entity:
-            return self.column_by_name
+            return self.variables
         else:
             return {
                 variable_name: variable
-                for variable_name, variable in self.column_by_name.iteritems()
+                for variable_name, variable in self.variables.iteritems()
                 if variable.entity == entity
                 }

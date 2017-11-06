@@ -132,7 +132,7 @@ def make_validate_node_xml_json(tax_benefit_system):
         if not validated_node.get('NODE'):
             validated_node, errors = conv.struct(
                 dict(
-                    code = conv.test_in(tax_benefit_system.column_by_name),
+                    code = conv.test_in(tax_benefit_system.variables),
                     ),
                 default = conv.noop,
                 )(validated_node, state = state)

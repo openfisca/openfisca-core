@@ -10,6 +10,7 @@ import numpy as np
 from . import periods
 from .commons import empty_clone
 from .periods import MONTH, YEAR, ETERNITY
+from columns import make_column_from_variable
 
 
 class DatedHolder(object):
@@ -34,15 +35,16 @@ class DatedHolder(object):
         raise ValueError('Impossible to modify DatedHolder.array. Please use Holder.put_in_cache.')
 
     @property
-    def column(self):
-        return self.holder.column
+    def variable(self):
+        return self.holder.variable
 
     @property
     def entity(self):
         return self.holder.entity
 
     def to_value_json(self, use_label = False):
-        transform_dated_value_to_json = self.holder.column.transform_dated_value_to_json
+        column = make_column_from_variable(self.holder.variable)
+        transform_dated_value_to_json = column.transform_dated_value_to_json
         return [
             transform_dated_value_to_json(cell, use_label = use_label)
             for cell in self.array.tolist()
@@ -50,39 +52,39 @@ class DatedHolder(object):
 
 
 class Holder(object):
-    _array = None  # Only used when column.definition_period == ETERNITY
-    _array_by_period = None  # Only used when column.definition_period != ETERNITY
-    column = None
+    _array = None  # Only used when variable.definition_period == ETERNITY
+    _array_by_period = None  # Only used when variable.definition_period != ETERNITY
+    variable = None
     entity = None
     formula = None
     formula_output_period_by_requested_period = None
 
-    def __init__(self, simulation = None, column = None, entity = None):
-        assert column is not None
-        assert self.column is None
+    def __init__(self, simulation = None, variable = None, entity = None):
+        assert variable is not None
+        assert self.variable is None
         if simulation is not None:
             warnings.warn(
-                u"The Holder(simulation, column) constructor has been deprecated. "
-                u"Please use Holder(entity = entity, column = column) instead.",
+                u"The Holder(simulation, variable) constructor has been deprecated. "
+                u"Please use Holder(entity = entity, variable = variable) instead.",
                 Warning
                 )
             self.simulation = simulation
-            self.entity = simulation.get_entity(column.entity)
+            self.entity = simulation.get_entity(variable.entity)
         else:
             self.entity = entity
             self.simulation = entity.simulation
-        self.column = column
+        self.variable = variable
         self.buffer = {}
 
     @property
     def array(self):
-        if self.column.definition_period != ETERNITY:
+        if self.variable.definition_period != ETERNITY:
             return self.get_array(self.simulation.period)
         return self._array
 
     @array.setter
     def array(self, array):
-        if self.column.definition_period != ETERNITY:
+        if self.variable.definition_period != ETERNITY:
             return self.put_in_cache(array, self.simulation.period)
         self._array = array
 
@@ -121,26 +123,26 @@ class Holder(object):
         The returned dated holder is always of the requested period and this method never returns None.
         """
         if self.simulation.trace:
-            self.simulation.tracer.record_calculation_start(self.column.name, period, **parameters)
-        column = self.column
+            self.simulation.tracer.record_calculation_start(self.variable.name, period, **parameters)
+        variable = self.variable
 
         # Check that the requested period matches definition_period
-        if column.definition_period != ETERNITY:
-            if column.definition_period == MONTH and period.unit != periods.MONTH:
+        if variable.definition_period != ETERNITY:
+            if variable.definition_period == MONTH and period.unit != periods.MONTH:
                 raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
-                    column.name,
+                    variable.name,
                     period
                     ).encode('utf-8'))
-            if column.definition_period == YEAR and period.unit != periods.YEAR:
+            if variable.definition_period == YEAR and period.unit != periods.YEAR:
                 raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-                    column.name,
+                    variable.name,
                     period
                     ).encode('utf-8'))
             if period.size != 1:
                 raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
-                    column.name,
+                    variable.name,
                     period,
-                    'month' if column.definition_period == MONTH else 'year').encode('utf-8'))
+                    'month' if variable.definition_period == MONTH else 'year').encode('utf-8'))
 
         extra_params = parameters.get('extra_params')
 
@@ -148,7 +150,7 @@ class Holder(object):
         holder_or_dated_holder = self.get_from_cache(period, extra_params)
         if holder_or_dated_holder.array is not None:
             if self.simulation.trace:
-                self.simulation.tracer.record_calculation_end(self.column.name, period, holder_or_dated_holder.array, **parameters)
+                self.simulation.tracer.record_calculation_end(self.variable.name, period, holder_or_dated_holder.array, **parameters)
             return holder_or_dated_holder
         assert self._array is None  # self._array should always be None when dated_holder.array is None.
 
@@ -156,24 +158,24 @@ class Holder(object):
         dated_holder = self.formula.compute(period = period, **parameters)
         formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
         if self.simulation.trace:
-            self.simulation.tracer.record_calculation_end(self.column.name, period, dated_holder.array, **parameters)
+            self.simulation.tracer.record_calculation_end(self.variable.name, period, dated_holder.array, **parameters)
         return formula_dated_holder
 
     def compute_add(self, period, **parameters):
         # Check that the requested period matches definition_period
-        if self.column.definition_period == YEAR and period.unit == periods.MONTH:
+        if self.variable.definition_period == YEAR and period.unit == periods.MONTH:
             raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-                self.column.name,
+                self.variable.name,
                 period,
                 ).encode('utf-8'))
 
-        if self.column.definition_period == MONTH:
+        if self.variable.definition_period == MONTH:
             variable_definition_period = periods.MONTH
-        elif self.column.definition_period == YEAR:
+        elif self.variable.definition_period == YEAR:
             variable_definition_period = periods.YEAR
         else:
             raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
-                self.column.name,
+                self.variable.name,
                 period).encode('utf-8'))
 
         after_instant = period.start.offset(period.size, period.unit)
@@ -191,9 +193,9 @@ class Holder(object):
 
     def compute_divide(self, period, **parameters):
         # Check that the requested period matches definition_period
-        if self.column.definition_period != YEAR:
+        if self.variable.definition_period != YEAR:
             raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
-                self.column.name,
+                self.variable.name,
                 period).encode('utf-8'))
 
         if period.size != 1:
@@ -208,7 +210,7 @@ class Holder(object):
             return self.compute(period, **parameters)
 
         raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
-            self.column.name,
+            self.variable.name,
             period).encode('utf-8'))
 
     def delete_arrays(self):
@@ -218,7 +220,7 @@ class Holder(object):
             del self._array_by_period
 
     def get_array(self, period, extra_params = None):
-        if self.column.definition_period == ETERNITY:
+        if self.variable.definition_period == ETERNITY:
             return self.array
         assert period is not None
         array_by_period = self._array_by_period
@@ -234,15 +236,15 @@ class Holder(object):
         return None
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
-        column = self.column
+        variable = self.variable
         if self in visited:
             return
         visited.add(self)
         nodes.append(dict(
-            id = column.name,
+            id = variable.name,
             group = self.entity.key,
-            label = column.name,
-            title = column.label,
+            label = variable.name,
+            title = variable.label,
             ))
         formula = self.formula
         if formula is None:
@@ -257,18 +259,18 @@ class Holder(object):
         return formula.real_formula
 
     def set_input(self, period, array):
-        if period.unit == ETERNITY and self.column.definition_period != ETERNITY:
+        if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
                 u'Unable to set a value for variable {0} for ETERNITY.',
                 u'{0} is only defined for {1}s. Please adapt your input.',
                 ]).format(
-                    self.column.name,
-                    self.column.definition_period
+                    self.variable.name,
+                    self.variable.definition_period
                 ).encode('utf-8')
             raise PeriodMismatchError(
-                self.column.name,
+                self.variable.name,
                 period,
-                self.column.definition_period,
+                self.variable.definition_period,
                 error_message
                 )
 
@@ -277,35 +279,35 @@ class Holder(object):
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
-        if self.column.definition_period != ETERNITY:
+        if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
-            if ((self.column.definition_period == MONTH and period.unit != periods.MONTH) or
-               (self.column.definition_period == YEAR and period.unit != periods.YEAR)):
+            if ((self.variable.definition_period == MONTH and period.unit != periods.MONTH) or
+               (self.variable.definition_period == YEAR and period.unit != periods.YEAR)):
                 error_message = os.linesep.join([
                     u'Unable to set a value for variable {0} for {1}-long period {2}.',
                     u'{0} is only defined for {3}s. Please adapt your input.',
                     u'If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'
                     ]).format(
-                        self.column.name,
+                        self.variable.name,
                         period.unit,
                         period,
-                        self.column.definition_period
+                        self.variable.definition_period
                     ).encode('utf-8')
 
                 raise PeriodMismatchError(
-                    self.column.name,
+                    self.variable.name,
                     period,
-                    self.column.definition_period,
+                    self.variable.definition_period,
                     error_message
                     )
 
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
-                self.column.name in simulation.tax_benefit_system.cache_blacklist):
+                self.variable.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        if self.column.definition_period == ETERNITY:
+        if self.variable.definition_period == ETERNITY:
             self.array = value
 
         array_by_period = self._array_by_period
@@ -320,9 +322,9 @@ class Holder(object):
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
-        if self.column.is_neutralized:
+        if self.variable.is_neutralized:
             return DatedHolder(self, period, value = self.default_array())
-        if self.column.definition_period == ETERNITY:
+        if self.variable.definition_period == ETERNITY:
             return self
 
         value = self.get_array(period, extra_params)
@@ -334,7 +336,7 @@ class Holder(object):
         return function.__func__.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
-        column = self.column
+        column = make_column_from_variable(self.variable)
         transform_dated_value_to_json = column.transform_dated_value_to_json
 
         def extra_params_to_json_key(extra_params, period):
@@ -343,7 +345,7 @@ class Holder(object):
                     for name, value in zip(self.get_extra_param_names(period), extra_params)]
                 ) + '}'
 
-        if column.definition_period == ETERNITY:
+        if self.variable.definition_period == ETERNITY:
             array = self._array
             if array is None:
                 return None
@@ -371,8 +373,8 @@ class Holder(object):
 
     def default_array(self):
         array_size = self.entity.count
-        array = np.empty(array_size, dtype = self.column.dtype)
-        array.fill(self.column.default)
+        array = np.empty(array_size, dtype = self.variable.dtype)
+        array.fill(self.variable.default_value)
         return array
 
 

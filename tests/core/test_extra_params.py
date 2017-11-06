@@ -2,7 +2,6 @@
 
 
 from openfisca_core import periods
-from openfisca_core.columns import IntCol, BoolCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_country_template import CountryTaxBenefitSystem
@@ -12,7 +11,7 @@ from openfisca_core.base_functions import requested_period_last_value
 
 
 class formula_1(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -21,7 +20,7 @@ class formula_1(Variable):
 
 
 class formula_2(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -30,7 +29,7 @@ class formula_2(Variable):
 
 
 class formula_3(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     definition_period = MONTH
 
@@ -39,7 +38,7 @@ class formula_3(Variable):
 
 
 class formula_4(Variable):
-    column = BoolCol
+    value_type = bool
     entity = Person
     base_function = requested_period_last_value
     definition_period = MONTH

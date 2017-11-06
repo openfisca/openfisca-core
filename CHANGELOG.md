@@ -1,12 +1,183 @@
 # Changelog
 
+# 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/583)
+
+#### Breaking changes
+
+##### Change the way Variables are declared
+
+- Replace `column` attribute by `value_type`
+  * Possible values of `value_type` are:
+    * `int`
+    * `float`
+    * `bool`
+    * `str`
+    * `date`
+    * `Enum` 
+
+Before:
+
+```py
+class basic_income(Variable):
+    column = FloatCol
+    entity = Person
+    definition_period = MONTH
+    label = "Basic income provided to adults"
+```
+
+Now:
+
+```py
+class basic_income(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+    label = "Basic income provided to adults"
+```
+
+- `default_value` is now a `Variable` attribute
+
+Before:
+
+```py
+class is_citizen(Variable):
+    column = BoolCol(default = True)
+    entity = Person
+    definition_period = MONTH
+    label = "Whether the person is a citizen"
+```
+
+Now:
+
+```py
+class is_citizen(Variable):
+    value_type = bool
+    default_value = True
+    entity = Person
+    definition_period = MONTH
+    label = "Whether the person is a citizen"
+```
+
+- For `Variables` which `value_type` is `str`, `max_lentgh` is now an attribute
+
+Before:
+
+```py
+class zipcode(Variable):
+    column = FixedStrCol(max_length = 5)
+    entity = Menage
+    label = u"Code INSEE (depcom) du lieu de résidence"
+    definition_period = MONTH
+```
+
+After:
+
+```py
+class zipcode(Variable):
+    value_type = str
+    max_length = 5
+    entity = Menage
+    label = u"Code INSEE (depcom) du lieu de résidence"
+    definition_period = MONTH
+```
+
+- For `Variables` which `value_type` is `Enum`, `possible_values` is now an attribute:
+
+Before:
+
+```py
+class housing_occupancy_status(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u'Tenant',
+            u'Owner',
+            u'Free logder',
+            u'Homeless'])
+        )
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+After:
+
+```py
+class housing_occupancy_status(Variable):
+    value_type = Enum
+    possible_values = Enum([
+        u'Tenant',
+        u'Owner',
+        u'Free logder',
+        u'Homeless'
+        ])
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+- Remove `PeriodSizeIndependentIntCol`:
+  * Replaced by `Variable` attribute `is_period_size_independent`
+
+
+##### Deprecate `Column`
+
+`Column` are now considered deprecated. Preferably use `Variable` instead.
+
+If you do need a column for retro-compatibility, you can use:
+
+```py
+from openfisca_core.columns import make_column_from_variable
+
+column = make_column_from_variable(variable)
+```
+
+
+- In `TaxBenefitSystem`:
+  * Remove `neutralize_column` (deprecated since `9.1.0`, replaced by `neutralize_variable`)
+  * Rename `column_by_name` to `variables`
+  * Rename `get_column` to `get_variable`
+  * Remove `update_column`
+  * Remove `add_column`
+  * Remove `automatically_loaded_variable` (irrelevant since conversion columns have been removed)
+  * Move `VariableNotFound` to `errors` module
+
+
+- In `Holder`:
+  * Rename `holder.column` to `holder.variable`
+
+- In `Column`:
+  * `Column` should only be instantiated using `make_column_from_variable`. Former constructors do not work anymore.
+  * Remove `column.start`, which was `None` since `14.0.0`
+  * Replace `column.formula_class` by `variable.formula`
+  * Replace `column.enum` by `variable.possible_values`
+  * Replace `column.default` by `variable.default_value`
+
+- In `formulas`:
+  * Rename `get_neutralized_column` to `get_neutralized_variable`
+  * Remove `new_filled_column`
+
+- In `Variable`:
+  * Remove `to_column`
+  * Variables can now directly be instanciated:
+
+```py
+class salary(Variable):
+    entity = Person
+    ...
+
+
+salary_variable = salary()
+```
+
+You can learn more about `Variable` by checking its [reference documentation](http://openfisca.readthedocs.io/en/latest/variables.html).
+
 # 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
 > Wrongfully published as 18.2.0
- 
+
 #### Breaking changes
 
 - Change the way the API is started
-  * The previous command `COUNTRY_PACKAGE=openfisca_country gunicorn ...` does not work anymore 
+  * The previous command `COUNTRY_PACKAGE=openfisca_country gunicorn ...` does not work anymore
   * The new command to serve the API is `openfisca serve`.
     * Read more in the [doc](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html)
     * This command allows to serve reforms and extensions in the new API

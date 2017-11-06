@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from openfisca_core.columns import IntCol
 from openfisca_core.periods import MONTH
 from openfisca_core.variables import Variable
 from openfisca_core.formula_helpers import switch
@@ -12,13 +11,13 @@ from openfisca_country_template.entities import Person
 
 
 class choice(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     definition_period = MONTH
 
 
 class uses_multiplication(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     label = u'Variable with formula that uses multiplication'
     definition_period = MONTH
@@ -30,7 +29,7 @@ class uses_multiplication(Variable):
 
 
 class uses_switch(Variable):
-    column = IntCol
+    value_type = int
     entity = Person
     label = u'Variable with formula that uses switch'
     definition_period = MONTH

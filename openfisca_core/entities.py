@@ -8,13 +8,13 @@ from os import linesep
 import numpy as np
 import dpath
 
+from enumerations import Enum
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
-from taxbenefitsystems import VariableNotFound
-from columns import EnumCol
+from errors import VariableNotFound
 
 
 class Entity(object):
@@ -84,20 +84,20 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-                    if isinstance(holder.column, EnumCol) and isinstance(value, basestring):
+                    if holder.variable.value_type == Enum and isinstance(value, basestring):
                         try:
-                            value = holder.column.enum[value]
+                            value = holder.variable.possible_values[value]
                         except KeyError:
                             raise SituationParsingError(path_in_json,
                                 "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
-                                    value, variable_name, "', '".join(holder.column.enum.list)
+                                    value, variable_name, "', '".join(holder.variable.possible_values.list)
                                     ).encode('utf-8')
                                 )
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
                         raise SituationParsingError(path_in_json,
-                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+                    'Invalid type: must be of type {}.'.format(holder.variable.json_type))
 
                     holder.buffer[period] = array
 
@@ -162,7 +162,7 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
+        variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
             message = linesep.join([
                 u"You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
@@ -220,13 +220,13 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        column = self.simulation.tax_benefit_system.get_column(variable_name)
+        variable = self.simulation.tax_benefit_system.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
-            column = column,
+            variable = variable,
             )
-        if column.formula_class is not None:
-            holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        if variable.formula is not None:
+            holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
 
 
