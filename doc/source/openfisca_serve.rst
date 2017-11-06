@@ -33,7 +33,7 @@ Basic use
 Serving extensions
 ^^^^^^^^^^^^^^^^^^
 
-`
+.. code-block:: shell
 
   openfisca serve --country-package openfisca_france --extensions openfisca_paris
 
