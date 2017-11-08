@@ -7,7 +7,6 @@ import os
 
 import numpy as np
 
-from . import periods
 from .commons import empty_clone
 from .periods import MONTH, YEAR, ETERNITY
 from columns import make_column_from_variable
@@ -55,6 +54,7 @@ class DatedHolder(object):
 class Holder(object):
     _array = None  # Only used when variable.definition_period == ETERNITY
     _array_by_period = None  # Only used when variable.definition_period != ETERNITY
+    _hits_by_period = None
     variable = None
     entity = None
     formula = None

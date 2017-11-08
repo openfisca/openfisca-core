@@ -245,6 +245,7 @@ class Simulation(object):
             return [entity for entity in self.entities.values() if entity.plural == plural][0]
 
 
+
 def check_type(input, type, path = []):
     json_type_map = {
         dict: "Object",
