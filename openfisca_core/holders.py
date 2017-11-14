@@ -8,6 +8,7 @@ import os
 import numpy as np
 
 from .commons import empty_clone
+import periods
 from .periods import MONTH, YEAR, ETERNITY
 from columns import make_column_from_variable
 from indexed_enums import Enum, EnumArray
@@ -214,11 +215,20 @@ class Holder(object):
             self.variable.name,
             period).encode('utf-8'))
 
-    def delete_arrays(self):
+    def delete_arrays(self, period = None):
         if self._array is not None:
             del self._array
-        if self._array_by_period is not None:
+        if self._array_by_period is not None and period is None:
             del self._array_by_period
+        if period is not None:
+            if not isinstance(period, periods.Period):
+                period = periods.period(period)
+            self._array_by_period = {
+                cache_period: value
+                for cache_period, value in self._array_by_period.iteritems()
+                if not period.contains(cache_period)
+                }
+
 
     def get_array(self, period, extra_params = None):
         if self.variable.definition_period == ETERNITY:
