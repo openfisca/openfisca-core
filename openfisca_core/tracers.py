@@ -133,10 +133,22 @@ class Tracer(object):
             self.trace[parent]['dependencies'].remove(key)
         del self.trace[key]
 
-    def print_computation_log(self):
+    def print_computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation
         """
         for node, depth in self._computation_log:
+            if not self.trace.get(node): # Strange: some key in the computation log is not in the trace. Probably related to calculation abortion.
+                continue
             value = self.trace[node]['value']
+            if aggregate:
+                try:
+                    avg = sum(value) / len(value)
+                except TypeError:
+                    avg = None
+                value = {
+                    'min': min(value),
+                    'max': max(value),
+                    'avg': avg,
+                }
             print("{}{} >> {}".format('  ' * depth, node, value))
