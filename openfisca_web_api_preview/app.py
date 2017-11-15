@@ -158,7 +158,10 @@ def create_app(tax_benefit_system,
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
+        if e.message:
+            response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
+        else:
+            response = jsonify({"error": "Internal server error: " + str(e)})
         response.status_code = 500
         return response
 
