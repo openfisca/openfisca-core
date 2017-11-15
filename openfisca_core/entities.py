@@ -273,6 +273,7 @@ class GroupEntity(Entity):
             self._members_position = None
             self.members_legacy_role = None
         self.members = self.simulation.persons
+        self._roles_count = None
 
     def split_variables_and_roles_json(self, entity_object):
         entity_object = entity_object.copy()  # Don't mutate function input
@@ -363,6 +364,17 @@ class GroupEntity(Entity):
     @members_role.setter
     def members_role(self, members_role):
         self._members_role = members_role
+
+    @property
+    def roles_count(self):
+        if self._roles_count is None:
+            self._roles_count = self.members_legacy_role.max() + 1
+        return self._roles_count
+
+    @roles_count.setter
+    def roles_count(self, value):
+        self._roles_count = value
+
 
     #  Aggregation persons -> entity
 
