@@ -103,12 +103,7 @@ class Tracer(object):
                 u"Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
                 .format(expected_key, key).encode('utf-8')
                 )
-        trace_result = result.tolist()  # Cast numpy array into a python list
-
-        if isinstance(trace_result[0], Enum):
-            self.trace[key]['value'] = [item.name for item in trace_result]
-        else:
-            self.trace[key]['value'] = trace_result
+        self.trace[key]['value'] = result
 
     def record_calculation_abortion(self, variable_name, period, **parameters):
         """

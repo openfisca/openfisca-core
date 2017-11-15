@@ -80,6 +80,7 @@ def test_bareme():
 
 def test_variable_with_reference():
     tax_benefit_system = CountryTaxBenefitSystem()  # Work in isolation
+
     def new_simulation():
         return tax_benefit_system.new_scenario().init_from_attributes(
             period = "2016-01",
