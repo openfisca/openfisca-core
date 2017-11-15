@@ -4,6 +4,7 @@
 from __future__ import division
 import warnings
 import os
+import tempfile
 
 import numpy as np
 
@@ -12,7 +13,9 @@ from .commons import empty_clone
 from .periods import MONTH, YEAR, ETERNITY
 from columns import make_column_from_variable
 from indexed_enums import Enum, EnumArray
+import logging
 
+log = logging.getLogger(__name__)
 
 class DatedHolder(object):
     """
@@ -80,6 +83,7 @@ class Holder(object):
             self.simulation = entity.simulation
         self.variable = variable
         self.buffer = {}
+        self.tmp_dir = None
 
     @property
     def array(self):
@@ -360,6 +364,25 @@ class Holder(object):
 
         self.formula.set_input(period, array)
 
+
+    def get_tmp_dir(self):
+        if self.tmp_dir:
+            return self.tmp_dir
+        if self.simulation.tmp_dir is None:
+            # self.simulation.tmp_dir = 'c:\\users\\flori\\appdata\\local\\temp\\openfisca_h5iskp\\'
+            self.simulation.tmp_dir = tempfile.mkdtemp(prefix="openfisca_")
+        self.tmp_dir = os.path.join(self.simulation.tmp_dir, self.variable.name)
+        os.makedirs(self.tmp_dir)
+        return self.tmp_dir
+
+
+    def put_in_disk_cache(self, value, period, extra_params = None):
+        tmp_dir = self.get_tmp_dir()
+        filename = (ETERNITY if self.variable.definition_period == ETERNITY else str(period))
+        path = os.path.join(tmp_dir, filename) + '.npy'
+        np.save(path, value)
+        return DatedHolder(self, period, value, extra_params)
+
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
 
@@ -403,9 +426,12 @@ class Holder(object):
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
+        return self.put_in_disk_cache(value, period, extra_params)
+
+    def put_in_memory_cache(self, value, period, extra_params = None):
+
         if self.variable.definition_period == ETERNITY:
             self.array = value
-
         array_by_period = self._array_by_period
         if array_by_period is None:
             self._array_by_period = array_by_period = {}
@@ -417,14 +443,27 @@ class Holder(object):
             array_by_period[period][tuple(extra_params)] = value
         return self.get_from_cache(period, extra_params)
 
-    def get_from_cache(self, period, extra_params = None):
-        if self.variable.is_neutralized:
-            return DatedHolder(self, period, value = self.default_array())
+    def get_from_memory_cache(self, period, extra_params = None):
         if self.variable.definition_period == ETERNITY:
             return self
 
         value = self.get_array(period, extra_params)
         return DatedHolder(self, period, value, extra_params)
+
+    def get_from_disk_cache(self, period, extra_params = None):
+        tmp_dir = self.get_tmp_dir()
+        filename = ETERNITY if self.variable.definition_period == ETERNITY else str(period)
+        path = os.path.join(tmp_dir, filename) + '.npy'
+        value = None
+        if os.path.isfile(path):
+            value = np.load(path)
+        return DatedHolder(self, period, value, extra_params)
+
+    def get_from_cache(self, period, extra_params = None):
+        if self.variable.is_neutralized:
+            return DatedHolder(self, period, value = self.default_array())
+
+        return self.get_from_disk_cache(period, extra_params)
 
     def get_extra_param_names(self, period):
         function = self.formula.find_function(period)

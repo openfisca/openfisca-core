@@ -60,6 +60,7 @@ class Simulation(object):
         self.baseline_parameters_at_instant_cache = {}
 
         self.instantiate_entities(simulation_json)
+        self.tmp_dir = None  # To set later in case the memory is saturated
 
     def instantiate_entities(self, simulation_json):
         if simulation_json:
