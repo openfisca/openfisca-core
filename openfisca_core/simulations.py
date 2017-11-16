@@ -59,9 +59,9 @@ class Simulation(object):
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self._parameters_at_instant_cache = {}
         self.baseline_parameters_at_instant_cache = {}
+        self._data_store_dir = None
+        self.cache_on_disk = False
         self.instantiate_entities(simulation_json)
-        self._data_store_dir = None  # To set later in case the memory is saturated
-
 
     @property
     def data_store_dir(self):

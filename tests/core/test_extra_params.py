@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from nose.tools import assert_equal
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
@@ -71,8 +72,10 @@ def test_get_extra_param_names():
 
 
 def test_json_conversion():
-    assert str(formula_3_holder.to_value_json()) == \
+    assert_equal(
+        str(formula_3_holder.to_value_json()),
         "{'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}"
+        )
 
 
 def test_base_functions():

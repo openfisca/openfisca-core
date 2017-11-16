@@ -787,7 +787,7 @@ def period(value):
             ])
         raise ValueError(message)
 
-    if value == 'ETERNITY':
+    if value == 'ETERNITY' or value == ETERNITY:
         return Period((u'eternity', instant(datetime.date.min), float("inf")))
 
     # check the type

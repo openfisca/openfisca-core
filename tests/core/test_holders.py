@@ -73,8 +73,9 @@ def test_cache_disk():
     holder = simulation.person.get_holder('salary')
     data = np.asarray([2000, 3000, 0, 500])
     holder.put_in_disk_cache(data, month)
-    stored_data = holder.get_from_disk_cache(month).array
+    stored_data = holder.get_array(month)
     assert_near(data, stored_data)
+
 
 def test_cache_disk_with_extra_params():
     simulation = get_simulation()
@@ -86,7 +87,7 @@ def test_cache_disk_with_extra_params():
     data_2 = np.asarray([1000, 4000, 200, 200])
     holder.put_in_disk_cache(data_1, month, extra_params = [extra_param_1])
     holder.put_in_disk_cache(data_2, month, extra_params = [extra_param_2])
-    stored_data_1 = holder.get_from_disk_cache(month, extra_params = [extra_param_1]).array
-    stored_data_2 = holder.get_from_disk_cache(month, extra_params = [extra_param_2]).array
+    stored_data_1 = holder.get_array(month, extra_params = [extra_param_1])
+    stored_data_2 = holder.get_array(month, extra_params = [extra_param_2])
     assert_near(data_1, stored_data_1)
     assert_near(data_2, stored_data_2)

@@ -49,7 +49,6 @@ tax_benefit_system = get_filled_tbs()
 
 tax_benefit_system.cache_blacklist = set(['intermediate'])
 
-
 month = '2016-05'
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period = month,
@@ -60,22 +59,22 @@ scenario = tax_benefit_system.new_scenario().init_from_attributes(
 
 
 def test_without_cache_opt_out():
-    simulation = scenario.new_simulation(debug = True)
+    simulation = scenario.new_simulation()
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(len(intermediate_cache._array_by_period) > 0)
+    assert(intermediate_cache.get_array(month) is not None)
 
 
 def test_with_cache_opt_out():
     simulation = scenario.new_simulation(debug = True, opt_out_cache = True)
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(intermediate_cache._array_by_period is None)
+    assert(intermediate_cache.get_array(month) is None)
 
 
 tax_benefit_system2 = get_filled_tbs()
 
-month = '2016-09'
+month = '2016-05'
 scenario2 = tax_benefit_system2.new_scenario().init_from_attributes(
     period = month,
     input_variables = {
@@ -85,7 +84,7 @@ scenario2 = tax_benefit_system2.new_scenario().init_from_attributes(
 
 
 def test_with_no_blacklist():
-    simulation = scenario2.new_simulation(debug = True, opt_out_cache = True)
+    simulation = scenario2.new_simulation(opt_out_cache = True)
     simulation.calculate('output', period = month)
     intermediate_cache = simulation.persons.get_holder('intermediate')
-    assert(len(intermediate_cache._array_by_period) > 0)
+    assert(intermediate_cache.get_array(month) is not None)
