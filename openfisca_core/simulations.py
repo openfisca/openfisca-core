@@ -3,6 +3,7 @@
 
 import warnings
 from os import linesep
+import tempfile
 
 import dpath
 
@@ -58,9 +59,18 @@ class Simulation(object):
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self._parameters_at_instant_cache = {}
         self.baseline_parameters_at_instant_cache = {}
-
         self.instantiate_entities(simulation_json)
-        self.tmp_dir = None  # To set later in case the memory is saturated
+        self._data_store_dir = None  # To set later in case the memory is saturated
+
+
+    @property
+    def data_store_dir(self):
+        """
+        Temporary folder used to store intermediate calculation data in case the memory is saturated
+        """
+        if self._data_store_dir is None:
+            self._data_store_dir = tempfile.mkdtemp(prefix = "openfisca_")
+        return self._data_store_dir
 
     def instantiate_entities(self, simulation_json):
         if simulation_json:

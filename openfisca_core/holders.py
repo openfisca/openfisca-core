@@ -4,7 +4,6 @@
 from __future__ import division
 import warnings
 import os
-import tempfile
 
 import numpy as np
 
@@ -83,7 +82,7 @@ class Holder(object):
             self.simulation = entity.simulation
         self.variable = variable
         self.buffer = {}
-        self.tmp_dir = None
+        self._data_store_dir = None
 
     @property
     def array(self):
@@ -364,22 +363,19 @@ class Holder(object):
 
         self.formula.set_input(period, array)
 
-
-    def get_tmp_dir(self):
-        if self.tmp_dir:
-            return self.tmp_dir
-        if self.simulation.tmp_dir is None:
-            # self.simulation.tmp_dir = 'c:\\users\\flori\\appdata\\local\\temp\\openfisca_h5iskp\\'
-            self.simulation.tmp_dir = tempfile.mkdtemp(prefix="openfisca_")
-        self.tmp_dir = os.path.join(self.simulation.tmp_dir, self.variable.name)
-        os.makedirs(self.tmp_dir)
-        return self.tmp_dir
-
+    @property
+    def data_store_dir(self):
+        """
+        Temporary folder used to store intermediate calculation data in case the memory is saturated
+        """
+        if self._data_store_dir is None:
+            self._data_store_dir = os.path.join(self.simulation.data_store_dir, self.variable.name)
+            os.makedirs(self._data_store_dir)
+        return self._data_store_dir
 
     def put_in_disk_cache(self, value, period, extra_params = None):
-        tmp_dir = self.get_tmp_dir()
         filename = (ETERNITY if self.variable.definition_period == ETERNITY else str(period))
-        path = os.path.join(tmp_dir, filename) + '.npy'
+        path = os.path.join(self.data_store_dir, filename) + '.npy'
         np.save(path, value)
         return DatedHolder(self, period, value, extra_params)
 
@@ -451,9 +447,8 @@ class Holder(object):
         return DatedHolder(self, period, value, extra_params)
 
     def get_from_disk_cache(self, period, extra_params = None):
-        tmp_dir = self.get_tmp_dir()
         filename = ETERNITY if self.variable.definition_period == ETERNITY else str(period)
-        path = os.path.join(tmp_dir, filename) + '.npy'
+        path = os.path.join(self.data_store_dir, filename) + '.npy'
         value = None
         if os.path.isfile(path):
             value = np.load(path)
