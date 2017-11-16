@@ -6,6 +6,7 @@ import numpy as np
 
 from . import periods
 
+# TODO: Adapt base_functions to cache disk
 
 def permanent_default_value(formula, simulation, period, *extra_params):
     if formula.find_function(period) is not None:
@@ -47,7 +48,8 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     accept_future_value = kwargs.pop('accept_future_value', False)
     holder = formula.holder
     function = formula.find_function(period)
-    if holder._array_by_period is not None:
+    # TODO We should take the cache disk into account
+    if holder._array_by_period:
         known_values = sorted(holder._array_by_period.iteritems(), cmp = compare_start_instant, reverse = True)
         for last_period, last_result in known_values:
             if last_period.start <= period.start and (function is None or last_period.stop >= period.stop):

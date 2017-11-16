@@ -7,11 +7,17 @@ import os
 
 import numpy as np
 
-from .commons import empty_clone
-from .periods import MONTH, YEAR, ETERNITY
+from commons import empty_clone
+import periods
+from periods import MONTH, YEAR, ETERNITY
 from columns import make_column_from_variable
 from indexed_enums import Enum, EnumArray
 import logging
+
+MAX_MEMORY_OCCUPATION = os.environ.get('MAX_MEMORY_OCCUPATION')
+if MAX_MEMORY_OCCUPATION is not None:
+    MAX_MEMORY_OCCUPATION = float(MAX_MEMORY_OCCUPATION)
+    import psutil
 
 log = logging.getLogger(__name__)
 
@@ -298,7 +304,8 @@ class Holder(object):
         value = self.get_value_from_memory(period, extra_params)
         if value is not None:
             return value
-        return self.get_value_from_disk(period, extra_params)
+        if self.simulation.cache_on_disk:
+            return self.get_value_from_disk(period, extra_params)
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
         variable = self.variable
@@ -459,7 +466,20 @@ class Holder(object):
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        return self.put_in_disk_cache(value, period, extra_params)
+        if (
+            not self.simulation.cache_on_disk and
+            MAX_MEMORY_OCCUPATION is not None and
+            psutil.virtual_memory().percent >= MAX_MEMORY_OCCUPATION
+            ):
+            log.warn(
+                "Memory usage reached {}%. Switching to caching on disk. Calculation datas will be stored in '{}'. You should remove this directory once you're done with your simulation. "
+                .format(MAX_MEMORY_OCCUPATION, self.simulation.data_store_dir).encode('utf-8')
+                )
+            self.simulation.cache_on_disk = True
+
+        if self.simulation.cache_on_disk:
+            return self.put_in_disk_cache(value, period, extra_params)
+        return self.put_in_memory_cache(value, period, extra_params)
 
     def put_in_disk_cache(self, value, period, extra_params = None):
         if self.variable.definition_period == ETERNITY:
@@ -484,13 +504,14 @@ class Holder(object):
 
         if self.variable.definition_period == ETERNITY:
             self.array = value
-        array_by_period = self._array_by_period
-        if extra_params is None:
-            array_by_period[period] = value
         else:
-            if array_by_period.get(period) is None:
-                array_by_period[period] = {}
-            array_by_period[period][tuple(extra_params)] = value
+            array_by_period = self._array_by_period
+            if extra_params is None:
+                array_by_period[period] = value
+            else:
+                if array_by_period.get(period) is None:
+                    array_by_period[period] = {}
+                array_by_period[period][tuple(extra_params)] = value
         return self.get_from_cache(period, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
