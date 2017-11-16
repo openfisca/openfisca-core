@@ -50,7 +50,7 @@ def create_app(tax_benefit_system,
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies = 1)  # Fix request.remote_addr to get the real client IP address
     CORS(app, origins = '*')
 
-    app.config['JSON_AS_ASCII'] = False # Let jsonify encode to utf-8
+    app.config['JSON_AS_ASCII'] = False  # Let jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(tax_benefit_system)
