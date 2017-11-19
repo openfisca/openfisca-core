@@ -31,8 +31,8 @@ setup(
     extras_require = {
         'test': [
             'nose',
-            'flake8 == 3.4.1',
-            'openfisca-country-template >= 1.4.0a0, <= 1.4.0',
+            'flake8 >= 3.4.0, < 3.5.0',
+            'openfisca-country-template == 2.0.0',
             'openfisca-extension-template == 1.1.2',
             ],
         'tracker': [
@@ -50,6 +50,7 @@ setup(
         'lxml >= 3.7',
         'dpath == 1.4.0',
         'jsonschema >= 2.6',
+        'enum34 >= 1.1.6',
         ],
     message_extractors = {
         'openfisca_core': [
