@@ -111,7 +111,7 @@ def test_basic_calculation():
     assert_equal(dpath.get(response_json, 'households/first_household/housing_tax/2017'), 3000)
 
 
-def test_enums_sending_string():
+def test_enums_sending_identifier():
     simulation_json = json.dumps({
         "persons": {
             "bill": {}
