@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from nose.tools import assert_equal, assert_items_equal
+from nose.tools import assert_equal, assert_items_equal, assert_is_none
 
 from openfisca_country_template.situation_examples import couple, single
 from openfisca_core.simulations import Simulation
-from openfisca_core.periods import period as make_period
+from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from test_countries import tax_benefit_system
 
@@ -41,6 +41,22 @@ def test_set_input_enum_item():
     assert_equal(result, HousingOccupancyStatus.free_lodger)
 
 
+def test_permanent_variable_empty():
+    simulation = get_simulation()
+    holder = simulation.person.get_holder('birth')
+    assert_is_none(holder.get_array(None))
+
+
+def test_permanent_variable_filled():
+    simulation = get_simulation()
+    holder = simulation.person.get_holder('birth')
+    value = np.asarray(['1980-01-01'], dtype = holder.variable.dtype)
+    holder.set_input(period(ETERNITY), value)
+    assert_equal(holder.get_array(None), value)
+    assert_equal(holder.get_array(ETERNITY), value)
+    assert_equal(holder.get_array('2016-01'), value)
+
+
 def test_delete_arrays():
     simulation = get_simulation(single)
     salary_holder = simulation.person.get_holder('salary')
@@ -65,6 +81,20 @@ def test_get_memory_usage():
     assert_equal(memory_usage['nb_cells_by_array'], 1)  # one person
     assert_equal(memory_usage['nb_arrays'], 12)  # 12 months
     assert_equal(memory_usage['total_nb_bytes'], 4 * 12 * 1)
+
+
+def test_delete_arrays_on_disk():
+    simulation = get_simulation()
+    simulation.cache_on_disk = True
+    salary_holder = simulation.person.get_holder('salary')
+    salary_holder.set_input(period(2017), np.asarray([30000]))
+    salary_holder.set_input(period(2018), np.asarray([60000]))
+    assert_equal(simulation.person('salary', '2017-01'), 2500)
+    assert_equal(simulation.person('salary', '2018-01'), 5000)
+    salary_holder.delete_arrays(period = 2018)
+    salary_holder.set_input(period(2018), np.asarray([15000]))
+    assert_equal(simulation.person('salary', '2017-01'), 2500)
+    assert_equal(simulation.person('salary', '2018-01'), 1250)
 
 
 def test_cache_disk():
@@ -104,4 +134,4 @@ def test_known_periods():
     data = np.asarray([2000, 3000, 0, 500])
     holder.put_in_disk_cache(data, month)
     holder.put_in_memory_cache(data, month_2)
-    assert_items_equal(holder.known_periods(), [month, month_2])
+    assert_items_equal(holder.get_known_periods(), [month, month_2])
