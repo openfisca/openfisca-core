@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_items_equal
 
 from openfisca_country_template.situation_examples import couple, single
 from openfisca_core.simulations import Simulation
@@ -93,3 +93,15 @@ def test_cache_disk_with_extra_params():
     stored_data_2 = holder.get_array(month, extra_params = [extra_param_2])
     assert_near(data_1, stored_data_1)
     assert_near(data_2, stored_data_2)
+
+
+def test_known_periods():
+    simulation = get_simulation()
+    simulation.cache_on_disk = True
+    month = period('2017-01')
+    month_2 = period('2017-02')
+    holder = simulation.person.get_holder('salary')
+    data = np.asarray([2000, 3000, 0, 500])
+    holder.put_in_disk_cache(data, month)
+    holder.put_in_memory_cache(data, month_2)
+    assert_items_equal(holder.known_periods(), [month, month_2])
