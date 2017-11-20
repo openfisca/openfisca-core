@@ -317,7 +317,7 @@ class AgeCol(IntCol):
 
 class EnumCol(Column):
     '''
-    A column of integer with an enum
+    Column of Enum objects
     '''
     dtype = np.dtype('object')
     is_period_size_independent = True
