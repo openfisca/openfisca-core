@@ -4,11 +4,25 @@
 
 #### Breaking changes
 
-##### Change the way enum are defined
+##### Change the way enumerations (Enum) are defined
 
-- When setting the value of an input enum variable, the user must now send the string identifier (e.g. `free_lodger`).
+- When setting the value of an input enum variable for a simulation (in APIs or YAML tests), the user must now send the string identifier (e.g. `free_lodger`).
    - The item index (e.g. `2`) is not defined anymore
    - The value (e.g. `Free lodger`) is not accepted anymore.
+
+> Example in python:
+```
+simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = "2013-01",
+        parent1 = dict(
+            salary = 3000,
+            ),
+        household = dict(
+            household_occupancy_status = "tenant",
+            ),
+        ).new_simulation()
+```
+
 - When calculating an enum variable through the web API, the output will now be the string identifier.
 - When calculating an enum variable in Python, the output will be an array of enum items.
 
