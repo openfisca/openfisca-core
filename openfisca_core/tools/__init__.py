@@ -18,7 +18,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     if isinstance(value, np.ndarray):
         if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):
             if not value.dtype == object:
-                assert False("Expected a Enum, got {}".format(value))
+                assert False("Expected a Enum, got {} of dtype {}".format(value, value.dtype))
             else:
                 assert (target_value == value).all(), "Expected {}, got {}".format(target_value, value)
         else:
