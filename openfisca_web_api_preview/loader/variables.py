@@ -18,8 +18,8 @@ def get_default_value(variable):
     if isinstance(default_value, datetime.date):
         return default_value.isoformat()
 
-    if variable.value_type == Enum:
-        return variable.default_value.name
+    if isinstance(default_value, Enum):
+        return default_value.name
 
     return default_value
 
