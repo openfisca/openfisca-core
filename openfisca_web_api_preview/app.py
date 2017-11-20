@@ -105,11 +105,13 @@ def create_app(tax_benefit_system,
             result = simulation.calculate(variable_name, period).tolist()
             entity = simulation.get_entity(plural = entity_plural)
             entity_index = entity.ids.index(entity_id)
-            entity_result = result[entity_index]
 
-            variable = tax_benefit_system.get_variable(variable_name)
             if variable.value_type == Enum:
                 entity_result = entity_result.name
+            else:
+                entity_result = result[entity_index]
+
+            variable = tax_benefit_system.get_variable(variable_name)
             dpath.util.set(input_data, path, entity_result)
 
         return jsonify(input_data)
