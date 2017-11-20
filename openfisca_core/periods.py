@@ -612,6 +612,8 @@ class Period(tuple):
         """
         unit, start_instant, size = self
         year, month, day = start_instant
+        if unit == ETERNITY:
+            return Instant((float("inf"), float("inf"), float("inf")))
         if unit == u'day':
             if size > 1:
                 day += size - 1

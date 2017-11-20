@@ -52,6 +52,7 @@ setup(
         'dpath == 1.4.0',
         'jsonschema >= 2.6',
         'enum34 >= 1.1.6',
+        'psutil == 5.4.2',
         ],
     message_extractors = {
         'openfisca_core': [
