@@ -50,7 +50,7 @@ def create_app(tax_benefit_system,
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies = 1)  # Fix request.remote_addr to get the real client IP address
     CORS(app, origins = '*')
 
-    app.config['JSON_AS_ASCII'] = False  # Let jsonify encode to utf-8
+    app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(tax_benefit_system)
@@ -158,7 +158,9 @@ def create_app(tax_benefit_system,
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        if e.message:
+        if type(e) == UnicodeEncodeError:
+            response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
+        elif e.message:
             response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
         else:
             response = jsonify({"error": "Internal server error: " + str(e)})
