@@ -6,7 +6,7 @@
 
 ##### Change the way enumerations (Enum) are defined
 
-- When setting the value of an input enum variable for a simulation (in APIs or YAML tests), the user must now send the string identifier (e.g. `free_lodger`).
+- When setting the value of an input Enum variable for a simulation (in APIs or YAML tests), the user must now send the string identifier (e.g. `free_lodger`).
    - The item index (e.g. `2`) is not defined anymore
    - The value (e.g. `Free lodger`) is not accepted anymore.
 
@@ -23,14 +23,14 @@ simulation = tax_benefit_system.new_scenario().init_single_entity(
         ).new_simulation()
 ```
 
-- When calculating an enum variable through the web API, the output will now be the string identifier.
-- When calculating an enum variable in Python, the output will be an array of enum items.
+- When calculating an Enum variable through the web API, the output will now be the string identifier.
+- When calculating an Enum variable in Python, the output will be an array of Enum items.
 
-> Each enum item has:
+> Each Enum item has:
 > - a `name` property that contains its key (e.g. `tenant`)
 > - a `value` property that contains its description (e.g. `"Tenant or lodger who pays a monthly rent"`)
 
-- In a formula, to compare an enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
+- In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
 
 Before:
 
@@ -51,16 +51,12 @@ class HousingOccupancyStatus(Enum):
     homeless = u'Homeless'
 ```
 
-Each enum item now has a unique string identifier, and does not have an index anymore.
-
 - Enum variables must now have an explicit default value
 
 ```py
 class housing_occupancy_status(Variable):
-    column = EnumCol(
-        enum = HousingOccupancyStatus,
-        default = HousingOccupancyStatus.tenant
-        )
+    possible_values = HousingOccupancyStatus,
+    default_value = HousingOccupancyStatus.tenant
     entity = Household
     definition_period = MONTH
     label = u"Legal housing situation of the household concerning their main residence"

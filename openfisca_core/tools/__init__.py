@@ -5,6 +5,18 @@ from enum import Enum
 
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
+    '''
+
+      :param value: Value returned by the test
+      :param target_value: Value that the test should return to pass
+      :param absolute_error_margin: Absolute error margin authorized
+      :param message: Error message to be displayed if the test fails
+      :param relative_error_margin: Relative error margin authorized
+
+      Limit : This function cannot be used to assert near dates or periods.
+
+    '''
+
     import numpy as np
 
     if absolute_error_margin is None and relative_error_margin is None:
@@ -18,7 +30,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     if isinstance(value, np.ndarray):
         if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):
             if not value.dtype == object:
-                assert False("Expected a Enum, got {} of dtype {}".format(value, value.dtype))
+                assert False("Expected an Enum, got {} of dtype {}".format(value, value.dtype))
             else:
                 assert (target_value == value).all(), "Expected {}, got {}".format(target_value, value)
         else:
