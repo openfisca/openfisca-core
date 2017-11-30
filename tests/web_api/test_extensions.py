@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from httplib import OK
 from nose.tools import assert_equal

@@ -17,8 +17,8 @@ from base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from enumerations import Enum
 from datetime import date
+from enum import Enum, EnumMeta
 
 VALUE_TYPES = {
     bool: {
@@ -46,8 +46,7 @@ VALUE_TYPES = {
         'is_period_size_independent': True
         },
     Enum: {
-        'dtype': np.int16,
-        'default': 0,
+        'dtype': object,
         'json_type': 'Enumeration',
         'is_period_size_independent': True,
         },
@@ -146,13 +145,13 @@ class Variable(object):
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
         if self.value_type == Enum:
-            self.possible_values = self.set(attr, 'possible_values', required = True, allowed_type = Enum)
+            self.possible_values = self.set(attr, 'possible_values', required = True, allowed_type = EnumMeta)
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
-        default_type = int if self.value_type == Enum else self.value_type
-        self.default_value = self.set(attr, 'default_value', allowed_type = default_type, default = VALUE_TYPES[self.value_type]['default'])
+        default_type = self.possible_values if self.value_type == Enum else self.value_type
+        self.default_value = self.set(attr, 'default_value', allowed_type = default_type, default = VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
         self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
         self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)

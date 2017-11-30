@@ -4,7 +4,7 @@ import os
 
 import yaml
 
-from openfisca_core.enumerations import Enum
+from enum import Enum
 
 
 OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'openAPI.yml')
@@ -40,7 +40,7 @@ def get_variable_json_schema(variable):
         }
 
     if variable.value_type == Enum:
-        result['additionalProperties']['enum'] = variable.possible_values.list
+        result['additionalProperties']['enum'] = [item.name for item in list(variable.possible_values)]
 
     return result
 

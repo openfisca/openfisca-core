@@ -1,5 +1,66 @@
 # Changelog
 
+# 21.0.0 [#589](https://github.com/openfisca/openfisca-core/pull/589)
+
+#### Breaking changes
+
+##### Change the way enumerations (Enum) are defined
+
+- When setting the value of an input Enum variable for a simulation (in APIs or YAML tests), the user must now send the string identifier (e.g. `free_lodger`).
+   - The item index (e.g. `2`) is not defined anymore
+   - The value (e.g. `Free lodger`) is not accepted anymore.
+
+> Example in python:
+```
+simulation = tax_benefit_system.new_scenario().init_single_entity(
+        period = "2013-01",
+        parent1 = dict(
+            salary = 3000,
+            ),
+        household = dict(
+            household_occupancy_status = "tenant",
+            ),
+        ).new_simulation()
+```
+
+- When calculating an Enum variable through the web API, the output will now be the string identifier.
+- When calculating an Enum variable in Python, the output will be an array of Enum items.
+
+> Each Enum item has:
+> - a `name` property that contains its key (e.g. `tenant`)
+> - a `value` property that contains its description (e.g. `"Tenant or lodger who pays a monthly rent"`)
+
+- In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
+
+Before:
+
+```py
+HOUSING_OCCUPANCY_STATUS = Enum([
+    u'Tenant',
+    u'Owner',
+    u'Free logder',
+    u'Homeless'])
+```
+Now:
+
+```py
+class HousingOccupancyStatus(Enum):
+    tenant = u'Tenant'
+    owner = u'Owner'
+    free_lodger = u'Free logder'
+    homeless = u'Homeless'
+```
+
+- Enum variables must now have an explicit default value
+
+```py
+class housing_occupancy_status(Variable):
+    possible_values = HousingOccupancyStatus,
+    default_value = HousingOccupancyStatus.tenant
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
 # 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/583)
 
 #### Breaking changes
