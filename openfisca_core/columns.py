@@ -370,7 +370,3 @@ class EnumCol(Column):
         if use_label and self.variable.possible_values is not None:
             return value.value
         return value.name
-
-
-class PeriodSizeIndependentIntCol(IntCol):
-    is_period_size_independent = True
