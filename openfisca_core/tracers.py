@@ -21,7 +21,7 @@ class Tracer(object):
 
         .. py:attribute:: stack
 
-            ``list`` of the calculations that have started, but have not finished. The first item is one of the :attr:`requested_calculations`, and each other item is a dependency of the one preceding him. Note that after a calculation is finished, :attr:`stack` is always `[]``.
+            ``list`` of the calculations that have started, but have not finished. The first item is one of the :attr:`requested_calculations`, and each other item is a dependency of the one preceding him. Note that after a calculation is finished, :attr:`stack` is always ``[]``.
 
             Value example:
 
@@ -122,7 +122,6 @@ class Tracer(object):
                 .format(expected_key, key).encode('utf-8')
                 )
 
-        self._computation_log.pop()
         if self.stack:
             parent = self.stack[-1]
             self.trace[parent]['dependencies'].remove(key)
@@ -133,9 +132,10 @@ class Tracer(object):
             Print the computation log of a simulation
         """
         for node, depth in self._computation_log:
-            if not self.trace.get(node): # Strange: some key in the computation log is not in the trace. Probably related to calculation abortion.
-                continue
-            value = self.trace[node]['value']
+            if not self.trace.get(node):
+                value = "Calculation aborted due to a circular dependency"
+            else:
+                value = self.trace[node]['value']
             if aggregate:
                 try:
                     avg = sum(value) / len(value)
