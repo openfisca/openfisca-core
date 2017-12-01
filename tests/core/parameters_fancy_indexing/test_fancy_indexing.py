@@ -7,6 +7,7 @@ from nose.tools import raises, assert_in
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
+from openfisca_core.model_api import *  # noqa
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -144,3 +145,13 @@ def test_with_bareme():
         assert_in("'bareme.75016' is a 'MarginalRateTaxScale'", e.message)
         assert_in("has not been implemented", e.message)
         raise
+
+
+def test_with_enum():
+
+    class TypesZone(Enum):
+        z1 = "Zone 1"
+        z2 = "Zone 2"
+
+    zone = np.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+    assert_near(P.single.owner[zone], [100, 200, 200, 100])
