@@ -546,6 +546,9 @@ class Period(tuple):
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
 
     def contains(self, other):
+        """
+            Returns ``True`` if the period contains ``other``. For instance, ``period(2015)`` contains ``period(2015-01)``
+        """
         if not isinstance(other, Period):
             other = period(other)
         return self.start <= other.start and self.stop >= other.stop

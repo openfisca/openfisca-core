@@ -13,6 +13,7 @@ Modules:
    test_runner
    tracer
    enum_array
+   holder
 
 Scripts:
 
