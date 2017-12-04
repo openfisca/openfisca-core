@@ -31,6 +31,26 @@ simulation = tax_benefit_system.new_scenario().init_single_entity(
 > - a `value` property that contains its description (e.g. `"Tenant or lodger who pays a monthly rent"`)
 
 - In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
+- To access a parameter that has a value for each Enum item (e.g. a value for `zone_1`, a value for `zone_2` ... ), use fancy indexing
+
+> For example, if there is an enum: 
+> ```py
+>     class TypesZone(Enum):
+>         z1 = "Zone 1"
+>         z2 = "Zone 2"
+> ```
+> And two parameters `parameters.city_tax.z1` and `parameters.city_tax.z2`, they can be dynamically accessed through:
+> ```py
+> zone = np.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+> zone_value = parameters.rate._get_at_instant('2015-01-01').single.owner[zone]
+> ```
+> returns
+> ```py
+> [100, 200, 200, 100]
+> ```
+>
+
+#### Before and after
 
 Before:
 
