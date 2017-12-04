@@ -22,6 +22,10 @@
 
 - Re-introduce `taxscales.combine_tax_scales` to combine several tax scales.
 
+#### Deprecations
+
+- Deprecate `requested_period_added_value` base function, as it had no effect.
+
 # 21.0.3 [#595](https://github.com/openfisca/openfisca-core/pull/595)
 
 #### Bug fix
