@@ -345,6 +345,9 @@ class Holder(object):
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
 
+        if value.dtype != self.variable.dtype:
+            value = value.astype(self.variable.dtype)
+
         if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
