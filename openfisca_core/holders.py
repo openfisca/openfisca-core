@@ -314,6 +314,17 @@ class Holder(object):
                 ))
             return usage
 
+    def get_known_periods(self):
+        """
+        Get the list of periods the variable value is known for
+        """
+        if self.variable.definition_period == ETERNITY:
+            if self.array is not None:
+                return [ETERNITY]
+            else:
+                return []
+        return self._array_by_period.keys()
+
     @property
     def real_formula(self):
         formula = self.formula
