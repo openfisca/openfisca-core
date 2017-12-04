@@ -10,6 +10,7 @@ import traceback
 
 import yaml
 import numpy as np
+from enum import Enum
 
 from . import taxscales
 from . import periods
@@ -569,7 +570,12 @@ class VectorialParameterNodeAtInstant(object):
         # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
         elif isinstance(key, np.ndarray):
             if not np.issubdtype(key.dtype, np.str):
-                key = key.astype('str')  # In case the key is a number vector, stringify it
+                # In case the key is not a string vector, stringify it
+                if key.dtype == object and issubclass(type(key[0]), Enum):
+                    enum = type(key[0])
+                    key = np.select([key == item for item in enum], [item.name for item in enum])
+                else:
+                    key = key.astype('str')
             names = list(self.dtype.names)  # Get all the names of the subnodes, e.g. ['zone_1', 'zone_2']
             default = np.full_like(self.vector[key[0]], np.nan)  # In case of unexpected key, we will set the corresponding value to NaN.
             conditions = [key == name for name in names]
