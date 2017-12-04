@@ -6,6 +6,7 @@ from openfisca_core.tools import assert_near
 from openfisca_core.simulations import Simulation
 from openfisca_country_template.entities import Household
 from test_countries import tax_benefit_system
+from openfisca_country_template.situation_examples import single
 
 TEST_CASE = {
     'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}, {'id': 'ind4'}, {'id': 'ind5'}],
@@ -407,3 +408,11 @@ def test_sum_following_bug_ipp_2():
     nb_eligibles_by_household = household.sum(eligible_i, role = CHILD)
 
     assert_near(nb_eligibles_by_household, [2, 0])
+
+
+def test_get_memory_usage():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
+    simulation.calculate('disposable_income', '2017-01')
+    memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
+    assert(memory_usage['total_nb_bytes'] > 0)
+    assert(len(memory_usage['by_variable']) == 1)

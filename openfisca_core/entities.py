@@ -229,6 +229,22 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
             holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
 
+    def get_memory_usage(self, variables = None):
+        holders_memory_usage = {
+            variable_name: holder.get_memory_usage()
+            for variable_name, holder in self._holders.iteritems()
+            if variables is None or variable_name in variables
+            }
+
+        total_memory_usage = sum(
+            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.itervalues()
+            )
+
+        return dict(
+            total_nb_bytes = total_memory_usage,
+            by_variable = holders_memory_usage
+            )
+
 
 class PersonEntity(Entity):
     is_person = True
@@ -374,7 +390,6 @@ class GroupEntity(Entity):
     @roles_count.setter
     def roles_count(self, value):
         self._roles_count = value
-
 
     #  Aggregation persons -> entity
 
