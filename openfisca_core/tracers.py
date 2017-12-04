@@ -2,7 +2,7 @@
 
 import logging
 import copy
-from indexed_enums import Enum
+from collections import defaultdict
 
 log = logging.getLogger(__name__)
 
@@ -43,12 +43,30 @@ class Tracer(object):
                 'global_income<2017-01>': {...}
               }
 
+        .. py:attribute:: usage_stats
+
+            ``dict`` containing, for each variable computed, the number of times the variable was requested.
+
+            Value example:
+
+            .. code-block:: python
+
+              {
+                'salary': {
+                  'nb_requests': 17
+                  },
+                'global_income': {
+                  'nb_requests': 1
+                  }
+              }
+
     """
     def __init__(self):
         log.warn("The tracer is a feature that is still currently under experimentation. You are very welcome to use it and send us precious feedback, but keep in mind that the way it is used and the results it gives might change without any major version bump.")
         self.requested_calculations = set()
         self.stack = []
         self.trace = {}
+        self.usage_stats = defaultdict(lambda: {"nb_requests": 0})
         self._computation_log = []
 
     def clone(self):
@@ -57,6 +75,7 @@ class Tracer(object):
         new.stack = copy.copy(self.stack)
         new.trace = copy.deepcopy(self.trace)
         new._computation_log = copy.copy(self._computation_log)
+        new.usage_stats = copy.deepcopy(self.usage_stats)
         return new
 
     @staticmethod
@@ -85,6 +104,7 @@ class Tracer(object):
             self.trace[key] = {'dependencies': []}
         self.stack.append(key)
         self._computation_log.append((key, len(self.stack)))
+        self.usage_stats[variable_name]['nb_requests'] += 1
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
@@ -136,14 +156,14 @@ class Tracer(object):
                 value = "Calculation aborted due to a circular dependency"
             else:
                 value = self.trace[node]['value']
-            if aggregate:
-                try:
-                    avg = sum(value) / len(value)
-                except TypeError:
-                    avg = None
-                value = {
-                    'min': min(value),
-                    'max': max(value),
-                    'avg': avg,
-                }
+                if aggregate:
+                    try:
+                        avg = sum(value) / len(value)
+                    except TypeError:
+                        avg = None
+                    value = {
+                        'min': min(value),
+                        'max': max(value),
+                        'avg': avg,
+                        }
             print("{}{} >> {}".format('  ' * depth, node, value))
