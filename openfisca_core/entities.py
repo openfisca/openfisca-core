@@ -8,7 +8,7 @@ from os import linesep
 import numpy as np
 import dpath
 
-from enumerations import Enum
+from enum import Enum
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
@@ -88,9 +88,10 @@ class Entity(object):
                         try:
                             value = holder.variable.possible_values[value]
                         except KeyError:
+                            possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
                                 "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
-                                    value, variable_name, "', '".join(holder.variable.possible_values.list)
+                                    value, variable_name, "', '".join(possible_values)
                                     ).encode('utf-8')
                                 )
                     try:

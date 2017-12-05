@@ -184,7 +184,7 @@ class AbstractScenario(object):
                                 for variable_value in variable_values
                                 )
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
-                                if column.dtype is not object \
+                                if column.dtype != object \
                                 else np.array(list(variable_values_iter), dtype = column.dtype)
                             set_input(variable_name, variable_period, array)
 

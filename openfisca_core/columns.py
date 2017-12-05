@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
-
 import collections
 import datetime
 import re
 
-from biryani import strings
 import numpy as np
 
+from enum import Enum
 from . import conv, periods
-from .enumerations import Enum
 
 """
 Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
@@ -317,37 +315,23 @@ class AgeCol(IntCol):
             )
 
 
-class EnumCol(IntCol):
+class EnumCol(Column):
     '''
-    A column of integer with an enum
+    Column of Enum objects
     '''
+    dtype = np.dtype('object')
+    is_period_size_independent = True
+    json_type = 'Enumeration'
     index_by_slug = None
 
     @property
     def input_to_dated_python(self):
         enum = self.variable.possible_values
         if enum is None:
-            return conv.input_to_int
-        # This converters accepts either an item number or an item name.
-        index_by_slug = self.index_by_slug
-        if index_by_slug is None:
-            self.index_by_slug = index_by_slug = dict(
-                (strings.slugify(name), index)
-                for index, name in sorted(enum._vars.iteritems())
-                )
-        return conv.condition(
-            conv.input_to_int,
-            conv.pipe(
-                # Verify that item index belongs to enumeration.
-                conv.input_to_int,
-                conv.test_in(enum._vars),
-                ),
-            conv.pipe(
-                # Convert item name to its index.
-                conv.input_to_slug,
-                conv.test_in(index_by_slug),
-                conv.function(lambda slug: index_by_slug[slug]),
-                ),
+            return conv.test_isinstance((basestring, basestring))
+        return conv.pipe(
+            # Verify that item index belongs to enumeration.
+            conv.test_in([item.name for item in list(enum)])
             )
 
     def json_default(self):
@@ -356,47 +340,33 @@ class EnumCol(IntCol):
     @property
     def json_to_dated_python(self):
         enum = self.variable.possible_values
+        possible_names = [item.name for item in list(enum)]
+
         if enum is None:
             return conv.pipe(
-                conv.test_isinstance((basestring, int)),
-                conv.anything_to_int,
-                )
-        # This converters accepts either an item number or an item name.
-        index_by_slug = self.index_by_slug
-        if index_by_slug is None:
-            self.index_by_slug = index_by_slug = dict(
-                (strings.slugify(name), index)
-                for index, name in sorted(enum._vars.iteritems())
+                conv.test_isinstance((basestring, basestring))
                 )
         return conv.pipe(
-            conv.test_isinstance((basestring, int)),
-            conv.condition(
-                conv.anything_to_int,
-                conv.pipe(
-                    # Verify that item index belongs to enumeration.
-                    conv.anything_to_int,
-                    conv.test_in(enum._vars),
-                    ),
-                conv.pipe(
-                    # Convert item name to its index.
-                    conv.input_to_slug,
-                    conv.test_in(index_by_slug),
-                    conv.function(lambda slug: index_by_slug[slug]),
-                    ),
-                ),
+            conv.test_isinstance((basestring, basestring)),
+            conv.pipe(
+                # Verify that item belongs to enumeration.
+                conv.test_in(possible_names),
+                # Transform that item into enum object.
+                conv.function(lambda enum_name: enum[enum_name])
+                )
             )
 
     def to_json(self):
         self_json = super(EnumCol, self).to_json()
         if self.variable.possible_values is not None:
             self_json['labels'] = collections.OrderedDict(
-                (index, label)
-                for label, index in self.variable.possible_values
+                (item.name, item.value)
+                for item in self.variable.possible_values
                 )
         return self_json
 
     def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
         if use_label and self.variable.possible_values is not None:
-            return self.variable.possible_values._vars.get(value, value)
-        return value
+            return value.value
+        return value.name
