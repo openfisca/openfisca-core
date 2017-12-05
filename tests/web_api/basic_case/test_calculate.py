@@ -181,3 +181,31 @@ def test_enum_wrong_value():
         "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']",
         dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
         )
+
+
+def test_encoding():
+    simulation_json = json.dumps({
+        "persons": {
+            "O‘Ryan": {},
+            "Renée": {}
+            },
+        "households": {
+            "_": {
+                "housing_occupancy_status": {
+                    "2017-07": "Locataire ou sous-locataire d‘un logement loué vide non-HLM"
+
+                    },
+                "parent": [
+                    "O‘Ryan",
+                    "Renée"
+                    ],
+                "children": []
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ['Tenant', 'Owner', 'Free logder', 'Homeless']."
+    response = post_json(simulation_json)
+    assert expected_response in response.data, expected_response + os.linesep + " NOT FOUND IN: " + os.linesep + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
