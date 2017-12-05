@@ -6,7 +6,7 @@ from openfisca_core.tools import assert_near
 from openfisca_core.simulations import Simulation
 from openfisca_country_template.entities import Household
 from test_countries import tax_benefit_system
-from openfisca_country_template.situation_examples import single
+from openfisca_country_template.situation_examples import single, couple
 
 TEST_CASE = {
     'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}, {'id': 'ind4'}, {'id': 'ind5'}],
@@ -336,19 +336,19 @@ def test_min():
 def test_value_nth_person():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
-    person = simulation.person
-    array = person('age', MONTH)
+    household = simulation.household
+    array = household.members('age', MONTH)
 
-    result0 = person.household.value_nth_person(0, array, default=-1)
+    result0 = household.value_nth_person(0, array, default=-1)
     assert_near(result0, [40, 54])
 
-    result1 = person.household.value_nth_person(1, array, default=-1)
+    result1 = household.value_nth_person(1, array, default=-1)
     assert_near(result1, [37, 20])
 
-    result2 = person.household.value_nth_person(2, array, default=-1)
+    result2 = household.value_nth_person(2, array, default=-1)
     assert_near(result2, [7, -1])
 
-    result3 = person.household.value_nth_person(3, array, default=-1)
+    result3 = household.value_nth_person(3, array, default=-1)
     assert_near(result3, [9, -1])
 
 
@@ -396,6 +396,23 @@ def test_value_from_first_person():
     salary_first_person = household.value_from_first_person(salaries)
 
     assert_near(salary_first_person, [1000, 3000])
+
+
+def test_projectors_methods():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
+    household = simulation.household
+    person = simulation.person
+
+    projected_vector = household.first_parent.has_role(Household.FIRST_PARENT)
+    assert(len(projected_vector) == 1)  # Must be of a household dimension
+
+    salary_i = person.household.members('salary', '2017-01')
+    assert(len(person.household.sum(salary_i)) == 2)  # Must be of a person dimension
+    assert(len(person.household.max(salary_i)) == 2)  # Must be of a person dimension
+    assert(len(person.household.min(salary_i)) == 2)  # Must be of a person dimension
+    assert(len(person.household.all(salary_i)) == 2)  # Must be of a person dimension
+    assert(len(person.household.any(salary_i)) == 2)  # Must be of a person dimension
+    assert(len(household.first_parent.get_rank(household, salary_i)) == 1)  # Must be of a person dimension
 
 
 def test_sum_following_bug_ipp_1():
