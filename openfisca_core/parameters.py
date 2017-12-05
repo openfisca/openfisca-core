@@ -715,7 +715,7 @@ def _parse_child(child_name, child, child_path):
         return Parameter(child_name, child, child_path)
     elif 'brackets' in child:
         return Scale(child_name, child, child_path)
-    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(key) for key in child.keys()]):
+    elif isinstance(child, dict) and all([INSTANT_PATTERN.match(str(key)) for key in child.keys()]):
         return Parameter(child_name, child, child_path)
     else:
         return ParameterNode(child_name, data = child, file_path = child_path)
