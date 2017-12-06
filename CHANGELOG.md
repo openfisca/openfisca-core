@@ -20,6 +20,8 @@
   - Enhance [`holder.delete_arrays`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage) to be able to remove known values only for a specific period
   - Introduce [`holder.get_known_periods`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_known_periods)
 
+- Introduce [`variable.get_formula`](http://openfisca.readthedocs.io/en/latest/variables.html#openfisca_core.variables.Variable.get_formula)
+
 - Re-introduce `taxscales.combine_tax_scales` to combine several tax scales.
 
 #### Deprecations
