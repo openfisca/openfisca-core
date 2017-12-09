@@ -1,5 +1,16 @@
 # Changelog
 
+### 21.0.1 [#600](https://github.com/openfisca/openfisca-core/pull/600)
+
+- Allow string arrays as inputs for Enum variables
+
+For instance, following the example from 21.0.0, the following now works:
+
+```py
+holder = household.get_holder('housing_occupancy_status')
+holder.set_input(period, np.asarray(['owner']))
+```
+
 # 21.0.0 [#589](https://github.com/openfisca/openfisca-core/pull/589)
 
 #### Breaking changes
@@ -33,7 +44,7 @@ simulation = tax_benefit_system.new_scenario().init_single_entity(
 - In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
 - To access a parameter that has a value for each Enum item (e.g. a value for `zone_1`, a value for `zone_2` ... ), use fancy indexing
 
-> For example, if there is an enum: 
+> For example, if there is an enum:
 > ```py
 >     class TypesZone(Enum):
 >         z1 = "Zone 1"
@@ -94,7 +105,7 @@ class housing_occupancy_status(Variable):
     * `bool`
     * `str`
     * `date`
-    * `Enum` 
+    * `Enum`
 
 Before:
 
