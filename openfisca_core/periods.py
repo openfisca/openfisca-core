@@ -764,6 +764,8 @@ def period(value):
     >>> period(u'year:2014-2')
     Period((YEAR, Instant((2014, 2, 1)), 1))
     """
+    if isinstance(value, Period):
+        return value
 
     def parse_simple_period(value):
         """
@@ -795,8 +797,6 @@ def period(value):
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if isinstance(value, Period):
-        return value
     if not isinstance(value, basestring):
         raise_error(value)
 
