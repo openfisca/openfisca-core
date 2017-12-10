@@ -16,15 +16,15 @@ from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
 
 
-class rempli_obligation_scolaire(Variable):
+class goes_to_school(Variable):
     value_type = bool
     default_value = True
     entity = Person
-    label = u"La personne rempli ses obligations scolaires"
+    label = u"The person goes to school (only relevant for children)"
     definition_period = MONTH
 
 
-tax_benefit_system.add_variable(rempli_obligation_scolaire)
+tax_benefit_system.add_variable(goes_to_school)
 
 
 class test_basic_income_neutralization(Reform):
@@ -52,20 +52,20 @@ def test_formula_neutralization():
     assert_near(disposable_income_reform, 0)
 
 
-def test_default_variable_neutralization():
-    class test_rempli_obligation_scolaire_neutralization(Reform):
+def test_neutralization_variable_with_default_value():
+    class test_goes_to_school_neutralization(Reform):
         def apply(self):
-            self.neutralize_variable('rempli_obligation_scolaire')
+            self.neutralize_variable('goes_to_school')
 
-    reform = test_rempli_obligation_scolaire_neutralization(tax_benefit_system)
+    reform = test_goes_to_school_neutralization(tax_benefit_system)
 
     period = "2013-01"
     scenario = reform.new_scenario().init_from_attributes(
         period = period,
         )
     simulation = scenario.new_simulation(use_baseline = True)
-    rempli_obligation_scolaire = simulation.calculate('rempli_obligation_scolaire', period)
-    assert_near(rempli_obligation_scolaire, [True], absolute_error_margin = 0)
+    goes_to_school = simulation.calculate('goes_to_school', period)
+    assert_near(goes_to_school, [True], absolute_error_margin = 0)
 
 
 def test_neutralization_optimization():
