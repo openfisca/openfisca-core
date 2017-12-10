@@ -367,7 +367,13 @@ class Holder(object):
             value = self.variable.possible_values.encode(value)
 
         if value.dtype != self.variable.dtype:
-            value = value.astype(self.variable.dtype)
+            try:
+                value = value.astype(self.variable.dtype)
+            except ValueError:
+                raise ValueError(
+                    u'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
+                    .format(value, self.variable.name, self.variable.dtype, value.dtype)
+                    .encode('utf-8'))
 
         if self.variable.definition_period != ETERNITY:
             if period is None:
