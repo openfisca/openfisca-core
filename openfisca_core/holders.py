@@ -390,7 +390,13 @@ class Holder(object):
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        if self._on_disk_storable and (psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc):
+        should_store_on_disk = (
+            self._on_disk_storable and
+            not self._memory_storage.get(period, extra_params) and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
+            )
+
+        if should_store_on_disk:
             self._disk_storage.put(value, period, extra_params)
         else:
             self._memory_storage.put(value, period, extra_params)
