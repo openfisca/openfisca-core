@@ -392,7 +392,7 @@ class Holder(object):
 
         should_store_on_disk = (
             self._on_disk_storable and
-            not self._memory_storage.get(period, extra_params) and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            self._memory_storage.get(period, extra_params) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
             )
 
