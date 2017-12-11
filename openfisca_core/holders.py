@@ -6,6 +6,7 @@ import warnings
 import os
 
 import numpy as np
+from enum import Enum
 
 from . import periods
 from .commons import empty_clone
@@ -273,6 +274,10 @@ class Holder(object):
                 self.variable.definition_period,
                 error_message
                 )
+
+        if self.variable.value_type == Enum and array.dtype.kind in {'U', 'S'}:  # String array
+            enum = self.variable.possible_values
+            array = np.select([array == item.name for item in enum], [item for item in enum])
 
         self.formula.set_input(period, array)
 
