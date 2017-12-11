@@ -295,6 +295,8 @@ class Holder(object):
             >>>    'cell_size': 8,  # Each value takes 8B of memory
             >>>    'dtype': dtype('float64')  # Each value is a float 64
             >>>    'total_nb_bytes': 10400  # The holder uses 10.4kB of virtual memory
+            >>>    'nb_requests': 24  # The variable has been computed 24 times
+            >>>    'nb_requests_by_array': 2  # Each array stored has been on average requested twice
             >>>    }
         """
 
@@ -304,6 +306,13 @@ class Holder(object):
             )
 
         usage.update(self._memory_storage.get_memory_usage())
+
+        if self.simulation.trace:
+            usage_stats = self.simulation.tracer.usage_stats[self.variable.name]
+            usage.update(dict(
+                nb_requests = usage_stats['nb_requests'],
+                nb_requests_by_array = usage_stats['nb_requests'] / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else np.nan
+                ))
 
         return usage
 

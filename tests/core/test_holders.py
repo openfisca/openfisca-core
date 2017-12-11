@@ -44,16 +44,16 @@ def test_set_input_enum_item():
 
 
 def test_permanent_variable_empty():
-    simulation = get_simulation()
+    simulation = get_simulation(single)
     holder = simulation.person.get_holder('birth')
     assert_is_none(holder.get_array(None))
 
 
 def test_permanent_variable_filled():
-    simulation = get_simulation()
+    simulation = get_simulation(single)
     holder = simulation.person.get_holder('birth')
     value = np.asarray(['1980-01-01'], dtype = holder.variable.dtype)
-    holder.set_input(period(ETERNITY), value)
+    holder.set_input(make_period(ETERNITY), value)
     assert_equal(holder.get_array(None), value)
     assert_equal(holder.get_array(ETERNITY), value)
     assert_equal(holder.get_array('2016-01'), value)
@@ -67,7 +67,7 @@ def test_delete_arrays():
     assert_equal(simulation.person('salary', '2017-01'), 2500)
     assert_equal(simulation.person('salary', '2018-01'), 5000)
     salary_holder.delete_arrays(period = 2018)
-    salary_holder.set_input(period(2018), np.asarray([15000]))
+    salary_holder.set_input(make_period(2018), np.asarray([15000]))
     assert_equal(simulation.person('salary', '2017-01'), 2500)
     assert_equal(simulation.person('salary', '2018-01'), 1250)
 
@@ -86,18 +86,31 @@ def test_get_memory_usage():
     assert_equal(memory_usage['total_nb_bytes'], 4 * 12 * 1)
 
 
+def test_get_memory_usage_with_trace():
+    simulation = get_simulation(single, trace = True)
+    salary_holder = simulation.person.get_holder('salary')
+    salary_holder.set_input(make_period(2017), np.asarray([30000]))
+    simulation.calculate('salary', '2017-01')
+    simulation.calculate('salary', '2017-01')
+    simulation.calculate('salary', '2017-02')
+    simulation.calculate_add('salary', '2017')  # 12 calculations
+    memory_usage = salary_holder.get_memory_usage()
+    assert_equal(memory_usage['nb_requests'], 15)
+    assert_equal(memory_usage['nb_requests_by_array'], 1.25)  # 15 calculations / 12 arrays
+
+
 force_storage_on_disk = MemoryConfig(max_memory_occupation = 0)
 
 
 def test_delete_arrays_on_disk():
-    simulation = get_simulation(memory_config = force_storage_on_disk)  # Force using disk
+    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(period(2017), np.asarray([30000]))
-    salary_holder.set_input(period(2018), np.asarray([60000]))
+    salary_holder.set_input(make_period(2017), np.asarray([30000]))
+    salary_holder.set_input(make_period(2018), np.asarray([60000]))
     assert_equal(simulation.person('salary', '2017-01'), 2500)
     assert_equal(simulation.person('salary', '2018-01'), 5000)
     salary_holder.delete_arrays(period = 2018)
-    salary_holder.set_input(period(2018), np.asarray([15000]))
+    salary_holder.set_input(make_period(2018), np.asarray([15000]))
     assert_equal(simulation.person('salary', '2017-01'), 2500)
     assert_equal(simulation.person('salary', '2018-01'), 1250)
 
@@ -113,10 +126,10 @@ def test_cache_disk():
 
 
 def test_cache_disk_with_extra_params():
-    simulation = get_simulation(memory_config = force_storage_on_disk)  # Force using disk
-    month = period('2017-01')
-    extra_param_1 = period('2017-02')
-    extra_param_2 = period('2017-03')
+    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    month = make_period('2017-01')
+    extra_param_1 = make_period('2017-02')
+    extra_param_2 = make_period('2017-03')
     holder = simulation.person.get_holder('salary')
     data_1 = np.asarray([2000, 3000, 0, 500])
     data_2 = np.asarray([1000, 4000, 200, 200])
@@ -129,9 +142,9 @@ def test_cache_disk_with_extra_params():
 
 
 def test_known_periods():
-    simulation = get_simulation(memory_config = force_storage_on_disk)  # Force using disk
-    month = period('2017-01')
-    month_2 = period('2017-02')
+    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    month = make_period('2017-01')
+    month_2 = make_period('2017-02')
     holder = simulation.person.get_holder('salary')
     data = np.asarray([2000, 3000, 0, 500])
     holder.put_in_cache(data, month)

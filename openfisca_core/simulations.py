@@ -54,11 +54,12 @@ class Simulation(object):
         self.requested_periods_by_variable_name = {}
         self.max_nb_cycles = None
 
-        if debug:
-            self.debug = True
-        if debug or trace:
-            self.trace = True
+        self.debug = debug
+        self.trace = trace or self.debug
+        if self.trace:
             self.tracer = Tracer()
+        else:
+            self.tracer = None
         self.opt_out_cache = opt_out_cache
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
