@@ -1,5 +1,27 @@
 # Changelog
 
+## 21.2.0 [#601](https://github.com/openfisca/openfisca-core/pull/601)
+
+#### New features
+
+- Improve [`holder.get_memory_usage`]((http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage)):
+  - Add `nb_requests` and `nb_requests_by_array` fields in the memory usage stats for traced simulations.
+
+- Enable intermediate data storage on disk to avoid memory overflow
+  - Introduce `memory_config` option in `Simulation` constructor
+    - This allows fine tuning of memory management in OpenFisca
+
+For instance:
+
+```
+from openfisca_core.memory_config import MemoryConfig
+config = MemoryConfig(
+    max_memory_occupation = 0.95,  # When 95% of the virtual memory is full, switch to disk storage
+    priority_variables = ['salary', 'age']  # Always store these variables in memory
+    variables_to_drop = ['age_elder_for_family_benefit']  # Do not store the value of these variables
+    )
+```
+
 ## 21.1.0 [#598](https://github.com/openfisca/openfisca-core/pull/598)
 
 #### New features
