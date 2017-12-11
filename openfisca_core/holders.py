@@ -107,11 +107,10 @@ class Holder(object):
     def array(self):
         return self.get_array(self.simulation.period)
 
+    # Sould probably be deprecated
     @array.setter
     def array(self, array):
-        if self.variable.definition_period != ETERNITY:
-            return self.put_in_cache(array, self.simulation.period)
-        self._array = array
+        self.put_in_cache(array, self.simulation.period)
 
     def calculate(self, period, **parameters):
         dated_holder = self.compute(period = period, **parameters)
