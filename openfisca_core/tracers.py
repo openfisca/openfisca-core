@@ -188,7 +188,7 @@ class Tracer(object):
 
         return print_line(depth, key, self._get_aggregate(key))
 
-    def print_calculation_details(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
+    def print_trace(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
         """
             Print value, the dependencies, and the dependencies values of the variable for the given period (and possibly the given set of extra parameters).
 
@@ -202,7 +202,7 @@ class Tracer(object):
         key = self._get_key(variable_name, period, extra_params = extra_params)
 
         def _print_details(key, depth):
-            if ignore_zero and all(self.trace[key]['value'] == 0):
+            if depth > 0 and ignore_zero and np.all(self.trace[key]['value'] == 0):
                 return
             self._print_node(key, depth, aggregate)
             if depth < max_depth:
