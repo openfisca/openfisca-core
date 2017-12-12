@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 import logging
 import copy
 from collections import defaultdict
@@ -156,14 +158,19 @@ class Tracer(object):
 
         value = self.trace[key]['value']
         try:
-            avg = sum(value) / float(len(value))
+            aggregated_value = {
+                'min': np.min(value),
+                'max': np.max(value),
+                }
+        except TypeError:  # Much less efficient, but works for strings
+            aggregated_value = {
+                'min': min(value),
+                'max': max(value),
+                }
+        try:
+            aggregated_value['avg'] = np.mean(value)
         except TypeError:
-            avg = None
-        aggregated_value = {
-            'min': min(value),
-            'max': max(value),
-            'avg': avg,
-            }
+            aggregated_value['avg'] = np.nan
 
         self._aggregates[key] = aggregated_value
         return aggregated_value
@@ -194,7 +201,6 @@ class Tracer(object):
 
         _print_details(key, 0)
 
-
     def print_computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
@@ -205,5 +211,4 @@ class Tracer(object):
             This mode is more suited for simulations on a large population.
         """
         for node, depth in self._computation_log:
-            self._print_node(node, depth)
-
+            self._print_node(node, depth, aggregate)
