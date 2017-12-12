@@ -68,6 +68,7 @@ class Tracer(object):
         self.trace = {}
         self.usage_stats = defaultdict(lambda: {"nb_requests": 0})
         self._computation_log = []
+        self._aggregates = {}
 
     def clone(self):
         new = Tracer()
@@ -76,6 +77,8 @@ class Tracer(object):
         new.trace = copy.deepcopy(self.trace)
         new._computation_log = copy.copy(self._computation_log)
         new.usage_stats = copy.deepcopy(self.usage_stats)
+        new._aggregates = copy.deepcopy(self._aggregates)
+
         return new
 
     @staticmethod
@@ -147,6 +150,51 @@ class Tracer(object):
             self.trace[parent]['dependencies'].remove(key)
         del self.trace[key]
 
+    def _get_aggregate(self, key):
+        if self._aggregates.get(key):
+            return self._aggregates.get(key)
+
+        value = self.trace[key]['value']
+        try:
+            avg = sum(value) / float(len(value))
+        except TypeError:
+            avg = None
+        aggregated_value = {
+            'min': min(value),
+            'max': max(value),
+            'avg': avg,
+            }
+
+        self._aggregates[key] = aggregated_value
+        return aggregated_value
+
+    def _print_node(self, key, depth, aggregate):
+
+        def print_line(depth, node, value):
+            print("{}{} >> {}".format('  ' * depth, node, value))
+
+        if not self.trace.get(key):
+            return print_line(depth, key, "Calculation aborted due to a circular dependency")
+
+        if not aggregate:
+            return print_line(depth, key, self.trace[key]['value'])
+
+        return print_line(depth, key, self._get_aggregate(key))
+
+    def print_calculation_details(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
+        key = self._get_key(variable_name, period, extra_params = extra_params)
+
+        def _print_details(key, depth):
+            if ignore_zero and all(self.trace[key]['value'] == 0):
+                return
+            self._print_node(key, depth, aggregate)
+            if depth < max_depth:
+                for dependency in self.trace[key]['dependencies']:
+                    _print_details(dependency, depth + 1)
+
+        _print_details(key, 0)
+
+
     def print_computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
@@ -157,18 +205,5 @@ class Tracer(object):
             This mode is more suited for simulations on a large population.
         """
         for node, depth in self._computation_log:
-            if not self.trace.get(node):
-                value = "Calculation aborted due to a circular dependency"
-            else:
-                value = self.trace[node]['value']
-                if aggregate:
-                    try:
-                        avg = sum(value) / len(value)
-                    except TypeError:
-                        avg = None
-                    value = {
-                        'min': min(value),
-                        'max': max(value),
-                        'avg': avg,
-                        }
-            print("{}{} >> {}".format('  ' * depth, node, value))
+            self._print_node(node, depth)
+
