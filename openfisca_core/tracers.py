@@ -189,6 +189,16 @@ class Tracer(object):
         return print_line(depth, key, self._get_aggregate(key))
 
     def print_calculation_details(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
+        """
+            Print value, the dependencies, and the dependencies values of the variable for the given period (and possibly the given set of extra parameters).
+
+            :param str variable_name: Name of the variable to investigate
+            :param Period period: Period to investigate
+            :param list extra_params: Set of extra parameters
+            :param int max_depth: Maximum level of recursion
+            :param bool aggregate: See :any:`print_computation_log`
+            :param bool ignore_zero: If ``True``, don't print dependencies if their value is 0
+        """
         key = self._get_key(variable_name, period, extra_params = extra_params)
 
         def _print_details(key, depth):
