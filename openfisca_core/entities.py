@@ -8,7 +8,7 @@ from os import linesep
 import numpy as np
 import dpath
 
-from enum import Enum
+from indexed_enums import Enum, EnumArray
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
@@ -428,6 +428,8 @@ class GroupEntity(Entity):
                 )
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.filled_array(default, dtype = array.dtype)
+        if isinstance(array, EnumArray):
+            result = EnumArray(result, array.enum)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
@@ -446,8 +448,11 @@ class GroupEntity(Entity):
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
         self.check_role_validity(role)
-        role_condition = self.members.has_role(role) if role is not None else True
-        return np.where(role_condition, array[self.members_entity_id], 0)
+        if role is None:
+            return array[self.members_entity_id]
+        else:
+            role_condition = self.members.has_role(role)
+            return np.where(role_condition, array[self.members_entity_id], 0)
 
     # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
     # Doesn't seem to be used, maybe should just not introduce

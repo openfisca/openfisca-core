@@ -11,7 +11,7 @@ from numpy import (   # noqa analysis:ignore
     where,
 )
 
-from enum import Enum  # noqa analysis:ignore
+from .indexed_enums import Enum  # noqa analysis:ignore
 from .formulas import (  # noqa analysis:ignore
     ADD,
     calculate_output_add,

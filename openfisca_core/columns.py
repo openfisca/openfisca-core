@@ -6,7 +6,7 @@ import re
 
 import numpy as np
 
-from enum import Enum
+from indexed_enums import Enum
 from . import conv, periods
 
 """
