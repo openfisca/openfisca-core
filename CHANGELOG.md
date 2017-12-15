@@ -1,47 +1,51 @@
 # Changelog
 
-### 21.0.1 [#600](https://github.com/openfisca/openfisca-core/pull/600)
+# 21.0.2 [#589](https://github.com/openfisca/openfisca-core/pull/589) [#600](https://github.com/openfisca/openfisca-core/pull/600) [#605](https://github.com/openfisca/openfisca-core/pull/605)
 
-- Allow string arrays as inputs for Enum variables
-
-For instance, following the example from 21.0.0, the following now works:
-
-```py
-holder = household.get_holder('housing_occupancy_status')
-holder.set_input(period, np.asarray(['owner']))
-```
-
-# 21.0.0 [#589](https://github.com/openfisca/openfisca-core/pull/589)
+_Note: the 21.0.1 and 21.0.0 versions have been unpublished due to performance issues_
 
 #### Breaking changes
 
-##### Change the way enumerations (Enum) are defined
+##### Change the way enumerations (Enum) are defined when coding variables
 
-- When setting the value of an input Enum variable for a simulation (in APIs or YAML tests), the user must now send the string identifier (e.g. `free_lodger`).
-   - The item index (e.g. `2`) is not defined anymore
-   - The value (e.g. `Free lodger`) is not accepted anymore.
+Before:
 
-> Example in python:
-```
-simulation = tax_benefit_system.new_scenario().init_single_entity(
-        period = "2013-01",
-        parent1 = dict(
-            salary = 3000,
-            ),
-        household = dict(
-            household_occupancy_status = "tenant",
-            ),
-        ).new_simulation()
+```py
+HOUSING_OCCUPANCY_STATUS = Enum([
+    u'Tenant',
+    u'Owner',
+    u'Free logder',
+    u'Homeless'])
 ```
 
-- When calculating an Enum variable through the web API, the output will now be the string identifier.
-- When calculating an Enum variable in Python, the output will be an array of Enum items.
+Now:
+
+```py
+class HousingOccupancyStatus(Enum):
+    tenant = u'Tenant'
+    owner = u'Owner'
+    free_lodger = u'Free logder'
+    homeless = u'Homeless'
+```
 
 > Each Enum item has:
 > - a `name` property that contains its key (e.g. `tenant`)
 > - a `value` property that contains its description (e.g. `"Tenant or lodger who pays a monthly rent"`)
 
+- Enum variables must now have an explicit default value
+
+```py
+class housing_occupancy_status(Variable):
+    possible_values = HousingOccupancyStatus,
+    default_value = HousingOccupancyStatus.tenant
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+
 - In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
+
 - To access a parameter that has a value for each Enum item (e.g. a value for `zone_1`, a value for `zone_2` ... ), use fancy indexing
 
 > For example, if there is an enum:
@@ -61,37 +65,36 @@ simulation = tax_benefit_system.new_scenario().init_single_entity(
 > ```
 >
 
-#### Before and after
+##### Change the simulation inputs and outputs for enumeration variables
 
-Before:
+###### Web API and YAML tests
 
+- When setting the value of an input Enum variable for a simulation, the user must now send the **string identifier** (e.g. `free_lodger`).
+   - The item index (e.g. `2`) is not accepted anymore
+   - The value (e.g. `Free lodger`) is not accepted anymore.
+
+- When calculating an Enum variable through the web API, the output will now be the string identifier.
+
+###### Python API
+
+- When using the Python API (`set_input`), the three following inputs are accepted:
+   - The enum item (e.g. HousingOccupancyStatus.tenant)
+   - The enum string identifier (e.g. "tenant")
+   - The enum item index, though this is not recommanded.
+     - If you rely on index, make sure to specify an `__order__` attribute to all your enums to make sure each intem has the right index. See the enum34 [doc](https://pypi.python.org/pypi/enum34/1.1.1).
+
+> Example:
 ```py
-HOUSING_OCCUPANCY_STATUS = Enum([
-    u'Tenant',
-    u'Owner',
-    u'Free logder',
-    u'Homeless'])
-```
-Now:
-
-```py
-class HousingOccupancyStatus(Enum):
-    tenant = u'Tenant'
-    owner = u'Owner'
-    free_lodger = u'Free logder'
-    homeless = u'Homeless'
+holder = simulation.household.get_holder('housing_occupancy_status')
+# Three possibilities
+holder.set_input(period, np.asarray([HousingOccupancyStatus.owner]))
+holder.set_input(period, np.asarray(['owner']))
+holder.set_input(period, np.asarray([0])) # Highly not recommanded
 ```
 
-- Enum variables must now have an explicit default value
+- When calculating an Enum variable, the output will be an [EnumArray](http://openfisca.readthedocs.io/en/latest/enum_array.html#module-openfisca_core.indexed_enums).
 
-```py
-class housing_occupancy_status(Variable):
-    possible_values = HousingOccupancyStatus,
-    default_value = HousingOccupancyStatus.tenant
-    entity = Household
-    definition_period = MONTH
-    label = u"Legal housing situation of the household concerning their main residence"
-```
+
 # 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/583)
 
 #### Breaking changes
