@@ -178,6 +178,6 @@ def test_enum_wrong_value():
     assert_equal(response.status_code, BAD_REQUEST)
     response_json = json.loads(response.data)
     assert_in(
-        "Possible values are ['free_lodger', 'homeless', 'owner', 'tenant']",
+        "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']",
         dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
         )

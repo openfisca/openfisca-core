@@ -102,15 +102,15 @@ def create_app(tax_benefit_system,
         for computation in requested_computations:
             path = computation[0]
             entity_plural, entity_id, variable_name, period = path.split('/')
-            result = simulation.calculate(variable_name, period).tolist()
+            variable = tax_benefit_system.get_variable(variable_name)
+            result = simulation.calculate(variable_name, period)
             entity = simulation.get_entity(plural = entity_plural)
             entity_index = entity.ids.index(entity_id)
 
-            variable = tax_benefit_system.get_variable(variable_name)
             if variable.value_type == Enum:
-                entity_result = result[entity_index].name
+                entity_result = result.decode()[entity_index].name
             else:
-                entity_result = result[entity_index]
+                entity_result = result.tolist()[entity_index]
 
             dpath.util.set(input_data, path, entity_result)
 

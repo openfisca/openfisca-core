@@ -86,7 +86,7 @@ class Entity(object):
                         array = holder.default_array()
                     if holder.variable.value_type == Enum and isinstance(value, basestring):
                         try:
-                            value = holder.variable.possible_values[value]
+                            value = holder.variable.possible_values[value].index
                         except KeyError:
                             possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
