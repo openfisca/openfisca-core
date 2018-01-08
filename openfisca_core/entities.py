@@ -429,7 +429,7 @@ class GroupEntity(Entity):
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.filled_array(default, dtype = array.dtype)
         if isinstance(array, EnumArray):
-            result = EnumArray(result, array.enum)
+            result = EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 

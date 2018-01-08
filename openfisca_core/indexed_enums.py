@@ -59,20 +59,20 @@ class EnumArray(np.ndarray):
     dtype = np.int16
 
     # Subclassing np.ndarray is a little tricky. To read more about the two following methods, see https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
-    def __new__(cls, input_array, enum = None):
+    def __new__(cls, input_array, possible_values = None):
         obj = np.asarray(input_array).view(cls)
-        obj.enum = enum
+        obj.possible_values = possible_values
         return obj
 
     # See previous comment
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self.enum = getattr(obj, 'enum', None)
+        self.possible_values = getattr(obj, 'possible_values', None)
 
     def __eq__(self, other):
-        # When comparing to an item of self.enum, use the item index to speed up the comparison
-        if other.__class__ is self.enum:
+        # When comparing to an item of self.possible_values, use the item index to speed up the comparison
+        if other.__class__ is self.possible_values:
             return self.view(np.ndarray) == other.index  # use view(np.ndarray) so that the result is a classic ndarray, not an EnumArray
         return self.view(np.ndarray) == other
 
@@ -101,7 +101,7 @@ class EnumArray(np.ndarray):
             >>> enum_array.decode()[0]
             >>> <HousingOccupancyStatus.free_lodger: u'Free logder'>  # Decoded value : enum item
         """
-        return np.select([self == item.index for item in self.enum], [item for item in self.enum])
+        return np.select([self == item.index for item in self.possible_values], [item for item in self.possible_values])
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.decode()))

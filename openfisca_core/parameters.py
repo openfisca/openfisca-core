@@ -575,7 +575,7 @@ class VectorialParameterNodeAtInstant(object):
                     enum = type(key[0])
                     key = np.select([key == item for item in enum], [item.name for item in enum])
                 elif isinstance(key, EnumArray):
-                    enum = key.enum
+                    enum = key.possible_values
                     key = np.select([key == item.index for item in enum], [item.name for item in enum])
                 else:
                     key = key.astype('str')
