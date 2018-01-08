@@ -4,6 +4,26 @@ import numpy as np
 from enum import Enum as BaseEnum
 
 
+class Enum(BaseEnum):
+    # Tweak enums to add an index attribute to each enum item
+    def __init__(self, name):
+        # When the enum item is initialized, self._member_names_ contains the names of the previously initialized items, so its length is the index of this item.
+        self.index = len(self._member_names_)
+
+    # Bypass the slow Enum.__eq__
+    __eq__ = object.__eq__
+
+    @classmethod
+    def encode(cls, array):
+        if type(array) is EnumArray:
+            return array
+        if array.dtype.kind in {'U', 'S'}:  # String array
+            array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
+        elif array.dtype.kind == 'O':  # Enum items arrays
+            array = np.select([array == item for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
+        return EnumArray(array, cls)
+
+
 class EnumArray(np.ndarray):
     """
         Numpy array subclass representing an array of enum items.
@@ -60,23 +80,3 @@ class EnumArray(np.ndarray):
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.decode()))
-
-
-class Enum(BaseEnum):
-    # Tweak enums to add an index attribute to each enum item
-    def __init__(self, name):
-        # When the enum item is initialized, self._member_names_ contains the names of the previously initialized items, so its length is the index of this item.
-        self.index = len(self._member_names_)
-
-    # Bypass the slow Enum.__eq__
-    __eq__ = object.__eq__
-
-    @classmethod
-    def encode(cls, array):
-        if type(array) is EnumArray:
-            return array
-        if array.dtype.kind in {'U', 'S'}:  # String array
-            array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
-        elif array.dtype.kind == 'O':  # Enum items arrays
-            array = np.select([array == item for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
-        return EnumArray(array, cls)
