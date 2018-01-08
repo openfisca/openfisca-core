@@ -5,6 +5,10 @@ from enum import Enum as BaseEnum
 
 
 class Enum(BaseEnum):
+    """
+        Enum based on `enum34 <https://pypi.python.org/pypi/enum34/>`_, whose items have an index.
+    """
+
     # Tweak enums to add an index attribute to each enum item
     def __init__(self, name):
         # When the enum item is initialized, self._member_names_ contains the names of the previously initialized items, so its length is the index of this item.
@@ -15,6 +19,27 @@ class Enum(BaseEnum):
 
     @classmethod
     def encode(cls, array):
+        """
+            Encode a string numpy array, or an enum item numpy array, into an :any:`EnumArray`. See :any:`EnumArray.decode` for decoding.
+
+            :param numpy.ndarray array: Numpy array of string identifiers, or of enum items, to encode.
+
+            :returns: An :any:`EnumArray` encoding the input array values.
+            :rtype: :any:`EnumArray`
+
+            For instance:
+
+            >>> string_identifier_array = numpy.asarray(['free_lodger', 'owner'])
+            >>> encoded_array = HousingOccupancyStatus.encode(string_identifier_array)
+            >>> encoded_array[0]
+            >>> 2  # Encoded value
+
+            >>> enum_item_array = numpy.asarray([HousingOccupancyStatus.free_lodger, HousingOccupancyStatus.owner])
+            >>> encoded_array = HousingOccupancyStatus.encode(enum_item_array)
+            >>> encoded_array[0]
+            >>> 2  # Encoded value
+
+        """
         if type(array) is EnumArray:
             return array
         if array.dtype.kind in {'U', 'S'}:  # String array
@@ -28,7 +53,7 @@ class EnumArray(np.ndarray):
     """
         Numpy array subclass representing an array of enum items.
 
-        EnumArrays are encoded as int arrays to improve performance
+        EnumArrays are encoded as ``int`` arrays to improve performance
     """
 
     dtype = np.int16
@@ -74,7 +99,7 @@ class EnumArray(np.ndarray):
             >>> enum_array[0]
             >>> 2  # Encoded value
             >>> enum_array.decode()[0]
-            >>> <HousingOccupancyStatus.free_lodger: u'Free logder'>  # Decoded value
+            >>> <HousingOccupancyStatus.free_lodger: u'Free logder'>  # Decoded value : enum item
         """
         return np.select([self == item.index for item in self.enum], [item for item in self.enum])
 
