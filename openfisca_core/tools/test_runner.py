@@ -128,6 +128,8 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     if isinstance(name_filter, str):
         name_filter = name_filter.decode('utf-8')
     verbose = options.get('verbose')
+    only_variables = options.get('only_variables')
+    ignore_variables = options.get('ignore_variables')
 
     tests = _parse_test_file(tax_benefit_system, path_to_file)
 
@@ -147,7 +149,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
 
         def check():
             try:
-                _run_test(period_str, test, verbose, options)
+                _run_test(period_str, test, verbose, only_variables, ignore_variables, options)
             except:
                 log.error(title)
                 raise
@@ -218,7 +220,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
         yield yaml_path, test.get('name') or filename, unicode(test['scenario'].period), test
 
 
-def _run_test(period_str, test, verbose = False, options = {}):
+def _run_test(period_str, test, verbose = False, only_variables = None, ignore_variables = None, options = {}):
     absolute_error_margin = None
     relative_error_margin = None
     if test.get('absolute_error_margin') is not None:
@@ -233,6 +235,10 @@ def _run_test(period_str, test, verbose = False, options = {}):
     if output_variables is not None:
         try:
             for variable_name, expected_value in output_variables.iteritems():
+                variable_ignored = ignore_variables is not None and variable_name in ignore_variables
+                variable_not_tested = only_variables is not None and variable_name not in only_variables
+                if variable_ignored or variable_not_tested:
+                    continue  # Skip this variable
                 if isinstance(expected_value, dict):
                     for requested_period, expected_value_at_period in expected_value.iteritems():
                         assert_near(
