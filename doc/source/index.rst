@@ -12,6 +12,7 @@ Modules:
    reforms
    test_runner
    tracer
+   enum_array
 
 Scripts:
 

@@ -2,7 +2,7 @@
 
 import logging
 import copy
-from enum import Enum
+from indexed_enums import Enum
 
 log = logging.getLogger(__name__)
 

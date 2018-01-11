@@ -9,6 +9,7 @@ import itertools
 import numpy as np
 
 from . import conv, periods, simulations, json_to_test_case, columns
+from .indexed_enums import Enum
 
 
 def N_(message):
@@ -184,8 +185,8 @@ class AbstractScenario(object):
                                 for variable_value in variable_values
                                 )
                             array = np.fromiter(variable_values_iter, dtype = column.dtype) \
-                                if column.dtype != object \
-                                else np.array(list(variable_values_iter), dtype = column.dtype)
+                                if column.value_type != Enum \
+                                else np.array(list(variable_values_iter))
                             set_input(variable_name, variable_period, array)
 
             if self.axes is not None:

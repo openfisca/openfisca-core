@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from enum import Enum
+from ..indexed_enums import Enum, EnumArray
 
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
@@ -29,10 +29,10 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         message = message.encode('utf-8')
     if isinstance(value, np.ndarray):
         if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):
-            if not value.dtype == object:
-                assert False("Expected an Enum, got {} of dtype {}".format(value, value.dtype))
+            if not isinstance(value, EnumArray):
+                assert False, "Expected an Enum, got {} of dtype {}".format(value, value.dtype)
             else:
-                assert (target_value == value).all(), "Expected {}, got {}".format(target_value, value)
+                assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
         else:
 
             if absolute_error_margin is not None:

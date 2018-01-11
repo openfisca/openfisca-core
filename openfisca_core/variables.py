@@ -18,7 +18,7 @@ from base_functions import (
     requested_period_last_value,
     )
 from datetime import date
-from enum import Enum, EnumMeta
+from indexed_enums import Enum, EnumArray
 
 VALUE_TYPES = {
     bool: {
@@ -46,7 +46,7 @@ VALUE_TYPES = {
         'is_period_size_independent': True
         },
     Enum: {
-        'dtype': object,
+        'dtype': EnumArray.dtype,
         'json_type': 'Enumeration',
         'is_period_size_independent': True,
         },
@@ -145,13 +145,15 @@ class Variable(object):
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
         if self.value_type == Enum:
-            self.possible_values = self.set(attr, 'possible_values', required = True, allowed_type = EnumMeta)
+            self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
                 self.dtype = '|S{}'.format(self.max_length)
-        default_type = self.possible_values if self.value_type == Enum else self.value_type
-        self.default_value = self.set(attr, 'default_value', allowed_type = default_type, default = VALUE_TYPES[self.value_type].get('default'))
+        if self.value_type == Enum:
+            self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
+        else:
+            self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
         self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
         self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)
@@ -192,6 +194,12 @@ class Variable(object):
             raise ValueError("Invalid value '{}' for attribute 'entity' in variable '{}'. Must be a subclass of Entity."
             .format(entity, self.name).encode('utf-8'))
         return entity
+
+    def set_possible_values(self, possible_values):
+        if not issubclass(possible_values, Enum):
+            raise ValueError("Invalid value '{}' for attribute 'possible_values' in variable '{}'. Must be a subclass of {}."
+            .format(possible_values, self.name, Enum).encode('utf-8'))
+        return possible_values
 
     def set_label(self, label):
         if label:

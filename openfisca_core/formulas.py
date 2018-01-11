@@ -17,6 +17,7 @@ from . import holders, periods
 from .parameters import ParameterNotFound
 from .periods import MONTH, YEAR, ETERNITY
 from .commons import empty_clone, stringify_array
+from .indexed_enums import Enum
 
 
 log = logging.getLogger(__name__)
@@ -515,7 +516,10 @@ class Formula(object):
             except TypeError:
                 pass
         if array.dtype != variable.dtype:
-            array = array.astype(variable.dtype)
+            if self.holder.variable.value_type == Enum:
+                self.holder.variable.possible_values.encode(array)
+            else:
+                array = array.astype(variable.dtype)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:
