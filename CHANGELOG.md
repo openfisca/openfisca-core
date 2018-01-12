@@ -1,5 +1,10 @@
 # Changelog
 
+### 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
+
+- When a variable file is loaded twice in the same python interpreter, make sure the second loading doesn't corrupt the first one.
+    - This fixes a bug introduced in 21.0.2, which could lead to a corruption of the tax and benefit in rare edge cases
+
 ## 21.2.1 [#613](https://github.com/openfisca/openfisca-core/pull/613)
 
 - Fix two bugs that appeared with 21.2.0:

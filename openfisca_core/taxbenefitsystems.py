@@ -136,10 +136,11 @@ class TaxBenefitSystem(object):
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
         try:
-            module_name = path.splitext(path.basename(file_path))[0]
+            file_name = path.splitext(path.basename(file_path))[0]
+            module_name = '{}_{}'.format(id(self), file_name)  # If two tax and benefit systems load the same module, the second one should not replace the first one. Hence this unique module name.
             module_directory = path.dirname(file_path)
             try:
-                module = load_module(module_name, *find_module(module_name, [module_directory]))
+                module = load_module(module_name, *find_module(file_name, [module_directory]))
             except NameError as e:
                 logging.error(str(e) + ": if this code used to work, this error might be due to a major change in OpenFisca-Core. Checkout the changelog to learn more: <https://github.com/openfisca/openfisca-core/blob/master/CHANGELOG.md>")
                 raise
