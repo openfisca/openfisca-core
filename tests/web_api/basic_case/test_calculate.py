@@ -2,7 +2,7 @@
 
 import os
 import json
-from httplib import BAD_REQUEST, OK, NOT_FOUND, INTERNAL_SERVER_ERROR
+from httplib import BAD_REQUEST, OK, NOT_FOUND
 
 from nose.tools import assert_equal, assert_in
 import dpath
@@ -202,7 +202,7 @@ def test_encoding_period_value():
         })
 
     # No UnicodeDecodeError
-    expected_response = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ['Tenant', 'Owner', 'Free logder', 'Homeless']."
+    expected_response = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are "
     response = post_json(simulation_json)
     assert expected_response in response.data, expected_response + os.linesep + " NOT FOUND IN: " + os.linesep + response.data
     assert_equal(response.status_code, BAD_REQUEST, response.data)
@@ -225,10 +225,10 @@ def test_encoding_entity_name():
         })
 
     # No UnicodeDecodeError
-    expected_response = "Internal server error: 'O‘Ryan' is not a valid ASCII value."
+    expected_response = "'O‘Ryan' is not a valid ASCII value."
     response = post_json(simulation_json)
-    assert expected_response in response.data
-    assert_equal(response.status_code, INTERNAL_SERVER_ERROR, response.data)
+    assert expected_response in response.data, str(response.status_code) + " " + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
 
 
 def test_encoding_period_id():
@@ -255,14 +255,14 @@ def test_encoding_period_id():
                     "2017-01": 300
                     },
                 "housing_occupancy_status": {
-                    "2017-01": "Tenant"
+                    "2017-01": "tenant"
                     }
                 }
             }
         })
 
     # No UnicodeDecodeError
-    expected_response = "Internal server error: 'à' is not a valid ASCII value."
+    expected_response = "'à' is not a valid ASCII value."
     response = post_json(simulation_json)
-    assert expected_response in response.data
-    assert_equal(response.status_code, INTERNAL_SERVER_ERROR, response.data)
+    assert expected_response in response.data, str(response.status_code) + " " + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
