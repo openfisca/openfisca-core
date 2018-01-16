@@ -2,7 +2,7 @@
 
 import os
 import json
-from httplib import BAD_REQUEST, OK, NOT_FOUND
+from httplib import BAD_REQUEST, OK, NOT_FOUND, INTERNAL_SERVER_ERROR
 
 from nose.tools import assert_equal, assert_in
 import dpath
@@ -183,11 +183,10 @@ def test_enum_wrong_value():
         )
 
 
-def test_encoding():
+def test_encoding_period_value():
     simulation_json = json.dumps({
         "persons": {
-            "O‘Ryan": {},
-            "Renée": {}
+            "toto": {}
             },
         "households": {
             "_": {
@@ -196,10 +195,8 @@ def test_encoding():
 
                     },
                 "parent": [
-                    "O‘Ryan",
-                    "Renée"
-                    ],
-                "children": []
+                    "toto",
+                    ]
                 }
             }
         })
@@ -209,3 +206,63 @@ def test_encoding():
     response = post_json(simulation_json)
     assert expected_response in response.data, expected_response + os.linesep + " NOT FOUND IN: " + os.linesep + response.data
     assert_equal(response.status_code, BAD_REQUEST, response.data)
+
+
+def test_encoding_entity_name():
+    simulation_json = json.dumps({
+        "persons": {
+            "O‘Ryan": {},
+            "Renée": {}
+            },
+        "households": {
+            "_": {
+                "parents": [
+                    "O‘Ryan",
+                    "Renée"
+                    ]
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "Internal server error: 'O‘Ryan' is not a valid ASCII value."
+    response = post_json(simulation_json)
+    assert expected_response in response.data
+    assert_equal(response.status_code, INTERNAL_SERVER_ERROR, response.data)
+
+
+def test_encoding_period_id():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {
+                "salary": {
+                    "2017": 60000
+                    }
+                },
+            "bell": {
+                "salary": {
+                    "2017": 60000
+                    }
+                }
+            },
+        "households": {
+            "_": {
+                "parents": ["bill", "bell"],
+                "housing_tax": {
+                    "à": 400
+                    },
+                "accomodation_size": {
+                    "2017-01": 300
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": "Tenant"
+                    }
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "Internal server error: 'à' is not a valid ASCII value."
+    response = post_json(simulation_json)
+    assert expected_response in response.data
+    assert_equal(response.status_code, INTERNAL_SERVER_ERROR, response.data)
