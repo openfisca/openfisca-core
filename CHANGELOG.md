@@ -1,5 +1,12 @@
 # Changelog
 
+# 21.0.3 [#595](https://github.com/openfisca/openfisca-core/pull/595)
+
+#### Bug fix
+
+- Fix API response encoding from ascii to utf-8
+  * Improve user message by displaying `UnicodeDecodeError` information
+
 # 21.0.2 [#589](https://github.com/openfisca/openfisca-core/pull/589) [#600](https://github.com/openfisca/openfisca-core/pull/600) [#605](https://github.com/openfisca/openfisca-core/pull/605)
 
 _Note: the 21.0.1 and 21.0.0 versions have been unpublished due to performance issues_
@@ -93,7 +100,6 @@ holder.set_input(period, np.asarray([0])) # Highly not recommanded
 ```
 
 - When calculating an Enum variable, the output will be an [EnumArray](http://openfisca.readthedocs.io/en/latest/enum_array.html#module-openfisca_core.indexed_enums).
-
 
 # 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/583)
 

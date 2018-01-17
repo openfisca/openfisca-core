@@ -76,7 +76,7 @@ class Simulation(object):
 
             if not persons_json:
                 raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                    'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key).encode('utf-8'))
+                    u'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
             self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         else:
             self.persons = self.tax_benefit_system.person_entity(self)
@@ -254,7 +254,7 @@ def check_type(input, type, path = []):
 
     if not isinstance(input, type):
         raise SituationParsingError(path,
-            "Invalid type: must be of type '{}'.".format(json_type_map[type]))
+            u"Invalid type: must be of type '{}'.".format(json_type_map[type]))
 
 
 class SituationParsingError(Exception):

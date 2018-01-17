@@ -50,6 +50,7 @@ def create_app(tax_benefit_system,
     app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies = 1)  # Fix request.remote_addr to get the real client IP address
     CORS(app, origins = '*')
 
+    app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(tax_benefit_system)
@@ -96,23 +97,29 @@ def create_app(tax_benefit_system,
             simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data)
         except SituationParsingError as e:
             abort(make_response(jsonify(e.error), e.code or 400))
+        except UnicodeEncodeError as e:
+            abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
 
         requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
 
-        for computation in requested_computations:
-            path = computation[0]
-            entity_plural, entity_id, variable_name, period = path.split('/')
-            variable = tax_benefit_system.get_variable(variable_name)
-            result = simulation.calculate(variable_name, period)
-            entity = simulation.get_entity(plural = entity_plural)
-            entity_index = entity.ids.index(entity_id)
+        try:
+            for computation in requested_computations:
+                path = computation[0]
+                entity_plural, entity_id, variable_name, period = path.split('/')
+                variable = tax_benefit_system.get_variable(variable_name)
+                result = simulation.calculate(variable_name, period)
+                entity = simulation.get_entity(plural = entity_plural)
+                entity_index = entity.ids.index(entity_id)
 
-            if variable.value_type == Enum:
-                entity_result = result.decode()[entity_index].name
-            else:
-                entity_result = result.tolist()[entity_index]
+                if variable.value_type == Enum:
+                    entity_result = result.decode()[entity_index].name
+                else:
+                    entity_result = result.tolist()[entity_index]
 
-            dpath.util.set(input_data, path, entity_result)
+                dpath.util.set(input_data, path, entity_result)
+
+        except UnicodeEncodeError as e:
+            abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
 
         return jsonify(input_data)
 
@@ -157,7 +164,12 @@ def create_app(tax_benefit_system,
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
+        if type(e) == UnicodeEncodeError:
+            response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
+        elif e.message:
+            response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
+        else:
+            response = jsonify({"error": "Internal server error: " + str(e)})
         response.status_code = 500
         return response
 

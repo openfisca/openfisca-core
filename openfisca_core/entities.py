@@ -71,7 +71,7 @@ class Entity(object):
 
             if not isinstance(variable_values, dict):
                 raise SituationParsingError(path_in_json,
-                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
+                    u'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             holder = self.get_holder(variable_name)
             for date, value in variable_values.iteritems():
@@ -90,15 +90,14 @@ class Entity(object):
                         except KeyError:
                             possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
-                                "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
-                                    value, variable_name, "', '".join(possible_values)
-                                    ).encode('utf-8')
+                                u"'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
+                                    value, variable_name, "', '".join(possible_values))
                                 )
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
                         raise SituationParsingError(path_in_json,
-                    'Invalid type: must be of type {}.'.format(holder.variable.json_type))
+                            u'Invalid type: must be of type {}.'.format(holder.variable.json_type))
 
                     holder.buffer[period] = array
 
@@ -116,7 +115,7 @@ class Entity(object):
                     # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
                     # We do a basic research to find the culprit path
                     culprit_path = next(
-                        dpath.search(self.entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+                        dpath.search(self.entities_json, u"*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
                         None)
                     if culprit_path:
                         path = [self.plural] + culprit_path[0].split('/')
@@ -146,7 +145,7 @@ class Entity(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise Exception("Entity {} has no attribute {}".format(self.key, attribute))
+            raise Exception(u"Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
     @classmethod
@@ -174,11 +173,11 @@ class Entity(object):
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {}".format(array, self.key))
+            raise ValueError(u"Input {} is not a valid value for the entity {}".format(array, self.key))
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
-            raise ValueError("{} is not a valid role".format(role))
+            raise ValueError(u"{} is not a valid role".format(role))
 
     def check_period_validity(self, variable_name, period):
         if period is None:
@@ -249,7 +248,7 @@ class PersonEntity(Entity):
         self.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
-            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+            raise Exception(u'Projection to partner is only implemented for roles having exactly two subroles.')
 
         [subrole_1, subrole_2] = role.subroles
         value_subrole_1 = entity.project(entity.value_from_person(array, subrole_1))
@@ -306,7 +305,7 @@ class GroupEntity(Entity):
         if self.persons_to_allocate:
             unallocated_person = self.persons_to_allocate.pop()
             raise SituationParsingError([self.plural],
-                '{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
+                u'{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
                     unallocated_person, self.simulation.persons.plural, self.key)
                 )
 
@@ -320,12 +319,12 @@ class GroupEntity(Entity):
                 check_type(person_id, basestring, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
-                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                        u"Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
                             person_id, entity_id, role_id, self.simulation.persons.plural)
                         )
                 if person_id not in self.persons_to_allocate:
                     raise SituationParsingError([self.plural, entity_id, role_id],
-                        "{} has been declared more than once in {}".format(
+                        u"{} has been declared more than once in {}".format(
                             person_id, self.plural)
                         )
                 self.persons_to_allocate.discard(person_id)
@@ -423,7 +422,7 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         if role.max != 1:
             raise Exception(
-                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
+                u'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
                 .format(self.key, role.key)
                 )
         self.simulation.persons.check_array_compatible_with_entity(array)

@@ -181,3 +181,88 @@ def test_enum_wrong_value():
         "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']",
         dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
         )
+
+
+def test_encoding_period_value():
+    simulation_json = json.dumps({
+        "persons": {
+            "toto": {}
+            },
+        "households": {
+            "_": {
+                "housing_occupancy_status": {
+                    "2017-07": "Locataire ou sous-locataire d‘un logement loué vide non-HLM"
+
+                    },
+                "parent": [
+                    "toto",
+                    ]
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are "
+    response = post_json(simulation_json)
+    assert expected_response in response.data, expected_response + os.linesep + " NOT FOUND IN: " + os.linesep + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
+
+
+def test_encoding_entity_name():
+    simulation_json = json.dumps({
+        "persons": {
+            "O‘Ryan": {},
+            "Renée": {}
+            },
+        "households": {
+            "_": {
+                "parents": [
+                    "O‘Ryan",
+                    "Renée"
+                    ]
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "'O‘Ryan' is not a valid ASCII value."
+    response = post_json(simulation_json)
+    assert expected_response in response.data, str(response.status_code) + " " + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
+
+
+def test_encoding_period_id():
+    simulation_json = json.dumps({
+        "persons": {
+            "bill": {
+                "salary": {
+                    "2017": 60000
+                    }
+                },
+            "bell": {
+                "salary": {
+                    "2017": 60000
+                    }
+                }
+            },
+        "households": {
+            "_": {
+                "parents": ["bill", "bell"],
+                "housing_tax": {
+                    "à": 400
+                    },
+                "accomodation_size": {
+                    "2017-01": 300
+                    },
+                "housing_occupancy_status": {
+                    "2017-01": "tenant"
+                    }
+                }
+            }
+        })
+
+    # No UnicodeDecodeError
+    expected_response = "'à' is not a valid ASCII value."
+    response = post_json(simulation_json)
+    assert expected_response in response.data, str(response.status_code) + " " + response.data
+    assert_equal(response.status_code, BAD_REQUEST, response.data)
