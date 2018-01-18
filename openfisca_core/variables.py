@@ -9,6 +9,7 @@ import numpy as np
 
 import entities
 from formulas import Formula
+import periods
 from periods import MONTH, YEAR, ETERNITY
 from base_functions import (
     missing_value,
@@ -290,6 +291,35 @@ class Variable(object):
             source_code, start_line_number = None, None
 
         return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number
+
+    def get_formula(self, period = None):
+        """
+        Returns the formula used to compute the variable at the given period.
+
+        If no period is given and the variable has several formula, return the oldest formula.
+
+        Note: variable.get_formula() returns a simple function, while variable.formula is the subclass of Formula associated to the Variable, a more complex OpenFisca object.
+
+        :returns: Formula used to compute the variable
+        :rtype: function
+        """
+
+        if period is None:
+            return self.formula.dated_formulas_class[0]['formula_class'].formula.im_func
+
+        if not isinstance(period, periods.Period):
+            period = periods.period(period)
+
+        if self.end and period.start.date > self.end:
+            return None
+
+        for dated_formula in reversed(self.formula.dated_formulas_class):
+            start = dated_formula['start_instant'].date
+
+            if period.start.date >= start:
+                return dated_formula['formula_class'].formula.im_func
+
+        return None
 
     def clone(self):
         clone = self.__class__()

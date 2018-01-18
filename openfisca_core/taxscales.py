@@ -271,3 +271,22 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
 
             average_tax_scale.add_bracket(float('Inf'), rate)
         return average_tax_scale
+
+
+def combine_tax_scales(node):
+    """
+        Combine all the MarginalRateTaxScales in the node into a single MarginalRateTaxScale.
+    """
+    combined_tax_scales = None
+    for child_name in node:
+        child = node[child_name]
+
+        if not isinstance(child, AbstractTaxScale):
+            log.info(u'Skipping {} with value {} because it is not a tax scale'.format(child_name, child))
+            continue
+
+        if combined_tax_scales is None:
+            combined_tax_scales = MarginalRateTaxScale(name = child_name)
+            combined_tax_scales.add_bracket(0, 0)
+        combined_tax_scales.add_tax_scale(child)
+    return combined_tax_scales

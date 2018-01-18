@@ -229,6 +229,22 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
             holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
 
+    def get_memory_usage(self, variables = None):
+        holders_memory_usage = {
+            variable_name: holder.get_memory_usage()
+            for variable_name, holder in self._holders.iteritems()
+            if variables is None or variable_name in variables
+            }
+
+        total_memory_usage = sum(
+            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.itervalues()
+            )
+
+        return dict(
+            total_nb_bytes = total_memory_usage,
+            by_variable = holders_memory_usage
+            )
+
 
 class PersonEntity(Entity):
     is_person = True
@@ -273,6 +289,7 @@ class GroupEntity(Entity):
             self._members_position = None
             self.members_legacy_role = None
         self.members = self.simulation.persons
+        self._roles_count = None
 
     def split_variables_and_roles_json(self, entity_object):
         entity_object = entity_object.copy()  # Don't mutate function input
@@ -363,6 +380,16 @@ class GroupEntity(Entity):
     @members_role.setter
     def members_role(self, members_role):
         self._members_role = members_role
+
+    @property
+    def roles_count(self):
+        if self._roles_count is None:
+            self._roles_count = self.members_legacy_role.max() + 1
+        return self._roles_count
+
+    @roles_count.setter
+    def roles_count(self, value):
+        self._roles_count = value
 
     #  Aggregation persons -> entity
 

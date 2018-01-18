@@ -7,15 +7,24 @@ from nose.tools import raises
 from nose.tools import assert_equal
 
 from openfisca_core import periods
-from openfisca_core.periods import MONTH
-from openfisca_core.reforms import Reform
-from openfisca_core.variables import Variable
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_country_template.entities import Household
+from openfisca_country_template.entities import Household, Person
+from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
+
+
+class goes_to_school(Variable):
+    value_type = bool
+    default_value = True
+    entity = Person
+    label = u"The person goes to school (only relevant for children)"
+    definition_period = MONTH
+
+
+tax_benefit_system.add_variable(goes_to_school)
 
 
 class test_basic_income_neutralization(Reform):
@@ -41,6 +50,22 @@ def test_formula_neutralization():
     assert_near(basic_income_reform, 0, absolute_error_margin = 0)
     disposable_income_reform = reform_simulation.calculate('disposable_income', period = period)
     assert_near(disposable_income_reform, 0)
+
+
+def test_neutralization_variable_with_default_value():
+    class test_goes_to_school_neutralization(Reform):
+        def apply(self):
+            self.neutralize_variable('goes_to_school')
+
+    reform = test_goes_to_school_neutralization(tax_benefit_system)
+
+    period = "2013-01"
+    scenario = reform.new_scenario().init_from_attributes(
+        period = period,
+        )
+    simulation = scenario.new_simulation(use_baseline = True)
+    goes_to_school = simulation.calculate('goes_to_school', period)
+    assert_near(goes_to_school, [True], absolute_error_margin = 0)
 
 
 def test_neutralization_optimization():

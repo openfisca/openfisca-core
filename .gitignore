@@ -3,6 +3,7 @@
 .pydevproject
 .vscode
 .settings/
+.vscode/
 build/
 dist/
 *.egg-info

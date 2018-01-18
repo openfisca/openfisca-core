@@ -15,7 +15,8 @@ from indexed_enums import Enum, EnumArray
 
 
 class DatedHolder(object):
-    """A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
+    """
+        A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
     """
     holder = None
     period = None
@@ -53,6 +54,9 @@ class DatedHolder(object):
 
 
 class Holder(object):
+    """
+        A holder keeps tracks of a variable values after they have been calculated, or set as an input.
+    """
     _array = None  # Only used when variable.definition_period == ETERNITY
     _array_by_period = None  # Only used when variable.definition_period != ETERNITY
     variable = None
@@ -119,10 +123,10 @@ class Holder(object):
         return new
 
     def compute(self, period, **parameters):
-        """Compute array if needed and return a dated holder containing it.
-
-        The returned dated holder is always of the requested period and this method never returns None.
         """
+            Compute the variable's value for the ``period`` and return a dated holder containing the value.
+        """
+
         if self.simulation.trace:
             self.simulation.tracer.record_calculation_start(self.variable.name, period, **parameters)
         variable = self.variable
@@ -214,11 +218,25 @@ class Holder(object):
             self.variable.name,
             period).encode('utf-8'))
 
-    def delete_arrays(self):
+    def delete_arrays(self, period = None):
+        """
+            If ``period`` is ``None``, remove all known values of the variable.
+
+            If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
+
+        """
         if self._array is not None:
             del self._array
-        if self._array_by_period is not None:
+        if self._array_by_period is not None and period is None:
             del self._array_by_period
+        if period is not None:
+            if not isinstance(period, periods.Period):
+                period = periods.period(period)
+            self._array_by_period = {
+                period_item: value
+                for period_item, value in self._array_by_period.iteritems()
+                if not period.contains(period_item)
+                }
 
     def get_array(self, period, extra_params = None):
         if self.variable.definition_period == ETERNITY:
@@ -252,6 +270,71 @@ class Holder(object):
             return
         formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
 
+    def get_memory_usage(self):
+        """
+            Gets data about the virtual memory usage of the holder.
+
+            :returns: Memory usage data
+            :rtype: dict
+
+            Exemple:
+
+            >>> holder.get_memory_usage()
+            >>> {
+            >>>    'nb_arrays': 12,  # The holder contains the variable values for 12 different periods
+            >>>    'nb_cells_by_array': 100, # There are 100 entities (e.g. persons) in our simulation
+            >>>    'cell_size': 8,  # Each value takes 8B of memory
+            >>>    'dtype': dtype('float64')  # Each value is a float 64
+            >>>    'total_nb_bytes': 10400  # The holder uses 10.4kB of virtual memory
+            >>>    }
+        """
+
+        usage = dict(
+            nb_cells_by_array = self.entity.count,
+            dtype = self.variable.dtype,
+            )
+
+        if self._array is not None:
+            # self._array is only used when definition period is ETERNITY"
+            usage.update(dict(
+                nb_arrays = 1,
+                total_nb_bytes = self._array.nbytes,
+                cell_size = self._array.itemsize,
+                ))
+            return usage
+        elif self._array_by_period is not None:
+            nb_arrays = sum([
+                len(array_or_dict) if isinstance(array_or_dict, dict) else 1
+                for array_or_dict in self._array_by_period.itervalues()
+                ])
+            array = self._array_by_period.values()[0]
+            if isinstance(array, dict):
+                array = array.values()[0]
+            usage.update(dict(
+                nb_arrays = nb_arrays,
+                total_nb_bytes = array.nbytes * nb_arrays,
+                cell_size = array.itemsize,
+                ))
+            return usage
+        else:
+            usage.update(dict(
+                nb_arrays = 0,
+                total_nb_bytes = 0,
+                cell_size = np.nan,
+                ))
+            return usage
+
+    def get_known_periods(self):
+        """
+        Get the list of periods the variable value is known for.
+        """
+        if self.variable.definition_period == ETERNITY:
+            if self.array is not None:
+                return [ETERNITY]
+            else:
+                return []
+        return self._array_by_period.keys()
+
     @property
     def real_formula(self):
         formula = self.formula
@@ -282,6 +365,15 @@ class Holder(object):
 
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
+
+        if value.dtype != self.variable.dtype:
+            try:
+                value = value.astype(self.variable.dtype)
+            except ValueError:
+                raise ValueError(
+                    u'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
+                    .format(value, self.variable.name, self.variable.dtype, value.dtype)
+                    .encode('utf-8'))
 
         if self.variable.definition_period != ETERNITY:
             if period is None:

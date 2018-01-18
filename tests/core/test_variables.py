@@ -6,8 +6,11 @@ from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
 from openfisca_core.formulas import Formula
 from openfisca_core.holders import Holder
+from openfisca_core.simulations import Simulation
+from openfisca_core.tools import assert_near
 
 import openfisca_country_template as country_template
+from openfisca_country_template.situation_examples import couple
 from openfisca_country_template.entities import Person
 
 # Check which date is applied whether it comes from Variable attribute (end)
@@ -489,3 +492,13 @@ def test_clone__end_attribute__formulas__different_names():
     assert clone.start_line_number == simulation_holder.formula.start_line_number
     assert clone.source_code == simulation_holder.formula.source_code
     assert clone.source_file_path == simulation_holder.formula.source_file_path
+
+
+def test_get_formula():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
+    disposable_income_formula = tax_benefit_system.get_variable('disposable_income').get_formula()
+    person = simulation.person
+    disposable_income = person('disposable_income', '2017-01')
+    disposable_income_2 = disposable_income_formula(person, '2017-01', None)  # No need for parameters here
+
+    assert_near(disposable_income, disposable_income_2)
