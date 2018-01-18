@@ -436,13 +436,14 @@ class Holder(object):
         value_json = {}
         for period, array_or_dict in self._memory_storage._arrays.iteritems():
             if type(array_or_dict) == dict:
-                value_json[str(period)] = values_dict = {}
+                values_dict = {}
                 for extra_params, array in array_or_dict.iteritems():
                     extra_params_key = extra_params_to_json_key(extra_params, period)
                     values_dict[str(extra_params_key)] = [
                         transform_dated_value_to_json(cell, use_label = use_label)
                         for cell in array.tolist()
                         ]
+                value_json[str(period)] = values_dict
             else:
                 value_json[str(period)] = [
                     transform_dated_value_to_json(cell, use_label = use_label)
@@ -451,13 +452,14 @@ class Holder(object):
         if self._disk_storage:
             for period, file_or_dict in self._disk_storage._files.iteritems():
                 if type(file_or_dict) == dict:
-                    value_json[str(period)] = values_dict = {}
+                    values_dict = {}
                     for extra_params, file in file_or_dict.iteritems():
                         extra_params_key = extra_params_to_json_key(extra_params, period)
                         values_dict[str(extra_params_key)] = [
                             transform_dated_value_to_json(cell, use_label = use_label)
                             for cell in np.load(file).tolist()
                             ]
+                    value_json[str(period)] = values_dict
                 else:
                     value_json[str(period)] = [
                         transform_dated_value_to_json(cell, use_label = use_label)
