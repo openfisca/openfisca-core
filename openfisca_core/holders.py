@@ -102,12 +102,12 @@ class Holder(object):
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    # Sould probably be deprecated
+    # Should probably be deprecated
     @property
     def array(self):
         return self.get_array(self.simulation.period)
 
-    # Sould probably be deprecated
+    # Should probably be deprecated
     @array.setter
     def array(self, array):
         self.put_in_cache(array, self.simulation.period)
