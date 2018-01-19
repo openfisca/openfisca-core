@@ -236,9 +236,9 @@ class Variable(object):
         if not base_function and self.baseline_variable:
             return self.baseline_variable.formula.base_function.im_func
         if self.definition_period == ETERNITY:
-            if base_function and not base_function == permanent_default_value:
+            if base_function and base_function not in [permanent_default_value, requested_period_default_value]:
                 raise ValueError('Unexpected base_function {}'.format(base_function))
-            return permanent_default_value
+            return requested_period_default_value
 
         if self.is_period_size_independent:
             if base_function is None:

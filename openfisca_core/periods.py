@@ -612,6 +612,8 @@ class Period(tuple):
         """
         unit, start_instant, size = self
         year, month, day = start_instant
+        if unit == ETERNITY:
+            return Instant((float("inf"), float("inf"), float("inf")))
         if unit == u'day':
             if size > 1:
                 day += size - 1
@@ -762,6 +764,8 @@ def period(value):
     >>> period(u'year:2014-2')
     Period((YEAR, Instant((2014, 2, 1)), 1))
     """
+    if isinstance(value, Period):
+        return value
 
     def parse_simple_period(value):
         """
@@ -787,14 +791,12 @@ def period(value):
             ])
         raise ValueError(message)
 
-    if value == 'ETERNITY':
+    if value == 'ETERNITY' or value == ETERNITY:
         return Period((u'eternity', instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if isinstance(value, Period):
-        return value
     if not isinstance(value, basestring):
         raise_error(value)
 

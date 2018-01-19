@@ -3,12 +3,17 @@
 
 import warnings
 from os import linesep
+import tempfile
+import logging
 
 import dpath
 
 import periods
 from commons import empty_clone
 from tracers import Tracer
+
+
+log = logging.getLogger(__name__)
 
 
 class Simulation(object):
@@ -27,7 +32,8 @@ class Simulation(object):
             tax_benefit_system = None,
             trace = False,
             opt_out_cache = False,
-            simulation_json = None
+            simulation_json = None,
+            memory_config = None,
             ):
         """
             If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
@@ -48,17 +54,19 @@ class Simulation(object):
         self.requested_periods_by_variable_name = {}
         self.max_nb_cycles = None
 
-        if debug:
-            self.debug = True
-        if debug or trace:
-            self.trace = True
+        self.debug = debug
+        self.trace = trace or self.debug
+        if self.trace:
             self.tracer = Tracer()
+        else:
+            self.tracer = None
         self.opt_out_cache = opt_out_cache
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self._parameters_at_instant_cache = {}
         self.baseline_parameters_at_instant_cache = {}
-
+        self.memory_config = memory_config
+        self._data_storage_dir = None
         self.instantiate_entities(simulation_json)
 
     def instantiate_entities(self, simulation_json):
@@ -92,6 +100,19 @@ class Simulation(object):
                 entities = entity_class(self)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
+
+    @property
+    def data_storage_dir(self):
+        """
+        Temporary folder used to store intermediate calculation data in case the memory is saturated
+        """
+        if self._data_storage_dir is None:
+            self._data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
+            log.warn((
+                u"Intermediate results will be stored on disk in {} in case of memory overflow. "
+                u"You should remove this directory once you're done with your simulation."
+                ).format(self._data_storage_dir).encode('utf-8'))
+        return self._data_storage_dir
 
     @property
     def holder_by_name(self):

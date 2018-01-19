@@ -2,16 +2,21 @@
 
 
 from __future__ import division
-import warnings
+import logging
 import os
+import warnings
 
 import numpy as np
+import psutil
 
-from . import periods
-from .commons import empty_clone
-from .periods import MONTH, YEAR, ETERNITY
+from commons import empty_clone
+import periods
+from periods import MONTH, YEAR, ETERNITY
 from columns import make_column_from_variable
 from indexed_enums import Enum, EnumArray
+from data_storage import InMemoryStorage, OnDiskStorage
+
+log = logging.getLogger(__name__)
 
 
 class DatedHolder(object):
@@ -80,18 +85,32 @@ class Holder(object):
             self.simulation = entity.simulation
         self.variable = variable
         self.buffer = {}
+        self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
 
+        # By default, do not activate on-disk storage, or variable dropping
+        self._disk_storage = None
+        self._on_disk_storable = False
+        self._do_not_store = False
+        if self.simulation.memory_config:
+            if self.variable.name not in self.simulation.memory_config.priority_variables:
+                storage_dir = os.path.join(self.simulation.data_storage_dir, self.variable.name)
+                if not os.path.isdir(storage_dir):
+                    os.mkdir(storage_dir)
+                self._disk_storage = OnDiskStorage(
+                    storage_dir, is_eternal = (self.variable.definition_period == ETERNITY))
+                self._on_disk_storable = True
+            if self.variable.name in self.simulation.memory_config.variables_to_drop:
+                self._do_not_store = True
+
+    # Should probably be deprecated
     @property
     def array(self):
-        if self.variable.definition_period != ETERNITY:
-            return self.get_array(self.simulation.period)
-        return self._array
+        return self.get_array(self.simulation.period)
 
+    # Should probably be deprecated
     @array.setter
     def array(self, array):
-        if self.variable.definition_period != ETERNITY:
-            return self.put_in_cache(array, self.simulation.period)
-        self._array = array
+        self.put_in_cache(array, self.simulation.period)
 
     def calculate(self, period, **parameters):
         dated_holder = self.compute(period = period, **parameters)
@@ -161,10 +180,11 @@ class Holder(object):
 
         # Request a computation
         dated_holder = self.formula.compute(period = period, **parameters)
-        formula_dated_holder = self.put_in_cache(dated_holder.array, period, extra_params)
+        if not self._do_not_store:
+            self.put_in_cache(dated_holder.array, period, extra_params)
         if self.simulation.trace:
             self.simulation.tracer.record_calculation_end(self.variable.name, period, dated_holder.array, **parameters)
-        return formula_dated_holder
+        return dated_holder
 
     def compute_add(self, period, **parameters):
         # Check that the requested period matches definition_period
@@ -225,34 +245,22 @@ class Holder(object):
             If ``period`` is not ``None``, only remove all values for any period included in period (e.g. if period is "2017", values for "2017-01", "2017-07", etc. would be removed)
 
         """
-        if self._array is not None:
-            del self._array
-        if self._array_by_period is not None and period is None:
-            del self._array_by_period
-        if period is not None:
-            if not isinstance(period, periods.Period):
-                period = periods.period(period)
-            self._array_by_period = {
-                period_item: value
-                for period_item, value in self._array_by_period.iteritems()
-                if not period.contains(period_item)
-                }
+
+        self._memory_storage.delete(period)
+        if self._disk_storage:
+            self._disk_storage.delete(period)
 
     def get_array(self, period, extra_params = None):
-        if self.variable.definition_period == ETERNITY:
-            return self.array
-        assert period is not None
-        array_by_period = self._array_by_period
-        if array_by_period is not None:
-            values = array_by_period.get(period)
-            if values is not None:
-                if extra_params:
-                    return values.get(tuple(extra_params))
-                else:
-                    if(type(values) == dict):
-                        return values.values()[0]
-                    return values
-        return None
+        """
+        Get the value of the variable for the given period (and possibly a list of extra parameters).
+
+        If the value is not known, return ``None``.
+        """
+        value = self._memory_storage.get(period, extra_params)
+        if value is not None:
+            return value
+        if self._disk_storage:
+            return self._disk_storage.get(period, extra_params)
 
     def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
         variable = self.variable
@@ -286,6 +294,8 @@ class Holder(object):
             >>>    'cell_size': 8,  # Each value takes 8B of memory
             >>>    'dtype': dtype('float64')  # Each value is a float 64
             >>>    'total_nb_bytes': 10400  # The holder uses 10.4kB of virtual memory
+            >>>    'nb_requests': 24  # The variable has been computed 24 times
+            >>>    'nb_requests_by_array': 2  # Each array stored has been on average requested twice
             >>>    }
         """
 
@@ -294,46 +304,23 @@ class Holder(object):
             dtype = self.variable.dtype,
             )
 
-        if self._array is not None:
-            # self._array is only used when definition period is ETERNITY"
+        usage.update(self._memory_storage.get_memory_usage())
+
+        if self.simulation.trace:
+            usage_stats = self.simulation.tracer.usage_stats[self.variable.name]
             usage.update(dict(
-                nb_arrays = 1,
-                total_nb_bytes = self._array.nbytes,
-                cell_size = self._array.itemsize,
+                nb_requests = usage_stats['nb_requests'],
+                nb_requests_by_array = usage_stats['nb_requests'] / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else np.nan
                 ))
-            return usage
-        elif self._array_by_period is not None:
-            nb_arrays = sum([
-                len(array_or_dict) if isinstance(array_or_dict, dict) else 1
-                for array_or_dict in self._array_by_period.itervalues()
-                ])
-            array = self._array_by_period.values()[0]
-            if isinstance(array, dict):
-                array = array.values()[0]
-            usage.update(dict(
-                nb_arrays = nb_arrays,
-                total_nb_bytes = array.nbytes * nb_arrays,
-                cell_size = array.itemsize,
-                ))
-            return usage
-        else:
-            usage.update(dict(
-                nb_arrays = 0,
-                total_nb_bytes = 0,
-                cell_size = np.nan,
-                ))
-            return usage
+
+        return usage
 
     def get_known_periods(self):
         """
         Get the list of periods the variable value is known for.
         """
-        if self.variable.definition_period == ETERNITY:
-            if self.array is not None:
-                return [ETERNITY]
-            else:
-                return []
-        return self._array_by_period.keys()
+        return self._memory_storage.get_known_periods() + (
+            self._disk_storage.get_known_periods() if self._disk_storage else [])
 
     @property
     def real_formula(self):
@@ -403,25 +390,22 @@ class Holder(object):
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
             return DatedHolder(self, period, value, extra_params)
 
-        if self.variable.definition_period == ETERNITY:
-            self.array = value
+        should_store_on_disk = (
+            self._on_disk_storable and
+            self._memory_storage.get(period, extra_params) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
+            )
 
-        array_by_period = self._array_by_period
-        if array_by_period is None:
-            self._array_by_period = array_by_period = {}
-        if extra_params is None:
-            array_by_period[period] = value
+        if should_store_on_disk:
+            self._disk_storage.put(value, period, extra_params)
         else:
-            if array_by_period.get(period) is None:
-                array_by_period[period] = {}
-            array_by_period[period][tuple(extra_params)] = value
-        return self.get_from_cache(period, extra_params)
+            self._memory_storage.put(value, period, extra_params)
+
+        return DatedHolder(self, period, value, extra_params)
 
     def get_from_cache(self, period, extra_params = None):
         if self.variable.is_neutralized:
             return DatedHolder(self, period, value = self.default_array())
-        if self.variable.definition_period == ETERNITY:
-            return self
 
         value = self.get_array(period, extra_params)
         return DatedHolder(self, period, value, extra_params)
@@ -450,20 +434,36 @@ class Holder(object):
                 for cell in array.tolist()
                 ]
         value_json = {}
-        if self._array_by_period is not None:
-            for period, array_or_dict in self._array_by_period.iteritems():
-                if type(array_or_dict) == dict:
-                    value_json[str(period)] = values_dict = {}
-                    for extra_params, array in array_or_dict.iteritems():
+        for period, array_or_dict in self._memory_storage._arrays.iteritems():
+            if type(array_or_dict) == dict:
+                values_dict = {}
+                for extra_params, array in array_or_dict.iteritems():
+                    extra_params_key = extra_params_to_json_key(extra_params, period)
+                    values_dict[str(extra_params_key)] = [
+                        transform_dated_value_to_json(cell, use_label = use_label)
+                        for cell in array.tolist()
+                        ]
+                value_json[str(period)] = values_dict
+            else:
+                value_json[str(period)] = [
+                    transform_dated_value_to_json(cell, use_label = use_label)
+                    for cell in array_or_dict.tolist()
+                    ]
+        if self._disk_storage:
+            for period, file_or_dict in self._disk_storage._files.iteritems():
+                if type(file_or_dict) == dict:
+                    values_dict = {}
+                    for extra_params, file in file_or_dict.iteritems():
                         extra_params_key = extra_params_to_json_key(extra_params, period)
                         values_dict[str(extra_params_key)] = [
                             transform_dated_value_to_json(cell, use_label = use_label)
-                            for cell in array.tolist()
+                            for cell in np.load(file).tolist()
                             ]
+                    value_json[str(period)] = values_dict
                 else:
                     value_json[str(period)] = [
                         transform_dated_value_to_json(cell, use_label = use_label)
-                        for cell in array_or_dict.tolist()
+                        for cell in np.load(file_or_dict).tolist()
                         ]
         return value_json
 
