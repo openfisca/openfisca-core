@@ -150,3 +150,11 @@ def test_known_periods():
     holder.put_in_cache(data, month)
     holder._memory_storage.put(data, month_2)
     assert_items_equal(holder.get_known_periods(), [month, month_2])
+
+
+def test_cache_enum_on_disk():
+    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    month = make_period('2017-01')
+    simulation.calculate('housing_occupancy_status', month)  # First calculation
+    housing_occupancy_status = simulation.calculate('housing_occupancy_status', month)  # Read from cache
+    assert_equal(housing_occupancy_status, HousingOccupancyStatus.tenant)
