@@ -1,5 +1,10 @@
 # Changelog
 
+## 21.2.1 [#613](https://github.com/openfisca/openfisca-core/pull/613)
+
+- Fix a bug introduced in `21.0.2`:
+  - The result of a formula returning an Enum value was not properly encoded
+
 ## 21.2.0 [#601](https://github.com/openfisca/openfisca-core/pull/601)
 
 #### New features
