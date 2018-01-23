@@ -7,6 +7,7 @@ import numpy as np
 
 import periods
 from periods import ETERNITY
+from indexed_enums import EnumArray
 
 
 class InMemoryStorage(object):
@@ -92,8 +93,16 @@ class OnDiskStorage(object):
 
     def __init__(self, storage_dir, is_eternal = False):
         self._files = {}
+        self._enums = {}
         self.is_eternal = is_eternal
         self.storage_dir = storage_dir
+
+    def _decode_file(self, file):
+        enum = self._enums.get(file)
+        if enum is not None:
+            return EnumArray(np.load(file), enum)
+        else:
+            return np.load(file)
 
     def get(self, period, extra_params = None):
         if self.is_eternal:
@@ -106,10 +115,10 @@ class OnDiskStorage(object):
         if extra_params:
             if values.get(tuple(extra_params)) is None:
                 return None
-            return np.load(values.get(tuple(extra_params)))
+            return self._decode_file(values.get(tuple(extra_params)))
         if isinstance(values, dict):
-            return np.load(values.values()[0])
-        return np.load(values)
+            return self._decode_file(values.values()[0])
+        return self._decode_file(values)
 
     def put(self, value, period, extra_params = None):
         if self.is_eternal:
@@ -121,6 +130,9 @@ class OnDiskStorage(object):
             filename = '{}_{}'.format(
                 filename, '_'.join([str(param) for param in extra_params]))
         path = os.path.join(self.storage_dir, filename) + '.npy'
+        if isinstance(value, EnumArray):
+            self._enums[path] = value.possible_values
+            value = value.view(np.ndarray)
         np.save(path, value)
         if extra_params is None:
             self._files[period] = path

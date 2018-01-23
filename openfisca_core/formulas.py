@@ -17,7 +17,7 @@ from . import holders, periods
 from .parameters import ParameterNotFound
 from .periods import MONTH, YEAR, ETERNITY
 from .commons import empty_clone, stringify_array
-from .indexed_enums import Enum
+from .indexed_enums import Enum, EnumArray
 
 
 log = logging.getLogger(__name__)
@@ -515,11 +515,12 @@ class Formula(object):
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
+
+        if self.holder.variable.value_type == Enum and not isinstance(array, EnumArray):
+            array = self.holder.variable.possible_values.encode(array)
+
         if array.dtype != variable.dtype:
-            if self.holder.variable.value_type == Enum:
-                self.holder.variable.possible_values.encode(array)
-            else:
-                array = array.astype(variable.dtype)
+            array = array.astype(variable.dtype)
 
         self.clean_cycle_detection_data()
         if max_nb_cycles is not None:

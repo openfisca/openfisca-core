@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.2.1 [#613](https://github.com/openfisca/openfisca-core/pull/613)
+
+- Fix two bugs that appeared with 21.2.0:
+  - Properly encode the result of a formula returning an Enum value
+  - Enable storing an Enum value on disk
+
 ## 21.2.0 [#601](https://github.com/openfisca/openfisca-core/pull/601)
 
 #### New features
