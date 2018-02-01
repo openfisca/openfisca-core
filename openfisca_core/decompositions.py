@@ -6,6 +6,7 @@ import copy
 from xml.etree import ElementTree
 
 from . import conv, decompositionsxml, parameters
+from columns import make_column_from_variable
 
 
 def calculate(simulations, decomposition_json):
@@ -31,7 +32,7 @@ def calculate(simulations, decomposition_json):
                     exc.simulation_index = simulation_index
                     raise
                 holder = simulation.get_holder(node['code'])
-                column = holder.column
+                column = make_column_from_variable(holder.variable)
                 values.extend(
                     column.transform_value_to_json(value)
                     for value in new_test_case_array(holder, array).tolist()
@@ -118,7 +119,7 @@ def make_validate_node_json(tax_benefit_system):
             validated_node, errors = conv.struct(
                 dict(
                     code = conv.pipe(
-                        conv.test_in(tax_benefit_system.column_by_name),
+                        conv.test_in(tax_benefit_system.variables),
                         conv.not_none,
                         ),
                     ),

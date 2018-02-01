@@ -8,13 +8,13 @@ from os import linesep
 import numpy as np
 import dpath
 
+from indexed_enums import Enum, EnumArray
 from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
-from taxbenefitsystems import VariableNotFound
-from columns import EnumCol
+from errors import VariableNotFound
 
 
 class Entity(object):
@@ -71,7 +71,7 @@ class Entity(object):
 
             if not isinstance(variable_values, dict):
                 raise SituationParsingError(path_in_json,
-                    'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
+                    u'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             holder = self.get_holder(variable_name)
             for date, value in variable_values.iteritems():
@@ -84,20 +84,20 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-                    if isinstance(holder.column, EnumCol) and isinstance(value, basestring):
+                    if holder.variable.value_type == Enum and isinstance(value, basestring):
                         try:
-                            value = holder.column.enum[value]
+                            value = holder.variable.possible_values[value].index
                         except KeyError:
+                            possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
-                                "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
-                                    value, variable_name, "', '".join(holder.column.enum.list)
-                                    ).encode('utf-8')
+                                u"'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
+                                    value, variable_name, "', '".join(possible_values))
                                 )
                     try:
                         array[entity_index] = value
                     except (ValueError, TypeError) as e:
                         raise SituationParsingError(path_in_json,
-                    'Invalid type: must be of type {}.'.format(holder.column.json_type))
+                            u'Invalid type: must be of type {}.'.format(holder.variable.json_type))
 
                     holder.buffer[period] = array
 
@@ -115,7 +115,7 @@ class Entity(object):
                     # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
                     # We do a basic research to find the culprit path
                     culprit_path = next(
-                        dpath.search(self.entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+                        dpath.search(self.entities_json, u"*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
                         None)
                     if culprit_path:
                         path = [self.plural] + culprit_path[0].split('/')
@@ -145,7 +145,7 @@ class Entity(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise Exception("Entity {} has no attribute {}".format(self.key, attribute))
+            raise Exception(u"Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
     @classmethod
@@ -162,7 +162,7 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.simulation.tax_benefit_system.get_column(variable_name, check_existence = True).entity
+        variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
             message = linesep.join([
                 u"You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
@@ -173,11 +173,11 @@ class Entity(object):
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {}".format(array, self.key))
+            raise ValueError(u"Input {} is not a valid value for the entity {}".format(array, self.key))
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
-            raise ValueError("{} is not a valid role".format(role))
+            raise ValueError(u"{} is not a valid role".format(role))
 
     def check_period_validity(self, variable_name, period):
         if period is None:
@@ -220,14 +220,30 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        column = self.simulation.tax_benefit_system.get_column(variable_name)
+        variable = self.simulation.tax_benefit_system.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
-            column = column,
+            variable = variable,
             )
-        if column.formula_class is not None:
-            holder.formula = column.formula_class(holder = holder)  # Instanciates a Formula
+        if variable.formula is not None:
+            holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
+
+    def get_memory_usage(self, variables = None):
+        holders_memory_usage = {
+            variable_name: holder.get_memory_usage()
+            for variable_name, holder in self._holders.iteritems()
+            if variables is None or variable_name in variables
+            }
+
+        total_memory_usage = sum(
+            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.itervalues()
+            )
+
+        return dict(
+            total_nb_bytes = total_memory_usage,
+            by_variable = holders_memory_usage
+            )
 
 
 class PersonEntity(Entity):
@@ -248,7 +264,7 @@ class PersonEntity(Entity):
         self.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
-            raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
+            raise Exception(u'Projection to partner is only implemented for roles having exactly two subroles.')
 
         [subrole_1, subrole_2] = role.subroles
         value_subrole_1 = entity.project(entity.value_from_person(array, subrole_1))
@@ -273,6 +289,7 @@ class GroupEntity(Entity):
             self._members_position = None
             self.members_legacy_role = None
         self.members = self.simulation.persons
+        self._roles_count = None
 
     def split_variables_and_roles_json(self, entity_object):
         entity_object = entity_object.copy()  # Don't mutate function input
@@ -305,7 +322,7 @@ class GroupEntity(Entity):
         if self.persons_to_allocate:
             unallocated_person = self.persons_to_allocate.pop()
             raise SituationParsingError([self.plural],
-                '{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
+                u'{0} has been declared in {1}, but is not a member of any {2}. All {1} must be allocated to a {2}.'.format(
                     unallocated_person, self.simulation.persons.plural, self.key)
                 )
 
@@ -319,12 +336,12 @@ class GroupEntity(Entity):
                 check_type(person_id, basestring, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
-                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                        u"Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
                             person_id, entity_id, role_id, self.simulation.persons.plural)
                         )
                 if person_id not in self.persons_to_allocate:
                     raise SituationParsingError([self.plural, entity_id, role_id],
-                        "{} has been declared more than once in {}".format(
+                        u"{} has been declared more than once in {}".format(
                             person_id, self.plural)
                         )
                 self.persons_to_allocate.discard(person_id)
@@ -363,6 +380,16 @@ class GroupEntity(Entity):
     @members_role.setter
     def members_role(self, members_role):
         self._members_role = members_role
+
+    @property
+    def roles_count(self):
+        if self._roles_count is None:
+            self._roles_count = self.members_legacy_role.max() + 1
+        return self._roles_count
+
+    @roles_count.setter
+    def roles_count(self, value):
+        self._roles_count = value
 
     #  Aggregation persons -> entity
 
@@ -422,11 +449,13 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         if role.max != 1:
             raise Exception(
-                'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
+                u'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
                 .format(self.key, role.key)
                 )
         self.simulation.persons.check_array_compatible_with_entity(array)
         result = self.filled_array(default, dtype = array.dtype)
+        if isinstance(array, EnumArray):
+            result = EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
@@ -445,8 +474,11 @@ class GroupEntity(Entity):
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
         self.check_role_validity(role)
-        role_condition = self.members.has_role(role) if role is not None else True
-        return np.where(role_condition, array[self.members_entity_id], 0)
+        if role is None:
+            return array[self.members_entity_id]
+        else:
+            role_condition = self.members.has_role(role)
+            return np.where(role_condition, array[self.members_entity_id], 0)
 
     # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
     # Doesn't seem to be used, maybe should just not introduce

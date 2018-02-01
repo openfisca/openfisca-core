@@ -7,12 +7,13 @@ from nose.tools import raises, assert_in
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
+from openfisca_core.model_api import *  # noqa
 
 LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 
 parameters = ParameterNode(directory_path = LOCAL_DIR)
 
-P = parameters.rate._get_at_instant('2015-01-01')
+P = parameters.rate('2015-01-01')
 
 
 def test_on_leaf():
@@ -71,7 +72,7 @@ def test_inhomogenous():
             }
         }))
 
-    P = parameters.rate._get_at_instant('2015-01-01')
+    P = parameters.rate('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
     try:
         P.couple[housing_occupancy_status]
@@ -92,7 +93,7 @@ def test_inhomogenous_2():
             }
         }))
 
-    P = parameters.rate._get_at_instant('2015-01-01')
+    P = parameters.rate('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
     try:
         P.couple[housing_occupancy_status]
@@ -114,7 +115,7 @@ def test_inhomogenous_3():
             }
         }))
 
-    P = parameters.rate._get_at_instant('2015-01-01')
+    P = parameters.rate('2015-01-01')
     zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
     try:
         P.couple.tenant[zone]
@@ -124,7 +125,7 @@ def test_inhomogenous_3():
         raise
 
 
-P_2 = parameters.local_tax._get_at_instant('2015-01-01')
+P_2 = parameters.local_tax('2015-01-01')
 
 
 def test_with_properties_starting_by_number():
@@ -132,7 +133,7 @@ def test_with_properties_starting_by_number():
     assert_near(P_2[city_code], [100, 300, 200])
 
 
-P_3 = parameters.bareme._get_at_instant('2015-01-01')
+P_3 = parameters.bareme('2015-01-01')
 
 
 @raises(NotImplementedError)
@@ -144,3 +145,13 @@ def test_with_bareme():
         assert_in("'bareme.75016' is a 'MarginalRateTaxScale'", e.message)
         assert_in("has not been implemented", e.message)
         raise
+
+
+def test_with_enum():
+
+    class TypesZone(Enum):
+        z1 = "Zone 1"
+        z2 = "Zone 2"
+
+    zone = np.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+    assert_near(P.single.owner[zone], [100, 200, 200, 100])

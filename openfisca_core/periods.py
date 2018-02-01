@@ -123,8 +123,8 @@ class Instant(tuple):
         >>> instant('2014-2-3').period('day', size = 2)
         Period((u'day', Instant((2014, 2, 3)), 2))
         """
-        assert unit in (u'day', u'month', u'year'), 'Invalid unit: {} of type {}'.format(unit, type(unit))
-        assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
+        assert unit in (u'day', u'month', u'year'), u'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert isinstance(size, int) and size >= 1, u'Invalid size: {} of type {}'.format(size, type(size))
         return Period((unicode(unit), self, size))
 
     def offset(self, offset, unit):
@@ -212,18 +212,18 @@ class Instant(tuple):
             if unit == u'month':
                 day = 1
             else:
-                assert unit == u'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == u'year', u'Invalid unit: {} of type {}'.format(unit, type(unit))
                 month = 1
                 day = 1
         elif offset == 'last-of':
             if unit == u'month':
                 day = calendar.monthrange(year, month)[1]
             else:
-                assert unit == u'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == u'year', u'Invalid unit: {} of type {}'.format(unit, type(unit))
                 month = 12
                 day = 31
         else:
-            assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
+            assert isinstance(offset, int), u'Invalid offset: {} of type {}'.format(offset, type(offset))
             if unit == u'day':
                 day += offset
                 if offset < 0:
@@ -256,7 +256,7 @@ class Instant(tuple):
                 if day > month_last_day:
                     day = month_last_day
             else:
-                assert unit == u'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == u'year', u'Invalid unit: {} of type {}'.format(unit, type(unit))
                 year += offset
                 # Handle february month of leap year.
                 month_last_day = calendar.monthrange(year, month)[1]
@@ -343,7 +343,7 @@ class Period(tuple):
 
     @property
     def date(self):
-        assert self.size == 1, '"date" is undefined for a period of size > 1: {}'.format(self)
+        assert self.size == 1, u'"date" is undefined for a period of size > 1: {}'.format(self)
         return self.start.date
 
     @property
@@ -545,6 +545,14 @@ class Period(tuple):
         """
         return self.__class__((self[0], self[1].offset(offset, self[0] if unit is None else unit), self[2]))
 
+    def contains(self, other):
+        """
+            Returns ``True`` if the period contains ``other``. For instance, ``period(2015)`` contains ``period(2015-01)``
+        """
+        if not isinstance(other, Period):
+            other = period(other)
+        return self.start <= other.start and self.stop >= other.stop
+
     @property
     def size(self):
         """Return the size of the period.
@@ -604,6 +612,8 @@ class Period(tuple):
         """
         unit, start_instant, size = self
         year, month, day = start_instant
+        if unit == ETERNITY:
+            return Instant((float("inf"), float("inf"), float("inf")))
         if unit == u'day':
             if size > 1:
                 day += size - 1
@@ -622,7 +632,7 @@ class Period(tuple):
                     year += 1
                     month -= 12
             else:
-                assert unit == u'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+                assert unit == u'year', u'Invalid unit: {} of type {}'.format(unit, type(unit))
                 year += size
             day -= 1
             if day < 1:
@@ -754,6 +764,8 @@ def period(value):
     >>> period(u'year:2014-2')
     Period((YEAR, Instant((2014, 2, 1)), 1))
     """
+    if isinstance(value, Period):
+        return value
 
     def parse_simple_period(value):
         """
@@ -779,14 +791,12 @@ def period(value):
             ])
         raise ValueError(message)
 
-    if value == 'ETERNITY':
+    if value == 'ETERNITY' or value == ETERNITY:
         return Period((u'eternity', instant(datetime.date.min), float("inf")))
 
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if isinstance(value, Period):
-        return value
     if not isinstance(value, basestring):
         raise_error(value)
 

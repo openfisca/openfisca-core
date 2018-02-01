@@ -3,12 +3,17 @@
 
 import warnings
 from os import linesep
+import tempfile
+import logging
 
 import dpath
 
 import periods
 from commons import empty_clone
 from tracers import Tracer
+
+
+log = logging.getLogger(__name__)
 
 
 class Simulation(object):
@@ -27,7 +32,8 @@ class Simulation(object):
             tax_benefit_system = None,
             trace = False,
             opt_out_cache = False,
-            simulation_json = None
+            simulation_json = None,
+            memory_config = None,
             ):
         """
             If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
@@ -48,17 +54,19 @@ class Simulation(object):
         self.requested_periods_by_variable_name = {}
         self.max_nb_cycles = None
 
-        if debug:
-            self.debug = True
-        if debug or trace:
-            self.trace = True
+        self.debug = debug
+        self.trace = trace or self.debug
+        if self.trace:
             self.tracer = Tracer()
+        else:
+            self.tracer = None
         self.opt_out_cache = opt_out_cache
 
         # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
         self._parameters_at_instant_cache = {}
         self.baseline_parameters_at_instant_cache = {}
-
+        self.memory_config = memory_config
+        self._data_storage_dir = None
         self.instantiate_entities(simulation_json)
 
     def instantiate_entities(self, simulation_json):
@@ -76,7 +84,7 @@ class Simulation(object):
 
             if not persons_json:
                 raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                    'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key).encode('utf-8'))
+                    u'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
             self.persons = self.tax_benefit_system.person_entity(self, persons_json)
         else:
             self.persons = self.tax_benefit_system.person_entity(self)
@@ -94,6 +102,19 @@ class Simulation(object):
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
 
     @property
+    def data_storage_dir(self):
+        """
+        Temporary folder used to store intermediate calculation data in case the memory is saturated
+        """
+        if self._data_storage_dir is None:
+            self._data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
+            log.warn((
+                u"Intermediate results will be stored on disk in {} in case of memory overflow. "
+                u"You should remove this directory once you're done with your simulation."
+                ).format(self._data_storage_dir).encode('utf-8'))
+        return self._data_storage_dir
+
+    @property
     def holder_by_name(self):
         warnings.warn(
             u"The simulation.holder_by_name attribute has been deprecated. "
@@ -107,20 +128,20 @@ class Simulation(object):
             result.update(entity._holders)
         return result
 
-    def calculate(self, column_name, period, **parameters):
-        return self.compute(column_name, period = period, **parameters).array
+    def calculate(self, variable_name, period, **parameters):
+        return self.compute(variable_name, period = period, **parameters).array
 
-    def calculate_add(self, column_name, period, **parameters):
-        return self.compute_add(column_name, period = period, **parameters).array
+    def calculate_add(self, variable_name, period, **parameters):
+        return self.compute_add(variable_name, period = period, **parameters).array
 
-    def calculate_divide(self, column_name, period, **parameters):
-        return self.compute_divide(column_name, period = period, **parameters).array
+    def calculate_divide(self, variable_name, period, **parameters):
+        return self.compute_divide(variable_name, period = period, **parameters).array
 
-    def calculate_output(self, column_name, period):
+    def calculate_output(self, variable_name, period):
         """Calculate the value using calculate_output hooks in formula classes."""
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(column_name).get_holder(column_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         return holder.calculate_output(period)
 
     def clone(self, debug = False, trace = False):
@@ -153,29 +174,29 @@ class Simulation(object):
 
         return new
 
-    def compute(self, column_name, period, **parameters):
+    def compute(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(column_name).get_holder(column_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         result = holder.compute(period = period, **parameters)
         return result
 
-    def compute_add(self, column_name, period, **parameters):
+    def compute_add(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(column_name).get_holder(column_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         return holder.compute_add(period = period, **parameters)
 
-    def compute_divide(self, column_name, period, **parameters):
+    def compute_divide(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(column_name).get_holder(column_name)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
         return holder.compute_divide(period = period, **parameters)
 
-    def get_array(self, column_name, period):
+    def get_array(self, variable_name, period):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        return self.get_variable_entity(column_name).get_holder(column_name).get_array(period)
+        return self.get_variable_entity(variable_name).get_holder(variable_name).get_array(period)
 
     def _get_parameters_at_instant(self, instant):
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
@@ -184,30 +205,30 @@ class Simulation(object):
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
-    def get_holder(self, column_name, default = UnboundLocalError):
+    def get_holder(self, variable_name, default = UnboundLocalError):
         warnings.warn(
             u"The simulation.get_holder method has been deprecated. "
             u"Please use entity.get_holder instead.",
             Warning
             )
-        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
-        entity = self.entities[column.entity.key]
-        holder = entity._holders.get(column_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        entity = self.entities[variable.entity.key]
+        holder = entity._holders.get(variable_name)
         if holder:
             return holder
         if default is UnboundLocalError:
-            raise KeyError(column_name)
+            raise KeyError(variable_name)
         return default
 
-    def get_or_new_holder(self, column_name):
+    def get_or_new_holder(self, variable_name):
         warnings.warn(
             u"The simulation.get_or_new_holder method has been deprecated. "
             u"Please use entity.get_holder instead.",
             Warning
             )
-        column = self.tax_benefit_system.get_column(column_name, check_existence = True)
-        entity = self.get_entity(column.entity)
-        return entity.get_holder(column_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        entity = self.get_entity(variable.entity)
+        return entity.get_holder(variable_name)
 
     def _get_baseline_parameters_at_instant(self, instant):
         baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
@@ -219,8 +240,8 @@ class Simulation(object):
             self.baseline_parameters_at_instant_cache[instant] = baseline_parameters_at_instant
         return baseline_parameters_at_instant
 
-    def graph(self, column_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_variable_entity(column_name).get_holder(column_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
+    def graph(self, variable_name, edges, get_input_variables_and_parameters, nodes, visited):
+        self.get_variable_entity(variable_name).get_holder(variable_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
 
     def parameters_at(self, instant, use_baseline = False):
         if isinstance(instant, periods.Period):
@@ -235,14 +256,25 @@ class Simulation(object):
         return None
 
     def get_variable_entity(self, variable_name):
-        column = self.tax_benefit_system.get_column(variable_name, check_existence = True)
-        return self.get_entity(column.entity)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        return self.get_entity(variable.entity)
 
     def get_entity(self, entity_type = None, plural = None):
         if entity_type:
             return self.entities[entity_type.key]
         if plural:
             return [entity for entity in self.entities.values() if entity.plural == plural][0]
+
+    def get_memory_usage(self, variables = None):
+        result = dict(
+            total_nb_bytes = 0,
+            by_variable = {}
+            )
+        for entity in self.entities.itervalues():
+            entity_memory_usage = entity.get_memory_usage(variables = variables)
+            result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
+            result['by_variable'].update(entity_memory_usage['by_variable'])
+        return result
 
 
 def check_type(input, type, path = []):
@@ -254,7 +286,7 @@ def check_type(input, type, path = []):
 
     if not isinstance(input, type):
         raise SituationParsingError(path,
-            "Invalid type: must be of type '{}'.".format(json_type_map[type]))
+            u"Invalid type: must be of type '{}'.".format(json_type_map[type]))
 
 
 class SituationParsingError(Exception):

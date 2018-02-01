@@ -6,17 +6,17 @@ tbs = CountryTaxBenefitSystem()
 
 
 def test_extension_not_already_loaded():
-    assert tbs.get_column('local_town_child_allowance') is None
+    assert tbs.get_variable('local_town_child_allowance') is None
 
 
 def test_load_extension():
     tbs.load_extension('openfisca_extension_template')
-    assert tbs.get_column('local_town_child_allowance') is not None
+    assert tbs.get_variable('local_town_child_allowance') is not None
 
 
 def test_unload_extensions():
     tbs = CountryTaxBenefitSystem()
-    assert tbs.get_column('local_town_child_allowance') is None
+    assert tbs.get_variable('local_town_child_allowance') is None
 
 
 @raises(ValueError)

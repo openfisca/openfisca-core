@@ -4,7 +4,7 @@ import datetime
 import inspect
 import textwrap
 
-from openfisca_core.columns import EnumCol
+from openfisca_core.indexed_enums import Enum
 
 
 def get_next_day(date):
@@ -14,11 +14,13 @@ def get_next_day(date):
 
 
 def get_default_value(variable):
-    default_value = variable.default
+    default_value = variable.default_value
     if isinstance(default_value, datetime.date):
         return default_value.isoformat()
-    if isinstance(variable, EnumCol):
-        return variable.enum._vars[default_value]
+
+    if isinstance(default_value, Enum):
+        return default_value.name
+
     return default_value
 
 
@@ -33,17 +35,16 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
         ).encode('utf-8')
 
 
-def build_formula(formula, country_package_metadata):
+def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
     source_code, start_line_number = inspect.getsourcelines(formula.formula)
     if source_code[0].lstrip(' ').startswith('@'):  # remove decorator
         source_code = source_code[1:]
         start_line_number = start_line_number + 1
     source_code = textwrap.dedent(''.join(source_code))
-
     return {
         'source': build_source_url(
             country_package_metadata,
-            formula.source_file_path,
+            source_file_path,
             start_line_number,
             source_code
             ),
@@ -51,57 +52,53 @@ def build_formula(formula, country_package_metadata):
         }
 
 
-def get_variable_type(variable):
-    column_type = variable.__class__.__name__
-    return 'String' if column_type == 'EnumCol' else column_type.replace('Col', '')
-
-
-def build_formulas(dated_formulas, country_package_metadata):
+def build_formulas(dated_formulas, country_package_metadata, source_file_path, tax_benefit_system):
     def get_start_or_default(dated_formula):
         return dated_formula['start_instant'].date.isoformat() if dated_formula['start_instant'] else '0001-01-01'
 
     return {
-        get_start_or_default(dated_formula): build_formula(dated_formula['formula_class'], country_package_metadata)
+        get_start_or_default(dated_formula): build_formula(dated_formula['formula_class'], country_package_metadata, source_file_path, tax_benefit_system)
         for dated_formula in dated_formulas
         }
 
 
-def build_variable(variable, country_package_metadata):
+def build_variable(variable, country_package_metadata, tax_benefit_system):
+    comments, source_file_path, source_code, start_line_number = variable.get_introspection_data(tax_benefit_system)
     result = {
         'id': variable.name,
         'description': variable.label,
-        'valueType': get_variable_type(variable),
+        'valueType': 'String' if variable.json_type == 'Enumeration' else variable.json_type,
         'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
         'source': build_source_url(
             country_package_metadata,
-            variable.formula_class.source_file_path,
-            variable.formula_class.start_line_number,
-            variable.formula_class.source_code
+            source_file_path,
+            start_line_number,
+            source_code
             ),
         }
 
     if variable.reference:
         result['references'] = variable.reference
-    if hasattr(variable.formula_class, 'function') and variable.formula_class.function:
+    if hasattr(variable.formula, 'function') and variable.formula.function:
         result['formulas'] = {
-            '0001-01-01': build_formula(variable.formula_class, country_package_metadata)
+            '0001-01-01': build_formula(variable.formula, country_package_metadata, source_file_path, tax_benefit_system)
             }
-    if hasattr(variable.formula_class, 'dated_formulas_class'):
-        result['formulas'] = build_formulas(variable.formula_class.dated_formulas_class, country_package_metadata)
+    if hasattr(variable.formula, 'dated_formulas_class'):
+        result['formulas'] = build_formulas(variable.formula.dated_formulas_class, country_package_metadata, source_file_path, tax_benefit_system)
 
         if variable.end:
             result['formulas'][get_next_day(variable.end)] = None
 
-    if isinstance(variable, EnumCol):
-        result['possibleValues'] = variable.enum.list
+    if variable.value_type == Enum:
+        result['possibleValues'] = {item.name: item.value for item in list(variable.possible_values)}
 
     return result
 
 
 def build_variables(tax_benefit_system, country_package_metadata):
     return {
-        name: build_variable(variable, country_package_metadata)
-        for name, variable in tax_benefit_system.column_by_name.iteritems()
+        name: build_variable(variable, country_package_metadata, tax_benefit_system)
+        for name, variable in tax_benefit_system.variables.iteritems()
         }

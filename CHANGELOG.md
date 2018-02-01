@@ -1,12 +1,340 @@
 # Changelog
 
+## 21.2.1 [#613](https://github.com/openfisca/openfisca-core/pull/613)
+
+- Fix two bugs that appeared with 21.2.0:
+  - Properly encode the result of a formula returning an Enum value
+  - Enable storing an Enum value on disk
+
+## 21.2.0 [#601](https://github.com/openfisca/openfisca-core/pull/601)
+
+#### New features
+
+- Improve [`holder.get_memory_usage`]((http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage)):
+  - Add `nb_requests` and `nb_requests_by_array` fields in the memory usage stats for traced simulations.
+
+- Enable intermediate data storage on disk to avoid memory overflow
+  - Introduce `memory_config` option in `Simulation` constructor
+    - This allows fine tuning of memory management in OpenFisca
+
+For instance:
+
+```
+from openfisca_core.memory_config import MemoryConfig
+config = MemoryConfig(
+    max_memory_occupation = 0.95,  # When 95% of the virtual memory is full, switch to disk storage
+    priority_variables = ['salary', 'age']  # Always store these variables in memory
+    variables_to_drop = ['age_elder_for_family_benefit']  # Do not store the value of these variables
+    )
+```
+
+## 21.1.0 [#598](https://github.com/openfisca/openfisca-core/pull/598)
+
+#### New features
+
+- Improve `Tracer`:
+
+  - Introduce an `aggregate` option in [`tracer.print_computation_log`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.print_computation_log) to handle large population simulations.
+  - Introduce [`tracer.usage_stats`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.usage_stats) to keep track of the number of times a variable is computed.
+
+- Introduce methods to keep track of memory usage:
+
+  - Introduce [`holder.get_memory_usage`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage)
+  - Introduce `entity.get_memory_usage`
+  - Introduce `simulation.get_memory_usage`
+
+- Improve `Holder` public interface:
+
+  - Enhance [`holder.delete_arrays`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage) to be able to remove known values only for a specific period
+  - Introduce [`holder.get_known_periods`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_known_periods)
+
+- Introduce [`variable.get_formula`](http://openfisca.readthedocs.io/en/latest/variables.html#openfisca_core.variables.Variable.get_formula)
+
+- Re-introduce `taxscales.combine_tax_scales` to combine several tax scales.
+
+#### Deprecations
+
+- Deprecate `requested_period_added_value` base function, as it had no effect.
+
+# 21.0.3 [#595](https://github.com/openfisca/openfisca-core/pull/595)
+
+#### Bug fix
+
+- Fix API response encoding from ascii to utf-8
+  * Improve user message by displaying `UnicodeDecodeError` information
+
+# 21.0.2 [#589](https://github.com/openfisca/openfisca-core/pull/589) [#600](https://github.com/openfisca/openfisca-core/pull/600) [#605](https://github.com/openfisca/openfisca-core/pull/605)
+
+_Note: the 21.0.1 and 21.0.0 versions have been unpublished due to performance issues_
+
+#### Breaking changes
+
+##### Change the way enumerations (Enum) are defined when coding variables
+
+Before:
+
+```py
+HOUSING_OCCUPANCY_STATUS = Enum([
+    u'Tenant',
+    u'Owner',
+    u'Free logder',
+    u'Homeless'])
+```
+
+Now:
+
+```py
+class HousingOccupancyStatus(Enum):
+    tenant = u'Tenant'
+    owner = u'Owner'
+    free_lodger = u'Free logder'
+    homeless = u'Homeless'
+```
+
+> Each Enum item has:
+> - a `name` property that contains its key (e.g. `tenant`)
+> - a `value` property that contains its description (e.g. `"Tenant or lodger who pays a monthly rent"`)
+
+- Enum variables must now have an explicit default value
+
+```py
+class housing_occupancy_status(Variable):
+    possible_values = HousingOccupancyStatus,
+    default_value = HousingOccupancyStatus.tenant
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+
+- In a formula, to compare an Enum variable to a fixed value, use `housing_occupancy_status == HousingOccupancyStatus.tenant`
+
+- To access a parameter that has a value for each Enum item (e.g. a value for `zone_1`, a value for `zone_2` ... ), use fancy indexing
+
+> For example, if there is an enum:
+> ```py
+>     class TypesZone(Enum):
+>         z1 = "Zone 1"
+>         z2 = "Zone 2"
+> ```
+> And two parameters `parameters.city_tax.z1` and `parameters.city_tax.z2`, they can be dynamically accessed through:
+> ```py
+> zone = np.asarray([TypesZone.z1, TypesZone.z2, TypesZone.z2, TypesZone.z1])
+> zone_value = parameters.rate._get_at_instant('2015-01-01').single.owner[zone]
+> ```
+> returns
+> ```py
+> [100, 200, 200, 100]
+> ```
+>
+
+##### Change the simulation inputs and outputs for enumeration variables
+
+###### Web API and YAML tests
+
+- When setting the value of an input Enum variable for a simulation, the user must now send the **string identifier** (e.g. `free_lodger`).
+   - The item index (e.g. `2`) is not accepted anymore
+   - The value (e.g. `Free lodger`) is not accepted anymore.
+
+- When calculating an Enum variable through the web API, the output will now be the string identifier.
+
+###### Python API
+
+- When using the Python API (`set_input`), the three following inputs are accepted:
+   - The enum item (e.g. HousingOccupancyStatus.tenant)
+   - The enum string identifier (e.g. "tenant")
+   - The enum item index, though this is not recommanded.
+     - If you rely on index, make sure to specify an `__order__` attribute to all your enums to make sure each intem has the right index. See the enum34 [doc](https://pypi.python.org/pypi/enum34/1.1.1).
+
+> Example:
+```py
+holder = simulation.household.get_holder('housing_occupancy_status')
+# Three possibilities
+holder.set_input(period, np.asarray([HousingOccupancyStatus.owner]))
+holder.set_input(period, np.asarray(['owner']))
+holder.set_input(period, np.asarray([0])) # Highly not recommanded
+```
+
+- When calculating an Enum variable, the output will be an [EnumArray](http://openfisca.readthedocs.io/en/latest/enum_array.html#module-openfisca_core.indexed_enums).
+
+# 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/590)
+
+#### Breaking changes
+
+##### Change the way Variables are declared
+
+- Replace `column` attribute by `value_type`
+  * Possible values of `value_type` are:
+    * `int`
+    * `float`
+    * `bool`
+    * `str`
+    * `date`
+    * `Enum`
+
+Before:
+
+```py
+class basic_income(Variable):
+    column = FloatCol
+    entity = Person
+    definition_period = MONTH
+    label = "Basic income provided to adults"
+```
+
+Now:
+
+```py
+class basic_income(Variable):
+    value_type = float
+    entity = Person
+    definition_period = MONTH
+    label = "Basic income provided to adults"
+```
+
+- `default_value` is now a `Variable` attribute
+
+Before:
+
+```py
+class is_citizen(Variable):
+    column = BoolCol(default = True)
+    entity = Person
+    definition_period = MONTH
+    label = "Whether the person is a citizen"
+```
+
+Now:
+
+```py
+class is_citizen(Variable):
+    value_type = bool
+    default_value = True
+    entity = Person
+    definition_period = MONTH
+    label = "Whether the person is a citizen"
+```
+
+- For `Variables` which `value_type` is `str`, `max_lentgh` is now an attribute
+
+Before:
+
+```py
+class zipcode(Variable):
+    column = FixedStrCol(max_length = 5)
+    entity = Menage
+    label = u"Code INSEE (depcom) du lieu de résidence"
+    definition_period = MONTH
+```
+
+After:
+
+```py
+class zipcode(Variable):
+    value_type = str
+    max_length = 5
+    entity = Menage
+    label = u"Code INSEE (depcom) du lieu de résidence"
+    definition_period = MONTH
+```
+
+- For `Variables` which `value_type` is `Enum`, `possible_values` is now an attribute:
+
+Before:
+
+```py
+class housing_occupancy_status(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u'Tenant',
+            u'Owner',
+            u'Free logder',
+            u'Homeless'])
+        )
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+After:
+
+```py
+class housing_occupancy_status(Variable):
+    value_type = Enum
+    possible_values = Enum([
+        u'Tenant',
+        u'Owner',
+        u'Free logder',
+        u'Homeless'
+        ])
+    entity = Household
+    definition_period = MONTH
+    label = u"Legal housing situation of the household concerning their main residence"
+```
+
+- Remove `PeriodSizeIndependentIntCol`:
+  * Replaced by `Variable` attribute `is_period_size_independent`
+
+
+##### Deprecate `Column`
+
+`Column` are now considered deprecated. Preferably use `Variable` instead.
+
+If you do need a column for retro-compatibility, you can use:
+
+```py
+from openfisca_core.columns import make_column_from_variable
+
+column = make_column_from_variable(variable)
+```
+
+
+- In `TaxBenefitSystem`:
+  * Remove `neutralize_column` (deprecated since `9.1.0`, replaced by `neutralize_variable`)
+  * Rename `column_by_name` to `variables`
+  * Rename `get_column` to `get_variable`
+  * Remove `update_column`
+  * Remove `add_column`
+  * Remove `automatically_loaded_variable` (irrelevant since conversion columns have been removed)
+  * Move `VariableNotFound` to `errors` module
+
+
+- In `Holder`:
+  * Rename `holder.column` to `holder.variable`
+
+- In `Column`:
+  * `Column` should only be instantiated using `make_column_from_variable`. Former constructors do not work anymore.
+  * Remove `column.start`, which was `None` since `14.0.0`
+  * Replace `column.formula_class` by `variable.formula`
+  * Replace `column.enum` by `variable.possible_values`
+  * Replace `column.default` by `variable.default_value`
+
+- In `formulas`:
+  * Rename `get_neutralized_column` to `get_neutralized_variable`
+  * Remove `new_filled_column`
+
+- In `Variable`:
+  * Remove `to_column`
+  * Variables can now directly be instanciated:
+
+```py
+class salary(Variable):
+    entity = Person
+    ...
+
+
+salary_variable = salary()
+```
+
+You can learn more about `Variable` by checking its [reference documentation](http://openfisca.readthedocs.io/en/latest/variables.html).
+
 # 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
 > Wrongfully published as 18.2.0
- 
+
 #### Breaking changes
 
 - Change the way the API is started
-  * The previous command `COUNTRY_PACKAGE=openfisca_country gunicorn ...` does not work anymore 
+  * The previous command `COUNTRY_PACKAGE=openfisca_country gunicorn ...` does not work anymore
   * The new command to serve the API is `openfisca serve`.
     * Read more in the [doc](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html)
     * This command allows to serve reforms and extensions in the new API

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from openfisca_country_template import CountryTaxBenefitSystem
+from openfisca_country_template.situation_examples import single
 
 from openfisca_core.formulas import Formula
 from openfisca_core.simulations import Simulation
 
-tax_benefit_system = CountryTaxBenefitSystem()
+from test_countries import tax_benefit_system
+
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period=2014
     )
@@ -57,3 +58,11 @@ def test_clone():
     assert salary_holder != salary_holder_clone
     assert salary_holder_clone.simulation == simulation_clone
     assert salary_holder_clone.entity == simulation_clone.person
+
+
+def test_get_memory_usage():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
+    simulation.calculate('disposable_income', '2017-01')
+    memory_usage = simulation.get_memory_usage(variables = ['salary'])
+    assert(memory_usage['total_nb_bytes'] > 0)
+    assert(len(memory_usage['by_variable']) == 1)

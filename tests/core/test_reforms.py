@@ -6,16 +6,25 @@ import warnings
 from nose.tools import raises
 from nose.tools import assert_equal
 
-from openfisca_core import columns, periods
-from openfisca_core.periods import MONTH
-from openfisca_core.reforms import Reform
-from openfisca_core.variables import Variable
+from openfisca_core import periods
 from openfisca_core.periods import Instant
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ValuesHistory, ParameterNode
-from openfisca_country_template.entities import Household
+from openfisca_country_template.entities import Household, Person
+from openfisca_core.model_api import *  # noqa analysis:ignore
 from openfisca_country_template import CountryTaxBenefitSystem
 tax_benefit_system = CountryTaxBenefitSystem()
+
+
+class goes_to_school(Variable):
+    value_type = bool
+    default_value = True
+    entity = Person
+    label = u"The person goes to school (only relevant for children)"
+    definition_period = MONTH
+
+
+tax_benefit_system.add_variable(goes_to_school)
 
 
 class test_basic_income_neutralization(Reform):
@@ -43,6 +52,22 @@ def test_formula_neutralization():
     assert_near(disposable_income_reform, 0)
 
 
+def test_neutralization_variable_with_default_value():
+    class test_goes_to_school_neutralization(Reform):
+        def apply(self):
+            self.neutralize_variable('goes_to_school')
+
+    reform = test_goes_to_school_neutralization(tax_benefit_system)
+
+    period = "2013-01"
+    scenario = reform.new_scenario().init_from_attributes(
+        period = period,
+        )
+    simulation = scenario.new_simulation(use_baseline = True)
+    goes_to_school = simulation.calculate('goes_to_school', period)
+    assert_near(goes_to_school, [True], absolute_error_margin = 0)
+
+
 def test_neutralization_optimization():
     reform = test_basic_income_neutralization(tax_benefit_system)
 
@@ -56,7 +81,7 @@ def test_neutralization_optimization():
 
     # As basic_income is neutralized, it should not be cached
     basic_income_holder = simulation.persons.get_holder('basic_income')
-    assert basic_income_holder._array_by_period is None
+    assert basic_income_holder.get_array('2013-01') is None
 
 
 def test_input_variable_neutralization():
@@ -216,7 +241,7 @@ def test_update_items():
 def test_add_variable():
 
     class new_variable(Variable):
-        column = columns.IntCol
+        value_type = int
         label = u"Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH
@@ -237,7 +262,7 @@ def test_add_variable():
         period = year,
         )
 
-    assert tax_benefit_system.get_column('new_variable') is None
+    assert tax_benefit_system.get_variable('new_variable') is None
     reform_simulation = scenario.new_simulation(debug = True)
     new_variable1 = reform_simulation.calculate('new_variable', period = '2013-01')
     assert_near(new_variable1, 10, absolute_error_margin = 0)
@@ -245,7 +270,7 @@ def test_add_variable():
 
 def test_add_dated_variable():
     class new_dated_variable(Variable):
-        column = columns.IntCol
+        value_type = int
         label = u"Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH
@@ -290,8 +315,8 @@ def test_update_variable():
         period = year,
         )
 
-    disposable_income_reform = reform.get_column('disposable_income')
-    disposable_income_reference = tax_benefit_system.get_column('disposable_income')
+    disposable_income_reform = reform.get_variable('disposable_income')
+    disposable_income_reference = tax_benefit_system.get_variable('disposable_income')
 
     assert disposable_income_reform is not None
     assert disposable_income_reform.entity.plural == disposable_income_reference.entity.plural

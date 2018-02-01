@@ -10,14 +10,13 @@ from openfisca_core.formulas import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
-from openfisca_core.columns import FloatCol
 
 
 tax_benefit_system = CountryTaxBenefitSystem()
 
 
 class income_tax_no_period(Variable):
-    column = FloatCol
+    value_type = float
     entity = Person
     label = u"Salaire net (buggy)"
     definition_period = MONTH
@@ -80,6 +79,8 @@ def test_bareme():
 
 
 def test_variable_with_reference():
+    tax_benefit_system = CountryTaxBenefitSystem()  # Work in isolation
+
     def new_simulation():
         return tax_benefit_system.new_scenario().init_from_attributes(
             period = "2016-01",
