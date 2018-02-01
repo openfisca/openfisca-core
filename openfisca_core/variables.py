@@ -204,7 +204,10 @@ class Variable(object):
 
     def set_label(self, label):
         if label:
-            return unicode(label)
+            if isinstance(label, unicode):
+                return label
+            else:
+                return unicode(label, 'utf-8')
 
     def set_end(self, end):
         if end:

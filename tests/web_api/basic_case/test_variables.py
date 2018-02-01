@@ -5,6 +5,7 @@ import json
 from nose.tools import assert_equal, assert_regexp_matches, assert_items_equal, assert_in, assert_is_none, assert_not_in
 from . import subject
 
+
 # /variables
 
 variables_response = subject.get('/variables')
@@ -140,3 +141,8 @@ def test_dated_variable_formulas_content():
 
     assert_equal(dated_variable['formulas']['2016-12-01']['content'], formula_code_2016)
     assert_equal(dated_variable['formulas']['2015-12-01']['content'], formula_code_2015)
+
+
+def test_variable_encoding():
+    variable_response = subject.get('/variable/pension')
+    assert_equal(variable_response.status_code, OK)
