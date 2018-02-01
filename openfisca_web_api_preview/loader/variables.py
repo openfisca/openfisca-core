@@ -48,7 +48,7 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             start_line_number,
             source_code
             ),
-        'content': source_code,
+        'content': source_code.decode('utf-8'),
         }
 
 
