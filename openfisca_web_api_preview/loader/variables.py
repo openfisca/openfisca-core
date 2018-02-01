@@ -26,13 +26,13 @@ def get_default_value(variable):
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
     nb_lines = source_code.count('\n')
-    return '{}/blob/{}{}#L{}-L{}'.format(
+    return u'{}/blob/{}{}#L{}-L{}'.format(
         country_package_metadata['repository_url'],
         country_package_metadata['version'],
         source_file_path,
         start_line_number,
         start_line_number + nb_lines - 1,
-        ).encode('utf-8')
+        )
 
 
 def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
