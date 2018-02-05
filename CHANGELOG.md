@@ -1,5 +1,9 @@
 # Changelog
 
+## 21.3.0
+
+Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` to filter out tested output variables if needed.
+
 ### 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
 
 - When a variable file is loaded twice in the same python interpreter, make sure the second loading doesn't corrupt the first one.
