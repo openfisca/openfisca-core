@@ -117,3 +117,8 @@ def test_routes_robustness():
 
     for route, code in expected_codes.iteritems():
         yield check_code, route, code
+
+
+def test_parameter_encoding():
+    parameter_response = subject.get('/parameter/general.age_of_retirement')
+    assert_equal(parameter_response.status_code, OK)

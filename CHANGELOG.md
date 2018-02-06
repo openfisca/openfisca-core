@@ -1,10 +1,16 @@
 # Changelog
 
-## 21.3.0
+## 21.3.1 [#617](https://github.com/openfisca/openfisca-core/pull/617)
+
+- Fix bug on API `/variable/{id}`
+  - Encode API `/variable/{id}` output to `utf-8`
+  - Add tests for `/variable/{id}` and `/parameter/{id}` encoding
+
+## 21.3.0 [#610](https://github.com/openfisca/openfisca-core/pull/610)
 
 Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` to filter out tested output variables if needed.
 
-### 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
+## 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
 
 - When a variable file is loaded twice in the same python interpreter, make sure the second loading doesn't corrupt the first one.
     - This fixes a bug introduced in 21.0.2, which could lead to a corruption of the tax and benefit in rare edge cases
