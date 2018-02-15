@@ -56,7 +56,7 @@ You can setup ``openfisca serve` using a configuration file. Be careful as param
 
   port = 4000
   workers = 4
-  bind = '0.0.0.0' + str(port)
+  bind = '0.0.0.0:{}'.format(port)
   country_package = 'openfisca_france'
   extensions = ['openfisca_paris']
 
