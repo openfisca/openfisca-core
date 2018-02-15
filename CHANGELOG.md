@@ -1,5 +1,9 @@
 # Changelog
 
+## 21.3.2 [#617](https://github.com/openfisca/openfisca-core/pull/611)
+
+- Make decompositions more robust
+
 ## 21.3.1 [#617](https://github.com/openfisca/openfisca-core/pull/617)
 
 - Fix bug on API `/variable/{id}`
