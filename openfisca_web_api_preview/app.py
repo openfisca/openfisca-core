@@ -102,6 +102,7 @@ def create_app(tax_benefit_system,
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
 
         requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
+        results = {}
 
         try:
             for computation in requested_computations:
@@ -117,10 +118,12 @@ def create_app(tax_benefit_system,
                 else:
                     entity_result = result.tolist()[entity_index]
 
-                dpath.util.set(input_data, path, entity_result)
+                dpath.util.new(results, path, entity_result)
 
         except UnicodeEncodeError as e:
             abort(make_response(jsonify({"error": "'" + e[1] + "' is not a valid ASCII value."}), 400))
+
+        dpath.util.merge(input_data, results)
 
         return jsonify(input_data)
 

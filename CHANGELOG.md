@@ -1,5 +1,9 @@
 # Changelog
 
+### 21.3.3 [#608](https://github.com/openfisca/openfisca-core/pull/608)
+
+- Improve API response time
+
 ## 21.3.2 [#617](https://github.com/openfisca/openfisca-core/pull/611)
 
 - Make decompositions more robust
@@ -14,7 +18,7 @@
 
 Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` to filter out tested output variables if needed.
 
-## 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
+### 21.2.2 [#612](https://github.com/openfisca/openfisca-core/pull/612)
 
 - When a variable file is loaded twice in the same python interpreter, make sure the second loading doesn't corrupt the first one.
     - This fixes a bug introduced in 21.0.2, which could lead to a corruption of the tax and benefit in rare edge cases
