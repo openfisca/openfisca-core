@@ -7,7 +7,15 @@ from openfisca_core.periods import period as make_period
 
 def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     """
-        Generate a simulation containing nb_persons persons spread in nb_groups groups
+        Generate a simulation containing nb_persons persons spread in nb_groups groups.
+
+        Exemple:
+
+        >>> from openfisca_core.tools.simulation_generator import make_simulation
+        >>> from openfisca_france import CountryTaxBenefitSystem
+        >>> tbs = CountryTaxBenefitSystem()
+        >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
+        >>> simulation.calculate('revenu_disponible', 2017)
     """
     simulation = Simulation(tax_benefit_system = tax_benefit_system, **kwargs)
     simulation.persons.ids = np.arange(nb_persons)
@@ -15,6 +23,8 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     adults = [0] + sorted(random.sample(xrange(1, nb_persons), nb_groups - 1))
 
     members_entity_id = np.empty(nb_persons, dtype = int)
+
+    # A legacy role is an index that every person within an entity has. For instance, the 'demandeur' has legacy role 0, the 'conjoint' 1, the first 'child' 2, the second 3, etc.
     members_legacy_role = np.empty(nb_persons, dtype = int)
 
     id_group = -1
@@ -39,8 +49,17 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
 def randomly_init_variable(simulation, variable_name, period, max_value, condition = None):
     """
         Initialise a variable with random values (from 0 to max_value) for the given period.
-        If a condition vector is provided, only set the value of persons or groups for which condition is True
-    """
+        If a condition vector is provided, only set the value of persons or groups for which condition is True.
+
+        Exemple:
+
+        >>> from openfisca_core.tools.simulation_generator import make_simulation, randomly_init_variable
+        >>> from openfisca_france import CountryTaxBenefitSystem
+        >>> tbs = CountryTaxBenefitSystem()
+        >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
+        >>> randomly_init_variable(simulation, 'salaire_net', 2017, max_value = 50000, condition = simulation.persons.has_role(simulation.famille.DEMANDEUR))  # Randomly set a salaire_net for all persons between 0 and 50000?
+        >>> simulation.calculate('revenu_disponible', 2017)
+        """
     if condition is None:
         condition = True
     variable = simulation.tax_benefit_system.get_variable(variable_name)
