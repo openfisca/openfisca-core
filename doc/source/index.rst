@@ -14,6 +14,7 @@ Modules:
    tracer
    enum_array
    holder
+   simulation_generator
 
 Scripts:
 
