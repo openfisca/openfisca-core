@@ -27,7 +27,10 @@ def calculate(simulations, decomposition_json):
             node['values'] = values = []
             for simulation_index, simulation in enumerate(simulations):
                 try:
-                    array = simulation.calculate_output(node['code'], simulation.period)
+                    try:
+                        array = simulation.calculate_output(node['code'], simulation.period)
+                    except ValueError:
+                        array = simulation.calculate_add(node['code'], simulation.period)
                 except parameters.ParameterNotFound as exc:
                     exc.simulation_index = simulation_index
                     raise
