@@ -4,7 +4,7 @@
 
 * Technical improvement: 
 * Details:
-  - Adapt to version `2.1.0` of Country-Template and version `1.1.3` of extension template.
+  - Adapt to version `2.1.0` of Country-Template and version `1.1.3` of Extension-Template.
 
 ### 21.3.4 [#604](https://github.com/openfisca/openfisca-core/pull/604)
 
