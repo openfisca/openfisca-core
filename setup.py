@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '21.3.4',
+    version = '21.3.5',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -32,8 +32,8 @@ setup(
         'test': [
             'nose',
             'flake8 >= 3.4.0, < 3.5.0',
-            'openfisca-country-template >= 2.1.0rc0, <= 2.1.0',
-            'openfisca-extension-template == 1.1.2',
+            'openfisca-country-template >= 2.1, < 3.0.0',
+            'openfisca-extension-template >= 1.1.3, < 2.0.0',
             ],
         'tracker': [
             'openfisca-tracker == 0.2.0',
