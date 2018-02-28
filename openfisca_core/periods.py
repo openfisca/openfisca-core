@@ -33,7 +33,7 @@ def N_(message):
 # Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
 date_by_instant_cache = {}
 str_by_instant_cache = {}
-year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
+year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 
 class Instant(tuple):
