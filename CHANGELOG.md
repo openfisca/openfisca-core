@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.5.0 [#621](https://github.com/openfisca/openfisca-core/pull/621)
+
+- Introduce:
+  - [`person.get_rank(entity, criteria, condition)`](https://github.com/openfisca/openfisca-core/blob/21.4.0/openfisca_core/entities.py#L278-L293)
+  - [`entity.value_nth_person(k, array, default)`](https://github.com/openfisca/openfisca-core/blob/21.4.0/openfisca_core/entities.py#L515-L520)
+
 ## 21.4.0 [#603](https://github.com/openfisca/openfisca-core/pull/603)
 
 #### New features
