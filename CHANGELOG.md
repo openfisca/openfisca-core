@@ -1,5 +1,9 @@
 # Changelog
 
+### 21.3.6 [#616](https://github.com/openfisca/openfisca-core/pull/618)
+
+- Describe `/spec` endpoint in OpenAPI documentation available at `/spec`
+
 ### 21.3.5 [#620](https://github.com/openfisca/openfisca-core/pull/620)
 
 * Technical improvement: 
@@ -89,7 +93,7 @@ config = MemoryConfig(
 
 - Deprecate `requested_period_added_value` base function, as it had no effect.
 
-# 21.0.3 [#595](https://github.com/openfisca/openfisca-core/pull/595)
+### 21.0.3 [#595](https://github.com/openfisca/openfisca-core/pull/595)
 
 #### Bug fix
 
