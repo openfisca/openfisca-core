@@ -1,6 +1,12 @@
 # Changelog
 
-### 22.0.3 [#635](https://github.com/openfisca/openfisca-core/pull/635) 
+### 22.0.4 [#624](https://github.com/openfisca/openfisca-core/pull/624)
+
+* Technical improvement:
+* Details:
+  - Make sure ParameterNode:__repr__ generates a valid YAML representation
+
+### 22.0.3 [#635](https://github.com/openfisca/openfisca-core/pull/635)
 
 - Update dependancy on numpy
   * Previously, openfisca-core used features removed on numpy 1.13
