@@ -26,7 +26,8 @@ def test_paths():
         "/variable/{variableID}",
         "/variables",
         "/trace",
-        "/calculate"]
+        "/calculate",
+        "/spec"]
         )
 
 

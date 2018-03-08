@@ -24,6 +24,7 @@ tags:
       description: "Variable official documentation"
       url: "http://openfisca.org/doc/variables.html"
   - name: "Calculations"
+  - name: "Documentation"
 paths:
   /calculate:
     post:
@@ -167,6 +168,19 @@ paths:
             $ref: '#/commons/Headers'
         400:
           description: "The request is invalid. Details about the error are sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+  /spec:
+    get:
+      summary: Provide the API documentation in an OpenAPI format
+      tags:
+        - Documentation
+      operationId: spec
+      produces:
+        - application/json
+      responses:
+        200:
+          description: The API documentation is sent back in the response body
           headers:
             $ref: '#/commons/Headers'
 
