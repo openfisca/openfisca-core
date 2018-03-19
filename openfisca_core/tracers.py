@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 import logging
 import copy
 from collections import defaultdict
@@ -62,12 +64,12 @@ class Tracer(object):
 
     """
     def __init__(self):
-        log.warn("The tracer is a feature that is still currently under experimentation. You are very welcome to use it and send us precious feedback, but keep in mind that the way it is used and the results it gives might change without any major version bump.")
         self.requested_calculations = set()
         self.stack = []
         self.trace = {}
         self.usage_stats = defaultdict(lambda: {"nb_requests": 0})
         self._computation_log = []
+        self._aggregates = {}
 
     def clone(self):
         new = Tracer()
@@ -76,6 +78,8 @@ class Tracer(object):
         new.trace = copy.deepcopy(self.trace)
         new._computation_log = copy.copy(self._computation_log)
         new.usage_stats = copy.deepcopy(self.usage_stats)
+        new._aggregates = copy.deepcopy(self._aggregates)
+
         return new
 
     @staticmethod
@@ -147,6 +151,65 @@ class Tracer(object):
             self.trace[parent]['dependencies'].remove(key)
         del self.trace[key]
 
+    def _get_aggregate(self, key):
+        if self._aggregates.get(key):
+            return self._aggregates.get(key)
+
+        value = self.trace[key]['value']
+        try:
+            aggregated_value = {
+                'min': np.min(value),
+                'max': np.max(value),
+                }
+        except TypeError:  # Much less efficient, but works for strings
+            aggregated_value = {
+                'min': min(value),
+                'max': max(value),
+                }
+        try:
+            aggregated_value['avg'] = np.mean(value)
+        except TypeError:
+            aggregated_value['avg'] = np.nan
+
+        self._aggregates[key] = aggregated_value
+        return aggregated_value
+
+    def _print_node(self, key, depth, aggregate):
+
+        def print_line(depth, node, value):
+            print("{}{} >> {}".format('  ' * depth, node, value))
+
+        if not self.trace.get(key):
+            return print_line(depth, key, "Calculation aborted due to a circular dependency")
+
+        if not aggregate:
+            return print_line(depth, key, self.trace[key]['value'])
+
+        return print_line(depth, key, self._get_aggregate(key))
+
+    def print_trace(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
+        """
+            Print value, the dependencies, and the dependencies values of the variable for the given period (and possibly the given set of extra parameters).
+
+            :param str variable_name: Name of the variable to investigate
+            :param Period period: Period to investigate
+            :param list extra_params: Set of extra parameters
+            :param int max_depth: Maximum level of recursion
+            :param bool aggregate: See :any:`print_computation_log`
+            :param bool ignore_zero: If ``True``, don't print dependencies if their value is 0
+        """
+        key = self._get_key(variable_name, period, extra_params = extra_params)
+
+        def _print_details(key, depth):
+            if depth > 0 and ignore_zero and np.all(self.trace[key]['value'] == 0):
+                return
+            self._print_node(key, depth, aggregate)
+            if depth < max_depth:
+                for dependency in self.trace[key]['dependencies']:
+                    _print_details(dependency, depth + 1)
+
+        _print_details(key, 0)
+
     def print_computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
@@ -157,18 +220,4 @@ class Tracer(object):
             This mode is more suited for simulations on a large population.
         """
         for node, depth in self._computation_log:
-            if not self.trace.get(node):
-                value = "Calculation aborted due to a circular dependency"
-            else:
-                value = self.trace[node]['value']
-                if aggregate:
-                    try:
-                        avg = sum(value) / len(value)
-                    except TypeError:
-                        avg = None
-                    value = {
-                        'min': min(value),
-                        'max': max(value),
-                        'avg': avg,
-                        }
-            print("{}{} >> {}".format('  ' * depth, node, value))
+            self._print_node(node, depth, aggregate)

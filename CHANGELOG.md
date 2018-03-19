@@ -1,12 +1,20 @@
 # Changelog
 
+## 21.4.0 [#603](https://github.com/openfisca/openfisca-core/pull/603)
+
+#### New features
+
+- Improve `Tracer`:
+  - Make aggregation more efficient
+  - Introduce [`tracer.print_trace`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.print_trace)
+
 ### 21.3.6 [#616](https://github.com/openfisca/openfisca-core/pull/618)
 
 - Describe `/spec` endpoint in OpenAPI documentation available at `/spec`
 
 ### 21.3.5 [#620](https://github.com/openfisca/openfisca-core/pull/620)
 
-* Technical improvement: 
+* Technical improvement:
 * Details:
   - Adapt to version `2.1.0` of Country-Template and version `1.1.3` of Extension-Template.
 
