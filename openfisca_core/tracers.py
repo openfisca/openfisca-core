@@ -64,7 +64,6 @@ class Tracer(object):
 
     """
     def __init__(self):
-        log.warn("The tracer is a feature that is still currently under experimentation. You are very welcome to use it and send us precious feedback, but keep in mind that the way it is used and the results it gives might change without any major version bump.")
         self.requested_calculations = set()
         self.stack = []
         self.trace = {}
