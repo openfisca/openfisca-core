@@ -333,6 +333,38 @@ def test_min():
     assert_near(age_min_parents, [37, 54])
 
 
+def test_value_nth_person():
+    test_case = deepcopy(TEST_CASE_AGES)
+    simulation = new_simulation(test_case)
+    person = simulation.person
+    array = person('age', MONTH)
+
+    result0 = person.household.value_nth_person(0, array, default=-1)
+    assert_near(result0, [40, 54])
+
+    result1 = person.household.value_nth_person(1, array, default=-1)
+    assert_near(result1, [37, 20])
+
+    result2 = person.household.value_nth_person(2, array, default=-1)
+    assert_near(result2, [7, -1])
+
+    result3 = person.household.value_nth_person(3, array, default=-1)
+    assert_near(result3, [9, -1])
+
+
+def test_rank():
+    test_case = deepcopy(TEST_CASE_AGES)
+    simulation = new_simulation(test_case)
+    person = simulation.person
+
+    age = person('age', MONTH)  # [40, 37, 7, 9, 54, 20]
+    rank = person.get_rank(person.household, age)
+    assert_near(rank, [3, 2, 0, 1, 1, 0])
+
+    rank_in_siblings = person.get_rank(person.household, - age, condition = person.has_role(Household.CHILD))
+    assert_near(rank_in_siblings, [-1, -1, 1, 0, -1, 0])
+
+
 def test_partner():
     test_case = deepcopy(TEST_CASE)
     test_case['persons'][0]['salary'] = 1000

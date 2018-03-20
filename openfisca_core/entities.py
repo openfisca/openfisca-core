@@ -275,6 +275,45 @@ class PersonEntity(Entity):
             [value_subrole_2, value_subrole_1],
             )
 
+    def get_rank(self, entity, criteria, condition = True):
+        """
+        Get the rank of a person within an entity according to a criteria.
+        The person with rank 0 has the minimum value of criteria.
+        If condition is specified, then the persons who don't respect it are not taken into account and their rank is -1.
+
+        Exemple:
+
+        >>> age = person('age', period)  # e.g [32, 34, 2, 8, 1]
+        >>> person.get_rank(household, age)
+        >>> [3, 4, 0, 2, 1]
+
+        >>> is_child = person.has_role(Household.CHILD)  # [False, False, True, True, True]
+        >>> person.get_rank(household, - age, condition = is_child)  # Sort in reverse order so that the eldest child gets the rank 0.
+        >>> [-1, -1, 1, 0, 2]
+        """
+
+        positions = entity.members_position
+        biggest_entity_size = np.max(positions) + 1
+        filtered_criteria = np.where(condition, criteria, np.inf)
+        ids = entity.members_entity_id
+
+        # Matrix: the value in line i and column j is the value of criteria for the jth person of the ith entity
+        matrix = np.asarray([
+            entity.value_nth_person(k, filtered_criteria, default = np.inf)
+            for k in range(biggest_entity_size)
+            ]).transpose()
+
+        # We double-argsort all lines of the matrix.
+        # Double-argsorting gets the rank of each value once sorted
+        # For instance, if x = [3,1,6,4,0], y = np.argsort(x) is [4, 1, 0, 3, 2] (because the value with index 4 is the smallest one, the value with index 1 the second smallest, etc.) and z = np.argsort(y) is [2, 1, 4, 3, 0], the rank of each value.
+        sorted_matrix = np.argsort(np.argsort(matrix))
+
+        # Build the result vector by taking for each person the value in the right line (corresponding to its household id) and the right column (corresponding to its position)
+        result = sorted_matrix[ids, positions]
+
+        # Return -1 for the persons who don't respect the condition
+        return np.where(condition, result, -1)
+
 
 class GroupEntity(Entity):
     roles = None
@@ -290,6 +329,7 @@ class GroupEntity(Entity):
             self.members_legacy_role = None
         self.members = self.simulation.persons
         self._roles_count = None
+        self._ordered_members_map = None
 
     def split_variables_and_roles_json(self, entity_object):
         entity_object = entity_object.copy()  # Don't mutate function input
@@ -391,6 +431,16 @@ class GroupEntity(Entity):
     def roles_count(self, value):
         self._roles_count = value
 
+    @property
+    def ordered_members_map(self):
+        """
+        Mask to group the persons by entity
+        This function only caches the map value, to see what the map is used for, see value_nth_person method.
+        """
+        if self._ordered_members_map is None:
+            return np.argsort(self.members_entity_id)
+        return self._ordered_members_map
+
     #  Aggregation persons -> entity
 
     def sum(self, array, role = None):
@@ -463,11 +513,26 @@ class GroupEntity(Entity):
 
         return result
 
-    def value_from_first_person(self, array):
+    def value_nth_person(self, n, array, default = 0):
+        """
+            Get the value of array for the person whose position in the entity is n.
+            Note that this position is arbitrary, and that members are not sorted.
+            If the nth person does not exist, get default instead
+            The result is a vector which dimension is the number of entities
+        """
         self.simulation.persons.check_array_compatible_with_entity(array)
-        position_filter = (self.members_position == 0)
+        positions = self.members_position
+        nb_persons_per_entity = self.nb_persons()
+        members_map = self.ordered_members_map
+        result = self.filled_array(default, dtype = array.dtype)
+        # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
+        # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
+        result[nb_persons_per_entity > n] = array[members_map][positions[members_map] == n]
 
-        return array[position_filter]
+        return result
+
+    def value_from_first_person(self, array):
+        return self.value_nth_person(0, array)
 
     # Projection entity -> person(s)
 
