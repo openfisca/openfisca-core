@@ -1,5 +1,39 @@
 # Changelog
 
+# 22.0.0 [#602](https://github.com/openfisca/openfisca-core/pull/602)
+
+#### Breaking changes
+
+- Improve entities projection consistency
+
+Before, there were inconsistencies in the behaviors of projectors:
+
+_For instance, for a simulation that contains 4 persons in 1 household:_
+
+```py
+person.household('rent', '2018-02')  # The rent paid by the household of the person.
+>>> [800, 800, 800, 800]  # Has the dimension of persons (4)
+
+salaries = person.household.members('salary', '2018-02')
+sum_salary = person.household.sum(salaries)  # The sum of the salaries of the person's family
+>>> [4000] Has the dimension of household (1)
+```
+
+
+Now, consistency have been enforced for all entities related helpers (`sum`, `min`, `max`, `all`, `any`, `has_role`, etc.)
+
+
+```py
+person.household('rent', '2018-02')  # The rent paid by the household of the person.
+>>> [800, 800, 800, 800]  # Has the dimension of persons (4)
+
+salaries = person.household.members('salary')
+sum_salary = person.household.sum(salaries)  # The sum of the salaries of the person's family
+>>> [4000, 4000, 4000, 4000]  # Has the dimension of persons (4)
+```
+
+This is a breaking change, as all the adaptations (such as [this one](https://github.com/openfisca/openfisca-france/blob/18.11.0/openfisca_france/model/prestations/minima_sociaux/rsa.py#L375-L376)) used to overcome these inconsistensies must be removed.
+
 ## 21.5.0 [#621](https://github.com/openfisca/openfisca-core/pull/621)
 
 - Introduce:
