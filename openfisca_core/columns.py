@@ -367,6 +367,8 @@ class EnumCol(Column):
 
     def transform_dated_value_to_json(self, value, use_label = False):
         # Convert a non-NumPy Python value to JSON.
+        if isinstance(value, int):
+            value = [item for item in self.variable.possible_values if item.index == value][0]
         if use_label and self.variable.possible_values is not None:
             return value.value
         return value.name

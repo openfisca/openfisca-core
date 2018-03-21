@@ -1,5 +1,9 @@
 # Changelog
 
+### 22.0.1 [#628](https://github.com/openfisca/openfisca-core/pull/628)
+
+- Fix a bug that broke the route `calculate` of the legacy web API since `21.0.2`
+
 # 22.0.0 [#602](https://github.com/openfisca/openfisca-core/pull/602)
 
 #### Breaking changes
