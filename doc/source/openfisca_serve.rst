@@ -48,7 +48,7 @@ Serving reforms
 
 Using a configuration file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-You can setup ``openfisca serve`` using a configuration file. Be careful as parameters with a '-' in their name change to an '_' when used from the config file. See this example of configuration:
+You can setup ``openfisca serve`` using a configuration file. Be careful as parameters with a '-' in their name on command line change to an '_' when used from the config file. See this example of configuration:
 
 **config.py:**
 
