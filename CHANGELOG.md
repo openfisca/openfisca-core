@@ -1,5 +1,10 @@
 # Changelog
 
+### 22.0.2 [#627](https://github.com/openfisca/openfisca-core/pull/627) [#593](https://github.com/openfisca/openfisca-core/pull/593)
+
+- Update openfisca_serve [rst](http://openfisca.readthedocs.io/en/latest/openfisca_serve.html) documentation
+  * Make native gunicorn parameters use in `openfisca serve` obvious and make parameters' format more explicit
+
 ### 22.0.1 [#628](https://github.com/openfisca/openfisca-core/pull/628)
 
 - Fix a bug that broke the route `calculate` of the legacy web API since `21.0.2`

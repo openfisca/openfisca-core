@@ -11,7 +11,13 @@ openfisca serve
 Additional arguments
 --------------------
 
-``openfisca serve`` uses ``gunicorn`` under the hood. In addition to the arguments listed above, you can use any ``gunicorn`` arguments when running ``openfisca serve`` (e.g. ``--reload``, ``--workers``, ``--timeout``).
+``openfisca serve`` uses ``gunicorn`` under the hood. In addition to the arguments listed above, you can use any ``gunicorn`` arguments when running ``openfisca serve`` (e.g. ``--reload``, ``--workers``, ``--timeout``, ``--bind``).
+See:
+
+.. code-block:: shell
+
+  gunicorn --help
+
 
 Examples
 --------
@@ -42,6 +48,7 @@ Serving reforms
 
 Using a configuration file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+You can setup ``openfisca serve`` using a configuration file. Be careful as parameters with a '-' in their name on command line change to an '_' when used from the config file. See this example of configuration:
 
 **config.py:**
 
@@ -49,7 +56,8 @@ Using a configuration file
 
   port = 4000
   workers = 4
-  country-package = 'openfisca_france'
+  bind = '0.0.0.0:{}'.format(port)
+  country_package = 'openfisca_france'
   extensions = ['openfisca_paris']
 
 **Command line:**
@@ -57,6 +65,3 @@ Using a configuration file
 .. code-block:: shell
 
   openfisca serve --configuration-file config.py
-
-
-
