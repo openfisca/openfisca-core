@@ -1,5 +1,10 @@
 # Changelog
 
+### 22.0.3 [#635](https://github.com/openfisca/openfisca-core/pull/635) 
+
+- Update dependancy on numpy
+  * Previously, openfisca-core used features removed on numpy 1.13
+
 ### 22.0.2 [#627](https://github.com/openfisca/openfisca-core/pull/627) [#593](https://github.com/openfisca/openfisca-core/pull/593)
 
 - Update openfisca_serve [rst](http://openfisca.readthedocs.io/en/latest/openfisca_serve.html) documentation

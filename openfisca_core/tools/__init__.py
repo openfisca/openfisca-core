@@ -35,14 +35,18 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
                 assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
         else:
 
+            target_value = np.array(target_value).astype(float)
+            value = np.array(value).astype(float)
+            diff = abs(target_value - value)
+
             if absolute_error_margin is not None:
-                assert (abs(target_value - value) <= absolute_error_margin).all(), \
+                assert (diff <= absolute_error_margin).all(), \
                     '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                        abs(target_value - value), absolute_error_margin)
+                        diff, absolute_error_margin)
             if relative_error_margin is not None:
-                assert (abs(target_value - value) <= abs(relative_error_margin * target_value)).all(), \
+                assert (diff <= abs(relative_error_margin * target_value)).all(), \
                     '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                        abs(target_value - value), abs(relative_error_margin * target_value))
+                        diff, abs(relative_error_margin * target_value))
     else:
         if absolute_error_margin is not None:
             assert abs(target_value - value) <= absolute_error_margin, \
