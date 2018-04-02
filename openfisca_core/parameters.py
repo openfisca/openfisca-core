@@ -569,7 +569,7 @@ class VectorialParameterNodeAtInstant(object):
             return self.__getattr__(key)
         # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
         elif isinstance(key, np.ndarray):
-            if not np.issubdtype(key.dtype, np.str):
+            if not np.issubdtype(key.dtype, np.str_):
                 # In case the key is not a string vector, stringify it
                 if key.dtype == object and issubclass(type(key[0]), Enum):
                     enum = type(key[0])

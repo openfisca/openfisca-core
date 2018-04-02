@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '22.0.2',
+    version = '22.0.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -42,7 +42,7 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'Biryani[datetimeconv] >= 0.10.4',
-        'numpy >= 1.11, < 1.13',
+        'numpy >= 1.11, < 1.15',
         'PyYAML >= 3.10',
         'flask == 0.12',
         'flask-cors == 3.0.2',
