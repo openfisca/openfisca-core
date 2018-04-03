@@ -148,7 +148,7 @@ class Parameter(object):
 
     def __repr__(self):
         return os.linesep.join([
-            '{}: {}'.format(value.instant_str, value.value) for value in self.values_list
+            '{}: {}'.format(value.instant_str, value.value if value.value is not None else 'null') for value in self.values_list
             ])
 
     def __eq__(self, other):
@@ -674,8 +674,9 @@ class Scale(object):
             raise KeyError(key)
 
     def __repr__(self):
-        return os.linesep.join([
-            '-' + indent(repr(bracket))[1:]
+        return os.linesep.join(['brackets:'] +
+            [
+            indent('-' + indent(repr(bracket))[1:])
             for bracket in self.brackets
             ])
 

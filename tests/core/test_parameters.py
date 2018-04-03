@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from nose.tools import assert_equal, raises
+import tempfile
 
-from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant
+from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
 from test_countries import tax_benefit_system
 
 
@@ -64,3 +65,12 @@ def test_parameter_for_period():
 def test_wrong_value():
     income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
     income_tax_rate("test")
+
+
+def test_parameter_repr():
+    parameters = tax_benefit_system.parameters
+    tf = tempfile.NamedTemporaryFile(delete = False)
+    tf.write(repr(parameters))
+    tf.close()
+    tf_parameters = load_parameter_file(file_path = tf.name)
+    assert_equal(repr(parameters), repr(tf_parameters))
