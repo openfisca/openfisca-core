@@ -19,7 +19,7 @@ test:
     - make test
     - ./check-version-bump.sh
 deployment:
-  master:
+  test-release:
     branch: master
     commands:
       - ./deploy-if-version-bump.sh
