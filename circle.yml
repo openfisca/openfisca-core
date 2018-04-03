@@ -18,7 +18,7 @@ test:
     - make test
     - ./check-version-bump.sh
 deployment:
-  master:
-    branch: master
+  fix-publish:
+    branch: fix-publish
     commands:
       - ./deploy-if-version-bump.sh
