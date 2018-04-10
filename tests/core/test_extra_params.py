@@ -16,8 +16,8 @@ class formula_1(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('formula_3', period, extra_params = [0])
+    def formula(person, period, parameters):
+        return person('formula_3', period, extra_params = [0])
 
 
 class formula_2(Variable):
@@ -25,8 +25,8 @@ class formula_2(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('formula_3', period, extra_params = [1])
+    def formula(person, period, parameters):
+        return person('formula_3', period, extra_params = [1])
 
 
 class formula_3(Variable):
@@ -34,8 +34,8 @@ class formula_3(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period, choice):
-        return self.zeros() + choice
+    def formula(person, period, parameters, choice):
+        return person.empty_array() + choice
 
 
 class formula_4(Variable):
@@ -44,8 +44,8 @@ class formula_4(Variable):
     base_function = requested_period_last_value
     definition_period = MONTH
 
-    def formula(self, simulation, period, choice):
-        return self.zeros() + choice
+    def formula(person, period, parameters, choice):
+        return person.empty_array() + choice
 
 
 # TaxBenefitSystem instance declared after formulas

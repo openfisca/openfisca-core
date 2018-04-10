@@ -22,8 +22,8 @@ class uses_multiplication(Variable):
     label = u'Variable with formula that uses multiplication'
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        choice = simulation.calculate('choice', period)
+    def formula(person, period):
+        choice = person('choice', period)
         result = (choice == 1) * 80 + (choice == 2) * 90
         return result
 
@@ -34,8 +34,8 @@ class uses_switch(Variable):
     label = u'Variable with formula that uses switch'
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        choice = simulation.calculate('choice', period)
+    def formula(person, period):
+        choice = person('choice', period)
         result = switch(
             choice,
             {

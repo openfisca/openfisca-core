@@ -19,8 +19,8 @@ class variable1(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('variable2', period)
+    def formula(person, period):
+        return person('variable2', period)
 
 
 class variable2(Variable):
@@ -28,8 +28,8 @@ class variable2(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('variable1', period)
+    def formula(person, period):
+        return person('variable1', period)
 
 
 # 3 <--> 4 with a period offset, but without explicit cycle allowed
@@ -38,8 +38,8 @@ class variable3(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('variable4', period.last_month)
+    def formula(person, period):
+        return person('variable4', period.last_month)
 
 
 class variable4(Variable):
@@ -47,8 +47,8 @@ class variable4(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('variable3', period)
+    def formula(person, period):
+        return person('variable3', period)
 
 
 # 5 -f-> 6 with a period offset, with cycle flagged but not allowed
@@ -58,8 +58,8 @@ class variable5(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        variable6 = simulation.calculate('variable6', period.last_month, max_nb_cycles = 0)
+    def formula(person, period):
+        variable6 = person('variable6', period.last_month, max_nb_cycles = 0)
         return 5 + variable6
 
 
@@ -68,8 +68,8 @@ class variable6(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        variable5 = simulation.calculate('variable5', period)
+    def formula(person, period):
+        variable5 = person('variable5', period)
         return 6 + variable5
 
 
@@ -79,11 +79,11 @@ class cotisation(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
+    def formula(person, period):
         if period.start.month == 12:
-            return 2 * simulation.calculate('cotisation', period.last_month, max_nb_cycles = 1)
+            return 2 * person('cotisation', period.last_month, max_nb_cycles = 1)
         else:
-            return self.zeros() + 1
+            return person.empty_array() + 1
 
 
 # 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
@@ -93,8 +93,8 @@ class variable7(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        variable8 = simulation.calculate('variable8', period.last_month, max_nb_cycles = 1)
+    def formula(person, period):
+        variable8 = person('variable8', period.last_month, max_nb_cycles = 1)
         return 7 + variable8
 
 
@@ -103,8 +103,8 @@ class variable8(Variable):
     entity = Person
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        variable7 = simulation.calculate('variable7', period)
+    def formula(person, period):
+        variable7 = person('variable7', period)
         return 8 + variable7
 
 

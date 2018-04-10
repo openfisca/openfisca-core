@@ -548,21 +548,16 @@ class Formula(object):
     def exec_function(self, simulation, period, *extra_params):
         """
         Calls the right Variable's dated function for current period and returns a NumPy array.
-
-        Retro-compatibility-layer: handles old syntax (with `self` as first argument).
         """
-        function = self.find_function(period)
 
-        if function.im_func.func_code.co_varnames[0] == 'self':
-            return function(simulation, period, *extra_params)
+        function = self.find_function(period)
+        entity = self.holder.entity
+        function = function.im_func
+        parameters_at = simulation.parameters_at
+        if function.func_code.co_argcount == 2:
+            return function(entity, period)
         else:
-            entity = self.holder.entity
-            function = function.im_func
-            parameters_at = simulation.parameters_at
-            if function.func_code.co_argcount == 2:
-                return function(entity, period)
-            else:
-                return function(entity, period, parameters_at, *extra_params)
+            return function(entity, period, parameters_at, *extra_params)
 
     def graph_parameters(self, edges, get_input_variables_and_parameters, nodes, visited):
         """Recursively build a graph of formulas."""

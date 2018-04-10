@@ -31,8 +31,8 @@ def new_simulation(tax_benefit_system, month):
         ).new_simulation()
 
 
-def vectorize(function, number):
-    return (function.zeros() + 1) * number
+def vectorize(individu, number):
+    return individu.filled_array(number)
 
 
 def check_error_at_add_variable(tax_benefit_system, variable, error_message_prefix):
@@ -123,8 +123,8 @@ class end_attribute__one_simple_formula(Variable):
     label = u"Variable with end attribute, one formula without date."
     end = '1989-12-31'
 
-    def formula(self, individu, period):
-        return vectorize(self, 100)
+    def formula(individu, period):
+        return vectorize(individu, 100)
 
 
 tax_benefit_system.add_variable(end_attribute__one_simple_formula)
@@ -164,8 +164,8 @@ class no_end_attribute__one_formula__strange_name(Variable):
     definition_period = MONTH
     label = u"Variable without end attribute, one stangely named formula."
 
-    def formula_2015_toto(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2015_toto(individu, period):
+        return vectorize(individu, 100)
 
 
 def test_add__no_end_attribute__one_formula__strange_name():
@@ -181,8 +181,8 @@ class no_end_attribute__one_formula__start(Variable):
     definition_period = MONTH
     label = u"Variable without end attribute, one dated formula."
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 100)
 
 
 tax_benefit_system.add_variable(no_end_attribute__one_formula__start)
@@ -218,8 +218,8 @@ class no_end_attribute__one_formula__eternity(Variable):
     definition_period = ETERNITY  # For this entity, this variable shouldn't evolve through time
     label = u"Variable without end attribute, one dated formula."
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 100)
 
 
 tax_benefit_system.add_variable(no_end_attribute__one_formula__eternity)
@@ -243,11 +243,11 @@ class no_end_attribute__formulas__start_formats(Variable):
     definition_period = MONTH
     label = u"Variable without end attribute, multiple dated formulas."
 
-    def formula_2000(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000(individu, period):
+        return vectorize(individu, 100)
 
-    def formula_2010_01(self, individu, period):
-        return vectorize(self, 200)
+    def formula_2010_01(individu, period):
+        return vectorize(individu, 200)
 
 
 tax_benefit_system.add_variable(no_end_attribute__formulas__start_formats)
@@ -295,11 +295,11 @@ class no_attribute__formulas__different_names__dates_overlap(Variable):
     definition_period = MONTH
     label = u"Variable, no end attribute, multiple dated formulas with different names but same dates."
 
-    def formula_2000(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000(individu, period):
+        return vectorize(individu, 100)
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 200)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 200)
 
 
 def test_add__no_attribute__formulas__different_names__dates_overlap():
@@ -315,11 +315,11 @@ class no_attribute__formulas__different_names__no_overlap(Variable):
     definition_period = MONTH
     label = u"Variable, no end attribute, multiple dated formulas with different names and no date overlap."
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 100)
 
-    def formula_2010_01_01(self, individu, period):
-        return vectorize(self, 200)
+    def formula_2010_01_01(individu, period):
+        return vectorize(individu, 200)
 
 
 tax_benefit_system.add_variable(no_attribute__formulas__different_names__no_overlap)
@@ -362,8 +362,8 @@ class end_attribute__one_formula__start(Variable):
     label = u"Variable with end attribute, one dated formula."
     end = '2001-12-31'
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 100)
 
 
 tax_benefit_system.add_variable(end_attribute__one_formula__start)
@@ -392,8 +392,8 @@ class stop_attribute_before__one_formula__start(Variable):
     label = u"Variable with stop attribute only coming before formula start."
     end = '1990-01-01'
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 0)
 
 
 def test_add__stop_attribute_before__one_formula__start():
@@ -409,8 +409,8 @@ class end_attribute_restrictive__one_formula(Variable):
     label = u"Variable with end attribute, one dated formula and dates intervals overlap."
     end = '2001-01-01'
 
-    def formula_2001_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2001_01_01(individu, period):
+        return vectorize(individu, 100)
 
 
 tax_benefit_system.add_variable(end_attribute_restrictive__one_formula)
@@ -439,14 +439,14 @@ class end_attribute__formulas__different_names(Variable):
     label = u"Variable with end attribute, multiple dated formulas with different names."
     end = '2010-12-31'
 
-    def formula_2000_01_01(self, individu, period):
-        return vectorize(self, 100)
+    def formula_2000_01_01(individu, period):
+        return vectorize(individu, 100)
 
-    def formula_2005_01_01(self, individu, period):
-        return vectorize(self, 200)
+    def formula_2005_01_01(individu, period):
+        return vectorize(individu, 200)
 
-    def formula_2010_01_01(self, individu, period):
-        return vectorize(self, 300)
+    def formula_2010_01_01(individu, period):
+        return vectorize(individu, 300)
 
 
 tax_benefit_system.add_variable(end_attribute__formulas__different_names)

@@ -33,8 +33,8 @@ class variable_with_formula(Variable):
     definition_period = MONTH
     label = u"Variable with formula"
 
-    def formula(self, individu, period):
-        return self.zeros()
+    def formula(individu, period):
+        return individu.empty_array()
 
 
 tax_benefit_system.add_variable(variable_with_formula)
