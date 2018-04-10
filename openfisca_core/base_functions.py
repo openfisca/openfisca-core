@@ -5,7 +5,7 @@ import warnings
 from . import periods
 
 
-def permanent_default_value(formula, simulation, period, *extra_params):
+def permanent_default_value(holder, period, *extra_params):
     warnings.warn(
         u"permanent_default_value is deprecated"
         u"permanent_default_value has the same effect "
@@ -14,10 +14,10 @@ def permanent_default_value(formula, simulation, period, *extra_params):
         Warning
         )
 
-    return requested_period_default_value(formula, simulation, period, *extra_params)
+    return requested_period_default_value(holder, period, *extra_params)
 
 
-def requested_period_added_value(formula, simulation, period, *extra_params):
+def requested_period_added_value(holder, period, *extra_params):
     warnings.warn(
         u"requested_period_added_value is deprecated. "
         u"Since OpenFisca Core 6.0, requested_period_added_value has the same effect "
@@ -25,29 +25,21 @@ def requested_period_added_value(formula, simulation, period, *extra_params):
         u"There is thus no need to specifiy it. ",
         Warning
         )
-    return requested_period_default_value(formula, simulation, period, *extra_params)
+    return requested_period_default_value(holder, period, *extra_params)
 
 
-def requested_period_default_value(formula, simulation, period, *extra_params):
-    if formula.find_function(period) is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    holder = formula.holder
+def requested_period_default_value(holder, period, *extra_params):
     array = holder.default_array()
     return array
 
 
-def requested_period_last_value(formula, simulation, period, *extra_params, **kwargs):
+def requested_period_last_value(holder, period, *extra_params, **kwargs):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable
     """
 
-    function = formula.find_function(period)
-    if function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-
     accept_future_value = kwargs.pop('accept_future_value', False)
-    holder = formula.holder
     known_periods = holder.get_known_periods()
     if not known_periods:
         return holder.default_array()
@@ -61,18 +53,14 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     return holder.default_array()
 
 
-def requested_period_last_or_next_value(formula, simulation, period, *extra_params):
+def requested_period_last_or_next_value(holder, period, *extra_params):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable, or the next value if there is no past value.
     """
-    return requested_period_last_value(formula, simulation, period, *extra_params, accept_future_value = True)
+    return requested_period_last_value(holder, period, *extra_params, accept_future_value = True)
 
 
-def missing_value(formula, simulation, period, *extra_params):
-    function = formula.find_function(period)
-    if function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    holder = formula.holder
+def missing_value(holder, period, *extra_params):
     variable = holder.variable
     raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))

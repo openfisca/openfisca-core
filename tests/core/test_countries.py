@@ -23,7 +23,7 @@ def test_input_variable():
             'salary': 2000,
             },
         ).new_simulation()
-    assert_near(simulation.calculate_add('salary', period), [2000], absolute_error_margin = 0.01)
+    assert_near(simulation.calculate('salary', period), [2000], absolute_error_margin = 0.01)
 
 
 def test_basic_calculation():
@@ -34,7 +34,7 @@ def test_basic_calculation():
             salary = 2000,
             ),
         ).new_simulation()
-    assert_near(simulation.calculate_add('income_tax', period), [300], absolute_error_margin = 0.01)
+    assert_near(simulation.calculate('income_tax', period), [300], absolute_error_margin = 0.01)
 
 
 class income_tax_no_period(Variable):
@@ -63,7 +63,7 @@ def test_no_period():
             salary = 2000,
             ),
         ).new_simulation()
-    simulation.calculate_add('income_tax_no_period', year)
+    simulation.calculate('income_tax_no_period', year)
 
 
 def test_bareme():

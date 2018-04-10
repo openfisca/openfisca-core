@@ -7,13 +7,28 @@ import tempfile
 import logging
 
 import dpath
+import numpy as np
 
 import periods
 from commons import empty_clone
+from .parameters import ParameterNotFound
 from tracers import Tracer
+from .indexed_enums import Enum, EnumArray
 
 
 log = logging.getLogger(__name__)
+
+
+# Exceptions
+
+
+class NaNCreationError(Exception):
+    pass
+
+
+class CycleError(Exception):
+    pass
+
 
 
 class Simulation(object):
@@ -116,10 +131,111 @@ class Simulation(object):
 
 
     def calculate(self, variable_name, period, **parameters):
+        entity = self.get_variable_entity(variable_name)
+        holder = entity.get_holder(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name)
+
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.compute(period = period, **parameters).array
+
+        if self.trace:
+            self.tracer.record_calculation_start(variable.name, period, **parameters)
+
+        check_period_consistency(period, variable)
+
+        extra_params = parameters.get('extra_params', ())
+
+        # First look for a value already cached
+        cached_holder = holder.get_from_cache(period, extra_params)  # TODO: Directly return an array
+        if cached_holder.array is not None:
+            if self.trace:
+                self.tracer.record_calculation_end(variable.name, period, cached_holder.array, **parameters)
+            return cached_holder.array
+
+        max_nb_cycles = parameters.get('max_nb_cycles')
+        if max_nb_cycles is not None:
+            self.max_nb_cycles = max_nb_cycles
+
+        try:
+            self.check_for_cycle(variable, period)
+
+
+            # First, check if there is a formula to use
+            formula = variable.get_formula(period)
+            if formula:
+                parameters_at = self.parameters_at
+                if formula.func_code.co_argcount == 2:
+                    array = formula(entity, period)
+                else:
+                    array = formula(entity, period, parameters_at, *extra_params)
+            else:
+            # If not, use a base function
+                array = variable.base_function(holder, period, *extra_params)
+
+        except CycleError:
+            self.clean_cycle_detection_data(variable.name)
+            if max_nb_cycles is None:
+                if self.trace:
+                    self.tracer.record_calculation_abortion(variable.name, period, **parameters)
+                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
+                raise
+            self.max_nb_cycles = None
+            array = holder.default_array()
+        except ParameterNotFound as exc:
+            if exc.variable_name is None:
+                raise ParameterNotFound(
+                    instant_str = exc.instant_str,
+                    name = exc.name,
+                    variable_name = variable.name,
+                    )
+            else:
+                raise
+        except:
+            log.error(u'An error occurred while calling formula {}@{}<{}>.'.format(
+                variable.name, entity.key, str(period)
+                ))
+            raise
+
+        assert isinstance(array, np.ndarray), (linesep.join([
+            u"You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
+            u"The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
+            u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
+            u"Learn more about Numpy arrays and vectorial computing:",
+            u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
+            ]))
+        entity_count = entity.count
+        assert array.size == entity_count, \
+            u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
+                variable.name, entity.key, str(period), str(period), stringify_array(array),
+                array.size, entity_count, entity.key).encode('utf-8')
+        if self.debug:
+            try:
+                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
+                if np.isnan(np.min(array)):
+                    nan_count = np.count_nonzero(np.isnan(array))
+                    raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
+                        variable.name, entity.key, str(period), str(period), stringify_array(array),
+                        nan_count).encode('utf-8'))
+            except TypeError:
+                pass
+
+        if variable.value_type == Enum and not isinstance(array, EnumArray):
+            array = variable.possible_values.encode(array)
+
+        if array.dtype != variable.dtype:
+            array = array.astype(variable.dtype)
+
+        self.clean_cycle_detection_data(variable.name)
+        if max_nb_cycles is not None:
+            self.max_nb_cycles = None
+
+
+        holder.put_in_cache(array, period, extra_params)
+        if self.trace:
+            self.tracer.record_calculation_end(variable.name, period, array, **parameters)
+
+        return array
+
 
     def calculate_add(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
@@ -244,6 +360,54 @@ class Simulation(object):
         return result
 
 
+
+    def check_for_cycle(self, variable, period):
+        """
+        Return a boolean telling if the current variable has already been called without being allowed by
+        the parameter max_nb_cycles of the calculate method.
+        """
+        def get_error_message():
+            return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+                variable.name,
+                period,
+                u', '.join(sorted(set(
+                    u'{}<{}>'.format(variable_name, period2)
+                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
+                    for period2 in periods
+                    ))).encode('utf-8'),
+                )
+        requested_periods_by_variable_name = self.requested_periods_by_variable_name
+        variable_name = variable.name
+        if variable_name in requested_periods_by_variable_name:
+            # Make sure the formula doesn't call itself for the same period it is being called for.
+            # It would be a pure circular definition.
+            requested_periods = requested_periods_by_variable_name[variable_name]
+            assert period not in requested_periods and (variable.definition_period != periods.ETERNITY), get_error_message()
+            if self.max_nb_cycles is None or len(requested_periods) > self.max_nb_cycles:
+                message = get_error_message()
+                if self.max_nb_cycles is None:
+                    message += ' Hint: use "max_nb_cycles = 0" to get a default value, or "= N" to allow N cycles.'
+                raise CycleError(message)
+            else:
+                requested_periods.append(period)
+        else:
+            requested_periods_by_variable_name[variable_name] = [period]
+
+
+    def clean_cycle_detection_data(self, variable_name):
+        """
+        When the value of a formula have been computed, remove the period from
+        requested_periods_by_variable_name[variable_name] and delete the latter if empty.
+        """
+
+        requested_periods_by_variable_name = self.requested_periods_by_variable_name
+        if variable_name in requested_periods_by_variable_name:
+            requested_periods_by_variable_name[variable_name].pop()
+            if len(requested_periods_by_variable_name[variable_name]) == 0:
+                del requested_periods_by_variable_name[variable_name]
+
+
+
 def check_type(input, type, path = []):
     json_type_map = {
         dict: "Object",
@@ -264,3 +428,31 @@ class SituationParsingError(Exception):
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, self.error)
+
+
+def check_period_consistency(period, variable):
+    """
+        Check that a period matches the variable definition_period
+    """
+    if variable.definition_period == periods.ETERNITY:
+        return  # For variables which values are constant in time, all periods are accepted
+
+    if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
+        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
+            variable.name,
+            period
+            ).encode('utf-8'))
+
+    if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
+        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+            variable.name,
+            period
+            ).encode('utf-8'))
+
+    if period.size != 1:
+        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
+            variable.name,
+            period,
+            'month' if variable.definition_period == periods.MONTH else 'year'
+            ).encode('utf-8'))
+

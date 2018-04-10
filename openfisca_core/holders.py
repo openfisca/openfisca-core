@@ -141,51 +141,6 @@ class Holder(object):
 
         return new
 
-    def compute(self, period, **parameters):
-        """
-            Compute the variable's value for the ``period`` and return a dated holder containing the value.
-        """
-
-        if self.simulation.trace:
-            self.simulation.tracer.record_calculation_start(self.variable.name, period, **parameters)
-        variable = self.variable
-
-        # Check that the requested period matches definition_period
-        if variable.definition_period != ETERNITY:
-            if variable.definition_period == MONTH and period.unit != periods.MONTH:
-                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
-                    variable.name,
-                    period
-                    ).encode('utf-8'))
-            if variable.definition_period == YEAR and period.unit != periods.YEAR:
-                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-                    variable.name,
-                    period
-                    ).encode('utf-8'))
-            if period.size != 1:
-                raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
-                    variable.name,
-                    period,
-                    'month' if variable.definition_period == MONTH else 'year').encode('utf-8'))
-
-        extra_params = parameters.get('extra_params')
-
-        # First look for a value already cached
-        holder_or_dated_holder = self.get_from_cache(period, extra_params)
-        if holder_or_dated_holder.array is not None:
-            if self.simulation.trace:
-                self.simulation.tracer.record_calculation_end(self.variable.name, period, holder_or_dated_holder.array, **parameters)
-            return holder_or_dated_holder
-        assert self._array is None  # self._array should always be None when dated_holder.array is None.
-
-        # Request a computation
-        dated_holder = self.formula.compute(period = period, **parameters)
-        if not self._do_not_store:
-            self.put_in_cache(dated_holder.array, period, extra_params)
-        if self.simulation.trace:
-            self.simulation.tracer.record_calculation_end(self.variable.name, period, dated_holder.array, **parameters)
-        return dated_holder
-
     def compute_add(self, period, **parameters):
         # Check that the requested period matches definition_period
         if self.variable.definition_period == YEAR and period.unit == periods.MONTH:
@@ -348,9 +303,12 @@ class Holder(object):
         if self.variable.set_input:
             self.variable.set_input(self, period, array)
         else:
-            holder.put_in_cache(array, period)
+            self.put_in_cache(array, period)
 
     def put_in_cache(self, value, period, extra_params = None):
+        if self._do_not_store:
+            return
+
         simulation = self.simulation
 
         if self.variable.value_type == Enum:
