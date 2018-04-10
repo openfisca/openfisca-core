@@ -15,6 +15,28 @@ from openfisca_core.tools import assert_near
 tax_benefit_system = CountryTaxBenefitSystem()
 
 
+def test_input_variable():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = {
+            'salary': 2000,
+            },
+        ).new_simulation()
+    assert_near(simulation.calculate_add('salary', period), [2000], absolute_error_margin = 0.01)
+
+
+def test_basic_calculation():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            salary = 2000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate_add('income_tax', period), [300], absolute_error_margin = 0.01)
+
+
 class income_tax_no_period(Variable):
     value_type = float
     entity = Person
@@ -42,28 +64,6 @@ def test_no_period():
             ),
         ).new_simulation()
     simulation.calculate_add('income_tax_no_period', year)
-
-
-def test_input_variable():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = {
-            'salary': 2000,
-            },
-        ).new_simulation()
-    assert_near(simulation.calculate_add('salary', period), [2000], absolute_error_margin = 0.01)
-
-
-def test_basic_calculation():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            salary = 2000,
-            ),
-        ).new_simulation()
-    assert_near(simulation.calculate_add('income_tax', period), [300], absolute_error_margin = 0.01)
 
 
 def test_bareme():

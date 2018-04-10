@@ -345,7 +345,10 @@ class Holder(object):
                 error_message
                 )
 
-        self.formula.set_input(period, array)
+        if self.variable.set_input:
+            self.variable.set_input(self, period, array)
+        else:
+            holder.put_in_cache(array, period)
 
     def put_in_cache(self, value, period, extra_params = None):
         simulation = self.simulation
@@ -482,3 +485,78 @@ class PeriodMismatchError(ValueError):
         self.period = period
         self.definition_period = definition_period
         ValueError.__init__(self, message)
+
+
+
+# 4 possible set_input functions
+
+
+def set_input_dispatch_by_period(holder, period, array):
+    period_size = period.size
+    period_unit = period.unit
+
+    if holder.variable.definition_period == MONTH:
+        cached_period_unit = periods.MONTH
+    elif holder.variable.definition_period == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        raise ValueError('set_input_dispatch_by_period can be used only for yearly or monthly variables.')
+
+    after_instant = period.start.offset(period_size, period_unit)
+
+    # Cache the input data, skipping the existing cached months
+    sub_period = period.start.period(cached_period_unit)
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is None:
+            holder.put_in_cache(array, sub_period)
+        else:
+            # The array of the current sub-period is reused for the next ones.
+            # TODO: refactor or document this behavior
+            array = existing_array
+        sub_period = sub_period.offset(1)
+
+
+def set_input_divide_by_period(holder, period, array):
+    period_size = period.size
+    period_unit = period.unit
+
+    if holder.variable.definition_period == MONTH:
+        cached_period_unit = periods.MONTH
+    elif holder.variable.definition_period == YEAR:
+        cached_period_unit = periods.YEAR
+    else:
+        raise ValueError('set_input_divide_by_period can be used only for yearly or monthly variables.')
+
+    after_instant = period.start.offset(period_size, period_unit)
+
+    # Count the number of elementary periods to change, and the difference with what is already known.
+    remaining_array = array.copy()
+    sub_period = period.start.period(cached_period_unit)
+    sub_periods_count = 0
+    while sub_period.start < after_instant:
+        existing_array = holder.get_array(sub_period)
+        if existing_array is not None:
+            remaining_array -= existing_array
+        else:
+            sub_periods_count += 1
+        sub_period = sub_period.offset(1)
+
+    # Cache the input data
+    if sub_periods_count > 0:
+        divided_array = remaining_array / sub_periods_count
+        sub_period = period.start.period(cached_period_unit)
+        while sub_period.start < after_instant:
+            if holder.get_array(sub_period) is None:
+                holder.put_in_cache(divided_array, sub_period)
+            sub_period = sub_period.offset(1)
+    elif not (remaining_array == 0).all():
+        raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))
+
+
+def set_input_neutralized(holder, period, array):
+    warnings.warn(
+        u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
+        .format(holder.variable.name, array).encode('utf-8'),
+        Warning
+        )

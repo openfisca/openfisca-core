@@ -225,8 +225,6 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
             entity = self,
             variable = variable,
             )
-        if variable.formula is not None:
-            holder.formula = variable.formula(holder = holder)  # Instanciates a Formula
         return holder
 
     def get_memory_usage(self, variables = None):

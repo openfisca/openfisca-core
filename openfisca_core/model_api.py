@@ -11,14 +11,16 @@ from numpy import (   # noqa analysis:ignore
     where,
 )
 
+from .holders import (  # noqa analysis:ignore
+    set_input_dispatch_by_period,
+    set_input_divide_by_period,
+    )
 from .indexed_enums import Enum  # noqa analysis:ignore
 from .formulas import (  # noqa analysis:ignore
     ADD,
     calculate_output_add,
     calculate_output_divide,
     DIVIDE,
-    set_input_dispatch_by_period,
-    set_input_divide_by_period,
     )
 from .base_functions import (   # noqa analysis:ignore
     missing_value,
