@@ -116,13 +116,22 @@ class Simulation(object):
 
 
     def calculate(self, variable_name, period, **parameters):
-        return self.compute(variable_name, period = period, **parameters).array
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
+        return holder.compute(period = period, **parameters).array
 
     def calculate_add(self, variable_name, period, **parameters):
-        return self.compute_add(variable_name, period = period, **parameters).array
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
+        return holder.compute_add(period = period, **parameters).array
 
     def calculate_divide(self, variable_name, period, **parameters):
-        return self.compute_divide(variable_name, period = period, **parameters).array
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
+        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
+        return holder.compute_divide(period = period, **parameters).array
 
     def calculate_output(self, variable_name, period):
         """Calculate the value using calculate_output hooks in formula classes."""
@@ -160,25 +169,6 @@ class Simulation(object):
                 new_dict['tracer'] = Tracer()
 
         return new
-
-    def compute(self, variable_name, period, **parameters):
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        result = holder.compute(period = period, **parameters)
-        return result
-
-    def compute_add(self, variable_name, period, **parameters):
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.compute_add(period = period, **parameters)
-
-    def compute_divide(self, variable_name, period, **parameters):
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.compute_divide(period = period, **parameters)
 
     def get_array(self, variable_name, period):
         if period is not None and not isinstance(period, periods.Period):
