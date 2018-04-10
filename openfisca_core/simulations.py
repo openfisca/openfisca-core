@@ -114,19 +114,6 @@ class Simulation(object):
                 ).format(self._data_storage_dir).encode('utf-8'))
         return self._data_storage_dir
 
-    @property
-    def holder_by_name(self):
-        warnings.warn(
-            u"The simulation.holder_by_name attribute has been deprecated. "
-            u"Please use entity.get_holder instead. "
-            u"Using simulation.holder_by_name may negatively impact performances",
-            Warning
-            )
-
-        result = {}
-        for entity in self.entities.itervalues():
-            result.update(entity._holders)
-        return result
 
     def calculate(self, variable_name, period, **parameters):
         return self.compute(variable_name, period = period, **parameters).array
@@ -219,16 +206,6 @@ class Simulation(object):
         if default is UnboundLocalError:
             raise KeyError(variable_name)
         return default
-
-    def get_or_new_holder(self, variable_name):
-        warnings.warn(
-            u"The simulation.get_or_new_holder method has been deprecated. "
-            u"Please use entity.get_holder instead.",
-            Warning
-            )
-        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        entity = self.get_entity(variable.entity)
-        return entity.get_holder(variable_name)
 
     def _get_baseline_parameters_at_instant(self, instant):
         baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
