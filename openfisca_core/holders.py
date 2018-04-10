@@ -411,9 +411,8 @@ class Holder(object):
         return DatedHolder(self, period, value, extra_params)
 
     def get_extra_param_names(self, period):
-        function = self.formula.find_function(period)
-
-        return function.__func__.func_code.co_varnames[3:]
+        formula = self.variable.get_formula(period)
+        return formula.func_code.co_varnames[3:]
 
     def to_value_json(self, use_label = False):
         column = make_column_from_variable(self.variable)

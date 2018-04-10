@@ -8,7 +8,6 @@ import inspect
 import datetime
 import logging
 import warnings
-import re
 from os import linesep
 
 import numpy as np
@@ -26,11 +25,7 @@ log = logging.getLogger(__name__)
 ADD = 'add'
 DIVIDE = 'divide'
 
-FORMULA_NAME_PREFIX = 'formula'
-FORMULA_NAME_SEPARATOR = '_'
-DEFAULT_YEAR = '0001'
-DEFAULT_MONTH = '01'
-DEFAULT_DAY = '01'
+
 
 # Exceptions
 
@@ -58,63 +53,6 @@ class Formula(object):
     base_function = None  # Class attribute. Overridden by subclasses
     dated_formulas = None  # A list of dictionaries containing a formula instance and a start instant
     dated_formulas_class = None  # A list of dictionaries containing a formula class and a start instant
-
-    @staticmethod
-    def build_formula_class(attributes, variable, baseline_variable = None):
-        """
-        Returns a sublclass of Formula, containting the extracted formula(s) of the variable (e.g. formula_2015_01)
-        """
-
-        formula_class_attributes = {}
-        if variable.calculate_output:
-            formula_class_attributes['calculate_output'] = variable.calculate_output
-        if variable.set_input:
-            formula_class_attributes['set_input'] = variable.set_input
-        formula_class_attributes['base_function'] = variable.base_function
-        formula_class_attributes['__doc__'] = attributes.pop('__doc__', None)
-        formula_class_attributes['__module__'] = attributes.pop('__module__', None)
-
-        dated_formulas_class = []
-        for function_name, function in attributes.copy().iteritems():
-            # Turn any formula into a dated formula
-            formula_start_date = deduce_formula_date_from_name(function_name)
-            if not formula_start_date:
-                # Current attribute isn't a formula
-                continue
-
-            if variable.end is not None:
-                assert variable.end >= formula_start_date, \
-                    'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'.format(variable.name, variable.end, formula_start_date, function_name)
-            dated_formula_class_attributes = formula_class_attributes.copy()
-            dated_formula_class_attributes['formula'] = function
-            dated_formula_class = type(variable.name.encode('utf-8'), (Formula,), dated_formula_class_attributes)
-
-            del attributes[function_name]
-            dated_formulas_class.append(dict(
-                formula_class = dated_formula_class,
-                start_instant = periods.instant(formula_start_date),
-                ))
-
-        dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-
-        # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
-        if baseline_variable is not None:
-            for baseline_dated_formula_class in baseline_variable.formula.dated_formulas_class:
-                baseline_dated_formula_class = baseline_dated_formula_class.copy()
-                for dated_formula_class in dated_formulas_class:
-                    if baseline_dated_formula_class['start_instant'] >= dated_formula_class['start_instant']:
-                        break
-
-                else:
-                    dated_formulas_class.append(baseline_dated_formula_class)
-            dated_formulas_class.sort(key = lambda dated_formula_class: dated_formula_class['start_instant'])
-
-        formula_class_attributes['dated_formulas_class'] = dated_formulas_class
-
-        assert not attributes, 'Unexpected attributes in definition of variable "{}": {!r}'.format(variable.name,
-            ', '.join(sorted(attributes.iterkeys())))
-
-        return type(variable.name.encode('utf-8'), (Formula,), formula_class_attributes)
 
     def __init__(self, holder = None):
         assert holder is not None
@@ -651,45 +589,6 @@ def get_neutralized_variable(variable):
     result.formula.set_input = set_input_neutralized
 
     return result
-
-
-def deduce_formula_date_from_name(attribute_name):
-    """
-    Return a day date deduced from attribute name when it is a formula name, None otherwise.
-    Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
-
-    Default year is '0001'. Default month and day are '01'. Thus, 'formula' starts on 1st january of year 1.
-    """
-    if not attribute_name.startswith(FORMULA_NAME_PREFIX):
-        # Current attribute isn't a formula
-        return None
-
-    formula_name = attribute_name
-    if attribute_name == FORMULA_NAME_PREFIX:
-        formula_name += (
-            FORMULA_NAME_SEPARATOR
-            + DEFAULT_YEAR
-            + FORMULA_NAME_SEPARATOR
-            + DEFAULT_MONTH
-            + FORMULA_NAME_SEPARATOR
-            + DEFAULT_DAY
-            )
-
-    else:
-        match = re.match(r'formula_(\d{4}(_\d{2}){0,2})$', attribute_name)  # YYYY or YYYY_MM or YYYY_MM_DD
-        assert match, 'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ' + attribute_name
-        start_str = match.group(1)
-
-        if len(start_str) == 4:  # YYYY
-            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
-            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_MONTH
-
-        if len(start_str) == 7:  # YYYY_MM
-            start_str += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
-            formula_name += FORMULA_NAME_SEPARATOR + DEFAULT_DAY
-
-    return datetime.datetime.strptime(formula_name,
-    FORMULA_NAME_PREFIX + FORMULA_NAME_SEPARATOR + '%Y_%m_%d').date()
 
 
 def set_input_dispatch_by_period(formula, period, array):

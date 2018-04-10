@@ -130,6 +130,10 @@ class end_attribute__one_simple_formula(Variable):
 tax_benefit_system.add_variable(end_attribute__one_simple_formula)
 
 
+def test_formulas_attributes_single_formula():
+    formulas = tax_benefit_system.variables['end_attribute__one_simple_formula'].formulas
+    assert formulas['0001-01-01'] is not None
+
 def test_call__end_attribute__one_simple_formula():
     month = '1979-12'
     simulation = new_simulation(tax_benefit_system, month)
@@ -170,7 +174,7 @@ class no_end_attribute__one_formula__strange_name(Variable):
 
 def test_add__no_end_attribute__one_formula__strange_name():
     check_error_at_add_variable(tax_benefit_system, no_end_attribute__one_formula__strange_name,
-    'Unrecognized formula name. Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ')
+    'Unrecognized formula name in variable "no_end_attribute__one_formula__strange_name". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: ')
 
 
 # formula, start
@@ -252,6 +256,22 @@ class no_end_attribute__formulas__start_formats(Variable):
 
 tax_benefit_system.add_variable(no_end_attribute__formulas__start_formats)
 
+
+def test_formulas_attributes_dated_formulas():
+    formulas = tax_benefit_system.variables['no_end_attribute__formulas__start_formats'].formulas
+    assert formulas['2000-01-01'] is not None
+    assert formulas['2010-01-01'] is not None
+
+
+def test_get_formulas():
+    variable = tax_benefit_system.variables['no_end_attribute__formulas__start_formats']
+    formula_2000 = variable.formulas['2000-01-01']
+    formula_2010 = variable.formulas['2010-01-01']
+
+    assert variable.get_formula('1999-01') is None
+    assert variable.get_formula('2000-01') == formula_2000
+    assert variable.get_formula('2009-12') == formula_2000
+    assert variable.get_formula('2010-01') == formula_2010
 
 def test_call__no_end_attribute__formulas__start_formats():
     month = '1999-12'
