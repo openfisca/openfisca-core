@@ -49,27 +49,3 @@ def test_is_input_variable():
 
     variable = tax_benefit_system.variables['variable_with_formula']
     assert not variable.is_input_variable()
-
-
-def test_attribute_content__formula_class():
-    variable = tax_benefit_system.variables['variable_with_formula']
-    formula_class = variable.formula
-
-    assert issubclass(formula_class, Formula)
-    assert formula_class.__name__ == 'variable_with_formula'
-
-    assert formula_class.dated_formulas_class is not None
-    assert type(formula_class.dated_formulas_class) == list
-    assert len(formula_class.dated_formulas_class) == 1
-    assert type(formula_class.dated_formulas_class[0]) == dict
-    assert formula_class.dated_formulas is None
-
-    # CALCULATE
-    month = '2005-01'
-    simulation = new_simulation(tax_benefit_system, month)
-    simulation.calculate('variable_with_formula', month)  # numpy.ndarray
-
-    # No change expected on formula_class after a calculate
-    assert formula_class.dated_formulas_class is not None
-    assert len(formula_class.dated_formulas_class) == 1
-    assert formula_class.dated_formulas is None

@@ -332,8 +332,10 @@ class Variable(object):
     # ----- Methods ----- #
 
     def is_input_variable(self):
-        """Returns true if the variable is an input variable."""
-        return self.formula.dated_formulas_class == []
+        """
+            Returns True if the variable is an input variable.
+        """
+        return len(self.formulas) == 0
 
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):
