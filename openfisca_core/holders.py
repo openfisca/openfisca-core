@@ -178,6 +178,9 @@ class Holder(object):
         return formula.real_formula
 
     def set_input(self, period, array):
+        period = periods.period(period)
+        if not isinstance(array, np.ndarray):
+            array = np.asarray(array)
         if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
                 u'Unable to set a value for variable {0} for ETERNITY.',
