@@ -16,11 +16,10 @@ from .holders import (  # noqa analysis:ignore
     set_input_divide_by_period,
     )
 from .indexed_enums import Enum  # noqa analysis:ignore
+from .entities import (ADD, DIVIDE)  # noqa analysis:ignore
 from .formulas import (  # noqa analysis:ignore
-    ADD,
     calculate_output_add,
     calculate_output_divide,
-    DIVIDE,
     )
 from .base_functions import (   # noqa analysis:ignore
     missing_value,

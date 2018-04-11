@@ -9,12 +9,14 @@ import numpy as np
 import dpath
 
 from indexed_enums import Enum, EnumArray
-from formulas import ADD, DIVIDE
 from scenarios import iter_over_entity_members
 from simulations import check_type, SituationParsingError
 from holders import Holder, PeriodMismatchError
 from periods import compare_period_size, period as make_period
 from errors import VariableNotFound
+
+ADD = 'add'
+DIVIDE = 'divide'
 
 
 class Entity(object):
