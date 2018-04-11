@@ -93,7 +93,7 @@ def test_basic_calculation():
                 "housing_tax": {
                     "2017": None
                     },
-                "accomodation_size": {
+                "accommodation_size": {
                     "2017-01": 300
                     }
                 },
@@ -122,7 +122,7 @@ def test_enums_sending_identifier():
                 "housing_tax": {
                     "2017": None
                     },
-                "accomodation_size": {
+                "accommodation_size": {
                     "2017-01": 300
                     },
                 "housing_occupancy_status": {
@@ -168,7 +168,7 @@ def test_enum_wrong_value():
             "_": {
                 "parents": ["bill"],
                 "housing_occupancy_status": {
-                    "2017-01": "Unknown value logder"
+                    "2017-01": "Unknown value lodger"
                     }
                 },
             }
@@ -251,7 +251,7 @@ def test_encoding_period_id():
                 "housing_tax": {
                     "à": 400
                     },
-                "accomodation_size": {
+                "accommodation_size": {
                     "2017-01": 300
                     },
                 "housing_occupancy_status": {
