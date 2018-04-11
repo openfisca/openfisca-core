@@ -4,8 +4,6 @@ import datetime
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.formulas import Formula
-from openfisca_core.holders import Holder
 from openfisca_core.simulations import Simulation
 from openfisca_core.tools import assert_near
 
@@ -38,7 +36,7 @@ def vectorize(individu, number):
 def check_error_at_add_variable(tax_benefit_system, variable, error_message_prefix):
     try:
         tax_benefit_system.add_variable(variable)
-    except AssertionError, e:
+    except ValueError, e:
         if not e.message or not e.message.startswith(error_message_prefix):
             raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, e.message).encode('utf-8'))
 
@@ -69,7 +67,7 @@ def test_variable__no_date():
     tax_benefit_system.add_variable(variable__no_date)
     variable = tax_benefit_system.variables['variable__no_date']
     assert variable.end is None
-    assert len(variable.formula.dated_formulas_class) == 0
+    assert len(variable.formulas) == 0
 
 # end, no formula
 
@@ -134,6 +132,7 @@ def test_formulas_attributes_single_formula():
     formulas = tax_benefit_system.variables['end_attribute__one_simple_formula'].formulas
     assert formulas['0001-01-01'] is not None
 
+
 def test_call__end_attribute__one_simple_formula():
     month = '1979-12'
     simulation = new_simulation(tax_benefit_system, month)
@@ -152,9 +151,8 @@ def test_dates__end_attribute__one_simple_formula():
     variable = tax_benefit_system.variables['end_attribute__one_simple_formula']
     assert variable.end == datetime.date(1989, 12, 31)
 
-    assert len(variable.formula.dated_formulas_class) == 1
-    formula = variable.formula.dated_formulas_class[0]
-    assert formula['start_instant'].date == datetime.date.min
+    assert len(variable.formulas) == 1
+    assert variable.formulas.keys()[0] == str(datetime.date.min)
 
 
 # NO END ATTRIBUTE - DATED FORMULA(S)
@@ -210,10 +208,8 @@ def test_dates__no_end_attribute__one_formula__start():
     variable = tax_benefit_system.variables['no_end_attribute__one_formula__start']
     assert variable.end is None
 
-    assert len(variable.formula.dated_formulas_class) == 1
-    formula = variable.formula.dated_formulas_class[0]
-    assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2000, 1, 1)
+    assert len(variable.formulas) == 1
+    assert variable.formulas.keys()[0] == '2000-01-01'
 
 
 class no_end_attribute__one_formula__eternity(Variable):
@@ -259,6 +255,7 @@ tax_benefit_system.add_variable(no_end_attribute__formulas__start_formats)
 
 def test_formulas_attributes_dated_formulas():
     formulas = tax_benefit_system.variables['no_end_attribute__formulas__start_formats'].formulas
+    assert(len(formulas) == 2)
     assert formulas['2000-01-01'] is not None
     assert formulas['2010-01-01'] is not None
 
@@ -272,6 +269,7 @@ def test_get_formulas():
     assert variable.get_formula('2000-01') == formula_2000
     assert variable.get_formula('2009-12') == formula_2000
     assert variable.get_formula('2010-01') == formula_2010
+
 
 def test_call__no_end_attribute__formulas__start_formats():
     month = '1999-12'
@@ -289,22 +287,6 @@ def test_call__no_end_attribute__formulas__start_formats():
     month = '2010-01'
     simulation = new_simulation(tax_benefit_system, month)
     assert simulation.calculate('no_end_attribute__formulas__start_formats', month) == 200
-
-
-def test_dates__no_end_attribute__formulas__start_formats():
-    variable = tax_benefit_system.variables['no_end_attribute__formulas__start_formats']
-    assert variable.end is None
-    assert len(variable.formula.dated_formulas_class) == 2
-
-    i = 0
-    formula = variable.formula.dated_formulas_class[i]
-    assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2000, 1, 1)
-
-    i = 1
-    formula = variable.formula.dated_formulas_class[i]
-    assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
 
 # Multiple formulas, different names with date overlap
@@ -353,21 +335,6 @@ def test_call__no_attribute__formulas__different_names__no_overlap():
     month = '2015-05'
     simulation = new_simulation(tax_benefit_system, month)
     assert simulation.calculate('no_attribute__formulas__different_names__no_overlap', month) == 200
-
-
-def test_dates__no_attribute__formulas__different_names__no_overlap():
-    variable = tax_benefit_system.variables['no_attribute__formulas__different_names__no_overlap']
-    assert len(variable.formula.dated_formulas_class) == 2
-
-    i = 0
-    formula = variable.formula.dated_formulas_class[i]
-    assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2000, 1, 1)
-
-    i = 1
-    formula = variable.formula.dated_formulas_class[i]
-    assert formula['start_instant'] is not None
-    assert formula['start_instant'].date == datetime.date(2010, 1, 1)
 
 
 # END ATTRIBUTE - DATED FORMULA(S)
@@ -484,34 +451,6 @@ def test_call__end_attribute__formulas__different_names():
     month = '2010-12'
     simulation = new_simulation(tax_benefit_system, month)
     assert simulation.calculate('end_attribute__formulas__different_names', month) == 300
-
-
-def test_clone__end_attribute__formulas__different_names():
-    # Get the formula instance to clone (in holder):
-    month = '2005-01'
-    simulation = new_simulation(tax_benefit_system, month)
-    simulation.calculate('end_attribute__formulas__different_names', month)
-    simulation_holder = simulation.person.get_holder('end_attribute__formulas__different_names')
-
-    # clone
-    variable = tax_benefit_system.variables['end_attribute__formulas__different_names']  # IntCol
-    new_holder = Holder(entity = simulation.person, variable = variable)
-    clone = simulation_holder.formula.clone(new_holder, keys_to_skip = None)
-
-    # Check cloned formula:
-    assert isinstance(clone, Formula)
-    assert clone.holder == new_holder
-    assert clone.dated_formulas_class == simulation_holder.formula.dated_formulas_class
-    assert clone.dated_formulas is not None
-    assert len(clone.dated_formulas) == 3
-    for dated_formula in clone.dated_formulas:
-        assert dated_formula['formula'].holder == new_holder
-
-    assert clone.base_function.__name__ == simulation_holder.formula.base_function.__name__  # bound methods to instances of variables
-    assert clone.comments == simulation_holder.formula.comments
-    assert clone.start_line_number == simulation_holder.formula.start_line_number
-    assert clone.source_code == simulation_holder.formula.source_code
-    assert clone.source_file_path == simulation_holder.formula.source_file_path
 
 
 def test_get_formula():

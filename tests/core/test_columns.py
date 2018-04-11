@@ -3,7 +3,6 @@ from openfisca_country_template.entities import Person
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH
-from openfisca_core.formulas import Formula
 
 
 tax_benefit_system = country_template.CountryTaxBenefitSystem()
