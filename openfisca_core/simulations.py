@@ -144,11 +144,11 @@ class Simulation(object):
         extra_params = parameters.get('extra_params', ())
 
         # First look for a value already cached
-        cached_holder = holder.get_from_cache(period, extra_params)  # TODO: Directly return an array
-        if cached_holder.array is not None:
+        cached_array = holder.get_from_cache(period, extra_params)
+        if cached_array is not None:
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, cached_holder.array, **parameters)
-            return cached_holder.array
+                self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
+            return cached_array
 
         max_nb_cycles = parameters.get('max_nb_cycles')
         if max_nb_cycles is not None:

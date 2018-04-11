@@ -19,45 +19,6 @@ from data_storage import InMemoryStorage, OnDiskStorage
 log = logging.getLogger(__name__)
 
 
-class DatedHolder(object):
-    """
-        A wrapper of the value of a variable for a given period (and possibly a given set of extra parameters).
-    """
-    holder = None
-    period = None
-    extra_params = None
-
-    def __init__(self, holder, period, value, extra_params = None):
-        self.holder = holder
-        self.period = period
-        self.extra_params = extra_params
-        self.value = value
-
-    @property
-    def array(self):
-        return self.value
-
-    @array.setter
-    def array(self, array):
-        raise ValueError('Impossible to modify DatedHolder.array. Please use Holder.put_in_cache.')
-
-    @property
-    def variable(self):
-        return self.holder.variable
-
-    @property
-    def entity(self):
-        return self.holder.entity
-
-    def to_value_json(self, use_label = False):
-        column = make_column_from_variable(self.holder.variable)
-        transform_dated_value_to_json = column.transform_dated_value_to_json
-        return [
-            transform_dated_value_to_json(cell, use_label = use_label)
-            for cell in self.array.tolist()
-            ]
-
-
 class Holder(object):
     """
         A holder keeps tracks of a variable values after they have been calculated, or set as an input.
@@ -297,7 +258,7 @@ class Holder(object):
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
-            return DatedHolder(self, period, value, extra_params)
+            return value
 
         should_store_on_disk = (
             self._on_disk_storable and
@@ -310,14 +271,13 @@ class Holder(object):
         else:
             self._memory_storage.put(value, period, extra_params)
 
-        return DatedHolder(self, period, value, extra_params)
+        return value
 
     def get_from_cache(self, period, extra_params = None):
         if self.variable.is_neutralized:
-            return DatedHolder(self, period, value = self.default_array())
+            return self.default_array()
 
-        value = self.get_array(period, extra_params)
-        return DatedHolder(self, period, value, extra_params)
+        return self.get_array(period, extra_params)
 
     def get_extra_param_names(self, period):
         formula = self.variable.get_formula(period)
