@@ -1,5 +1,9 @@
 # Changelog
 
+### 22.0.5 [#639](https://github.com/openfisca/openfisca-core/pull/639)
+
+* Update country-template dependency to >= 3.0.0, < 4.0.0
+
 ### 22.0.4 [#624](https://github.com/openfisca/openfisca-core/pull/624)
 
 * Technical improvement:
@@ -8,8 +12,9 @@
 
 ### 22.0.3 [#635](https://github.com/openfisca/openfisca-core/pull/635)
 
-- Update dependancy on numpy
-  * Previously, openfisca-core used features removed on numpy 1.13
+* Update numpy dependency
+* Details:
+  - Previously, openfisca-core used features removed on numpy 1.13
 
 ### 22.0.2 [#627](https://github.com/openfisca/openfisca-core/pull/627) [#593](https://github.com/openfisca/openfisca-core/pull/593)
 
@@ -182,7 +187,7 @@ Before:
 HOUSING_OCCUPANCY_STATUS = Enum([
     u'Tenant',
     u'Owner',
-    u'Free logder',
+    u'Free lodger',
     u'Homeless'])
 ```
 
@@ -192,7 +197,7 @@ Now:
 class HousingOccupancyStatus(Enum):
     tenant = u'Tenant'
     owner = u'Owner'
-    free_lodger = u'Free logder'
+    free_lodger = u'Free lodger'
     homeless = u'Homeless'
 ```
 
@@ -353,7 +358,7 @@ class housing_occupancy_status(Variable):
         enum = Enum([
             u'Tenant',
             u'Owner',
-            u'Free logder',
+            u'Free lodger',
             u'Homeless'])
         )
     entity = Household
@@ -369,7 +374,7 @@ class housing_occupancy_status(Variable):
     possible_values = Enum([
         u'Tenant',
         u'Owner',
-        u'Free logder',
+        u'Free lodger',
         u'Homeless'
         ])
     entity = Household

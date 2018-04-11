@@ -117,7 +117,7 @@ def test_variable_with_enum():
     assert_equal(variable['defaultValue'], 'tenant')
     assert_in('possibleValues', variable.keys())
     assert_equal(variable['possibleValues'], {
-        u'free_lodger': u'Free logder',
+        u'free_lodger': u'Free lodger',
         u'homeless': u'Homeless',
         u'owner': u'Owner',
         u'tenant': u'Tenant'})

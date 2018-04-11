@@ -99,7 +99,7 @@ class EnumArray(np.ndarray):
             >>> enum_array[0]
             >>> 2  # Encoded value
             >>> enum_array.decode()[0]
-            >>> <HousingOccupancyStatus.free_lodger: u'Free logder'>  # Decoded value : enum item
+            >>> <HousingOccupancyStatus.free_lodger: u'Free lodger'>  # Decoded value : enum item
         """
         return np.select([self == item.index for item in self.possible_values], [item for item in self.possible_values])
 
