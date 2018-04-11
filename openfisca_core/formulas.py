@@ -163,16 +163,3 @@ def calculate_output_add(formula, period):
 def calculate_output_divide(formula, period):
     return formula.holder.compute_divide(period).array
 
-
-def get_neutralized_variable(variable):
-    """
-        Return a new neutralized variable (to be used by reforms).
-        A neutralized variable always returns its default value, and does not cache anything.
-    """
-    result = variable.clone()
-    result.is_neutralized = True
-    result.label = u'[Neutralized]' if variable.label is None else u'[Neutralized] {}'.format(variable.label),
-    result.set_input = set_input_neutralized
-    result.formula.set_input = set_input_neutralized
-
-    return result

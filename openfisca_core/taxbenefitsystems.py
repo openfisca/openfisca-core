@@ -14,9 +14,8 @@ from setuptools import find_packages
 
 import conv
 from parameters import ParameterNode
-from variables import Variable
+from variables import Variable, get_neutralized_variable
 from scenarios import AbstractScenario
-from formulas import get_neutralized_variable
 from errors import VariableNotFound
 
 log = logging.getLogger(__name__)

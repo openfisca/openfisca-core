@@ -299,11 +299,11 @@ class Holder(object):
                 self.variable.definition_period,
                 error_message
                 )
-
+        if self.variable.is_neutralized:
+            return set_input_neutralized(self, period, array)
         if self.variable.set_input:
-            self.variable.set_input(self, period, array)
-        else:
-            self.put_in_cache(array, period)
+            return self.variable.set_input(self, period, array)
+        return self.put_in_cache(array, period)
 
     def put_in_cache(self, value, period, extra_params = None):
         if self._do_not_store:

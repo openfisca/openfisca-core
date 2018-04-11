@@ -407,6 +407,13 @@ def _partition(dict, predicate):
     return true_dict, false_dict
 
 
+def get_neutralized_variable(variable):
     """
+        Return a new neutralized variable (to be used by reforms).
+        A neutralized variable always returns its default value, and does not cache anything.
     """
+    result = variable.clone()
+    result.is_neutralized = True
+    result.label = u'[Neutralized]' if variable.label is None else u'[Neutralized] {}'.format(variable.label),
 
+    return result
