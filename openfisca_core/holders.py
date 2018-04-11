@@ -23,10 +23,6 @@ class Holder(object):
     """
         A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
-    variable = None
-    entity = None
-    formula = None
-    formula_output_period_by_requested_period = None
 
     def __init__(self, variable, entity):
         self.entity = entity
@@ -51,7 +47,9 @@ class Holder(object):
                 self._do_not_store = True
 
     def clone(self, entity):
-        """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
+        """
+            Copy the holder just enough to be able to run a new simulation without modifying the original simulation.
+        """
         new = empty_clone(self)
         new_dict = new.__dict__
 
@@ -78,9 +76,9 @@ class Holder(object):
 
     def get_array(self, period, extra_params = None):
         """
-        Get the value of the variable for the given period (and possibly a list of extra parameters).
+            Get the value of the variable for the given period (and possibly a list of extra parameters).
 
-        If the value is not known, return ``None``.
+            If the value is not known, return ``None``.
         """
         if self.variable.is_neutralized:
             return self.default_array()
@@ -92,7 +90,7 @@ class Holder(object):
 
     def get_memory_usage(self):
         """
-            Gets data about the virtual memory usage of the holder.
+            Get data about the virtual memory usage of the holder.
 
             :returns: Memory usage data
             :rtype: dict
@@ -129,12 +127,19 @@ class Holder(object):
 
     def get_known_periods(self):
         """
-        Get the list of periods the variable value is known for.
+            Get the list of periods the variable value is known for.
         """
+
         return self._memory_storage.get_known_periods() + (
             self._disk_storage.get_known_periods() if self._disk_storage else [])
 
     def set_input(self, period, array):
+        """
+            Set the input value ``array`` for the variable for the period ``period``.
+
+            If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
+        """
+
         period = periods.period(period)
         if not isinstance(array, np.ndarray):
             array = np.asarray(array)
@@ -217,12 +222,16 @@ class Holder(object):
 
         return value
 
-    def get_extra_param_names(self, period):
-        formula = self.variable.get_formula(period)
-        return formula.func_code.co_varnames[3:]
+    def default_array(self):
+        array_size = self.entity.count
+        array = np.empty(array_size, dtype = self.variable.dtype)
+        if self.variable.value_type == Enum:
+            array.fill(self.variable.default_value.index)
+            return EnumArray(array, self.variable.possible_values)
+        array.fill(self.variable.default_value)
+        return array
 
-    # Legacy method used by the OpenFisca Web API to display intermediate results
-    # TODO: Move to OFW
+    # Legacy method used by the old OpenFisca Web API to display intermediate results
     def to_value_json(self, use_label = False):
         column = make_column_from_variable(self.variable)
         transform_dated_value_to_json = column.transform_dated_value_to_json
@@ -275,14 +284,10 @@ class Holder(object):
                         ]
         return value_json
 
-    def default_array(self):
-        array_size = self.entity.count
-        array = np.empty(array_size, dtype = self.variable.dtype)
-        if self.variable.value_type == Enum:
-            array.fill(self.variable.default_value.index)
-            return EnumArray(array, self.variable.possible_values)
-        array.fill(self.variable.default_value)
-        return array
+    # Legacy method called by to_value_json
+    def get_extra_param_names(self, period):
+        formula = self.variable.get_formula(period)
+        return formula.func_code.co_varnames[3:]
 
 
 class PeriodMismatchError(ValueError):
