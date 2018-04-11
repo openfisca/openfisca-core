@@ -115,7 +115,7 @@ workflows:
 
       - deploy:
           requires:
-            - dependencies
+            - tests
           filters:
             branches:
               only: master
