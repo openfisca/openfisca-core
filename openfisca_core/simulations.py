@@ -375,10 +375,6 @@ class Simulation(object):
             return self._get_baseline_parameters_at_instant(instant)
         return self._get_parameters_at_instant(instant)
 
-    # Fixme: to rewrite
-    def to_input_variables_json(self):
-        return None
-
     def get_variable_entity(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.get_entity(variable.entity)

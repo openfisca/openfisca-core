@@ -63,23 +63,6 @@ class Holder(object):
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    # Should probably be deprecated
-    @property
-    def array(self):
-        return self.get_array(self.simulation.period)
-
-    # Should probably be deprecated
-    @array.setter
-    def array(self, array):
-        self.put_in_cache(array, self.simulation.period)
-
-    def calculate(self, period, **parameters):
-        dated_holder = self.compute(period = period, **parameters)
-        return dated_holder.array
-
-    def calculate_output(self, period):
-        return self.formula.calculate_output(period)
-
     def clone(self, entity):
         """Copy the holder just enough to be able to run a new simulation without modifying the original simulation."""
         new = empty_clone(self)
@@ -95,10 +78,6 @@ class Holder(object):
 
         new_dict['entity'] = entity
         new_dict['simulation'] = entity.simulation
-        # Caution: formula must be cloned after the entity has been set into new.
-        formula = self.formula
-        if formula is not None:
-            new_dict['formula'] = formula.clone(new)
 
         return new
 
@@ -169,13 +148,6 @@ class Holder(object):
         """
         return self._memory_storage.get_known_periods() + (
             self._disk_storage.get_known_periods() if self._disk_storage else [])
-
-    @property
-    def real_formula(self):
-        formula = self.formula
-        if formula is None:
-            return None
-        return formula.real_formula
 
     def set_input(self, period, array):
         period = periods.period(period)
@@ -270,6 +242,7 @@ class Holder(object):
         formula = self.variable.get_formula(period)
         return formula.func_code.co_varnames[3:]
 
+    # Is that still needed ?
     def to_value_json(self, use_label = False):
         column = make_column_from_variable(self.variable)
         transform_dated_value_to_json = column.transform_dated_value_to_json
@@ -281,7 +254,7 @@ class Holder(object):
                 ) + '}'
 
         if self.variable.definition_period == ETERNITY:
-            array = self._array
+            array = self.get_array(None)
             if array is None:
                 return None
             return [
