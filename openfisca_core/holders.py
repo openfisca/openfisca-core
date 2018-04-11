@@ -23,28 +23,15 @@ class Holder(object):
     """
         A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
-    _array = None  # Only used when variable.definition_period == ETERNITY
-    _array_by_period = None  # Only used when variable.definition_period != ETERNITY
     variable = None
     entity = None
     formula = None
     formula_output_period_by_requested_period = None
 
-    def __init__(self, simulation = None, variable = None, entity = None):
-        assert variable is not None
-        assert self.variable is None
-        if simulation is not None:
-            warnings.warn(
-                u"The Holder(simulation, variable) constructor has been deprecated. "
-                u"Please use Holder(entity = entity, variable = variable) instead.",
-                Warning
-                )
-            self.simulation = simulation
-            self.entity = simulation.get_entity(variable.entity)
-        else:
-            self.entity = entity
-            self.simulation = entity.simulation
+    def __init__(self, variable, entity):
+        self.entity = entity
         self.variable = variable
+        self.simulation = entity.simulation
         self.buffer = {}
         self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
 
@@ -69,11 +56,7 @@ class Holder(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.iteritems():
-            if key in ('_array_by_period',):
-                if value is not None:
-                    # There is no need to copy the arrays, because the formulas don't modify them.
-                    new_dict[key] = value.copy()
-            elif key not in ('entity', 'formula', 'simulation'):
+            if key not in ('entity', 'formula', 'simulation'):
                 new_dict[key] = value
 
         new_dict['entity'] = entity
