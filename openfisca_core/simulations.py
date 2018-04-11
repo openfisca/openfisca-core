@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import warnings
 from os import linesep
 import tempfile
 import logging
@@ -342,20 +341,10 @@ class Simulation(object):
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
-    def get_holder(self, variable_name, default = UnboundLocalError):
-        warnings.warn(
-            u"The simulation.get_holder method has been deprecated. "
-            u"Please use entity.get_holder instead.",
-            Warning
-            )
+    def get_holder(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         entity = self.entities[variable.entity.key]
-        holder = entity._holders.get(variable_name)
-        if holder:
-            return holder
-        if default is UnboundLocalError:
-            raise KeyError(variable_name)
-        return default
+        return entity.get_holder(variable_name)
 
     def _get_baseline_parameters_at_instant(self, instant):
         baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
