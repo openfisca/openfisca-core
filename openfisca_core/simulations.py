@@ -128,7 +128,6 @@ class Simulation(object):
                 ).format(self._data_storage_dir).encode('utf-8'))
         return self._data_storage_dir
 
-
     def calculate(self, variable_name, period, **parameters):
         entity = self.get_variable_entity(variable_name)
         holder = entity.get_holder(variable_name)
@@ -233,7 +232,6 @@ class Simulation(object):
 
         return array
 
-
     def calculate_add(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -272,7 +270,25 @@ class Simulation(object):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
         holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.compute_divide(period = period, **parameters).array
+
+        # Check that the requested period matches definition_period
+        if holder.variable.definition_period != periods.YEAR:
+            raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
+                variable_name,
+                period).encode('utf-8'))
+
+        if period.size != 1:
+            raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
+
+        if period.unit == periods.MONTH:
+            computation_period = period.this_year
+            return self.calculate(variable_name, period = computation_period, **parameters) / 12.
+        elif period.unit == periods.YEAR:
+            return self.calculate(variable_name, period, **parameters)
+
+        raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
+            variable_name,
+            period).encode('utf-8'))
 
     def calculate_output(self, variable_name, period):
         """Calculate the value using calculate_output hooks in formula classes."""

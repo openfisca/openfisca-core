@@ -141,28 +141,6 @@ class Holder(object):
 
         return new
 
-    def compute_divide(self, period, **parameters):
-        # Check that the requested period matches definition_period
-        if self.variable.definition_period != YEAR:
-            raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
-                self.variable.name,
-                period).encode('utf-8'))
-
-        if period.size != 1:
-            raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
-
-        if period.unit == periods.MONTH:
-            computation_period = period.this_year
-            dated_holder = self.compute(period = computation_period, **parameters)
-            array = dated_holder.array / 12.
-            return DatedHolder(self, period, array, parameters.get('extra_params'))
-        elif period.unit == periods.YEAR:
-            return self.compute(period, **parameters)
-
-        raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
-            self.variable.name,
-            period).encode('utf-8'))
-
     def delete_arrays(self, period = None):
         """
             If ``period`` is ``None``, remove all known values of the variable.
@@ -413,10 +391,6 @@ class PeriodMismatchError(ValueError):
         self.period = period
         self.definition_period = definition_period
         ValueError.__init__(self, message)
-
-
-
-# 4 possible set_input functions
 
 
 def set_input_dispatch_by_period(holder, period, array):

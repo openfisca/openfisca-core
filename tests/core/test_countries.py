@@ -6,7 +6,7 @@ from openfisca_core.variables import Variable
 from openfisca_core.periods import MONTH
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
-from openfisca_core.formulas import DIVIDE
+from openfisca_core.entities import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
@@ -46,6 +46,18 @@ def test_calculate_add():
             ),
         ).new_simulation()
     assert_near(simulation.calculate_add('income_tax', period), [3600], absolute_error_margin = 0.01)
+
+
+def test_calculate_divide():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            accommodation_size = 100,
+            housing_occupancy_status = 'tenant',
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate_divide('housing_tax', period), [1000 / 12.], absolute_error_margin = 0.01)
 
 
 class income_tax_no_period(Variable):
