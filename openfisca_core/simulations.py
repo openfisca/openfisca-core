@@ -364,9 +364,6 @@ class Simulation(object):
             self.baseline_parameters_at_instant_cache[instant] = baseline_parameters_at_instant
         return baseline_parameters_at_instant
 
-    def graph(self, variable_name, edges, get_input_variables_and_parameters, nodes, visited):
-        self.get_variable_entity(variable_name).get_holder(variable_name).graph(edges, get_input_variables_and_parameters, nodes, visited)
-
     def parameters_at(self, instant, use_baseline = False):
         if isinstance(instant, periods.Period):
             instant = instant.start

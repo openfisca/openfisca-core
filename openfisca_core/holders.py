@@ -126,22 +126,6 @@ class Holder(object):
         if self._disk_storage:
             return self._disk_storage.get(period, extra_params)
 
-    def graph(self, edges, get_input_variables_and_parameters, nodes, visited):
-        variable = self.variable
-        if self in visited:
-            return
-        visited.add(self)
-        nodes.append(dict(
-            id = variable.name,
-            group = self.entity.key,
-            label = variable.name,
-            title = variable.label,
-            ))
-        formula = self.formula
-        if formula is None:
-            return
-        formula.graph_parameters(edges, get_input_variables_and_parameters, nodes, visited)
-
     def get_memory_usage(self):
         """
             Gets data about the virtual memory usage of the holder.
