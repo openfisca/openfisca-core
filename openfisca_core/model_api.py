@@ -17,7 +17,7 @@ from .holders import (  # noqa analysis:ignore
     )
 from .indexed_enums import Enum  # noqa analysis:ignore
 from .entities import (ADD, DIVIDE)  # noqa analysis:ignore
-from .formulas import (  # noqa analysis:ignore
+from .simulations import (  # noqa analysis:ignore
     calculate_output_add,
     calculate_output_divide,
     )

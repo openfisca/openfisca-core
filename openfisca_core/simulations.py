@@ -292,10 +292,13 @@ class Simulation(object):
 
     def calculate_output(self, variable_name, period):
         """Calculate the value using calculate_output hooks in formula classes."""
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.calculate_output(period)
+
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+
+        if variable.calculate_output is None:
+            return self.calculate(variable_name, period)
+
+        return variable.calculate_output(self, variable_name, period)
 
     def clone(self, debug = False, trace = False):
         """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
@@ -489,3 +492,11 @@ def check_period_consistency(period, variable):
             period,
             'month' if variable.definition_period == periods.MONTH else 'year'
             ).encode('utf-8'))
+
+
+def calculate_output_add(simulation, variable_name, period):
+    return simulation.calculate_add(variable_name, period)
+
+
+def calculate_output_divide(simulation, variable_name, period):
+    return simulation.calculate_divide(variable_name, period)
