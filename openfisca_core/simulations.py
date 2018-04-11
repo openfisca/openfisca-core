@@ -10,7 +10,7 @@ import dpath
 import numpy as np
 
 import periods
-from commons import empty_clone
+from commons import empty_clone, stringify_array
 from .parameters import ParameterNotFound
 from tracers import Tracer
 from .indexed_enums import Enum, EnumArray
@@ -28,7 +28,6 @@ class NaNCreationError(Exception):
 
 class CycleError(Exception):
     pass
-
 
 
 class Simulation(object):
@@ -159,7 +158,6 @@ class Simulation(object):
         try:
             self.check_for_cycle(variable, period)
 
-
             # First, check if there is a formula to use
             formula = variable.get_formula(period)
             if formula:
@@ -169,7 +167,7 @@ class Simulation(object):
                 else:
                     array = formula(entity, period, parameters_at, *extra_params)
             else:
-            # If not, use a base function
+                # If not, use a base function
                 array = variable.base_function(holder, period, *extra_params)
 
         except CycleError:
@@ -229,7 +227,6 @@ class Simulation(object):
         if max_nb_cycles is not None:
             self.max_nb_cycles = None
 
-
         holder.put_in_cache(array, period, extra_params)
         if self.trace:
             self.tracer.record_calculation_end(variable.name, period, array, **parameters)
@@ -241,7 +238,35 @@ class Simulation(object):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
         holder = self.get_variable_entity(variable_name).get_holder(variable_name)
-        return holder.compute_add(period = period, **parameters).array
+
+        # Check that the requested period matches definition_period
+        if holder.variable.definition_period == periods.YEAR and period.unit == periods.MONTH:
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+                holder.variable.name,
+                period,
+                ).encode('utf-8'))
+
+        if holder.variable.definition_period == periods.MONTH:
+            variable_definition_period = periods.MONTH
+        elif holder.variable.definition_period == periods.YEAR:
+            variable_definition_period = periods.YEAR
+        else:
+            raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
+                holder.variable.name,
+                period).encode('utf-8'))
+
+        after_instant = period.start.offset(period.size, period.unit)
+        sub_period = period.start.period(variable_definition_period)
+        array = None
+        while sub_period.start < after_instant:
+            dated_array = self.calculate(variable_name, period = sub_period, **parameters)
+            if array is None:
+                array = dated_array.copy()
+            else:
+                array += dated_array
+            sub_period = sub_period.offset(1)
+
+        return array
 
     def calculate_divide(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
@@ -359,8 +384,6 @@ class Simulation(object):
             result['by_variable'].update(entity_memory_usage['by_variable'])
         return result
 
-
-
     def check_for_cycle(self, variable, period):
         """
         Return a boolean telling if the current variable has already been called without being allowed by
@@ -393,7 +416,6 @@ class Simulation(object):
         else:
             requested_periods_by_variable_name[variable_name] = [period]
 
-
     def clean_cycle_detection_data(self, variable_name):
         """
         When the value of a formula have been computed, remove the period from
@@ -405,7 +427,6 @@ class Simulation(object):
             requested_periods_by_variable_name[variable_name].pop()
             if len(requested_periods_by_variable_name[variable_name]) == 0:
                 del requested_periods_by_variable_name[variable_name]
-
 
 
 def check_type(input, type, path = []):
@@ -455,4 +476,3 @@ def check_period_consistency(period, variable):
             period,
             'month' if variable.definition_period == periods.MONTH else 'year'
             ).encode('utf-8'))
-

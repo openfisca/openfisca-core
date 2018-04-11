@@ -141,36 +141,6 @@ class Holder(object):
 
         return new
 
-    def compute_add(self, period, **parameters):
-        # Check that the requested period matches definition_period
-        if self.variable.definition_period == YEAR and period.unit == periods.MONTH:
-            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-                self.variable.name,
-                period,
-                ).encode('utf-8'))
-
-        if self.variable.definition_period == MONTH:
-            variable_definition_period = periods.MONTH
-        elif self.variable.definition_period == YEAR:
-            variable_definition_period = periods.YEAR
-        else:
-            raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
-                self.variable.name,
-                period).encode('utf-8'))
-
-        after_instant = period.start.offset(period.size, period.unit)
-        sub_period = period.start.period(variable_definition_period)
-        array = None
-        while sub_period.start < after_instant:
-            dated_holder = self.compute(period = sub_period, **parameters)
-            if array is None:
-                array = dated_holder.array.copy()
-            else:
-                array += dated_holder.array
-            sub_period = sub_period.offset(1)
-
-        return DatedHolder(self, period, array, parameters.get('extra_params'))
-
     def compute_divide(self, period, **parameters):
         # Check that the requested period matches definition_period
         if self.variable.definition_period != YEAR:

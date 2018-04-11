@@ -37,6 +37,17 @@ def test_basic_calculation():
     assert_near(simulation.calculate('income_tax', period), [300], absolute_error_margin = 0.01)
 
 
+def test_calculate_add():
+    period = 2016
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            salary = 24000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate_add('income_tax', period), [3600], absolute_error_margin = 0.01)
+
+
 class income_tax_no_period(Variable):
     value_type = float
     entity = Person
