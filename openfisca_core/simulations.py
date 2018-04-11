@@ -143,7 +143,7 @@ class Simulation(object):
         extra_params = parameters.get('extra_params', ())
 
         # First look for a value already cached
-        cached_array = holder.get_from_cache(period, extra_params)
+        cached_array = holder.get_array(period, extra_params)
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)

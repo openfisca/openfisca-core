@@ -82,6 +82,8 @@ class Holder(object):
 
         If the value is not known, return ``None``.
         """
+        if self.variable.is_neutralized:
+            return self.default_array()
         value = self._memory_storage.get(period, extra_params)
         if value is not None:
             return value
@@ -215,17 +217,12 @@ class Holder(object):
 
         return value
 
-    def get_from_cache(self, period, extra_params = None):
-        if self.variable.is_neutralized:
-            return self.default_array()
-
-        return self.get_array(period, extra_params)
-
     def get_extra_param_names(self, period):
         formula = self.variable.get_formula(period)
         return formula.func_code.co_varnames[3:]
 
-    # Is that still needed ?
+    # Legacy method used by the OpenFisca Web API to display intermediate results
+    # TODO: Move to OFW
     def to_value_json(self, use_label = False):
         column = make_column_from_variable(self.variable)
         transform_dated_value_to_json = column.transform_dated_value_to_json
