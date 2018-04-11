@@ -12,7 +12,6 @@ from sortedcontainers.sorteddict import SortedDict
 
 from .base_functions import (
     missing_value,
-    permanent_default_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
@@ -171,7 +170,6 @@ class Variable(object):
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
         self.base_function = self.set_base_function(attr.pop('base_function', None))
 
-        # self.formula = Formula.build_formula_class(attr, self, baseline_variable)
         formulas_attr, other_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
 
@@ -249,7 +247,7 @@ class Variable(object):
         if not base_function and self.baseline_variable:
             return self.baseline_variable.base_function
         if self.definition_period == ETERNITY:
-            if base_function and base_function not in [permanent_default_value, requested_period_default_value]:
+            if base_function and base_function != requested_period_default_value:
                 raise ValueError('Unexpected base_function {}'.format(base_function))
             return requested_period_default_value
 

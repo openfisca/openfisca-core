@@ -23,7 +23,6 @@ from .simulations import (  # noqa analysis:ignore
     )
 from .base_functions import (   # noqa analysis:ignore
     missing_value,
-    requested_period_added_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,

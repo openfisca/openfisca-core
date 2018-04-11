@@ -1,31 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-
 from . import periods
-
-
-def permanent_default_value(holder, period, *extra_params):
-    warnings.warn(
-        u"permanent_default_value is deprecated"
-        u"permanent_default_value has the same effect "
-        u"than requested_period_default_value, the default base_function for float and int variables. "
-        u"There is thus no need to specifiy it. ",
-        Warning
-        )
-
-    return requested_period_default_value(holder, period, *extra_params)
-
-
-def requested_period_added_value(holder, period, *extra_params):
-    warnings.warn(
-        u"requested_period_added_value is deprecated. "
-        u"Since OpenFisca Core 6.0, requested_period_added_value has the same effect "
-        u"than requested_period_default_value, the default base_function for float and int variables. "
-        u"There is thus no need to specifiy it. ",
-        Warning
-        )
-    return requested_period_default_value(holder, period, *extra_params)
 
 
 def requested_period_default_value(holder, period, *extra_params):
