@@ -268,7 +268,9 @@ def test_get_formulas():
     assert variable.get_formula('1999-01') is None
     assert variable.get_formula('2000-01') == formula_2000
     assert variable.get_formula('2009-12') == formula_2000
+    assert variable.get_formula('2009-12-31') == formula_2000
     assert variable.get_formula('2010-01') == formula_2010
+    assert variable.get_formula('2010-01-01') == formula_2010
 
 
 def test_call__no_end_attribute__formulas__start_formats():

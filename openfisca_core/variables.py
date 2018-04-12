@@ -178,7 +178,7 @@ class Variable(object):
     # ----- Setters used to build the variable ----- #
 
     def set(self, attributes, attribute_name, required = False, allowed_values = None, allowed_type = None, setter = None, default = None):
-        value = attributes.pop(attribute_name, None)  # effet de board, pas top...
+        value = attributes.pop(attribute_name, None)
         if value is None and self.baseline_variable:
             return getattr(self.baseline_variable, attribute_name)
         if required and value is None:
@@ -284,7 +284,7 @@ class Variable(object):
 
             formulas[str(starting_date)] = formula
 
-        # Add dated formulas defined in (optional) baseline variable when they are not overridden by new dated formulas.
+        # If the variable is reforming a baseline variable, keep the formulas from the latter when they are not overridden by new formulas.
         if self.baseline_variable is not None:
             first_reform_formula_date = formulas.peekitem(0)[0] if formulas else None
             formulas.update({
@@ -314,18 +314,18 @@ class Variable(object):
 
         if attribute_name == FORMULA_NAME_PREFIX:
             return date.min
-        else:
-            FORMULA_REGEX = r'formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$'  # YYYY or YYYY_MM or YYYY_MM_DD
 
-            match = re.match(FORMULA_REGEX, attribute_name)
-            if not match:
-                raise_error()
-            date_str = '-'.join([match.group(1), match.group(2) or '01', match.group(3) or '01'])
+        FORMULA_REGEX = r'formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$'  # YYYY or YYYY_MM or YYYY_MM_DD
 
-            try:
-                return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                raise_error()
+        match = re.match(FORMULA_REGEX, attribute_name)
+        if not match:
+            raise_error()
+        date_str = '-'.join([match.group(1), match.group(2) or '01', match.group(3) or '01'])
+
+        try:
+            return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:  # formula_2005_99_99 for instance
+            raise_error()
 
     # ----- Methods ----- #
 
@@ -372,17 +372,22 @@ class Variable(object):
         """
 
         if period is None:
-            return self.formulas.peekitem(index = 0)[1]
+            return self.formulas.peekitem(index = 0)[1] if self.formulas else None
 
-        if not isinstance(period, periods.Period):
-            period = periods.period(period)
+        if isinstance(period, periods.Period):
+            instant = period.start
+        else:
+            try:
+                instant = periods.period(period).start
+            except ValueError:
+                instant = periods.instant(period)
 
-        if self.end and period.start.date > self.end:
+        if self.end and instant.date > self.end:
             return None
 
-        period_start = str(period.start.date)
+        instant = str(instant)
         for start_date in reversed(self.formulas):
-            if period_start >= start_date:
+            if start_date <= instant:
                 return self.formulas[start_date]
 
         return None
