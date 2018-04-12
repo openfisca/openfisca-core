@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from nose.tools import raises
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
@@ -463,3 +464,14 @@ def test_get_formula():
     disposable_income_2 = disposable_income_formula(person, '2017-01', None)  # No need for parameters here
 
     assert_near(disposable_income, disposable_income_2)
+
+
+@raises(ValueError)
+def test_unexpected_attr():
+    class variable_with_strange_attr(Variable):
+        value_type = int
+        entity = Person
+        definition_period = MONTH
+        unexpected = '???'
+
+    tax_benefit_system.add_variable(variable_with_strange_attr)

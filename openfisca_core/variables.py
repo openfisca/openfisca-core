@@ -143,7 +143,9 @@ class Variable(object):
 
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
-        attr = dict(self.__class__.__dict__)
+        attr = {
+            name: value for name, value in self.__class__.__dict__.iteritems()
+            if not name.startswith('__')}
         self.baseline_variable = baseline_variable
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
@@ -172,6 +174,11 @@ class Variable(object):
 
         formulas_attr, other_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
+
+        if other_attrs:
+            raise ValueError(
+                u'Unexpected attributes in definition of variable "{}": {!r}'
+                .format(self.name, ', '.join(sorted(other_attrs.iterkeys()))))
 
         self.is_neutralized = False
 
