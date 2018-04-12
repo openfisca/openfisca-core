@@ -159,6 +159,9 @@ class Parameter(object):
 
     def get_at_instant(self, instant):
         instant = str(periods.instant(instant))
+        return self._get_at_instant(instant)
+
+    def _get_at_instant(self, instant):
         for value_at_instant in self.values_list:
             if value_at_instant.instant_str <= instant:
                 return value_at_instant.value
@@ -356,6 +359,9 @@ class ParameterNode(object):
 
     def get_at_instant(self, instant):
         instant = str(periods.instant(instant))
+        return self._get_at_instant(instant)
+
+    def _get_at_instant(self, instant):
         return ParameterNodeAtInstant(self.name, self, instant)
 
     def merge(self, other):
@@ -404,8 +410,8 @@ class ParameterNodeAtInstant(object):
         self._name = name
         self._instant_str = instant_str
         self._children = {}
-        for child_name, child in node.children.items():
-            child_at_instant = child.get_at_instant(instant_str)
+        for child_name, child in node.children.iteritems():
+            child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
                 self._children[child_name] = child_at_instant
                 setattr(self, child_name, child_at_instant)
@@ -631,24 +637,27 @@ class Scale(object):
 
     def get_at_instant(self, instant):
         instant = str(periods.instant(instant))
+        return self._get_at_instant(instant)
+
+    def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
-        if any(hasattr(bracket, 'amount') for bracket in brackets):
+        if any('amount' in bracket._children for bracket in brackets):
             scale = taxscales.AmountTaxScale()
             for bracket in brackets:
-                if hasattr(bracket, 'amount') and hasattr(bracket, 'threshold'):
+                if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
-        elif any(hasattr(bracket, 'average_rate') for bracket in brackets):
+        elif any('average_rate' in bracket._children for bracket in brackets):
             scale = taxscales.LinearAverageRateTaxScale()
 
             for bracket in brackets:
-                if hasattr(bracket, 'base'):
+                if 'base' in bracket._children:
                     base = bracket.base
                 else:
                     base = 1.
-                if hasattr(bracket, 'average_rate') and hasattr(bracket, 'threshold'):
+                if 'average_rate' in bracket._children and 'threshold' in bracket._children:
                     average_rate = bracket.average_rate
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, average_rate * base)
@@ -657,11 +666,11 @@ class Scale(object):
             scale = taxscales.MarginalRateTaxScale()
 
             for bracket in brackets:
-                if hasattr(bracket, 'base'):
+                if 'base' in bracket._children:
                     base = bracket.base
                 else:
                     base = 1.
-                if hasattr(bracket, 'rate') and hasattr(bracket, 'threshold'):
+                if 'rate' in bracket._children and 'threshold' in bracket._children:
                     rate = bracket.rate
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, rate * base)
