@@ -10,7 +10,6 @@ import numpy as np
 
 import periods
 from commons import empty_clone, stringify_array
-from .parameters import ParameterNotFound
 from tracers import Tracer
 from .indexed_enums import Enum, EnumArray
 
@@ -38,6 +37,8 @@ class Simulation(object):
     tax_benefit_system = None
     trace = False
 
+    # ----- Simulation construction ----- #
+
     def __init__(
             self,
             debug = False,
@@ -48,6 +49,7 @@ class Simulation(object):
             simulation_json = None,
             memory_config = None,
             ):
+
         """
             If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
 
@@ -127,6 +129,35 @@ class Simulation(object):
                 ).format(self._data_storage_dir).encode('utf-8'))
         return self._data_storage_dir
 
+    # ----- Methods to access parameters ----- #
+
+    def parameters_at(self, instant, use_baseline = False):
+        if isinstance(instant, periods.Period):
+            instant = instant.start
+        assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
+        if use_baseline:
+            return self._get_baseline_parameters_at_instant(instant)
+        return self._get_parameters_at_instant(instant)
+
+    def _get_parameters_at_instant(self, instant):
+        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
+        if parameters_at_instant is None:
+            parameters_at_instant = self.tax_benefit_system.get_parameters_at_instant(instant)
+            self._parameters_at_instant_cache[instant] = parameters_at_instant
+        return parameters_at_instant
+
+    def _get_baseline_parameters_at_instant(self, instant):
+        baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
+        if baseline_parameters_at_instant is None:
+            baseline_parameters_at_instant = self.tax_benefit_system._get_baseline_parameters_at_instant(
+                instant = instant,
+                traced_simulation = self if self.trace else None,
+                )
+            self.baseline_parameters_at_instant_cache[instant] = baseline_parameters_at_instant
+        return baseline_parameters_at_instant
+
+    # ----- Calculation methods ----- #
+
     def calculate(self, variable_name, period, **parameters):
         entity = self.get_variable_entity(variable_name)
         holder = entity.get_holder(variable_name)
@@ -138,7 +169,7 @@ class Simulation(object):
         if self.trace:
             self.tracer.record_calculation_start(variable.name, period, **parameters)
 
-        check_period_consistency(period, variable)
+        self._check_period_consistency(period, variable)
 
         extra_params = parameters.get('extra_params', ())
 
@@ -154,7 +185,7 @@ class Simulation(object):
             self.max_nb_cycles = max_nb_cycles
 
         try:
-            self.check_for_cycle(variable, period)
+            self._check_for_cycle(variable, period)
 
             # First, check if there is a formula to use
             formula = variable.get_formula(period)
@@ -168,60 +199,20 @@ class Simulation(object):
                 # If not, use a base function
                 array = variable.base_function(holder, period, *extra_params)
 
-        except CycleError:
-            self.clean_cycle_detection_data(variable.name)
+        except CycleError as error:
+            self._clean_cycle_detection_data(variable.name)
             if max_nb_cycles is None:
                 if self.trace:
                     self.tracer.record_calculation_abortion(variable.name, period, **parameters)
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
-                raise
+                raise error
             self.max_nb_cycles = None
             array = holder.default_array()
-        except ParameterNotFound as exc:
-            if exc.variable_name is None:
-                raise ParameterNotFound(
-                    instant_str = exc.instant_str,
-                    name = exc.name,
-                    variable_name = variable.name,
-                    )
-            else:
-                raise
-        except:
-            log.error(u'An error occurred while calling formula {}@{}<{}>.'.format(
-                variable.name, entity.key, str(period)
-                ))
-            raise
 
-        assert isinstance(array, np.ndarray), (linesep.join([
-            u"You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
-            u"The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
-            u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
-            u"Learn more about Numpy arrays and vectorial computing:",
-            u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
-            ]))
-        entity_count = entity.count
-        assert array.size == entity_count, \
-            u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                variable.name, entity.key, str(period), str(period), stringify_array(array),
-                array.size, entity_count, entity.key).encode('utf-8')
-        if self.debug:
-            try:
-                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
-                if np.isnan(np.min(array)):
-                    nan_count = np.count_nonzero(np.isnan(array))
-                    raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        variable.name, entity.key, str(period), str(period), stringify_array(array),
-                        nan_count).encode('utf-8'))
-            except TypeError:
-                pass
+        self._check_formula_result(array, variable, entity, period)
+        array = self._cast_formula_result(array, variable)
 
-        if variable.value_type == Enum and not isinstance(array, EnumArray):
-            array = variable.possible_values.encode(array)
-
-        if array.dtype != variable.dtype:
-            array = array.astype(variable.dtype)
-
-        self.clean_cycle_detection_data(variable.name)
+        self._clean_cycle_detection_data(variable.name)
         if max_nb_cycles is not None:
             self.max_nb_cycles = None
 
@@ -255,6 +246,8 @@ class Simulation(object):
             )
 
     def calculate_divide(self, variable_name, period, **parameters):
+        variable = self.tax_benefit_system.get_variable(variable_name)
+
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
@@ -287,93 +280,70 @@ class Simulation(object):
 
         return variable.calculate_output(self, variable_name, period)
 
-    def clone(self, debug = False, trace = False):
-        """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
-        new = empty_clone(self)
-        new_dict = new.__dict__
+    def _check_period_consistency(self, period, variable):
+        """
+            Check that a period matches the variable definition_period
+        """
+        if variable.definition_period == periods.ETERNITY:
+            return  # For variables which values are constant in time, all periods are accepted
 
-        for key, value in self.__dict__.iteritems():
-            if key not in ('debug', 'trace', 'tracer'):
-                new_dict[key] = value
+        if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
+                variable.name,
+                period
+                ).encode('utf-8'))
 
-        new.persons = self.persons.clone(new)
-        setattr(new, new.persons.key, new.persons)
-        new.entities = {new.persons.key: new.persons}
+        if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+                variable.name,
+                period
+                ).encode('utf-8'))
 
-        for entity_class in self.tax_benefit_system.group_entities:
-            entity = self.entities[entity_class.key].clone(new)
-            new.entities[entity.key] = entity
-            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
+        if period.size != 1:
+            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
+                variable.name,
+                period,
+                'month' if variable.definition_period == periods.MONTH else 'year'
+                ).encode('utf-8'))
 
-        if debug:
-            new_dict['debug'] = True
-        if trace:
-            new_dict['trace'] = True
-        if debug or trace:
-            if self.debug or self.trace:
-                new_dict['tracer'] = self.tracer.clone()
-            else:
-                new_dict['tracer'] = Tracer()
+    def _check_formula_result(self, array, variable, entity, period):
 
-        return new
+        assert isinstance(array, np.ndarray), (linesep.join([
+            u"You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
+            u"The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
+            u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
+            u"Learn more about Numpy arrays and vectorial computing:",
+            u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
+            ]))
 
-    def get_array(self, variable_name, period):
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-        return self.get_variable_entity(variable_name).get_holder(variable_name).get_array(period)
+        assert array.size == entity.count, \
+            u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
+                variable.name, entity.key, str(period), str(period), stringify_array(array),
+                array.size, entity.count, entity.key).encode('utf-8')
 
-    def _get_parameters_at_instant(self, instant):
-        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
-        if parameters_at_instant is None:
-            parameters_at_instant = self.tax_benefit_system.get_parameters_at_instant(instant)
-            self._parameters_at_instant_cache[instant] = parameters_at_instant
-        return parameters_at_instant
+        if self.debug:
+            try:
+                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
+                if np.isnan(np.min(array)):
+                    nan_count = np.count_nonzero(np.isnan(array))
+                    raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
+                        variable.name, entity.key, str(period), str(period), stringify_array(array),
+                        nan_count).encode('utf-8'))
+            except TypeError:
+                pass
 
-    def get_holder(self, variable_name):
-        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        entity = self.entities[variable.entity.key]
-        return entity.get_holder(variable_name)
+    def _cast_formula_result(self, array, variable):
+        if variable.value_type == Enum and not isinstance(array, EnumArray):
+            return variable.possible_values.encode(array)
 
-    def _get_baseline_parameters_at_instant(self, instant):
-        baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
-        if baseline_parameters_at_instant is None:
-            baseline_parameters_at_instant = self.tax_benefit_system._get_baseline_parameters_at_instant(
-                instant = instant,
-                traced_simulation = self if self.trace else None,
-                )
-            self.baseline_parameters_at_instant_cache[instant] = baseline_parameters_at_instant
-        return baseline_parameters_at_instant
+        if array.dtype != variable.dtype:
+            return array.astype(variable.dtype)
 
-    def parameters_at(self, instant, use_baseline = False):
-        if isinstance(instant, periods.Period):
-            instant = instant.start
-        assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
-        if use_baseline:
-            return self._get_baseline_parameters_at_instant(instant)
-        return self._get_parameters_at_instant(instant)
+        return array
 
-    def get_variable_entity(self, variable_name):
-        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        return self.get_entity(variable.entity)
+    # ----- Handle circular dependencies in a calculation ----- #
 
-    def get_entity(self, entity_type = None, plural = None):
-        if entity_type:
-            return self.entities[entity_type.key]
-        if plural:
-            return [entity for entity in self.entities.values() if entity.plural == plural][0]
-
-    def get_memory_usage(self, variables = None):
-        result = dict(
-            total_nb_bytes = 0,
-            by_variable = {}
-            )
-        for entity in self.entities.itervalues():
-            entity_memory_usage = entity.get_memory_usage(variables = variables)
-            result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
-            result['by_variable'].update(entity_memory_usage['by_variable'])
-        return result
-
-    def check_for_cycle(self, variable, period):
+    def _check_for_cycle(self, variable, period):
         """
         Return a boolean telling if the current variable has already been called without being allowed by
         the parameter max_nb_cycles of the calculate method.
@@ -405,7 +375,7 @@ class Simulation(object):
         else:
             requested_periods_by_variable_name[variable_name] = [period]
 
-    def clean_cycle_detection_data(self, variable_name):
+    def _clean_cycle_detection_data(self, variable_name):
         """
         When the value of a formula have been computed, remove the period from
         requested_periods_by_variable_name[variable_name] and delete the latter if empty.
@@ -416,6 +386,72 @@ class Simulation(object):
             requested_periods_by_variable_name[variable_name].pop()
             if len(requested_periods_by_variable_name[variable_name]) == 0:
                 del requested_periods_by_variable_name[variable_name]
+
+    # ----- Methods to access stored values ----- #
+
+    def get_array(self, variable_name, period):
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
+        return self.get_holder(variable_name).get_array(period)
+
+    def get_holder(self, variable_name):
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        entity = self.entities[variable.entity.key]
+        return entity.get_holder(variable_name)
+
+    def get_memory_usage(self, variables = None):
+        result = dict(
+            total_nb_bytes = 0,
+            by_variable = {}
+            )
+        for entity in self.entities.itervalues():
+            entity_memory_usage = entity.get_memory_usage(variables = variables)
+            result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
+            result['by_variable'].update(entity_memory_usage['by_variable'])
+        return result
+
+    # ----- Misc ----- #
+
+    def get_variable_entity(self, variable_name):
+
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        return self.get_entity(variable.entity)
+
+    def get_entity(self, entity_type = None, plural = None):
+        if entity_type:
+            return self.entities[entity_type.key]
+        if plural:
+            return [entity for entity in self.entities.values() if entity.plural == plural][0]
+
+    def clone(self, debug = False, trace = False):
+        """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
+        new = empty_clone(self)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.iteritems():
+            if key not in ('debug', 'trace', 'tracer'):
+                new_dict[key] = value
+
+        new.persons = self.persons.clone(new)
+        setattr(new, new.persons.key, new.persons)
+        new.entities = {new.persons.key: new.persons}
+
+        for entity_class in self.tax_benefit_system.group_entities:
+            entity = self.entities[entity_class.key].clone(new)
+            new.entities[entity.key] = entity
+            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
+
+        if debug:
+            new_dict['debug'] = True
+        if trace:
+            new_dict['trace'] = True
+        if debug or trace:
+            if self.debug or self.trace:
+                new_dict['tracer'] = self.tracer.clone()
+            else:
+                new_dict['tracer'] = Tracer()
+
+        return new
 
 
 def check_type(input, type, path = []):
@@ -438,33 +474,6 @@ class SituationParsingError(Exception):
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, self.error)
-
-
-def check_period_consistency(period, variable):
-    """
-        Check that a period matches the variable definition_period
-    """
-    if variable.definition_period == periods.ETERNITY:
-        return  # For variables which values are constant in time, all periods are accepted
-
-    if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
-        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
-            variable.name,
-            period
-            ).encode('utf-8'))
-
-    if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-            variable.name,
-            period
-            ).encode('utf-8'))
-
-    if period.size != 1:
-        raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
-            variable.name,
-            period,
-            'month' if variable.definition_period == periods.MONTH else 'year'
-            ).encode('utf-8'))
 
 
 def calculate_output_add(simulation, variable_name, period):
