@@ -409,6 +409,14 @@ class Period(tuple):
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
 
+    def get_subperiods(self, unit):
+        if self.unit == MONTH and unit == YEAR:
+            raise ValueError(u'Cannot subdivise months into years')
+        if self.unit == YEAR and unit == YEAR:
+            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
+
+        return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+
     def offset(self, offset, unit = None):
         """Increment (or decrement) the given period with offset units.
 

@@ -232,46 +232,34 @@ class Simulation(object):
         return array
 
     def calculate_add(self, variable_name, period, **parameters):
+        variable = self.tax_benefit_system.get_variable(variable_name)
+
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
 
         # Check that the requested period matches definition_period
-        if holder.variable.definition_period == periods.YEAR and period.unit == periods.MONTH:
+        if variable.definition_period == periods.YEAR and period.unit == periods.MONTH:
             raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
-                holder.variable.name,
+                variable.name,
                 period,
                 ).encode('utf-8'))
 
-        if holder.variable.definition_period == periods.MONTH:
-            variable_definition_period = periods.MONTH
-        elif holder.variable.definition_period == periods.YEAR:
-            variable_definition_period = periods.YEAR
-        else:
+        if variable.definition_period not in [periods.MONTH, periods.YEAR]:
             raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
-                holder.variable.name,
+                variable.name,
                 period).encode('utf-8'))
 
-        after_instant = period.start.offset(period.size, period.unit)
-        sub_period = period.start.period(variable_definition_period)
-        array = None
-        while sub_period.start < after_instant:
-            dated_array = self.calculate(variable_name, period = sub_period, **parameters)
-            if array is None:
-                array = dated_array.copy()
-            else:
-                array += dated_array
-            sub_period = sub_period.offset(1)
-
-        return array
+        return sum(
+            self.calculate(variable_name, sub_period, **parameters)
+            for sub_period in period.get_subperiods(variable.definition_period)
+            )
 
     def calculate_divide(self, variable_name, period, **parameters):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
-        holder = self.get_variable_entity(variable_name).get_holder(variable_name)
 
         # Check that the requested period matches definition_period
-        if holder.variable.definition_period != periods.YEAR:
+        if variable.definition_period != periods.YEAR:
             raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
                 variable_name,
                 period).encode('utf-8'))
