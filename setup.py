@@ -42,17 +42,15 @@ setup(
     include_package_data = True,  # Will read MANIFEST.in
     install_requires = [
         'Biryani[datetimeconv] >= 0.10.4',
-        'numpy >= 1.11, < 1.15',
-        'PyYAML >= 3.10',
+        'dpath == 1.4.0',
+        'enum34 >= 1.1.6',
         'flask == 0.12',
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
-        'lxml >= 3.7',
-        'dpath == 1.4.0',
-        'jsonschema >= 2.6',
-        'enum34 >= 1.1.6',
+        'numpy >= 1.11, < 1.15',
         'psutil == 5.4.2',
-        'sortedcontainers == 1.5.9'
+        'PyYAML >= 3.10',
+        'sortedcontainers == 1.5.9',
         ],
     message_extractors = {
         'openfisca_core': [
