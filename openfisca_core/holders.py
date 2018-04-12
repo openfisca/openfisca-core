@@ -207,7 +207,7 @@ class Holder(object):
         if (simulation.opt_out_cache and
                 simulation.tax_benefit_system.cache_blacklist and
                 self.variable.name in simulation.tax_benefit_system.cache_blacklist):
-            return value
+            return
 
         should_store_on_disk = (
             self._on_disk_storable and
@@ -219,8 +219,6 @@ class Holder(object):
             self._disk_storage.put(value, period, extra_params)
         else:
             self._memory_storage.put(value, period, extra_params)
-
-        return value
 
     def default_array(self):
         array_size = self.entity.count
