@@ -1,5 +1,9 @@
 # Changelog
 
+### 22.0.6 [#642](https://github.com/openfisca/openfisca-core/pull/642)
+
+* Improve parameters performances
+
 ### 22.0.5 [#639](https://github.com/openfisca/openfisca-core/pull/639)
 
 * Update country-template dependency to >= 3.0.0, < 4.0.0
