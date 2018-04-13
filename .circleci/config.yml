@@ -28,10 +28,6 @@ jobs:
           keys:
             - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
 
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
-
       - run:
           name: Create virtualenv
           command: |
