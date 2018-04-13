@@ -9,6 +9,10 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: Fetch remote refs
+          command: git fetch
+
       - save_cache:
           key: v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
           paths:
@@ -95,7 +99,6 @@ jobs:
       - run:
           name: Deploy (if version bump)
           command: |
-            git fetch
             . /tmp/venv/openfisca-core/bin/activate
             . deploy-if-version-bump.sh
 
