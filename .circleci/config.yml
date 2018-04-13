@@ -44,7 +44,7 @@ jobs:
 
       # Uncomment and adapt the next line to use a particular feature branch of OpenFisca-Country-Template to run Circle CI tests
       # - run:
-      #     name: Install OpenFisca-Country-Template
+      #     name: Install a particular feature branch of OpenFisca-Country-Template
       #     command: |
       #       . /tmp/venv/openfisca-core/bin/activate
       #       pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template
