@@ -137,7 +137,7 @@ class TaxBenefitSystem(object):
         """
         try:
             file_name = path.splitext(path.basename(file_path))[0]
-            module_name = '{}_{}'.format(id(self), file_name)  # If two tax and benefit systems load the same module, the second one should not replace the first one. Hence this unique module name.
+            module_name = '{}_{}_{}'.format(id(self), hash(file_path), file_name)  # If two tax and benefit systems load the same module, the second one should not replace the first one. Hence this unique module name.
             module_directory = path.dirname(file_path)
             try:
                 module = load_module(module_name, *find_module(file_name, [module_directory]))
@@ -147,9 +147,7 @@ class TaxBenefitSystem(object):
             potential_variables = [getattr(module, item) for item in dir(module) if not item.startswith('__')]
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
-                if isclass(pot_variable) and \
-                        issubclass(pot_variable, Variable) and \
-                        pot_variable.__module__.endswith(module_name):
+                if isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
                     self.add_variable(pot_variable)
         except:
             log.error(u'Unable to load OpenFisca variables from file "{}"'.format(file_path))

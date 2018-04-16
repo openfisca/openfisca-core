@@ -1,5 +1,10 @@
 # Changelog
 
+## 22.1.0 [#648](https://github.com/openfisca/openfisca-core/pull/648)
+
+* Allow two variable file to have the same name in a tax and benefit system
+  - A [collision](https://github.com/openfisca/openfisca-core/issues/642) between module names made it impossible so far.
+
 ### 22.0.10 [#654](https://github.com/openfisca/openfisca-core/pull/654)
 
 * Fix `dtype` attribute for `EnumArray`s (returned when calculating a variable of `value_type` `Enum`):
