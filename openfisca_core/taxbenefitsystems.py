@@ -137,7 +137,7 @@ class TaxBenefitSystem(object):
         """
         try:
             file_name = path.splitext(path.basename(file_path))[0]
-            module_name = '{}_{}_{}'.format(id(self), hash(file_path), file_name)  # If two tax and benefit systems load the same module, the second one should not replace the first one. Hence this unique module name.
+            module_name = '{}_{}_{}'.format(id(self), hash(path.abspath(file_path)), file_name)  # If two tax and benefit systems load the same module, the second one should not replace the first one. Hence this unique module name.
             module_directory = path.dirname(file_path)
             try:
                 module = load_module(module_name, *find_module(file_name, [module_directory]))
