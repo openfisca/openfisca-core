@@ -482,16 +482,16 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
+        filtered_array = np.where(role_filter, array, neutral_element)
 
         result = self.filled_array(neutral_element)  # Neutral value that will be returned if no one with the given role exists.
 
         # We loop over the positions in the entity
         # Looping over the entities is tempting, but potentielly slow if there are a lot of entities
-        nb_positions = np.max(position_in_entity) + 1
-        for p in range(nb_positions):
-            filter = (position_in_entity == p) * role_filter
-            entity_filter = self.any(filter)
-            result[entity_filter] = reducer(result[entity_filter], array[filter])
+        biggest_entity_size = np.max(position_in_entity) + 1
+
+        for p in range(biggest_entity_size):
+            result = reducer(result, self.value_nth_person(p, filtered_array, default = neutral_element))
 
         return result
 
