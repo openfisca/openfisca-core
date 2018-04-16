@@ -22,13 +22,28 @@ pip install --editable ".[test]"
 
 ## Testing
 
+To run the entire test suite:
+
 ```sh
 make test
 ```
 
+To run all the tests defined on a test file:
+
+```sh
+nosetests core/test_parameters.py
+```
+
+To run a single test:
+
+```sh
+nosetests core/test_parameters.py:test_parameter_for_period
+```
+
 ## Serving the API
 
-OpenFisca-Core provides a Web-API. It is served on the `6000` port.  
+OpenFisca-Core provides a Web-API. It is served on the `6000` port.
+
 To run it with the mock country package `openfisca_country_template` and another port value as `5000`, run:
 
 ```sh
