@@ -1,5 +1,14 @@
 # Changelog
 
+### 22.0.8 [#646](https://github.com/openfisca/openfisca-core/pull/639)
+
+* Fix `entity.max`, `entity.min`, `entity.all` and `entity.reduce` for multi-entities simulations.
+  - This issue was not affecting simulations with several persons in a _single_ entity
+  - These operators were not working as expected in case the persons of the simulation were not sorted by entity id in the persons vector. For instance:
+    - First household: [Alice, Bob]
+    - Second household: [Cesar]
+    - Persons vector: [Alice, Cesar, Bob]
+
 ### 22.0.7 [#639](https://github.com/openfisca/openfisca-core/pull/639)
 
 * Update CircleCI configuration to its v2

@@ -173,7 +173,7 @@ class Variable(object):
         value = attributes.pop(attribute_name, None)
         if value is None and self.baseline_variable:
             return getattr(self.baseline_variable, attribute_name)
-        if required and not value:
+        if required and value is None:
             raise ValueError("Missing attribute '{}' in definition of variable '{}'.".format(attribute_name, self.name).encode('utf-8'))
         if allowed_values is not None and value not in allowed_values:
             raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'."
