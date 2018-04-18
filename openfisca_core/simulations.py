@@ -184,33 +184,16 @@ class Simulation(object):
         if max_nb_cycles is not None:
             self.max_nb_cycles = max_nb_cycles
 
-        try:
-            self._check_for_cycle(variable, period)
+        # First, try to run a formula
+        array = self._run_formula(variable, entity, period, extra_params, max_nb_cycles)
 
-            # First, check if there is a formula to use
-            formula = variable.get_formula(period)
-            if formula:
-                parameters_at = self.parameters_at
-                if formula.func_code.co_argcount == 2:
-                    array = formula(entity, period)
-                else:
-                    array = formula(entity, period, parameters_at, *extra_params)
-            else:
-                # If not, use a base function
-                array = variable.base_function(holder, period, *extra_params)
+        # If no result, try a base function
+        if array is None and variable.base_function:
+            array = variable.base_function(holder, period, *extra_params)
 
-        except CycleError as error:
-            self._clean_cycle_detection_data(variable.name)
-            if max_nb_cycles is None:
-                if self.trace:
-                    self.tracer.record_calculation_abortion(variable.name, period, **parameters)
-                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
-                raise error
-            self.max_nb_cycles = None
+        # If no result, use the default value
+        if array is None:
             array = holder.default_array()
-
-        self._check_formula_result(array, variable, entity, period)
-        array = self._cast_formula_result(array, variable)
 
         self._clean_cycle_detection_data(variable.name)
         if max_nb_cycles is not None:
@@ -279,6 +262,30 @@ class Simulation(object):
             return self.calculate(variable_name, period)
 
         return variable.calculate_output(self, variable_name, period)
+
+    def _run_formula(self, variable, entity, period, extra_params, max_nb_cycles):
+        formula = variable.get_formula(period)
+        if formula is None:
+            return None
+        parameters_at = self.parameters_at
+        try:
+            self._check_for_cycle(variable, period)
+            if formula.func_code.co_argcount == 2:
+                array = formula(entity, period)
+            else:
+                array = formula(entity, period, parameters_at, *extra_params)
+        except CycleError as error:
+            self._clean_cycle_detection_data(variable.name)
+            if max_nb_cycles is None:
+                if self.trace:
+                    self.tracer.record_calculation_abortion(variable.name, period, extra_params = extra_params)
+                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
+                raise error
+            self.max_nb_cycles = None
+            return None
+
+        self._check_formula_result(array, variable, entity, period)
+        return self._cast_formula_result(array, variable)
 
     def _check_period_consistency(self, period, variable):
         """

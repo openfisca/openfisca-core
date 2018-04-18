@@ -253,20 +253,17 @@ class Variable(object):
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
             return self.baseline_variable.base_function
-        if self.definition_period == ETERNITY:
-            if base_function and base_function != requested_period_default_value:
-                raise ValueError('Unexpected base_function {}'.format(base_function))
-            return requested_period_default_value
 
-        if self.is_period_size_independent:
-            if base_function is None:
-                return requested_period_last_value
-            if base_function in [missing_value, requested_period_last_value, requested_period_last_or_next_value]:
-                return base_function
-            raise ValueError('Unexpected base_function {}'.format(base_function))
+        if base_function and base_function not in {
+                missing_value,
+                requested_period_default_value,
+                requested_period_last_or_next_value,
+                requested_period_last_value
+                }:
+            raise ValueError(u'Unexpected base_function {}'.format(base_function).encode('utf-8'))
 
-        if base_function is None:
-            return requested_period_default_value
+        if self.is_period_size_independent and base_function is None:
+            return requested_period_last_value
 
         return base_function
 

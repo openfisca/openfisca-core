@@ -81,6 +81,8 @@ Each value is a simple python function.
   - Variables's formulas are now simple functions.
 - Remove class `DatedHolder`
   - All calculation methods now return a simple numpy array
+- Variables don't necessary have a base function anymore
+  - Without a base function, the default behavior is to return the default value if there is no formula.
 
 ## 22.1.0 [#648](https://github.com/openfisca/openfisca-core/pull/648)
 

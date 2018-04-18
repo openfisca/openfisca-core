@@ -2,10 +2,20 @@
 
 from . import periods
 
+"""
+    base_function is an optional variable attribute that can optionally be set to one of the functions defined in this module.
+
+    If a variable is calculated at a period for which it does not have a formulas, its base_function will be called to try to infere a value based on past or future values of the variable.
+"""
+
 
 def requested_period_default_value(holder, period, *extra_params):
-    array = holder.default_array()
-    return array
+    """
+        This formula is used for variables for which we don't want to make any inference about the value for a given period based on past or future values.
+
+        Having this `base_function` is strictly equivalent to not having a `base_function`, but it can still be needed to overwrite an unwanted default `base_function`.
+    """
+    return None
 
 
 def requested_period_last_value(holder, period, *extra_params, **kwargs):
@@ -25,7 +35,7 @@ def requested_period_last_value(holder, period, *extra_params, **kwargs):
     if accept_future_value:
         next_period = known_periods[-1]
         return holder.get_array(next_period, extra_params)
-    return holder.default_array()
+    return None
 
 
 def requested_period_last_or_next_value(holder, period, *extra_params):
@@ -37,5 +47,4 @@ def requested_period_last_or_next_value(holder, period, *extra_params):
 
 
 def missing_value(holder, period, *extra_params):
-    variable = holder.variable
-    raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))
+    raise ValueError(u"Missing value for variable {} at {}".format(holder.variable.name, period))
