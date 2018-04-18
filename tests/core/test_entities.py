@@ -497,7 +497,8 @@ def test_undoredered_persons():
     assert_near(household.all(salary > 0), [False, True])
     assert_near(household.any(salary > 2000), [False, True])
     assert_near(household.first_person('salary', "2016-01"), [0, 3000])
-
+    assert_near(household.first_parent('salary', "2016-01"), [1000, 3000])
+    assert_near(household.second_parent('salary', "2016-01"), [1500, 0])
     assert_near(household.sum(salary, role = PARENT), [2500, 3000])
     assert_near(household.sum(salary, role = CHILD), [20, 500])
     assert_near(household.max(salary, role = PARENT), [1500, 3000])

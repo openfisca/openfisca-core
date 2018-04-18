@@ -526,13 +526,14 @@ class GroupEntity(Entity):
                 .format(self.key, role.key)
                 )
         self.simulation.persons.check_array_compatible_with_entity(array)
+        members_map = self.ordered_members_map
         result = self.filled_array(default, dtype = array.dtype)
         if isinstance(array, EnumArray):
             result = EnumArray(result, array.possible_values)
         role_filter = self.members.has_role(role)
         entity_filter = self.any(role_filter)
 
-        result[entity_filter] = array[role_filter]
+        result[entity_filter] = array[members_map][role_filter[members_map]]
 
         return result
 
