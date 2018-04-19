@@ -19,7 +19,7 @@ from base_functions import (
     requested_period_last_value,
     )
 from datetime import date
-from indexed_enums import Enum, EnumArray
+from indexed_enums import Enum, ENUM_ARRAY_DTYPE
 
 VALUE_TYPES = {
     bool: {
@@ -47,7 +47,7 @@ VALUE_TYPES = {
         'is_period_size_independent': True
         },
     Enum: {
-        'dtype': EnumArray.dtype,
+        'dtype': ENUM_ARRAY_DTYPE,
         'json_type': 'Enumeration',
         'is_period_size_independent': True,
         },
