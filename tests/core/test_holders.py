@@ -43,6 +43,14 @@ def test_set_input_enum_item():
     assert_equal(result, HousingOccupancyStatus.free_lodger)
 
 
+def test_enum_dtype():
+    simulation = get_simulation(couple)
+    status_occupancy = np.asarray([2], dtype = np.int16)
+    simulation.household.get_holder('housing_occupancy_status').set_input(period, status_occupancy)
+    result = simulation.calculate('housing_occupancy_status', period)
+    assert result.dtype.kind is not None
+
+
 def test_permanent_variable_empty():
     simulation = get_simulation(single)
     holder = simulation.person.get_holder('birth')
