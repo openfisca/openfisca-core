@@ -380,6 +380,7 @@ class GroupEntity(Entity):
             self._members_role = None
             self._members_position = None
             self.members_legacy_role = None
+            self.members_position_by_role = None
         self.members = self.simulation.persons
         self._roles_count = None
         self._ordered_members_map = None
@@ -406,8 +407,12 @@ class GroupEntity(Entity):
             self.simulation.persons.count,
             dtype = np.int32
             )
-        self._members_position = None
+        self.members_position_by_role = np.empty(
+            self.simulation.persons.count,
+            dtype = np.int32
+            )
 
+        self._members_position = None
         self.persons_to_allocate = set(self.simulation.persons.ids)
 
         Entity.init_from_json(self, entities_json)
@@ -437,11 +442,12 @@ class GroupEntity(Entity):
                 self.persons_to_allocate.discard(person_id)
 
         entity_index = self.ids.index(entity_id)
-        for person_role, person_legacy_role, person_id in iter_over_entity_members(self, roles_json):
+        for person_role, person_legacy_role, person_position_by_role, person_id in iter_over_entity_members(self, roles_json):
             person_index = self.simulation.persons.ids.index(person_id)
             self.members_entity_id[person_index] = entity_index
             self.members_role[person_index] = person_role
             self.members_legacy_role[person_index] = person_legacy_role
+            self.members_position_by_role[person_index] = person_position_by_role
 
     @property
     def members_role(self):
@@ -670,7 +676,7 @@ class GroupEntity(Entity):
         return result
 
     @projectable
-    def value_nth_person(self, n, array, default = 0):
+    def value_nth_person(self, n, array, default = 0, role = None):
         """
             Get the value of array for the person whose position in the entity is n.
 
@@ -681,13 +687,22 @@ class GroupEntity(Entity):
             The result is a vector which dimension is the number of entities.
         """
         self.simulation.persons.check_array_compatible_with_entity(array)
-        positions = self.members_position
-        nb_persons_per_entity = self.nb_persons()
-        members_map = self.ordered_members_map
         result = self.filled_array(default, dtype = array.dtype)
-        # For households that have at least n persons, set the result as the value of criteria for the person for which the position is n.
-        # The map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
-        result[nb_persons_per_entity > n] = array[members_map][positions[members_map] == n]
+        if isinstance(array, EnumArray):
+            result = EnumArray(result, array.possible_values)
+        nb_persons_per_entity = self.nb_persons(role = role)
+
+        if role is None:
+            # True only if the person has position n in the entity
+            condition = (self.members_position == n)
+        else:
+            # True only if the person is the nth person with the given role
+            condition = self.members.has_role(role) * (self.members_position_by_role == n)
+
+        # For households that have at least n persons, set the result as the value of array for the person that respect the condition
+        # This map is needed b/c the order of the nth persons of each household in the persons vector is not necessarily the same than the household order.
+        members_map = self.ordered_members_map
+        result[nb_persons_per_entity > n] = array[members_map][condition[members_map]]
 
         return result
 

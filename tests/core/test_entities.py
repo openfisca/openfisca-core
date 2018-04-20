@@ -45,6 +45,7 @@ def test_role_index_and_positions():
     assert((simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all())
     assert_near(simulation.household.members_legacy_role, [0, 1, 2, 3, 0, 2])
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
+    assert_near(simulation.household.members_position_by_role, [0, 1, 0, 1, 0, 0])
     assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
     assert(simulation.household.ids == [0, 1])
 
@@ -76,6 +77,7 @@ def test_entity_structure_with_constructor():
     assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
     assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
     assert_near(household.members_position, [0, 1, 0, 2, 3])
+    assert_near(household.members_position_by_role, [0, 1, 0, 0, 1])
 
 
 def test_entity_variables_with_constructor():
@@ -354,6 +356,29 @@ def test_value_nth_person():
     assert_near(result3, [9, -1])
 
 
+def test_value_nth_person_with_role():
+    test_case = deepcopy(TEST_CASE_AGES)
+    simulation = new_simulation(test_case)
+    household = simulation.household
+    array = household.members('age', MONTH)
+
+    assert_near(
+        household.value_nth_person(0, array, role = PARENT, default = -1),
+        [40, 54])
+
+    assert_near(
+        household.value_nth_person(1, array, role = PARENT, default = -1),
+        [37, -1])
+
+    assert_near(
+        household.value_nth_person(0, array, role = CHILD, default = -1),
+        [7, 20])
+
+    assert_near(
+        household.value_nth_person(1, array, role = CHILD, default = -1),
+        [9, -1])
+
+
 def test_rank():
     test_case = deepcopy(TEST_CASE_AGES)
     simulation = new_simulation(test_case)
@@ -508,6 +533,7 @@ def test_undoredered_persons():
     assert_near(household.first_parent('salary', "2016-01"), [1000, 3000])
     assert_near(household.second_parent('salary', "2016-01"), [1500, 0])
     assert_near(person.value_from_partner(salary, person.household, household.PARENT), [0, 0, 1000, 0, 0, 1500])
+    assert_near(household.value_nth_person(1, salary), [1500, 500])
 
     assert_near(household.sum(salary, role = PARENT), [2500, 3000])
     assert_near(household.sum(salary, role = CHILD), [20, 500])
@@ -534,3 +560,4 @@ def test_undoredered_persons():
     assert_near(household.project_on_first_person(accommodation_size), [60, 160, 0, 0, 0, 0])
     assert_near(household.share_between_members(accommodation_size), [30, 40, 40, 40, 30, 40])
     assert_near(household.share_between_members(accommodation_size, role = PARENT), [60, 0, 80, 0, 0, 80])
+    assert_near(household.value_nth_person(0, salary, role = CHILD), [20, 500])
