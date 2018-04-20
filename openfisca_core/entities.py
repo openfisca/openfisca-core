@@ -843,8 +843,25 @@ class MultipleRoleToEntityProjector(Projector):
         self.parent = parent
         self.role = role
 
+    def __getitem__(self, key):
+        return RoleAndPositionProjector(self.target_entity, self.role, key, self.parent)
+
     def transform(self, result):
         return result * self.reference_entity.has_role(self.role)
+
+
+# For instance household.parents[0]
+class RoleAndPositionProjector(Projector):
+
+    def __init__(self, entity, role, position, parent = None):
+        self.target_entity = entity
+        self.reference_entity = entity.members
+        self.parent = parent
+        self.role = role
+        self.position = position
+
+    def transform(self, result):
+        return self.target_entity.value_nth_person(self.position, result, role = self.role)
 
 
 def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
@@ -882,7 +899,7 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
 
     unique_role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
     if unique_role:
-        return UniqueRoleToEntityProjector(entity, role, parent)
+        return UniqueRoleToEntityProjector(entity, unique_role, parent)
 
     plural_role = next((role for role in entity.roles if role.plural == shortcut), None)
     if plural_role:

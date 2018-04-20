@@ -269,7 +269,7 @@ def test_sum():
     simulation = new_simulation(test_case, MONTH)
     household = simulation.household
 
-    salary = household.members('salary', "2016-01")
+    salary = household.members('salary', MONTH)
     total_salary_by_household = household.sum(salary)
 
     assert_near(total_salary_by_household, [2500, 3500])
@@ -435,8 +435,18 @@ def test_multiple_role_projector():
     simulation = new_simulation(test_case)
     household = simulation.household
 
-    salaries_parents = household.parents('salary', period = MONTH)
-    assert_near(salaries_parents, [1000, 1500, 0, 0, 3000, 0])
+    assert_near(
+        household.parents('salary', period = MONTH),
+        [1000, 1500, 0, 0, 3000, 0])
+
+    assert_near(
+        household.parents[0]('salary', period = MONTH),
+        [1000, 3000])
+
+    assert_near(
+        household.parents[1]('salary', period = MONTH),
+        [1500, 0])
+
 
 def test_projectors_methods():
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
@@ -532,8 +542,8 @@ def test_undoredered_persons():
     household = simulation.household
     person = simulation.person
 
-    salary = household.members('salary', "2016-01")  # [ 3000, 0, 1500, 20, 500, 1000 ]
-    accommodation_size = household('accommodation_size', "2016-01")  # [ 160, 60 ]
+    salary = household.members('salary', MONTH)  # [ 3000, 0, 1500, 20, 500, 1000 ]
+    accommodation_size = household('accommodation_size', MONTH)  # [ 160, 60 ]
 
     # Aggregation/Projection persons -> entity
 
@@ -546,6 +556,7 @@ def test_undoredered_persons():
     assert_near(household.first_parent('salary', "2016-01"), [1000, 3000])
     assert_near(household.second_parent('salary', "2016-01"), [1500, 0])
     assert_near(person.value_from_partner(salary, person.household, household.PARENT), [0, 0, 1000, 0, 0, 1500])
+    assert_near(household.first_person('salary', MONTH), [0, 3000])
     assert_near(household.value_nth_person(1, salary), [1500, 500])
 
     assert_near(household.sum(salary, role = PARENT), [2500, 3000])
@@ -574,3 +585,4 @@ def test_undoredered_persons():
     assert_near(household.share_between_members(accommodation_size), [30, 40, 40, 40, 30, 40])
     assert_near(household.share_between_members(accommodation_size, role = PARENT), [60, 0, 80, 0, 0, 80])
     assert_near(household.value_nth_person(0, salary, role = CHILD), [20, 500])
+    assert_near(household.children[0]('salary', MONTH), [20, 500])
