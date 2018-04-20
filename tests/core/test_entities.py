@@ -425,6 +425,19 @@ def test_value_from_first_person():
     assert_near(salary_first_person, [1000, 3000])
 
 
+def test_multiple_role_projector():
+    test_case = deepcopy(TEST_CASE)
+    test_case['persons'][0]['salary'] = 1000
+    test_case['persons'][1]['salary'] = 1500
+    test_case['persons'][4]['salary'] = 3000
+    test_case['persons'][5]['salary'] = 500
+
+    simulation = new_simulation(test_case)
+    household = simulation.household
+
+    salaries_parents = household.parents('salary', period = MONTH)
+    assert_near(salaries_parents, [1000, 1500, 0, 0, 3000, 0])
+
 def test_projectors_methods():
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
     household = simulation.household

@@ -809,7 +809,7 @@ class EntityToPersonProjector(Projector):
         return self.reference_entity.project(result)
 
 
-# For instance famille.first_person
+# For instance household.first_person
 class FirstPersonToEntityProjector(Projector):
 
     def __init__(self, entity, parent = None):
@@ -821,7 +821,7 @@ class FirstPersonToEntityProjector(Projector):
         return self.target_entity.value_from_first_person(result)
 
 
-# For instance famille.declarant_principal
+# For instance household.first_parent
 class UniqueRoleToEntityProjector(Projector):
 
     def __init__(self, entity, role, parent = None):
@@ -832,6 +832,19 @@ class UniqueRoleToEntityProjector(Projector):
 
     def transform(self, result):
         return self.target_entity.value_from_person(result, self.role)
+
+
+# For instance household.parents
+class MultipleRoleToEntityProjector(Projector):
+
+    def __init__(self, entity, role, parent = None):
+        self.target_entity = entity
+        self.reference_entity = entity.members
+        self.parent = parent
+        self.role = role
+
+    def transform(self, result):
+        return result * self.reference_entity.has_role(self.role)
 
 
 def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
@@ -863,9 +876,14 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
         if shortcut in entity.simulation.entities:
             entity_2 = entity.simulation.entities[shortcut]
             return EntityToPersonProjector(entity_2, parent)
-    else:
-        if shortcut == 'first_person':
-            return FirstPersonToEntityProjector(entity, parent)
-        role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
-        if role:
-            return UniqueRoleToEntityProjector(entity, role, parent)
+        return None
+    if shortcut == 'first_person':
+        return FirstPersonToEntityProjector(entity, parent)
+
+    unique_role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+    if unique_role:
+        return UniqueRoleToEntityProjector(entity, role, parent)
+
+    plural_role = next((role for role in entity.roles if role.plural == shortcut), None)
+    if plural_role:
+        return MultipleRoleToEntityProjector(entity, plural_role, parent)
