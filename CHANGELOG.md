@@ -51,6 +51,8 @@ In `Simulation`:
     - Use `calculate_add` instead
   - `compute_divide`
       - Use `calculate_divide` instead
+  - `parameters_at`
+    - Use `simulation.tax_benefit_sytem.get_parameters_at_instant` instead
   - `graph`
   - `to_input_variables_json`
 - Undeprecate, but slightly change the behaviour of the `get_holder(variable)` method:

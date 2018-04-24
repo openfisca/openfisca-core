@@ -29,10 +29,8 @@ class CycleError(Exception):
 
 
 class Simulation(object):
-    _parameters_at_instant_cache = None
     debug = False
     period = None
-    baseline_parameters_at_instant_cache = None
     steps_count = 1
     tax_benefit_system = None
     trace = False
@@ -77,9 +75,6 @@ class Simulation(object):
             self.tracer = None
         self.opt_out_cache = opt_out_cache
 
-        # Note: Since simulations are short-lived and must be fast, don't use weakrefs for cache.
-        self._parameters_at_instant_cache = {}
-        self.baseline_parameters_at_instant_cache = {}
         self.memory_config = memory_config
         self._data_storage_dir = None
         self.instantiate_entities(simulation_json)
@@ -128,33 +123,6 @@ class Simulation(object):
                 u"You should remove this directory once you're done with your simulation."
                 ).format(self._data_storage_dir).encode('utf-8'))
         return self._data_storage_dir
-
-    # ----- Methods to access parameters ----- #
-
-    def parameters_at(self, instant, use_baseline = False):
-        if isinstance(instant, periods.Period):
-            instant = instant.start
-        assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
-        if use_baseline:
-            return self._get_baseline_parameters_at_instant(instant)
-        return self._get_parameters_at_instant(instant)
-
-    def _get_parameters_at_instant(self, instant):
-        parameters_at_instant = self._parameters_at_instant_cache.get(instant)
-        if parameters_at_instant is None:
-            parameters_at_instant = self.tax_benefit_system.get_parameters_at_instant(instant)
-            self._parameters_at_instant_cache[instant] = parameters_at_instant
-        return parameters_at_instant
-
-    def _get_baseline_parameters_at_instant(self, instant):
-        baseline_parameters_at_instant = self._baseline_parameters_at_instant_cache.get(instant)
-        if baseline_parameters_at_instant is None:
-            baseline_parameters_at_instant = self.tax_benefit_system._get_baseline_parameters_at_instant(
-                instant = instant,
-                traced_simulation = self if self.trace else None,
-                )
-            self.baseline_parameters_at_instant_cache[instant] = baseline_parameters_at_instant
-        return baseline_parameters_at_instant
 
     # ----- Calculation methods ----- #
 
@@ -267,7 +235,7 @@ class Simulation(object):
         formula = variable.get_formula(period)
         if formula is None:
             return None
-        parameters_at = self.parameters_at
+        parameters_at = self.tax_benefit_system.get_parameters_at_instant
         try:
             self._check_for_cycle(variable, period)
             if formula.func_code.co_argcount == 2:

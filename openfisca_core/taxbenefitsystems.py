@@ -16,6 +16,7 @@ import conv
 from parameters import ParameterNode
 from variables import Variable, get_neutralized_variable
 from scenarios import AbstractScenario
+from . import periods
 from errors import VariableNotFound
 
 log = logging.getLogger(__name__)
@@ -297,12 +298,16 @@ class TaxBenefitSystem(object):
         :param instant: string of the format 'YYYY-MM-DD' or `openfisca_core.periods.Instant` instance.
         :returns: The parameters of the legislation at a given instant.
         """
+        if isinstance(instant, periods.Period):
+            instant = instant.start
+        elif isinstance(instant, basestring):
+            instant = periods.instant(instant)
+        else:
+            assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
 
-        parameters = self.parameters
-        instant_str = str(instant)
         parameters_at_instant = self._parameters_at_instant_cache.get(instant)
-        if parameters_at_instant is None and parameters is not None:
-            parameters_at_instant = parameters.get_at_instant(instant_str)
+        if parameters_at_instant is None and self.parameters is not None:
+            parameters_at_instant = self.parameters.get_at_instant(str(instant))
             self._parameters_at_instant_cache[instant] = parameters_at_instant
         return parameters_at_instant
 
