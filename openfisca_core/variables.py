@@ -21,6 +21,7 @@ from .indexed_enums import Enum, ENUM_ARRAY_DTYPE
 from . import periods
 from .periods import MONTH, YEAR, ETERNITY
 
+
 VALUE_TYPES = {
     bool: {
         'dtype': np.bool,
@@ -172,13 +173,13 @@ class Variable(object):
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
         self.base_function = self.set_base_function(attr.pop('base_function', None))
 
-        formulas_attr, other_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
+        formulas_attr, unexpected_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
 
-        if other_attrs:
+        if unexpected_attrs:
             raise ValueError(
                 u'Unexpected attributes in definition of variable "{}": {!r}'
-                .format(self.name, ', '.join(sorted(other_attrs.iterkeys()))))
+                .format(self.name, ', '.join(sorted(unexpected_attrs.iterkeys()))))
 
         self.is_neutralized = False
 
@@ -279,7 +280,7 @@ class Variable(object):
 
     def set_formulas(self, formulas_attr):
         formulas = SortedDict()
-        for formula_name, formula in formulas_attr.iteritems():
+        for formula_name, formula in formulas_attr.items():
             starting_date = self.parse_formula_name(formula_name)
 
             if self.end is not None and starting_date > self.end:
@@ -375,8 +376,11 @@ class Variable(object):
         :rtype: function
         """
 
+        if not self.formulas:
+            return None
+
         if period is None:
-            return self.formulas.peekitem(index = 0)[1] if self.formulas else None
+            return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
         if isinstance(period, periods.Period):
             instant = period.start
@@ -405,7 +409,7 @@ def _partition(dict, predicate):
     true_dict = {}
     false_dict = {}
 
-    for key, value in dict.iteritems():
+    for key, value in dict.items():
         if predicate(key, value):
             true_dict[key] = value
         else:

@@ -55,7 +55,7 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
 def build_formulas(formulas, country_package_metadata, source_file_path, tax_benefit_system):
     return {
         start_date: build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system)
-        for start_date, formula in formulas.iteritems()
+        for start_date, formula in formulas.items()
         }
 
 
@@ -94,5 +94,5 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
 def build_variables(tax_benefit_system, country_package_metadata):
     return {
         name: build_variable(variable, country_package_metadata, tax_benefit_system)
-        for name, variable in tax_benefit_system.variables.iteritems()
+        for name, variable in tax_benefit_system.variables.items()
         }
