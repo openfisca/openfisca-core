@@ -86,6 +86,10 @@ class Variable(object):
 
            `Period <http://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``.
 
+       .. py:attribute:: formulas
+
+           Formulas used to calculate the variable
+
        .. py:attribute:: label
 
            Description of the variable
@@ -111,10 +115,6 @@ class Variable(object):
        .. py:attribute:: end
 
            `Date <http://openfisca.org/doc/coding-the-legislation/40_legislation_evolutions.html#variable-end>`_  when the variable disappears from the legislation.
-
-       .. py:attribute:: formulas
-
-           Formulas used to calculate the variable
 
        .. py:attribute:: is_neutralized
 

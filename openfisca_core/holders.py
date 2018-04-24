@@ -135,7 +135,17 @@ class Holder(object):
 
     def set_input(self, period, array):
         """
-            Set the input value ``array`` for the variable for the period ``period``.
+            Set a variable's value (``array``) for a given period (``period``)
+
+            :param array: the input value for the variable
+            :param period: the period at which the value is setted
+
+            Exemple :
+
+            >>> holder.set_input([12, 14], '2018-04')
+            >>> holder.get_array('2018-04')
+            >>> [12, 14]
+
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """

@@ -14,7 +14,7 @@ General architecture principles:
 
 #### Breaking changes
 
-- Remove deprecated `base_function`:
+- Remove two (already deprecated) possible values for the variable attribute `base_function`:
   - `permanent_default_value`
   - `requested_period_added_value`
 
