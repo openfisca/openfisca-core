@@ -410,6 +410,17 @@ class Period(tuple):
             ))
 
     def get_subperiods(self, unit):
+        """
+            Return the list of all the periods of unit ``unit`` contained in self.
+
+            Examples:
+
+            >>> period('2017').get_subperiods(MONTH)
+            >>> [period('2017-01'), period('2017-02'), ... period('2017-12')]
+
+            >>> period('year:2014:2').get_subperiods(YEAR)
+            >>> [period('2014'), period('2015')]
+        """
         if self.unit == MONTH and unit == YEAR:
             raise ValueError(u'Cannot subdivise months into years')
         if self.unit == YEAR and unit == YEAR:
