@@ -1,5 +1,11 @@
 # Changelog
 
+### 22.0.9 [#650](https://github.com/openfisca/openfisca-core/pull/5O)
+
+* Fix operators such as `household.first_parent`, `foyer_fiscal.declarant_principal` for multi-entities simulations.
+  - This issue was not affecting simulations with several persons in a _single_ entity
+  - The underlying `entity.value_from_person` operator was not working as expected in case the persons of the simulation were not sorted by entity id in the persons vector (see example in 22.0.8 right below).
+
 ### 22.0.8 [#646](https://github.com/openfisca/openfisca-core/pull/639)
 
 * Fix `entity.max`, `entity.min`, `entity.all` and `entity.reduce` for multi-entities simulations.

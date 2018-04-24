@@ -479,17 +479,23 @@ def test_undoredered_persons():
     test_case['persons'][5]['salary'] = 1000
     test_case['persons'][2]['salary'] = 1500
     test_case['persons'][3]['salary'] = 20
+    test_case['households'][0]['accommodation_size'] = 160
 
     # 2nd family
     test_case['persons'][0]['salary'] = 3000
     test_case['persons'][4]['salary'] = 500
+    test_case['households'][1]['accommodation_size'] = 60
 
-    # household.members_entity_id == array([1, 0, 0, 0, 1, 0], dtype=int32)
+    # household.members_entity_id == [1, 0, 0, 0, 1, 0]
 
     simulation = new_simulation(test_case, MONTH)
     household = simulation.household
+    person = simulation.person
 
-    salary = household.members('salary', "2016-01")
+    salary = household.members('salary', "2016-01")  # [ 3000, 0, 1500, 20, 500, 1000 ]
+    accommodation_size = household('accommodation_size', "2016-01")  # [ 160, 60 ]
+
+    # Aggregation/Projection persons -> entity
 
     assert_near(household.sum(salary), [2520, 3500])
     assert_near(household.max(salary), [1500, 3000])
@@ -497,6 +503,9 @@ def test_undoredered_persons():
     assert_near(household.all(salary > 0), [False, True])
     assert_near(household.any(salary > 2000), [False, True])
     assert_near(household.first_person('salary', "2016-01"), [0, 3000])
+    assert_near(household.first_parent('salary', "2016-01"), [1000, 3000])
+    assert_near(household.second_parent('salary', "2016-01"), [1500, 0])
+    assert_near(person.value_from_partner(salary, person.household, household.PARENT), [0, 0, 1000, 0, 0, 1500])
 
     assert_near(household.sum(salary, role = PARENT), [2500, 3000])
     assert_near(household.sum(salary, role = CHILD), [20, 500])
@@ -508,3 +517,18 @@ def test_undoredered_persons():
     assert_near(household.all(salary > 0, role = CHILD), [False, True])
     assert_near(household.any(salary < 1500, role = PARENT), [True, False])
     assert_near(household.any(salary > 200, role = CHILD), [False, True])
+
+    # nb_persons
+
+    assert_near(household.nb_persons(), [4, 2])
+    assert_near(household.nb_persons(role = PARENT), [2, 1])
+    assert_near(household.nb_persons(role = CHILD), [2, 1])
+
+    # Projection entity -> persons
+
+    assert_near(household.project(accommodation_size), [60, 160, 160, 160, 60, 160])
+    assert_near(household.project(accommodation_size, role = PARENT), [60, 0, 160, 0, 0, 160])
+    assert_near(household.project(accommodation_size, role = CHILD), [0, 160, 0, 160, 60, 0])
+    assert_near(household.project_on_first_person(accommodation_size), [60, 160, 0, 0, 0, 0])
+    assert_near(household.share_between_members(accommodation_size), [30, 40, 40, 40, 30, 40])
+    assert_near(household.share_between_members(accommodation_size, role = PARENT), [60, 0, 80, 0, 0, 80])
