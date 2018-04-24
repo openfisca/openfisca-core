@@ -3,6 +3,8 @@
 import numpy as np
 from enum import Enum as BaseEnum
 
+ENUM_ARRAY_DTYPE = np.int16
+
 
 class Enum(BaseEnum):
     """
@@ -43,9 +45,9 @@ class Enum(BaseEnum):
         if type(array) is EnumArray:
             return array
         if array.dtype.kind in {'U', 'S'}:  # String array
-            array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
+            array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
         elif array.dtype.kind == 'O':  # Enum items arrays
-            array = np.select([array == item for item in cls], [item.index for item in cls]).astype(EnumArray.dtype)
+            array = np.select([array == item for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
         return EnumArray(array, cls)
 
 
@@ -55,8 +57,6 @@ class EnumArray(np.ndarray):
 
         EnumArrays are encoded as ``int`` arrays to improve performance
     """
-
-    dtype = np.int16
 
     # Subclassing np.ndarray is a little tricky. To read more about the two following methods, see https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html#slightly-more-realistic-example-attribute-added-to-existing-array.
     def __new__(cls, input_array, possible_values = None):
