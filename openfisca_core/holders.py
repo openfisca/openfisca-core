@@ -158,7 +158,11 @@ class Holder(object):
                 error_message
                 )
         if self.variable.is_neutralized:
-            return set_input_neutralized(self, period, array)
+            return warnings.warn(
+                u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
+                .format(self.variable.name, array).encode('utf-8'),
+                Warning
+                )
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
         return self.put_in_cache(array, period)
@@ -221,6 +225,10 @@ class Holder(object):
             self._memory_storage.put(value, period, extra_params)
 
     def default_array(self):
+        """
+        Return a new array of the appropriate length for the entity, filled with the variable default values.
+        """
+
         array_size = self.entity.count
         array = np.empty(array_size, dtype = self.variable.dtype)
         if self.variable.value_type == Enum:
@@ -297,6 +305,14 @@ class PeriodMismatchError(ValueError):
 
 
 def set_input_dispatch_by_period(holder, period, array):
+    """
+        This function can be declared as a ``set_input`` attribute of a variable.
+
+        In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be applied to all its subperiods.
+
+        To read more about ``set_input`` attributes, check the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
+    """
+
     period_size = period.size
     period_unit = period.unit
 
@@ -323,6 +339,14 @@ def set_input_dispatch_by_period(holder, period, array):
 
 
 def set_input_divide_by_period(holder, period, array):
+    """
+        This function can be declared as a ``set_input`` attribute of a variable.
+
+        In this case, the variable will accept inputs on larger periods that its definition period, and the value for the larger period will be divided between its subperiods.
+
+        To read more about ``set_input`` attributes, check the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
+    """
+
     period_size = period.size
     period_unit = period.unit
 
@@ -357,11 +381,3 @@ def set_input_divide_by_period(holder, period, array):
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
         raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))
-
-
-def set_input_neutralized(holder, period, array):
-    warnings.warn(
-        u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
-        .format(holder.variable.name, array).encode('utf-8'),
-        Warning
-        )
