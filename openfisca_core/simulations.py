@@ -222,7 +222,9 @@ class Simulation(object):
             period).encode('utf-8'))
 
     def calculate_output(self, variable_name, period):
-        """Calculate the value using calculate_output hooks in formula classes."""
+        """
+            Calculate the value of a variable using the ``calculate_output`` attribute of the variable.
+        """
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
@@ -232,6 +234,10 @@ class Simulation(object):
         return variable.calculate_output(self, variable_name, period)
 
     def _run_formula(self, variable, entity, period, extra_params, max_nb_cycles):
+        """
+            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
+        """
+
         formula = variable.get_formula(period)
         if formula is None:
             return None
@@ -365,16 +371,27 @@ class Simulation(object):
     # ----- Methods to access stored values ----- #
 
     def get_array(self, variable_name, period):
+        """
+            Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
+
+            Unlike ``calculate``, this method _does not_ trigger calculations and _does not_ use any formula.
+        """
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
     def get_holder(self, variable_name):
+        """
+            Get the holder associated with the variable ``variable_name`` for the simulation
+        """
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         entity = self.entities[variable.entity.key]
         return entity.get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):
+        """
+            Get data about the virtual memory usage of the simulation
+        """
         result = dict(
             total_nb_bytes = 0,
             by_variable = {}
