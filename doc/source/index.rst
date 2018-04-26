@@ -10,6 +10,8 @@ Modules:
    variables
    parameters
    reforms
+   simulations
+   entities
    test_runner
    tracer
    enum_array

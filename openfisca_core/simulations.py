@@ -29,6 +29,9 @@ class CycleError(Exception):
 
 
 class Simulation(object):
+    """
+        Represents a simulation, and handles the calculation logic
+    """
     debug = False
     period = None
     steps_count = 1
@@ -39,21 +42,21 @@ class Simulation(object):
 
     def __init__(
             self,
+            tax_benefit_system,
+            simulation_json = None,
             debug = False,
             period = None,
-            tax_benefit_system = None,
             trace = False,
             opt_out_cache = False,
-            simulation_json = None,
             memory_config = None,
             ):
 
         """
-            If a simulation_json is given, initilalises a simulation from a JSON dictionnary.
+            If a ``simulation_json`` is given, initilalises a simulation from a JSON dictionnary.
 
-            This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
+            Note: This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
 
-            If no simulation_json is given, initilalises an empty simulation.
+            If no ``simulation_json`` is given, initilalises an empty simulation.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
@@ -127,6 +130,11 @@ class Simulation(object):
     # ----- Calculation methods ----- #
 
     def calculate(self, variable_name, period, **parameters):
+        """
+            Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
+
+            :returns: A numpy array containing the result of the calculation
+        """
         entity = self.get_variable_entity(variable_name)
         holder = entity.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name)
@@ -374,7 +382,7 @@ class Simulation(object):
         """
             Return the value of ``variable_name`` for ``period``, if this value is alreay in the cache (if it has been set as an input or previously calculated).
 
-            Unlike ``calculate``, this method _does not_ trigger calculations and _does not_ use any formula.
+            Unlike :any:`calculate`, this method *does not* trigger calculations and *does not* use any formula.
         """
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -382,7 +390,7 @@ class Simulation(object):
 
     def get_holder(self, variable_name):
         """
-            Get the holder associated with the variable ``variable_name`` for the simulation
+            Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         entity = self.entities[variable.entity.key]
@@ -416,7 +424,9 @@ class Simulation(object):
             return [entity for entity in self.entities.values() if entity.plural == plural][0]
 
     def clone(self, debug = False, trace = False):
-        """Copy the simulation just enough to be able to run the copy without modifying the original simulation."""
+        """
+            Copy the simulation just enough to be able to run the copy without modifying the original simulation
+        """
         new = empty_clone(self)
         new_dict = new.__dict__
 

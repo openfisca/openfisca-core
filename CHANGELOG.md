@@ -41,23 +41,25 @@ In `Holder`:
   - Methods `set_input` and `put_in_cache` don't return anything anymore.
 
 In `Simulation`:
-- Remove attributes:
-  - `holder_by_name`
-    - Use `simulation.get_holder(...)` or `entity.get_holder(...)` instead
-- Remove methods:
-  - `compute`
-    - Use `calculate` instead
-  - `compute_add`
-    - Use `calculate_add` instead
-  - `compute_divide`
-      - Use `calculate_divide` instead
-  - `parameters_at`
-    - Use `simulation.tax_benefit_sytem.get_parameters_at_instant` instead
-  - `graph`
-  - `to_input_variables_json`
-- Undeprecate, but slightly change the behaviour of the `get_holder(variable)` method:
-  - Optional second argument `default` is not accepted anymore
-  - If no holder has yet been created for the variable, no error is raised, and a new holder is created and returned.
+  - Reorder constructor arguments
+    - `tax_benefit_system` is now the first (mandatory) argument, and `simulation_json` the second (optional) one.
+  - Remove attributes:
+    - `holder_by_name`
+      - Use `simulation.get_holder(...)` or `entity.get_holder(...)` instead
+  - Remove methods:
+    - `compute`
+      - Use `calculate` instead
+    - `compute_add`
+      - Use `calculate_add` instead
+    - `compute_divide`
+        - Use `calculate_divide` instead
+    - `parameters_at`
+      - Use `simulation.tax_benefit_sytem.get_parameters_at_instant` instead
+    - `graph`
+    - `to_input_variables_json`
+  - Undeprecate, but slightly change the behaviour of the `get_holder(variable)` method:
+    - Optional second argument `default` is not accepted anymore
+    - If no holder has yet been created for the variable, no error is raised, and a new holder is created and returned.
 
 #### New features
 
