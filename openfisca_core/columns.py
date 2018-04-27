@@ -180,9 +180,7 @@ class DateCol(Column):
 
     def json_default(self):
         default = np.array(self.default_value, self.dtype)
-        if isinstance(default, unicode_type):
-            return default
-        return unicode(default)
+        return unicode_this(default)
 
     @property
     def json_to_dated_python(self):

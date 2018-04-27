@@ -20,7 +20,7 @@ from openfisca_core.base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from openfisca_core.commons import unicode_type, basestring_type
+from openfisca_core.commons import unicode_type, basestring_type, unicode_this
 
 
 VALUE_TYPES = {
@@ -224,10 +224,7 @@ class Variable(object):
 
     def set_label(self, label):
         if label:
-            if isinstance(label, unicode_type):
-                return label
-            else:
-                return unicode(label, 'utf-8')
+            return unicode_this(label, 'utf-8')
 
     def set_end(self, end):
         if end:
@@ -238,10 +235,8 @@ class Variable(object):
 
     def set_reference(self, reference):
         if reference:
-            if isinstance(reference, unicode_type):
-                reference = [reference]
-            elif isinstance(reference, str):
-                reference = [unicode(reference, 'utf-8')]
+            if isinstance(reference, basestring_type):
+                reference = [unicode_this(reference, 'utf-8')]
             elif isinstance(reference, list):
                 pass
             elif isinstance(reference, tuple):
