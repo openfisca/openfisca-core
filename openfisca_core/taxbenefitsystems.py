@@ -300,7 +300,7 @@ class TaxBenefitSystem(object):
         """
         if isinstance(instant, periods.Period):
             instant = instant.start
-        elif isinstance(instant, basestring):
+        elif isinstance(instant, (basestring, int)):
             instant = periods.instant(instant)
         else:
             assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
