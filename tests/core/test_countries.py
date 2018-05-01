@@ -6,13 +6,58 @@ from openfisca_core.variables import Variable
 from openfisca_core.periods import MONTH
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
-from openfisca_core.formulas import DIVIDE
+from openfisca_core.entities import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 
 
 tax_benefit_system = CountryTaxBenefitSystem()
+
+
+def test_input_variable():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = {
+            'salary': 2000,
+            },
+        ).new_simulation()
+    assert_near(simulation.calculate('salary', period), [2000], absolute_error_margin = 0.01)
+
+
+def test_basic_calculation():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            salary = 2000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate('income_tax', period), [300], absolute_error_margin = 0.01)
+
+
+def test_calculate_add():
+    period = 2016
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            salary = 24000,
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate_add('income_tax', period), [3600], absolute_error_margin = 0.01)
+
+
+def test_calculate_divide():
+    period = "2016-01"
+    simulation = tax_benefit_system.new_scenario().init_from_attributes(
+        period = period,
+        input_variables = dict(
+            accommodation_size = 100,
+            housing_occupancy_status = 'tenant',
+            ),
+        ).new_simulation()
+    assert_near(simulation.calculate_divide('housing_tax', period), [1000 / 12.], absolute_error_margin = 0.01)
 
 
 class income_tax_no_period(Variable):
@@ -41,29 +86,7 @@ def test_no_period():
             salary = 2000,
             ),
         ).new_simulation()
-    simulation.calculate_add('income_tax_no_period', year)
-
-
-def test_input_variable():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = {
-            'salary': 2000,
-            },
-        ).new_simulation()
-    assert_near(simulation.calculate_add('salary', period), [2000], absolute_error_margin = 0.01)
-
-
-def test_basic_calculation():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            salary = 2000,
-            ),
-        ).new_simulation()
-    assert_near(simulation.calculate_add('income_tax', period), [300], absolute_error_margin = 0.01)
+    simulation.calculate('income_tax_no_period', year)
 
 
 def test_bareme():
@@ -95,8 +118,8 @@ def test_variable_with_reference():
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def formula(self, simulation, period):
-            return self.zeros()
+        def formula(household, period):
+            return household.empty_array()
 
     tax_benefit_system.update_variable(disposable_income)
     revenu_disponible_apres_reforme = new_simulation().calculate('disposable_income', "2016-01")
@@ -110,8 +133,8 @@ def test_variable_name_conflict():
         reference = 'disposable_income'
         definition_period = MONTH
 
-        def formula(self, simulation, period):
-            return self.zeros()
+        def formula(household, period):
+            return household.empty_array()
     tax_benefit_system.add_variable(disposable_income)
 
 

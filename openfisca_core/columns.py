@@ -121,15 +121,6 @@ class Column(object):
             self_json['entity'] = self.entity.key
         if self.label is not None:
             self_json['label'] = self.label
-        start_line_number = self.formula.start_line_number
-        if start_line_number is not None:
-            self_json['start_line_number'] = start_line_number
-        source_code = self.formula.source_code
-        if source_code is not None:
-            self_json['source_code'] = source_code
-        source_file_path = self.formula.source_file_path
-        if source_file_path is not None:
-            self_json['source_file_path'] = source_file_path
         if self.name is not None:
             self_json['name'] = self.name
         if self.reference is not None:

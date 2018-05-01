@@ -81,7 +81,7 @@ def test_neutralization_optimization():
 
     # As basic_income is neutralized, it should not be cached
     basic_income_holder = simulation.persons.get_holder('basic_income')
-    assert basic_income_holder.get_array('2013-01') is None
+    assert basic_income_holder.get_known_periods() == []
 
 
 def test_input_variable_neutralization():
@@ -246,8 +246,8 @@ def test_add_variable():
         entity = Household
         definition_period = MONTH
 
-        def formula(self, simulation, period):
-            return self.zeros() + 10
+        def formula(household, period):
+            return household.empty_array() + 10
 
     class test_add_variable(Reform):
 
@@ -275,11 +275,11 @@ def test_add_dated_variable():
         entity = Household
         definition_period = MONTH
 
-        def formula_2010_01_01(self, simulation, period):
-            return self.zeros() + 10
+        def formula_2010_01_01(household, period):
+            return household.empty_array() + 10
 
-        def formula_2011_01_01(self, simulation, period):
-            return self.zeros() + 15
+        def formula_2011_01_01(household, period):
+            return household.empty_array() + 15
 
     class test_add_variable(Reform):
         def apply(self):
@@ -301,8 +301,8 @@ def test_update_variable():
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def formula(self, simulation, period):
-            return self.zeros() + 10
+        def formula(household, period):
+            return household.empty_array() + 10
 
     class test_update_variable(Reform):
         def apply(self):
@@ -363,3 +363,52 @@ def test_modify_parameters():
     instant = Instant((2013, 1, 1))
     parameters_at_instant = reform.get_parameters_at_instant(instant)
     assert parameters_at_instant.new_node.new_param is True
+
+
+def test_attributes_conservation():
+
+    class some_variable(Variable):
+        value_type = int
+        entity = Person
+        label = u"Variable with many attributes"
+        definition_period = MONTH
+        set_input = set_input_divide_by_period
+        calculate_output = calculate_output_add
+        base_function = requested_period_last_value
+
+    tax_benefit_system.add_variable(some_variable)
+
+    class reform(Reform):
+        class some_variable(Variable):
+            default_value = 10
+
+        def apply(self):
+            self.update_variable(some_variable)
+
+    reformed_tbs = reform(tax_benefit_system)
+    reform_variable = reformed_tbs.get_variable('some_variable')
+    baseline_variable = tax_benefit_system.get_variable('some_variable')
+    assert reform_variable.value_type == baseline_variable.value_type
+    assert reform_variable.entity == baseline_variable.entity
+    assert reform_variable.label == baseline_variable.label
+    assert reform_variable.definition_period == baseline_variable.definition_period
+    assert reform_variable.set_input == baseline_variable.set_input
+    assert reform_variable.calculate_output == baseline_variable.calculate_output
+    assert reform_variable.base_function == baseline_variable.base_function
+
+
+def test_formulas_removal():
+    class reform(Reform):
+        def apply(self):
+
+            class basic_income(Variable):
+                pass
+
+            self.update_variable(basic_income)
+            self.variables['basic_income'].formulas.clear()
+
+    reformed_tbs = reform(tax_benefit_system)
+    reform_variable = reformed_tbs.get_variable('basic_income')
+    baseline_variable = tax_benefit_system.get_variable('basic_income')
+    assert len(reform_variable.formulas) == 0
+    assert len(baseline_variable.formulas) > 0

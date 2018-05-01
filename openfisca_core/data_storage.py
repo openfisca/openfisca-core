@@ -38,7 +38,7 @@ class InMemoryStorage(object):
             period = periods.period(ETERNITY)
         period = periods.period(period)
 
-        if extra_params is None:
+        if not extra_params:
             self._arrays[period] = value
         else:
             if self._arrays.get(period) is None:
@@ -134,7 +134,7 @@ class OnDiskStorage(object):
             self._enums[path] = value.possible_values
             value = value.view(np.ndarray)
         np.save(path, value)
-        if extra_params is None:
+        if not extra_params:
             self._files[period] = path
         else:
             if self._files.get(period) is None:

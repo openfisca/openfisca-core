@@ -36,7 +36,7 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
 
 
 def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
-    source_code, start_line_number = inspect.getsourcelines(formula.formula)
+    source_code, start_line_number = inspect.getsourcelines(formula)
     if source_code[0].lstrip(' ').startswith('@'):  # remove decorator
         source_code = source_code[1:]
         start_line_number = start_line_number + 1
@@ -52,13 +52,10 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
         }
 
 
-def build_formulas(dated_formulas, country_package_metadata, source_file_path, tax_benefit_system):
-    def get_start_or_default(dated_formula):
-        return dated_formula['start_instant'].date.isoformat() if dated_formula['start_instant'] else '0001-01-01'
-
+def build_formulas(formulas, country_package_metadata, source_file_path, tax_benefit_system):
     return {
-        get_start_or_default(dated_formula): build_formula(dated_formula['formula_class'], country_package_metadata, source_file_path, tax_benefit_system)
-        for dated_formula in dated_formulas
+        start_date: build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system)
+        for start_date, formula in formulas.items()
         }
 
 
@@ -81,12 +78,9 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
 
     if variable.reference:
         result['references'] = variable.reference
-    if hasattr(variable.formula, 'function') and variable.formula.function:
-        result['formulas'] = {
-            '0001-01-01': build_formula(variable.formula, country_package_metadata, source_file_path, tax_benefit_system)
-            }
-    if hasattr(variable.formula, 'dated_formulas_class'):
-        result['formulas'] = build_formulas(variable.formula.dated_formulas_class, country_package_metadata, source_file_path, tax_benefit_system)
+
+    if len(variable.formulas) > 0:
+        result['formulas'] = build_formulas(variable.formulas, country_package_metadata, source_file_path, tax_benefit_system)
 
         if variable.end:
             result['formulas'][get_next_day(variable.end)] = None
@@ -100,5 +94,5 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
 def build_variables(tax_benefit_system, country_package_metadata):
     return {
         name: build_variable(variable, country_package_metadata, tax_benefit_system)
-        for name, variable in tax_benefit_system.variables.iteritems()
+        for name, variable in tax_benefit_system.variables.items()
         }

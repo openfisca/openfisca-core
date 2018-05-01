@@ -1,5 +1,93 @@
 # Changelog
 
+# 23.0.0 [641](https://github.com/openfisca/openfisca-core/pull/641)
+
+This changeset aims at simplifying the OpenFisca Core architecture.
+
+Changes should be transparent for legislation modeling and web API usage.
+
+It can impact users using the Python API (see Breaking changes part)
+
+General architecture principles:
+  - `Simulation` is the class in charge of running the calculations
+  - `Holder` is the class in charge of keeping input and previously calculated values
+
+#### Breaking changes
+
+- Remove two (already deprecated) possible values for the variable attribute `base_function`:
+  - `permanent_default_value`
+  - `requested_period_added_value`
+
+In `Holder`:
+  - Remove deprecated constructor `Holder(simulation, variable)`
+    - Use `Holder(entity, variable)` instead
+  - Remove attributes:
+    - `formula` and `real_formula`
+      - Use `variable.formulas` instead (see more further down)
+    - `array`
+      - Use `get_array(period)` instead
+  - Remove methods:
+    - `calculate` and `compute`
+      - Use `simulation.calculate` instead
+    - `calculate_output`
+      - Use `simulation.calculate_output` instead
+    - `compute_add`
+      - Use `simulation.calculate_add` instead
+    - `compute_divide`
+      - Use `simulation.calculate_divide` instead
+    - `get_from_cache`
+      - Use `get_array` instead
+    - `graph`
+  - Methods `set_input` and `put_in_cache` don't return anything anymore.
+
+In `Simulation`:
+  - Reorder constructor arguments
+    - `tax_benefit_system` is now the first (mandatory) argument, and `simulation_json` the second (optional) one.
+  - Remove attributes:
+    - `holder_by_name`
+      - Use `simulation.get_holder(...)` or `entity.get_holder(...)` instead
+  - Remove methods:
+    - `compute`
+      - Use `calculate` instead
+    - `compute_add`
+      - Use `calculate_add` instead
+    - `compute_divide`
+        - Use `calculate_divide` instead
+    - `parameters_at`
+      - Use `simulation.tax_benefit_sytem.get_parameters_at_instant` instead
+    - `graph`
+    - `to_input_variables_json`
+  - Undeprecate, but slightly change the behaviour of the `get_holder(variable)` method:
+    - Optional second argument `default` is not accepted anymore
+    - If no holder has yet been created for the variable, no error is raised, and a new holder is created and returned.
+
+#### New features
+
+- Introduce `variable.formulas`, a sorted dict containing all the formulas of a variable:
+
+```py
+tax_benefit_system.get_variable('basic_income').formulas
+>>> SortedDict({
+    '2015-12-01': <function formula_2015_12 at 0x1079aa500>,
+    '2016-12-01': <function formula_2016_12 at 0x1079aa488>
+    })
+```
+
+Each value is a simple python function.
+
+- Make `holder.set_input` more flexible
+  - It now accepts a string as `period`
+  - It now accepts a list as `array`
+
+#### Technical changes
+
+- Remove module `formulas` and class `Formula`
+  - Variables's formulas are now simple functions.
+- Remove class `DatedHolder`
+  - All calculation methods now return a simple numpy array
+- Variables don't necessary have a base function anymore
+  - Without a base function, the default behavior is to return the default value if there is no formula.
+
 ## 22.1.0 [#648](https://github.com/openfisca/openfisca-core/pull/648)
 
 * Allow two variable file to have the same name in a tax and benefit system

@@ -1,53 +1,30 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-
 from . import periods
 
+"""
+    base_function is an optional variable attribute that can optionally be set to one of the functions defined in this module.
 
-def permanent_default_value(formula, simulation, period, *extra_params):
-    warnings.warn(
-        u"permanent_default_value is deprecated"
-        u"permanent_default_value has the same effect "
-        u"than requested_period_default_value, the default base_function for float and int variables. "
-        u"There is thus no need to specifiy it. ",
-        Warning
-        )
-
-    return requested_period_default_value(formula, simulation, period, *extra_params)
+    If a variable is calculated at a period for which it does not have a formulas, its base_function will be called to try to infere a value based on past or future values of the variable.
+"""
 
 
-def requested_period_added_value(formula, simulation, period, *extra_params):
-    warnings.warn(
-        u"requested_period_added_value is deprecated. "
-        u"Since OpenFisca Core 6.0, requested_period_added_value has the same effect "
-        u"than requested_period_default_value, the default base_function for float and int variables. "
-        u"There is thus no need to specifiy it. ",
-        Warning
-        )
-    return requested_period_default_value(formula, simulation, period, *extra_params)
+def requested_period_default_value(holder, period, *extra_params):
+    """
+        This formula is used for variables for which we don't want to make any inference about the value for a given period based on past or future values.
+
+        Having this `base_function` is strictly equivalent to not having a `base_function`, but it can still be needed to overwrite an unwanted default `base_function`.
+    """
+    return None
 
 
-def requested_period_default_value(formula, simulation, period, *extra_params):
-    if formula.find_function(period) is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    holder = formula.holder
-    array = holder.default_array()
-    return array
-
-
-def requested_period_last_value(formula, simulation, period, *extra_params, **kwargs):
+def requested_period_last_value(holder, period, *extra_params, **kwargs):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable
     """
 
-    function = formula.find_function(period)
-    if function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-
     accept_future_value = kwargs.pop('accept_future_value', False)
-    holder = formula.holder
     known_periods = holder.get_known_periods()
     if not known_periods:
         return holder.default_array()
@@ -58,21 +35,16 @@ def requested_period_last_value(formula, simulation, period, *extra_params, **kw
     if accept_future_value:
         next_period = known_periods[-1]
         return holder.get_array(next_period, extra_params)
-    return holder.default_array()
+    return None
 
 
-def requested_period_last_or_next_value(formula, simulation, period, *extra_params):
+def requested_period_last_or_next_value(holder, period, *extra_params):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable, or the next value if there is no past value.
     """
-    return requested_period_last_value(formula, simulation, period, *extra_params, accept_future_value = True)
+    return requested_period_last_value(holder, period, *extra_params, accept_future_value = True)
 
 
-def missing_value(formula, simulation, period, *extra_params):
-    function = formula.find_function(period)
-    if function is not None:
-        return formula.exec_function(simulation, period, *extra_params)
-    holder = formula.holder
-    variable = holder.variable
-    raise ValueError(u"Missing value for variable {} at {}".format(variable.name, period))
+def missing_value(holder, period, *extra_params):
+    raise ValueError(u"Missing value for variable {} at {}".format(holder.variable.name, period))

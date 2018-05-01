@@ -107,3 +107,22 @@ def test_none():
 @raises(ValueError)
 def test_empty_string():
     period('')
+
+
+def test_subperiods():
+
+    def check_subperiods(period, unit, length, first, last):
+        subperiods = period.get_subperiods(unit)
+        assert len(subperiods) == length
+        assert subperiods[0] == first
+        assert subperiods[-1] == last
+
+    tests = [
+        (period(2017), MONTH, 12, period('2017-01'), period('2017-12')),
+        (period('year:2014:2'), MONTH, 24, period('2014-01'), period('2015-12')),
+        (period('month:2014-03:3'), MONTH, 3, period('2014-03'), period('2014-05')),
+        (period('year:2014:2'), YEAR, 2, period('2014'), period('2015')),
+        ]
+
+    for test in tests:
+        yield (check_subperiods,) + test

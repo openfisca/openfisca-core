@@ -20,8 +20,8 @@ class intermediate(Variable):
     label = u"Intermediate result that don't need to be cached"
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('input', period)
+    def formula(person, period):
+        return person('input', period)
 
 
 class output(Variable):
@@ -30,8 +30,8 @@ class output(Variable):
     label = u'Output variable'
     definition_period = MONTH
 
-    def formula(self, simulation, period):
-        return simulation.calculate('intermediate', period)
+    def formula(person, period):
+        return person('intermediate', period)
 
 
 def get_filled_tbs():

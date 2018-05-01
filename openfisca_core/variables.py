@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 
 
-import inspect
-import textwrap
 import datetime
+from datetime import date
+import inspect
+import re
+import textwrap
 
 import numpy as np
+from sortedcontainers.sorteddict import SortedDict
 
-import entities
-from formulas import Formula
-import periods
-from periods import MONTH, YEAR, ETERNITY
-from base_functions import (
+from .base_functions import (
     missing_value,
-    permanent_default_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from datetime import date
-from indexed_enums import Enum, ENUM_ARRAY_DTYPE
+from . import entities
+from .indexed_enums import Enum, ENUM_ARRAY_DTYPE
+from . import periods
+from .periods import MONTH, YEAR, ETERNITY
+
 
 VALUE_TYPES = {
     bool: {
@@ -60,6 +61,9 @@ VALUE_TYPES = {
     }
 
 
+FORMULA_NAME_PREFIX = 'formula'
+
+
 class Variable(object):
     """
 
@@ -82,6 +86,10 @@ class Variable(object):
        .. py:attribute:: definition_period
 
            `Period <http://openfisca.org/doc/coding-the-legislation/35_periods.html>`_ the variable is defined for. Possible value: ``MONTH``, ``YEAR``, ``ETERNITY``.
+
+       .. py:attribute:: formulas
+
+           Formulas used to calculate the variable
 
        .. py:attribute:: label
 
@@ -108,10 +116,6 @@ class Variable(object):
        .. py:attribute:: end
 
            `Date <http://openfisca.org/doc/coding-the-legislation/40_legislation_evolutions.html#variable-end>`_  when the variable disappears from the legislation.
-
-       .. py:attribute:: formula
-
-           Formula used to calculate the variable
 
        .. py:attribute:: is_neutralized
 
@@ -140,7 +144,9 @@ class Variable(object):
 
     def __init__(self, baseline_variable = None):
         self.name = unicode(self.__class__.__name__)
-        attr = dict(self.__class__.__dict__)
+        attr = {
+            name: value for name, value in self.__class__.__dict__.iteritems()
+            if not name.startswith('__')}
         self.baseline_variable = baseline_variable
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
@@ -166,8 +172,18 @@ class Variable(object):
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
         self.base_function = self.set_base_function(attr.pop('base_function', None))
-        self.formula = Formula.build_formula_class(attr, self, baseline_variable)
+
+        formulas_attr, unexpected_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
+        self.formulas = self.set_formulas(formulas_attr)
+
+        if unexpected_attrs:
+            raise ValueError(
+                u'Unexpected attributes in definition of variable "{}": {!r}'
+                .format(self.name, ', '.join(sorted(unexpected_attrs.iterkeys()))))
+
         self.is_neutralized = False
+
+    # ----- Setters used to build the variable ----- #
 
     def set(self, attributes, attribute_name, required = False, allowed_values = None, allowed_type = None, setter = None, default = None):
         value = attributes.pop(attribute_name, None)
@@ -237,37 +253,92 @@ class Variable(object):
 
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
-            return self.baseline_variable.formula.base_function.im_func
-        if self.definition_period == ETERNITY:
-            if base_function and base_function not in [permanent_default_value, requested_period_default_value]:
-                raise ValueError('Unexpected base_function {}'.format(base_function))
-            return requested_period_default_value
+            return self.baseline_variable.base_function
 
-        if self.is_period_size_independent:
-            if base_function is None:
-                return requested_period_last_value
-            if base_function in [missing_value, requested_period_last_value, requested_period_last_or_next_value]:
-                return base_function
-            raise ValueError('Unexpected base_function {}'.format(base_function))
+        if base_function and base_function not in {
+                missing_value,
+                requested_period_default_value,
+                requested_period_last_or_next_value,
+                requested_period_last_value
+                }:
+            raise ValueError(u'Unexpected base_function {}'.format(base_function).encode('utf-8'))
 
-        if base_function is None:
-            return requested_period_default_value
+        if self.is_period_size_independent and base_function is None:
+            return requested_period_last_value
 
         return base_function
 
     def set_set_input(self, set_input):
         if not set_input and self.baseline_variable:
-            return self.baseline_variable.formula.set_input.im_func
+            return self.baseline_variable.set_input
         return set_input
 
     def set_calculate_output(self, calculate_output):
         if not calculate_output and self.baseline_variable:
-            return self.baseline_variable.formula.calculate_output.im_func
+            return self.baseline_variable.calculate_output
         return calculate_output
 
+    def set_formulas(self, formulas_attr):
+        formulas = SortedDict()
+        for formula_name, formula in formulas_attr.items():
+            starting_date = self.parse_formula_name(formula_name)
+
+            if self.end is not None and starting_date > self.end:
+                raise ValueError(u'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
+                    .format(self.name, self.end, starting_date, formula_name).encode('utf-8'))
+
+            formulas[str(starting_date)] = formula
+
+        # If the variable is reforming a baseline variable, keep the formulas from the latter when they are not overridden by new formulas.
+        if self.baseline_variable is not None:
+            first_reform_formula_date = formulas.peekitem(0)[0] if formulas else None
+            formulas.update({
+                baseline_start_date: baseline_formula
+                for baseline_start_date, baseline_formula in self.baseline_variable.formulas.iteritems()
+                if first_reform_formula_date is None or baseline_start_date < first_reform_formula_date
+                })
+
+        return formulas
+
+    def parse_formula_name(self, attribute_name):
+        """
+        Returns the starting date of a formula based on its name.
+
+        Valid dated name formats are : 'formula', 'formula_YYYY', 'formula_YYYY_MM' and 'formula_YYYY_MM_DD' where YYYY, MM and DD are a year, month and day.
+
+        By convention, the starting date of:
+            - `formula` is `0001-01-01` (minimal date in Python)
+            - `formula_YYYY` is `YYYY-01-01`
+            - `formula_YYYY_MM` is `YYYY-MM-01`
+        """
+
+        def raise_error():
+            raise ValueError(
+                u'Unrecognized formula name in variable "{}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{}".'
+                .format(self.name, attribute_name).encode('utf-8'))
+
+        if attribute_name == FORMULA_NAME_PREFIX:
+            return date.min
+
+        FORMULA_REGEX = r'formula_(\d{4})(?:_(\d{2}))?(?:_(\d{2}))?$'  # YYYY or YYYY_MM or YYYY_MM_DD
+
+        match = re.match(FORMULA_REGEX, attribute_name)
+        if not match:
+            raise_error()
+        date_str = '-'.join([match.group(1), match.group(2) or '01', match.group(3) or '01'])
+
+        try:
+            return datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:  # formula_2005_99_99 for instance
+            raise_error()
+
+    # ----- Methods ----- #
+
     def is_input_variable(self):
-        """Returns true if the variable is an input variable."""
-        return self.formula.dated_formulas_class == []
+        """
+            Returns True if the variable is an input variable.
+        """
+        return len(self.formulas) == 0
 
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):
@@ -301,30 +372,59 @@ class Variable(object):
 
         If no period is given and the variable has several formula, return the oldest formula.
 
-        Note: variable.get_formula() returns a simple function, while variable.formula is the subclass of Formula associated to the Variable, a more complex OpenFisca object.
-
         :returns: Formula used to compute the variable
         :rtype: function
         """
 
-        if period is None:
-            return self.formula.dated_formulas_class[0]['formula_class'].formula.im_func
-
-        if not isinstance(period, periods.Period):
-            period = periods.period(period)
-
-        if self.end and period.start.date > self.end:
+        if not self.formulas:
             return None
 
-        for dated_formula in reversed(self.formula.dated_formulas_class):
-            start = dated_formula['start_instant'].date
+        if period is None:
+            return self.formulas.peekitem(index = 0)[1]  # peekitem gets the 1st key-value tuple (the oldest start_date and formula). Return the formula.
 
-            if period.start.date >= start:
-                return dated_formula['formula_class'].formula.im_func
+        if isinstance(period, periods.Period):
+            instant = period.start
+        else:
+            try:
+                instant = periods.period(period).start
+            except ValueError:
+                instant = periods.instant(period)
+
+        if self.end and instant.date > self.end:
+            return None
+
+        instant = str(instant)
+        for start_date in reversed(self.formulas):
+            if start_date <= instant:
+                return self.formulas[start_date]
 
         return None
 
     def clone(self):
         clone = self.__class__()
-        clone.formula = type(self.formula.__name__, self.formula.__bases__, dict(self.formula.__dict__))  # Class clone
         return clone
+
+
+def _partition(dict, predicate):
+    true_dict = {}
+    false_dict = {}
+
+    for key, value in dict.items():
+        if predicate(key, value):
+            true_dict[key] = value
+        else:
+            false_dict[key] = value
+
+    return true_dict, false_dict
+
+
+def get_neutralized_variable(variable):
+    """
+        Return a new neutralized variable (to be used by reforms).
+        A neutralized variable always returns its default value, and does not cache anything.
+    """
+    result = variable.clone()
+    result.is_neutralized = True
+    result.label = u'[Neutralized]' if variable.label is None else u'[Neutralized] {}'.format(variable.label),
+
+    return result

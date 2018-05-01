@@ -409,6 +409,25 @@ class Period(tuple):
             (intersection_stop.date - intersection_start.date).days + 1,
             ))
 
+    def get_subperiods(self, unit):
+        """
+            Return the list of all the periods of unit ``unit`` contained in self.
+
+            Examples:
+
+            >>> period('2017').get_subperiods(MONTH)
+            >>> [period('2017-01'), period('2017-02'), ... period('2017-12')]
+
+            >>> period('year:2014:2').get_subperiods(YEAR)
+            >>> [period('2014'), period('2015')]
+        """
+        if self.unit == MONTH and unit == YEAR:
+            raise ValueError(u'Cannot subdivise months into years')
+        if self.unit == YEAR and unit == YEAR:
+            return [self.this_year.offset(i, YEAR) for i in range(self.size)]
+
+        return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+
     def offset(self, offset, unit = None):
         """Increment (or decrement) the given period with offset units.
 

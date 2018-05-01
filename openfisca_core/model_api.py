@@ -11,18 +11,18 @@ from numpy import (   # noqa analysis:ignore
     where,
 )
 
-from .indexed_enums import Enum  # noqa analysis:ignore
-from .formulas import (  # noqa analysis:ignore
-    ADD,
-    calculate_output_add,
-    calculate_output_divide,
-    DIVIDE,
+from .holders import (  # noqa analysis:ignore
     set_input_dispatch_by_period,
     set_input_divide_by_period,
     )
+from .indexed_enums import Enum  # noqa analysis:ignore
+from .entities import (ADD, DIVIDE)  # noqa analysis:ignore
+from .simulations import (  # noqa analysis:ignore
+    calculate_output_add,
+    calculate_output_divide,
+    )
 from .base_functions import (   # noqa analysis:ignore
     missing_value,
-    requested_period_added_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
