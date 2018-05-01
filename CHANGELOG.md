@@ -1,5 +1,10 @@
 # Changelog
 
+### 23.0.1 [656](https://github.com/openfisca/openfisca-core/pull/656)
+
+* Re-accept `int` values for `instant` in `tax_benefit_system.get_parameter_at_instant(instant)`
+  * `int` values were accidently rejected since v23
+
 # 23.0.0 [641](https://github.com/openfisca/openfisca-core/pull/641)
 
 This changeset aims at simplifying the OpenFisca Core architecture.
