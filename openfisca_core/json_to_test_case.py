@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-from columns import make_column_from_variable
 
-from . import conv
+from openfisca_core.columns import make_column_from_variable
+from openfisca_core import conv
+from openfisca_core.commons import unicode_type
 
 
 def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_system):

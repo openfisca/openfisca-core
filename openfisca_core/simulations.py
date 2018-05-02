@@ -8,10 +8,10 @@ import logging
 import dpath
 import numpy as np
 
-import periods
-from commons import empty_clone, stringify_array
-from tracers import Tracer
-from .indexed_enums import Enum, EnumArray
+from openfisca_core import periods
+from openfisca_core.commons import empty_clone, stringify_array
+from openfisca_core.tracers import Tracer
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 
 log = logging.getLogger(__name__)

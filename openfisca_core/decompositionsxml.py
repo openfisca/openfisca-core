@@ -6,7 +6,7 @@
 
 import collections
 
-from . import conv
+from openfisca_core import conv
 
 
 def N_(message):

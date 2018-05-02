@@ -2,8 +2,8 @@
 
 import copy
 
-from .parameters import ParameterNode
-from .taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.parameters import ParameterNode
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem
 
 
 class Reform(TaxBenefitSystem):

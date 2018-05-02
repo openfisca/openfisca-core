@@ -12,8 +12,8 @@ import os
 import numpy as np
 from numpy import maximum as max_, minimum as min_
 
-from .commons import empty_clone
-from tools import indent
+from openfisca_core.commons import empty_clone
+from openfisca_core.tools import indent
 
 log = logging.getLogger(__name__)
 

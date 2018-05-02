@@ -1,14 +1,14 @@
 import numpy as np
 from openfisca_core.tools import assert_near
 
-from test_countries import tax_benefit_system
 from openfisca_country_template.situation_examples import single
 from openfisca_country_template.entities import Person
 from openfisca_core.model_api import *  # noqa
 from openfisca_core.simulations import Simulation
 from openfisca_core.periods import period
 
-from test_holders import force_storage_on_disk
+from .test_countries import tax_benefit_system
+from .test_holders import force_storage_on_disk
 
 
 class state_variable(Variable):

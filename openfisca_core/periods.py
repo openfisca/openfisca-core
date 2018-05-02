@@ -16,7 +16,7 @@ import datetime
 import re
 from os import linesep
 
-from . import conv
+from openfisca_core import conv
 
 
 MONTH = u'month'

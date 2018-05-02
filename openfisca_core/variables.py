@@ -2,24 +2,24 @@
 
 
 import datetime
-from datetime import date
 import inspect
 import re
 import textwrap
 
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
+from datetime import date
 
-from .base_functions import (
+from openfisca_core import entities
+from openfisca_core import periods
+from openfisca_core.indexed_enums import Enum, ENUM_ARRAY_DTYPE
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.base_functions import (
     missing_value,
     requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from . import entities
-from .indexed_enums import Enum, ENUM_ARRAY_DTYPE
-from . import periods
-from .periods import MONTH, YEAR, ETERNITY
 
 
 VALUE_TYPES = {

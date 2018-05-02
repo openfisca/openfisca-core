@@ -8,12 +8,12 @@ from os import linesep
 import numpy as np
 import dpath
 
-from indexed_enums import Enum, EnumArray
-from scenarios import iter_over_entity_members
-from simulations import check_type, SituationParsingError
-from holders import Holder, PeriodMismatchError
-from periods import compare_period_size, period as make_period
-from errors import VariableNotFound
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.scenarios import iter_over_entity_members
+from openfisca_core.simulations import check_type, SituationParsingError
+from openfisca_core.holders import Holder, PeriodMismatchError
+from openfisca_core.periods import compare_period_size, period as make_period
+from openfisca_core.errors import VariableNotFound
 
 ADD = 'add'
 DIVIDE = 'divide'

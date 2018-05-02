@@ -10,12 +10,12 @@ import traceback
 
 import yaml
 import numpy as np
-from indexed_enums import Enum, EnumArray
 
-from . import taxscales
-from . import periods
-from periods import INSTANT_PATTERN
-from tools import indent
+from openfisca_core import taxscales
+from openfisca_core import periods
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import INSTANT_PATTERN
+from openfisca_core.tools import indent
 
 log = logging.getLogger(__name__)
 

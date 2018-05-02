@@ -8,7 +8,7 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
-from test_countries import tax_benefit_system
+from .test_countries import tax_benefit_system
 
 
 def get_simulation(json, **kwargs):

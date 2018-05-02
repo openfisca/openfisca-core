@@ -5,8 +5,8 @@ import collections
 import copy
 from xml.etree import ElementTree
 
-from . import conv, decompositionsxml, parameters
-from columns import make_column_from_variable
+from openfisca_core import conv, decompositionsxml, parameters
+from openfisca_core.columns import make_column_from_variable
 
 
 def calculate(simulations, decomposition_json):

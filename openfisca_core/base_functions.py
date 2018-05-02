@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from . import periods
 
 """
     base_function is an optional variable attribute that can optionally be set to one of the functions defined in this module.

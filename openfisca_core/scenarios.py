@@ -8,8 +8,8 @@ import itertools
 
 import numpy as np
 
-from . import conv, periods, simulations, json_to_test_case, columns
-from .indexed_enums import Enum
+from openfisca_core import conv, periods, simulations, json_to_test_case, columns
+from openfisca_core.indexed_enums import Enum
 
 
 def N_(message):
