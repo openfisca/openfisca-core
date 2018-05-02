@@ -17,6 +17,7 @@ import re
 from os import linesep
 
 from openfisca_core import conv
+from openfisca_core.commons import unicode_type, basestring_type
 
 
 MONTH = u'month'
@@ -327,7 +328,10 @@ class Period(tuple):
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
-                return unicode(year)
+                if isinstance(year, unicode_type):
+                    return year
+                else:
+                    return unicode(year)
             else:
                 # rolling year
                 return u'{}:{}-{:02d}'.format(YEAR, year, month)
@@ -671,9 +675,11 @@ class Period(tuple):
         return Instant((year, month, day))
 
     def to_json_dict(self):
+        if not isinstance(self[1], unicode_type):
+            self[1] = unicode(self[1])
         return collections.OrderedDict((
             ('unit', self[0]),
-            ('start', unicode(self[1])),
+            ('start', self[1]),
             ('size', self[2]),
             ))
 
@@ -730,7 +736,7 @@ def instant(instant):
         return None
     if isinstance(instant, Instant):
         return instant
-    if isinstance(instant, basestring):
+    if isinstance(instant, basestring_type):
         if not INSTANT_PATTERN.match(instant):
             raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant).encode('utf-8'))
         instant = Instant(
@@ -816,7 +822,7 @@ def period(value):
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if not isinstance(value, basestring):
+    if not isinstance(value, basestring_type):
         raise_error(value)
 
     # try to parse as a simple period
@@ -1065,7 +1071,7 @@ def json_or_python_to_instant_tuple(value, state = None):
     if state is None:
         state = conv.default_state
 
-    if isinstance(value, basestring):
+    if isinstance(value, basestring_type):
         if year_or_month_or_day_re.match(value) is None:
             return value, state._(u'Invalid date string')
         instant = tuple(

@@ -20,6 +20,7 @@ from openfisca_core.base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
+from openfisca_core.commons import unicode_type, basestring_type
 
 
 VALUE_TYPES = {
@@ -143,7 +144,10 @@ class Variable(object):
     """
 
     def __init__(self, baseline_variable = None):
-        self.name = unicode(self.__class__.__name__)
+        self.name = self.__class__.__name__
+        # This block is only for Python 2
+        if not isinstance(self.name, unicode_type):
+            self.name = unicode(self.name)
         attr = {
             name: value for name, value in self.__class__.__dict__.iteritems()
             if not name.startswith('__')}
@@ -163,11 +167,11 @@ class Variable(object):
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
         self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (MONTH, YEAR, ETERNITY))
-        self.label = self.set(attr, 'label', allowed_type = basestring, setter = self.set_label)
-        self.end = self.set(attr, 'end', allowed_type = basestring, setter = self.set_end)
+        self.label = self.set(attr, 'label', allowed_type = basestring_type, setter = self.set_label)
+        self.end = self.set(attr, 'end', allowed_type = basestring_type, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
-        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (basestring, dict))
-        self.unit = self.set(attr, 'unit', allowed_type = basestring)
+        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (str, unicode_type, dict))
+        self.unit = self.set(attr, 'unit', allowed_type = basestring_type)
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
@@ -220,7 +224,7 @@ class Variable(object):
 
     def set_label(self, label):
         if label:
-            if isinstance(label, unicode):
+            if isinstance(label, unicode_type):
                 return label
             else:
                 return unicode(label, 'utf-8')
@@ -234,8 +238,10 @@ class Variable(object):
 
     def set_reference(self, reference):
         if reference:
-            if isinstance(reference, basestring):
+            if isinstance(reference, unicode_type):
                 reference = [reference]
+            elif isinstance(reference, str):
+                reference = [unicode(reference, 'utf-8')]
             elif isinstance(reference, list):
                 pass
             elif isinstance(reference, tuple):
@@ -244,7 +250,7 @@ class Variable(object):
                 raise TypeError('The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(self.name, type(reference)))
 
             for element in reference:
-                if not isinstance(element, basestring):
+                if not isinstance(element, basestring_type):
                     raise TypeError(
                         'The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(
                             self.name, type(reference)))

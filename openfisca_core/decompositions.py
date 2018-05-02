@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 
 from openfisca_core import conv, decompositionsxml, parameters
 from openfisca_core.columns import make_column_from_variable
+from openfisca_core.commons import basestring_type
 
 
 def calculate(simulations, decomposition_json):
@@ -87,7 +88,7 @@ def make_validate_node_json(tax_benefit_system):
                     ),
                 conv.pipe(
                     conv.condition(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.function(lambda code: dict(code = code)),
                         conv.test_isinstance(dict),
                         ),
@@ -102,7 +103,7 @@ def make_validate_node_json(tax_benefit_system):
                                 conv.empty_to_none,
                                 ),
                             code = conv.pipe(
-                                conv.test_isinstance(basestring),
+                                conv.test_isinstance(basestring_type),
                                 conv.cleanup_line,
                                 ),
                             ),

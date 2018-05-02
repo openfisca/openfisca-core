@@ -18,6 +18,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.errors import VariableNotFound
+from openfisca_core.commons import unicode_type
 
 
 log = logging.getLogger(__name__)
@@ -97,7 +98,10 @@ class TaxBenefitSystem(object):
         pass
 
     def load_variable(self, variable_class, update = False):
-        name = unicode(variable_class.__name__)
+        name = variable_class.__name__
+        # This block is only for Python 2
+        if not isinstance(name, unicode_type):
+            name = unicode(name)
 
         # Check if a Variable with the same name is already registered.
         baseline_variable = self.get_variable(name)

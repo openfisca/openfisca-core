@@ -2,6 +2,7 @@
 
 import os
 from ..indexed_enums import Enum, EnumArray
+from openfisca_core.commons import unicode_type
 
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
@@ -25,7 +26,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         value = np.array(value)
     if isinstance(target_value, (list, tuple)):
         target_value = np.array(target_value)
-    if isinstance(message, unicode):
+    if isinstance(message, unicode_type):
         message = message.encode('utf-8')
     if isinstance(value, np.ndarray):
         if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):

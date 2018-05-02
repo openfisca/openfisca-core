@@ -14,6 +14,7 @@ from openfisca_core.simulations import check_type, SituationParsingError
 from openfisca_core.holders import Holder, PeriodMismatchError
 from openfisca_core.periods import compare_period_size, period as make_period
 from openfisca_core.errors import VariableNotFound
+from openfisca_core.commons import basestring_type
 
 ADD = 'add'
 DIVIDE = 'divide'
@@ -89,7 +90,7 @@ class Entity(object):
                     array = holder.buffer.get(period)
                     if array is None:
                         array = holder.default_array()
-                    if holder.variable.value_type == Enum and isinstance(value, basestring):
+                    if holder.variable.value_type == Enum and isinstance(value, basestring_type):
                         try:
                             value = holder.variable.possible_values[value].index
                         except KeyError:
@@ -416,7 +417,7 @@ class GroupEntity(Entity):
         for role_id, role_definition in roles_json.iteritems():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
-                check_type(person_id, basestring, [self.plural, entity_id, role_id, str(index)])
+                check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         u"Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(

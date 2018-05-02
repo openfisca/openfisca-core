@@ -10,6 +10,7 @@ import numpy as np
 
 from openfisca_core import conv, periods, simulations, json_to_test_case, columns
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.commons import basestring_type
 
 
 def N_(message):
@@ -512,7 +513,7 @@ def make_json_or_python_to_axes(tax_benefit_system):
                                     conv.not_none,
                                     ),
                                 name = conv.pipe(
-                                    conv.test_isinstance(basestring),
+                                    conv.test_isinstance(basestring_type),
                                     conv.test_in(column_by_name),
                                     conv.test(lambda column_name: tax_benefit_system.get_variable(column_name).dtype in (
                                         np.float32, np.int16, np.int32),
@@ -547,7 +548,7 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
             conv.test_isinstance(dict),
             conv.uniform_mapping(
                 conv.pipe(
-                    conv.test_isinstance(basestring),
+                    conv.test_isinstance(basestring_type),
                     conv.not_none,
                     ),
                 conv.noop,
@@ -601,14 +602,14 @@ def make_json_or_python_to_test(tax_benefit_system):
                     ),
                 axes = make_json_or_python_to_axes(tax_benefit_system),
                 description = conv.pipe(
-                    conv.test_isinstance(basestring),
+                    conv.test_isinstance(basestring_type),
                     conv.cleanup_line,
                     ),
                 input_variables = conv.pipe(
                     conv.test_isinstance(dict),
                     conv.uniform_mapping(
                         conv.pipe(
-                            conv.test_isinstance(basestring),
+                            conv.test_isinstance(basestring_type),
                             conv.not_none,
                             ),
                         conv.noop,
@@ -620,7 +621,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
                         conv.pipe(
-                            conv.test_isinstance(basestring),
+                            conv.test_isinstance(basestring_type),
                             conv.cleanup_line,
                             ),
                         drop_none_items = True,
@@ -628,7 +629,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.empty_to_none,
                     ),
                 name = conv.pipe(
-                    conv.test_isinstance(basestring),
+                    conv.test_isinstance(basestring_type),
                     conv.cleanup_line,
                     ),
                 output_variables = conv.test_isinstance(dict),

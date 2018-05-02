@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+unicode_type = u"".__class__
+basestring_type = (str, unicode_type)
+
 
 class Dummy(object):
     """A class that does nothing

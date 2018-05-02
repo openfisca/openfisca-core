@@ -18,6 +18,7 @@ import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
+from openfisca_core.commons import unicode_type
 
 log = logging.getLogger(__name__)
 
@@ -26,10 +27,10 @@ log = logging.getLogger(__name__)
 
 def _config_yaml(yaml):
 
-    class folded_unicode(unicode):
+    class folded_unicode(unicode_type):
         pass
 
-    class literal_unicode(unicode):
+    class literal_unicode(unicode_type):
         pass
 
     def dict_constructor(loader, node):
@@ -53,7 +54,7 @@ def _config_yaml(yaml):
     yaml.add_representer(periods.Instant, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
     yaml.add_representer(periods.Period, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
     yaml.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
-    yaml.add_representer(unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
+    yaml.add_representer(unicode_type, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
 
     return yaml
 
