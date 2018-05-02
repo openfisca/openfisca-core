@@ -863,27 +863,31 @@ def period(value):
     return Period((unit, base_period.start, size))
 
 
-def compare_period_size(a, b):
-    unit_a, start_a, size_a = a
-    unit_b, start_b, size_b = b
+def key_period_size(period):
+    """
+    Defines a key in order to sort periods by length. It uses two aspects : first unit then size
 
-    if unit_a != unit_b:
-        unit_weights = {
-            MONTH: 1,
-            YEAR: 2,
-            ETERNITY: 3,
-            }
+    :param period: an OpenFisca period
+    :return: a string
 
-        return cmp(unit_weights[unit_a], unit_weights[unit_b])
+    >>> key_period_size(period('2014'))
+    '2_1'
+    >>> key_period_size(period('2013'))
+    '2_1'
+    >>> key_period_size(period('2014-01'))
+    '1_1'
 
-    return cmp(size_a, size_b)
+    """
 
+    unit_weights = {
+        MONTH: 1,
+        YEAR: 2,
+        ETERNITY: 3,
+        }
 
-def compare_period_start(a, b):
-    unit_a, start_a, size_a = a
-    unit_b, start_b, size_b = b
+    unit, start, size = period
 
-    return cmp(start_a, start_b)
+    return '{}_{}'.format(unit_weights[unit], size)
 
 
 # Level-1 converters

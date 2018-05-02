@@ -12,7 +12,7 @@ from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.scenarios import iter_over_entity_members
 from openfisca_core.simulations import check_type, SituationParsingError
 from openfisca_core.holders import Holder, PeriodMismatchError
-from openfisca_core.periods import compare_period_size, period as make_period
+from openfisca_core.periods import key_period_size, period as make_period
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import basestring_type
 
@@ -111,7 +111,7 @@ class Entity(object):
         for variable_name, holder in self._holders.iteritems():
             periods = holder.buffer.keys()
             # We need to handle small periods first for set_input to work
-            sorted_periods = sorted(periods, cmp = compare_period_size)
+            sorted_periods = sorted(periods, key=key_period_size)
             for period in sorted_periods:
                 array = holder.buffer[period]
                 try:
