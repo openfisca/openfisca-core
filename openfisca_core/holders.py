@@ -130,8 +130,8 @@ class Holder(object):
             Get the list of periods the variable value is known for.
         """
 
-        return self._memory_storage.get_known_periods() + (
-            self._disk_storage.get_known_periods() if self._disk_storage else [])
+        return list(self._memory_storage.get_known_periods()) + list((
+            self._disk_storage.get_known_periods() if self._disk_storage else []))
 
     def set_input(self, period, array):
         """
