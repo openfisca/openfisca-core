@@ -149,7 +149,7 @@ class Variable(object):
         if not isinstance(self.name, unicode_type):
             self.name = unicode(self.name)
         attr = {
-            name: value for name, value in self.__class__.__dict__.iteritems()
+            name: value for name, value in self.__class__.__dict__.items()
             if not name.startswith('__')}
         self.baseline_variable = baseline_variable
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
@@ -295,7 +295,7 @@ class Variable(object):
             first_reform_formula_date = formulas.peekitem(0)[0] if formulas else None
             formulas.update({
                 baseline_start_date: baseline_formula
-                for baseline_start_date, baseline_formula in self.baseline_variable.formulas.iteritems()
+                for baseline_start_date, baseline_formula in self.baseline_variable.formulas.items()
                 if first_reform_formula_date is None or baseline_start_date < first_reform_formula_date
                 })
 

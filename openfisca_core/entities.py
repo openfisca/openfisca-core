@@ -52,7 +52,7 @@ class Entity(object):
         self.count = len(entities_json)
         self.step_size = self.count  # Related to axes.
         self.ids = sorted(entities_json.keys())
-        for entity_id, entity_object in entities_json.iteritems():
+        for entity_id, entity_object in entities_json.items():
             check_type(entity_object, dict, [self.plural, entity_id])
             if not self.is_person:
                 roles_json, variables_json = self.split_variables_and_roles_json(entity_object)
@@ -66,7 +66,7 @@ class Entity(object):
 
     def init_variable_values(self, entity_object, entity_id):
         entity_index = self.ids.index(entity_id)
-        for variable_name, variable_values in entity_object.iteritems():
+        for variable_name, variable_values in entity_object.items():
             path_in_json = [self.plural, entity_id, variable_name]
             try:
                 self.check_variable_defined_for_entity(variable_name)
@@ -80,7 +80,7 @@ class Entity(object):
                     u'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
 
             holder = self.get_holder(variable_name)
-            for date, value in variable_values.iteritems():
+            for date, value in variable_values.items():
                 path_in_json.append(date)
                 try:
                     period = make_period(date)
@@ -108,7 +108,7 @@ class Entity(object):
                     holder.buffer[period] = array
 
     def finalize_variables_init(self):
-        for variable_name, holder in self._holders.iteritems():
+        for variable_name, holder in self._holders.items():
             periods = holder.buffer.keys()
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, key=key_period_size)
@@ -414,7 +414,7 @@ class GroupEntity(Entity):
         self.roles_count = self.members_legacy_role.max() + 1
 
     def init_members(self, roles_json, entity_id):
-        for role_id, role_definition in roles_json.iteritems():
+        for role_id, role_definition in roles_json.items():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
                 check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
