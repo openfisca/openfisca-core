@@ -1,5 +1,16 @@
 # Changelog
 
+### 23.0.2 [#645](https://github.com/openfisca/openfisca-core/pull/645)
+
+* Technical improvement
+* Details:
+
+Start adapting OpenFisca to Python 3
+- Imports are now all absolute imports
+- `unicode_type` and `basestring_type` are now used for compatible type checking.
+- All calls for sorted() use the key parameter
+- Iteration on dict now uses dict.items()
+
 ### 23.0.1 [656](https://github.com/openfisca/openfisca-core/pull/656)
 
 * Re-accept `int` values for `instant` in `tax_benefit_system.get_parameter_at_instant(instant)`
