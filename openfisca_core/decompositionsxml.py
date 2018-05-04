@@ -7,7 +7,7 @@
 import collections
 
 from openfisca_core import conv
-from openfisca_core.commons import unicode_type, basestring_type
+from openfisca_core.commons import basestring_type, to_unicode
 
 
 def N_(message):
@@ -88,7 +88,7 @@ def make_validate_node_xml_json(tax_benefit_system):
                                 ),
                             ),
                         conv.test(lambda colors: len(colors) == 3, error = N_(u'Wrong number of colors in triplet.')),
-                        conv.function(lambda colors: u','.join(color if isinstance(color, unicode_type) else unicode(color) for color in colors)),
+                        conv.function(lambda colors: u','.join(to_unicode(color) for color in colors)),
                         ),
                     desc = conv.pipe(
                         conv.test_isinstance(basestring_type),

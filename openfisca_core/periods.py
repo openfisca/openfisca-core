@@ -17,7 +17,7 @@ import re
 from os import linesep
 
 from openfisca_core import conv
-from openfisca_core.commons import unicode_type, basestring_type, unicode_this
+from openfisca_core.commons import unicode_type, basestring_type, to_unicode
 
 
 MONTH = u'month'
@@ -328,7 +328,7 @@ class Period(tuple):
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
-                return unicode_this(year)
+                return to_unicode(year)
             else:
                 # rolling year
                 return u'{}:{}-{:02d}'.format(YEAR, year, month)

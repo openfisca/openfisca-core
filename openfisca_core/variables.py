@@ -20,7 +20,7 @@ from openfisca_core.base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from openfisca_core.commons import unicode_type, basestring_type, unicode_this
+from openfisca_core.commons import basestring_type, to_unicode
 
 
 VALUE_TYPES = {
@@ -144,10 +144,7 @@ class Variable(object):
     """
 
     def __init__(self, baseline_variable = None):
-        self.name = self.__class__.__name__
-        # This block is only for Python 2
-        if not isinstance(self.name, unicode_type):
-            self.name = unicode(self.name)
+        self.name = to_unicode(self.__class__.__name__)
         attr = {
             name: value for name, value in self.__class__.__dict__.items()
             if not name.startswith('__')}
@@ -170,7 +167,7 @@ class Variable(object):
         self.label = self.set(attr, 'label', allowed_type = basestring_type, setter = self.set_label)
         self.end = self.set(attr, 'end', allowed_type = basestring_type, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
-        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (str, unicode_type, dict))
+        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (basestring_type, dict))
         self.unit = self.set(attr, 'unit', allowed_type = basestring_type)
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
@@ -224,7 +221,7 @@ class Variable(object):
 
     def set_label(self, label):
         if label:
-            return unicode_this(label, 'utf-8')
+            return to_unicode(label)
 
     def set_end(self, end):
         if end:
@@ -236,7 +233,7 @@ class Variable(object):
     def set_reference(self, reference):
         if reference:
             if isinstance(reference, basestring_type):
-                reference = [unicode_this(reference, 'utf-8')]
+                reference = [to_unicode(reference)]
             elif isinstance(reference, list):
                 pass
             elif isinstance(reference, tuple):

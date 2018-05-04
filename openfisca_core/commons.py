@@ -5,23 +5,20 @@ unicode_type = u"".__class__
 basestring_type = (str, unicode_type)
 
 
-def unicode_this(string, encoding=None):
+def to_unicode(string):
     """
     :param string: a string that needs to be unicoded
     :param encoding: a string that represent the encoding type
     :return: a unicode string
     if the string is a python 2 str type, returns a unicode version of the string.
     """
+    if not isinstance(string, basestring_type):
+        string = str(string)
     if isinstance(string, unicode_type):
         return string
-    # These lines only gets triggered if the code is run in python 2
-    else:
-        if not encoding:
-            return unicode(string)
-        elif encoding == 'utf-8':
-            return unicode(string, 'utf-8')
-        else:
-            raise NameError('the encoding type {} is not handled'.format(encoding))
+
+    # Next line only gets triggered if the code is run in python 2
+    return unicode(string, 'utf-8')
 
 
 class Dummy(object):

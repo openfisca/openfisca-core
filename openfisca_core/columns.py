@@ -8,7 +8,7 @@ import numpy as np
 
 from openfisca_core import conv, periods
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.commons import unicode_type, basestring_type, unicode_this
+from openfisca_core.commons import unicode_type, basestring_type, to_unicode
 
 """
 Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
@@ -180,7 +180,7 @@ class DateCol(Column):
 
     def json_default(self):
         default = np.array(self.default_value, self.dtype)
-        return unicode_this(default)
+        return to_unicode(default)
 
     @property
     def json_to_dated_python(self):
@@ -240,7 +240,7 @@ class FloatCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((float, int, str, basestring_type)),
+            conv.test_isinstance((float, int, basestring_type)),
             conv.make_anything_to_float(accept_expression = True),
             )
 
@@ -256,7 +256,7 @@ class IntCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((int, str, basestring_type)),
+            conv.test_isinstance((int, basestring_type)),
             conv.make_anything_to_int(accept_expression = True),
             )
 
@@ -329,8 +329,8 @@ class EnumCol(Column):
 
     def json_default(self):
         default = self.default_value
-        if default is not None and not isinstance(default, unicode_type):
-            return unicode(default)
+        if default is not None:
+            to_unicode(default)
         return default
 
     @property
