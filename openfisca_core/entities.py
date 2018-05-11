@@ -151,7 +151,7 @@ class Entity(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise Exception(u"Entity {} has no attribute {}".format(self.key, attribute))
+            raise AttributeError(u"Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
     @classmethod
