@@ -2,7 +2,7 @@
 
 # The following two variables and the is_unicode function are there to bridge string types across Python 2 & 3
 unicode_type = u"".__class__
-basestring_type = (str, unicode_type)
+basestring_type = (b"".__class__, unicode_type)
 
 
 def to_unicode(string):

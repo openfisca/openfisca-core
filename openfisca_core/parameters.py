@@ -277,6 +277,7 @@ class ParameterAtInstant(object):
 
     def __repr__(self):
         result = "ParameterAtInstant({})".format({self.instant_str: self.value})
+        # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
             return result.encode('utf-8')
         return result
@@ -397,6 +398,7 @@ class ParameterNode(object):
                 ["{}:", "{}"]).format(name, indent(repr(value)))
                 for name, value in self.children.items()]
             )
+        # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
             return result.encode('utf-8')
         return result
