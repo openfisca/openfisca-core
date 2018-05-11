@@ -18,7 +18,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.errors import VariableNotFound
-from openfisca_core.commons import to_unicode
+from openfisca_core.commons import to_unicode, basestring_type
 
 
 log = logging.getLogger(__name__)
@@ -156,7 +156,7 @@ class TaxBenefitSystem(object):
                 # We only want to get the module classes defined in this module (not imported)
                 if isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
                     self.add_variable(pot_variable)
-        except:
+        except Exception:
             log.error(u'Unable to load OpenFisca variables from file "{}"'.format(file_path))
             raise
 
@@ -227,7 +227,7 @@ class TaxBenefitSystem(object):
         >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
         """
-        from reforms import Reform
+        from openfisca_core.reforms import Reform
         try:
             reform_package, reform_name = reform_path.rsplit('.', 1)
         except ValueError:
@@ -302,7 +302,7 @@ class TaxBenefitSystem(object):
         """
         if isinstance(instant, periods.Period):
             instant = instant.start
-        elif isinstance(instant, (basestring, int)):
+        elif isinstance(instant, (basestring_type, int)):
             instant = periods.instant(instant)
         else:
             assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)
@@ -379,6 +379,6 @@ class TaxBenefitSystem(object):
         else:
             return {
                 variable_name: variable
-                for variable_name, variable in self.variables.iteritems()
+                for variable_name, variable in self.variables.items()
                 if variable.entity == entity
                 }

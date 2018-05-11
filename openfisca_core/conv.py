@@ -66,7 +66,7 @@ def embed_error(value, error_key, error):
         return None
     if isinstance(value, dict):
         if isinstance(error, dict):
-            for child_key, child_error in error.iteritems():
+            for child_key, child_error in error.items():
                 child_error = embed_error(value.get(child_key), error_key, child_error)
                 if child_error is not None:
                     value.setdefault(error_key, {})[child_key] = child_error
@@ -75,13 +75,13 @@ def embed_error(value, error_key, error):
         return None
     if isinstance(value, list) and isinstance(error, dict):
         if all(isinstance(key, int) and 0 <= key < len(value) for key in error):
-            for child_index, child_error in error.iteritems():
+            for child_index, child_error in error.items():
                 child_error = embed_error(value[child_index], error_key, child_error)
                 if child_error is not None:
                     return error
             return None
         if all(isinstance(key, basestring) and key.isdigit() and 0 <= int(key) < len(value) for key in error):
-            for child_key, child_error in error.iteritems():
+            for child_key, child_error in error.items():
                 child_error = embed_error(value[int(child_key)], error_key, child_error)
                 if child_error is not None:
                     return error

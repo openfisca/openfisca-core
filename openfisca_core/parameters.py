@@ -5,6 +5,7 @@
 
 
 import os
+import sys
 import logging
 import traceback
 
@@ -57,7 +58,7 @@ class ParameterNotFound(AttributeError):
         message += (
             u" was not found in the {} tax and benefit system."
             ).format(instant_str)
-        super(ParameterNotFound, self).__init__(message)
+        super(ParameterNotFound, self).__init__(message.encode('utf-8'))
 
 
 class ParameterParsingError(Exception):
@@ -72,13 +73,12 @@ class ParameterParsingError(Exception):
         :param traceback: Traceback (optional)
         """
         if file is not None:
-            message = (
-                "Error parsing parameter file '{}':".format(file)
-                + os.linesep
-                + message
-                ).encode('utf-8')
+            message = os.linesep.join([
+                u"Error parsing parameter file '{}':".format(file),
+                message
+                ])
         if traceback is not None:
-            message = os.linesep + traceback + os.linesep + message
+            message = os.linesep.join([traceback, message]).encode('utf-8')
         super(ParameterParsingError, self).__init__(message)
 
 
@@ -131,8 +131,8 @@ class Parameter(object):
         for instant_str in instants:
             if not INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
-                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
-                    .format(instant_str, self.name).encode('utf-8'),
+                    u"Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
+                    .format(instant_str, self.name),
                     file_path)
 
             instant_info = data[instant_str]
@@ -263,12 +263,12 @@ class ParameterAtInstant(object):
             value = data['value']
         except KeyError:
             raise ParameterParsingError(
-                "Missing 'value' property for {}".format(self.name).encode('utf-8'),
+                u"Missing 'value' property for {}".format(self.name),
                 self.file_path
                 )
         if type(value) not in self._allowed_value_data_types:
             raise ParameterParsingError(
-                "Invalid value in {} : {}".format(self.name, value).encode('utf-8'),
+                u"Invalid value in {} : {}".format(self.name, value),
                 self.file_path
                 )
 
@@ -276,7 +276,10 @@ class ParameterAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        return "ParameterAtInstant({})".format({self.instant_str: self.value}).encode('utf-8')
+        result = "ParameterAtInstant({})".format({self.instant_str: self.value})
+        if sys.version_info < (3, 0):
+            return result.encode('utf-8')
+        return result
 
 
 class ParameterNode(object):
@@ -389,11 +392,14 @@ class ParameterNode(object):
         setattr(self, name, child)
 
     def __repr__(self):
-        return os.linesep.join(
+        result = os.linesep.join(
             [os.linesep.join(
-                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
-                for name, value in self.children.iteritems()]
+                ["{}:", "{}"]).format(name, indent(repr(value)))
+                for name, value in self.children.items()]
             )
+        if sys.version_info < (3, 0):
+            return result.encode('utf-8')
+        return result
 
 
 class ParameterNodeAtInstant(object):
@@ -411,7 +417,7 @@ class ParameterNodeAtInstant(object):
         self._name = name
         self._instant_str = instant_str
         self._children = {}
-        for child_name, child in node.children.iteritems():
+        for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
                 self._children[child_name] = child_at_instant
@@ -431,11 +437,14 @@ class ParameterNodeAtInstant(object):
         return iter(self._children)
 
     def __repr__(self):
-        return os.linesep.join(
+        result = os.linesep.join(
             [os.linesep.join(
-                ["{}:", "{}"]).format(name, indent(repr(value))).encode('utf-8')
-                for name, value in self._children.iteritems()]
+                ["{}:", "{}"]).format(name, indent(repr(value)))
+                for name, value in self._children.items()]
             )
+        if sys.version_info < (3, 0):
+            return result.encode('utf-8')
+        return result
 
 
 class VectorialParameterNodeAtInstant(object):
@@ -517,20 +526,20 @@ class VectorialParameterNodeAtInstant(object):
         def extract_named_children(node):
             return {
                 '.'.join([node._name, key]): value
-                for key, value in node._children.iteritems()
+                for key, value in node._children.items()
                 }
 
         def check_nodes_homogeneous(named_nodes):
             """
                 Check than several nodes (or parameters, or baremes) have the same structure.
             """
-            names = named_nodes.keys()
-            nodes = named_nodes.values()
+            names = list(named_nodes.keys())
+            nodes = list(named_nodes.values())
             first_node = nodes[0]
             first_name = names[0]
             if isinstance(first_node, ParameterNodeAtInstant):
                 children = extract_named_children(first_node)
-                for node, name in zip(nodes, names)[1:]:
+                for node, name in list(zip(nodes, names))[1:]:
                     if not isinstance(node, ParameterNodeAtInstant):
                         raise_type_inhomogeneity_error(first_name, name)
                     first_node_keys = first_node._children.keys()
@@ -545,7 +554,7 @@ class VectorialParameterNodeAtInstant(object):
                     children.update(extract_named_children(node))
                 check_nodes_homogeneous(children)
             elif isinstance(first_node, float) or isinstance(first_node, int):
-                for node, name in zip(nodes, names)[1:]:
+                for node, name in list(zip(nodes, names))[1:]:
                     if isinstance(node, int) or isinstance(node, float):
                         pass
                     elif isinstance(node, ParameterNodeAtInstant):
@@ -622,7 +631,7 @@ class Scale(object):
         if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be of type array."
-                .format(self.name).encode('utf-8'),
+                .format(self.name),
                 self.file_path
                 )
 
@@ -752,7 +761,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
 
     if data_type is not None and not isinstance(data, data_type):
         raise ParameterParsingError(
-            "'{}' must be of type {}.".format(parameter.name, type_map[data_type]).encode("utf-8"),
+            "'{}' must be of type {}.".format(parameter.name, type_map[data_type]),
             parameter.file_path
             )
 
@@ -762,7 +771,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
             if key not in allowed_keys:
                 raise ParameterParsingError(
                     "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                    .format(key, parameter.name, list(allowed_keys)).encode('utf-8'),
+                    .format(key, parameter.name, list(allowed_keys)),
                     parameter.file_path
                     )
 

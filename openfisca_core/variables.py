@@ -180,7 +180,7 @@ class Variable(object):
         if unexpected_attrs:
             raise ValueError(
                 u'Unexpected attributes in definition of variable "{}": {!r}'
-                .format(self.name, ', '.join(sorted(unexpected_attrs.iterkeys()))))
+                .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
 
         self.is_neutralized = False
 

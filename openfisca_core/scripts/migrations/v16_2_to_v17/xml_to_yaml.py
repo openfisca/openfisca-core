@@ -96,7 +96,7 @@ def transform_etree_to_json_recursive(xml_node):
     name = None
     value_format = None
 
-    for key, value in xml_node.attrib.iteritems():
+    for key, value in xml_node.attrib.items():
         if key == 'code':
             name = value
         elif key == 'format':

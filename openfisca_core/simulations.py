@@ -252,7 +252,7 @@ class Simulation(object):
         parameters_at = self.tax_benefit_system.get_parameters_at_instant
         try:
             self._check_for_cycle(variable, period)
-            if formula.func_code.co_argcount == 2:
+            if formula.__code__.co_argcount == 2:
                 array = formula(entity, period)
             else:
                 array = formula(entity, period, parameters_at, *extra_params)
@@ -343,7 +343,7 @@ class Simulation(object):
                 period,
                 u', '.join(sorted(set(
                     u'{}<{}>'.format(variable_name, period2)
-                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
+                    for variable_name, periods in requested_periods_by_variable_name.items()
                     for period2 in periods
                     ))).encode('utf-8'),
                 )
@@ -404,7 +404,7 @@ class Simulation(object):
             total_nb_bytes = 0,
             by_variable = {}
             )
-        for entity in self.entities.itervalues():
+        for entity in self.entities.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
             result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
             result['by_variable'].update(entity_memory_usage['by_variable'])
@@ -430,7 +430,7 @@ class Simulation(object):
         new = empty_clone(self)
         new_dict = new.__dict__
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key not in ('debug', 'trace', 'tracer'):
                 new_dict[key] = value
 

@@ -3,7 +3,7 @@
 import os
 
 import numpy as np
-from nose.tools import raises, assert_in
+from nose.tools import raises, assert_in, assert_regexp_matches
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
@@ -14,6 +14,10 @@ LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
 parameters = ParameterNode(directory_path = LOCAL_DIR)
 
 P = parameters.rate('2015-01-01')
+
+
+def get_message(error):
+    return error.args[0].decode()
 
 
 def test_on_leaf():
@@ -57,7 +61,7 @@ def test_wrong_key():
     try:
         P.single.owner[zone]
     except ParameterNotFound as e:
-        assert_in("'rate.single.owner.toto' was not found", e.message)
+        assert_in("'rate.single.owner.toto' was not found", get_message(e))
         raise
 
 
@@ -77,8 +81,8 @@ def test_inhomogenous():
     try:
         P.couple[housing_occupancy_status]
     except ValueError as e:
-        assert_in("'rate.couple.owner.toto' exists", e.message)
-        assert_in("'rate.couple.tenant.toto' doesn't", e.message)
+        assert_in("'rate.couple.owner.toto' exists", get_message(e))
+        assert_in("'rate.couple.tenant.toto' doesn't", get_message(e))
         raise
 
 
@@ -98,8 +102,8 @@ def test_inhomogenous_2():
     try:
         P.couple[housing_occupancy_status]
     except ValueError as e:
-        assert_in("'rate.couple.tenant.toto' exists", e.message)
-        assert_in("'rate.couple.owner.toto' doesn't", e.message)
+        assert_in("'rate.couple.tenant.toto' exists", get_message(e))
+        assert_in("'rate.couple.owner.toto' doesn't", get_message(e))
         raise
 
 
@@ -120,8 +124,8 @@ def test_inhomogenous_3():
     try:
         P.couple.tenant[zone]
     except ValueError as e:
-        assert_in("'rate.couple.tenant.z4' is a node", e.message)
-        assert_in("'rate.couple.tenant.z2' is not", e.message)
+        assert_in("'rate.couple.tenant.z4' is a node", get_message(e))
+        assert_regexp_matches(get_message(e), r"'rate.couple.tenant.z(1|2|3)' is not")
         raise
 
 
@@ -142,8 +146,8 @@ def test_with_bareme():
     try:
         P_3[city_code], [100, 300, 200]
     except NotImplementedError as e:
-        assert_in("'bareme.75016' is a 'MarginalRateTaxScale'", e.message)
-        assert_in("has not been implemented", e.message)
+        assert_regexp_matches(get_message(e), "'bareme.7501\d' is a 'MarginalRateTaxScale'")
+        assert_in("has not been implemented", get_message(e))
         raise
 
 

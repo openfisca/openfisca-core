@@ -37,9 +37,14 @@ def vectorize(individu, number):
 def check_error_at_add_variable(tax_benefit_system, variable, error_message_prefix):
     try:
         tax_benefit_system.add_variable(variable)
-    except ValueError, e:
-        if not e.message or not e.message.startswith(error_message_prefix):
-            raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, e.message).encode('utf-8'))
+    except ValueError as e:
+        message = get_message(e)
+        if not message or not message.startswith(error_message_prefix):
+            raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, message).encode('utf-8'))
+
+
+def get_message(error):
+    return error.args[0].decode()
 
 
 # TESTS
@@ -56,12 +61,7 @@ class variable__no_date(Variable):
 
 
 def test_before_add__variable__no_date():
-    try:
-        tax_benefit_system.variables['variable__no_date']
-    except KeyError, e:
-        assert e.message == 'variable__no_date'
-    except:
-        raise
+    assert tax_benefit_system.variables.get('variable__no_date') is None
 
 
 def test_variable__no_date():
@@ -85,11 +85,9 @@ def test_variable__strange_end_attribute():
     try:
         tax_benefit_system.add_variable(variable__strange_end_attribute)
 
-    except ValueError, e:
-        if e.message:
-            assert e.message.startswith("Incorrect 'end' attribute format in 'variable__strange_end_attribute'."), e.message
-    except:
-        raise
+    except ValueError as e:
+        message = get_message(e)
+        assert message.startswith("Incorrect 'end' attribute format in 'variable__strange_end_attribute'.")
 
     # Check that Error at variable adding prevents it from registration in the taxbenefitsystem.
     assert not tax_benefit_system.variables.get('variable__strange_end_attribute')

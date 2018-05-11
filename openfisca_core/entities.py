@@ -137,11 +137,11 @@ class Entity(object):
         new = self.__class__(new_simulation)
         new_dict = new.__dict__
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key == '_holders':
                 new_dict[key] = {
                     name: holder.clone(new)
-                    for name, holder in self._holders.iteritems()
+                    for name, holder in self._holders.items()
                     }
             elif key != 'simulation':
                 new_dict[key] = value
@@ -246,12 +246,12 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
-            for variable_name, holder in self._holders.iteritems()
+            for variable_name, holder in self._holders.items()
             if variables is None or variable_name in variables
             }
 
         total_memory_usage = sum(
-            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.itervalues()
+            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.values()
             )
 
         return dict(

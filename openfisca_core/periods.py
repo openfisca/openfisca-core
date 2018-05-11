@@ -60,11 +60,11 @@ class Instant(tuple):
         >>> str(instant('2014-2-3'))
         '2014-02-03'
 
-        >>> unicode(instant(2014))
+        >>> to_unicode(instant(2014))
         u'2014-01-01'
-        >>> unicode(instant('2014-2'))
+        >>> to_unicode(instant('2014-2'))
         u'2014-02-01'
-        >>> unicode(instant('2014-2-3'))
+        >>> to_unicode(instant('2014-2-3'))
         u'2014-02-03'
         """
         instant_str = str_by_instant_cache.get(self)
@@ -126,7 +126,7 @@ class Instant(tuple):
         """
         assert unit in (u'day', u'month', u'year'), u'Invalid unit: {} of type {}'.format(unit, type(unit))
         assert isinstance(size, int) and size >= 1, u'Invalid size: {} of type {}'.format(size, type(size))
-        return Period((unicode(unit), self, size))
+        return Period((to_unicode(unit), self, size))
 
     def offset(self, offset, unit):
         """Increment (or decrement) the given instant with offset units.
@@ -295,26 +295,26 @@ class Period(tuple):
     def __str__(self):
         """Transform period to a string.
 
-        >>> unicode(period(YEAR, 2014))
+        >>> to_unicode(period(YEAR, 2014))
         u'2014'
 
-        >>> unicode(period(YEAR, '2014-2'))
+        >>> to_unicode(period(YEAR, '2014-2'))
         u'year:2014-02'
-        >>> unicode(period(MONTH, '2014-2'))
+        >>> to_unicode(period(MONTH, '2014-2'))
         u'2014-02'
 
-        >>> unicode(period(YEAR, 2012, size = 2))
+        >>> to_unicode(period(YEAR, 2012, size = 2))
         u'year:2012:2'
-        >>> unicode(period(MONTH, 2012, size = 2))
+        >>> to_unicode(period(MONTH, 2012, size = 2))
         u'month:2012-01:2'
-        >>> unicode(period(MONTH, 2012, size = 12))
+        >>> to_unicode(period(MONTH, 2012, size = 12))
         u'2012'
 
-        >>> unicode(period(YEAR, '2012-3', size = 2))
+        >>> to_unicode(period(YEAR, '2012-3', size = 2))
         u'year:2012-03:2'
-        >>> unicode(period(MONTH, '2012-3', size = 2))
+        >>> to_unicode(period(MONTH, '2012-3', size = 2))
         u'month:2012-03:2'
-        >>> unicode(period(MONTH, '2012-3', size = 12))
+        >>> to_unicode(period(MONTH, '2012-3', size = 12))
         u'year:2012-03'
         """
 
@@ -673,7 +673,7 @@ class Period(tuple):
 
     def to_json_dict(self):
         if not isinstance(self[1], unicode_type):
-            self[1] = unicode(self[1])
+            self[1] = to_unicode(self[1])
         return collections.OrderedDict((
             ('unit', self[0]),
             ('start', self[1]),
@@ -807,10 +807,10 @@ def period(value):
 
     def raise_error(value):
         message = linesep.join([
-            u"Expected a period (eg. '2017', '2017-01', ...); got: '{}'.".format(value).encode('utf-8'),
+            u"Expected a period (eg. '2017', '2017-01', ...); got: '{}'.".format(value),
             u"Learn more about legal period formats in OpenFisca:",
             u"<http://openfisca.org/doc/periodsinstants.html#api>."
-            ])
+            ]).encode('utf-8')
         raise ValueError(message)
 
     if value == 'ETERNITY' or value == ETERNITY:

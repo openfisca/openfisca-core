@@ -4,6 +4,7 @@ import copy
 
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem
+from openfisca_core.commons import to_unicode
 
 
 class Reform(TaxBenefitSystem):
@@ -48,7 +49,7 @@ class Reform(TaxBenefitSystem):
         self.variables = baseline.variables.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
         self.Scenario = baseline.Scenario
-        self.key = unicode(self.__class__.__name__)
+        self.key = to_unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
             raise Exception("Reform {} must define an `apply` function".format(self.key))
         self.apply()

@@ -4,7 +4,7 @@ from openfisca_country_template.situation_examples import single
 
 from openfisca_core.simulations import Simulation
 
-from test_countries import tax_benefit_system
+from .test_countries import tax_benefit_system
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
     period=2014
@@ -33,7 +33,7 @@ def test_clone():
     simulation_clone = simulation.clone()
     assert simulation != simulation_clone
 
-    for entity_id, entity in simulation.entities.iteritems():
+    for entity_id, entity in simulation.entities.items():
         assert entity != simulation_clone.entities[entity_id]
         assert entity.entities_json == simulation_clone.entities[entity_id].entities_json
 

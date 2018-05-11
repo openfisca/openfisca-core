@@ -4,6 +4,7 @@
 from __future__ import division
 import logging
 import os
+import sys
 import warnings
 
 import numpy as np
@@ -53,7 +54,7 @@ class Holder(object):
         new = empty_clone(self)
         new_dict = new.__dict__
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key not in ('entity', 'formula', 'simulation'):
                 new_dict[key] = value
 
@@ -168,9 +169,11 @@ class Holder(object):
                 error_message
                 )
         if self.variable.is_neutralized:
+            warning_message = u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
+            if sys.version_info < (3, 0):
+                warning_message = warning_message.encode('utf-8')
             return warnings.warn(
-                u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored."
-                .format(self.variable.name, array).encode('utf-8'),
+                warning_message,
                 Warning
                 )
         if self.variable.set_input:
@@ -267,10 +270,10 @@ class Holder(object):
                 for cell in array.tolist()
                 ]
         value_json = {}
-        for period, array_or_dict in self._memory_storage._arrays.iteritems():
+        for period, array_or_dict in self._memory_storage._arrays.items():
             if type(array_or_dict) == dict:
                 values_dict = {}
-                for extra_params, array in array_or_dict.iteritems():
+                for extra_params, array in array_or_dict.items():
                     extra_params_key = extra_params_to_json_key(extra_params, period)
                     values_dict[str(extra_params_key)] = [
                         transform_dated_value_to_json(cell, use_label = use_label)
@@ -283,10 +286,10 @@ class Holder(object):
                     for cell in array_or_dict.tolist()
                     ]
         if self._disk_storage:
-            for period, file_or_dict in self._disk_storage._files.iteritems():
+            for period, file_or_dict in self._disk_storage._files.items():
                 if type(file_or_dict) == dict:
                     values_dict = {}
-                    for extra_params, file in file_or_dict.iteritems():
+                    for extra_params, file in file_or_dict.items():
                         extra_params_key = extra_params_to_json_key(extra_params, period)
                         values_dict[str(extra_params_key)] = [
                             transform_dated_value_to_json(cell, use_label = use_label)
@@ -303,7 +306,7 @@ class Holder(object):
     # Legacy method called by to_value_json
     def get_extra_param_names(self, period):
         formula = self.variable.get_formula(period)
-        return formula.func_code.co_varnames[3:]
+        return formula.__code__.co_varnames[3:]
 
 
 class PeriodMismatchError(ValueError):

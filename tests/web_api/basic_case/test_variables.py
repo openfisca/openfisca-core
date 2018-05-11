@@ -54,7 +54,7 @@ def test_input_variable_value():
         u'references': [u'https://en.wiktionary.org/wiki/birthdate'],
         }
 
-    for key, expected_value in expected_values.iteritems():
+    for key, expected_value in expected_values.items():
         yield check_input_variable_value, key, expected_value
 
 
@@ -83,7 +83,7 @@ def test_variable_value():
         u'entity': u'person',
         }
 
-    for key, expected_value in expected_values.iteritems():
+    for key, expected_value in expected_values.items():
         yield check_variable_value, key, expected_value
 
 

@@ -115,7 +115,7 @@ def test_routes_robustness():
         '/parameter//taxes.income_tax_rate/': NOT_FOUND,
         }
 
-    for route, code in expected_codes.iteritems():
+    for route, code in expected_codes.items():
         yield check_code, route, code
 
 
