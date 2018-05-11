@@ -5,6 +5,7 @@ import inspect
 import textwrap
 
 from openfisca_core.indexed_enums import Enum
+from openfisca_core.commons import to_unicode
 
 
 def get_next_day(date):
@@ -48,7 +49,7 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             start_line_number,
             source_code
             ),
-        'content': source_code.decode('utf-8'),
+        'content': to_unicode(source_code),
         }
 
 

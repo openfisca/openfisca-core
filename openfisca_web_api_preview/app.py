@@ -9,8 +9,9 @@ from flask_cors import CORS
 import dpath
 
 from openfisca_core.simulations import Simulation, SituationParsingError
+from openfisca_core.commons import to_unicode
 from openfisca_core.indexed_enums import Enum
-from loader import build_data
+from openfisca_web_api_preview.loader import build_data
 import traceback
 import logging
 
@@ -84,7 +85,7 @@ def create_app(tax_benefit_system,
 
     def handle_invalid_json(error):
         json_response = jsonify({
-            'error': 'Invalid JSON: {}'.format(error.message),
+            'error': 'Invalid JSON: {}'.format(error.args[0]),
             })
 
         abort(make_response(json_response, 400))
@@ -144,7 +145,7 @@ def create_app(tax_benefit_system,
             simulation.calculate(variable_name, period)
 
         trace = deepcopy(simulation.tracer.trace)
-        for vector_key, vector_trace in trace.iteritems():
+        for vector_key, vector_trace in trace.items():
             value = vector_trace['value'].tolist()
             if isinstance(value[0], Enum):
                 value = [item.name for item in value]
@@ -152,7 +153,7 @@ def create_app(tax_benefit_system,
 
         return jsonify({
             "trace": trace,
-            "entitiesDescription": {entity.plural: entity.ids for entity in simulation.entities.itervalues()},
+            "entitiesDescription": {entity.plural: entity.ids for entity in simulation.entities.values()},
             "requestedCalculations": list(simulation.tracer.requested_calculations)
             })
 
@@ -175,10 +176,11 @@ def create_app(tax_benefit_system,
 
     @app.errorhandler(500)
     def internal_server_error(e):
+        message = to_unicode(e.args[0])
         if type(e) == UnicodeEncodeError or type(e) == UnicodeDecodeError:
             response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
-        elif e.message:
-            response = jsonify({"error": "Internal server error: " + e.message.strip(os.linesep).replace(os.linesep, ' ')})
+        elif message:
+            response = jsonify({"error": "Internal server error: " + message.strip(os.linesep).replace(os.linesep, ' ')})
         else:
             response = jsonify({"error": "Internal server error: " + str(e)})
         response.status_code = 500

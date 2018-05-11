@@ -314,7 +314,8 @@ class PeriodMismatchError(ValueError):
         self.variable_name = variable_name
         self.period = period
         self.definition_period = definition_period
-        ValueError.__init__(self, message)
+        self.message = message
+        ValueError.__init__(self, self.message)
 
 
 def set_input_dispatch_by_period(holder, period, array):

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from parameters import build_parameters
-from variables import build_variables
-from spec import build_openAPI_specification
+from openfisca_web_api_preview.loader.parameters import build_parameters
+from openfisca_web_api_preview.loader.variables import build_variables
+from openfisca_web_api_preview.loader.spec import build_openAPI_specification
 
 
 def extract_description(items):
     return {
         name: {'description': item['description']}
-        for name, item in items.iteritems()
+        for name, item in items.items()
         }
 
 

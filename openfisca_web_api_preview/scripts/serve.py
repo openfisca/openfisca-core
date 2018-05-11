@@ -62,7 +62,7 @@ def read_user_configuration(default_configuration, command_line_parser):
 
 
 def update(configuration, new_options):
-    for key, value in new_options.iteritems():
+    for key, value in new_options.items():
         if value is not None:
             configuration[key] = value
             if key == "port":

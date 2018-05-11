@@ -14,7 +14,7 @@ def transform_values_history(values_history):
 def get_value(date, values):
     candidates = sorted([
         (start_date, value)
-        for start_date, value in values.iteritems()
+        for start_date, value in values.items()
         if start_date <= date  # dates are lexicographically ordered and can be sorted
         ], reverse = True)
 
@@ -32,7 +32,7 @@ def transform_scale(scale):
         } for bracket in scale.brackets]
 
     dates = set(sum(
-        [bracket['thresholds'].keys() + bracket['rates'].keys() for bracket in brackets],
+        [list(bracket['thresholds'].keys()) + list(bracket['rates'].keys()) for bracket in brackets],
         []))  # flatten the dates and remove duplicates
 
     # We iterate on all dates as we need to build the whole scale for each of them

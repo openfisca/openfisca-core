@@ -9,7 +9,7 @@ import dpath
 import numpy as np
 
 from openfisca_core import periods
-from openfisca_core.commons import empty_clone, stringify_array, basestring_type
+from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
 from openfisca_core.tracers import Tracer
 from openfisca_core.indexed_enums import Enum, EnumArray
 
@@ -91,7 +91,7 @@ class Simulation(object):
                 unexpected_entity = unexpected_entities[0]
                 raise SituationParsingError([unexpected_entity],
                     'This entity is not defined in the loaded tax and benefit system. The defined entities are {}.'.format(
-                        ', '.join(allowed_entities)).encode('utf-8')
+                        ', '.join(allowed_entities))
                     )
             persons_json = simulation_json.get(self.tax_benefit_system.person_entity.plural, None)
 
@@ -471,10 +471,11 @@ class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join(path)
+        message = to_unicode(message)
         message = message.strip(linesep).replace(linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
-        Exception.__init__(self, self.error)
+        Exception.__init__(self, str(self.error).encode('utf-8'))
 
 
 def calculate_output_add(simulation, variable_name, period):

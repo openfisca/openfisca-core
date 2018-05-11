@@ -4,7 +4,8 @@ from os import linesep
 
 
 class VariableNotFound(Exception):
-    """Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
+    """
+        Exception raised when a variable has been queried but is not defined in the TaxBenefitSystem.
     """
 
     def __init__(self, variable_name, tax_benefit_system):
@@ -26,4 +27,5 @@ class VariableNotFound(Exception):
             u"Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
             u"it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
             ])
-        Exception.__init__(self, message.encode('utf-8'))
+        self.message = message
+        Exception.__init__(self, self.message.encode('utf-8'))

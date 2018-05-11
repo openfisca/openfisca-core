@@ -71,7 +71,7 @@ class Entity(object):
             try:
                 self.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError(path_in_json, e.message)
+                raise SituationParsingError(path_in_json, e.args[0])
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
@@ -85,7 +85,7 @@ class Entity(object):
                 try:
                     period = make_period(date)
                 except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.message)
+                    raise SituationParsingError(path_in_json, e.args[0])
                 if value is not None:
                     array = holder.buffer.get(period)
                     if array is None:

@@ -44,6 +44,7 @@ setup(
         'Biryani[datetimeconv] >= 0.10.8',
         'dpath == 1.4.0',
         'enum34 >= 1.1.6',
+        'future',
         'flask == 0.12',
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',

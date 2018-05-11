@@ -2,12 +2,16 @@
 
 import json
 
-from nose.tools import assert_equal, assert_items_equal, assert_is_instance
-from httplib import OK
+from nose.tools import assert_equal, assert_is_instance
+from http.client import OK
 import dpath
 from openfisca_country_template.situation_examples import single, couple
 
 from . import subject
+
+
+def assert_items_equal(x, y):
+    assert_equal(set(x), set(y))
 
 
 def test_trace_basic():

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from httplib import OK
+from http.client import OK
 from nose.tools import assert_equal
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api_preview.app import create_app

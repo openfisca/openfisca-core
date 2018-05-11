@@ -2,7 +2,7 @@
 
 import os
 import json
-from httplib import BAD_REQUEST, OK, NOT_FOUND
+from http.client import BAD_REQUEST, OK, NOT_FOUND
 
 from nose.tools import assert_equal, assert_in
 import dpath

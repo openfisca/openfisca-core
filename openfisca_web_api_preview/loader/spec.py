@@ -51,7 +51,7 @@ def get_entity_json_schema(entity, tax_benefit_system):
             'type': 'object',
             'properties': {
                 variable_name: get_variable_json_schema(variable)
-                for variable_name, variable in tax_benefit_system.get_variables(entity).iteritems()
+                for variable_name, variable in tax_benefit_system.get_variables(entity).items()
                 },
             'additionalProperties': False,
             }
@@ -68,7 +68,7 @@ def get_entity_json_schema(entity, tax_benefit_system):
             })
         properties.update({
             variable_name: get_variable_json_schema(variable)
-            for variable_name, variable in tax_benefit_system.get_variables(entity).iteritems()
+            for variable_name, variable in tax_benefit_system.get_variables(entity).items()
             })
         return {
             'type': 'object',

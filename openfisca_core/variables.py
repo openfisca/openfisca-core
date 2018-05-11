@@ -362,7 +362,7 @@ class Variable(object):
         except (IOError, TypeError):
             source_code, start_line_number = None, None
 
-        return comments, source_file_path.decode('utf-8'), source_code.decode('utf-8'), start_line_number
+        return comments, to_unicode(source_file_path), to_unicode(source_code), start_line_number
 
     def get_formula(self, period = None):
         """
