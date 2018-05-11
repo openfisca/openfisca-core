@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-from columns import make_column_from_variable
 
-from . import conv
+from openfisca_core.columns import make_column_from_variable
+from openfisca_core import conv
+from openfisca_core.commons import basestring_type
 
 
 def check_entity_fields(entity_json, entity_class, valid_roles, tax_benefit_system):
 
     def check_id(value):
-        if value is None or not isinstance(value, (basestring, int)):
+        if value is None or not isinstance(value, (basestring_type, int)):
             raise ValueError(u"Invalid id in entity {}".format(entity_json).encode('utf-8'))
 
     def check_role(value, key):
         role = valid_roles.get(key)
         if role.max == 1:
-            value, error = conv.test_isinstance((basestring, int))(value)
+            value, error = conv.test_isinstance((basestring_type, int))(value)
         else:
             value, error = conv.pipe(
                 conv.make_item_to_singleton(),
                 conv.test_isinstance(list),
                 conv.uniform_sequence(
-                    conv.test_isinstance((basestring, int)),
+                    conv.test_isinstance((basestring_type, int)),
                     drop_none_items = True,
                     )
                 )(value)

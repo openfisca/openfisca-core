@@ -6,8 +6,9 @@ import re
 
 import numpy as np
 
-from indexed_enums import Enum
-from . import conv, periods
+from openfisca_core import conv, periods
+from openfisca_core.indexed_enums import Enum
+from openfisca_core.commons import unicode_type, basestring_type, to_unicode
 
 """
 Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
@@ -20,7 +21,7 @@ def N_(message):
     return message
 
 
-year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
+year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 
 # Base Column
@@ -158,7 +159,7 @@ class BoolCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((basestring, bool, int)),
+            conv.test_isinstance((basestring_type, bool, int)),
             conv.guess_bool,
             )
 
@@ -178,7 +179,8 @@ class DateCol(Column):
             )
 
     def json_default(self):
-        return unicode(np.array(self.default_value, self.dtype))
+        default = np.array(self.default_value, self.dtype)
+        return to_unicode(default)
 
     @property
     def json_to_dated_python(self):
@@ -193,7 +195,7 @@ class DateCol(Column):
                         conv.function(lambda year: datetime.date(year, 1, 1)),
                         ),
                     conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
                         conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
                         conv.iso8601_input_to_date,
@@ -220,9 +222,9 @@ class FixedStrCol(Column):
             conv.condition(
                 conv.test_isinstance((float, int)),
                 # YAML stores strings containing only digits as numbers.
-                conv.function(unicode),
+                conv.function(unicode_type),
                 ),
-            conv.test_isinstance(basestring),
+            conv.test_isinstance(basestring_type),
             conv.test(lambda value: len(value) <= self.variable.max_length),
             )
 
@@ -238,7 +240,7 @@ class FloatCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((float, int, basestring)),
+            conv.test_isinstance((float, int, basestring_type)),
             conv.make_anything_to_float(accept_expression = True),
             )
 
@@ -254,7 +256,7 @@ class IntCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((int, basestring)),
+            conv.test_isinstance((int, basestring_type)),
             conv.make_anything_to_int(accept_expression = True),
             )
 
@@ -271,9 +273,9 @@ class StrCol(Column):
             conv.condition(
                 conv.test_isinstance((float, int)),
                 # YAML stores strings containing only digits as numbers.
-                conv.function(unicode),
+                conv.function(unicode_type),
                 ),
-            conv.test_isinstance(basestring),
+            conv.test_isinstance(basestring_type),
             )
 
 
@@ -319,14 +321,17 @@ class EnumCol(Column):
     def input_to_dated_python(self):
         enum = self.variable.possible_values
         if enum is None:
-            return conv.test_isinstance((basestring, basestring))
+            return conv.test_isinstance(basestring_type)
         return conv.pipe(
             # Verify that item index belongs to enumeration.
             conv.test_in([item.name for item in list(enum)])
             )
 
     def json_default(self):
-        return unicode(self.default_value) if self.default_value is not None else None
+        default = self.default_value
+        if default is not None:
+            to_unicode(default)
+        return default
 
     @property
     def json_to_dated_python(self):
@@ -335,10 +340,10 @@ class EnumCol(Column):
 
         if enum is None:
             return conv.pipe(
-                conv.test_isinstance((basestring, basestring))
+                conv.test_isinstance(basestring_type)
                 )
         return conv.pipe(
-            conv.test_isinstance((basestring, basestring)),
+            conv.test_isinstance(basestring_type),
             conv.pipe(
                 # Verify that item belongs to enumeration.
                 conv.test_in(possible_names),

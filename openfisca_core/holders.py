@@ -9,12 +9,12 @@ import warnings
 import numpy as np
 import psutil
 
-from commons import empty_clone
-import periods
-from periods import MONTH, YEAR, ETERNITY
-from columns import make_column_from_variable
-from indexed_enums import Enum, EnumArray
-from data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core import periods
+from openfisca_core.commons import empty_clone
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.columns import make_column_from_variable
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 
 log = logging.getLogger(__name__)
 
@@ -130,8 +130,8 @@ class Holder(object):
             Get the list of periods the variable value is known for.
         """
 
-        return self._memory_storage.get_known_periods() + (
-            self._disk_storage.get_known_periods() if self._disk_storage else [])
+        return list(self._memory_storage.get_known_periods()) + list((
+            self._disk_storage.get_known_periods() if self._disk_storage else []))
 
     def set_input(self, period, array):
         """

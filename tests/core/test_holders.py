@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from nose.tools import assert_equal, assert_items_equal, assert_is_none
+
+from nose.tools import assert_equal, assert_is_none
 
 from openfisca_country_template.situation_examples import couple, single
 from openfisca_core.simulations import Simulation
 from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
-from test_countries import tax_benefit_system
+from .test_countries import tax_benefit_system
 
 
 def get_simulation(json, **kwargs):
@@ -157,7 +158,8 @@ def test_known_periods():
     data = np.asarray([2000, 3000, 0, 500])
     holder.put_in_cache(data, month)
     holder._memory_storage.put(data, month_2)
-    assert_items_equal(holder.get_known_periods(), [month, month_2])
+
+    assert_equal(sorted(holder.get_known_periods()), [month, month_2])
 
 
 def test_cache_enum_on_disk():

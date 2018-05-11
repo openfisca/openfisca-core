@@ -16,7 +16,8 @@ import datetime
 import re
 from os import linesep
 
-from . import conv
+from openfisca_core import conv
+from openfisca_core.commons import unicode_type, basestring_type, to_unicode
 
 
 MONTH = u'month'
@@ -33,7 +34,7 @@ def N_(message):
 # Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
 date_by_instant_cache = {}
 str_by_instant_cache = {}
-year_or_month_or_day_re = re.compile(ur'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
+year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 
 class Instant(tuple):
@@ -327,7 +328,7 @@ class Period(tuple):
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
-                return unicode(year)
+                return to_unicode(year)
             else:
                 # rolling year
                 return u'{}:{}-{:02d}'.format(YEAR, year, month)
@@ -671,9 +672,11 @@ class Period(tuple):
         return Instant((year, month, day))
 
     def to_json_dict(self):
+        if not isinstance(self[1], unicode_type):
+            self[1] = unicode(self[1])
         return collections.OrderedDict((
             ('unit', self[0]),
-            ('start', unicode(self[1])),
+            ('start', self[1]),
             ('size', self[2]),
             ))
 
@@ -730,7 +733,7 @@ def instant(instant):
         return None
     if isinstance(instant, Instant):
         return instant
-    if isinstance(instant, basestring):
+    if isinstance(instant, basestring_type):
         if not INSTANT_PATTERN.match(instant):
             raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant).encode('utf-8'))
         instant = Instant(
@@ -816,7 +819,7 @@ def period(value):
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if not isinstance(value, basestring):
+    if not isinstance(value, basestring_type):
         raise_error(value)
 
     # try to parse as a simple period
@@ -860,27 +863,31 @@ def period(value):
     return Period((unit, base_period.start, size))
 
 
-def compare_period_size(a, b):
-    unit_a, start_a, size_a = a
-    unit_b, start_b, size_b = b
+def key_period_size(period):
+    """
+    Defines a key in order to sort periods by length. It uses two aspects : first unit then size
 
-    if unit_a != unit_b:
-        unit_weights = {
-            MONTH: 1,
-            YEAR: 2,
-            ETERNITY: 3,
-            }
+    :param period: an OpenFisca period
+    :return: a string
 
-        return cmp(unit_weights[unit_a], unit_weights[unit_b])
+    >>> key_period_size(period('2014'))
+    '2_1'
+    >>> key_period_size(period('2013'))
+    '2_1'
+    >>> key_period_size(period('2014-01'))
+    '1_1'
 
-    return cmp(size_a, size_b)
+    """
 
+    unit_weights = {
+        MONTH: 1,
+        YEAR: 2,
+        ETERNITY: 3,
+        }
 
-def compare_period_start(a, b):
-    unit_a, start_a, size_a = a
-    unit_b, start_b, size_b = b
+    unit, start, size = period
 
-    return cmp(start_a, start_b)
+    return '{}_{}'.format(unit_weights[unit], size)
 
 
 # Level-1 converters
@@ -1065,7 +1072,7 @@ def json_or_python_to_instant_tuple(value, state = None):
     if state is None:
         state = conv.default_state
 
-    if isinstance(value, basestring):
+    if isinstance(value, basestring_type):
         if year_or_month_or_day_re.match(value) is None:
             return value, state._(u'Invalid date string')
         instant = tuple(

@@ -8,10 +8,10 @@ import logging
 import dpath
 import numpy as np
 
-import periods
-from commons import empty_clone, stringify_array
-from tracers import Tracer
-from .indexed_enums import Enum, EnumArray
+from openfisca_core import periods
+from openfisca_core.commons import empty_clone, stringify_array, basestring_type
+from openfisca_core.tracers import Tracer
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 
 log = logging.getLogger(__name__)
@@ -456,16 +456,15 @@ class Simulation(object):
         return new
 
 
-def check_type(input, type, path = []):
+def check_type(input, input_type, path = []):
     json_type_map = {
         dict: "Object",
         list: "Array",
-        basestring: "String"
+        basestring_type: "String",
         }
-
-    if not isinstance(input, type):
+    if not isinstance(input, input_type):
         raise SituationParsingError(path,
-            u"Invalid type: must be of type '{}'.".format(json_type_map[type]))
+            u"Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
 
 
 class SituationParsingError(Exception):

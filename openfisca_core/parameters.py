@@ -10,12 +10,13 @@ import traceback
 
 import yaml
 import numpy as np
-from indexed_enums import Enum, EnumArray
 
-from . import taxscales
-from . import periods
-from periods import INSTANT_PATTERN
-from tools import indent
+from openfisca_core import taxscales
+from openfisca_core import periods
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import INSTANT_PATTERN
+from openfisca_core.tools import indent
+from openfisca_core.commons import basestring_type
 
 log = logging.getLogger(__name__)
 
@@ -178,7 +179,7 @@ class Parameter(object):
         if period is not None:
             if start is not None or stop is not None:
                 raise TypeError(u"Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
-            if isinstance(period, basestring):
+            if isinstance(period, basestring_type):
                 period = periods.period(period)
             start = period.start
             stop = period.stop
@@ -571,7 +572,7 @@ class VectorialParameterNodeAtInstant(object):
 
     def __getitem__(self, key):
         # If the key is a string, just get the subnode
-        if isinstance(key, basestring):
+        if isinstance(key, basestring_type):
             return self.__getattr__(key)
         # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
         elif isinstance(key, np.ndarray):

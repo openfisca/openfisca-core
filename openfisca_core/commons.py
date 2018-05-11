@@ -1,5 +1,25 @@
 # -*- coding: utf-8 -*-
 
+# The following two variables and the is_unicode function are there to bridge string types across Python 2 & 3
+unicode_type = u"".__class__
+basestring_type = (str, unicode_type)
+
+
+def to_unicode(string):
+    """
+    :param string: a string that needs to be unicoded
+    :param encoding: a string that represent the encoding type
+    :return: a unicode string
+    if the string is a python 2 str type, returns a unicode version of the string.
+    """
+    if not isinstance(string, basestring_type):
+        string = str(string)
+    if isinstance(string, unicode_type):
+        return string
+
+    # Next line only gets triggered if the code is run in python 2
+    return unicode(string, 'utf-8')
+
 
 class Dummy(object):
     """A class that does nothing

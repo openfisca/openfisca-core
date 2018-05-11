@@ -6,7 +6,8 @@
 
 import collections
 
-from . import conv
+from openfisca_core import conv
+from openfisca_core.commons import basestring_type, to_unicode
 
 
 def N_(message):
@@ -72,12 +73,12 @@ def make_validate_node_xml_json(tax_benefit_system):
             conv.struct(
                 dict(
                     code = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.cleanup_line,
                         conv.not_none,
                         ),
                     color = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.function(lambda colors: colors.split(u',')),
                         conv.uniform_sequence(
                             conv.pipe(
@@ -87,10 +88,10 @@ def make_validate_node_xml_json(tax_benefit_system):
                                 ),
                             ),
                         conv.test(lambda colors: len(colors) == 3, error = N_(u'Wrong number of colors in triplet.')),
-                        conv.function(lambda colors: u','.join(unicode(color) for color in colors)),
+                        conv.function(lambda colors: u','.join(to_unicode(color) for color in colors)),
                         ),
                     desc = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.cleanup_line,
                         conv.not_none,
                         ),
@@ -103,20 +104,20 @@ def make_validate_node_xml_json(tax_benefit_system):
                         conv.empty_to_none,
                         ),
                     shortname = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.cleanup_line,
                         conv.not_none,
                         ),
                     tail = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.cleanup_text,
                         ),
                     text = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.cleanup_text,
                         ),
                     typevar = conv.pipe(
-                        conv.test_isinstance(basestring),
+                        conv.test_isinstance(basestring_type),
                         conv.input_to_int,
                         conv.test_equals(2),
                         ),
