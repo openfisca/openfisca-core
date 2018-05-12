@@ -73,7 +73,6 @@ class AbstractScenario(object):
                 if entity.members_role is None:
                     default_role = entity.roles[0] if entity.roles[0].subroles is None else entity.roles[0].subroles[0]
                     entity.members_role = np.full(persons.count, default_role, dtype = object)
-                entity.roles_count = len(np.unique(entity.members_role))
 
                 if entity.members_legacy_role is None:
                     entity.members_legacy_role = np.zeros(persons.count, dtype = np.int32)
@@ -152,7 +151,6 @@ class AbstractScenario(object):
                                 entity.members_entity_id[individu_index] = step_index * entity_step_size + scenario_entity_index
                                 entity.members_role[individu_index] = person_role
                                 entity.members_legacy_role[individu_index] = person_legacy_role
-                    entity.roles_count = entity.members_legacy_role.max() + 1
 
                 for variable_name, column in tbs.variables.items():
                     if column.entity == entity.__class__ and variable_name in used_columns_name:

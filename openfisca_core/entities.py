@@ -410,9 +410,6 @@ class GroupEntity(Entity):
                     unallocated_person, self.simulation.persons.plural, self.key)
                 )
 
-        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
-        self.roles_count = self.members_legacy_role.max() + 1
-
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.items():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
@@ -467,12 +464,24 @@ class GroupEntity(Entity):
 
     @property
     def roles_count(self):
+        warnings.warn(' '.join([
+            u"entity.roles_count is deprecated.",
+            u"Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
+            ]),
+            Warning
+            )
         if self._roles_count is None:
             self._roles_count = self.members_legacy_role.max() + 1
         return self._roles_count
 
     @roles_count.setter
     def roles_count(self, value):
+        warnings.warn(' '.join([
+            u"entity.roles_count is deprecated.",
+            u"Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
+            ]),
+            Warning
+            )
         self._roles_count = value
 
     @property
