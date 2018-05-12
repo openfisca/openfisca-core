@@ -1,9 +1,10 @@
 # Changelog
 
-### 23.0.2 [#645](https://github.com/openfisca/openfisca-core/pull/645)
+### 23.1.0 [#660](https://github.com/openfisca/openfisca-core/pull/660)
 
-* Technical improvement
-* Details:
+Make package compatible with Python 3
+
+### 23.0.2 [#645](https://github.com/openfisca/openfisca-core/pull/645)
 
 Start adapting OpenFisca to Python 3
 - Imports are now all absolute imports
