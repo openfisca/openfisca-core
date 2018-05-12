@@ -140,7 +140,7 @@ jobs:
             pip install --editable git+https://github.com/openfisca/country-template.git@master#egg=OpenFisca-Country-Template
             pip install --editable git+https://github.com/openfisca/extension-template.git@master#egg=OpenFisca-Extension-Template
             pip install --editable .[test] --upgrade
-            nosetests core
+            make test
 
   deploy:
     working_directory: ~/openfisca-core
