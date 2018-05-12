@@ -18,7 +18,7 @@ def to_unicode(string):
         return string
 
     # Next line only gets triggered if the code is run in python 2
-    return unicode(string, 'utf-8')
+    return string.decode('utf-8')
 
 
 class Dummy(object):
