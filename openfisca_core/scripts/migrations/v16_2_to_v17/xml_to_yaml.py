@@ -12,6 +12,8 @@ import re
 from lxml import etree
 import yaml
 
+from openfisca_core.commons import to_unicode
+
 node_keywords = ['reference', 'description']
 
 
@@ -30,7 +32,7 @@ def custom_unicode_representer(dumper, data):
 
 
 yaml.add_representer(str, custom_str_representer, Dumper=yaml.SafeDumper)
-yaml.add_representer(unicode, custom_unicode_representer, Dumper=yaml.SafeDumper)
+yaml.add_representer(to_unicode, custom_unicode_representer, Dumper=yaml.SafeDumper)
 
 
 # Load
@@ -122,7 +124,7 @@ def transform_etree_to_json_recursive(xml_node):
             if 'reference' not in json_node:
                 json_node['reference'] = value
         elif key in {'description', 'reference'}:
-            json_node[key] = unicode(value)
+            json_node[key] = to_unicode(value)
         else:
             raise ValueError(u'Unknown attribute "{}": "{}"'.format(key, value).encode('utf-8'))
 

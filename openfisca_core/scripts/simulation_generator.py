@@ -20,7 +20,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     simulation = Simulation(tax_benefit_system = tax_benefit_system, **kwargs)
     simulation.persons.ids = np.arange(nb_persons)
     simulation.persons.count = nb_persons
-    adults = [0] + sorted(random.sample(xrange(1, nb_persons), nb_groups - 1))
+    adults = [0] + sorted(random.sample(range(1, nb_persons), nb_groups - 1))
 
     members_entity_id = np.empty(nb_persons, dtype = int)
 
