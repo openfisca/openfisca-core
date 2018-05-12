@@ -19,6 +19,8 @@ class Enum(BaseEnum):
     # Bypass the slow Enum.__eq__
     __eq__ = object.__eq__
 
+    __hash__ = object.__hash__  # In Python 3, __hash__ must be defined if __eq__ is defined to stay hashable
+
     @classmethod
     def encode(cls, array):
         """
