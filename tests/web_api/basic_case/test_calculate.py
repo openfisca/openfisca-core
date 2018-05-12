@@ -7,6 +7,8 @@ from http.client import BAD_REQUEST, OK, NOT_FOUND
 from nose.tools import assert_equal, assert_in
 import dpath
 
+from openfisca_core.commons import to_unicode
+
 from . import subject
 
 
@@ -183,7 +185,7 @@ def test_enum_wrong_value():
         )
 
 
-def test_encoding_period_value():
+def test_encoding_variable_value():
     simulation_json = json.dumps({
         "persons": {
             "toto": {}
@@ -202,10 +204,13 @@ def test_encoding_period_value():
         })
 
     # No UnicodeDecodeError
-    expected_response = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are "
     response = post_json(simulation_json)
-    assert expected_response in response.data, expected_response + os.linesep + " NOT FOUND IN: " + os.linesep + response.data
     assert_equal(response.status_code, BAD_REQUEST, response.data)
+    response_json = json.loads(response.data)
+    assert_in(
+        u"'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ",
+        dpath.get(response_json, u'households/_/housing_occupancy_status/2017-07')
+        )
 
 
 def test_encoding_entity_name():
@@ -225,10 +230,15 @@ def test_encoding_entity_name():
         })
 
     # No UnicodeDecodeError
-    expected_response = "'O‘Ryan' is not a valid ASCII value."
     response = post_json(simulation_json)
-    assert expected_response in response.data, str(response.status_code) + " " + response.data
-    assert_equal(response.status_code, BAD_REQUEST, response.data)
+    response_json = json.loads(response.data)
+
+    # In Python 3, there is no encoding issue.
+    if response.status_code != OK:
+        assert_in(
+            u"'O‘Ryan' is not a valid ASCII value.",
+            response_json['error']
+            )
 
 
 def test_encoding_period_id():
@@ -262,7 +272,13 @@ def test_encoding_period_id():
         })
 
     # No UnicodeDecodeError
-    expected_response = "'à' is not a valid ASCII value."
     response = post_json(simulation_json)
-    assert expected_response in response.data, str(response.status_code) + " " + response.data
-    assert_equal(response.status_code, BAD_REQUEST, response.data)
+    assert_equal(response.status_code, BAD_REQUEST)
+    response_json = json.loads(response.data)
+
+    # In Python 3, there is no encoding issue.
+    if "Expected a period" not in to_unicode(response.data):
+        assert_in(
+            u"'à' is not a valid ASCII value.",
+            response_json['error']
+            )
