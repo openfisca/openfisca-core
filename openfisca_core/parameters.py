@@ -276,7 +276,7 @@ class ParameterAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        result = "ParameterAtInstant({})".format({self.instant_str: self.value})
+        result = u"ParameterAtInstant({})".format({self.instant_str: self.value})
         # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
             return result.encode('utf-8')
@@ -395,7 +395,7 @@ class ParameterNode(object):
     def __repr__(self):
         result = os.linesep.join(
             [os.linesep.join(
-                ["{}:", "{}"]).format(name, indent(repr(value)))
+                [u"{}:", u"{}"]).format(name, indent(repr(value)))
                 for name, value in self.children.items()]
             )
         # repr output must be encoded in Python 2, but not in Python 3
@@ -441,7 +441,7 @@ class ParameterNodeAtInstant(object):
     def __repr__(self):
         result = os.linesep.join(
             [os.linesep.join(
-                ["{}:", "{}"]).format(name, indent(repr(value)))
+                [u"{}:", u"{}"]).format(name, indent(repr(value)))
                 for name, value in self._children.items()]
             )
         if sys.version_info < (3, 0):
