@@ -5,8 +5,9 @@ from copy import deepcopy
 from openfisca_core.tools import assert_near
 from openfisca_core.simulations import Simulation
 from openfisca_country_template.entities import Household
-from test_countries import tax_benefit_system
 from openfisca_country_template.situation_examples import single, couple
+
+from .test_countries import tax_benefit_system
 
 TEST_CASE = {
     'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}, {'id': 'ind4'}, {'id': 'ind5'}],

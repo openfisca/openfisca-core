@@ -56,7 +56,7 @@ class InMemoryStorage(object):
 
         self._arrays = {
             period_item: value
-            for period_item, value in self._arrays.iteritems()
+            for period_item, value in self._arrays.items()
             if not period.contains(period_item)
             }
 
@@ -73,10 +73,10 @@ class InMemoryStorage(object):
 
         nb_arrays = sum([
             len(array_or_dict) if isinstance(array_or_dict, dict) else 1
-            for array_or_dict in self._arrays.itervalues()
+            for array_or_dict in self._arrays.values()
             ])
 
-        array = self._arrays.values()[0]
+        array = list(self._arrays.values())[0]
         if isinstance(array, dict):
             array = array.values()[0]
         return dict(
@@ -153,7 +153,7 @@ class OnDiskStorage(object):
         if period is not None:
             self._files = {
                 period_item: value
-                for period_item, value in self._files.iteritems()
+                for period_item, value in self._files.items()
                 if not period.contains(period_item)
                 }
 

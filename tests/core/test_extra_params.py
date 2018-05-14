@@ -81,8 +81,8 @@ def test_json_conversion():
     simulation.calculate('formula_2', period = reference_period)
     formula_3_holder = simulation.person.get_holder('formula_3')
     assert_equal(
-        str(formula_3_holder.to_value_json()),
-        "{'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}"
+        formula_3_holder.to_value_json(),
+        {'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}
         )
 
 

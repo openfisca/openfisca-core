@@ -3,6 +3,7 @@
 from nose.tools import assert_equal, raises
 
 from openfisca_core.periods import Period, Instant, YEAR, MONTH, period
+from openfisca_core.commons import to_unicode
 
 first_jan = Instant((2014, 1, 1))
 first_march = Instant((2014, 3, 1))
@@ -11,30 +12,30 @@ first_march = Instant((2014, 3, 1))
 # Test Period -> String
 
 def test_year():
-    assert_equal(unicode(Period((YEAR, first_jan, 1))), u'2014')
+    assert_equal(to_unicode(Period((YEAR, first_jan, 1))), u'2014')
 
 
 def test_12_months_is_a_year():
-    assert_equal(unicode(Period((MONTH, first_jan, 12))), u'2014')
+    assert_equal(to_unicode(Period((MONTH, first_jan, 12))), u'2014')
 
 
 def test_rolling_year():
-    assert_equal(unicode(Period((MONTH, first_march, 12))), u'year:2014-03')
-    assert_equal(unicode(Period((YEAR, first_march, 1))), u'year:2014-03')
+    assert_equal(to_unicode(Period((MONTH, first_march, 12))), u'year:2014-03')
+    assert_equal(to_unicode(Period((YEAR, first_march, 1))), u'year:2014-03')
 
 
 def test_month():
-    assert_equal(unicode(Period((MONTH, first_jan, 1))), u'2014-01')
+    assert_equal(to_unicode(Period((MONTH, first_jan, 1))), u'2014-01')
 
 
 def test_several_months():
-    assert_equal(unicode(Period((MONTH, first_jan, 3))), u'month:2014-01:3')
-    assert_equal(unicode(Period((MONTH, first_march, 3))), u'month:2014-03:3')
+    assert_equal(to_unicode(Period((MONTH, first_jan, 3))), u'month:2014-01:3')
+    assert_equal(to_unicode(Period((MONTH, first_march, 3))), u'month:2014-03:3')
 
 
 def test_several_years():
-    assert_equal(unicode(Period((YEAR, first_jan, 3))), u'year:2014:3')
-    assert_equal(unicode(Period((YEAR, first_march, 3))), u'year:2014-03:3')
+    assert_equal(to_unicode(Period((YEAR, first_jan, 3))), u'year:2014:3')
+    assert_equal(to_unicode(Period((YEAR, first_march, 3))), u'year:2014-03:3')
 
 # Test String -> Period
 

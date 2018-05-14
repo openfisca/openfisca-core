@@ -5,7 +5,7 @@ from nose.tools import raises
 from openfisca_core.json_to_test_case import check_entities_and_role
 from openfisca_core.taxbenefitsystems import VariableNotFound
 
-from test_countries import tax_benefit_system
+from .test_countries import tax_benefit_system
 
 
 @raises(ValueError)

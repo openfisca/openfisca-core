@@ -21,7 +21,7 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
         node_json['@context'] = u'https://openfisca.fr/contexts/decomposition.jsonld'
     node_json['@type'] = 'Node'
     children_json = []
-    for key, value in node_xml_json.iteritems():
+    for key, value in node_xml_json.items():
         if key == 'color':
             node_json['color'] = [
                 int(color)

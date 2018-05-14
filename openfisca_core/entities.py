@@ -71,7 +71,7 @@ class Entity(object):
             try:
                 self.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
-                raise SituationParsingError(path_in_json, e.message)
+                raise SituationParsingError(path_in_json, e.args[0])
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
@@ -85,7 +85,7 @@ class Entity(object):
                 try:
                     period = make_period(date)
                 except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.message)
+                    raise SituationParsingError(path_in_json, e.args[0])
                 if value is not None:
                     array = holder.buffer.get(period)
                     if array is None:
@@ -137,11 +137,11 @@ class Entity(object):
         new = self.__class__(new_simulation)
         new_dict = new.__dict__
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key == '_holders':
                 new_dict[key] = {
                     name: holder.clone(new)
-                    for name, holder in self._holders.iteritems()
+                    for name, holder in self._holders.items()
                     }
             elif key != 'simulation':
                 new_dict[key] = value
@@ -151,7 +151,7 @@ class Entity(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise Exception(u"Entity {} has no attribute {}".format(self.key, attribute))
+            raise AttributeError(u"Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
     @classmethod
@@ -246,12 +246,12 @@ See more information at <http://openfisca.org/doc/coding-the-legislation/35_peri
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
             variable_name: holder.get_memory_usage()
-            for variable_name, holder in self._holders.iteritems()
+            for variable_name, holder in self._holders.items()
             if variables is None or variable_name in variables
             }
 
         total_memory_usage = sum(
-            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.itervalues()
+            holder_memory_usage['total_nb_bytes'] for holder_memory_usage in holders_memory_usage.values()
             )
 
         return dict(
@@ -410,9 +410,6 @@ class GroupEntity(Entity):
                     unallocated_person, self.simulation.persons.plural, self.key)
                 )
 
-        #  Deprecated attribute used by deprecated projection opertors, such as sum_by_entity
-        self.roles_count = self.members_legacy_role.max() + 1
-
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.items():
             check_type(role_definition, list, [self.plural, entity_id, role_id])
@@ -467,12 +464,24 @@ class GroupEntity(Entity):
 
     @property
     def roles_count(self):
+        warnings.warn(' '.join([
+            u"entity.roles_count is deprecated.",
+            u"Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
+            ]),
+            Warning
+            )
         if self._roles_count is None:
             self._roles_count = self.members_legacy_role.max() + 1
         return self._roles_count
 
     @roles_count.setter
     def roles_count(self, value):
+        warnings.warn(' '.join([
+            u"entity.roles_count is deprecated.",
+            u"Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
+            ]),
+            Warning
+            )
         self._roles_count = value
 
     @property

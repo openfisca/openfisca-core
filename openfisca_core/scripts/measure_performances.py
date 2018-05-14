@@ -29,7 +29,7 @@ def timeit(method):
         start_time = time.time()
         result = method(*args, **kwargs)
         # print '%r (%r, %r) %2.9f s' % (method.__name__, args, kw, time.time() - start_time)
-        print '{:2.6f} s'.format(time.time() - start_time)
+        print('{:2.6f} s'.format(time.time() - start_time))
         return result
 
     return timed

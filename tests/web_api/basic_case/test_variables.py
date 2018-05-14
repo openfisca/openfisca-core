@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from httplib import OK, NOT_FOUND
+from http.client import OK, NOT_FOUND
 import json
-from nose.tools import assert_equal, assert_regexp_matches, assert_items_equal, assert_in, assert_is_none, assert_not_in
+from nose.tools import assert_equal, assert_regexp_matches, assert_in, assert_is_none, assert_not_in
 from . import subject
+
+
+def assert_items_equal(x, y):
+    assert_equal(set(x), set(y))
 
 
 # /variables
@@ -54,7 +58,7 @@ def test_input_variable_value():
         u'references': [u'https://en.wiktionary.org/wiki/birthdate'],
         }
 
-    for key, expected_value in expected_values.iteritems():
+    for key, expected_value in expected_values.items():
         yield check_input_variable_value, key, expected_value
 
 
@@ -83,7 +87,7 @@ def test_variable_value():
         u'entity': u'person',
         }
 
-    for key, expected_value in expected_values.iteritems():
+    for key, expected_value in expected_values.items():
         yield check_variable_value, key, expected_value
 
 

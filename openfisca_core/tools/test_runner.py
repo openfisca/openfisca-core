@@ -18,7 +18,7 @@ import yaml
 
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
-from openfisca_core.commons import unicode_type
+from openfisca_core.commons import unicode_type, to_unicode
 
 log = logging.getLogger(__name__)
 
@@ -40,11 +40,11 @@ def _config_yaml(yaml):
 
     yaml.add_representer(collections.OrderedDict, lambda dumper, data: dumper.represent_dict(
         (copy.deepcopy(key), value)
-        for key, value in data.iteritems()
+        for key, value in data.items()
         ))
     yaml.add_representer(dict, lambda dumper, data: dumper.represent_dict(
         (copy.deepcopy(key), value)
-        for key, value in data.iteritems()
+        for key, value in data.items()
         ))
     yaml.add_representer(folded_unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str',
         data, style='>'))
@@ -127,7 +127,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
     name_filter = options.get('name_filter')
     if isinstance(name_filter, str):
-        name_filter = name_filter.decode('utf-8')
+        name_filter = to_unicode(name_filter)
     verbose = options.get('verbose')
     only_variables = options.get('only_variables')
     ignore_variables = options.get('ignore_variables')
@@ -151,7 +151,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
         def check():
             try:
                 _run_test(period_str, test, verbose, only_variables, ignore_variables, options)
-            except:
+            except Exception:
                 log.error(title)
                 raise
 
@@ -207,7 +207,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
             test, error = scenarios.make_json_or_python_to_test(
                 tax_benefit_system = current_tax_benefit_system
                 )(test)
-        except:
+        except Exception:
             log.error("{} is not a valid OpenFisca test file".format(yaml_path).encode('utf-8'))
             raise
 
@@ -218,7 +218,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
                 yaml_path, error, yaml.dump(test, allow_unicode = True,
                 default_flow_style = False, indent = 2, width = 120)))
 
-        yield yaml_path, test.get('name') or filename, unicode(test['scenario'].period), test
+        yield yaml_path, test.get('name') or filename, to_unicode(test['scenario'].period), test
 
 
 def _run_test(period_str, test, verbose = False, only_variables = None, ignore_variables = None, options = {}):
@@ -235,13 +235,13 @@ def _run_test(period_str, test, verbose = False, only_variables = None, ignore_v
     output_variables = test.get(u'output_variables')
     if output_variables is not None:
         try:
-            for variable_name, expected_value in output_variables.iteritems():
+            for variable_name, expected_value in output_variables.items():
                 variable_ignored = ignore_variables is not None and variable_name in ignore_variables
                 variable_not_tested = only_variables is not None and variable_name not in only_variables
                 if variable_ignored or variable_not_tested:
                     continue  # Skip this variable
                 if isinstance(expected_value, dict):
-                    for requested_period, expected_value_at_period in expected_value.iteritems():
+                    for requested_period, expected_value_at_period in expected_value.items():
                         assert_near(
                             simulation.calculate(variable_name, requested_period),
                             expected_value_at_period,

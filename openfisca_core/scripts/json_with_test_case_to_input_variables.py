@@ -51,7 +51,7 @@ def main():
     scenario_or_simulation_str = args.input_file.read()
     scenario_or_simulation_json = json.loads(scenario_or_simulation_str)
     new_scenario_or_simulation_json = json_with_test_case_to_input_variables(scenario_or_simulation_json)
-    print json.dumps(new_scenario_or_simulation_json, indent = 2, sort_keys = True).encode('utf-8')
+    print(json.dumps(new_scenario_or_simulation_json, indent = 2, sort_keys = True).encode('utf-8'))
 
 
 if __name__ == "__main__":

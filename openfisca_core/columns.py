@@ -139,7 +139,7 @@ class Column(object):
         if isinstance(value, dict):
             return collections.OrderedDict(
                 (str(period), self.transform_dated_value_to_json(dated_value, use_label = use_label))
-                for period, dated_value in value.iteritems()
+                for period, dated_value in value.items()
                 )
         return self.transform_dated_value_to_json(value, use_label = use_label)
 

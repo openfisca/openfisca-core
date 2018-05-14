@@ -4,7 +4,7 @@ from nose.tools import assert_equal, raises
 import tempfile
 
 from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
-from test_countries import tax_benefit_system
+from .test_countries import tax_benefit_system
 
 
 def test_get_at_instant():
@@ -24,7 +24,7 @@ def test_param_values():
         '2012-01-01': 0.16,
         }
 
-    for date, value in dated_values.iteritems():
+    for date, value in dated_values.items():
         assert_equal(
             tax_benefit_system.get_parameters_at_instant(date).taxes.income_tax_rate,
             value
@@ -70,7 +70,7 @@ def test_wrong_value():
 def test_parameter_repr():
     parameters = tax_benefit_system.parameters
     tf = tempfile.NamedTemporaryFile(delete = False)
-    tf.write(repr(parameters))
+    tf.write(repr(parameters).encode('utf-8'))
     tf.close()
     tf_parameters = load_parameter_file(file_path = tf.name)
     assert_equal(repr(parameters), repr(tf_parameters))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from httplib import OK, NOT_FOUND
+from http.client import OK, NOT_FOUND
 import json
 from nose.tools import assert_equal
 from . import subject
@@ -115,7 +115,7 @@ def test_routes_robustness():
         '/parameter//taxes.income_tax_rate/': NOT_FOUND,
         }
 
-    for route, code in expected_codes.iteritems():
+    for route, code in expected_codes.items():
         yield check_code, route, code
 
 

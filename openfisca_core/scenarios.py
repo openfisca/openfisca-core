@@ -50,10 +50,10 @@ class AbstractScenario(object):
         if test_case is None:
             if self.input_variables is not None:
                 # Note: For set_input to work, handle days, before months, before years => use sorted().
-                for variable_name, array_by_period in sorted(self.input_variables.iteritems()):
+                for variable_name, array_by_period in sorted(self.input_variables.items()):
                     holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
                     entity = holder.entity
-                    for period, array in array_by_period.iteritems():
+                    for period, array in array_by_period.items():
                         if entity.count == 0:
                             entity.count = len(array)
                             entity.ids = range(entity.count)
@@ -63,7 +63,7 @@ class AbstractScenario(object):
                 persons.count = 1
                 persons.ids = range(persons.count)
 
-            for entity in simulation.entities.itervalues():
+            for entity in simulation.entities.values():
                 if entity is persons:
                     continue
 
@@ -73,7 +73,6 @@ class AbstractScenario(object):
                 if entity.members_role is None:
                     default_role = entity.roles[0] if entity.roles[0].subroles is None else entity.roles[0].subroles[0]
                     entity.members_role = np.full(persons.count, default_role, dtype = object)
-                entity.roles_count = len(np.unique(entity.members_role))
 
                 if entity.members_legacy_role is None:
                     entity.members_legacy_role = np.zeros(persons.count, dtype = np.int32)
@@ -103,7 +102,7 @@ class AbstractScenario(object):
                     holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
                     holder.set_input(period, value)
 
-            for entity in simulation.entities.itervalues():
+            for entity in simulation.entities.values():
                 step_size = len(test_case[entity.plural])
                 count = steps_count * step_size
                 entity.count = count
@@ -117,12 +116,12 @@ class AbstractScenario(object):
                 for person_index, person in enumerate(test_case[persons.plural])
                 )
 
-            for entity in simulation.entities.itervalues():
+            for entity in simulation.entities.values():
 
                 used_columns_name = set(
                     key
                     for entity_member in test_case[entity.plural]
-                    for key, value in entity_member.iteritems()
+                    for key, value in entity_member.items()
                     if value is not None
                     )
 
@@ -152,9 +151,8 @@ class AbstractScenario(object):
                                 entity.members_entity_id[individu_index] = step_index * entity_step_size + scenario_entity_index
                                 entity.members_role[individu_index] = person_role
                                 entity.members_legacy_role[individu_index] = person_legacy_role
-                    entity.roles_count = entity.members_legacy_role.max() + 1
 
-                for variable_name, column in tbs.variables.iteritems():
+                for variable_name, column in tbs.variables.items():
                     if column.entity == entity.__class__ and variable_name in used_columns_name:
                         variable_periods = set()
                         for cell in (
@@ -162,8 +160,8 @@ class AbstractScenario(object):
                                 for entity_member in test_case[entity.plural]
                                 ):
                             if isinstance(cell, dict):
-                                if any(value is not None for value in cell.itervalues()):
-                                    variable_periods.update(cell.iterkeys())
+                                if any(value is not None for value in cell.values()):
+                                    variable_periods.update(cell.keys())
                             elif cell is not None:
                                 variable_periods.add(simulation_period)
                         variable_default_value = column.default_value
@@ -238,9 +236,9 @@ class AbstractScenario(object):
                             cache_buffer[axis_name][axis_period] = array
 
                 # We pour the buffer in the real cache
-                for variable, values in cache_buffer.iteritems():
+                for variable, values in cache_buffer.items():
                     holder = simulation.get_variable_entity(variable).get_holder(variable)
-                    for period, array in values.iteritems():
+                    for period, array in values.items():
                         holder.set_input(period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
@@ -428,7 +426,7 @@ class AbstractScenario(object):
                         for role in entity_type.roles:
                             if entity.get(role.plural or role.key):
                                 entity_json[role.plural or role.key] = entity.get(role.plural or role.key)
-                    for column_name, variable_value in entity.iteritems():
+                    for column_name, variable_value in entity.items():
                         variable = variables.get(column_name)
                         if variable is not None and variable.entity == entity_type:
                             column = columns.make_column_from_variable(variable)
@@ -468,7 +466,7 @@ def make_json_or_python_to_array_by_period_by_variable_name(tax_benefit_system, 
             state = conv.default_state
         error_by_variable_name = {}
         array_by_period_by_variable_name = collections.OrderedDict()
-        for variable_name, variable_value in value.iteritems():
+        for variable_name, variable_value in value.items():
             column = tax_benefit_system.get_variable(variable_name)
             if isinstance(variable_value, np.ndarray):
                 variable_array_by_period = {period: variable_value}
@@ -575,11 +573,11 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
 
         count_by_entity_key = {}
         errors = {}
-        for variable_name, array_by_period in input_variables.iteritems():
+        for variable_name, array_by_period in input_variables.items():
             column = tax_benefit_system.get_variable(variable_name)
             entity_key = column.entity.key
             entity_count = count_by_entity_key.get(entity_key, 0)
-            for variable_period, variable_array in array_by_period.iteritems():
+            for variable_period, variable_array in array_by_period.items():
                 if entity_count == 0:
                     count_by_entity_key[entity_key] = entity_count = len(variable_array)
                 elif len(variable_array) != entity_count:
@@ -641,7 +639,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                     conv.test_isinstance((float, int)),
                     conv.test_greater_or_equal(0),
                     ),
-                ).iteritems(),
+                ).items(),
             (
                 (entity.plural, conv.pipe(
                     conv.make_item_to_singleton(),
@@ -684,7 +682,7 @@ def make_json_or_python_to_test(tax_benefit_system):
         period = test_case.pop(u'period')
         relative_error_margin = test_case.pop(u'relative_error_margin')
 
-        if test_case is not None and all(entity_members is None for entity_members in test_case.itervalues()):
+        if test_case is not None and all(entity_members is None for entity_members in test_case.values()):
             test_case = None
 
         scenario, error = tax_benefit_system.Scenario.make_json_to_instance(repair = True,
@@ -707,7 +705,7 @@ def make_json_or_python_to_test(tax_benefit_system):
                 output_variables = output_variables,
                 relative_error_margin = relative_error_margin,
                 scenario = scenario,
-                ).iteritems()
+                ).items()
             if value is not None
             }, None
 

@@ -85,8 +85,8 @@ class Tracer(object):
     @staticmethod
     def _get_key(variable_name, period, **parameters):
         if parameters.get('extra_params'):
-            return u"{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params']))).encode('utf-8')
-        return u"{}<{}>".format(variable_name, period).encode('utf-8')
+            return u"{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params'])))
+        return u"{}<{}>".format(variable_name, period)
 
     def record_calculation_start(self, variable_name, period, **parameters):
         """

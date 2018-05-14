@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import json
-from httplib import OK
+from http.client import OK
 
 import dpath
-from nose.tools import assert_equal, assert_items_equal, assert_in
+from nose.tools import assert_equal, assert_in
 
 from . import subject
+
+
+def assert_items_equal(x, y):
+    assert_equal(sorted(x), sorted(y))
+
 
 openAPI_response = subject.get('/spec')
 

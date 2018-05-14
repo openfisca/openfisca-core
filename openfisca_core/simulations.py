@@ -9,7 +9,7 @@ import dpath
 import numpy as np
 
 from openfisca_core import periods
-from openfisca_core.commons import empty_clone, stringify_array, basestring_type
+from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
 from openfisca_core.tracers import Tracer
 from openfisca_core.indexed_enums import Enum, EnumArray
 
@@ -91,7 +91,7 @@ class Simulation(object):
                 unexpected_entity = unexpected_entities[0]
                 raise SituationParsingError([unexpected_entity],
                     'This entity is not defined in the loaded tax and benefit system. The defined entities are {}.'.format(
-                        ', '.join(allowed_entities)).encode('utf-8')
+                        ', '.join(allowed_entities))
                     )
             persons_json = simulation_json.get(self.tax_benefit_system.person_entity.plural, None)
 
@@ -252,7 +252,7 @@ class Simulation(object):
         parameters_at = self.tax_benefit_system.get_parameters_at_instant
         try:
             self._check_for_cycle(variable, period)
-            if formula.func_code.co_argcount == 2:
+            if formula.__code__.co_argcount == 2:
                 array = formula(entity, period)
             else:
                 array = formula(entity, period, parameters_at, *extra_params)
@@ -343,7 +343,7 @@ class Simulation(object):
                 period,
                 u', '.join(sorted(set(
                     u'{}<{}>'.format(variable_name, period2)
-                    for variable_name, periods in requested_periods_by_variable_name.iteritems()
+                    for variable_name, periods in requested_periods_by_variable_name.items()
                     for period2 in periods
                     ))).encode('utf-8'),
                 )
@@ -404,7 +404,7 @@ class Simulation(object):
             total_nb_bytes = 0,
             by_variable = {}
             )
-        for entity in self.entities.itervalues():
+        for entity in self.entities.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
             result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
             result['by_variable'].update(entity_memory_usage['by_variable'])
@@ -430,7 +430,7 @@ class Simulation(object):
         new = empty_clone(self)
         new_dict = new.__dict__
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key not in ('debug', 'trace', 'tracer'):
                 new_dict[key] = value
 
@@ -471,10 +471,11 @@ class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join(path)
+        message = to_unicode(message)
         message = message.strip(linesep).replace(linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
-        Exception.__init__(self, self.error)
+        Exception.__init__(self, str(self.error).encode('utf-8'))
 
 
 def calculate_output_add(simulation, variable_name, period):
