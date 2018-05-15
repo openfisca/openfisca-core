@@ -28,9 +28,9 @@ jobs:
     working_directory: ~/openfisca-core
     docker:
       - image: python:2.7.14
+    context: Py2
     environment:
       CREATE_VENV: "virtualenv"
-      CACHE_ID: v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
     steps:
       - restore_cache:
@@ -59,7 +59,8 @@ jobs:
       #       pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template
 
       - save_cache:
-          key: {{ .Environment.CACHE_ID }}
+          # PY_VERSION is set in the context
+          key: v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /tmp/venv/openfisca-core
 
@@ -67,9 +68,9 @@ jobs:
     <<: *dependencies
     docker:
       - image: python:3.6
+    context: Py3
     environment:
       CREATE_VENV: "python -m venv"
-      CACHE_ID: v1-py3-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
   tests:
     working_directory: ~/openfisca-core
