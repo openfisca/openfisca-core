@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  checkout:
+  checkout: &checkout
     working_directory: ~/openfisca-core
     docker:
       - image: python:2.7.14
@@ -19,22 +19,10 @@ jobs:
             - .
             - ~/.ssh/known_hosts
   python3:
+    <<: *checkout
     working_directory: ~/openfisca-core
     docker:
       - image: python:3.6
-
-    steps:
-      - checkout
-
-      - run:
-          name: Fetch remote refs
-          command: git fetch
-
-      - save_cache:
-          key: v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - .
-            - ~/.ssh/known_hosts
 
   dependencies:
     working_directory: ~/openfisca-core
@@ -68,7 +56,7 @@ jobs:
       #       pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template
 
       - save_cache:
-          key: v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /tmp/venv/openfisca-core
 
@@ -85,7 +73,7 @@ jobs:
           name: Create virtualenv
           command: |
             mkdir -p /tmp/venv/openfisca-core
-            virtualenv /tmp/venv/openfisca-core
+            python3 -m venv /tmp/venv/openfisca-core
       # pip >= 8.0 needed to be compatible with "manylinux" wheels, used by numpy >= 1.11
       - run:
           name: Install dependencies
@@ -102,7 +90,7 @@ jobs:
       #       pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template
 
       - save_cache:
-          key: v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-py3-dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /tmp/venv/openfisca-core
   tests:
@@ -117,7 +105,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Run tests
@@ -138,7 +126,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-py3-dependencies-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Run tests
           command: |
@@ -160,7 +148,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Deploy (if version bump)
