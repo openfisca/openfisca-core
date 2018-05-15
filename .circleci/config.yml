@@ -18,11 +18,6 @@ jobs:
           paths:
             - .
             - ~/.ssh/known_hosts
-  python3:
-    <<: *checkout
-    working_directory: ~/openfisca-core
-    docker:
-      - image: python:3.6
 
   dependencies: &dependencies
     working_directory: ~/openfisca-core
@@ -137,11 +132,10 @@ workflows:
           context: Py2
           requires:
             - dependencies
-      - python3
       - dependencies_python3:
           context: Py3
           requires:
-            - python3
+            - checkout
       - tests_python3:
           context: Py3
           requires:
