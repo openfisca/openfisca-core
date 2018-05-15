@@ -147,7 +147,7 @@ workflows:
             - tests_python3
           filters:
             branches:
-              only: master
+              only: fixup-py3
       - deploy_python3:
           context: Py3
           requires:
@@ -155,4 +155,4 @@ workflows:
             - tests_python3
           filters:
             branches:
-              only: master
+              only: fixup-py3
