@@ -33,6 +33,10 @@ jobs:
       CREATE_VENV: "virtualenv"
 
     steps:
+      - run:
+          name: Test context
+          command: |
+            echo $PY_VERSION
       - restore_cache:
           keys:
             - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
