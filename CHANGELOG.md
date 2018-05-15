@@ -1,5 +1,9 @@
 # Changelog
 
+### 23.1.1 [#???](https://github.com/openfisca/openfisca-core/pull/???)
+
+Fixup Python 3 compatibility
+
 ### 23.1.0 [#660](https://github.com/openfisca/openfisca-core/pull/660)
 
 Make package compatible with Python 3
