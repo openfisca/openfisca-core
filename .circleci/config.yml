@@ -71,6 +71,7 @@ jobs:
           key: v1-dependencies-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /tmp/venv/openfisca-core
+
   dependencies_python3:
     working_directory: ~/openfisca-core
     docker:
@@ -80,12 +81,18 @@ jobs:
       - restore_cache:
           keys:
             - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
-
+      - run:
+          name: Create virtualenv
+          command: |
+            mkdir -p /tmp/venv/openfisca-core
+            virtualenv /tmp/venv/openfisca-core
       # pip >= 8.0 needed to be compatible with "manylinux" wheels, used by numpy >= 1.11
       - run:
           name: Install dependencies
           command: |
+            . /tmp/venv/openfisca-core/bin/activate
             pip install --upgrade pip twine wheel
+            pip install .[test] --upgrade
 
       # Uncomment and adapt the next line to use a particular feature branch of OpenFisca-Country-Template to run Circle CI tests
       # - run:
@@ -118,6 +125,7 @@ jobs:
             . /tmp/venv/openfisca-core/bin/activate
             make test
             . check-version-bump.sh
+
   tests_python3:
     working_directory: ~/openfisca-core
     docker:
@@ -134,10 +142,9 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pip install --upgrade pip twine wheel
-            pip install --editable .[test] --upgrade
+            . /tmp/venv/openfisca-core/bin/activate
             make test
-
+            . check-version-bump.sh
   deploy:
     working_directory: ~/openfisca-core
     docker:
@@ -172,9 +179,7 @@ workflows:
       - tests:
           requires:
             - dependencies
-      - python3:
-          requires:
-            - tests
+      - python3
       - dependencies_python3:
           requires:
             - python3
