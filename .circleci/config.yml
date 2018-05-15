@@ -28,7 +28,6 @@ jobs:
     working_directory: ~/openfisca-core
     docker:
       - image: python:2.7.14
-    context: Py2
     environment:
       CREATE_VENV: "virtualenv"
 
@@ -88,7 +87,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Run tests
@@ -109,7 +108,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-py3-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Run tests
           command: |
@@ -131,7 +130,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-py2-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Deploy (if version bump)
@@ -145,21 +144,26 @@ workflows:
     jobs:
       - checkout
       - dependencies:
+          context: Py2
           requires:
             - checkout
       - tests:
+          context: Py2
           requires:
             - dependencies
       - python3
       - dependencies_python3:
+          context: Py3
           requires:
             - python3
       - tests_python3:
+          context: Py3
           requires:
             - dependencies_python3
       - deploy:
           requires:
             - tests
+            - tests_python3
           filters:
             branches:
               only: master
