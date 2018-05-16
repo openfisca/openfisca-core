@@ -1,98 +1,56 @@
 version: 2
 
 jobs:
-  checkout: &checkout
-    working_directory: ~/openfisca-core
+  build_python2: &build  # Define a build template that can be re-used for Python 3
+    environment:
+      CREATE_VENV: "virtualenv"
     docker:
       - image: python:2.7.14
 
     steps:
       - checkout
 
-      - run:
-          name: Fetch remote refs
-          command: git fetch
-
-      - save_cache:
-          key: v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - .
-            - ~/.ssh/known_hosts
-
-  dependencies: &dependencies
-    working_directory: ~/openfisca-core
-    docker:
-      - image: python:2.7.14
-    environment:
-      CREATE_VENV: "virtualenv"
-
-    steps:
       - restore_cache:
-          keys:
-            - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-{{ .Environment.PY_VERSION }}-{{ checksum "setup.py" }}
 
       - run:
-          name: Create virtualenv
+          name: Create a virtualenv
           command: |
             mkdir -p /tmp/venv/openfisca-core
             ${CREATE_VENV} /tmp/venv/openfisca-core
+            echo "source /tmp/venv/openfisca-core/bin/activate" >> $BASH_ENV
 
-      # pip >= 8.0 needed to be compatible with "manylinux" wheels, used by numpy >= 1.11
       - run:
           name: Install dependencies
           command: |
-            . /tmp/venv/openfisca-core/bin/activate
             pip install --upgrade pip twine wheel
-            pip install .[test] --upgrade
-
-      # Uncomment and adapt the next line to use a particular feature branch of OpenFisca-Country-Template to run Circle CI tests
-      # - run:
-      #     name: Install a particular feature branch of OpenFisca-Country-Template
-      #     command: |
-      #       . /tmp/venv/openfisca-core/bin/activate
-      #       pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template
+            pip install --editable .[test] --upgrade
+          #  pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
 
       - save_cache:
-          # PY_VERSION is set in the context
-          key: v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-{{ .Environment.PY_VERSION }}-{{ checksum "setup.py" }}
           paths:
+            - .
             - /tmp/venv/openfisca-core
 
-  dependencies_python3:
-    <<: *dependencies
+      - run:
+          name: Run tests
+          command: make test
+
+      - run:
+          name: Check version number has been properly updated
+          command: |
+            git fetch
+            ./.circleci/check-version-bump.sh
+
+  build_python3:
+    <<: *build  # Use the build template defined above for Python 2
     docker:
       - image: python:3.6
     environment:
       CREATE_VENV: "python -m venv"
 
-  tests: &tests
-    working_directory: ~/openfisca-core
-    docker:
-      - image: python:2.7.14
-
-    steps:
-      - restore_cache:
-          keys:
-            - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
-
-      - restore_cache:
-          keys:
-            - v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
-
-      - run:
-          name: Run tests
-          command: |
-            . /tmp/venv/openfisca-core/bin/activate
-            make test
-            . check-version-bump.sh
-
-  tests_python3:
-    <<: *tests
-    docker:
-      - image: python:3.6
-
-  deploy: &deploy
-    working_directory: ~/openfisca-core
+  deploy_python2:
     docker:
       - image: python:2.7.14
     environment:
@@ -100,59 +58,41 @@ jobs:
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
 
     steps:
-      - restore_cache:
-          keys:
-            - v1-checkout-{{ .Environment.CIRCLE_SHA1 }}
-
-      - restore_cache:
-          keys:
-            - v1-{{ .Environment.PY_VERSION }}-dependencies-{{ .Environment.CIRCLE_SHA1 }}
-
       - run:
-          name: Deploy (if version bump)
-          command: |
-            . /tmp/venv/openfisca-core/bin/activate
-            . deploy-if-version-bump.sh
+          name: Upload a Python 2 package to Pypi and publish a tag if functional changes were made
+          command: ./.circleci/deploy-python-2.sh
 
   deploy_python3:
-    <<: *deploy
     docker:
       - image: python:3.6
+    environment:
+      PYPI_USERNAME: openfisca-bot
+      # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
+
+    steps:
+      - run:
+          name: Upload a Python 3 package to Pypi if functional changes were made
+          command: ./.circleci/deploy-python-3.sh
 
 workflows:
   version: 2
   openfisca-core:
     jobs:
-      - checkout
-      - dependencies:
-          context: Py2
-          requires:
-            - checkout
-      - tests:
-          context: Py2
-          requires:
-            - dependencies
-      - dependencies_python3:
-          context: Py3
-          requires:
-            - checkout
-      - tests_python3:
-          context: Py3
-          requires:
-            - dependencies_python3
+      - build_python2:
+          context: Py2  # Creates the PY_VERSION environment variable.
+      - build_python3:
+          context: Py3  # Creates the PY_VERSION environment variable.
       - deploy:
-          context: Py2
-          requires:
-            - tests
-            - tests_python3
+          requires:  # Only deploy if tests passed both with Python 2 and Python 3
+            - build_python2
+            - build_python3
           filters:
             branches:
               only: master
-      - deploy_python3:
-          context: Py3
+      - deploy_python3:  # Only deploy if tests passed both with Python 2 and Python 3
           requires:
-            - tests
-            - tests_python3
+            - build_python2
+            - build_python3
           filters:
             branches:
               only: master
