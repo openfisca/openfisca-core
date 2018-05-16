@@ -1,5 +1,4 @@
 version: 2
-
 jobs:
   build_python2: &build  # Define a build template that can be re-used for Python 3
     environment:
@@ -44,13 +43,13 @@ jobs:
             ./.circleci/check-version-bump.sh
 
   build_python3:
-    <<: *build  # Use the build template defined above for Python 2
+    <<: *build  # Use the build template defined above
     docker:
       - image: python:3.6
     environment:
       CREATE_VENV: "python -m venv"
 
-  deploy_python2:
+  deploy_python2: &deploy  # Define a deploy template that can be re-used for Python 3
     docker:
       - image: python:2.7.14
     environment:
@@ -58,21 +57,21 @@ jobs:
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
 
     steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-{{ .Environment.PY_VERSION }}-{{ checksum "setup.py" }}
+
       - run:
           name: Upload a Python 2 package to Pypi and publish a tag if functional changes were made
-          command: ./.circleci/deploy-python-2.sh
+          command: |
+            source /tmp/venv/openfisca-core/bin/activate
+            ./.circleci/deploy-python-$PY_VERSION.sh
 
   deploy_python3:
+    <<: *deploy  # Use the deploy template defined above
     docker:
       - image: python:3.6
-    environment:
-      PYPI_USERNAME: openfisca-bot
-      # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
-
-    steps:
-      - run:
-          name: Upload a Python 3 package to Pypi if functional changes were made
-          command: ./.circleci/deploy-python-3.sh
 
 workflows:
   version: 2
