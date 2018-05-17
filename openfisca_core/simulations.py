@@ -189,13 +189,13 @@ class Simulation(object):
 
         # Check that the requested period matches definition_period
         if variable.definition_period == periods.YEAR and period.unit == periods.MONTH:
-            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+            raise ValueError(u"Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
                 variable.name,
                 period,
                 ).encode('utf-8'))
 
         if variable.definition_period not in [periods.MONTH, periods.YEAR]:
-            raise ValueError(u'Unable to sum constant variable {} over period {} : only variables defined monthly or yearly can be summed over time.'.format(
+            raise ValueError(u"Unable to sum constant variable '{}' over period {}: only variables defined monthly or yearly can be summed over time.".format(
                 variable.name,
                 period).encode('utf-8'))
 
@@ -212,7 +212,7 @@ class Simulation(object):
 
         # Check that the requested period matches definition_period
         if variable.definition_period != periods.YEAR:
-            raise ValueError(u'Unable to divide the value of {} over time (on period {}) : only variables defined yearly can be divided over time.'.format(
+            raise ValueError(u"Unable to divide the value of '{}' over time on period {}: only variables defined yearly can be divided over time.".format(
                 variable_name,
                 period).encode('utf-8'))
 
@@ -225,7 +225,7 @@ class Simulation(object):
         elif period.unit == periods.YEAR:
             return self.calculate(variable_name, period, **parameters)
 
-        raise ValueError(u'Unable to divide the value of {} to match the period {}.'.format(
+        raise ValueError(u"Unable to divide the value of '{}' to match period {}.".format(
             variable_name,
             period).encode('utf-8'))
 
@@ -277,58 +277,58 @@ class Simulation(object):
             return  # For variables which values are constant in time, all periods are accepted
 
         if variable.definition_period == periods.MONTH and period.unit != periods.MONTH:
-            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole month. You can use the ADD option to sum {0} over the requested period, or change the requested period to "period.first_month".'.format(
+            raise ValueError(u"Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
                 variable.name,
                 period
                 ).encode('utf-8'))
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
-            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to "period.this_year".'.format(
+            raise ValueError(u"Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
                 variable.name,
                 period
                 ).encode('utf-8'))
 
         if period.size != 1:
-            raise ValueError(u'Unable to compute variable {0} for period {1} : {0} must be computed for a whole {2}. You can use the ADD option to sum {0} over the requested period.'.format(
+            raise ValueError(u"Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
                 variable.name,
                 period,
                 'month' if variable.definition_period == periods.MONTH else 'year'
                 ).encode('utf-8'))
 
-    def _check_formula_result(self, array, variable, entity, period):
+    def _check_formula_result(self, value, variable, entity, period):
 
-        assert isinstance(array, np.ndarray), (linesep.join([
+        assert isinstance(value, np.ndarray), (linesep.join([
             u"You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
             u"The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
-            u"instead it returned '{0}' of '{1}'.".format(array, type(array)).encode('utf-8'),
+            u"instead it returned '{0}' of {1}.".format(value, type(value)).encode('utf-8'),
             u"Learn more about Numpy arrays and vectorial computing:",
             u"<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
 
-        assert array.size == entity.count, \
+        assert value.size == entity.count, \
             u"Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                variable.name, entity.key, str(period), str(period), stringify_array(array),
-                array.size, entity.count, entity.key).encode('utf-8')
+                variable.name, entity.key, str(period), str(period), stringify_array(value),
+                value.size, entity.count, entity.key).encode('utf-8')
 
         if self.debug:
             try:
                 # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
-                if np.isnan(np.min(array)):
-                    nan_count = np.count_nonzero(np.isnan(array))
+                if np.isnan(np.min(value)):
+                    nan_count = np.count_nonzero(np.isnan(value))
                     raise NaNCreationError(u"Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        variable.name, entity.key, str(period), str(period), stringify_array(array),
+                        variable.name, entity.key, str(period), str(period), stringify_array(value),
                         nan_count).encode('utf-8'))
             except TypeError:
                 pass
 
-    def _cast_formula_result(self, array, variable):
-        if variable.value_type == Enum and not isinstance(array, EnumArray):
-            return variable.possible_values.encode(array)
+    def _cast_formula_result(self, value, variable):
+        if variable.value_type == Enum and not isinstance(value, EnumArray):
+            return variable.possible_values.encode(value)
 
-        if array.dtype != variable.dtype:
-            return array.astype(variable.dtype)
+        if value.dtype != variable.dtype:
+            return value.astype(variable.dtype)
 
-        return array
+        return value
 
     # ----- Handle circular dependencies in a calculation ----- #
 
