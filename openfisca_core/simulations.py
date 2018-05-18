@@ -338,11 +338,11 @@ class Simulation(object):
         the parameter max_nb_cycles of the calculate method.
         """
         def get_error_message():
-            return u'Circular definition detected on formula {}<{}>. Formulas and periods involved: {}.'.format(
+            return u"Circular definition detected on formula {}@{}. Formulas and periods involved: {}.".format(
                 variable.name,
                 period,
-                u', '.join(sorted(set(
-                    u'{}<{}>'.format(variable_name, period2)
+                u", ".join(sorted(set(
+                    u"{}@{}".format(variable_name, period2)
                     for variable_name, periods in requested_periods_by_variable_name.items()
                     for period2 in periods
                     ))).encode('utf-8'),
