@@ -90,8 +90,15 @@ class Simulation(object):
             if unexpected_entities:
                 unexpected_entity = unexpected_entities[0]
                 raise SituationParsingError([unexpected_entity],
-                    'This entity is not defined in the loaded tax and benefit system. The defined entities are {}.'.format(
-                        ', '.join(allowed_entities))
+                    ''.join([
+                        "Some entities in the situation are not defined in the loaded tax and benefit system.",
+                        "These entities are not found: {0}.",
+                        "The defined entities are: {1}."]
+                        )
+                    .format(
+                    ', '.join(unexpected_entities),
+                    ', '.join(allowed_entities)
+                        )
                     )
             persons_json = simulation_json.get(self.tax_benefit_system.person_entity.plural, None)
 

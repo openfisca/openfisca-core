@@ -34,7 +34,7 @@ def test_responses():
         ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
         ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
         ('{"persons": {}}', BAD_REQUEST, 'persons', 'At least one person'),
-        ('{"persons": {"bob": {}}, "unknown_entity": {}}', BAD_REQUEST, 'unknown_entity', 'entity is not defined',),
+        ('{"persons": {"bob": {}}, "unknown_entity": {}}', BAD_REQUEST, 'unknown_entity', 'entities are not found',),
         ('{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}', BAD_REQUEST, 'households/dupont/parents', 'type',),
         ('{"persons": {"bob": {"unknown_variable": {}}}}', NOT_FOUND, 'persons/bob/unknown_variable', 'You tried to calculate or to set',),
         ('{"persons": {"bob": {"housing_allowance": {}}}}', BAD_REQUEST, 'persons/bob/housing_allowance', "You tried to compute the variable 'housing_allowance' for the entity 'persons'",),
