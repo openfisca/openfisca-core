@@ -8,7 +8,7 @@ info:
     email: "contact@openfisca.fr"
   license:
     name: "AGPL"
-    url: "https://www.gnu.org/licenses/agpl-3.0.html"
+    url: "https://www.gnu.org/licenses/agpl-3.0"
 host: null
 schemes:
   - "https"
