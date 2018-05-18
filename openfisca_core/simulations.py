@@ -52,11 +52,11 @@ class Simulation(object):
             ):
 
         """
-            If a ``simulation_json`` is given, initilalises a simulation from a JSON dictionnary.
+            If a ``simulation_json`` is given, initialises a simulation from a JSON dictionary.
 
             Note: This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
 
-            If no ``simulation_json`` is given, initilalises an empty simulation.
+            If no ``simulation_json`` is given, initialises an empty simulation.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
