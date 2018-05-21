@@ -30,7 +30,7 @@ class InMemoryStorage(object):
         if extra_params:
             return values.get(tuple(extra_params))
         if isinstance(values, dict):
-            return values.values()[0]
+            return next(iter(values.values()))
         return values
 
     def put(self, value, period, extra_params = None):
@@ -76,7 +76,7 @@ class InMemoryStorage(object):
             for array_or_dict in self._arrays.values()
             ])
 
-        array = list(self._arrays.values())[0]
+        array = next(iter(self._arrays.values()))
         if isinstance(array, dict):
             array = array.values()[0]
         return dict(
@@ -117,7 +117,7 @@ class OnDiskStorage(object):
                 return None
             return self._decode_file(values.get(tuple(extra_params)))
         if isinstance(values, dict):
-            return self._decode_file(values.values()[0])
+            return self._decode_file(next(iter(values.values())))
         return self._decode_file(values)
 
     def put(self, value, period, extra_params = None):
