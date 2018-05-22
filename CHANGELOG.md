@@ -1,5 +1,10 @@
 # Changelog
 
+### 23.1.2 [#671](https://github.com/openfisca/openfisca-core/pull/671)
+
+- Minor technical improvement
+  - Publish both Python 2 and Python 3 version on Pypi in CircleCI
+
 ### 23.1.1 [#661](https://github.com/openfisca/openfisca-core/pull/661)
 
 - Fixup Python 3 compatibility
