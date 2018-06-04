@@ -1,5 +1,11 @@
 # Changelog
 
+## 23.2.0 [#675](https://github.com/openfisca/openfisca-core/pull/675)
+
+- Add performance testing for the test-runner 
+  - `pip install -e .[performance]` installs the necessary dependencies
+  - `make performance` runs the script
+
 ### 23.1.2 [#671](https://github.com/openfisca/openfisca-core/pull/671)
 
 - Minor technical improvement
