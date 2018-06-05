@@ -40,7 +40,6 @@ setup(
             ],
         'performance': [
             'openfisca-france >= 21.10.5, < 22.0.0',
-            'snakeviz',
             'nose'
             ]
         },
