@@ -37,10 +37,6 @@ setup(
             ],
         'tracker': [
             'openfisca-tracker == 0.2.0',
-            ],
-        'performance': [
-            'openfisca-france >= 21.10.5, < 22.0.0',
-            'nose'
             ]
         },
     include_package_data = True,  # Will read MANIFEST.in
