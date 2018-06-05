@@ -8,3 +8,6 @@ test:
 
 api:
 	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template
+
+performance:
+	python tests/core/performance/test_perf_tests.py
