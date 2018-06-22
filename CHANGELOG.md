@@ -1,5 +1,11 @@
 # Changelog
 
+### 23.1.4 [#679](https://github.com/openfisca/openfisca-core/pull/679)
+
+* Use C binding to load and dump Yaml (`CLoader` and `CDumper`)
+  - For countries with several Yaml tests, they can take some time to run
+  - Using the C bindings provided by `libyaml` adds a little performance boost
+
 ### 23.1.3 [#680](https://github.com/openfisca/openfisca-core/pull/680)
 
 Fix test that was failing due to migration to HTTPS
