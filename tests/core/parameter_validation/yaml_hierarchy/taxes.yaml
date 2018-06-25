@@ -5,4 +5,4 @@ rate:
   values:
     2015-12-01:
       value: 0.22
-      reference: A dummy reference
+      reference: http://legifrance.fr/taxes/rate/2015-12

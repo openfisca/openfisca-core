@@ -258,6 +258,8 @@ class ParameterAtInstant(object):
 
         self.validate(data)
         self.value = data['value']
+        self.unit = data.get('unit')
+        self.reference = data.get('reference')
 
     def validate(self, data):
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
