@@ -20,46 +20,42 @@ from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import unicode_type, to_unicode
 
+
 log = logging.getLogger(__name__)
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    log.warning(
+        u' '
+        u'libyaml is not installed in your environement, this can make your '
+        u'test suite slower to run. Once you have installed libyaml, run `pip '
+        u'uninstall pyyaml && pip install pyyaml` so that it is used in your '
+        u'Python environement.')
+    from yaml import Loader, Dumper
+
 
 # Yaml module configuration
 
 
-def _config_yaml(yaml):
-
-    class folded_unicode(unicode_type):
-        pass
-
-    class literal_unicode(unicode_type):
-        pass
-
-    def dict_constructor(loader, node):
-        return collections.OrderedDict(loader.construct_pairs(node))
-
-    yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, dict_constructor)
-
-    yaml.add_representer(collections.OrderedDict, lambda dumper, data: dumper.represent_dict(
-        (copy.deepcopy(key), value)
-        for key, value in data.items()
-        ))
-    yaml.add_representer(dict, lambda dumper, data: dumper.represent_dict(
-        (copy.deepcopy(key), value)
-        for key, value in data.items()
-        ))
-    yaml.add_representer(folded_unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str',
-        data, style='>'))
-    yaml.add_representer(literal_unicode, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str',
-        data, style='|'))
-    yaml.add_representer(np.ndarray, lambda dumper, data: dumper.represent_list(data.tolist()))
-    yaml.add_representer(periods.Instant, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
-    yaml.add_representer(periods.Period, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
-    yaml.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
-    yaml.add_representer(unicode_type, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
-
-    return yaml
+class unicode_folder(unicode_type):
+    pass
 
 
-_config_yaml(yaml)
+class unicode_literal(unicode_type):
+    pass
+
+
+Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, lambda loader, node: collections.OrderedDict(loader.construct_pairs(node)))
+Dumper.add_representer(collections.OrderedDict, lambda dumper, data: dumper.represent_dict((copy.deepcopy(key), value) for key, value in data.items()))
+Dumper.add_representer(dict, lambda dumper, data: dumper.represent_dict((copy.deepcopy(key), value) for key, value in data.items()))
+Dumper.add_representer(np.ndarray, lambda dumper, data: dumper.represent_list(data.tolist()))
+Dumper.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
+Dumper.add_representer(unicode_folder, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='>'))
+Dumper.add_representer(unicode_literal, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|'))
+Dumper.add_representer(periods.Instant, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
+Dumper.add_representer(periods.Period, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', str(data)))
+Dumper.add_representer(unicode_type, lambda dumper, data: dumper.represent_scalar(u'tag:yaml.org,2002:str', data))
 
 
 # Exposed methods
@@ -175,7 +171,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         try:
-            tests = yaml.load(yaml_file)
+            tests = yaml.load(yaml_file, Loader=Loader)
         except yaml.scanner.ScannerError:
             log.error("{} is not a valid YAML file".format(yaml_path).encode('utf-8'))
             raise
@@ -191,7 +187,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
     if error is not None:
         embedding_error = conv.embed_error(tests, u'errors', error)
         assert embedding_error is None, embedding_error
-        raise ValueError("Error in test {}:\n{}".format(yaml_path, yaml.dump(tests, allow_unicode = True,
+        raise ValueError("Error in test {}:\n{}".format(yaml_path, yaml.dump(tests, Dumper=Dumper, allow_unicode = True,
             default_flow_style = False, indent = 2, width = 120)))
 
     for test in tests:
@@ -215,7 +211,7 @@ def _parse_test_file(tax_benefit_system, yaml_path):
             embedding_error = conv.embed_error(test, u'errors', error)
             assert embedding_error is None, embedding_error
             raise ValueError("Error in test {}:\n{}\nYaml test content: \n{}\n".format(
-                yaml_path, error, yaml.dump(test, allow_unicode = True,
+                yaml_path, error, yaml.dump(test, Dumper=Dumper, allow_unicode = True,
                 default_flow_style = False, indent = 2, width = 120)))
 
         yield yaml_path, test.get('name') or filename, to_unicode(test['scenario'].period), test
