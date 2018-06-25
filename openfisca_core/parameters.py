@@ -118,7 +118,11 @@ class Parameter(object):
         self.file_path = file_path
         _validate_parameter(self, data, data_type = dict)
         self.values_history = self  # Only for retro-compatibility
+        self.description = None
+        self.unit = None
+        self.reference = None
 
+        # If metadata have been provided
         if data.get('values'):
             _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
@@ -144,7 +148,7 @@ class Parameter(object):
                 continue
 
             value_name = _compose_name(name, instant_str)
-            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = file_path)
+            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, default_unit = self.unit)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -241,7 +245,7 @@ class ParameterAtInstant(object):
     _allowed_value_data_types = [int, float, bool, type(None)]
     _allowed_keys = set(['value', 'unit', 'reference'])
 
-    def __init__(self, name, instant_str, data = None, file_path = None):
+    def __init__(self, name, instant_str, data = None, file_path = None, default_unit = None):
         """
             :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
@@ -258,7 +262,7 @@ class ParameterAtInstant(object):
 
         self.validate(data)
         self.value = data['value']
-        self.unit = data.get('unit')
+        self.unit = data.get('unit', default_unit)
         self.reference = data.get('reference')
 
     def validate(self, data):

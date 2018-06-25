@@ -65,3 +65,4 @@ def test_parameters_metadata():
     assert_equals(parameters.taxes.rate.reference, 'http://legifrance.fr/taxes/rate')
     assert_equals(parameters.taxes.rate.unit, '/1')
     assert_equals(parameters.taxes.rate.values_list[0].reference, 'http://legifrance.fr/taxes/rate/2015-12')
+    assert_equals(parameters.taxes.rate.values_list[0].unit, '/1')
