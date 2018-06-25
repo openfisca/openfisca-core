@@ -1,5 +1,9 @@
 # Changelog
 
+### 23.1.3 [#680](https://github.com/openfisca/openfisca-core/pull/680)
+
+Fix test that was failing due to migration to HTTPS
+
 ### 23.1.2 [#671](https://github.com/openfisca/openfisca-core/pull/671)
 
 - Minor technical improvement
