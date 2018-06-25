@@ -786,7 +786,7 @@ def contains_nan(vector):
     if np.issubdtype(vector.dtype, np.record):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
-        return np.isnan(np.min(vector))
+        return np.isnan(vector).any()
 
 
 # Only for retro-compatibility
