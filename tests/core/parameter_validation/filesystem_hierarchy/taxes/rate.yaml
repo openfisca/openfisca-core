@@ -1,0 +1,6 @@
+description: Tax rate
+unit: /1
+reference: http://legifrance.fr/taxes/rate
+values:
+  2015-12-01:
+    value: 0.22

@@ -122,6 +122,8 @@ class Parameter(object):
         if data.get('values'):
             _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
+            self.unit = data.get('unit')
+            self.reference = data.get('reference')
             data = data['values']
             _validate_parameter(self, data, data_type = dict)
 

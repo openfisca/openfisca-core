@@ -2,7 +2,7 @@
 
 import os
 
-from nose.tools import assert_in, raises
+from nose.tools import assert_in, assert_equals, raises
 
 from openfisca_core.parameters import load_parameter_file, ParameterNode, ParameterParsingError
 
@@ -48,12 +48,14 @@ def test_parsing_errors():
 def test_filesystem_hierarchy():
     path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     parameters = ParameterNode('', directory_path = path)
+    assert_equals(parameters.taxes.rate.reference, 'http://legifrance.fr/taxes/rate')
+    assert_equals(parameters.taxes.rate.unit, '/1')
     parameters_at_instant = parameters('2016-01-01')
-    assert parameters_at_instant.node1.param == 1.0
+    assert_equals(parameters_at_instant.taxes.rate, 0.22)
 
 
 def test_yaml_hierarchy():
     path = os.path.join(BASE_DIR, 'yaml_hierarchy')
     parameters = ParameterNode('', directory_path = path)
     parameters_at_instant = parameters('2016-01-01')
-    assert parameters_at_instant.node1.param == 1.0
+    assert_equals(parameters_at_instant.taxes.rate, 0.22)
