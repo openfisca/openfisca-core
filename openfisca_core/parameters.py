@@ -400,7 +400,7 @@ class ParameterNode(object):
         result = os.linesep.join(
             [os.linesep.join(
                 [u"{}:", u"{}"]).format(name, indent(repr(value)))
-                for name, value in self.children.items()]
+                for name, value in sorted(self.children.items())]
             )
         # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
