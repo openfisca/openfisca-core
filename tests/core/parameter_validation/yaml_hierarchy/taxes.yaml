@@ -1,3 +1,4 @@
+description: All tax parameters
 rate:
   description : Tax rate
   reference: http://legifrance.fr/taxes/rate

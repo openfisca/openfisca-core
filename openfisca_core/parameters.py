@@ -330,21 +330,29 @@ class ParameterNode(object):
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name = name
+        self.children = {}
+        self.reference = None
+        self.description = None
 
         if directory_path:
-            self.children = {}
             for child_name in os.listdir(directory_path):
                 child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
                     child_name, ext = os.path.splitext(child_name)
-                    # We ignore non-YAML files, and index.yaml files, curently used to store metadatas
-                    if ext not in PARAM_FILE_EXTENSIONS or child_name == 'index':
+
+                    # We ignore non-YAML files
+                    if ext not in PARAM_FILE_EXTENSIONS:
                         continue
 
-                    child_name_expanded = _compose_name(name, child_name)
-                    child = load_parameter_file(child_path, child_name_expanded)
-                    self.children[child_name] = child
-                    setattr(self, child_name, child)
+                    if child_name == 'index':
+                        node_metadata = _load_yaml_file(child_path)
+                        self.reference = node_metadata.get('reference', None)
+                        self.description = node_metadata.get('description', None)
+                    else:
+                        child_name_expanded = _compose_name(name, child_name)
+                        child = load_parameter_file(child_path, child_name_expanded)
+                        self.children[child_name] = child
+                        setattr(self, child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
@@ -356,10 +364,9 @@ class ParameterNode(object):
         else:
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            self.children = {}
-            # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
-            data.pop('reference', None)
-            data.pop('description', None)
+            # We allow to set a reference and a description for a node.
+            self.reference = data.pop('reference', None)
+            self.description = data.pop('description', None)
             for child_name, child in data.items():
                 child_name = str(child_name)
                 child_name_expanded = _compose_name(name, child_name)
@@ -717,21 +724,10 @@ class Bracket(ParameterNode):
     _allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
 
 
-def load_parameter_file(file_path, name = ''):
-    """
-    Load parameters from a YAML file (or a directory containing YAML files).
-
-    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
-    """
-
-    if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
-    if os.path.isdir(file_path):
-        return ParameterNode(name, directory_path = file_path)
-
+def _load_yaml_file(file_path):
     with open(file_path, 'r') as f:
         try:
-            data = yaml.load(f, Loader = Loader)
+            return yaml.load(f, Loader = Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError):
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(
@@ -740,6 +736,18 @@ def load_parameter_file(file_path, name = ''):
                 stack_trace
                 )
 
+
+def load_parameter_file(file_path, name = ''):
+    """
+    Load parameters from a YAML file (or a directory containing YAML files).
+
+    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
+    """
+    if not os.path.exists(file_path):
+        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+    if os.path.isdir(file_path):
+        return ParameterNode(name, directory_path = file_path)
+    data = _load_yaml_file(file_path)
     return _parse_child(name, data, file_path)
 
 
