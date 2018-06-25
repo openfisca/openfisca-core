@@ -1,5 +1,16 @@
 # Changelog
 
+### 23.3.0 [#681](https://github.com/openfisca/openfisca-core/pull/681)
+
+* Expose Parameters metadata in the Python API
+    - Parameters unit and reference:
+      - e.g. `parameters.taxes.rate.unit`, `parameters.taxes.rate.reference`
+    - Parameter value unit and reference:
+      - e.g. `parameters.taxes.rate.values_list[0].unit`, `parameters.taxes.rate.values_list[0].reference`
+    - Parameter node description and reference:
+      - e.g. `parameters.taxes.reference`, `parameters.taxes.description`
+      - Note: Parameter descriptions (e.g. `parameters.taxes.rate.description`) were already exposed
+
 ## 23.2.0 [#689](https://github.com/openfisca/openfisca-core/pull/689)
 
 * Introduce `TaxBenefitSystem.replace_variable`
