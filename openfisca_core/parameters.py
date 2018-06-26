@@ -644,6 +644,8 @@ class Scale(object):
         self.file_path = file_path
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
+        self.unit = data.get('unit')
+        self.reference = _item_to_list(data.get('reference'))
 
         if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
