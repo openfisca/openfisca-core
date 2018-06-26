@@ -127,7 +127,7 @@ class Parameter(object):
             _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
             self.unit = data.get('unit')
-            self.reference = data.get('reference')
+            self.reference = _item_to_list(data.get('reference'))
             data = data['values']
             _validate_parameter(self, data, data_type = dict)
 
@@ -263,7 +263,7 @@ class ParameterAtInstant(object):
         self.validate(data)
         self.value = data['value']
         self.unit = data.get('unit', default_unit)
-        self.reference = data.get('reference')
+        self.reference = _item_to_list(data.get('reference'))
 
     def validate(self, data):
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
@@ -346,7 +346,7 @@ class ParameterNode(object):
 
                     if child_name == 'index':
                         node_metadata = _load_yaml_file(child_path)
-                        self.reference = node_metadata.get('reference', None)
+                        self.reference = _item_to_list(node_metadata.get('reference', None))
                         self.description = node_metadata.get('description', None)
                     else:
                         child_name_expanded = _compose_name(name, child_name)
@@ -365,7 +365,7 @@ class ParameterNode(object):
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             # We allow to set a reference and a description for a node.
-            self.reference = data.pop('reference', None)
+            self.reference = _item_to_list(data.pop('reference', None))
             self.description = data.pop('description', None)
             for child_name, child in data.items():
                 child_name = str(child_name)
@@ -792,6 +792,12 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     .format(key, parameter.name, list(allowed_keys)),
                     parameter.file_path
                     )
+
+
+def _item_to_list(item):
+    if item is None or isinstance(item, list):
+        return item
+    return [item]
 
 
 def contains_nan(vector):

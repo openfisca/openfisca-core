@@ -62,9 +62,9 @@ def test_yaml_hierarchy():
 def test_parameters_metadata():
     path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     parameters = ParameterNode('', directory_path = path)
-    assert_equals(parameters.taxes.rate.reference, 'http://legifrance.fr/taxes/rate')
+    assert_equals(parameters.taxes.rate.reference, ['https://law.gov.example/taxes/rate'])
     assert_equals(parameters.taxes.rate.unit, '/1')
-    assert_equals(parameters.taxes.rate.values_list[0].reference, 'http://legifrance.fr/taxes/rate/2015-12')
+    assert_equals(parameters.taxes.rate.values_list[0].reference, ['https://law.gov.example/taxes/rate/2015-12'])
     assert_equals(parameters.taxes.rate.values_list[0].unit, '/1')
 
 
