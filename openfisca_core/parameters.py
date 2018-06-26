@@ -333,8 +333,10 @@ class ParameterNode(object):
         self.children = {}
         self.reference = None
         self.description = None
+        self.file_path = None
 
         if directory_path:
+            self.file_path = directory_path
             for child_name in os.listdir(directory_path):
                 child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
@@ -346,6 +348,7 @@ class ParameterNode(object):
 
                     if child_name == 'index':
                         node_metadata = _load_yaml_file(child_path)
+                        _validate_parameter(self, node_metadata, allowed_keys = ['reference', 'description'])
                         self.reference = _item_to_list(node_metadata.get('reference', None))
                         self.description = node_metadata.get('description', None)
                     else:
