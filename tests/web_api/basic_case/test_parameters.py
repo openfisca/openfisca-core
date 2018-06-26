@@ -48,6 +48,23 @@ def test_parameter_values():
         )
 
 
+def test_parameter_node():
+    response = subject.get('/parameter/benefits')
+    assert_equal(response.status_code, OK)
+    parameter = json.loads(response.data)
+    assert_equal(
+        parameter,
+        {
+            u'id': u'benefits',
+            u'description': None,
+            u'children': {
+                u'housing_allowance': {u'description': u'Housing allowance amount (as a fraction of the rent)', u'id': 'benefits.housing_allowance'},
+                u'basic_income': {u'description': u'Amount of the basic income', u'id': 'benefits.basic_income'}
+                }
+            }
+        )
+
+
 def test_stopped_parameter_values():
     response = subject.get('/parameter/benefits.housing_allowance')
     parameter = json.loads(response.data.decode('utf-8'))
@@ -78,25 +95,6 @@ def test_bareme():
                 }
             }
         )
-
-
-# def test_stopped_bareme():
-#     response = subject.get('/parameter/contribution_sociale.crds.activite.abattement')
-#     parameter = json.loads(response.data)
-#     assert_equal(
-#         parameter,
-#         {
-#             'id': 'contribution_sociale.crds.activite.abattement',
-#             'description': "Abattement sur les revenus d\'activité, du chômage et des préretraites",
-#             'brackets': {
-#                 "1998-01-01": {"0.0": 0.05},
-#                 "2005-01-01": {"0.0": 0.03},
-#                 "2011-01-01": {"0.0": 0.03, "4.0": 0},
-#                 "2012-01-01": {"0.0": 0.0175, "4.0": 0},
-#                 "2015-01-01": None,
-#                 }
-#             }
-#         )
 
 
 def check_code(route, code):
