@@ -127,7 +127,7 @@ class Parameter(object):
             _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
             self.description = data.get('description')
             self.unit = data.get('unit')
-            self.reference = _item_to_list(data.get('reference'))
+            self.reference = _wrap(data.get('reference'))
             data = data['values']
             _validate_parameter(self, data, data_type = dict)
 
@@ -263,7 +263,7 @@ class ParameterAtInstant(object):
         self.validate(data)
         self.value = data['value']
         self.unit = data.get('unit', default_unit)
-        self.reference = _item_to_list(data.get('reference'))
+        self.reference = _wrap(data.get('reference'))
 
     def validate(self, data):
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
@@ -349,7 +349,7 @@ class ParameterNode(object):
                     if child_name == 'index':
                         node_metadata = _load_yaml_file(child_path)
                         _validate_parameter(self, node_metadata, allowed_keys = ['reference', 'description'])
-                        self.reference = _item_to_list(node_metadata.get('reference', None))
+                        self.reference = _wrap(node_metadata.get('reference', None))
                         self.description = node_metadata.get('description', None)
                     else:
                         child_name_expanded = _compose_name(name, child_name)
@@ -368,7 +368,7 @@ class ParameterNode(object):
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             # We allow to set a reference and a description for a node.
-            self.reference = _item_to_list(data.pop('reference', None))
+            self.reference = _wrap(data.pop('reference', None))
             self.description = data.pop('description', None)
             for child_name, child in data.items():
                 child_name = str(child_name)
@@ -648,7 +648,7 @@ class Scale(object):
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
         self.unit = data.get('unit')
-        self.reference = _item_to_list(data.get('reference'))
+        self.reference = _wrap(data.get('reference'))
 
         if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
@@ -799,7 +799,7 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     )
 
 
-def _item_to_list(item):
+def _wrap(item):
     if item is None or isinstance(item, list):
         return item
     return [item]
