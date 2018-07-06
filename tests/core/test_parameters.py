@@ -74,3 +74,21 @@ def test_parameter_repr():
     tf.close()
     tf_parameters = load_parameter_file(file_path = tf.name)
     assert_equal(repr(parameters), repr(tf_parameters))
+
+
+def test_parameters_metadata():
+    parameter = tax_benefit_system.parameters.benefits.basic_income
+    assert_equal(parameter.reference, ['https://law.gov.example/basic-income/amount'])
+    assert_equal(parameter.unit, 'currency:EUR')
+    assert_equal(parameter.values_list[0].reference, ['https://law.gov.example/basic-income/amount/2015-12'])
+    assert_equal(parameter.values_list[0].unit, 'currency:EUR')
+    scale = tax_benefit_system.parameters.taxes.social_security_contribution
+    assert_equal(scale.unit, 'currency:EUR')
+
+
+def test_parameter_node_metadata():
+    parameter = tax_benefit_system.parameters.benefits
+    assert_equal(parameter.description, 'Social benefits')
+
+    parameter_2 = tax_benefit_system.parameters.taxes.housing_tax
+    assert_equal(parameter_2.description, 'Housing tax')

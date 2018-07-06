@@ -2,7 +2,7 @@
 
 import os
 
-from nose.tools import assert_in, assert_equals, raises
+from nose.tools import assert_in, raises
 
 from openfisca_core.parameters import load_parameter_file, ParameterNode, ParameterParsingError
 
@@ -49,30 +49,11 @@ def test_filesystem_hierarchy():
     path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
     parameters = ParameterNode('', directory_path = path)
     parameters_at_instant = parameters('2016-01-01')
-    assert_equals(parameters_at_instant.taxes.rate, 0.22)
+    assert parameters_at_instant.node1.param == 1.0
 
 
 def test_yaml_hierarchy():
     path = os.path.join(BASE_DIR, 'yaml_hierarchy')
     parameters = ParameterNode('', directory_path = path)
     parameters_at_instant = parameters('2016-01-01')
-    assert_equals(parameters_at_instant.taxes.rate, 0.22)
-
-
-def test_parameters_metadata():
-    path = os.path.join(BASE_DIR, 'filesystem_hierarchy')
-    parameters = ParameterNode('', directory_path = path)
-    assert_equals(parameters.taxes.rate.reference, ['https://law.gov.example/taxes/rate'])
-    assert_equals(parameters.taxes.rate.unit, '/1')
-    assert_equals(parameters.taxes.rate.values_list[0].reference, ['https://law.gov.example/taxes/rate/2015-12'])
-    assert_equals(parameters.taxes.rate.values_list[0].unit, '/1')
-
-
-def test_node_metadata():
-    path_yaml_hierarchy = os.path.join(BASE_DIR, 'yaml_hierarchy')
-    parameters = ParameterNode('', directory_path = path_yaml_hierarchy)
-    assert_equals(parameters.taxes.description, 'All tax parameters')
-
-    path_fs_hierarchy = os.path.join(BASE_DIR, 'filesystem_hierarchy')
-    parameters = ParameterNode('', directory_path = path_fs_hierarchy)
-    assert_equals(parameters.taxes.description, 'All tax parameters')
+    assert parameters_at_instant.node1.param == 1.0

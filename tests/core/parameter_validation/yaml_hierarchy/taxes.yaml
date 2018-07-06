@@ -1,9 +1,0 @@
-description: All tax parameters
-rate:
-  description : Tax rate
-  reference: http://legifrance.fr/taxes/rate
-  unit: /1
-  values:
-    2015-12-01:
-      value: 0.22
-      reference: http://legifrance.fr/taxes/rate/2015-12
