@@ -171,7 +171,8 @@ def create_app(tax_benefit_system,
             if request.headers.get('dnt'):
                 tracker.track(request.url)
             else:
-                tracker.track(request.url, request.remote_addr)
+                api_version = "{}-{}".format(data['country_package_metadata']['name'], data['country_package_metadata']['version'])
+                tracker.track(request.url, api_version, request.remote_addr)
         return response
 
     @app.errorhandler(500)
