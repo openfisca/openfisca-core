@@ -172,7 +172,7 @@ def create_app(tax_benefit_system,
                 tracker.track(request.url)
             else:
                 api_version = "{}-{}".format(data['country_package_metadata']['name'], data['country_package_metadata']['version'])
-                tracker.track(request.url, api_version, request.remote_addr)
+                tracker.track(request.url, request.remote_addr, api_version)
         return response
 
     @app.errorhandler(500)
