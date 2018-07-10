@@ -1,5 +1,10 @@
 # Changelog
 
+### 23.1.7 [#686](https://github.com/openfisca/openfisca-core/pull/686)
+
+* Fix installation on Windows with Python 3.7
+  - Require `psutil` version `5.4.6`, as `5.4.2` is incompatible with that environment.
+
 ### 23.1.6 [#688](https://github.com/openfisca/openfisca-core/pull/688)
 
 * In the error message sent to a user trying to set a variable without specifying for which period, add an example for a variable defined for `ETERNITY`.
