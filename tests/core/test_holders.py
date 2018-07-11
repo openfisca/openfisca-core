@@ -168,3 +168,12 @@ def test_cache_enum_on_disk():
     simulation.calculate('housing_occupancy_status', month)  # First calculation
     housing_occupancy_status = simulation.calculate('housing_occupancy_status', month)  # Read from cache
     assert_equal(housing_occupancy_status, HousingOccupancyStatus.tenant)
+
+
+def test_set_not_chaged_variable():
+    dont_cache_variable = MemoryConfig(max_memory_occupation = 1, variables_to_drop = ['salary'])
+    simulation = get_simulation(single, memory_config = dont_cache_variable)
+    holder = simulation.person.get_holder('salary')
+    array = np.asarray([2000])
+    holder.set_input('2015-01', array)
+    assert_equal(simulation.calculate('salary', '2015-01'), array)
