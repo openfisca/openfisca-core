@@ -1,5 +1,11 @@
 # Changelog
 
+### 23.1.5 [#687](https://github.com/openfisca/openfisca-core/pull/687)
+
+* Allow to set uncached variables when using a `memory_config`
+  - Previously, trying to set variables listed in `variables_to_drop` of the `memory_config` had no effect.
+  - Now this variables are still not cached, but they can be set by the user.
+
 ### 23.1.4 [#679](https://github.com/openfisca/openfisca-core/pull/679)
 
 * Use C binding to load and dump Yaml (`CLoader` and `CDumper`)
