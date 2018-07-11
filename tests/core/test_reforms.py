@@ -301,7 +301,7 @@ def test_update_variable():
     class disposable_income(Variable):
         definition_period = MONTH
 
-        def formula(household, period):
+        def formula_2018(household, period):
             return household.empty_array() + 10
 
     class test_update_variable(Reform):
@@ -310,22 +310,47 @@ def test_update_variable():
 
     reform = test_update_variable(tax_benefit_system)
 
-    year = 2013
+    year = 2018
     scenario = reform.new_scenario().init_from_attributes(
         period = year,
         )
 
     disposable_income_reform = reform.get_variable('disposable_income')
-    disposable_income_reference = tax_benefit_system.get_variable('disposable_income')
+    disposable_income_baseline = tax_benefit_system.get_variable('disposable_income')
 
     assert disposable_income_reform is not None
-    assert disposable_income_reform.entity.plural == disposable_income_reference.entity.plural
-    assert disposable_income_reform.name == disposable_income_reference.name
-    assert disposable_income_reform.label == disposable_income_reference.label
+    assert disposable_income_reform.entity.plural == disposable_income_baseline.entity.plural
+    assert disposable_income_reform.name == disposable_income_baseline.name
+    assert disposable_income_reform.label == disposable_income_baseline.label
 
     reform_simulation = scenario.new_simulation()
-    disposable_income1 = reform_simulation.calculate('disposable_income', period = '2013-01')
+    disposable_income1 = reform_simulation.calculate('disposable_income', period = '2018-01')
     assert_near(disposable_income1, 10, absolute_error_margin = 0)
+
+    disposable_income2 = reform_simulation.calculate('disposable_income', period = '2017-01')
+    # Before 2018, the former formula is used
+    assert(disposable_income2 > 100)
+
+
+def test_replace_variable():
+
+    class disposable_income(Variable):
+        definition_period = MONTH
+        entity = Person
+        label = "Disposable income"
+        value_type = float
+
+        def formula_2018(household, period):
+            return household.empty_array() + 10
+
+    class test_update_variable(Reform):
+        def apply(self):
+            self.replace_variable(disposable_income)
+
+    reform = test_update_variable(tax_benefit_system)
+
+    disposable_income_reform = reform.get_variable('disposable_income')
+    assert disposable_income_reform.get_formula('2017') is None
 
 
 @raises(Exception)
