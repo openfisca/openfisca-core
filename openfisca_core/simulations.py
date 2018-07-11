@@ -477,6 +477,9 @@ class SituationParsingError(Exception):
         self.code = code
         Exception.__init__(self, str(self.error).encode('utf-8'))
 
+    def __str__(self):
+        return str(self.error)
+
 
 def calculate_output_add(simulation, variable_name, period):
     return simulation.calculate_add(variable_name, period)
