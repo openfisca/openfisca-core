@@ -77,7 +77,7 @@ class Entity(object):
 
             if not isinstance(variable_values, dict):
                 raise SituationParsingError(path_in_json,
-                    u'Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {"salary": {"2017-01": 2000, "2017-02": 2500}}')
+                    u"Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
 
             holder = self.get_holder(variable_name)
             for date, value in variable_values.items():
