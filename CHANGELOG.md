@@ -1,5 +1,11 @@
 # Changelog
 
+## 23.2.0 [#689](https://github.com/openfisca/openfisca-core/pull/689)
+
+* Introduce `TaxBenefitSystem.replace_variable`
+  - Unlike `update_variable`, this method does _not_ keep any of the replaced variable in the new one.
+  - See [reference documentation](http://openfisca.readthedocs.io/en/latest/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.replace_variable).
+
 ### 23.1.7 [#686](https://github.com/openfisca/openfisca-core/pull/686)
 
 * Fix installation on Windows with Python 3.7
