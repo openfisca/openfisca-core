@@ -138,10 +138,10 @@ class Parameter(AbstractParameter):
         Instantiate a parameter with metadata:
 
         >>>  Parameter('rate', data = {
-                'description': 'Income tax rate applied on salaries'
+                'description': 'Income tax rate applied on salaries',
                 'values': {
-                    "2015-01-01": {'value': 550, 'reference': 'http://taxes.gov/income_tax/2015'},
-                    "2016-01-01": {'value': 600, 'reference': 'http://taxes.gov/income_tax/2016'}
+                    "2015-01-01": {'value': 550, 'metadata': {'reference': 'http://taxes.gov/income_tax/2015'}},
+                    "2016-01-01": {'value': 600, 'metadata': {'reference': 'http://taxes.gov/income_tax/2016'}}
                     }
                 })
 
