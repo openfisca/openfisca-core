@@ -178,14 +178,9 @@ class Holder(object):
                 )
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
-        return self.put_in_cache(array, period)
+        return self._set(period, array)
 
-    def put_in_cache(self, value, period, extra_params = None):
-        if self._do_not_store:
-            return
-
-        simulation = self.simulation
-
+    def _set(self, period, value, extra_params = None):
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
 
@@ -200,7 +195,7 @@ class Holder(object):
 
         if self.variable.definition_period != ETERNITY:
             if period is None:
-                raise ValueError('A period must be specified to put values in cache, except for variables with ETERNITY as as period_definition.')
+                raise ValueError('A period must be specified to set values, except for variables with ETERNITY as as period_definition.')
             if ((self.variable.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.variable.definition_period == YEAR and period.unit != periods.YEAR)):
                 error_message = os.linesep.join([
@@ -221,11 +216,6 @@ class Holder(object):
                     error_message
                     )
 
-        if (simulation.opt_out_cache and
-                simulation.tax_benefit_system.cache_blacklist and
-                self.variable.name in simulation.tax_benefit_system.cache_blacklist):
-            return
-
         should_store_on_disk = (
             self._on_disk_storable and
             self._memory_storage.get(period, extra_params) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
@@ -236,6 +226,17 @@ class Holder(object):
             self._disk_storage.put(value, period, extra_params)
         else:
             self._memory_storage.put(value, period, extra_params)
+
+    def put_in_cache(self, value, period, extra_params = None):
+        if self._do_not_store:
+            return
+
+        if (self.simulation.opt_out_cache and
+                self.simulation.tax_benefit_system.cache_blacklist and
+                self.variable.name in self.simulation.tax_benefit_system.cache_blacklist):
+            return
+
+        self._set(period, value, extra_params)
 
     def default_array(self):
         """
@@ -344,7 +345,7 @@ def set_input_dispatch_by_period(holder, period, array):
     while sub_period.start < after_instant:
         existing_array = holder.get_array(sub_period)
         if existing_array is None:
-            holder.put_in_cache(array, sub_period)
+            holder._set(sub_period, array)
         else:
             # The array of the current sub-period is reused for the next ones.
             # TODO: refactor or document this behavior
@@ -391,7 +392,7 @@ def set_input_divide_by_period(holder, period, array):
         sub_period = period.start.period(cached_period_unit)
         while sub_period.start < after_instant:
             if holder.get_array(sub_period) is None:
-                holder.put_in_cache(divided_array, sub_period)
+                holder._set(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
         raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))
