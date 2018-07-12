@@ -115,21 +115,38 @@ class TaxBenefitSystem(object):
         """
         Adds an OpenFisca variable to the tax and benefit system.
 
-        :param variable: The variable to add. Must be a subclass of Variable.
+        :param Variable variable: The variable to add. Must be a subclass of Variable.
 
         :raises: :any:`VariableNameConflict` if a variable with the same name have previously been added to the tax and benefit system.
         """
         return self.load_variable(variable, update = False)
 
-    def update_variable(self, variable):
+    def replace_variable(self, variable):
         """
         Replaces an existing OpenFisca variable in the tax and benefit system by a new one.
 
-        The new variable must have the same name than the old one.
+        The new variable must have the same name than the replaced one.
 
-        If no variable with the given name exists in the tax and benefit system, no error will be raised and the variable will be simply added.
+        If no variable with the given name exists in the tax and benefit system, no error will be raised and the new variable will be simply added.
 
-        :param variable: Variable to add. Must be a subclass of Variable.
+        :param Variable variable: New variable to add. Must be a subclass of Variable.
+        """
+        name = to_unicode(variable.__name__)
+        if self.variables.get(name) is not None:
+            del self.variables[name]
+        self.load_variable(variable, update = False)
+
+    def update_variable(self, variable):
+        """
+        Updates an existing OpenFisca variable in the tax and benefit system.
+
+        All attributes of the updated variable that are not explicitely overridden by the new ``variable`` will stay unchanged.
+
+        The new variable must have the same name than the updated one.
+
+        If no variable with the given name exists in the tax and benefit system, no error will be raised and the new variable will be simply added.
+
+        :param Variable variable: Variable to add. Must be a subclass of Variable.
         """
         return self.load_variable(variable, update = True)
 
