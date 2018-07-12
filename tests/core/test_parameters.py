@@ -79,11 +79,11 @@ def test_parameter_repr():
 def test_parameters_metadata():
     parameter = tax_benefit_system.parameters.benefits.basic_income
     assert_equal(parameter.metadata['reference'], 'https://law.gov.example/basic-income/amount')
-    assert_equal(parameter.metadata['unit'], 'currency:EUR')
+    assert_equal(parameter.metadata['unit'], 'currency-EUR')
     assert_equal(parameter.values_list[0].metadata['reference'], 'https://law.gov.example/basic-income/amount/2015-12')
-    assert_equal(parameter.values_list[0].metadata['unit'], 'currency:EUR')
+    assert_equal(parameter.values_list[0].metadata['unit'], 'currency-EUR')
     scale = tax_benefit_system.parameters.taxes.social_security_contribution
-    assert_equal(scale.metadata['threshold_unit'], 'currency:EUR')
+    assert_equal(scale.metadata['threshold_unit'], 'currency-EUR')
     assert_equal(scale.metadata['rate_unit'], '/1')
 
 
