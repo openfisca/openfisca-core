@@ -82,38 +82,7 @@ class ParameterParsingError(Exception):
         super(ParameterParsingError, self).__init__(message)
 
 
-class AbstractParameter(object):
-
-    def _validate_parameter(self, data, data_type = None, allowed_keys = None):
-        type_map = {
-            dict: 'object',
-            list: 'array',
-            }
-
-        if data_type is not None and not isinstance(data, data_type):
-            raise ParameterParsingError(
-                "'{}' must be of type {}.".format(self.name, type_map[data_type]),
-                self.file_path
-                )
-
-        if allowed_keys is not None:
-            keys = data.keys()
-            for key in keys:
-                if key not in allowed_keys:
-                    raise ParameterParsingError(
-                        "Unexpected property '{}' in '{}'. Allowed properties are {}."
-                        .format(key, self.name, list(allowed_keys)),
-                        self.file_path
-                        )
-
-    def _set_backward_compatibility_metadata(self, data):
-        if data.get('unit') is not None:
-            self.metadata['unit'] = data['unit']
-        if data.get('reference') is not None:
-            self.metadata['reference'] = data['reference']
-
-
-class Parameter(AbstractParameter):
+class Parameter(object):
     """
         A parameter of the legislation. Parameters can change over time.
 
@@ -147,7 +116,7 @@ class Parameter(AbstractParameter):
     def __init__(self, name, data, file_path = None):
         self.name = name
         self.file_path = file_path
-        self._validate_parameter(data, data_type = dict)
+        _validate_parameter(self, data, data_type = dict)
         self.description = None
         self.metadata = {}
         self.values_history = self  # Only for backward compatibility
@@ -155,12 +124,12 @@ class Parameter(AbstractParameter):
         # If metadata have been provided
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            self._validate_parameter(data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
+            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
             self.description = data.get('description')
-            self._set_backward_compatibility_metadata(data)
+            _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
 
-            self._validate_parameter(data['values'], data_type = dict)
+            _validate_parameter(self, data['values'], data_type = dict)
             data = data['values']
 
         instants = sorted(data.keys(), reverse = True)  # sort in reverse chronological order
@@ -269,7 +238,7 @@ class Parameter(AbstractParameter):
         self.values_list = new_values
 
 
-class ParameterAtInstant(AbstractParameter):
+class ParameterAtInstant(object):
     """
         A value of a parameter at a given instant.
     """
@@ -299,11 +268,11 @@ class ParameterAtInstant(AbstractParameter):
 
         if metadata is not None:
             self.metadata.update(metadata)  # Inherit metadata from Parameter
-        self._set_backward_compatibility_metadata(data)
+        _set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
 
     def validate(self, data):
-        self._validate_parameter(data, data_type = dict, allowed_keys = self._allowed_keys)
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         try:
             value = data['value']
         except KeyError:
@@ -328,7 +297,7 @@ class ParameterAtInstant(AbstractParameter):
         return result
 
 
-class ParameterNode(AbstractParameter):
+class ParameterNode(object):
     """
         A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
@@ -385,9 +354,9 @@ class ParameterNode(AbstractParameter):
 
                     if child_name == 'index':
                         data = _load_yaml_file(child_path)
-                        self._validate_parameter(data, allowed_keys = ['metadata', 'description', 'reference'])
+                        _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'reference'])
                         self.description = data.get('description', None)
-                        self._set_backward_compatibility_metadata(data)
+                        _set_backward_compatibility_metadata(self, data)
                         self.metadata.update(data.get('metadata', {}))
                     else:
                         child_name_expanded = _compose_name(name, child_name)
@@ -404,10 +373,10 @@ class ParameterNode(AbstractParameter):
 
         else:
             self.file_path = file_path
-            self._validate_parameter(data, data_type = dict, allowed_keys = self._allowed_keys)
+            _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
             # We allow to set a reference and a description for a node.
             self.description = data.get('description', None)
-            self._set_backward_compatibility_metadata(data)
+            _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
             for child_name, child in data.items():
                 if child_name in {'unit', 'description', 'metadata', 'reference'}:
@@ -673,7 +642,7 @@ class VectorialParameterNodeAtInstant(object):
             return result
 
 
-class Scale(AbstractParameter):
+class Scale(object):
     """
         A parameter scale (for instance a  marginal scale).
     """
@@ -688,10 +657,10 @@ class Scale(AbstractParameter):
         """
         self.name = name
         self.file_path = file_path
-        self._validate_parameter(data, data_type = dict, allowed_keys = self._allowed_keys)
+        _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
         self.metadata = {}
-        self._set_backward_compatibility_metadata(data)
+        _set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
 
         if not isinstance(data['brackets'], list):
@@ -818,6 +787,36 @@ def _compose_name(path, child_name):
         return '{}.{}'.format(path, child_name)
     else:
         return child_name
+
+
+def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
+    type_map = {
+        dict: 'object',
+        list: 'array',
+        }
+
+    if data_type is not None and not isinstance(data, data_type):
+        raise ParameterParsingError(
+            "'{}' must be of type {}.".format(parameter.name, type_map[data_type]),
+            parameter.file_path
+            )
+
+    if allowed_keys is not None:
+        keys = data.keys()
+        for key in keys:
+            if key not in allowed_keys:
+                raise ParameterParsingError(
+                    "Unexpected property '{}' in '{}'. Allowed properties are {}."
+                    .format(key, parameter.name, list(allowed_keys)),
+                    parameter.file_path
+                    )
+
+
+def _set_backward_compatibility_metadata(parameter, data):
+    if data.get('unit') is not None:
+        parameter.metadata['unit'] = data['unit']
+    if data.get('reference') is not None:
+        parameter.metadata['reference'] = data['reference']
 
 
 def contains_nan(vector):
