@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '23.1.6',
+    version = '23.1.7',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -49,7 +49,7 @@ setup(
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
         'numpy >= 1.11, < 1.15',
-        'psutil == 5.4.2',
+        'psutil == 5.4.6',
         'PyYAML >= 3.10',
         'sortedcontainers == 1.5.9',
         ],
