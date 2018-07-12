@@ -112,12 +112,6 @@ class AbstractParameter(object):
         if data.get('reference') is not None:
             self.metadata['reference'] = data['reference']
 
-    def _wrap_reference(self):
-        reference = self.metadata.get('reference')
-        if reference is None or isinstance(reference, list):
-            return
-        self.metadata['reference'] = [reference]
-
 
 class Parameter(AbstractParameter):
     """
@@ -165,7 +159,6 @@ class Parameter(AbstractParameter):
             self.description = data.get('description')
             self._set_backward_compatibility_metadata(data)
             self.metadata.update(data.get('metadata', {}))
-            self._wrap_reference()
 
             self._validate_parameter(data['values'], data_type = dict)
             data = data['values']
@@ -308,7 +301,6 @@ class ParameterAtInstant(AbstractParameter):
             self.metadata.update(metadata)  # Inherit metadata from Parameter
         self._set_backward_compatibility_metadata(data)
         self.metadata.update(data.get('metadata', {}))
-        self._wrap_reference()
 
     def validate(self, data):
         self._validate_parameter(data, data_type = dict, allowed_keys = self._allowed_keys)
@@ -397,7 +389,6 @@ class ParameterNode(AbstractParameter):
                         self.description = data.get('description', None)
                         self._set_backward_compatibility_metadata(data)
                         self.metadata.update(data.get('metadata', {}))
-                        self._wrap_reference()
                     else:
                         child_name_expanded = _compose_name(name, child_name)
                         child = load_parameter_file(child_path, child_name_expanded)
@@ -418,7 +409,6 @@ class ParameterNode(AbstractParameter):
             self.description = data.get('description', None)
             self._set_backward_compatibility_metadata(data)
             self.metadata.update(data.get('metadata', {}))
-            self._wrap_reference()
             for child_name, child in data.items():
                 if child_name in {'unit', 'description', 'metadata', 'reference'}:
                     continue  # do not treat metadata as subparameters. 'unit' and 'reference' are only listed here for backward compatibility
@@ -703,7 +693,6 @@ class Scale(AbstractParameter):
         self.metadata = {}
         self._set_backward_compatibility_metadata(data)
         self.metadata.update(data.get('metadata', {}))
-        self._wrap_reference()
 
         if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
