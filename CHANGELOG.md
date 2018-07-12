@@ -1,5 +1,9 @@
 # Changelog
 
+### 23.1.6 [#688](https://github.com/openfisca/openfisca-core/pull/688)
+
+* In the error message sent to a user trying to set a variable without specifying for which period, add an example for a variable defined for `ETERNITY`.
+
 ### 23.1.5 [#687](https://github.com/openfisca/openfisca-core/pull/687)
 
 * Allow to set uncached variables when using a `memory_config`
