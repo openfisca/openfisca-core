@@ -121,7 +121,7 @@ class Parameter(object):
         self.metadata = {}
         self.values_history = self  # Only for backward compatibility
 
-        # If metadata have been provided
+        # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
             _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
@@ -130,9 +130,12 @@ class Parameter(object):
             self.metadata.update(data.get('metadata', {}))
 
             _validate_parameter(self, data['values'], data_type = dict)
-            data = data['values']
+            values = data['values']
 
-        instants = sorted(data.keys(), reverse = True)  # sort in reverse chronological order
+        else:  # Simplified parameter declaration: only values are provided
+            values = data
+
+        instants = sorted(values.keys(), reverse = True)  # sort in reverse chronological order
 
         values_list = []
         for instant_str in instants:
@@ -142,7 +145,7 @@ class Parameter(object):
                     .format(instant_str, self.name),
                     file_path)
 
-            instant_info = data[instant_str]
+            instant_info = values[instant_str]
 
             #  Ignore expected values, as they are just metadata
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
