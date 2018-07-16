@@ -101,10 +101,10 @@ class Parameter(object):
         Instantiate a parameter with metadata:
 
         >>>  Parameter('rate', data = {
-                'description': 'Income tax rate applied on salaries'
+                'description': 'Income tax rate applied on salaries',
                 'values': {
-                    "2015-01-01": {'value': 550, reference = 'http://taxes.gov/income_tax/2015'},
-                    "2016-01-01": {'value': 600, reference = 'http://taxes.gov/income_tax/2016'}
+                    "2015-01-01": {'value': 550, 'metadata': {'reference': 'http://taxes.gov/income_tax/2015'}},
+                    "2016-01-01": {'value': 600, 'metadata': {'reference': 'http://taxes.gov/income_tax/2016'}}
                     }
                 })
 
@@ -117,15 +117,25 @@ class Parameter(object):
         self.name = name
         self.file_path = file_path
         _validate_parameter(self, data, data_type = dict)
-        self.values_history = self  # Only for retro-compatibility
+        self.description = None
+        self.metadata = {}
+        self.values_history = self  # Only for backward compatibility
 
+        # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
-            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'unit', 'reference']))
+            # 'unit' and 'reference' are only listed here for backward compatibility
+            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
             self.description = data.get('description')
-            data = data['values']
-            _validate_parameter(self, data, data_type = dict)
+            _set_backward_compatibility_metadata(self, data)
+            self.metadata.update(data.get('metadata', {}))
 
-        instants = sorted(data.keys(), reverse = True)  # sort in reverse chronological order
+            _validate_parameter(self, data['values'], data_type = dict)
+            values = data['values']
+
+        else:  # Simplified parameter declaration: only values are provided
+            values = data
+
+        instants = sorted(values.keys(), reverse = True)  # sort in reverse chronological order
 
         values_list = []
         for instant_str in instants:
@@ -135,14 +145,14 @@ class Parameter(object):
                     .format(instant_str, self.name),
                     file_path)
 
-            instant_info = data[instant_str]
+            instant_info = values[instant_str]
 
             #  Ignore expected values, as they are just metadata
             if instant_info == "expected" or isinstance(instant_info, dict) and instant_info.get("expected"):
                 continue
 
             value_name = _compose_name(name, instant_str)
-            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = file_path)
+            value_at_instant = ParameterAtInstant(value_name, instant_str, data = instant_info, file_path = self.file_path, metadata = self.metadata)
             values_list.append(value_at_instant)
 
         self.values_list = values_list
@@ -237,9 +247,10 @@ class ParameterAtInstant(object):
     """
 
     _allowed_value_data_types = [int, float, bool, type(None)]
-    _allowed_keys = set(['value', 'unit', 'reference'])
+    # 'unit' and 'reference' are only listed here for backward compatibility
+    _allowed_keys = set(['value', 'metadata', 'unit', 'reference'])
 
-    def __init__(self, name, instant_str, data = None, file_path = None):
+    def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
             :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
             :param instant_str: Date of the value in the format `YYYY-MM-DD`.
@@ -248,6 +259,7 @@ class ParameterAtInstant(object):
         self.name = name
         self.instant_str = instant_str
         self.file_path = file_path
+        self.metadata = {}
 
         # Accept { 2015-01-01: 4000 }
         if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
@@ -256,6 +268,11 @@ class ParameterAtInstant(object):
 
         self.validate(data)
         self.value = data['value']
+
+        if metadata is not None:
+            self.metadata.update(metadata)  # Inherit metadata from Parameter
+        _set_backward_compatibility_metadata(self, data)
+        self.metadata.update(data.get('metadata', {}))
 
     def validate(self, data):
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
@@ -322,21 +339,33 @@ class ParameterNode(object):
         >>> node = ParameterNode('benefits', directory_path = '/path/to/country_package/parameters/benefits')
         """
         self.name = name
+        self.children = {}
+        self.description = None
+        self.file_path = None
+        self.metadata = {}
 
         if directory_path:
-            self.children = {}
+            self.file_path = directory_path
             for child_name in os.listdir(directory_path):
                 child_path = os.path.join(directory_path, child_name)
                 if os.path.isfile(child_path):
                     child_name, ext = os.path.splitext(child_name)
-                    # We ignore non-YAML files, and index.yaml files, curently used to store metadatas
-                    if ext not in PARAM_FILE_EXTENSIONS or child_name == 'index':
+
+                    # We ignore non-YAML files
+                    if ext not in PARAM_FILE_EXTENSIONS:
                         continue
 
-                    child_name_expanded = _compose_name(name, child_name)
-                    child = load_parameter_file(child_path, child_name_expanded)
-                    self.children[child_name] = child
-                    setattr(self, child_name, child)
+                    if child_name == 'index':
+                        data = _load_yaml_file(child_path)
+                        _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'reference'])
+                        self.description = data.get('description', None)
+                        _set_backward_compatibility_metadata(self, data)
+                        self.metadata.update(data.get('metadata', {}))
+                    else:
+                        child_name_expanded = _compose_name(name, child_name)
+                        child = load_parameter_file(child_path, child_name_expanded)
+                        self.children[child_name] = child
+                        setattr(self, child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
@@ -348,11 +377,14 @@ class ParameterNode(object):
         else:
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            self.children = {}
-            # We allow to set a reference and a description for a node. It is however not recommanded, as it's only metadata and is not exposed in the legislation explorer.
-            data.pop('reference', None)
-            data.pop('description', None)
+            # We allow to set a reference and a description for a node.
+            self.description = data.get('description', None)
+            _set_backward_compatibility_metadata(self, data)
+            self.metadata.update(data.get('metadata', {}))
             for child_name, child in data.items():
+                if child_name in {'unit', 'description', 'metadata', 'reference'}:
+                    continue  # do not treat metadata as subparameters. 'unit' and 'reference' are only listed here for backward compatibility
+
                 child_name = str(child_name)
                 child_name_expanded = _compose_name(name, child_name)
                 child = _parse_child(child_name_expanded, child, file_path)
@@ -396,7 +428,7 @@ class ParameterNode(object):
         result = os.linesep.join(
             [os.linesep.join(
                 [u"{}:", u"{}"]).format(name, indent(repr(value)))
-                for name, value in self.children.items()]
+                for name, value in sorted(self.children.items())]
             )
         # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
@@ -617,7 +649,8 @@ class Scale(object):
     """
         A parameter scale (for instance a  marginal scale).
     """
-    _allowed_keys = set(['brackets', 'description', 'unit', 'reference'])
+    # 'unit' and 'reference' are only listed here for backward compatibility
+    _allowed_keys = set(['brackets', 'description', 'metadata', 'unit', 'reference'])
 
     def __init__(self, name, data, file_path):
         """
@@ -629,6 +662,9 @@ class Scale(object):
         self.file_path = file_path
         _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
         self.description = data.get('description')
+        self.metadata = {}
+        _set_backward_compatibility_metadata(self, data)
+        self.metadata.update(data.get('metadata', {}))
 
         if not isinstance(data['brackets'], list):
             raise ParameterParsingError(
@@ -709,21 +745,10 @@ class Bracket(ParameterNode):
     _allowed_keys = set(['amount', 'threshold', 'rate', 'average_rate', 'base'])
 
 
-def load_parameter_file(file_path, name = ''):
-    """
-    Load parameters from a YAML file (or a directory containing YAML files).
-
-    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
-    """
-
-    if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
-    if os.path.isdir(file_path):
-        return ParameterNode(name, directory_path = file_path)
-
+def _load_yaml_file(file_path):
     with open(file_path, 'r') as f:
         try:
-            data = yaml.load(f, Loader = Loader)
+            return yaml.load(f, Loader = Loader)
         except (yaml.scanner.ScannerError, yaml.parser.ParserError):
             stack_trace = traceback.format_exc()
             raise ParameterParsingError(
@@ -732,6 +757,18 @@ def load_parameter_file(file_path, name = ''):
                 stack_trace
                 )
 
+
+def load_parameter_file(file_path, name = ''):
+    """
+    Load parameters from a YAML file (or a directory containing YAML files).
+
+    :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
+    """
+    if not os.path.exists(file_path):
+        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+    if os.path.isdir(file_path):
+        return ParameterNode(name, directory_path = file_path)
+    data = _load_yaml_file(file_path)
     return _parse_child(name, data, file_path)
 
 
@@ -778,13 +815,20 @@ def _validate_parameter(parameter, data, data_type = None, allowed_keys = None):
                     )
 
 
+def _set_backward_compatibility_metadata(parameter, data):
+    if data.get('unit') is not None:
+        parameter.metadata['unit'] = data['unit']
+    if data.get('reference') is not None:
+        parameter.metadata['reference'] = data['reference']
+
+
 def contains_nan(vector):
     if np.issubdtype(vector.dtype, np.record):
         return any([contains_nan(vector[name]) for name in vector.dtype.names])
     else:
-        return np.isnan(np.min(vector))
+        return np.isnan(vector).any()
 
 
-# Only for retro-compatibility
+# Only for backward compatibility
 class ValuesHistory(Parameter):
     pass
