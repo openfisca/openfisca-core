@@ -194,11 +194,22 @@ definitions:
         type: "object"
         additionalProperties:
           $ref: "#/definitions/Brackets"
+      children:
+        type: "object"
+        additionalProperties:
+          type: "object"
+          properties:
+            definition:
+              type: 'string'
+      metadata:
+        type: "object"
       description:
         type: "string"
       id:
         type: "integer"
         format: "string"
+      source:
+        type: "string"
     example:
       id: "cotsoc.gen.smic_h_b"
       description: "SMIC horaire brut"
@@ -222,6 +233,9 @@ definitions:
                 "2015-01-01": 9.61,
                 "2016-01-01": 9.67,
                 "2017-01-01": 9.76}
+      source: https://github.com/openfisca/openfisca-france/blob/22.2.1/openfisca_france/parameters/cotsoc/gen/smic_h_b.yaml
+      metadata:
+        unit: "currency-EUR"
 
   Parameters:
     type: "object"
