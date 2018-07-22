@@ -72,17 +72,13 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
             'description': getattr(child, "description", None),
             'id': '.'.join(path_fragments + [child_name]),
             }
-        if child.reference:
-            api_parameter['references'] = child.reference
+        if child.metadata:
+            api_parameter['metadata'] = child.metadata
         if child.file_path:
             api_parameter['source'] = build_source_url(child.file_path, country_package_metadata)
         if isinstance(child, Parameter):
             api_parameter['values'] = build_api_values_history(child)
-            if child.unit:
-                api_parameter['unit'] = child.unit
         elif isinstance(child, Scale):
-            if child.unit:
-                api_parameter['unit'] = child.unit
             api_parameter['brackets'] = build_api_scale(child)
         elif isinstance(child, ParameterNode):
             api_parameter['children'] = {

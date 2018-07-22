@@ -39,11 +39,12 @@ def test_return_code_existing_parameter():
 def test_parameter_values():
     response = subject.get('/parameter/taxes.income_tax_rate')
     parameter = json.loads(response.data)
-    assert_equal(list(parameter.keys()), ['description', 'id', 'source', 'values'])
+    assert_equal(list(parameter.keys()), ['description', 'id', 'metadata', 'source', 'values'])
     assert_equal(parameter['id'], 'taxes.income_tax_rate')
     assert_equal(parameter['description'], 'Income tax rate')
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
+    assert_equal(parameter['metadata'], {'unit': '/1'})
     assert_regexp_matches(parameter['source'], GITHUB_URL_REGEX)
     assert_in('taxes/income_tax_rate.yaml', parameter['source'])
 
@@ -68,7 +69,7 @@ def test_stopped_parameter_values():
 def test_bareme():
     response = subject.get('/parameter/taxes.social_security_contribution')
     parameter = json.loads(response.data)
-    assert_equal(list(parameter.keys()), ['brackets', 'description', 'id', 'source'])
+    assert_equal(list(parameter.keys()), ['brackets', 'description', 'id', 'metadata', 'source'])
     assert_equal(parameter['brackets'], {
         '2013-01-01': {"0.0": 0.03, "12000.0": 0.10},
         '2014-01-01': {"0.0": 0.03, "12100.0": 0.10},
