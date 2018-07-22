@@ -54,8 +54,8 @@ def test_parameter_node():
     parameter = json.loads(response.data)
     assert_equal(list(parameter.keys()), ['children', 'description', 'id', 'source'])
     assert_equal(parameter['children'], {
-        'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)', 'id': 'benefits.housing_allowance'},
-        'basic_income': {'description': 'Amount of the basic income', 'id': 'benefits.basic_income'}
+        'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
+        'basic_income': {'description': 'Amount of the basic income'}
         })
 
 

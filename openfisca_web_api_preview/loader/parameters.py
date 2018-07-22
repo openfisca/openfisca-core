@@ -88,7 +88,6 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
             api_parameter['children'] = {
                 grandchild_name: {
                     'description': grandchild.description,
-                    'id': '.'.join(path_fragments + [child_name, grandchild_name])
                     }
                 for grandchild_name, grandchild in child.children.items()
                 }
