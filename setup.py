@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '23.3.0',
+    version = '23.3.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -36,7 +36,7 @@ setup(
             'openfisca-extension-template >= 1.1.3, < 2.0.0',
             ],
         'tracker': [
-            'openfisca-tracker == 0.2.0',
+            'openfisca-tracker == 0.4.0',
             ]
         },
     include_package_data = True,  # Will read MANIFEST.in
