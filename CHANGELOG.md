@@ -1,5 +1,9 @@
 # Changelog
 
+### 23.3.1 [#682](https://github.com/openfisca/openfisca-core/pull/682)
+
+* Send reference to the country-package version to the tracker so it will appear in the tracking statistics.
+
 ### 23.3.0 [#681](https://github.com/openfisca/openfisca-core/pull/681)
 
 * Change the way metadata are declared for Parameter.
