@@ -194,7 +194,7 @@ definitions:
         type: "object"
         additionalProperties:
           $ref: "#/definitions/Brackets"
-      children:
+      subparams:
         type: "object"
         additionalProperties:
           type: "object"
