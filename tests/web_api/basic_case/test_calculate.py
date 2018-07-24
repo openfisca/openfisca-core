@@ -23,7 +23,7 @@ def post_json(data = None, file = None):
 def check_response(data, expected_error_code, path_to_check, content_to_check):
     response = post_json(data)
     assert_equal(response.status_code, expected_error_code)
-    json_response = json.loads(response.data)
+    json_response = json.loads(response.data.decode('utf-8'))
     if path_to_check:
         content = dpath.util.get(json_response, path_to_check)
         assert_in(content_to_check, content)
@@ -104,7 +104,7 @@ def test_basic_calculation():
 
     response = post_json(simulation_json)
     assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_equal(dpath.get(response_json, 'persons/bill/basic_income/2017-12'), 600)  # Universal basic income
     assert_equal(dpath.get(response_json, 'persons/bill/income_tax/2017-12'), 300)  # 15% of the salary
     assert_equal(dpath.get(response_json, 'persons/bill/age/2017-12'), 37)  # 15% of the salary
@@ -136,7 +136,7 @@ def test_enums_sending_identifier():
 
     response = post_json(simulation_json)
     assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
 
 
@@ -157,7 +157,7 @@ def test_enum_output():
 
     response = post_json(simulation_json)
     assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_equal(dpath.get(response_json, "households/_/housing_occupancy_status/2017-01"), "tenant")
 
 
@@ -178,7 +178,7 @@ def test_enum_wrong_value():
 
     response = post_json(simulation_json)
     assert_equal(response.status_code, BAD_REQUEST)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_in(
         "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']",
         dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
@@ -206,7 +206,7 @@ def test_encoding_variable_value():
     # No UnicodeDecodeError
     response = post_json(simulation_json)
     assert_equal(response.status_code, BAD_REQUEST, response.data)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_in(
         u"'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ",
         dpath.get(response_json, u'households/_/housing_occupancy_status/2017-07')
@@ -231,7 +231,7 @@ def test_encoding_entity_name():
 
     # No UnicodeDecodeError
     response = post_json(simulation_json)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
 
     # In Python 3, there is no encoding issue.
     if response.status_code != OK:
@@ -274,7 +274,7 @@ def test_encoding_period_id():
     # No UnicodeDecodeError
     response = post_json(simulation_json)
     assert_equal(response.status_code, BAD_REQUEST)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
 
     # In Python 3, there is no encoding issue.
     if "Expected a period" not in to_unicode(response.data):
