@@ -19,7 +19,7 @@ def test_return_code():
 def test_response_data():
     parameters = json.loads(parameters_response.data.decode('utf-8'))
     assert_equal(
-        parameters['taxes.income_tax_rate'],
+        parameters['taxes/income_tax_rate'],
         {'description': 'Income tax rate'}
         )
 
@@ -27,17 +27,22 @@ def test_response_data():
 # /parameter/<id>
 
 def test_error_code_non_existing_parameter():
-    response = subject.get('/parameter/non.existing.parameter')
+    response = subject.get('/parameter/non/existing.parameter')
     assert_equal(response.status_code, NOT_FOUND)
 
 
 def test_return_code_existing_parameter():
+    response = subject.get('/parameter/taxes/income_tax_rate')
+    assert_equal(response.status_code, OK)
+
+
+def test_legacy_parameter_route():
     response = subject.get('/parameter/taxes.income_tax_rate')
     assert_equal(response.status_code, OK)
 
 
 def test_parameter_values():
-    response = subject.get('/parameter/taxes.income_tax_rate')
+    response = subject.get('/parameter/taxes/income_tax_rate')
     parameter = json.loads(response.data)
     assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'values'])
     assert_equal(parameter['id'], 'taxes.income_tax_rate')
@@ -61,13 +66,13 @@ def test_parameter_node():
 
 
 def test_stopped_parameter_values():
-    response = subject.get('/parameter/benefits.housing_allowance')
+    response = subject.get('/parameter/benefits/housing_allowance')
     parameter = json.loads(response.data)
     assert_equal(parameter['values'], {'2016-12-01': None, '2010-01-01': 0.25})
 
 
 def test_bareme():
-    response = subject.get('/parameter/taxes.social_security_contribution')
+    response = subject.get('/parameter/taxes/social_security_contribution')
     parameter = json.loads(response.data)
     assert_equal(sorted(list(parameter.keys())), ['brackets', 'description', 'id', 'metadata', 'source'])
     assert_equal(parameter['brackets'], {
@@ -101,5 +106,5 @@ def test_routes_robustness():
 
 
 def test_parameter_encoding():
-    parameter_response = subject.get('/parameter/general.age_of_retirement')
+    parameter_response = subject.get('/parameter/general/age_of_retirement')
     assert_equal(parameter_response.status_code, OK)

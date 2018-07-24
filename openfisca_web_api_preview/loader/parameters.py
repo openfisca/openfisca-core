@@ -101,4 +101,4 @@ def build_parameters(tax_benefit_system, country_package_metadata):
         country_package_metadata = country_package_metadata,
         )
 
-    return {parameter['id']: parameter for parameter in api_parameters}
+    return {parameter['id'].replace('.', '/'): parameter for parameter in api_parameters}
