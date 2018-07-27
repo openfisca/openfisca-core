@@ -18,7 +18,7 @@ def test_trace_basic():
     simulation_json = json.dumps(single)
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
     assert_equal(response.status_code, OK)
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     disposable_income_value = dpath.util.get(response_json, 'trace/disposable_income<2017-01>/value')
     assert_is_instance(disposable_income_value, list)
     assert_is_instance(disposable_income_value[0], float)
@@ -34,7 +34,7 @@ def test_trace_basic():
 def test_entities_description():
     simulation_json = json.dumps(couple)
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_items_equal(
         dpath.util.get(response_json, 'entitiesDescription/persons'),
         ['Javier', "Alicia"]
@@ -44,7 +44,7 @@ def test_entities_description():
 def test_root_nodes():
     simulation_json = json.dumps(couple)
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
-    response_json = json.loads(response.data)
+    response_json = json.loads(response.data.decode('utf-8'))
     assert_items_equal(
         dpath.util.get(response_json, 'requestedCalculations'),
         ['disposable_income<2017-01>', 'total_benefits<2017-01>', 'total_taxes<2017-01>']

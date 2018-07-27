@@ -205,7 +205,7 @@ def test_encoding_variable_value():
 
     # No UnicodeDecodeError
     response = post_json(simulation_json)
-    assert_equal(response.status_code, BAD_REQUEST, response.data)
+    assert_equal(response.status_code, BAD_REQUEST, response.data.decode('utf-8'))
     response_json = json.loads(response.data.decode('utf-8'))
     assert_in(
         u"'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ",
