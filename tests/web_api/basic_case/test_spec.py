@@ -20,7 +20,7 @@ def test_return_code():
     assert_equal(openAPI_response.status_code, OK)
 
 
-body = json.loads(openAPI_response.data)
+body = json.loads(openAPI_response.data.decode('utf-8'))
 
 
 def test_paths():

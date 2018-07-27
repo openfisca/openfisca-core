@@ -15,7 +15,7 @@ def test_return_code():
 
 
 def test_response_data():
-    parameters = json.loads(parameters_response.data)
+    parameters = json.loads(parameters_response.data.decode('utf-8'))
     assert_equal(
         parameters[u'taxes.income_tax_rate'],
         {u'description': u'Income tax rate'}
@@ -36,7 +36,7 @@ def test_return_code_existing_parameter():
 
 def test_parameter_values():
     response = subject.get('/parameter/taxes.income_tax_rate')
-    parameter = json.loads(response.data)
+    parameter = json.loads(response.data.decode('utf-8'))
     assert_equal(
         parameter,
         {
@@ -49,7 +49,7 @@ def test_parameter_values():
 
 def test_stopped_parameter_values():
     response = subject.get('/parameter/benefits.housing_allowance')
-    parameter = json.loads(response.data)
+    parameter = json.loads(response.data.decode('utf-8'))
     assert_equal(
         parameter,
         {
@@ -62,7 +62,7 @@ def test_stopped_parameter_values():
 
 def test_bareme():
     response = subject.get('/parameter/taxes.social_security_contribution')
-    parameter = json.loads(response.data)
+    parameter = json.loads(response.data.decode('utf-8'))
     assert_equal(
         parameter,
         {

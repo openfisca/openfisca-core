@@ -21,7 +21,7 @@ def test_return_code():
 
 
 def test_response_data():
-    variables = json.loads(variables_response.data)
+    variables = json.loads(variables_response.data.decode('utf-8'))
     assert_equal(
         variables[u'birth'],
         {u'description': u'Birth date'}
@@ -37,7 +37,7 @@ def test_error_code_non_existing_variable():
 
 
 input_variable_response = subject.get('/variable/birth')
-input_variable = json.loads(input_variable_response.data)
+input_variable = json.loads(input_variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_input_variable():
@@ -67,7 +67,7 @@ def test_input_variable_github_url():
 
 
 variable_response = subject.get('/variable/income_tax')
-variable = json.loads(variable_response.data)
+variable = json.loads(variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_variable():
@@ -102,13 +102,13 @@ def test_variable_formula_content():
 
 def test_null_values_are_dropped():
     variable_response = subject.get('/variable/age')
-    variable = json.loads(variable_response.data)
+    variable = json.loads(variable_response.data.decode('utf-8'))
     assert_not_in('references', variable.keys())
 
 
 def test_variable_with_start_and_stop_date():
     response = subject.get('/variable/housing_allowance')
-    variable = json.loads(response.data)
+    variable = json.loads(response.data.decode('utf-8'))
     assert_items_equal(variable['formulas'], ['1980-01-01', '2016-12-01'])
     assert_is_none(variable['formulas']['2016-12-01'])
     assert_in('formula', variable['formulas']['1980-01-01']['content'])
@@ -116,7 +116,7 @@ def test_variable_with_start_and_stop_date():
 
 def test_variable_with_enum():
     response = subject.get('/variable/housing_occupancy_status')
-    variable = json.loads(response.data)
+    variable = json.loads(response.data.decode('utf-8'))
     assert_equal(variable['valueType'], 'String')
     assert_equal(variable['defaultValue'], 'tenant')
     assert_in('possibleValues', variable.keys())
@@ -128,7 +128,7 @@ def test_variable_with_enum():
 
 
 dated_variable_response = subject.get('/variable/basic_income')
-dated_variable = json.loads(dated_variable_response.data)
+dated_variable = json.loads(dated_variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_dated_variable():
