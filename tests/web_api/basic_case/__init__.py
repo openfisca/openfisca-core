@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import pkg_resources
 from openfisca_web_api_preview.app import create_app
 from openfisca_core.scripts import build_tax_benefit_system

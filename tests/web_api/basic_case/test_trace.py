@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 import json
 
 from nose.tools import assert_equal, assert_is_instance

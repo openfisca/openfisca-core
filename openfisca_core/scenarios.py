@@ -2,6 +2,7 @@
 
 
 from __future__ import division
+from __future__ import unicode_literals
 
 import collections
 import itertools
@@ -107,12 +108,12 @@ class AbstractScenario(object):
                 count = steps_count * step_size
                 entity.count = count
                 entity.step_size = step_size
-                entity.ids = [entity_instance[u'id'] for entity_instance in test_case[entity.plural]]
+                entity.ids = [entity_instance['id'] for entity_instance in test_case[entity.plural]]
 
             persons_step_size = persons.step_size
 
             person_index_by_id = dict(
-                (person[u'id'], person_index)
+                (person['id'], person_index)
                 for person_index, person in enumerate(test_case[persons.plural])
                 )
 
@@ -295,10 +296,10 @@ class AbstractScenario(object):
             # Third validation and conversion step
             errors = {}
             if data['input_variables'] is not None and data['test_case'] is not None:
-                errors['input_variables'] = state._(u"Items input_variables and test_case can't both exist")
-                errors['test_case'] = state._(u"Items input_variables and test_case can't both exist")
+                errors['input_variables'] = state._("Items input_variables and test_case can't both exist")
+                errors['test_case'] = state._("Items input_variables and test_case can't both exist")
             elif data['axes'] is not None and data["test_case"] is None:
-                errors['axes'] = state._(u"Axes can't be used with input_variables.")
+                errors['axes'] = state._("Axes can't be used with input_variables.")
             if errors:
                 return data, errors
 
@@ -311,29 +312,29 @@ class AbstractScenario(object):
                     for axis_index, axis in enumerate(parallel_axes):
                         if axis['min'] >= axis['max']:
                             errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
-                                axis_index, {})['max'] = state._(u"Max value must be greater than min value")
+                                axis_index, {})['max'] = state._("Max value must be greater than min value")
                         column = tbs.get_variable(axis['name'])
                         if axis['index'] >= len(data['test_case'][column.entity.plural]):
                             errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
-                                axis_index, {})['index'] = state._(u"Index must be lower than {}").format(
+                                axis_index, {})['index'] = state._("Index must be lower than {}").format(
                                     len(data['test_case'][column.entity.plural]))
                         if axis_index > 0:
                             if axis['count'] != axis_count:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
-                                    axis_index, {})['count'] = state._(u"Parallel indexes must have the same count")
+                                    axis_index, {})['count'] = state._("Parallel indexes must have the same count")
                             if column.entity.key != axis_entity_key:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
-                                        u"Parallel indexes must belong to the same entity")
+                                        "Parallel indexes must belong to the same entity")
                             axis_period = axis['period'] or data['period']
                             if axis_period.unit != first_axis_period.unit:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
-                                        u"Parallel indexes must have the same period unit")
+                                        "Parallel indexes must have the same period unit")
                             elif axis_period.size != first_axis_period.size:
                                 errors.setdefault('axes', {}).setdefault(parallel_axes_index, {}).setdefault(
                                     axis_index, {})['period'] = state._(
-                                        u"Parallel indexes must have the same period size")
+                                        "Parallel indexes must have the same period size")
                 if errors:
                     return data, errors
 
@@ -515,7 +516,7 @@ def make_json_or_python_to_axes(tax_benefit_system):
                                     conv.test_in(column_by_name),
                                     conv.test(lambda column_name: tax_benefit_system.get_variable(column_name).dtype in (
                                         np.float32, np.int16, np.int32),
-                                        error = N_(u'Invalid type for axe: integer or float expected')),
+                                        error = N_('Invalid type for axe: integer or float expected')),
                                     conv.not_none,
                                     ),
                                 period = conv.function(periods.period),
@@ -582,7 +583,7 @@ def make_json_or_python_to_input_variables(tax_benefit_system, period):
                     count_by_entity_key[entity_key] = entity_count = len(variable_array)
                 elif len(variable_array) != entity_count:
                     errors[column.name] = state._(
-                        u"Array has not the same length as other variables of entity {}: {} instead of {}").format(
+                        "Array has not the same length as other variables of entity {}: {} instead of {}").format(
                             column.name, len(variable_array), entity_count)
 
         return input_variables, errors or None
@@ -672,15 +673,15 @@ def make_json_or_python_to_test(tax_benefit_system):
             return value, error
 
         test_case = value.copy()
-        absolute_error_margin = test_case.pop(u'absolute_error_margin')
-        axes = test_case.pop(u'axes')
-        description = test_case.pop(u'description')
-        input_variables = test_case.pop(u'input_variables')
-        keywords = test_case.pop(u'keywords')
-        name = test_case.pop(u'name')
-        output_variables = test_case.pop(u'output_variables')
-        period = test_case.pop(u'period')
-        relative_error_margin = test_case.pop(u'relative_error_margin')
+        absolute_error_margin = test_case.pop('absolute_error_margin')
+        axes = test_case.pop('axes')
+        description = test_case.pop('description')
+        input_variables = test_case.pop('input_variables')
+        keywords = test_case.pop('keywords')
+        name = test_case.pop('name')
+        output_variables = test_case.pop('output_variables')
+        period = test_case.pop('period')
+        relative_error_margin = test_case.pop('relative_error_margin')
 
         if test_case is not None and all(entity_members is None for entity_members in test_case.values()):
             test_case = None

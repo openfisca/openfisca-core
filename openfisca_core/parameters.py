@@ -2,6 +2,7 @@
 
 
 """Handle legislative parameters."""
+from __future__ import unicode_literals
 
 
 import os
@@ -36,7 +37,7 @@ def date_constructor(loader, node):
     return node.value
 
 
-yaml.add_constructor(u'tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
+yaml.add_constructor('tag:yaml.org,2002:timestamp', date_constructor, Loader = Loader)
 
 
 class ParameterNotFound(AttributeError):
@@ -52,11 +53,11 @@ class ParameterNotFound(AttributeError):
         self.name = name
         self.instant_str = instant_str
         self.variable_name = variable_name
-        message = u"The parameter '{}'".format(name)
+        message = "The parameter '{}'".format(name)
         if variable_name is not None:
-            message += u" requested by variable '{}'".format(variable_name)
+            message += " requested by variable '{}'".format(variable_name)
         message += (
-            u" was not found in the {} tax and benefit system."
+            " was not found in the {} tax and benefit system."
             ).format(instant_str)
         super(ParameterNotFound, self).__init__(message.encode('utf-8'))
 
@@ -74,7 +75,7 @@ class ParameterParsingError(Exception):
         """
         if file is not None:
             message = os.linesep.join([
-                u"Error parsing parameter file '{}':".format(file),
+                "Error parsing parameter file '{}':".format(file),
                 message
                 ])
         if traceback is not None:
@@ -141,7 +142,7 @@ class Parameter(object):
         for instant_str in instants:
             if not INSTANT_PATTERN.match(instant_str):
                 raise ParameterParsingError(
-                    u"Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
+                    "Invalid property '{}' in '{}'. Properties must be valid YYYY-MM-DD instants, such as 2017-01-15."
                     .format(instant_str, self.name),
                     file_path)
 
@@ -188,7 +189,7 @@ class Parameter(object):
         """
         if period is not None:
             if start is not None or stop is not None:
-                raise TypeError(u"Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
+                raise TypeError("Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
             if isinstance(period, basestring_type):
                 period = periods.period(period)
             start = period.start
@@ -280,12 +281,12 @@ class ParameterAtInstant(object):
             value = data['value']
         except KeyError:
             raise ParameterParsingError(
-                u"Missing 'value' property for {}".format(self.name),
+                "Missing 'value' property for {}".format(self.name),
                 self.file_path
                 )
         if type(value) not in self._allowed_value_data_types:
             raise ParameterParsingError(
-                u"Invalid value in {} : {}".format(self.name, value),
+                "Invalid value in {} : {}".format(self.name, value),
                 self.file_path
                 )
 
@@ -293,7 +294,7 @@ class ParameterAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        result = u"ParameterAtInstant({})".format({self.instant_str: self.value})
+        result = "ParameterAtInstant({})".format({self.instant_str: self.value})
         # repr output must be encoded in Python 2, but not in Python 3
         if sys.version_info < (3, 0):
             return result.encode('utf-8')
@@ -427,7 +428,7 @@ class ParameterNode(object):
     def __repr__(self):
         result = os.linesep.join(
             [os.linesep.join(
-                [u"{}:", u"{}"]).format(name, indent(repr(value)))
+                ["{}:", "{}"]).format(name, indent(repr(value)))
                 for name, value in sorted(self.children.items())]
             )
         # repr output must be encoded in Python 2, but not in Python 3
@@ -473,7 +474,7 @@ class ParameterNodeAtInstant(object):
     def __repr__(self):
         result = os.linesep.join(
             [os.linesep.join(
-                [u"{}:", u"{}"]).format(name, indent(repr(value)))
+                ["{}:", "{}"]).format(name, indent(repr(value)))
                 for name, value in self._children.items()]
             )
         if sys.version_info < (3, 0):

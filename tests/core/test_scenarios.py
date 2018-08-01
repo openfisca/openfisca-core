@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import numpy as np
 from openfisca_core.tools import assert_near
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from nose.tools import assert_equal
 
 from openfisca_core import periods
@@ -52,7 +53,7 @@ class formula_4(Variable):
 tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(formula_1, formula_2, formula_3, formula_4)
 
-reference_period = periods.period(u'2013-01')
+reference_period = periods.period('2013-01')
 
 
 def get_simulation():

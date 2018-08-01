@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 import copy
 
 from openfisca_core.parameters import ParameterNode
@@ -63,7 +64,7 @@ class Reform(TaxBenefitSystem):
         assert key is not None, 'key was not set for reform {} (name: {!r})'.format(self, self.name)
         if self.baseline is not None and hasattr(self.baseline, 'key'):
             baseline_full_key = self.baseline.full_key
-            key = u'.'.join([baseline_full_key, key])
+            key = '.'.join([baseline_full_key, key])
         return key
 
     def modify_parameters(self, modifier_function):

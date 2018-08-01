@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals
 from setuptools import setup, find_packages
 
 
@@ -17,7 +18,7 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
-    description = u'A versatile microsimulation free software',
+    description = 'A versatile microsimulation free software',
     keywords = 'benefit microsimulation social tax',
     license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     url = 'https://github.com/openfisca/openfisca-core',

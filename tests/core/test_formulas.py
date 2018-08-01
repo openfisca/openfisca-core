@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals
 import numpy as np
 
 from openfisca_core.periods import MONTH
@@ -19,7 +20,7 @@ class choice(Variable):
 class uses_multiplication(Variable):
     value_type = int
     entity = Person
-    label = u'Variable with formula that uses multiplication'
+    label = 'Variable with formula that uses multiplication'
     definition_period = MONTH
 
     def formula(person, period):
@@ -31,7 +32,7 @@ class uses_multiplication(Variable):
 class uses_switch(Variable):
     value_type = int
     entity = Person
-    label = u'Variable with formula that uses switch'
+    label = 'Variable with formula that uses switch'
     definition_period = MONTH
 
     def formula(person, period):

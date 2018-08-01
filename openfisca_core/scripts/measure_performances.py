@@ -3,6 +3,8 @@
 
 
 """Measure performances of a basic tax-benefit system to compare to other OpenFisca implementations."""
+from __future__ import print_function
+from __future__ import unicode_literals
 
 
 import argparse
@@ -44,18 +46,18 @@ PARENT2 = 1
 Famille = build_entity(
     key = "famille",
     plural = "familles",
-    label = u'Famille',
+    label = 'Famille',
     roles = [
         {
             'key': 'parent',
             'plural': 'parents',
-            'label': u'Parents',
+            'label': 'Parents',
             'subroles': ['demandeur', 'conjoint']
             },
         {
             'key': 'enfant',
             'plural': 'enfants',
-            'label': u'Enfants',
+            'label': 'Enfants',
             }
         ]
     )
@@ -64,7 +66,7 @@ Famille = build_entity(
 Individu = build_entity(
     key = "individu",
     plural = "individus",
-    label = u'Individu',
+    label = 'Individu',
     is_person = True,
     )
 
@@ -74,13 +76,13 @@ Individu = build_entity(
 class age_en_mois(Variable):
     value_type = int
     entity = Individu
-    label = u"Âge (en nombre de mois)"
+    label = "Âge (en nombre de mois)"
 
 
 class birth(Variable):
     value_type = 'Date'
     entity = Individu
-    label = u"Date de naissance"
+    label = "Date de naissance"
 
 
 class city_code(Variable):
@@ -88,7 +90,7 @@ class city_code(Variable):
     max_length = 5
     entity = Famille
     definition_period = ETERNITY
-    label = u"""Code INSEE "city_code" de la commune de résidence de la famille"""
+    label = """Code INSEE "city_code" de la commune de résidence de la famille"""
 
 
 class salaire_brut(Variable):
@@ -102,7 +104,7 @@ class salaire_brut(Variable):
 class age(Variable):
     value_type = int
     entity = Individu
-    label = u"Âge (en nombre d'années)"
+    label = "Âge (en nombre d'années)"
 
     def formula(self, simulation, period):
         birth = simulation.get_array('birth', period)
@@ -117,7 +119,7 @@ class age(Variable):
 class dom_tom(Variable):
     value_type = 'Bool'
     entity = Famille
-    label = u"La famille habite-t-elle les DOM-TOM ?"
+    label = "La famille habite-t-elle les DOM-TOM ?"
 
     def formula(self, simulation, period):
         period = period.start.period('year').offset('first-of')
@@ -128,10 +130,10 @@ class dom_tom(Variable):
 class revenu_disponible(Variable):
     value_type = float
     entity = Individu
-    label = u"Revenu disponible de l'individu"
+    label = "Revenu disponible de l'individu"
 
     def formula(self, simulation, period):
-        period = period.start.period(u'year').offset('first-of')
+        period = period.start.period('year').offset('first-of')
         rsa = simulation.calculate('rsa', period)
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return rsa + salaire_imposable * 0.7
@@ -140,20 +142,20 @@ class revenu_disponible(Variable):
 class rsa(Variable):
     value_type = float
     entity = Individu
-    label = u"RSA"
+    label = "RSA"
 
     def formula_2010_01_01(self, simulation, period):
-        period = period.start.period(u'month').offset('first-of')
+        period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 100.0
 
     def formula_2011_01_01(self, simulation, period):
-        period = period.start.period(u'month').offset('first-of')
+        period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 200.0
 
     def formula_2013_01_01(self, simulation, period):
-        period = period.start.period(u'month').offset('first-of')
+        period = period.start.period('month').offset('first-of')
         salaire_imposable = simulation.calculate('salaire_imposable', period)
         return (salaire_imposable < 500) * 300
 
@@ -161,10 +163,10 @@ class rsa(Variable):
 class salaire_imposable(Variable):
     value_type = float
     entity = Individu
-    label = u"Salaire imposable"
+    label = "Salaire imposable"
 
     def formula(individu, period):
-        period = period.start.period(u'year').offset('first-of')
+        period = period.start.period('year').offset('first-of')
         dom_tom = individu.famille('dom_tom', period)
         salaire_net = individu('salaire_net', period)
         return salaire_net * 0.9 - 100 * dom_tom
@@ -173,10 +175,10 @@ class salaire_imposable(Variable):
 class salaire_net(Variable):
     value_type = float
     entity = Individu
-    label = u"Salaire net"
+    label = "Salaire net"
 
     def formula(self, simulation, period):
-        period = period.start.period(u'year').offset('first-of')
+        period = period.start.period('year').offset('first-of')
         salaire_brut = simulation.calculate('salaire_brut', period)
         return salaire_brut * 0.8
 

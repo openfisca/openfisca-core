@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from nose.tools import raises
 
 from openfisca_country_template import CountryTaxBenefitSystem

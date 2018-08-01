@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 import warnings
 
 
@@ -20,7 +21,7 @@ class goes_to_school(Variable):
     value_type = bool
     default_value = True
     entity = Person
-    label = u"The person goes to school (only relevant for children)"
+    label = "The person goes to school (only relevant for children)"
     definition_period = MONTH
 
 
@@ -139,7 +140,7 @@ def test_update_items():
 
     yield (
         check_update_items,
-        u'Replace an item by a new item',
+        'Replace an item by a new item',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         periods.period(2013).stop,
@@ -148,7 +149,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Replace an item by a new item in a list of items, the last being open',
+        'Replace an item by a new item in a list of items, the last being open',
         ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 9.61}, "2016-01-01": {'value': 9.67}}),
         periods.period(2015).start,
         periods.period(2015).stop,
@@ -157,7 +158,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Open the stop instant to the future',
+        'Open the stop instant to the future',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
         None,  # stop instant
@@ -166,7 +167,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new item in the middle of an existing item',
+        'Insert a new item in the middle of an existing item',
         ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2011).start,
         periods.period(2011).stop,
@@ -175,7 +176,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new open item coming after the last open item',
+        'Insert a new open item coming after the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2015).start,
         None,  # stop instant
@@ -184,7 +185,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new item starting at the same date than the last open item',
+        'Insert a new item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         periods.period(2014).stop,
@@ -193,7 +194,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new open item starting at the same date than the last open item',
+        'Insert a new open item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
         None,  # stop instant
@@ -202,7 +203,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new item coming before the first item',
+        'Insert a new item coming before the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         periods.period(2005).stop,
@@ -211,7 +212,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new item coming before the first item with a hole',
+        'Insert a new item coming before the first item with a hole',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2003).start,
         periods.period(2003).stop,
@@ -220,7 +221,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new open item starting before the start date of the first item',
+        'Insert a new open item starting before the start date of the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
         None,  # stop instant
@@ -229,7 +230,7 @@ def test_update_items():
         )
     yield (
         check_update_items,
-        u'Insert a new open item starting at the same date than the first item',
+        'Insert a new open item starting at the same date than the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2006).start,
         None,  # stop instant
@@ -242,7 +243,7 @@ def test_add_variable():
 
     class new_variable(Variable):
         value_type = int
-        label = u"Nouvelle variable introduite par la réforme"
+        label = "Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH
 
@@ -271,7 +272,7 @@ def test_add_variable():
 def test_add_dated_variable():
     class new_dated_variable(Variable):
         value_type = int
-        label = u"Nouvelle variable introduite par la réforme"
+        label = "Nouvelle variable introduite par la réforme"
         entity = Household
         definition_period = MONTH
 
@@ -395,7 +396,7 @@ def test_attributes_conservation():
     class some_variable(Variable):
         value_type = int
         entity = Person
-        label = u"Variable with many attributes"
+        label = "Variable with many attributes"
         definition_period = MONTH
         set_input = set_input_divide_by_period
         calculate_output = calculate_output_add

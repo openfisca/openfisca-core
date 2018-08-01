@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals
 import numpy as np
 
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales

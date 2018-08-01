@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+from __future__ import unicode_literals
 import numpy as np
 
 import logging
@@ -85,8 +87,8 @@ class Tracer(object):
     @staticmethod
     def _get_key(variable_name, period, **parameters):
         if parameters.get('extra_params'):
-            return u"{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params'])))
-        return u"{}<{}>".format(variable_name, period)
+            return "{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params'])))
+        return "{}<{}>".format(variable_name, period)
 
     def record_calculation_start(self, variable_name, period, **parameters):
         """
@@ -124,7 +126,7 @@ class Tracer(object):
 
         if not key == expected_key:
             raise ValueError(
-                u"Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
+                "Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
                 .format(expected_key, key).encode('utf-8')
                 )
         self.trace[key]['value'] = result
@@ -142,7 +144,7 @@ class Tracer(object):
 
         if not key == expected_key:
             raise ValueError(
-                u"Something went wrong with the simulation tracer: calculation of '{1}' was aborted, whereas the last variable we started computing was '{0}'."
+                "Something went wrong with the simulation tracer: calculation of '{1}' was aborted, whereas the last variable we started computing was '{0}'."
                 .format(expected_key, key).encode('utf-8')
                 )
 

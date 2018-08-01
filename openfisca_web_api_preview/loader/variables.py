@@ -28,7 +28,7 @@ def get_default_value(variable):
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
     nb_lines = source_code.count('\n')
-    return u'{}/blob/{}{}#L{}-L{}'.format(
+    return '{}/blob/{}{}#L{}-L{}'.format(
         country_package_metadata['repository_url'],
         country_package_metadata['version'],
         source_file_path,

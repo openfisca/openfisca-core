@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from openfisca_country_template.situation_examples import single
 
 from openfisca_core.simulations import Simulation

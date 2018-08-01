@@ -3,6 +3,8 @@
 
 
 """Convert a scenario or simulation JSON containing a test case to the same JSON with input variables."""
+from __future__ import print_function
+from __future__ import unicode_literals
 
 
 import argparse

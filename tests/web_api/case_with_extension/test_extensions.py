@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from http.client import OK
 from nose.tools import assert_equal
 from openfisca_core.scripts import build_tax_benefit_system

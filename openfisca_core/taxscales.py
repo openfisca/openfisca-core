@@ -2,6 +2,7 @@
 
 
 from __future__ import division
+from __future__ import unicode_literals
 
 from bisect import bisect_left, bisect_right
 import copy
@@ -282,7 +283,7 @@ def combine_tax_scales(node):
         child = node[child_name]
 
         if not isinstance(child, AbstractTaxScale):
-            log.info(u'Skipping {} with value {} because it is not a tax scale'.format(child_name, child))
+            log.info('Skipping {} with value {} because it is not a tax scale'.format(child_name, child))
             continue
 
         if combined_tax_scales is None:

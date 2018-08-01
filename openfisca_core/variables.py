@@ -228,7 +228,7 @@ class Variable(object):
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError:
-                raise ValueError(u"Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
+                raise ValueError("Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
 
     def set_reference(self, reference):
         if reference:

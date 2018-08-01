@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from http.client import OK, NOT_FOUND
 import json
 from nose.tools import assert_equal, assert_regexp_matches, assert_in, assert_is_none, assert_not_in
@@ -23,8 +24,8 @@ def test_return_code():
 def test_response_data():
     variables = json.loads(variables_response.data.decode('utf-8'))
     assert_equal(
-        variables[u'birth'],
-        {u'description': u'Birth date'}
+        variables['birth'],
+        {'description': 'Birth date'}
         )
 
 
@@ -50,12 +51,12 @@ def check_input_variable_value(key, expected_value):
 
 def test_input_variable_value():
     expected_values = {
-        u'description': u'Birth date',
-        u'valueType': u'Date',
-        u'defaultValue': u'1970-01-01',
-        u'definitionPeriod': u'ETERNITY',
-        u'entity': u'person',
-        u'references': [u'https://en.wiktionary.org/wiki/birthdate'],
+        'description': 'Birth date',
+        'valueType': 'Date',
+        'defaultValue': '1970-01-01',
+        'definitionPeriod': 'ETERNITY',
+        'entity': 'person',
+        'references': ['https://en.wiktionary.org/wiki/birthdate'],
         }
 
     for key, expected_value in expected_values.items():
@@ -80,11 +81,11 @@ def check_variable_value(key, expected_value):
 
 def test_variable_value():
     expected_values = {
-        u'description': u'Income tax',
-        u'valueType': u'Float',
-        u'defaultValue': 0,
-        u'definitionPeriod': u'MONTH',
-        u'entity': u'person',
+        'description': 'Income tax',
+        'valueType': 'Float',
+        'defaultValue': 0,
+        'definitionPeriod': 'MONTH',
+        'entity': 'person',
         }
 
     for key, expected_value in expected_values.items():
@@ -121,10 +122,10 @@ def test_variable_with_enum():
     assert_equal(variable['defaultValue'], 'tenant')
     assert_in('possibleValues', variable.keys())
     assert_equal(variable['possibleValues'], {
-        u'free_lodger': u'Free lodger',
-        u'homeless': u'Homeless',
-        u'owner': u'Owner',
-        u'tenant': u'Tenant'})
+        'free_lodger': 'Free lodger',
+        'homeless': 'Homeless',
+        'owner': 'Owner',
+        'tenant': 'Tenant'})
 
 
 dated_variable_response = subject.get('/variable/basic_income')

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.variables import Variable
@@ -10,14 +11,14 @@ from openfisca_core.periods import MONTH
 class input(Variable):
     value_type = int
     entity = Person
-    label = u"Input variable"
+    label = "Input variable"
     definition_period = MONTH
 
 
 class intermediate(Variable):
     value_type = int
     entity = Person
-    label = u"Intermediate result that don't need to be cached"
+    label = "Intermediate result that don't need to be cached"
     definition_period = MONTH
 
     def formula(person, period):
@@ -27,7 +28,7 @@ class intermediate(Variable):
 class output(Variable):
     value_type = int
     entity = Person
-    label = u'Output variable'
+    label = 'Output variable'
     definition_period = MONTH
 
     def formula(person, period):
