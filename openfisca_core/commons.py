@@ -4,24 +4,21 @@ from __future__ import unicode_literals
 from builtins import str
 
 
-# The following two variables and the is_unicode function are there to bridge string types across Python 2 & 3
+# The following variable and the to_unicode function are there to bridge string types across Python 2 & 3
 basestring_type = (bytes, str)
 
 
 def to_unicode(string):
     """
     :param string: a string that needs to be unicoded
-    :param encoding: a string that represent the encoding type
     :return: a unicode string
     if the string is a python 2 str type, returns a unicode version of the string.
     """
-    if not isinstance(string, basestring_type):
-        string = str(string)
     if isinstance(string, str):
         return string
-
-    # Next line only gets triggered if the code is run in python 2
-    return string.decode('utf-8')
+    if isinstance(string, bytes):
+        return string.decode('utf-8')
+    return str(string)
 
 
 class Dummy(object):
