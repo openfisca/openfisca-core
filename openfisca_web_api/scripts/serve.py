@@ -6,8 +6,8 @@ import logging
 import argparse
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_system
-from openfisca_web_api_preview.app import create_app
-from openfisca_web_api_preview.errors import handle_import_error
+from openfisca_web_api.app import create_app
+from openfisca_web_api.errors import handle_import_error
 
 try:
     from gunicorn.app.base import BaseApplication

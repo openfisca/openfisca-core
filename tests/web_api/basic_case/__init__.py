@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import
 import pkg_resources
-from openfisca_web_api_preview.app import create_app
+from openfisca_web_api.app import create_app
 from openfisca_core.scripts import build_tax_benefit_system
 
 TEST_COUNTRY_PACKAGE_NAME = 'openfisca_country_template'

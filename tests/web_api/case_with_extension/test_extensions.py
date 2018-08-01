@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 from http.client import OK
 from nose.tools import assert_equal
 from openfisca_core.scripts import build_tax_benefit_system
-from openfisca_web_api_preview.app import create_app
+from openfisca_web_api.app import create_app
 
 
 TEST_COUNTRY_PACKAGE_NAME = 'openfisca_country_template'
