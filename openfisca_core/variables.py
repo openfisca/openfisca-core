@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+from __future__ import unicode_literals
 import datetime
 import inspect
 import re
@@ -44,7 +44,7 @@ VALUE_TYPES = {
         },
     str: {
         'dtype': object,
-        'default': u'',
+        'default': '',
         'json_type': 'String',
         'is_period_size_independent': True
         },
@@ -179,7 +179,7 @@ class Variable(object):
 
         if unexpected_attrs:
             raise ValueError(
-                u'Unexpected attributes in definition of variable "{}": {!r}'
+                'Unexpected attributes in definition of variable "{}": {!r}'
                 .format(self.name, ', '.join(sorted(unexpected_attrs.keys()))))
 
         self.is_neutralized = False
@@ -259,7 +259,7 @@ class Variable(object):
                 requested_period_last_or_next_value,
                 requested_period_last_value
                 }:
-            raise ValueError(u'Unexpected base_function {}'.format(base_function).encode('utf-8'))
+            raise ValueError('Unexpected base_function {}'.format(base_function).encode('utf-8'))
 
         if self.is_period_size_independent and base_function is None:
             return requested_period_last_value
@@ -282,7 +282,7 @@ class Variable(object):
             starting_date = self.parse_formula_name(formula_name)
 
             if self.end is not None and starting_date > self.end:
-                raise ValueError(u'You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
+                raise ValueError('You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
                     .format(self.name, self.end, starting_date, formula_name).encode('utf-8'))
 
             formulas[str(starting_date)] = formula
@@ -312,7 +312,7 @@ class Variable(object):
 
         def raise_error():
             raise ValueError(
-                u'Unrecognized formula name in variable "{}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{}".'
+                'Unrecognized formula name in variable "{}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{}".'
                 .format(self.name, attribute_name).encode('utf-8'))
 
         if attribute_name == FORMULA_NAME_PREFIX:
@@ -358,6 +358,9 @@ class Variable(object):
             source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
         try:
             source_lines, start_line_number = inspect.getsourcelines(cls)
+            # Python 2 backward compatibility
+            if isinstance(source_lines[0], bytes):
+                source_lines = [source_line.decode('utf-8') for source_line in source_lines]
             source_code = textwrap.dedent(''.join(source_lines))
         except (IOError, TypeError):
             source_code, start_line_number = None, None
@@ -423,6 +426,6 @@ def get_neutralized_variable(variable):
     """
     result = variable.clone()
     result.is_neutralized = True
-    result.label = u'[Neutralized]' if variable.label is None else u'[Neutralized] {}'.format(variable.label),
+    result.label = '[Neutralized]' if variable.label is None else '[Neutralized] {}'.format(variable.label),
 
     return result
