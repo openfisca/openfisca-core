@@ -1,7 +1,7 @@
 # Changelog
 
 
-### 23.3.2[#702](https://github.com/openfisca/openfisca-core/pull/702)
+### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 
 Minor Change without any impact for country package developers and users:
   - Make code more Python3-like by backporting unicode litterals.

@@ -34,6 +34,7 @@ def make_column_from_variable(variable):
         int: IntCol,
         float: FloatCol,
         str: StrCol,
+        bytes: StrCol,
         Enum: EnumCol,
         datetime.date: DateCol,
         }
