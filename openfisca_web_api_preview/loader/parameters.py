@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from openfisca_core.parameters import Parameter, ParameterNode, Scale
 
 
@@ -63,7 +64,7 @@ def walk_node(node, parameters, path_fragments):
         else:
             object_transformed = {
                 'description': getattr(child, "description", None),
-                'id': u'.'.join(path_fragments + [child_name]),
+                'id': '.'.join(path_fragments + [child_name]),
                 }
             if isinstance(child, Scale):
                 object_transformed['brackets'] = transform_scale(child)
