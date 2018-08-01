@@ -160,7 +160,7 @@ def test_calculate_variable_with_wrong_definition_period():
     expected_words = ['period', '2016', 'month', 'basic_income', 'ADD']
 
     for word in expected_words:
-        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message).encode('utf-8')
+        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)
 
 
 @raises(ValueError)
