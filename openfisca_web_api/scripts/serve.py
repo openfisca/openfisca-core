@@ -21,7 +21,7 @@ except ImportError as error:
     Define the `openfisca serve` command line interface.
 """
 
-DEFAULT_PORT = '6000'
+DEFAULT_PORT = '5000'
 HOST = '127.0.0.1'
 DEFAULT_WORKERS_NUMBER = '3'
 

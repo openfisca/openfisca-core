@@ -17,6 +17,10 @@ Country package maintainers who want to provide the Web API as an opt-in of thei
   - In the `extras_require` section, add an `api` block containing `['OpenFisca-Core[api]']`
   - See [example](https://github.com/openfisca/openfisca-france/commit/4cf881946d60c6271b81d54327625179be43aa65)
 
+##### Change default Web API port to 5000:
+
+- `openfisca serve` will now serve by default on the `5000` port instead of `6000` (blocked by Chrome).
+
 ##### Rename OpenFisca Web Api package to `openfisca_web_api`:
 
 - Transparent for users of the `openfisca serve` command.
