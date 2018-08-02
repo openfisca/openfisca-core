@@ -9,7 +9,7 @@ A period is a triple (unit, start, size), where unit is either "month" or "year"
 Since a period is a triple it can be used as a dictionary key.
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from builtins import str
 
 import calendar

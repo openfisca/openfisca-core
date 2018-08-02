@@ -10,10 +10,7 @@ Measure and compare different vectorial condition notations:
 
 The aim of this script is to compare the time taken by the calculation of the values
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
+from __future__ import unicode_literals, print_function, division, absolute_import
 from contextlib import contextmanager
 import argparse
 import sys

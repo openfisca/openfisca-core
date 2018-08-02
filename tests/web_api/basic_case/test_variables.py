@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from http.client import OK, NOT_FOUND
 import json
 from nose.tools import assert_equal, assert_regexp_matches, assert_in, assert_is_none, assert_not_in

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from nose.tools import assert_equal, raises
 
 from openfisca_core.periods import Period, Instant, YEAR, MONTH, period

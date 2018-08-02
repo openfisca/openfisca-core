@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 import numpy as np
 
 from nose.tools import assert_equal, assert_is_none

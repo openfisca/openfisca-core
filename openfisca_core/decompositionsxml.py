@@ -3,7 +3,7 @@
 
 """Handle decompositions in XML format (and convert then to JSON)."""
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 import collections
 
 from openfisca_core import conv

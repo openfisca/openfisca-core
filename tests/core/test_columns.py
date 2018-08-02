@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 import openfisca_country_template as country_template
 from openfisca_country_template.entities import Person
 

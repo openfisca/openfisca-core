@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from datetime import date  # noqa analysis:ignore
 
 from numpy import (   # noqa analysis:ignore

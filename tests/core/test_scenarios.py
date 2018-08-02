@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 import numpy as np
 from openfisca_core.tools import assert_near
 

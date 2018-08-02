@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.variables import Variable

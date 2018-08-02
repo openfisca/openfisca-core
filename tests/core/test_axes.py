@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function, division, absolute_import
 from openfisca_core.tools import assert_near
 from openfisca_core import conv
 from openfisca_core.scenarios import AbstractScenario
