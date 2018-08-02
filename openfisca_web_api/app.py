@@ -99,7 +99,6 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
-
         # Ugly Python2-compatible way
         response = {}
         response.update(data['openAPI_spec'])
