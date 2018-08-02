@@ -13,10 +13,6 @@ Country package maintainers who still want to provide the Web API by default wit
   - In the `install_requires` section, replace `'OpenFisca-Core >= 23.3, < 24.0'` by `'OpenFisca-Core[api] >= 24.0, < 25.0'`
   - See [example](https://github.com/openfisca/country-template/commit/b75eea97d8d22091a3f13a580118ce45b16f4294)
 
-Country package maintainers who want to provide the Web API as an opt-in of their package should update their `setup.py`:
-  - In the `extras_require` section, add an `api` block containing `['OpenFisca-Core[api]']`
-  - See [example](https://github.com/openfisca/openfisca-france/commit/4cf881946d60c6271b81d54327625179be43aa65)
-
 ##### Change default Web API port to 5000:
 
 - `openfisca serve` will now serve by default on the `5000` port instead of `6000` (blocked by Chrome).
