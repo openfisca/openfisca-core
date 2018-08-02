@@ -2,7 +2,7 @@
 
 ### 23.4.1 [#700](https://github.com/openfisca/openfisca-core/pull/700)
 
-* Send the web API user's IP address to the tracker even when it goes through a proxy.
+* Fix API source IP detection through proxies.
 
 ## 23.4.0 [#694](https://github.com/openfisca/openfisca-core/pull/694)
 
