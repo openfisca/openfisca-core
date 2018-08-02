@@ -22,7 +22,7 @@ jobs:
           name: Install dependencies
           command: |
             pip install --upgrade pip twine wheel
-            pip install --editable .[test] --upgrade
+            pip install --editable .[dev] --upgrade
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
 
       - save_cache:
@@ -88,7 +88,7 @@ jobs:
           name: Install dependencies
           command: |
             pip install --upgrade pip twine wheel
-            pip install --editable .[test] --upgrade
+            pip install --editable .[dev] --upgrade
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
 
       - save_cache:

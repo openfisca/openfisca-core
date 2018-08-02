@@ -30,7 +30,7 @@ setup(
         'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main', 'openfisca-run-test=openfisca_core.scripts.run_test:main'],
         },
     extras_require = {
-        'test': [
+        'dev': [
             'nose',
             'flake8 >= 3.4.0, < 3.5.0',
             'openfisca-country-template >= 3.2.3, < 4.0.0',
