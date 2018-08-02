@@ -26,6 +26,17 @@ Country package maintainers who want to provide the Web API as an opt-in of thei
 - Transparent for users of the `openfisca serve` command.
 - Users who used to manually import `openfisca_web_api_preview` must know import `openfisca_web_api`.
 
+##### Rename development dependencies from `test` to `dev`:
+
+- Developpers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
+
+#### New features
+
+- In the `/spec` route:
+  - Indicate the served country package version as API version (instead of `0.1.0`).
+  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environnement variable.
+    - The use of the `SERVER_NAME` environnement variable is therefore deprecated and without effect.
+
 ### 23.5.2 [#710](https://github.com/openfisca/openfisca-core/pull/710)
 
 - Revert the undesired side effects of `23.4.0` on the `parameters/` overview route of the Web API
@@ -141,6 +152,7 @@ For instance, `/parameter/benefits/basic_income` contains:
 ```
 
 Note that this route doesn't _recursively_ explore the node, and only exposes its direct children name and description.
+
 
 ### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 
