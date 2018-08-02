@@ -71,9 +71,8 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
         api_parameter = {
             'description': getattr(child, "description", None),
             'id': '.'.join(path_fragments + [child_name]),
+            'metadata': child.metadata
             }
-        if child.metadata:
-            api_parameter['metadata'] = child.metadata
         if child.file_path:
             api_parameter['source'] = build_source_url(child.file_path, country_package_metadata)
         if isinstance(child, Parameter):

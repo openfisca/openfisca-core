@@ -58,7 +58,7 @@ def test_parameter_node():
     response = subject.get('/parameter/benefits')
     assert_equal(response.status_code, OK)
     parameter = json.loads(response.data)
-    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'source', 'subparams'])
+    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'subparams'])
     assert_equal(parameter['subparams'], {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
@@ -71,7 +71,7 @@ def test_stopped_parameter_values():
     assert_equal(parameter['values'], {'2016-12-01': None, '2010-01-01': 0.25})
 
 
-def test_bareme():
+def test_scale():
     response = subject.get('/parameter/taxes/social_security_contribution')
     parameter = json.loads(response.data)
     assert_equal(sorted(list(parameter.keys())), ['brackets', 'description', 'id', 'metadata', 'source'])
@@ -96,9 +96,9 @@ def test_routes_robustness():
         '/parameter/': NOT_FOUND,
         '/parameter/with-ÜNı©ød€': NOT_FOUND,
         '/parameter/with%20url%20encoding': NOT_FOUND,
-        '/parameter/taxes.income_tax_rate/': OK,
-        '/parameter/taxes.income_tax_rate/too-much-nesting': NOT_FOUND,
-        '/parameter//taxes.income_tax_rate/': NOT_FOUND,
+        '/parameter/taxes/income_tax_rate/': OK,
+        '/parameter/taxes/income_tax_rate/too-much-nesting': NOT_FOUND,
+        '/parameter//taxes/income_tax_rate/': NOT_FOUND,
         }
 
     for route, code in expected_codes.items():
