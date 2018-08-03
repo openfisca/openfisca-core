@@ -1,5 +1,38 @@
 # Changelog
 
+## 23.5.0 [#705](https://github.com/openfisca/openfisca-core/pull/705)
+
+* On the Web API, expose a welcome message (with a 300 code) on `/` instead of a 404 error.
+
+For instance, `curl -i localhost:5000` gives:
+
+```
+HTTP/1.1 300 MULTIPLE CHOICES
+(...)
+
+{
+  "welcome": "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/api) and the OpenAPI specification of this instance (http://localhost:5000/spec)."
+}
+```
+
+* This message can be customized:
+
+If the Web API is started with `openfisca serve -p 3000 --welcome-message "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documentation: https://fr.openfisca.org/legislation/swagger."`
+
+Then `curl -i localhost:5000` gives:
+
+```
+HTTP/1.1 300 MULTIPLE CHOICES
+(...)
+
+{
+  "welcome": "Welcome to the OpenFisca-France Web API. To learn how to use it, check our interactive swagger documenation: https://fr.openfisca.org/legislation/swagger"
+}
+```
+
+(Like other configuration variables, this custom message can also be defined in a configuration file. Check the [openfisca serve documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html))
+
+
 ### 23.4.1 [#700](https://github.com/openfisca/openfisca-core/pull/700)
 
 * Fix API source IP detection through proxies.
