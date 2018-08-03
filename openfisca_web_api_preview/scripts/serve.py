@@ -91,7 +91,8 @@ class OpenFiscaWebAPIApplication(BaseApplication):
         return create_app(
             tax_benefit_system,
             self.options.get('tracker_url'),
-            self.options.get('tracker_idsite')
+            self.options.get('tracker_idsite'),
+            self.options.get('tracker_token'),
             )
 
 
