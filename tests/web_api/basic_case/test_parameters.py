@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from http.client import OK, NOT_FOUND
 import json
 from nose.tools import assert_equal
@@ -17,8 +18,8 @@ def test_return_code():
 def test_response_data():
     parameters = json.loads(parameters_response.data.decode('utf-8'))
     assert_equal(
-        parameters[u'taxes.income_tax_rate'],
-        {u'description': u'Income tax rate'}
+        parameters['taxes.income_tax_rate'],
+        {'description': 'Income tax rate'}
         )
 
 
@@ -40,9 +41,9 @@ def test_parameter_values():
     assert_equal(
         parameter,
         {
-            u'id': u'taxes.income_tax_rate',
-            u'description': u'Income tax rate',
-            u'values': {u'2015-01-01': 0.15, u'2014-01-01': 0.14, u'2013-01-01': 0.13, u'2012-01-01': 0.16}
+            'id': 'taxes.income_tax_rate',
+            'description': 'Income tax rate',
+            'values': {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16}
             }
         )
 
@@ -53,9 +54,9 @@ def test_stopped_parameter_values():
     assert_equal(
         parameter,
         {
-            u'id': u'benefits.housing_allowance',
-            u'description': u'Housing allowance amount (as a fraction of the rent)',
-            u'values': {u'2016-12-01': None, u'2010-01-01': 0.25}
+            'id': 'benefits.housing_allowance',
+            'description': 'Housing allowance amount (as a fraction of the rent)',
+            'values': {'2016-12-01': None, '2010-01-01': 0.25}
             }
         )
 
@@ -66,14 +67,14 @@ def test_bareme():
     assert_equal(
         parameter,
         {
-            u'id': u'taxes.social_security_contribution',
-            u'description': u'Social security contribution tax scale',
-            u'brackets': {
-                u'2013-01-01': {"0.0": 0.03, "12000.0": 0.10},
-                u'2014-01-01': {"0.0": 0.03, "12100.0": 0.10},
-                u'2015-01-01': {"0.0": 0.04, "12200.0": 0.12},
-                u'2016-01-01': {"0.0": 0.04, "12300.0": 0.12},
-                u'2017-01-01': {"0.0": 0.02, "6000.0": 0.06, "12400.0": 0.12},
+            'id': 'taxes.social_security_contribution',
+            'description': 'Social security contribution tax scale',
+            'brackets': {
+                '2013-01-01': {"0.0": 0.03, "12000.0": 0.10},
+                '2014-01-01': {"0.0": 0.03, "12100.0": 0.10},
+                '2015-01-01': {"0.0": 0.04, "12200.0": 0.12},
+                '2016-01-01': {"0.0": 0.04, "12300.0": 0.12},
+                '2017-01-01': {"0.0": 0.02, "6000.0": 0.06, "12400.0": 0.12},
                 }
             }
         )
@@ -85,9 +86,9 @@ def test_bareme():
 #     assert_equal(
 #         parameter,
 #         {
-#             u'id': u'contribution_sociale.crds.activite.abattement',
-#             u'description': u"Abattement sur les revenus d\'activité, du chômage et des préretraites",
-#             u'brackets': {
+#             'id': 'contribution_sociale.crds.activite.abattement',
+#             'description': "Abattement sur les revenus d\'activité, du chômage et des préretraites",
+#             'brackets': {
 #                 "1998-01-01": {"0.0": 0.05},
 #                 "2005-01-01": {"0.0": 0.03},
 #                 "2011-01-01": {"0.0": 0.03, "4.0": 0},

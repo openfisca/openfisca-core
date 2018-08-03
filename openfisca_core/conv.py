@@ -3,6 +3,7 @@
 
 """Conversion functions"""
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 
 from biryani.baseconv import *  # noqa
 from biryani.datetimeconv import *  # noqa
@@ -31,16 +32,16 @@ def anything_to_strict_int(value, state = None):
     (42, None)
     >>> anything_to_strict_int('42')
     (42, None)
-    >>> anything_to_strict_int(u'42')
+    >>> anything_to_strict_int('42')
     (42, None)
     >>> anything_to_strict_int(42.0)
     (42, None)
     >>> anything_to_strict_int(42.75)
-    (42.75, u'Value must be an integer')
-    >>> anything_to_strict_int(u'42.75')
-    (u'42.75', u'Value must be an integer')
-    >>> anything_to_strict_int(u'42,75')
-    (u'42,75', u'Value must be an integer')
+    (42.75, 'Value must be an integer')
+    >>> anything_to_strict_int('42.75')
+    ('42.75', 'Value must be an integer')
+    >>> anything_to_strict_int('42,75')
+    ('42,75', 'Value must be an integer')
     >>> anything_to_strict_int(None)
     (None, None)
     """
@@ -54,9 +55,9 @@ def anything_to_strict_int(value, state = None):
         float_value = float(value)
         int_value = int(float_value)
     except ValueError:
-        return value, state._(u'Value must be an integer')
+        return value, state._('Value must be an integer')
     if float_value != int_value:
-        return value, state._(u'Value must be an integer')
+        return value, state._('Value must be an integer')
     return int_value, None
 
 
@@ -94,14 +95,14 @@ input_to_strict_int = pipe(cleanup_line, anything_to_strict_int)
 
     >>> input_to_strict_int('42')
     (42, None)
-    >>> input_to_strict_int(u'   42   ')
+    >>> input_to_strict_int('   42   ')
     (42, None)
-    >>> input_to_strict_int(u'42.0')
+    >>> input_to_strict_int('42.0')
     (42, None)
-    >>> input_to_strict_int(u'42.75')
-    (u'42.75', u'Value must be an integer')
-    >>> input_to_strict_int(u'42,75')
-    (u'42,75', u'Value must be an integer')
+    >>> input_to_strict_int('42.75')
+    ('42.75', 'Value must be an integer')
+    >>> input_to_strict_int('42,75')
+    ('42,75', 'Value must be an integer')
     >>> input_to_strict_int(None)
     (None, None)
     """

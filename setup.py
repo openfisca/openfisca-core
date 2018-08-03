@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from setuptools import setup, find_packages
 
 
 setup(
     name = 'OpenFisca-Core',
-    version = '23.3.1',
+    version = '23.3.2',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [
@@ -17,7 +18,7 @@ setup(
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
-    description = u'A versatile microsimulation free software',
+    description = 'A versatile microsimulation free software',
     keywords = 'benefit microsimulation social tax',
     license = 'https://www.fsf.org/licensing/licenses/agpl-3.0.html',
     url = 'https://github.com/openfisca/openfisca-core',
@@ -32,7 +33,7 @@ setup(
         'test': [
             'nose',
             'flake8 >= 3.4.0, < 3.5.0',
-            'openfisca-country-template >= 3.2.2rc0, < 4.0.0',
+            'openfisca-country-template >= 3.2.3, < 4.0.0',
             'openfisca-extension-template >= 1.1.3, < 2.0.0',
             ],
         'tracker': [

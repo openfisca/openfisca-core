@@ -1,5 +1,14 @@
 # Changelog
 
+
+### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
+
+Minor Change without any impact for country package developers and users:
+  - Make code more Python3-like by backporting unicode litterals.
+  - With this backport, all strings are by default unicodes.
+  - The `u` prefix for strings should *not* be used anymore.
+  - Each new module must start by `from __future__ import unicode_literals` for the backport to be effective.
+
 ### 23.3.1 [#682](https://github.com/openfisca/openfisca-core/pull/682)
 
 * Send reference of the country-package and its version to the tracker so it will appear in the tracking statistics.

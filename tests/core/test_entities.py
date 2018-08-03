@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from copy import deepcopy
 
 from openfisca_core.tools import assert_near

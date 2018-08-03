@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from nose.tools import raises
 
 from openfisca_core import periods
@@ -113,7 +114,7 @@ tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
     variable5, variable6, cotisation, variable7, variable8)
 
-reference_period = periods.period(u'2013-01')
+reference_period = periods.period('2013-01')
 
 
 @raises(AssertionError)

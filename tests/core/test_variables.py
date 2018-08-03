@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 import datetime
 from nose.tools import raises
 
@@ -57,7 +58,7 @@ class variable__no_date(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable without date."
+    label = "Variable without date."
 
 
 def test_before_add__variable__no_date():
@@ -77,7 +78,7 @@ class variable__strange_end_attribute(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with dubious end attribute, no formula."
+    label = "Variable with dubious end attribute, no formula."
     end = '1989-00-00'
 
 
@@ -99,7 +100,7 @@ class variable__end_attribute(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with end attribute, no formula."
+    label = "Variable with end attribute, no formula."
     end = '1989-12-31'
 
 
@@ -117,7 +118,7 @@ class end_attribute__one_simple_formula(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with end attribute, one formula without date."
+    label = "Variable with end attribute, one formula without date."
     end = '1989-12-31'
 
     def formula(individu, period):
@@ -163,7 +164,7 @@ class no_end_attribute__one_formula__strange_name(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable without end attribute, one stangely named formula."
+    label = "Variable without end attribute, one stangely named formula."
 
     def formula_2015_toto(individu, period):
         return vectorize(individu, 100)
@@ -180,7 +181,7 @@ class no_end_attribute__one_formula__start(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable without end attribute, one dated formula."
+    label = "Variable without end attribute, one dated formula."
 
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
@@ -215,7 +216,7 @@ class no_end_attribute__one_formula__eternity(Variable):
     value_type = int
     entity = Person
     definition_period = ETERNITY  # For this entity, this variable shouldn't evolve through time
-    label = u"Variable without end attribute, one dated formula."
+    label = "Variable without end attribute, one dated formula."
 
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
@@ -240,7 +241,7 @@ class no_end_attribute__formulas__start_formats(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable without end attribute, multiple dated formulas."
+    label = "Variable without end attribute, multiple dated formulas."
 
     def formula_2000(individu, period):
         return vectorize(individu, 100)
@@ -296,7 +297,7 @@ class no_attribute__formulas__different_names__dates_overlap(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable, no end attribute, multiple dated formulas with different names but same dates."
+    label = "Variable, no end attribute, multiple dated formulas with different names but same dates."
 
     def formula_2000(individu, period):
         return vectorize(individu, 100)
@@ -316,7 +317,7 @@ class no_attribute__formulas__different_names__no_overlap(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable, no end attribute, multiple dated formulas with different names and no date overlap."
+    label = "Variable, no end attribute, multiple dated formulas with different names and no date overlap."
 
     def formula_2000_01_01(individu, period):
         return vectorize(individu, 100)
@@ -347,7 +348,7 @@ class end_attribute__one_formula__start(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with end attribute, one dated formula."
+    label = "Variable with end attribute, one dated formula."
     end = '2001-12-31'
 
     def formula_2000_01_01(individu, period):
@@ -377,7 +378,7 @@ class stop_attribute_before__one_formula__start(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with stop attribute only coming before formula start."
+    label = "Variable with stop attribute only coming before formula start."
     end = '1990-01-01'
 
     def formula_2000_01_01(individu, period):
@@ -394,7 +395,7 @@ class end_attribute_restrictive__one_formula(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with end attribute, one dated formula and dates intervals overlap."
+    label = "Variable with end attribute, one dated formula and dates intervals overlap."
     end = '2001-01-01'
 
     def formula_2001_01_01(individu, period):
@@ -424,7 +425,7 @@ class end_attribute__formulas__different_names(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with end attribute, multiple dated formulas with different names."
+    label = "Variable with end attribute, multiple dated formulas with different names."
     end = '2010-12-31'
 
     def formula_2000_01_01(individu, period):

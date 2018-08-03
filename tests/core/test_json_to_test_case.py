@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from nose.tools import raises
 
 from openfisca_core.json_to_test_case import check_entities_and_role

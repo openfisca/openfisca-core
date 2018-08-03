@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 import pkg_resources
 import os
 import sys
@@ -16,11 +17,6 @@ tax_benefit_system = CountryTaxBenefitSystem()
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
 yaml_tests_dir = os.path.join(openfisca_core_dir, 'tests', 'core', 'yaml_tests')
-
-# When tests are run by the CI, openfisca_core is not installed in editable mode, therefore the tests are not packaged with the ditribution. We thus get them from ~/openfisca-core/tests/core/yaml_tests
-if not os.path.isdir(yaml_tests_dir):
-    ci_yaml_tests_dir = os.path.join(os.path.expanduser('~'), 'openfisca-core', 'tests', 'core', 'yaml_tests')
-    yaml_tests_dir = ci_yaml_tests_dir if os.path.isdir(ci_yaml_tests_dir) else yaml_tests_dir
 
 
 # Declare that these two functions are not tests to run with nose

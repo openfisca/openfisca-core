@@ -7,6 +7,8 @@
     If a variable is calculated at a period for which it does not have a formulas, its base_function will be called to try to infere a value based on past or future values of the variable.
 """
 
+from __future__ import unicode_literals, print_function, division, absolute_import
+
 
 def requested_period_default_value(holder, period, *extra_params):
     """
@@ -46,4 +48,4 @@ def requested_period_last_or_next_value(holder, period, *extra_params):
 
 
 def missing_value(holder, period, *extra_params):
-    raise ValueError(u"Missing value for variable {} at {}".format(holder.variable.name, period))
+    raise ValueError("Missing value for variable {} at {}".format(holder.variable.name, period))

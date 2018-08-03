@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
+from builtins import str
 import collections
 import datetime
 import re
@@ -8,7 +10,7 @@ import numpy as np
 
 from openfisca_core import conv, periods
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.commons import unicode_type, basestring_type, to_unicode
+from openfisca_core.commons import basestring_type, to_unicode
 
 """
 Columns are the ancestors of Variables, and are now considered deprecated. Preferably use `Variable` instead.
@@ -32,6 +34,7 @@ def make_column_from_variable(variable):
         int: IntCol,
         float: FloatCol,
         str: StrCol,
+        bytes: StrCol,
         Enum: EnumCol,
         datetime.date: DateCol,
         }
@@ -173,8 +176,8 @@ class DateCol(Column):
     @property
     def input_to_dated_python(self):
         return conv.pipe(
-            conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
-            conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
+            conv.test(year_or_month_or_day_re.match, error = N_('Invalid date')),
+            conv.function(lambda birth: '-'.join((birth.split('-') + ['01', '01'])[:3])),
             conv.iso8601_input_to_date,
             )
 
@@ -196,8 +199,8 @@ class DateCol(Column):
                         ),
                     conv.pipe(
                         conv.test_isinstance(basestring_type),
-                        conv.test(year_or_month_or_day_re.match, error = N_(u'Invalid date')),
-                        conv.function(lambda birth: u'-'.join((birth.split(u'-') + [u'01', u'01'])[:3])),
+                        conv.test(year_or_month_or_day_re.match, error = N_('Invalid date')),
+                        conv.function(lambda birth: '-'.join((birth.split('-') + ['01', '01'])[:3])),
                         conv.iso8601_input_to_date,
                         ),
                     ),
@@ -222,7 +225,7 @@ class FixedStrCol(Column):
             conv.condition(
                 conv.test_isinstance((float, int)),
                 # YAML stores strings containing only digits as numbers.
-                conv.function(unicode_type),
+                conv.function(str),
                 ),
             conv.test_isinstance(basestring_type),
             conv.test(lambda value: len(value) <= self.variable.max_length),
@@ -273,7 +276,7 @@ class StrCol(Column):
             conv.condition(
                 conv.test_isinstance((float, int)),
                 # YAML stores strings containing only digits as numbers.
-                conv.function(unicode_type),
+                conv.function(str),
                 ),
             conv.test_isinstance(basestring_type),
             )

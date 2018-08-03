@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from os import linesep
 
 
@@ -21,11 +22,11 @@ class VariableNotFound(Exception):
         else:
             country_package_id = country_package_name
         message = linesep.join([
-            u"You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}).".format(variable_name, country_package_id),
-            u"Are you sure you spelled '{0}' correctly?".format(variable_name),
-            u"If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
-            u"Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
-            u"it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
+            "You tried to calculate or to set a value for variable '{0}', but it was not found in the loaded tax and benefit system ({1}).".format(variable_name, country_package_id),
+            "Are you sure you spelled '{0}' correctly?".format(variable_name),
+            "If this code used to work and suddenly does not, this is most probably linked to an update of the tax and benefit system.",
+            "Look at its changelog to learn about renames and removals and update your code. If it is an official package,",
+            "it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
             ])
         self.message = message
         Exception.__init__(self, self.message.encode('utf-8'))

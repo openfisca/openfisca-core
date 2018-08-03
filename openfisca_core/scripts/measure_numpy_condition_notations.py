@@ -10,8 +10,7 @@ Measure and compare different vectorial condition notations:
 
 The aim of this script is to compare the time taken by the calculation of the values
 """
-
-
+from __future__ import unicode_literals, print_function, division, absolute_import
 from contextlib import contextmanager
 import argparse
 import sys
@@ -30,7 +29,7 @@ def measure_time(title):
     t1 = time.time()
     yield
     t2 = time.time()
-    print(u'{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1).encode('utf-8'))
+    print('{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1).encode('utf-8'))
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):

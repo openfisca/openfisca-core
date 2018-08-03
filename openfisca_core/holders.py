@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
-from __future__ import division
+from __future__ import unicode_literals, print_function, division, absolute_import
 import logging
 import os
 import sys
@@ -156,8 +155,8 @@ class Holder(object):
             array = np.asarray(array)
         if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
-                u'Unable to set a value for variable {0} for ETERNITY.',
-                u'{0} is only defined for {1}s. Please adapt your input.',
+                'Unable to set a value for variable {0} for ETERNITY.',
+                '{0} is only defined for {1}s. Please adapt your input.',
                 ]).format(
                     self.variable.name,
                     self.variable.definition_period
@@ -169,7 +168,7 @@ class Holder(object):
                 error_message
                 )
         if self.variable.is_neutralized:
-            warning_message = u"You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
+            warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
             if sys.version_info < (3, 0):
                 warning_message = warning_message.encode('utf-8')
             return warnings.warn(
@@ -189,7 +188,7 @@ class Holder(object):
                 value = value.astype(self.variable.dtype)
             except ValueError:
                 raise ValueError(
-                    u'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
+                    'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
                     .format(value, self.variable.name, self.variable.dtype, value.dtype)
                     .encode('utf-8'))
 
@@ -199,9 +198,9 @@ class Holder(object):
             if ((self.variable.definition_period == MONTH and period.unit != periods.MONTH) or
                (self.variable.definition_period == YEAR and period.unit != periods.YEAR)):
                 error_message = os.linesep.join([
-                    u'Unable to set a value for variable {0} for {1}-long period {2}.',
-                    u'{0} is only defined for {3}s. Please adapt your input.',
-                    u'If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'
+                    'Unable to set a value for variable {0} for {1}-long period {2}.',
+                    '{0} is only defined for {3}s. Please adapt your input.',
+                    'If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'
                     ]).format(
                         self.variable.name,
                         period.unit,
@@ -395,4 +394,4 @@ def set_input_divide_by_period(holder, period, array):
                 holder._set(sub_period, divided_array)
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
-        raise ValueError(u"Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))
+        raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array).encode('utf-8'))

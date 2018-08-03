@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 from nose.tools import raises, assert_equals
 
 from openfisca_core.tracers import Tracer

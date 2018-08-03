@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 import os
 import json
 from http.client import BAD_REQUEST, OK, NOT_FOUND
@@ -208,8 +209,8 @@ def test_encoding_variable_value():
     assert_equal(response.status_code, BAD_REQUEST, response.data.decode('utf-8'))
     response_json = json.loads(response.data.decode('utf-8'))
     assert_in(
-        u"'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ",
-        dpath.get(response_json, u'households/_/housing_occupancy_status/2017-07')
+        "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a valid value for 'housing_occupancy_status'. Possible values are ",
+        dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
         )
 
 
@@ -236,7 +237,7 @@ def test_encoding_entity_name():
     # In Python 3, there is no encoding issue.
     if response.status_code != OK:
         assert_in(
-            u"'O‘Ryan' is not a valid ASCII value.",
+            "'O‘Ryan' is not a valid ASCII value.",
             response_json['error']
             )
 
@@ -279,6 +280,6 @@ def test_encoding_period_id():
     # In Python 3, there is no encoding issue.
     if "Expected a period" not in to_unicode(response.data):
         assert_in(
-            u"'à' is not a valid ASCII value.",
+            "'à' is not a valid ASCII value.",
             response_json['error']
             )

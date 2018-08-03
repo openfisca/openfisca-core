@@ -3,7 +3,7 @@
 
 """Handle decompositions in XML format (and convert then to JSON)."""
 
-
+from __future__ import unicode_literals, print_function, division, absolute_import
 import collections
 
 from openfisca_core import conv
@@ -18,14 +18,14 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
     comments = []
     node_json = collections.OrderedDict()
     if root:
-        node_json['@context'] = u'https://openfisca.fr/contexts/decomposition.jsonld'
+        node_json['@context'] = 'https://openfisca.fr/contexts/decomposition.jsonld'
     node_json['@type'] = 'Node'
     children_json = []
     for key, value in node_xml_json.items():
         if key == 'color':
             node_json['color'] = [
                 int(color)
-                for color in value.split(u',')
+                for color in value.split(',')
                 ]
         elif key == 'desc':
             node_json['name'] = value
@@ -43,7 +43,7 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
     if children_json:
         node_json['children'] = children_json
     if comments:
-        node_json['comment'] = u'\n\n'.join(comments)
+        node_json['comment'] = '\n\n'.join(comments)
     return node_json
 
 
@@ -79,7 +79,7 @@ def make_validate_node_xml_json(tax_benefit_system):
                         ),
                     color = conv.pipe(
                         conv.test_isinstance(basestring_type),
-                        conv.function(lambda colors: colors.split(u',')),
+                        conv.function(lambda colors: colors.split(',')),
                         conv.uniform_sequence(
                             conv.pipe(
                                 conv.input_to_int,
@@ -87,8 +87,8 @@ def make_validate_node_xml_json(tax_benefit_system):
                                 conv.not_none,
                                 ),
                             ),
-                        conv.test(lambda colors: len(colors) == 3, error = N_(u'Wrong number of colors in triplet.')),
-                        conv.function(lambda colors: u','.join(to_unicode(color) for color in colors)),
+                        conv.test(lambda colors: len(colors) == 3, error = N_('Wrong number of colors in triplet.')),
+                        conv.function(lambda colors: ','.join(to_unicode(color) for color in colors)),
                         ),
                     desc = conv.pipe(
                         conv.test_isinstance(basestring_type),
@@ -149,5 +149,5 @@ def xml_decomposition_to_json(xml_element, state = None):
     if json_key != 'NODE':
         if state is None:
             state = conv.default_state
-        return json_element, state._(u'Invalid root element in XML: "{}" instead of "NODE"').format(xml_element.tag)
+        return json_element, state._('Invalid root element in XML: "{}" instead of "NODE"').format(xml_element.tag)
     return json_element, None

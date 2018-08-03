@@ -7,12 +7,12 @@ Usage :
 or just (output is written in a directory called `yaml_parameters`):
   `python xml_to_yaml_country_template.py`
 '''
-
+from __future__ import unicode_literals, print_function, division, absolute_import
 import sys
 import os
 
 from openfisca_country_template import CountryTaxBenefitSystem, COUNTRY_DIR
-import xml_to_yaml
+from . import xml_to_yaml
 
 tax_benefit_system = CountryTaxBenefitSystem()
 

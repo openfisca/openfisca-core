@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals, print_function, division, absolute_import
 import datetime
 import inspect
 import textwrap
@@ -27,7 +28,7 @@ def get_default_value(variable):
 
 def build_source_url(country_package_metadata, source_file_path, start_line_number, source_code):
     nb_lines = source_code.count('\n')
-    return u'{}/blob/{}{}#L{}-L{}'.format(
+    return '{}/blob/{}{}#L{}-L{}'.format(
         country_package_metadata['repository_url'],
         country_package_metadata['version'],
         source_file_path,
@@ -38,9 +39,9 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
 
 def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
     source_code, start_line_number = inspect.getsourcelines(formula)
-    if source_code[0].lstrip(' ').startswith('@'):  # remove decorator
-        source_code = source_code[1:]
-        start_line_number = start_line_number + 1
+    # Python 2 backward compatibility
+    if isinstance(source_code[0], bytes):
+        source_code = [source_line.decode('utf-8') for source_line in source_code]
     source_code = textwrap.dedent(''.join(source_code))
     return {
         'source': build_source_url(

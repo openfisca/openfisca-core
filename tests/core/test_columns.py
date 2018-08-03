@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, division, absolute_import
 import openfisca_country_template as country_template
 from openfisca_country_template.entities import Person
 
@@ -20,7 +21,7 @@ class input_variable(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Input variable. No formula."
+    label = "Input variable. No formula."
 
 
 tax_benefit_system.add_variable(input_variable)
@@ -30,7 +31,7 @@ class variable_with_formula(Variable):
     value_type = int
     entity = Person
     definition_period = MONTH
-    label = u"Variable with formula"
+    label = "Variable with formula"
 
     def formula(individu, period):
         return individu.empty_array()
