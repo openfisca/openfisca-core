@@ -1,5 +1,51 @@
 # Changelog
 
+## 23.4.0 [#694](https://github.com/openfisca/openfisca-core/pull/694)
+
+* Use `/` rather than `.` in the path to access a parameter:
+  - For instance `/parameter/benefits.basic_income` becomes `/parameter/benefits/basic_income`
+  - Using `.` is for now still supported, but is considered deprecated and will be turned to a 301 redirection in the next major version.
+
+* Expose parameters `metadata` and `source` in the Web API and:
+
+For instance, `/parameter/benefits/basic_income` contains:
+
+```JSON
+{
+  "description": "Amount of the basic income",
+  "id": "benefits.basic_income",
+  "metadata": {
+    "reference": "https://law.gov.example/basic-income/amount",
+    "unit": "currency-EUR"
+  },
+  "source": "https://github.com/openfisca/country-template/blob/3.2.2/openfisca_country_template/parameters/benefits/basic_income.yaml",
+  "values": {
+    "2015-12-01": 600.0
+  }
+}
+```
+
+* Expose parameters nodes in the Web API
+  - For instance, `/parameter/benefits` now exists and contains:
+
+```JSON
+{
+  "description": "Social benefits",
+  "id": "benefits",
+  "metadata": {},
+  "source": "https://github.com/openfisca/country-template/blob/3.2.2/openfisca_country_template/parameters/benefits",
+  "subparams": {
+    "basic_income": {
+      "description": "Amount of the basic income"
+    },
+    "housing_allowance": {
+      "description": "Housing allowance amount (as a fraction of the rent)"
+    }
+  }
+}
+```
+
+Note that this route doesn't _recursively_ explore the node, and only exposes its direct children name and description.
 
 ### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 
@@ -13,7 +59,7 @@ Minor Change without any impact for country package developers and users:
 
 * Send reference of the country-package and its version to the tracker so it will appear in the tracking statistics.
 
-### 23.3.0 [#681](https://github.com/openfisca/openfisca-core/pull/681)
+## 23.3.0 [#681](https://github.com/openfisca/openfisca-core/pull/681)
 
 * Change the way metadata are declared for Parameter.
 

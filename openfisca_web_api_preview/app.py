@@ -62,9 +62,13 @@ def create_app(tax_benefit_system,
     def get_parameters():
         return jsonify(data['parameters_description'])
 
-    @app.route('/parameter/<id>')
-    def get_parameter(id):
-        parameter = data['parameters'].get(id)
+    @app.route('/parameter/<path:parameter_id>')
+    def get_parameter(parameter_id):
+        parameter = data['parameters'].get(parameter_id)
+        if parameter is None:
+            # Try legacy route
+            parameter_new_id = parameter_id.replace('.', '/')
+            parameter = data['parameters'].get(parameter_new_id)
         if parameter is None:
             raise abort(404)
         return jsonify(parameter)
