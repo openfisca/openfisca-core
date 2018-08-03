@@ -10,9 +10,9 @@ setup(
     name = 'OpenFisca-Core',
     version = '23.4.1',
     author = 'OpenFisca Team',
-    author_email = 'contact@openfisca.fr',
+    author_email = 'contact@openfisca.org',
     classifiers = [
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
