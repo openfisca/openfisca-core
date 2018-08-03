@@ -6,7 +6,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.6, or more recent versions.
+OpenFisca runs on Python 3.6. More recent versions should work, but are not tested.
 
 Backward compatibility with Python 2.7 is maintained for now, but will be dropped from January 1st, 2019.
 
