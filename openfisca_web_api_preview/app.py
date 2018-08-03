@@ -58,6 +58,22 @@ def create_app(tax_benefit_system,
 
     data = build_data(tax_benefit_system)
 
+    def resolve_host(request):
+        if data['host'] is not None:
+            return data['host']
+        host = request.host_url
+        data['host'] = host
+        data['openAPI_spec']['host'] = host
+        return host
+
+    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/api) and the OpenAPI specification of this instance ({}spec)."
+
+    @app.route('/')
+    def get_root():
+        return jsonify({
+            'welcome': DEFAULT_WELCOME_MESSAGE.format(resolve_host(request))
+            }), 300
+
     @app.route('/parameters')
     def get_parameters():
         return jsonify(data['parameters_description'])
@@ -86,6 +102,8 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
+        if data['host'] is None:
+            resolve_host(request)
         return jsonify(data['openAPI_spec'])
 
     def handle_invalid_json(error):

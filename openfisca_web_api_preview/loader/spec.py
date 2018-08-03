@@ -16,7 +16,6 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
     country_package_name = country_package_metadata['name'].title()
     spec['info']['title'] = spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name)
     spec['info']['description'] = spec['info']['description'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name)
-    spec['host'] = os.environ.get('SERVER_NAME')
 
     for entity in tax_benefit_system.entities:
         name = entity.key.title()
