@@ -38,9 +38,8 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
             else:
                 assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
         else:
-
-            target_value = np.array(target_value).astype(float)
-            value = np.array(value).astype(float)
+            target_value = np.array(target_value).astype(np.float32)
+            value = np.array(value).astype(np.float32)
             diff = abs(target_value - value)
 
             if absolute_error_margin is not None:
