@@ -41,7 +41,8 @@ def init_tracker(url, idsite, tracker_token):
 def create_app(tax_benefit_system,
                tracker_url = None,
                tracker_idsite = None,
-               tracker_token = None
+               tracker_token = None,
+               welcome_message = None,
                ):
 
     if not tracker_url or not tracker_idsite:
@@ -71,7 +72,7 @@ def create_app(tax_benefit_system,
     @app.route('/')
     def get_root():
         return jsonify({
-            'welcome': DEFAULT_WELCOME_MESSAGE.format(resolve_host(request))
+            'welcome': welcome_message or DEFAULT_WELCOME_MESSAGE.format(resolve_host(request))
             }), 300
 
     @app.route('/parameters')
