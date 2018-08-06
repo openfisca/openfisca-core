@@ -1,5 +1,10 @@
 # Changelog
 
+### 23.5.1 [#708](https://github.com/openfisca/openfisca-core/pull/708)
+
+- Addresses the typecasting from `float32` to `float64` made when outputing numbers in the API and in `openfisca-run-test`.
+- The typecasting added random decimal numbers that brought no extra value to the users.
+
 ## 23.5.0 [#705](https://github.com/openfisca/openfisca-core/pull/705)
 
 * On the Web API, expose a welcome message (with a 300 code) on `/` instead of a 404 error.
