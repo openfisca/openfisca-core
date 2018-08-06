@@ -19,7 +19,7 @@ If you want to contribute to OpenFisca-Core itself, welcome! To install it local
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-pip install --editable ".[api, dev]"
+pip install --editable .[dev]
 ```
 
 ## Testing
