@@ -172,12 +172,19 @@ def create_app(tax_benefit_system,
 
     @app.after_request
     def track_requests(response):
+
         if tracker:
             if request.headers.get('dnt'):
-                tracker.track(request.url)
+                source_ip = ""
+            elif request.headers.get('X-Forwarded-For'):
+                source_ip = request.headers['X-Forwarded-For'].split(', ')[0]
             else:
-                api_version = "{}-{}".format(data['country_package_metadata']['name'], data['country_package_metadata']['version'])
-                tracker.track(request.url, request.remote_addr, api_version, request.path)
+                source_ip = request.remote_addr
+
+            api_version = "{}-{}".format(data['country_package_metadata']['name'],
+                                         data['country_package_metadata']['version'])
+
+            tracker.track(request.url, source_ip, api_version, request.path)
         return response
 
     @app.errorhandler(500)
