@@ -2,8 +2,56 @@
 
 ### 23.5.1 [#708](https://github.com/openfisca/openfisca-core/pull/708)
 
-- Addresses the typecasting from `float32` to `float64` made when outputing numbers in the API and in `openfisca-run-test`.
-- The typecasting added random decimal numbers that brought no extra value to the users.
+- Correct the output of results that showed random decimal numbers at the end of `floats`.
+- Address the typecasting from `float32` to `float64` made when outputing numbers in the Web API and in `openfisca-run-test`.
+
+For the following situation :
+
+Before:
+```json
+{
+  "households": {
+    "smith": {
+      "parents": [
+        "bob"
+      ]
+    }
+  }, 
+  "persons": {
+    "bob": {
+      "salary": {
+        "2017-01": 1000
+      }, 
+      "tax_incentive": {
+        "2017-01": 333.3333435058594
+      }
+    }
+  }
+}
+```
+
+After:
+```json
+{
+  "households": {
+    "smith": {
+      "parents": [
+        "bob"
+      ]
+    }
+  }, 
+  "persons": {
+    "bob": {
+      "salary": {
+        "2017-01": 1000
+      }, 
+      "tax_incentive": {
+        "2017-01": 333.33334
+      }
+    }
+  }
+}
+```
 
 ## 23.5.0 [#705](https://github.com/openfisca/openfisca-core/pull/705)
 
