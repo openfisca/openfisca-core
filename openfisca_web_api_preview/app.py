@@ -174,7 +174,6 @@ def create_app(tax_benefit_system,
     def track_requests(response):
 
         if tracker:
-
             if request.headers.get('dnt'):
                 source_ip = ""
             elif request.headers.get('X-Forwarded-For'):
