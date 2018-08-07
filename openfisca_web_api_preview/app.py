@@ -41,7 +41,8 @@ def init_tracker(url, idsite, tracker_token):
 def create_app(tax_benefit_system,
                tracker_url = None,
                tracker_idsite = None,
-               tracker_token = None
+               tracker_token = None,
+               welcome_message = None,
                ):
 
     if not tracker_url or not tracker_idsite:
@@ -57,6 +58,14 @@ def create_app(tax_benefit_system,
     app.url_map.strict_slashes = False  # Accept url like /parameters/
 
     data = build_data(tax_benefit_system)
+
+    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/api) and the OpenAPI specification of this instance ({}spec)."
+
+    @app.route('/')
+    def get_root():
+        return jsonify({
+            'welcome': welcome_message or DEFAULT_WELCOME_MESSAGE.format(request.host_url)
+            }), 300
 
     @app.route('/parameters')
     def get_parameters():
@@ -86,7 +95,15 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
-        return jsonify(data['openAPI_spec'])
+
+        # Ugly Python2-compatible way
+        response = {}
+        response.update(data['openAPI_spec'])
+        response.update({'host': request.host_url})
+        return jsonify(response)
+
+        # Nice Python3 syntax, but doesn't work in Python 2
+        # return jsonify({**data['openAPI_spec'], **{'host': request.host_url}})
 
     def handle_invalid_json(error):
         json_response = jsonify({

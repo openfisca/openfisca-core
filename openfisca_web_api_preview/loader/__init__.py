@@ -26,4 +26,5 @@ def build_data(tax_benefit_system):
         'parameters_description': extract_description(parameters),
         'variables': variables,
         'variables_description': extract_description(variables),
+        'host': None  # Will be set by mirroring requests
         }

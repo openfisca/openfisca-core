@@ -8,11 +8,11 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'OpenFisca-Core',
-    version = '23.4.1',
+    version = '23.5.0',
     author = 'OpenFisca Team',
-    author_email = 'contact@openfisca.fr',
+    author_email = 'contact@openfisca.org',
     classifiers = [
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
@@ -46,7 +46,7 @@ setup(
         'dpath == 1.4.0',
         'enum34 >= 1.1.6',
         'future',
-        'flask == 0.12',
+        'flask == 1.0.2',
         'flask-cors == 3.0.2',
         'gunicorn >= 19.7.1',
         'numpy >= 1.11, < 1.15',
