@@ -53,7 +53,7 @@ setup(
         'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main', 'openfisca-run-test=openfisca_core.scripts.run_test:main'],
         },
     extras_require = {
-        'api': api_requirements,
+        'web-api': api_requirements,
         'dev': dev_requirements,
         'tracker': [
             'openfisca-tracker == 0.4.0',

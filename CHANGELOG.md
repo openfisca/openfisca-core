@@ -7,7 +7,7 @@
 ##### Only install the Web API dependencies as an opt-in:
 
 - `pip install OpenFisca-Core` will _not_ install the Web API anymore.
-- `pip install OpenFisca-Core[api]` will.
+- `pip install OpenFisca-Core[web-api]` will.
 
 Country package maintainers who still want to provide the Web API by default with their package (**recommended**) should update their `setup.py`:
   - In the `install_requires` section, replace `'OpenFisca-Core >= 23.3, < 24.0'` by `'OpenFisca-Core[api] >= 24.0, < 25.0'`
