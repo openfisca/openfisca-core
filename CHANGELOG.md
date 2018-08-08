@@ -1,5 +1,26 @@
 # Changelog
 
+### 23.5.1 [#708](https://github.com/openfisca/openfisca-core/pull/708)
+
+- Remove the irrelevant decimals that were added at the end of `float` results in the Web API and the test runner.
+  - These decimals were added while converting a Numpy `float32` to a regular 64-bits Python `float`.
+
+For instance, the former Web API response extract:
+
+```json
+  "tax_incentive": {
+        "2017-01": 333.3333435058594
+      }
+```
+
+becomes:
+
+```json
+"tax_incentive": {
+        "2017-01": 333.33334
+      }
+```
+
 ## 23.5.0 [#705](https://github.com/openfisca/openfisca-core/pull/705)
 
 * On the Web API, expose a welcome message (with a 300 code) on `/` instead of a 404 error.
