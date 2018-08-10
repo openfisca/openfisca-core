@@ -1,6 +1,14 @@
 # Changelog
 
+### 23.5.2 [#710](https://github.com/openfisca/openfisca-core/pull/710)
+
+- Revert the undesired side effects of `23.4.0` on the `parameters/` overview route of the Web API
+  - This route now behaves the exact same way than before `23.4.0`
+  - The keys of the `/parameters` JSON object are back to using the `.` notation
+  - Parameter nodes are for now not exposed in the `parameters/` overview (but each of them is exposed in `/parameter/path/to/node`)
+
 ### 23.5.1 [#708](https://github.com/openfisca/openfisca-core/pull/708)
+_Note: this version has been unpublished due to an issue introduced by 23.4.0 in the Web API. Please use 23.5.2 or a more recent version._
 
 - Remove the irrelevant decimals that were added at the end of `float` results in the Web API and the test runner.
   - These decimals were added while converting a Numpy `float32` to a regular 64-bits Python `float`.
@@ -22,6 +30,7 @@ becomes:
 ```
 
 ## 23.5.0 [#705](https://github.com/openfisca/openfisca-core/pull/705)
+_Note: this version has been unpublished due to an issue introduced by 23.4.0 in the Web API. Please use 23.5.2 or a more recent version._
 
 * On the Web API, expose a welcome message (with a 300 code) on `/` instead of a 404 error.
 
@@ -55,10 +64,12 @@ HTTP/1.1 300 MULTIPLE CHOICES
 
 
 ### 23.4.1 [#700](https://github.com/openfisca/openfisca-core/pull/700)
+_Note: this version has been unpublished due to an issue introduced by 23.4.0 in the Web API. Please use 23.5.2 or a more recent version._
 
 * Fix API source IP detection through proxies.
 
 ## 23.4.0 [#694](https://github.com/openfisca/openfisca-core/pull/694)
+_Note: this version has been unpublished as it introduced an issue in the Web API. Please use 23.5.2 or a more recent version._
 
 * Use `/` rather than `.` in the path to access a parameter:
   - For instance `/parameter/benefits.basic_income` becomes `/parameter/benefits/basic_income`
