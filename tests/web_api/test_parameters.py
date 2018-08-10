@@ -19,8 +19,12 @@ def test_return_code():
 def test_response_data():
     parameters = json.loads(parameters_response.data.decode('utf-8'))
     assert_equal(
-        parameters['taxes/income_tax_rate'],
+        parameters['taxes.income_tax_rate'],
         {'description': 'Income tax rate'}
+        )
+    assert_equal(
+        parameters.get('taxes'),
+        None
         )
 
 

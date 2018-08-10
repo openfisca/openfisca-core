@@ -69,7 +69,7 @@ def create_app(tax_benefit_system,
 
     @app.route('/parameters')
     def get_parameters():
-        return jsonify(data['parameters_description'])
+        return jsonify(data['parameters_overview'])
 
     @app.route('/parameter/<path:parameter_id>')
     def get_parameter(parameter_id):
@@ -84,7 +84,7 @@ def create_app(tax_benefit_system,
 
     @app.route('/variables')
     def get_variables():
-        return jsonify(data['variables_description'])
+        return jsonify(data['variables_overview'])
 
     @app.route('/variable/<id>')
     def get_variable(id):
