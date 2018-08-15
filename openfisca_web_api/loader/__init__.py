@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-from openfisca_web_api_preview.loader.parameters import build_parameters, build_parameters_overview
-from openfisca_web_api_preview.loader.variables import build_variables
-from openfisca_web_api_preview.loader.spec import build_openAPI_specification
+
+from openfisca_web_api.loader.parameters import build_parameters, build_parameters_overview
+from openfisca_web_api.loader.variables import build_variables
+from openfisca_web_api.loader.spec import build_openAPI_specification
 
 
 def extract_description(items):

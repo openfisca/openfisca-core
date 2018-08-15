@@ -2,13 +2,13 @@ swagger: "2.0"
 info:
   title: "{COUNTRY_PACKAGE_NAME} Web API"
   description: "The OpenFisca Web API lets you get up-to-date information and formulas included in the {COUNTRY_PACKAGE_NAME} legislation."
-  version: "0.1.0"
-  termsOfService: "http://openfisca.org/doc/publishing.html"
+  version: null
+  termsOfService: "https://openfisca.org/doc/publishing"
   contact:
     email: "contact@openfisca.fr"
   license:
     name: "AGPL"
-    url: "https://www.gnu.org/licenses/agpl-3.0.html"
+    url: "https://www.gnu.org/licenses/agpl-3.0"
 host: null
 schemes:
   - "https"
@@ -17,12 +17,12 @@ tags:
     description: "A parameter is a numeric property of the legislation that can evolve over time."
     externalDocs:
       description: "Parameter official documentation"
-      url: "http://openfisca.org/doc/parameters.html"
+      url: "https://openfisca.org/doc/parameters"
   - name: "Variables"
     description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
     externalDocs:
       description: "Variable official documentation"
-      url: "http://openfisca.org/doc/variables.html"
+      url: "https://openfisca.org/doc/variables"
   - name: "Calculations"
   - name: "Documentation"
 paths:
@@ -39,7 +39,7 @@ paths:
       parameters:
       - in: "body"
         name: "Situation"
-        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: http://openfisca.org/doc/openfisca-web-api/input-output-data.html'
+        description: 'Describe the situation (persons and entities). Add the variable you wish to calculate in the proper entity, with null as the value. Learn more in our official documentation: https://openfisca.org/doc/openfisca-web-api/input-output-data'
         required: true
         schema:
           $ref: '#/definitions/SituationInput'

@@ -5,19 +5,23 @@ import sys
 import logging
 import argparse
 
-from gunicorn.app.base import BaseApplication
-from gunicorn.six import iteritems
-from gunicorn import config
-
 from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_system
-from openfisca_web_api_preview.app import create_app
+from openfisca_web_api.app import create_app
+from openfisca_web_api.errors import handle_import_error
+
+try:
+    from gunicorn.app.base import BaseApplication
+    from gunicorn.six import iteritems
+    from gunicorn import config
+except ImportError as error:
+    handle_import_error(error)
 
 
 """
     Define the `openfisca serve` command line interface.
 """
 
-DEFAULT_PORT = '6000'
+DEFAULT_PORT = '5000'
 HOST = '127.0.0.1'
 DEFAULT_WORKERS_NUMBER = '3'
 

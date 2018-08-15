@@ -2,20 +2,24 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from copy import deepcopy
+import logging
 import os
-from os import linesep
-from flask import Flask, jsonify, abort, request, make_response
-from werkzeug.contrib.fixers import ProxyFix
-from flask_cors import CORS
+import traceback
+
 import dpath
 
 from openfisca_core.simulations import Simulation, SituationParsingError
 from openfisca_core.commons import to_unicode
 from openfisca_core.indexed_enums import Enum
-from openfisca_web_api_preview.loader import build_data
-import traceback
-import logging
+from openfisca_web_api.loader import build_data
+from openfisca_web_api.errors import handle_import_error
 
+try:
+    from flask import Flask, jsonify, abort, request, make_response
+    from flask_cors import CORS
+    from werkzeug.contrib.fixers import ProxyFix
+except ImportError as error:
+    handle_import_error(error)
 
 log = logging.getLogger('gunicorn.error')
 
@@ -25,14 +29,14 @@ def init_tracker(url, idsite, tracker_token):
         from openfisca_tracker.piwik import PiwikTracker
         tracker = PiwikTracker(url, idsite, tracker_token)
 
-        info = linesep.join(['You chose to activate the `tracker` module. ',
+        info = os.linesep.join(['You chose to activate the `tracker` module. ',
                              'Tracking data will be sent to: ' + url,
                              'For more information, see <https://github.com/openfisca/openfisca-core#tracker-configuration>.'])
         log.info(info)
         return tracker
 
     except ImportError:
-        message = linesep.join([traceback.format_exc(),
+        message = os.linesep.join([traceback.format_exc(),
                                 'You chose to activate the `tracker` module, but it is not installed.',
                                 'For more information, see <https://github.com/openfisca/openfisca-core#tracker-installation>.'])
         log.warn(message)
@@ -95,7 +99,6 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
-
         # Ugly Python2-compatible way
         response = {}
         response.update(data['openAPI_spec'])

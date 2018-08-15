@@ -1,5 +1,38 @@
 # Changelog
 
+# 24.0.0 [#703](https://github.com/openfisca/openfisca-core/pull/703)
+
+#### Breaking changes
+
+##### Only install the Web API dependencies as an opt-in:
+
+- `pip install OpenFisca-Core` will _not_ install the Web API anymore.
+- `pip install OpenFisca-Core[web-api]` will.
+
+Country package maintainers who still want to provide the Web API by default with their package (**recommended**) should update their `setup.py`:
+  - In the `install_requires` section, replace `'OpenFisca-Core >= 23.3, < 24.0'` by `'OpenFisca-Core[api] >= 24.0, < 25.0'`
+  - See [example](https://github.com/openfisca/country-template/commit/b75eea97d8d22091a3f13a580118ce45b16f4294)
+
+##### Change default Web API port to 5000:
+
+- `openfisca serve` will now serve by default on the `5000` port instead of `6000` (blocked by Chrome).
+
+##### Rename OpenFisca Web Api package to `openfisca_web_api`:
+
+- Transparent for users of the `openfisca serve` command.
+- Users who used to manually import `openfisca_web_api_preview` must know import `openfisca_web_api`.
+
+##### Rename development dependencies from `test` to `dev`:
+
+- Developpers should now run `pip install --editable .[dev]` instead of `pip install --editable .[test]` to install them.
+
+#### New features
+
+- In the `/spec` route:
+  - Indicate the served country package version as API version (instead of `0.1.0`).
+  - Infer the host URL from the requests, instead of relying on the undocumented `SERVER_NAME` environnement variable.
+    - The use of the `SERVER_NAME` environnement variable is therefore deprecated and without effect.
+
 ### 23.5.2 [#710](https://github.com/openfisca/openfisca-core/pull/710)
 
 - Revert the undesired side effects of `23.4.0` on the `parameters/` overview route of the Web API
@@ -115,6 +148,7 @@ For instance, `/parameter/benefits/basic_income` contains:
 ```
 
 Note that this route doesn't _recursively_ explore the node, and only exposes its direct children name and description.
+
 
 ### 23.3.2 [#702](https://github.com/openfisca/openfisca-core/pull/702)
 

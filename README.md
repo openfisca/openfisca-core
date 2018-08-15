@@ -6,7 +6,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.6, or more recent versions.
+OpenFisca runs on Python 3.6. More recent versions should work, but are not tested.
 
 Backward compatibility with Python 2.7 is maintained for now, but will be dropped from January 1st, 2019.
 
@@ -19,7 +19,7 @@ If you want to contribute to OpenFisca-Core itself, welcome! To install it local
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
 cd openfisca-core
-pip install --editable ".[test]"
+pip install --editable .[dev]
 ```
 
 ## Testing
@@ -44,12 +44,12 @@ nosetests core/test_parameters.py:test_parameter_for_period
 
 ## Serving the API
 
-OpenFisca-Core provides a Web-API. It is served on the `6000` port.
+OpenFisca-Core provides a Web-API. It is by default served on the `5000` port.
 
-To run it with the mock country package `openfisca_country_template` and another port value as `5000`, run:
+To run it with the mock country package `openfisca_country_template` and another port value such as `2000`, run:
 
 ```sh
-openfisca serve --country-package openfisca_country_template --port 5000
+openfisca serve --country-package openfisca_country_template --port 2000
 ```
 
 To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html).
@@ -59,7 +59,7 @@ By default, the Web API uses 3 workers to avoid [this issue](http://stackoverflo
 You can test that the API is running by executing the command:
 
 ```sh
-curl http://localhost:5000/parameters
+curl http://localhost:2000/parameters
 ```
 For more information about endpoints and input formatting, see the [official documentation](http://openfisca.org/doc/openfisca-web-api).
 
