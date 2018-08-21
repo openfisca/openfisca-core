@@ -1,5 +1,9 @@
 # Changelog
 
+### 24.0.1 [#711](https://github.com/openfisca/openfisca-core/pull/711)
+
+- Fix spelling in warning about libyaml
+
 # 24.0.0 [#703](https://github.com/openfisca/openfisca-core/pull/703)
 
 #### Breaking changes
