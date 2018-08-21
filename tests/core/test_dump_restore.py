@@ -31,6 +31,13 @@ class intermediate(Variable):
         return person('input', period)
 
 
+class other_input(Variable):
+    value_type = int
+    entity = Person
+    label = "Other input variable"
+    definition_period = MONTH
+
+
 class output(Variable):
     value_type = int
     entity = Person
@@ -43,7 +50,7 @@ class output(Variable):
 
 def create_filled_tax_benefit_system():
     tax_benefit_system = CountryTaxBenefitSystem()
-    tax_benefit_system.add_variables(input, intermediate, output)
+    tax_benefit_system.add_variables(input, intermediate, other_input, output)
 
     return tax_benefit_system
 
@@ -105,5 +112,30 @@ def test_dump_restore_different_simulations():
     assert(simulation2.get_holder('input').get_array(month) == np.asarray([1]))
     assert(simulation2.get_holder('intermediate').get_array(month) == np.asarray([1]))
     assert(simulation2.get_holder('output').get_array(month, extra_params = [-1, -2]) == np.asarray([1]))
+
+    shutil.rmtree(data_storage_dir)
+
+
+def test_dump_restore_different_simulations_different_variables():
+    data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
+
+    simulation1 = scenario.new_simulation(data_storage_dir = data_storage_dir)
+    simulation1.calculate('output', period = month, extra_params = [-1, -2])
+
+    simulation1.dump()
+
+    # New simulation with the same storage directory
+    simulation2 = scenario.new_simulation(data_storage_dir = data_storage_dir)
+
+    simulation2.get_holder('other_input').set_input(month, [3])
+    assert(simulation2.get_holder('other_input').get_array(month) == np.asarray([3]))
+
+    simulation2.restore()
+
+    assert(simulation2.get_holder('input').get_array(month) == np.asarray([1]))
+    assert(simulation2.get_holder('intermediate').get_array(month) == np.asarray([1]))
+    assert(simulation2.get_holder('output').get_array(month, extra_params = [-1, -2]) == np.asarray([1]))
+
+    assert(simulation2.get_holder('other_input').get_array(month) is None)
 
     shutil.rmtree(data_storage_dir)

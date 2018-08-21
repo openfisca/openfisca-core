@@ -472,10 +472,18 @@ class Simulation(object):
         return new
 
     def restore(self):
+        variables_names = set()
+        # Restore existing variables.
+        for entity in self.entities.values():
+            for variable_name, holder in entity._holders.items():
+                holder.restore()
+                variables_names.add(variable_name)
+
+        # Restore other variables dumped by previous simulation.
         storage_dir = self.data_storage_dir
         if os.path.isdir(storage_dir):
             for variable_name in os.listdir(storage_dir):
-                if '.' in variable_name:
+                if '.' in variable_name or variable_name in variables_names:
                     continue
                 holder = self.get_holder(variable_name)
                 holder.restore()
