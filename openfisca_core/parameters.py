@@ -26,7 +26,7 @@ try:
     from yaml import CLoader as Loader
 except ImportError:
     log.warning(
-        "libyaml is not installed in your environement. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml' so that it is used in your Python environement." + os.linesep)
+        "libyaml is not installed in your environment. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml' so that it is used in your Python environment." + os.linesep)
     from yaml import Loader
 
 

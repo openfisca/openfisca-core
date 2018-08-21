@@ -31,10 +31,10 @@ try:
 except ImportError:
     log.warning(
         ' '
-        'libyaml is not installed in your environement, this can make your '
+        'libyaml is not installed in your environment, this can make your '
         'test suite slower to run. Once you have installed libyaml, run `pip '
         'uninstall pyyaml && pip install pyyaml` so that it is used in your '
-        'Python environement.')
+        'Python environment.')
     from yaml import Loader, Dumper
 
 
