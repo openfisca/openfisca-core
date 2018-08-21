@@ -2,6 +2,7 @@
 
 
 from __future__ import unicode_literals, print_function, division, absolute_import
+import os
 from os import linesep
 import tempfile
 import logging
@@ -45,6 +46,7 @@ class Simulation(object):
             self,
             tax_benefit_system,
             simulation_json = None,
+            data_storage_dir = None,
             debug = False,
             period = None,
             trace = False,
@@ -80,7 +82,8 @@ class Simulation(object):
         self.opt_out_cache = opt_out_cache
 
         self.memory_config = memory_config
-        self._data_storage_dir = None
+        self._data_storage_dir = data_storage_dir
+        self._preserve_storage_dir = data_storage_dir is not None
         self.instantiate_entities(simulation_json)
 
     def instantiate_entities(self, simulation_json):
@@ -420,6 +423,11 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
+    def dump(self):
+        for entity in self.entities.values():
+            for holder in entity._holders.values():
+                holder.dump()
+
     def get_variable_entity(self, variable_name):
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
@@ -462,6 +470,15 @@ class Simulation(object):
                 new_dict['tracer'] = Tracer()
 
         return new
+
+    def restore(self):
+        storage_dir = self.data_storage_dir
+        if os.path.isdir(storage_dir):
+            for variable_name in os.listdir(storage_dir):
+                if '.' in variable_name:
+                    continue
+                holder = self.get_holder(variable_name)
+                holder.restore()
 
 
 def check_type(input, input_type, path = []):
