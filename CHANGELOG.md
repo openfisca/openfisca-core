@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
+
+- Enhance navigation within the Openfisca Web API.
+- Provides a direct link to individual parameters and variables from the /parameters and /variables routes respectively.
+
 ### 24.0.1 [#711](https://github.com/openfisca/openfisca-core/pull/711)
 
 - Fix spelling in warning about libyaml
