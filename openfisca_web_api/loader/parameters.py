@@ -104,8 +104,12 @@ def build_parameters(tax_benefit_system, country_package_metadata):
 
 
 def build_parameters_overview(parameters):
+
     return {
-        parameter['id']: {'description': parameter['description']}
+        parameter['id']: {
+            'description': parameter['description'],
+            'href': 'parameter/' + parameter['id']
+            }
         for parameter in parameters.values()
         if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
         }

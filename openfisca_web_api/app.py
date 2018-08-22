@@ -73,7 +73,16 @@ def create_app(tax_benefit_system,
 
     @app.route('/parameters')
     def get_parameters():
-        return jsonify(data['parameters_overview'])
+        parameters = data['parameters_overview']
+        parameters_with_full_url = dict()
+        for name, parameter in parameters.items():
+            parameters_with_full_url[name] = {
+                'description': parameter['description'],
+                'href': request.host_url + parameter['href']
+                }
+
+        return jsonify(parameters_with_full_url)
+
 
     @app.route('/parameter/<path:parameter_id>')
     def get_parameter(parameter_id):
