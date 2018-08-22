@@ -97,7 +97,15 @@ def create_app(tax_benefit_system,
 
     @app.route('/variables')
     def get_variables():
-        return jsonify(data['variables_overview'])
+        variables = data['variables_overview']
+        variables_with_full_url = dict()
+        for name, variable in variables.items():
+            variables_with_full_url[name] = {
+                'description': variable['description'],
+                'href': request.host_url + variable['href']
+            }
+
+        return jsonify(variables_with_full_url)
 
     @app.route('/variable/<id>')
     def get_variable(id):

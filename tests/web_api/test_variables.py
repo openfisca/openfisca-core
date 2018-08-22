@@ -25,7 +25,10 @@ def test_response_data():
     variables = json.loads(variables_response.data.decode('utf-8'))
     assert_equal(
         variables['birth'],
-        {'description': 'Birth date'}
+        {
+            'description': 'Birth date',
+            'href': 'http://localhost/variable/birth'
+            }
         )
 
 

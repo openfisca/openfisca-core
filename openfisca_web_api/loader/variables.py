@@ -98,3 +98,14 @@ def build_variables(tax_benefit_system, country_package_metadata):
         name: build_variable(variable, country_package_metadata, tax_benefit_system)
         for name, variable in tax_benefit_system.variables.items()
         }
+
+
+def build_variables_overview(variables):
+
+    return {
+        name: {
+            'description': item['description'],
+            'href': 'variable/' + name
+            }
+        for name, item in variables.items()
+        }
