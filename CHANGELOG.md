@@ -3,8 +3,33 @@
 ### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
 
 - Enhance navigation within the Openfisca Web API.
-- Provides a direct link to individual parameters and variables from the /parameters and /variables routes respectively.
+- Provides a direct link to individual parameters and variables from the `/parameters` and `/variables` routes.
 
+The former `/parameters` route of the Web API:
+
+```json
+"benefits.basic_income": {
+        "description": "Amount of the basic income",
+        },
+"benefits.housing_allowance": {
+        "description":"Housing allowance amount (as a fraction of the rent)",
+        },
+    ...
+```
+
+becomes:
+
+```json
+"benefits.basic_income": {
+        "description": "Amount of the basic income",
+        "href":"http://localhost:5000/parameter/benefits.basic_income"
+        },
+"benefits.housing_allowance": {
+        "description":"Housing allowance amount (as a fraction of the rent)",
+        "href":"http://localhost:5000/parameter/benefits.housing_allowance"
+        },
+    ...
+```
 ### 24.0.1 [#711](https://github.com/openfisca/openfisca-core/pull/711)
 
 - Fix spelling in warning about libyaml
