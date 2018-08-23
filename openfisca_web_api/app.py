@@ -73,16 +73,15 @@ def create_app(tax_benefit_system,
 
     @app.route('/parameters')
     def get_parameters():
-        parameters = data['parameters_overview']
-        parameters_with_full_url = dict()
-        for name, parameter in parameters.items():
-            parameters_with_full_url[name] = {
+        parameters = {
+            name: {
                 'description': parameter['description'],
                 'href': request.host_url + parameter['href']
                 }
+            for name, parameter in data['parameters_overview'].items()
+            }
 
-        return jsonify(parameters_with_full_url)
-
+        return jsonify(parameters)
 
     @app.route('/parameter/<path:parameter_id>')
     def get_parameter(parameter_id):
@@ -97,15 +96,15 @@ def create_app(tax_benefit_system,
 
     @app.route('/variables')
     def get_variables():
-        variables = data['variables_overview']
-        variables_with_full_url = dict()
-        for name, variable in variables.items():
-            variables_with_full_url[name] = {
+        variables = {
+            name: {
                 'description': variable['description'],
                 'href': request.host_url + variable['href']
+                }
+            for name, variable in data['variables_overview'].items()
             }
 
-        return jsonify(variables_with_full_url)
+        return jsonify(variables)
 
     @app.route('/variable/<id>')
     def get_variable(id):
