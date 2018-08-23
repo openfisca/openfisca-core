@@ -23,7 +23,7 @@ def test_response_data():
         parameters['taxes.income_tax_rate'],
         {
             'description': 'Income tax rate',
-            'href': 'http://localhost/parameter/taxes.income_tax_rate'
+            'href': 'http://localhost/parameter/taxes/income_tax_rate'
             }
         )
     assert_equal(

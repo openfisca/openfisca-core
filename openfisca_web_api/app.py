@@ -76,7 +76,7 @@ def create_app(tax_benefit_system,
         parameters = {
             parameter['id']: {
                 'description': parameter['description'],
-                'href': '{}parameter/{}'.format(request.host_url, parameter['id'])
+                'href': '{}parameter/{}'.format(request.host_url, name)
                 }
             for name, parameter in data['parameters'].items()
             if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
