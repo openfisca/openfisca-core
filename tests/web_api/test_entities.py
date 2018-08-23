@@ -18,7 +18,7 @@ def test_return_code():
 
 def test_response_data():
     entities = json.loads(entities_response.data.decode('utf-8'))
-    test_description = '''
+    test_documentation = '''
 Household is an example of a group entity.
 A group entity contains one or more individual·s.
 Each individual in a group entity has a role (e.g. parent or children). Some roles can only be held by a limited number of individuals (e.g. a 'first_parent' can only be held by one individual), while others can have an unlimited number of individuals (e.g. 'children').
@@ -35,7 +35,21 @@ For more information, see: https://openfisca.org/doc/coding-the-legislation/50_e
     assert_equal(
         entities['household'],
         {
-            'description': test_description,
-            'plural': 'households'
-         }
+            'description': 'Household',
+            'documentation': test_documentation,
+            'plural': 'households',
+            'roles': {
+                'parent': {
+                    'description': 'The one or two adults in charge of the household.',
+                    'mandatory': False,
+                    'max': 2,
+                    'plural': "parents"
+                    },
+                'child': {
+                    'description': 'Other individuals living in the household.',
+                    'mandatory': False,
+                    'plural': 'children'
+                    }
+                }
+            }
         )

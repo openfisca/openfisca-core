@@ -2,14 +2,40 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 
+
 def build_entities(tax_benefit_system):
     entities = {
-        entity.key: {
-            "plural": entity.plural,
-            "description": entity.doc
-        }
+        entity.key: build_entity(entity)
         for entity in tax_benefit_system.entities
-    }
+        }
     return entities
 
 
+def build_entity(entity):
+
+    entity_formated = {
+        "description": entity.doc,
+        'plural': entity.plural,
+        }
+    if hasattr(entity, 'roles'):
+        entity_formated['roles'] = \
+            {
+            role.key: build_role(role)
+            for role in entity.roles
+            }
+    return entity_formated
+
+
+def build_role(role):
+    role_formated = {
+        'plural': role.plural,
+        'description': role.doc
+        }
+
+    if role.max:
+        role_formated['max'] = role.max
+    if role.subroles:
+        role_formated['max'] = len(role.subroles)
+
+    role_formated['mandatory'] = True if role_formated.get('max') else False
+    return role_formated
