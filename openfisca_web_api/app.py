@@ -73,7 +73,16 @@ def create_app(tax_benefit_system,
 
     @app.route('/parameters')
     def get_parameters():
-        return jsonify(data['parameters_overview'])
+        parameters = {
+            parameter['id']: {
+                'description': parameter['description'],
+                'href': '{}parameter/{}'.format(request.host_url, name)
+                }
+            for name, parameter in data['parameters'].items()
+            if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
+            }
+
+        return jsonify(parameters)
 
     @app.route('/parameter/<path:parameter_id>')
     def get_parameter(parameter_id):
@@ -88,7 +97,14 @@ def create_app(tax_benefit_system,
 
     @app.route('/variables')
     def get_variables():
-        return jsonify(data['variables_overview'])
+        variables = {
+            name: {
+                'description': variable['description'],
+                'href': '{}variable/{}'.format(request.host_url, name)
+                }
+            for name, variable in data['variables'].items()
+            }
+        return jsonify(variables)
 
     @app.route('/variable/<id>')
     def get_variable(id):
