@@ -113,6 +113,10 @@ def create_app(tax_benefit_system,
             raise abort(404)
         return jsonify(variable)
 
+    @app.route('/entities')
+    def get_entities():
+        return jsonify('hello')
+
     @app.route('/spec')
     def get_spec():
         # Ugly Python2-compatible way
