@@ -76,7 +76,7 @@ def create_app(tax_benefit_system,
         parameters = {
             parameter['id']: {
                 'description': parameter['description'],
-                'href': request.host_url + 'parameter/' + parameter['id']
+                'href': '{}parameter/{}'.format(request.host_url, parameter['id'])
                 }
             for name, parameter in data['parameters'].items()
             if parameter.get('subparams') is None  # For now and for backward compat, don't show nodes in overview
@@ -100,7 +100,7 @@ def create_app(tax_benefit_system,
         variables = {
             name: {
                 'description': variable['description'],
-                'href': request.host_url + 'variable/' + name
+                'href': '{}variable/{}'.format(request.host_url, name)
                 }
             for name, variable in data['variables'].items()
             }
