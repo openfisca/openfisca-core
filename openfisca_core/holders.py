@@ -82,20 +82,6 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def dump(self, directory):
-        disk_storage = self.create_disk_storage(directory, preserve = True)
-        for period in self.get_known_periods():
-            value = self.get_array(period)
-            disk_storage.put(value, period)
-
-
-            # for period, values in memory_storage._arrays.items():
-            #     if isinstance(values, dict):
-            #         for extra_params, value in values.items():
-            #             disk_storage.put(value, period, extra_params)
-            #     else:
-            #         disk_storage.put(values, period)
-
     def get_array(self, period, extra_params = None):
         """
             Get the value of the variable for the given period (and possibly a list of extra parameters).

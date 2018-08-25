@@ -14,6 +14,7 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
 from openfisca_core.tracers import Tracer
 from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 
 log = logging.getLogger(__name__)
@@ -46,7 +47,6 @@ class Simulation(object):
             self,
             tax_benefit_system,
             simulation_json = None,
-            data_storage_dir = None,
             debug = False,
             period = None,
             trace = False,
@@ -424,20 +424,9 @@ class Simulation(object):
 
     def dump(self, directory):
         """
-            Write data to disk, so that it can be restored later.
+            Write all simulation data to a directory, so that it can be restored later.
         """
-        entities_dump_dir = os.path.join(directory, '__entities__')
-        os.mkdir(entities_dump_dir)
-
-        for entity in self.entities.values():
-            # Dump entity structure
-            entity.dump(entities_dump_dir)
-
-            # Dump variable values
-            for holder in entity._holders.values():
-                holder.dump(directory)
-
-
+        dump_simulation(self, directory)
 
     def get_variable_entity(self, variable_name):
 
@@ -498,11 +487,6 @@ class Simulation(object):
                     continue
                 holder = self.get_holder(variable_name)
                 holder.restore()
-
-
-    @staticmethod
-    def build_from_dump(directory):
-        pass
 
 
 def check_type(input, input_type, path = []):
