@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 import traceback
 import warnings
 import textwrap
-from os import linesep
+import os
 
 import numpy as np
 import dpath
@@ -149,6 +149,12 @@ class Entity(object):
 
         return new
 
+    def dump(self, directory):
+        path = os.path.join(directory, self.key)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        np.save(os.path.join(path, 'id.npy'), self.ids)
+
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
@@ -171,7 +177,7 @@ class Entity(object):
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
-            message = linesep.join([
+            message = os.linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
                 "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
                 "Learn more about entities in our documentation:",
@@ -494,6 +500,19 @@ class GroupEntity(Entity):
         if self._ordered_members_map is None:
             return np.argsort(self.members_entity_id)
         return self._ordered_members_map
+
+
+    def dump(self, directory):
+        Entity.dump(self, directory)
+        path = os.path.join(directory, self.key)
+        np.save(os.path.join(path, 'members_position.npy'), self.members_position)
+        np.save(os.path.join(path, 'members_entity_id.npy'), self.members_entity_id)
+        np.save(os.path.join(path, 'members_role.npy'),
+            np.select(
+                [self.members_role == role.key for role in self.flattened_roles],
+                [role.key for role in self.flattened_roles]
+                ))
+        np.save(os.path.join(path, 'members_legacy_role.npy'), self.members_legacy_role)
 
     #  Aggregation persons -> entity
 

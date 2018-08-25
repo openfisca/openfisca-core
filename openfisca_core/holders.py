@@ -37,7 +37,7 @@ class Holder(object):
         self._do_not_store = False
         if self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
-                self.create_disk_storage()
+                self._disk_storage = self.create_disk_storage()
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
@@ -58,16 +58,17 @@ class Holder(object):
 
         return new
 
-    def create_disk_storage(self):
-        storage_dir = os.path.join(self.simulation.data_storage_dir, self.variable.name)
+    def create_disk_storage(self, directory = None, preserve = False):
+        if directory is None:
+            directory = self.simulation.data_storage_dir,
+        storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
-        self._disk_storage = disk_storage = OnDiskStorage(
+        return OnDiskStorage(
             storage_dir,
             is_eternal = (self.variable.definition_period == ETERNITY),
-            preserve_storage_dir = self.simulation._preserve_storage_dir
+            preserve_storage_dir = preserve
             )
-        return disk_storage
 
     def delete_arrays(self, period = None):
         """
@@ -81,24 +82,19 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def dump(self):
-        """
-            Write data to disk, so that it can be restored later.
+    def dump(self, directory):
+        disk_storage = self.create_disk_storage(directory, preserve = True)
+        for period in self.get_known_periods():
+            value = self.get_array(period)
+            disk_storage.put(value, period)
 
-            Note: The data is not removed from RAM. Tip: Use ``restore()`` to remove current data from RAM.
-        """
-        memory_storage = self._memory_storage
-        if memory_storage is not None:
-            disk_storage = self._disk_storage
-            if disk_storage is None:
-                disk_storage = self.create_disk_storage()
 
-            for period, values in memory_storage._arrays.items():
-                if isinstance(values, dict):
-                    for extra_params, value in values.items():
-                        disk_storage.put(value, period, extra_params)
-                else:
-                    disk_storage.put(values, period)
+            # for period, values in memory_storage._arrays.items():
+            #     if isinstance(values, dict):
+            #         for extra_params, value in values.items():
+            #             disk_storage.put(value, period, extra_params)
+            #     else:
+            #         disk_storage.put(values, period)
 
     def get_array(self, period, extra_params = None):
         """

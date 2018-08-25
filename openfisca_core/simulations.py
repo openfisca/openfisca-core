@@ -83,7 +83,6 @@ class Simulation(object):
 
         self.memory_config = memory_config
         self._data_storage_dir = data_storage_dir
-        self._preserve_storage_dir = data_storage_dir is not None
         self.instantiate_entities(simulation_json)
 
     def instantiate_entities(self, simulation_json):
@@ -423,10 +422,22 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
-    def dump(self):
+    def dump(self, directory):
+        """
+            Write data to disk, so that it can be restored later.
+        """
+        entities_dump_dir = os.path.join(directory, '__entities__')
+        os.mkdir(entities_dump_dir)
+
         for entity in self.entities.values():
+            # Dump entity structure
+            entity.dump(entities_dump_dir)
+
+            # Dump variable values
             for holder in entity._holders.values():
-                holder.dump()
+                holder.dump(directory)
+
+
 
     def get_variable_entity(self, variable_name):
 
@@ -487,6 +498,11 @@ class Simulation(object):
                     continue
                 holder = self.get_holder(variable_name)
                 holder.restore()
+
+
+    @staticmethod
+    def build_from_dump(directory):
+        pass
 
 
 def check_type(input, input_type, path = []):
