@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
+from openfisca_core.commons import to_unicode
 
 
 def build_entities(tax_benefit_system):
@@ -14,8 +15,8 @@ def build_entities(tax_benefit_system):
 def build_entity(entity):
 
     entity_formated = {
-        "description": entity.doc,
         'plural': entity.plural,
+        'description': to_unicode(entity.doc)
         }
     if hasattr(entity, 'roles'):
         entity_formated['roles'] = \
