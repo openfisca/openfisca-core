@@ -52,9 +52,10 @@ def test_legacy_parameter_route():
 def test_parameter_values():
     response = subject.get('/parameter/taxes/income_tax_rate')
     parameter = json.loads(response.data)
-    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'values'])
+    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'values'])
     assert_equal(parameter['id'], 'taxes.income_tax_rate')
     assert_equal(parameter['description'], 'Income tax rate')
+    assert_equal(parameter['documentation'], None)
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
     assert_equal(parameter['metadata'], {'unit': '/1'})

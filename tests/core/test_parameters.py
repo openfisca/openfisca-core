@@ -94,3 +94,15 @@ def test_parameter_node_metadata():
 
     parameter_2 = tax_benefit_system.parameters.taxes.housing_tax
     assert_equal(parameter_2.description, 'Housing tax')
+
+
+def test_parameter_documentation():
+    parameter = tax_benefit_system.parameters.benefits.housing_allowance
+    assert_equal(parameter.documentation,
+        'A fraction of the rent. \nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n')
+
+
+@raises(AttributeError)
+def test_parameter_node_wrong_documentation():
+    parameter_node = tax_benefit_system.parameters.benefits
+    parameter_node.documentation

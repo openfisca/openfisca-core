@@ -147,7 +147,7 @@ class Variable(object):
        .. py:attribute:: unit
 
            Free text field describing the unit of the variable. Only used as metadata.
-        
+
        .. py:attribute:: documentation
 
            Free multilines text field describing the variable context and usage.
