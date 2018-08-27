@@ -79,6 +79,9 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
             ),
         }
 
+    if variable.doc:
+        result['documentation'] = variable.doc
+
     if variable.reference:
         result['references'] = variable.reference
 
