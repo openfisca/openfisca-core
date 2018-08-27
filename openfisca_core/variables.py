@@ -147,6 +147,10 @@ class Variable(object):
        .. py:attribute:: unit
 
            Free text field describing the unit of the variable. Only used as metadata.
+        
+       .. py:attribute:: documentation
+
+           Free multilines text field describing the variable context and usage.
     """
 
     def __init__(self, baseline_variable = None):
@@ -175,7 +179,7 @@ class Variable(object):
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
         self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (basestring_type, dict))
         self.unit = self.set(attr, 'unit', allowed_type = basestring_type)
-        self.doc = self.set(attr, 'doc', allowed_type = basestring_type, setter = self.set_doc)
+        self.documentation = self.set(attr, 'documentation', allowed_type = basestring_type, setter = self.set_documentation)
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
@@ -256,9 +260,9 @@ class Variable(object):
 
         return reference
 
-    def set_doc(self, doc):
-        if doc:
-            return textwrap.dedent(doc)
+    def set_documentation(self, documentation):
+        if documentation:
+            return textwrap.dedent(documentation)
 
     def set_base_function(self, base_function):
         if not base_function and self.baseline_variable:
