@@ -31,7 +31,7 @@ def test_response_data():
                 'child': {
                     'description': 'Other individuals living in the household.',
                     'plural': 'children'
-                },
+                    },
                 'parent': {
                     'description': 'The one or two adults in charge of the household.',
                     'max': 2,
