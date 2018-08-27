@@ -121,18 +121,22 @@ class Parameter(object):
         _validate_parameter(self, data, data_type = dict)
         self.description = None
         self.metadata = {}
+        self.documentation = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
+            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference', 'documentation']))
             self.description = data.get('description')
+
             _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
 
             _validate_parameter(self, data['values'], data_type = dict)
             values = data['values']
+
+            self.documentation = data.get('documentation')
 
         else:  # Simplified parameter declaration: only values are provided
             values = data

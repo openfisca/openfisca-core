@@ -76,6 +76,7 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
         if child.file_path:
             api_parameter['source'] = build_source_url(child.file_path, country_package_metadata)
         if isinstance(child, Parameter):
+            api_parameter['documentation'] = child.documentation
             api_parameter['values'] = build_api_values_history(child)
         elif isinstance(child, Scale):
             api_parameter['brackets'] = build_api_scale(child)
