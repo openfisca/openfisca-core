@@ -1,5 +1,34 @@
 # Changelog
 
+## 24.4.0 [#717](https://github.com/openfisca/openfisca-core/pull/717)
+
+- User can add general documentation on parameters and variables
+  - Introduce `Parameter.documentation` and `Variable.documentation` attributes
+- User can access `documentation` through Web API
+    - on `/variable` leafs as `/variable/housing_allowance`
+    - on `/variable` formulas for formulas docstrings
+    - on `/parameter` leafs as `/parameter/benefits/housing_allowance` 
+
+- `/variable/housing_allowance` example:
+  
+      ```
+      {
+        "description": "Housing allowance",
+        "documentation": "This allowance was introduced on the 1st of Jan 1980.\nIt needs the 'rent' value (same month) but doesn't care about the 'housing_occupancy_status'.",
+        "entity": "household",
+        "formulas": {
+          "1980-01-01": {
+            "content": "def formula_1980(household, period, parameters):\n    '''This is my specific life statement.'''\n    return     household('rent', period) * parameters(period).benefits.housing_allowance\n",
+            "documentation": "This is my specific life statement.",
+            "source": "https://github.com/openfisca/country-template/blob/3.3.0/openfisca_country_template/variables/benefits.py#L47-L49"
+          },
+          "2016-12-01": null
+        },
+        "id": "housing_allowance",
+        (...)
+      }
+      ```
+
 ### 24.3.2 [#727](https://github.com/openfisca/openfisca-core/pull/727)
 
 - Add a style formatter that follows community code conventions
@@ -52,7 +81,7 @@ from openfisca_core.tools.simulation_dumper import restore_simulation
 simulation = restore_simulation('/path/to/directory', tax_benefit_system)
 ```
 
-## 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
+### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
 
 - Enhance navigation within the Openfisca Web API.
 - Provides a direct link to individual parameters and variables from the `/parameters` and `/variables` routes.
@@ -82,6 +111,7 @@ becomes:
         },
     ...
 ```
+
 ### 24.0.1 [#711](https://github.com/openfisca/openfisca-core/pull/711)
 
 - Fix spelling in warning about libyaml
