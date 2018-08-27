@@ -167,21 +167,20 @@ class OnDiskStorage(object):
 
     def restore(self):
         self._files = files = {}
-        if os.path.isdir(self.storage_dir):
-            # Restore self._files from content of storage_dir.
-            for filename in os.listdir(self.storage_dir):
-                if not filename.endswith('.npy'):
-                    continue
-                path = os.path.join(self.storage_dir, filename)
-                filename_core = filename.rsplit('.', 1)[0]
-                if '_' in filename_core:
-                    period, extra_params_str = filename_core.split('_', 1)
-                    period = periods.period(period)
-                    extra_params = tuple(extra_params_str.split('_'))
-                    files.setdefault(period, {})[extra_params] = path
-                else:
-                    period = periods.period(filename_core)
-                    files[period] = path
+        # Restore self._files from content of storage_dir.
+        for filename in os.listdir(self.storage_dir):
+            if not filename.endswith('.npy'):
+                continue
+            path = os.path.join(self.storage_dir, filename)
+            filename_core = filename.rsplit('.', 1)[0]
+            if '_' in filename_core:
+                period, extra_params_str = filename_core.split('_', 1)
+                period = periods.period(period)
+                extra_params = tuple(extra_params_str.split('_'))
+                files.setdefault(period, {})[extra_params] = path
+            else:
+                period = periods.period(filename_core)
+                files[period] = path
 
     def __del__(self):
         if self.preserve_storage_dir:

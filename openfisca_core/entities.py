@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 import traceback
 import warnings
 import textwrap
-import os
+from os import linesep
 
 import numpy as np
 import dpath
@@ -171,7 +171,7 @@ class Entity(object):
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
-            message = os.linesep.join([
+            message = linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
                 "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
                 "Learn more about entities in our documentation:",
@@ -462,6 +462,10 @@ class GroupEntity(Entity):
     @members_role.setter
     def members_role(self, members_role):
         self._members_role = members_role
+
+    @members_position.setter
+    def members_position(self, members_position):
+        self._members_position = members_position
 
     @property
     def roles_count(self):

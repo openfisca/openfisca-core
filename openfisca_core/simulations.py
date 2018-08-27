@@ -2,7 +2,6 @@
 
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-import os
 from os import linesep
 import tempfile
 import logging
@@ -14,7 +13,6 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
 from openfisca_core.tracers import Tracer
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
 
 log = logging.getLogger(__name__)
@@ -82,7 +80,7 @@ class Simulation(object):
         self.opt_out_cache = opt_out_cache
 
         self.memory_config = memory_config
-        self._data_storage_dir = data_storage_dir
+        self._data_storage_dir = None
         self.instantiate_entities(simulation_json)
 
     def instantiate_entities(self, simulation_json):
@@ -422,12 +420,6 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
-    def dump(self, directory):
-        """
-            Write all simulation data to a directory, so that it can be restored later.
-        """
-        dump_simulation(self, directory)
-
     def get_variable_entity(self, variable_name):
 
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
@@ -470,23 +462,6 @@ class Simulation(object):
                 new_dict['tracer'] = Tracer()
 
         return new
-
-    def restore(self):
-        variables_names = set()
-        # Restore existing variables.
-        for entity in self.entities.values():
-            for variable_name, holder in entity._holders.items():
-                holder.restore()
-                variables_names.add(variable_name)
-
-        # Restore other variables dumped by previous simulation.
-        storage_dir = self.data_storage_dir
-        if os.path.isdir(storage_dir):
-            for variable_name in os.listdir(storage_dir):
-                if '.' in variable_name or variable_name in variables_names:
-                    continue
-                holder = self.get_holder(variable_name)
-                holder.restore()
 
 
 def check_type(input, input_type, path = []):

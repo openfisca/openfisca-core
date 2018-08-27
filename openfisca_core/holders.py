@@ -60,7 +60,7 @@ class Holder(object):
 
     def create_disk_storage(self, directory = None, preserve = False):
         if directory is None:
-            directory = self.simulation.data_storage_dir,
+            directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
         if not os.path.isdir(storage_dir):
             os.mkdir(storage_dir)
@@ -140,23 +140,6 @@ class Holder(object):
 
         return list(self._memory_storage.get_known_periods()) + list((
             self._disk_storage.get_known_periods() if self._disk_storage else []))
-
-    def restore(self):
-        """
-            Restore data to disk from previous dump.
-
-            Note: In practice, this method only clears data from memory, so that it will be read from disk later.
-        """
-        memory_storage = self._memory_storage
-        if memory_storage is not None:
-            # Create disk storage when it doesn't exist to be able to restore
-            # holder from the dump of another simulation.
-            disk_storage = self._disk_storage
-            if disk_storage is None:
-                disk_storage = self.create_disk_storage()
-            disk_storage.restore()
-
-            memory_storage._arrays.clear()
 
     def set_input(self, period, array):
         """

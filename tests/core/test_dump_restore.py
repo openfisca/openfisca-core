@@ -1,141 +1,43 @@
 # -*- coding: utf-8 -*-
 
-
 from __future__ import unicode_literals, print_function, division, absolute_import
 
 import shutil
 import tempfile
 
-import numpy as np
+from numpy.testing import assert_array_equal
 
-from openfisca_core.variables import Variable
-from openfisca_core.periods import MONTH
-from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import Person
+from openfisca_core.simulations import Simulation
+from openfisca_country_template.situation_examples import couple
+from openfisca_core.tools.simulation_dumper import dump_simulation, restore_simulation
 
-
-class input(Variable):
-    value_type = int
-    entity = Person
-    label = "Input variable"
-    definition_period = MONTH
+from .test_countries import tax_benefit_system
 
 
-class intermediate(Variable):
-    value_type = int
-    entity = Person
-    label = "Intermediate value"
-    definition_period = MONTH
+def test_dump():
+    directory = tempfile.mkdtemp(prefix = "openfisca_")
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
+    calculated_value = simulation.calculate('disposable_income', '2018-01')
+    dump_simulation(simulation, directory)
 
-    def formula(person, period):
-        return person('input', period)
+    simulation_2 = restore_simulation(directory, tax_benefit_system)
 
+    # Check entities structure have been restored
 
-class other_input(Variable):
-    value_type = int
-    entity = Person
-    label = "Other input variable"
-    definition_period = MONTH
+    assert_array_equal(simulation.person.ids, simulation_2.person.ids)
+    assert_array_equal(simulation.person.count, simulation_2.person.count)
+    assert_array_equal(simulation.household.ids, simulation_2.household.ids)
+    assert_array_equal(simulation.household.count, simulation_2.household.count)
+    assert_array_equal(simulation.household.members_position, simulation_2.household.members_position)
+    assert_array_equal(simulation.household.members_entity_id, simulation_2.household.members_entity_id)
+    assert_array_equal(simulation.household.members_legacy_role, simulation_2.household.members_legacy_role)
+    assert_array_equal(simulation.household.members_role, simulation_2.household.members_role)
 
+    # Check calculated values are in cache
 
-class output(Variable):
-    value_type = int
-    entity = Person
-    label = 'Output variable'
-    definition_period = MONTH
+    disposable_income_holder = simulation_2.person.get_holder('disposable_income')
+    cached_value = disposable_income_holder.get_array('2018-01')
+    assert cached_value is not None
+    assert_array_equal(cached_value, calculated_value)
 
-    def formula(person, period):
-        return person('intermediate', period)
-
-
-def create_filled_tax_benefit_system():
-    tax_benefit_system = CountryTaxBenefitSystem()
-    tax_benefit_system.add_variables(input, intermediate, other_input, output)
-
-    return tax_benefit_system
-
-
-# TaxBenefitSystem instance declared after formulas
-
-
-tax_benefit_system = create_filled_tax_benefit_system()
-
-
-month = '2018-08'
-scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period = month,
-    input_variables = {
-        'input': 1,
-        },
-    )
-
-
-def test_dump_restore_same_simulation():
-    simulation = scenario.new_simulation()
-    simulation.calculate('output', period = month)
-    assert(simulation.get_holder('output').get_array(month) == simulation.get_holder('input').get_array(month))
-
-    simulation.dump()
-
-    assert(simulation.get_holder('output').get_array(month) == simulation.get_holder('input').get_array(month))
-
-    simulation.get_holder('output').set_input(month, [2])
-
-    next_month = '2018-09'
-    next_value = 3
-    simulation.get_holder('input').set_input(next_month, [next_value])
-    simulation.calculate('output', period = next_month)
-    assert(simulation.get_holder('output').get_array(next_month) == simulation.get_holder('input').get_array(next_month))
-
-    simulation.restore()
-
-    assert(simulation.get_holder('output').get_array(month) == simulation.get_holder('input').get_array(month))
-
-    assert(simulation.get_holder('input').get_array(next_month) is None)
-    assert(simulation.get_holder('intermediate').get_array(next_month) is None)
-    assert(simulation.get_holder('output').get_array(next_month) is None)
-
-
-def test_dump_restore_different_simulations():
-    data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
-
-    simulation1 = scenario.new_simulation(data_storage_dir = data_storage_dir)
-    simulation1.calculate('output', period = month, extra_params = [-1, -2])
-
-    simulation1.dump()
-
-    # New simulation with the same storage directory
-    simulation2 = scenario.new_simulation(data_storage_dir = data_storage_dir)
-
-    simulation2.restore()
-
-    assert(simulation2.get_holder('input').get_array(month) == np.asarray([1]))
-    assert(simulation2.get_holder('intermediate').get_array(month) == np.asarray([1]))
-    assert(simulation2.get_holder('output').get_array(month, extra_params = [-1, -2]) == np.asarray([1]))
-
-    shutil.rmtree(data_storage_dir)
-
-
-def test_dump_restore_different_simulations_different_variables():
-    data_storage_dir = tempfile.mkdtemp(prefix = "openfisca_")
-
-    simulation1 = scenario.new_simulation(data_storage_dir = data_storage_dir)
-    simulation1.calculate('output', period = month, extra_params = [-1, -2])
-
-    simulation1.dump()
-
-    # New simulation with the same storage directory
-    simulation2 = scenario.new_simulation(data_storage_dir = data_storage_dir)
-
-    simulation2.get_holder('other_input').set_input(month, [3])
-    assert(simulation2.get_holder('other_input').get_array(month) == np.asarray([3]))
-
-    simulation2.restore()
-
-    assert(simulation2.get_holder('input').get_array(month) == np.asarray([1]))
-    assert(simulation2.get_holder('intermediate').get_array(month) == np.asarray([1]))
-    assert(simulation2.get_holder('output').get_array(month, extra_params = [-1, -2]) == np.asarray([1]))
-
-    assert(simulation2.get_holder('other_input').get_array(month) is None)
-
-    shutil.rmtree(data_storage_dir)
+    shutil.rmtree(directory)
