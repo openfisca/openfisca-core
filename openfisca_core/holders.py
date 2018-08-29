@@ -37,11 +37,7 @@ class Holder(object):
         self._do_not_store = False
         if self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
-                storage_dir = os.path.join(self.simulation.data_storage_dir, self.variable.name)
-                if not os.path.isdir(storage_dir):
-                    os.mkdir(storage_dir)
-                self._disk_storage = OnDiskStorage(
-                    storage_dir, is_eternal = (self.variable.definition_period == ETERNITY))
+                self._disk_storage = self.create_disk_storage()
                 self._on_disk_storable = True
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
@@ -61,6 +57,18 @@ class Holder(object):
         new_dict['simulation'] = entity.simulation
 
         return new
+
+    def create_disk_storage(self, directory = None, preserve = False):
+        if directory is None:
+            directory = self.simulation.data_storage_dir
+        storage_dir = os.path.join(directory, self.variable.name)
+        if not os.path.isdir(storage_dir):
+            os.mkdir(storage_dir)
+        return OnDiskStorage(
+            storage_dir,
+            is_eternal = (self.variable.definition_period == ETERNITY),
+            preserve_storage_dir = preserve
+            )
 
     def delete_arrays(self, period = None):
         """

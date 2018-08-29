@@ -12,7 +12,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
 
         Exemple:
 
-        >>> from openfisca_core.tools.simulation_generator import make_simulation
+        >>> from openfisca_core.scripts.simulation_generator import make_simulation
         >>> from openfisca_france import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families
@@ -54,7 +54,7 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
 
         Exemple:
 
-        >>> from openfisca_core.tools.simulation_generator import make_simulation, randomly_init_variable
+        >>> from openfisca_core.scripts.simulation_generator import make_simulation, randomly_init_variable
         >>> from openfisca_france import CountryTaxBenefitSystem
         >>> tbs = CountryTaxBenefitSystem()
         >>> simulation = make_simulation(tbs, 400, 100)  # Create a simulation with 400 persons, spread among 100 families

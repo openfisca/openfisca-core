@@ -92,10 +92,11 @@ class OnDiskStorage(object):
     Low-level class responsible for storing and retrieving calculated vectors on disk
     """
 
-    def __init__(self, storage_dir, is_eternal = False):
+    def __init__(self, storage_dir, is_eternal = False, preserve_storage_dir = False):
         self._files = {}
         self._enums = {}
         self.is_eternal = is_eternal
+        self.preserve_storage_dir = preserve_storage_dir
         self.storage_dir = storage_dir
 
     def _decode_file(self, file):
@@ -114,9 +115,11 @@ class OnDiskStorage(object):
         if values is None:
             return None
         if extra_params:
-            if values.get(tuple(extra_params)) is None:
+            extra_params = tuple(str(param) for param in extra_params)
+            value = values.get(extra_params)
+            if value is None:
                 return None
-            return self._decode_file(values.get(tuple(extra_params)))
+            return self._decode_file(value)
         if isinstance(values, dict):
             return self._decode_file(next(iter(values.values())))
         return self._decode_file(values)
@@ -128,8 +131,9 @@ class OnDiskStorage(object):
 
         filename = str(period)
         if extra_params:
+            extra_params = tuple(str(param) for param in extra_params)
             filename = '{}_{}'.format(
-                filename, '_'.join([str(param) for param in extra_params]))
+                filename, '_'.join(extra_params))
         path = os.path.join(self.storage_dir, filename) + '.npy'
         if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
@@ -140,7 +144,7 @@ class OnDiskStorage(object):
         else:
             if self._files.get(period) is None:
                 self._files[period] = {}
-            self._files[period][tuple(extra_params)] = path
+            self._files[period][extra_params] = path
 
     def delete(self, period = None):
         if period is None:
@@ -161,7 +165,26 @@ class OnDiskStorage(object):
     def get_known_periods(self):
         return self._files.keys()
 
+    def restore(self):
+        self._files = files = {}
+        # Restore self._files from content of storage_dir.
+        for filename in os.listdir(self.storage_dir):
+            if not filename.endswith('.npy'):
+                continue
+            path = os.path.join(self.storage_dir, filename)
+            filename_core = filename.rsplit('.', 1)[0]
+            if '_' in filename_core:
+                period, extra_params_str = filename_core.split('_', 1)
+                period = periods.period(period)
+                extra_params = tuple(extra_params_str.split('_'))
+                files.setdefault(period, {})[extra_params] = path
+            else:
+                period = periods.period(filename_core)
+                files[period] = path
+
     def __del__(self):
+        if self.preserve_storage_dir:
+            return
         shutil.rmtree(self.storage_dir)  # Remove the holder temporary files
         # If the simulation temporary directory is empty, remove it
         parent_dir = os.path.abspath(os.path.join(self.storage_dir, os.pardir))

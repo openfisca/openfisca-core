@@ -1,6 +1,24 @@
 # Changelog
 
-### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
+## 24.2.0 [#712](https://github.com/openfisca/openfisca-core/pull/712)
+
+- Allow to dump and restore a simulation in a directory
+
+Dump:
+
+```py
+from openfisca_core.tools.simulation_dumper import dump_simulation
+dump_simulation(simulation, '/path/to/directory')
+```
+
+Restore:
+
+```py
+from openfisca_core.tools.simulation_dumper import restore_simulation
+simulation = restore_simulation('/path/to/directory', tax_benefit_system)
+```
+
+## 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
 
 - Enhance navigation within the Openfisca Web API.
 - Provides a direct link to individual parameters and variables from the `/parameters` and `/variables` routes.

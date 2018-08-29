@@ -463,6 +463,10 @@ class GroupEntity(Entity):
     def members_role(self, members_role):
         self._members_role = members_role
 
+    @members_position.setter
+    def members_position(self, members_position):
+        self._members_position = members_position
+
     @property
     def roles_count(self):
         warnings.warn(' '.join([
