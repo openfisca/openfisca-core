@@ -14,29 +14,29 @@ def build_entities(tax_benefit_system):
 
 def build_entity(entity):
 
-    entity_formated = {
+    formatted_entity = {
         'plural': entity.plural,
-        'description': to_unicode(entity.doc)
+        'description': to_unicode(entity.label),
+        'documentation': to_unicode(entity.doc)
         }
     if hasattr(entity, 'roles'):
-        entity_formated['roles'] = \
-            {
+        formatted_entity['roles'] = {
             role.key: build_role(role)
             for role in entity.roles
             }
-    return entity_formated
+    return formatted_entity
 
 
 def build_role(role):
-    role_formated = {
+    formatted_role = {
         'plural': role.plural,
         'description': role.doc
         }
 
     if role.max:
-        role_formated['max'] = role.max
+        formatted_role['max'] = role.max
     if role.subroles:
-        role_formated['max'] = len(role.subroles)
+        formatted_role['max'] = len(role.subroles)
 
-    role_formated['mandatory'] = True if role_formated.get('max') else False
-    return role_formated
+    formatted_role['mandatory'] = True if formatted_role.get('max') else False
+    return formatted_role
