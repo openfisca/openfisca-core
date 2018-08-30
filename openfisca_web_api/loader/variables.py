@@ -5,6 +5,8 @@ import datetime
 import inspect
 import textwrap
 
+from astpath.search import *
+
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.commons import to_unicode
 
@@ -43,6 +45,17 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
     if isinstance(source_code[0], bytes):
         source_code = [source_line.decode('utf-8') for source_line in source_code]
     source_code = textwrap.dedent(''.join(source_code))
+    dependencies = []
+    try:
+        formula_ast = file_contents_to_xml_ast(source_code)
+        simulation_query = ".//FunctionDef/args/arguments/args/arg[1]/@arg"
+        simulation_function_name = find_in_ast(formula_ast,simulation_query,return_lines=False)[0]
+        variable_query = ".//Call[//Name/@id='"+simulation_function_name+"']/args[1]/Str/@s"
+        dependencies = find_in_ast(formula_ast,variable_query,return_lines=False)
+    except:
+        # If we're not able to parse dependencies, for instance because
+        # what's passed to the function isn't a constant string, just punt
+        pass
     return {
         'source': build_source_url(
             country_package_metadata,
@@ -51,6 +64,7 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             source_code
             ),
         'content': to_unicode(source_code),
+        'dependencies': dependencies
         }
 
 

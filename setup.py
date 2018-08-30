@@ -20,6 +20,7 @@ api_requirements = [
     'flask == 1.0.2',
     'flask-cors == 3.0.2',
     'gunicorn >= 19.7.1',
+    'astpath[xpath] >= 0.6.1'
     ]
 
 dev_requirements = [
