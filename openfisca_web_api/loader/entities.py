@@ -20,7 +20,7 @@ def build_entity(entity):
         'description': to_unicode(entity.label),
         'documentation': formatted_doc
         }
-    if hasattr(entity, 'roles'):
+    if not entity.is_person:
         formatted_entity['roles'] = {
             role.key: build_role(role)
             for role in entity.roles
@@ -39,5 +39,4 @@ def build_role(role):
     if role.subroles:
         formatted_role['max'] = len(role.subroles)
 
-    formatted_role['mandatory'] = True if formatted_role.get('max') else False
     return formatted_role

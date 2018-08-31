@@ -30,12 +30,10 @@ def test_response_data():
             'roles': {
                 'child': {
                     'description': 'Other individuals living in the household.',
-                    'mandatory': False,
                     'plural': 'children'
                 },
                 'parent': {
                     'description': 'The one or two adults in charge of the household.',
-                    'mandatory': False,
                     'max': 2,
                     'plural': "parents"
                     }
