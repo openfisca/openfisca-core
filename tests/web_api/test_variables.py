@@ -138,6 +138,7 @@ dated_variable = json.loads(dated_variable_response.data.decode('utf-8'))
 multientity_response = subject.get('/variable/total_taxes')
 multientity = json.loads(multientity_response.data.decode('utf-8'))
 
+
 def test_return_code_existing_dated_variable():
     assert_equal(dated_variable_response.status_code, OK)
 
@@ -145,12 +146,15 @@ def test_return_code_existing_dated_variable():
 def test_dated_variable_formulas_dates():
     assert_items_equal(dated_variable['formulas'], ['2016-12-01', '2015-12-01'])
 
+
 def test_dated_variable_formulas_dependencies():
     assert_in('age', dated_variable['formulas']['2016-12-01']['dependencies'])
     assert_in('salary', dated_variable['formulas']['2015-12-01']['dependencies'])
 
+
 def test_multientity_variable_formulas_dependencies():
     assert_in('income_tax', multientity['formulas']['0001-01-01']['dependencies'])
+
 
 def test_dated_variable_formulas_content():
     formula_code_2016 = "def formula_2016_12(person, period, parameters):\n    age_condition = person('age', period) >= parameters(period).general.age_of_majority\n    return age_condition * parameters(period).benefits.basic_income  # This '*' is a vectorial 'if'. See https://openfisca.org/doc/coding-the-legislation/30_case_disjunction.html#simple-multiplication\n"
