@@ -150,6 +150,9 @@ def test_dated_variable_formulas_dates():
 def test_dated_variable_formulas_dependencies():
     assert_in('age', dated_variable['formulas']['2016-12-01']['dependencies'])
     assert_in('salary', dated_variable['formulas']['2015-12-01']['dependencies'])
+    birth_data = subject.get('/variable/age')
+    birth = json.loads(birth_data.data.decode('utf-8'))
+    assert_equal(['birth'],birth['formulas']['0001-01-01']['dependencies'])
 
 
 def test_multientity_variable_formulas_dependencies():

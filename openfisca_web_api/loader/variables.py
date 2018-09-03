@@ -56,7 +56,7 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             simulation_query = ".//FunctionDef/args/arguments/args/arg[1]/@arg"
             candidate_names = find_in_ast(formula_ast, simulation_query, return_lines=False)
         simulation_function_name = candidate_names[0]
-        variable_query = ".//Call[//Name/@id='{}']/args[1]/Str/@s".format(simulation_function_name)
+        variable_query = ".//Call[.//Name/@id='{}']/args[1]/Str/@s".format(simulation_function_name)
         dependencies = find_in_ast(formula_ast, variable_query, return_lines=False)
     except:
         # If we're not able to parse dependencies, for instance because
