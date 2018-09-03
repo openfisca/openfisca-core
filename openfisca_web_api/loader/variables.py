@@ -48,8 +48,14 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
     dependencies = []
     try:
         formula_ast = file_contents_to_xml_ast(source_code)
-        simulation_query = ".//FunctionDef/args/arguments/args/arg[1]/@arg"
-        simulation_function_name = find_in_ast(formula_ast, simulation_query, return_lines=False)[0]
+        # Python 2 AST
+        simulation_query = ".//FunctionDef/args/arguments/args/Name[1]/@id"
+        candidate_names = find_in_ast(formula_ast, simulation_query, return_lines=False)
+        if not candidate_names:
+            # Python 3 AST
+            simulation_query = ".//FunctionDef/args/arguments/args/arg[1]/@arg"
+            candidate_names = find_in_ast(formula_ast, simulation_query, return_lines=False)
+        simulation_function_name = candidate_names[0]
         variable_query = ".//Call[//Name/@id='{}']/args[1]/Str/@s".format(simulation_function_name)
         dependencies = find_in_ast(formula_ast, variable_query, return_lines=False)
     except:
