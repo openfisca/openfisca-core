@@ -27,36 +27,36 @@ VALUE_TYPES = {
     bool: {
         'dtype': np.bool,
         'default': False,
-        'json_type': 'Boolean',
+        'json_type': 'boolean',
         'is_period_size_independent': True
         },
     int: {
         'dtype': np.int32,
         'default': 0,
-        'json_type': 'Integer',
+        'json_type': 'integer',
         'is_period_size_independent': False
         },
     float: {
         'dtype': np.float32,
         'default': 0,
-        'json_type': 'Float',
+        'json_type': 'number',
         'is_period_size_independent': False,
         },
     str: {
         'dtype': object,
         'default': '',
-        'json_type': 'String',
+        'json_type': 'string',
         'is_period_size_independent': True
         },
     Enum: {
         'dtype': ENUM_ARRAY_DTYPE,
-        'json_type': 'Enumeration',
+        'json_type': 'string',
         'is_period_size_independent': True,
         },
     date: {
         'dtype': 'datetime64[D]',
         'default': datetime.date.fromtimestamp(0),  # 0 == 1970-01-01
-        'json_type': 'Date',
+        'json_type': 'string',
         'is_period_size_independent': True,
         },
     }
