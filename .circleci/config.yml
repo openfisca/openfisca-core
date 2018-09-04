@@ -140,6 +140,7 @@ workflows:
           requires:
             - build_python2
             - build_python3
+            - check_version_and_changelog
           filters:
             branches:
               only: master
@@ -147,6 +148,7 @@ workflows:
           requires:
             - build_python2
             - build_python3
+            - check_version_and_changelog
           filters:
             branches:
               only: master
