@@ -1,6 +1,6 @@
 # Changelog
 
-### 24.3.1 [#???](https://github.com/openfisca/openfisca-core/pull/???)
+### 24.3.1 [#723](https://github.com/openfisca/openfisca-core/pull/723)
 
 - Fix small issues in the `/spec` route of the Web API
   - Use proper JSON Schema type to describe input types
