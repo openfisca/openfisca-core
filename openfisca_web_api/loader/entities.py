@@ -13,11 +13,12 @@ def build_entities(tax_benefit_system):
 
 
 def build_entity(entity):
+    formatted_doc = to_unicode(entity.doc.strip())
 
     formatted_entity = {
         'plural': entity.plural,
         'description': to_unicode(entity.label),
-        'documentation': to_unicode(entity.doc)
+        'documentation': formatted_doc
         }
     if hasattr(entity, 'roles'):
         formatted_entity['roles'] = {

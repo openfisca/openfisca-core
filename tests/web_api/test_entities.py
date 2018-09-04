@@ -19,7 +19,7 @@ def test_return_code():
 
 def test_response_data():
     entities = json.loads(entities_response.data.decode('utf-8'))
-    test_documentation = to_unicode(openfisca_country_template.entities.Household.doc)
+    test_documentation = to_unicode(openfisca_country_template.entities.Household.doc.strip())
 
     assert_equal(
         entities['household'],
