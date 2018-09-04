@@ -262,7 +262,7 @@ definitions:
     additionalProperties:
       type: "object"
       properties:
-        definition:
+        description:
           type: 'string'
 
   Variable:
@@ -315,7 +315,7 @@ definitions:
     additionalProperties:
       type: "object"
       properties:
-        definition:
+        description:
           type: 'string'
 
   Formula:
