@@ -1,5 +1,11 @@
 # Changelog
 
+### 24.3.1 [#???](https://github.com/openfisca/openfisca-core/pull/???)
+
+- Fix small issues in the `/spec` route of the Web API
+  - Use proper JSON Schema type to describe input types
+  - Fix property name in the description of `/parameters` and `/variables`
+
 ### 24.3.0 [#714](https://github.com/openfisca/openfisca-core/pull/714)
 
 - Introduce the `/entities` endpoint for the Web API.
