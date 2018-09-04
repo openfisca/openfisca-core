@@ -293,7 +293,13 @@ definitions:
       source:
         type: "string"
       valueType:
-         type: "string"
+        type: "string"
+        enum:
+          - Int
+          - Float
+          - Boolean
+          - Date
+          - String
     example:
       defaultValue: 0,
       definitionPeriod: "MONTH"
