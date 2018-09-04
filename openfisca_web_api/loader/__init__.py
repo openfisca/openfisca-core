@@ -4,6 +4,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 
 from openfisca_web_api.loader.parameters import build_parameters
 from openfisca_web_api.loader.variables import build_variables
+from openfisca_web_api.loader.entities import build_entities
 from openfisca_web_api.loader.spec import build_openAPI_specification
 
 
@@ -18,5 +19,6 @@ def build_data(tax_benefit_system):
         'openAPI_spec': openAPI_spec,
         'parameters': parameters,
         'variables': variables,
+        'entities': build_entities(tax_benefit_system),
         'host': None  # Will be set by mirroring requests
         }

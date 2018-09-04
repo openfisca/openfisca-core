@@ -31,6 +31,7 @@ def test_paths():
         "/parameters",
         "/variable/{variableID}",
         "/variables",
+        "/entities",
         "/trace",
         "/calculate",
         "/spec"]

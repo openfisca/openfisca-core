@@ -1,5 +1,28 @@
 # Changelog
 
+### 24.3.0 [#714](https://github.com/openfisca/openfisca-core/pull/714)
+
+- Introduce the `/entities` endpoint for the Web API.
+  - Expose information about the country package's entities, and their roles.
+```json
+{
+            "description": "Household",
+            "documentation": "Household is an example of a group entity. A group entity contains one or more individual·s.[...]",
+            "plural": "households",
+            "roles": {
+                "parent": {
+                    "description": "The one or two adults in charge of the household.",
+                    "max": 2,
+                    "plural": "parents"
+                    },
+                "child": {
+                    "description": "Other individuals living in the household.",
+                    "plural": "children"
+                    }
+                }
+            }
+```
+
 ## 24.2.0 [#712](https://github.com/openfisca/openfisca-core/pull/712)
 
 - Allow to dump and restore a simulation in a directory

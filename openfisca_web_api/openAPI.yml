@@ -16,13 +16,18 @@ tags:
   - name: "Parameters"
     description: "A parameter is a numeric property of the legislation that can evolve over time."
     externalDocs:
-      description: "Parameter official documentation"
+      description: "Parameters documentation"
       url: "https://openfisca.org/doc/parameters"
   - name: "Variables"
     description: "A variable depends on a person, or an entity (e.g. zip code, salary, income tax)."
     externalDocs:
-      description: "Variable official documentation"
+      description: "Variables documentation"
       url: "https://openfisca.org/doc/variables"
+  - name: "Entities"
+    description: "An entity is a person of a group of individuals (such as a household)."
+    externalDocs:
+      description: "Entities documentation"
+      url: "https://openfisca.org/doc/person,_entities,_role.html"
   - name: "Calculations"
   - name: "Documentation"
 paths:
@@ -138,6 +143,21 @@ paths:
           description: "The requested variable does not exist"
           headers:
             $ref: '#/commons/Headers'
+  /entities:
+    get:
+      tags:
+      - "Entities"
+      summary: "List all available Entities"
+      operationId: "getVariables"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The list of the entities as well as their information is sent back in the response body"
+          headers:
+            $ref: '#/commons/Headers'
+          schema:
+            $ref: "#/definitions/Entities"
   /trace:
     post:
       summary: "Explore a simulation's steps in details."
@@ -318,6 +338,28 @@ definitions:
       type: "number"
       format: "float"
 
+  Entities:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+      documentation:
+        type: "string"
+      plural:
+        type: "string"
+      roles:
+        type: "object"
+        additionalProperties:
+         $ref: "#/definitions/Roles"
+  Roles:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+      max:
+        type: "integer"
+      plural:
+        type: "string"
   SituationInput:
     example:
       individus:
