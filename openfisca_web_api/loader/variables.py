@@ -7,6 +7,7 @@ import textwrap
 
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.commons import to_unicode
+from openfisca_core.variables import VALUE_TYPES
 
 
 def get_next_day(date):
@@ -66,7 +67,7 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
     result = {
         'id': variable.name,
         'description': variable.label,
-        'valueType': 'String' if variable.json_type == 'Enumeration' else variable.json_type,
+        'valueType': VALUE_TYPES[variable.value_type]['formatted_value_type'],
         'defaultValue': get_default_value(variable),
         'definitionPeriod': variable.definition_period.upper(),
         'entity': variable.entity.key,
