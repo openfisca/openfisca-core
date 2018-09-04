@@ -115,7 +115,7 @@ def create_app(tax_benefit_system,
 
     @app.route('/entities')
     def get_entities():
-        return jsonify('hello')
+        return jsonify(data['entities'])
 
     @app.route('/spec')
     def get_spec():
