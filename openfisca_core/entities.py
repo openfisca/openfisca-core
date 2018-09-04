@@ -5,6 +5,7 @@ import traceback
 import warnings
 import textwrap
 from os import linesep
+from datetime import date
 
 import numpy as np
 import dpath
@@ -81,10 +82,10 @@ class Entity(object):
                     "Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
 
             holder = self.get_holder(variable_name)
-            for date, value in variable_values.items():
-                path_in_json.append(date)
+            for period_str, value in variable_values.items():
+                path_in_json.append(period_str)
                 try:
-                    period = make_period(date)
+                    period = make_period(period_str)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
                 if value is not None:
@@ -102,9 +103,12 @@ class Entity(object):
                                 )
                     try:
                         array[entity_index] = value
-                    except (ValueError, TypeError) as e:
-                        raise SituationParsingError(path_in_json,
-                            'Invalid type: must be of type {}.'.format(holder.variable.json_type))
+                    except (ValueError, TypeError):
+                        if holder.variable.value_type == date:
+                            error_message = "Invalid date: '{}'.".format(value)
+                        else:
+                            error_message = "Invalid value: must be of type {}, received '{}'.".format(holder.variable.json_type, value)
+                        raise SituationParsingError(path_in_json, error_message)
 
                     holder.buffer[period] = array
 
