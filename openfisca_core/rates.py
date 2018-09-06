@@ -7,7 +7,7 @@ import numpy
 
 def average_rate(target = None, varying = None):
     # target: numerator, varying: denominator
-    return 1 - target / (varying * (varying != 0) + (varying == 0))
+    return 1 - target / varying
 
 
 def marginal_rate(target = None, varying = None, trim = None):
