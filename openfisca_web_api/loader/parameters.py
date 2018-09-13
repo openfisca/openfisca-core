@@ -81,6 +81,7 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
         elif isinstance(child, Scale):
             api_parameter['brackets'] = build_api_scale(child)
         elif isinstance(child, ParameterNode):
+            api_parameter['documentation'] = child.documentation
             api_parameter['subparams'] = {
                 grandchild_name: {
                     'description': grandchild.description,

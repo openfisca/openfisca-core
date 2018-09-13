@@ -67,11 +67,12 @@ def test_parameter_node():
     response = subject.get('/parameter/benefits')
     assert_equal(response.status_code, OK)
     parameter = json.loads(response.data)
-    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'subparams'])
+    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'subparams'])
+    assert_equal(parameter['documentation'], 'This (optional) file defines metadata for the node parameters.benefits in the parameter tree.')
     assert_equal(parameter['subparams'], {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
-        })
+        }, parameter['subparams'])
 
 
 def test_stopped_parameter_values():
