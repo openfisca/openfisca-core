@@ -43,10 +43,10 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
     # Python 2 backward compatibility
     if isinstance(source_code[0], bytes):
         source_code = [source_line.decode('utf-8') for source_line in source_code]
-    
+
     documentation = formula.__doc__.strip() if formula.__doc__ else ""
     source_code = textwrap.dedent(''.join(source_code))
-    
+
     return {
         'source': build_source_url(
             country_package_metadata,
