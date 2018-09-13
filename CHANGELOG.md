@@ -2,32 +2,20 @@
 
 ## 24.4.0 [#717](https://github.com/openfisca/openfisca-core/pull/717)
 
-- User can add general documentation on parameters and variables
-  - Introduce `Parameter.documentation` and `Variable.documentation` attributes
-- User can access `documentation` through Web API
-    - on `/variable` leafs as `/variable/housing_allowance`
-    - on `/variable` formulas for formulas docstrings
-    - on `/parameter` leafs as `/parameter/benefits/housing_allowance` 
+- In python, the user can add multiline documentation on parameters and variables
+  - Introduce `documentation` attribute on `ParameterNode`, `Parameter` and `Variable` classes
 
-- `/variable/housing_allowance` example:
-  
-      ```
-      {
-        "description": "Housing allowance",
-        "documentation": "This allowance was introduced on the 1st of Jan 1980.\nIt needs the 'rent' value (same month) but doesn't care about the 'housing_occupancy_status'.",
-        "entity": "household",
-        "formulas": {
-          "1980-01-01": {
-            "content": "def formula_1980(household, period, parameters):\n    '''This is my specific life statement.'''\n    return     household('rent', period) * parameters(period).benefits.housing_allowance\n",
-            "documentation": "This is my specific life statement.",
-            "source": "https://github.com/openfisca/country-template/blob/3.3.0/openfisca_country_template/variables/benefits.py#L47-L49"
-          },
-          "2016-12-01": null
-        },
-        "id": "housing_allowance",
-        (...)
-      }
-      ```
+- Through Web API, the user can access a multiline `documentation` attribute on parameters, variables and variables' formulas
+    - on `/parameter` nodes as `/parameter/benefits`
+      > = python `ParameterNode.documentation`  
+      > = yaml parameter node (`index.yaml`) `documentation` string attribute
+    - on `/parameter` leafs as `/parameter/benefits/housing_allowance`
+      > = python `Parameter.documentation`  
+      > = yaml parameter `documentation` string attribute
+    - on `/variable` leafs as `/variable/housing_allowance`
+      > = python `Variable.documentation`
+    - on every `/variable` leaf formula
+      > = python `Variable` formula **docstring**
 
 ### 24.3.2 [#727](https://github.com/openfisca/openfisca-core/pull/727)
 
