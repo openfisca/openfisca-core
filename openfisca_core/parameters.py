@@ -44,6 +44,7 @@ class ParameterNotFound(AttributeError):
     """
         Exception raised when a parameter is not found in the parameters.
     """
+
     def __init__(self, name, instant_str, variable_name = None):
         """
         :param name: Name of the parameter
@@ -441,6 +442,7 @@ class ParameterNodeAtInstant(object):
     """
         Parameter node of the legislation, at a given instant.
     """
+
     def __init__(self, name, node, instant_str):
         """
         :param name: Name of the node.

@@ -51,7 +51,6 @@ class Simulation(object):
             opt_out_cache = False,
             memory_config = None,
             ):
-
         """
             If a ``simulation_json`` is given, initialises a simulation from a JSON dictionary.
 

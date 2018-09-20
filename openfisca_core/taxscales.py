@@ -210,8 +210,8 @@ class MarginalRateTaxScale(AbstractRateTaxScale):
             self.add_bracket(threshold_low, self.rates[index])
 
         if threshold_high and threshold_high not in self.thresholds:
-                index = bisect_right(self.thresholds, threshold_high) - 1
-                self.add_bracket(threshold_high, self.rates[index])
+            index = bisect_right(self.thresholds, threshold_high) - 1
+            self.add_bracket(threshold_high, self.rates[index])
 
         # Use add_bracket to add rates where they belongs
         i = self.thresholds.index(threshold_low)

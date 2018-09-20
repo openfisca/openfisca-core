@@ -21,7 +21,7 @@ TEST_CASE = {
 TEST_CASE_AGES = deepcopy(TEST_CASE)
 AGES = [40, 37, 7, 9, 54, 20]
 for (individu, age) in zip(TEST_CASE_AGES['persons'], AGES):
-        individu['age'] = age
+    individu['age'] = age
 
 FIRST_PARENT = Household.FIRST_PARENT
 SECOND_PARENT = Household.SECOND_PARENT
