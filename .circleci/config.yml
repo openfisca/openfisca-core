@@ -3,7 +3,7 @@ version: 2
 jobs:
   build_python2:
     docker:
-      - image: python:2.7.14
+      - image: python:2.7.15
 
     steps:
       - checkout
@@ -21,8 +21,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install --upgrade pip twine wheel
-            pip install --editable .[dev] --upgrade
+            make install
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
 
       - save_cache:
@@ -36,7 +35,7 @@ jobs:
 
   deploy_python2:
     docker:
-      - image: python:2.7.14
+      - image: python:2.7.15
     environment:
       PYPI_USERNAME: openfisca-bot  # Edit this value to replace it by your Pypi username
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
@@ -63,7 +62,7 @@ jobs:
 
   build_python3:
     docker:
-      - image: python:3.6
+      - image: python:3.7
 
     steps:
       - checkout
@@ -81,8 +80,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install --upgrade pip twine wheel
-            pip install --editable .[dev] --upgrade
+            make install
             # pip install --editable git+https://github.com/openfisca/country-template.git@BRANCH_NAME#egg=OpenFisca-Country-Template  # use a specific branch of OpenFisca-Country-Template
 
       - save_cache:
@@ -96,7 +94,7 @@ jobs:
 
   deploy_python3:
     docker:
-      - image: python:3.6
+      - image: python:3.7
     environment:
       PYPI_USERNAME: openfisca-bot
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
