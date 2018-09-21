@@ -713,7 +713,7 @@ def make_json_or_python_to_test(tax_benefit_system):
 
 
 def iter_over_entity_members(entity_description, scenario_entity):
-        # One by one, yield individu_role, individy_legacy_role, individu_id
+    # One by one, yield individu_role, individy_legacy_role, individu_id
     legacy_role_i = 0
     for role in entity_description.roles:
         role_name = role.plural or role.key

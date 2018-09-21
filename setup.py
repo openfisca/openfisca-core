@@ -24,8 +24,9 @@ api_requirements = [
 
 dev_requirements = [
     'nose',
-    'flake8 >= 3.4.0, < 3.5.0',
+    'flake8 >= 3.5.0, < 3.6.0',
     'autopep8 >= 1.4.0, < 1.5.0',
+    'pycodestyle < 2.4.0',
     'openfisca-country-template >= 3.2.3, < 4.0.0',
     'openfisca-extension-template >= 1.1.3, < 2.0.0',
     ] + api_requirements
