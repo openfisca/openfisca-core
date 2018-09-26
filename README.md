@@ -6,7 +6,7 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 ## Environment
 
-OpenFisca runs on Python 3.6. More recent versions should work, but are not tested.
+OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
 
 Backward compatibility with Python 2.7 is maintained for now, but will be dropped from January 1st, 2019.
 
@@ -40,6 +40,36 @@ To run a single test:
 
 ```sh
 nosetests core/test_parameters.py:test_parameter_for_period
+```
+
+## Style
+
+This repository adheres to a certain coding style, and we invite you to follow it for your contributions to be integrated promptly.
+
+Style checking is already run with `make test`. To run the style checker alone:
+
+```sh
+make check-style
+```
+
+To automatically style-format your code changes:
+
+```sh
+make format-style
+```
+
+To automatically style-format your code changes each time you commit:
+
+```sh
+touch .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+tee -a .git/hooks/pre-commit << END
+#!/bin/sh
+#
+# Automatically format your code before committing.
+exec make format-style
+END
 ```
 
 ## Serving the API

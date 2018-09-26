@@ -65,6 +65,7 @@ class Tracer(object):
               }
 
     """
+
     def __init__(self):
         self.requested_calculations = set()
         self.stack = []
