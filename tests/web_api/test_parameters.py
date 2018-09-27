@@ -68,7 +68,11 @@ def test_parameter_node():
     assert_equal(response.status_code, OK)
     parameter = json.loads(response.data)
     assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'subparams'])
-    assert_equal(parameter['documentation'], 'This (optional) file defines metadata for the node parameters.benefits in the parameter tree.')
+    assert_equal(parameter['documentation'],
+                "Government support for the citizens and residents of society. "
+                "\nThey may be provided to people of any income level, as with social security, "
+                "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
+                "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)\n")
     assert_equal(parameter['subparams'], {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
