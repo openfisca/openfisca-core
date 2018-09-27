@@ -99,4 +99,4 @@ def test_parameter_node_metadata():
 def test_parameter_documentation():
     parameter = tax_benefit_system.parameters.benefits.housing_allowance
     assert_equal(parameter.documentation,
-        'A fraction of the rent. \nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n')
+        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n')

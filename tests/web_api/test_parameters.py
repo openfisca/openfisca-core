@@ -52,15 +52,21 @@ def test_legacy_parameter_route():
 def test_parameter_values():
     response = subject.get('/parameter/taxes/income_tax_rate')
     parameter = json.loads(response.data)
-    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'values'])
+    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'values'])
     assert_equal(parameter['id'], 'taxes.income_tax_rate')
     assert_equal(parameter['description'], 'Income tax rate')
-    assert_equal(parameter['documentation'], None)
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
     assert_equal(parameter['values'], {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16})
     assert_equal(parameter['metadata'], {'unit': '/1'})
     assert_regexp_matches(parameter['source'], GITHUB_URL_REGEX)
     assert_in('taxes/income_tax_rate.yaml', parameter['source'])
+
+    # 'documentation' attribute exists only when a value is defined
+    response = subject.get('/parameter/benefits/housing_allowance')
+    parameter = json.loads(response.data)
+    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'values'])
+    assert_equal(parameter['documentation'],
+        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.')
 
 
 def test_parameter_node():
@@ -72,7 +78,7 @@ def test_parameter_node():
                 "Government support for the citizens and residents of society. "
                 "\nThey may be provided to people of any income level, as with social security, "
                 "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
-                "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)\n")
+                "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)")
     assert_equal(parameter['subparams'], {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
