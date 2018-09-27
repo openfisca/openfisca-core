@@ -163,5 +163,4 @@ def test_variable_documentation():
         "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016.")
 
     assert_equal(variable['formulas']['1980-01-01']['documentation'],
-        "To compute this allowance, the 'rent' value must be provided for the same month, "
-        "but 'housing_occupancy_status' is not necessary.")
+        "\nTo compute this allowance, the 'rent' value must be provided for the same month, but 'housing_occupancy_status' is not necessary.\n")
