@@ -91,7 +91,7 @@ class Parameter(object):
         :param string name: Name of the parameter, e.g. "taxes.some_tax.some_param"
         :param dict data: Data loaded from a YAML file.
         :param string file_path: File the parameter was loaded from.
-        :param string documentation: Some documentation describing parameter usage and context.
+        :param string documentation: Documentation describing parameter usage and context.
 
 
         Instantiate a parameter without metadata:
@@ -321,7 +321,7 @@ class ParameterNode(object):
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
         :param dict data: Object representing the parameter node. It usually has been extracted from a YAML file.
-        :param string documentation: Some documentation describing parameter node usage and context.
+        :param string documentation: Documentation describing parameter node usage and context.
         :param string file_path: YAML file from which the `data` has been extracted from.
 
 
@@ -367,8 +367,8 @@ class ParameterNode(object):
                     if child_name == 'index':
                         data = _load_yaml_file(child_path)
                         _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'documentation', 'reference'])
-                        self.description = data.get('description', None)
-                        self.documentation = data.get('documentation', None)
+                        self.description = data.get('description')
+                        self.documentation = data.get('documentation')
                         _set_backward_compatibility_metadata(self, data)
                         self.metadata.update(data.get('metadata', {}))
                     else:
@@ -387,9 +387,8 @@ class ParameterNode(object):
         else:
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            # We allow to set a reference, a description and a documentation for a node.
-            self.description = data.get('description', None)
-            self.documentation = data.get('documentation', None)
+            self.description = data.get('description')
+            self.documentation = data.get('documentation')
             _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
             for child_name, child in data.items():
