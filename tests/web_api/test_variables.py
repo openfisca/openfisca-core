@@ -160,8 +160,8 @@ def test_variable_documentation():
     response = subject.get('/variable/housing_allowance')
     variable = json.loads(response.data.decode('utf-8'))
     assert_equal(variable['documentation'],
-        "This allowance was introduced on the 1st of Jan 1980.\nIt needs the 'rent' value "
-        + "(same month) but doesn't care about the 'housing_occupancy_status'.")
+        "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016.")
 
     assert_equal(variable['formulas']['1980-01-01']['documentation'],
-        "This is my specific life statement.")
+        "To compute this allowance, the 'rent' value must be provided for the same month, "
+        "but 'housing_occupancy_status' is not necessary.")
