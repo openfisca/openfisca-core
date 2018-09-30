@@ -2,17 +2,17 @@
 
 ## 24.4.0 [#717](https://github.com/openfisca/openfisca-core/pull/717)
 
-- In python, the user can add multiline documentation on parameters and variables
+- In Python, allow multiline documentation on parameters and variables
   - Introduce `documentation` attribute on `ParameterNode`, `Parameter` and `Variable` classes
 
-- Through Web API, the user can access a multiline `documentation` attribute on parameters, variables and variables' formulas
+- In the Web API, expose this documentation as a `documentation` property for parameters, variables and variables' formulas
     - on `/parameter` nodes as `/parameter/benefits`
       > = python `ParameterNode.documentation`  
-      > = yaml parameter node (`index.yaml`) `documentation` string attribute
+      > = YAML parameter node (`index.yaml`) `documentation` string attribute
     - on `/parameter` leafs as `/parameter/benefits/housing_allowance`
       > = python `Parameter.documentation`  
-      > = yaml parameter `documentation` string attribute
-    - on `/variable` leafs as `/variable/housing_allowance`
+      > = YAML parameter `documentation` string attribute
+    - on `/variable` as `/variable/housing_allowance`
       > = python `Variable.documentation`
     - on every `/variable` leaf formula
       > = python `Variable` formula **docstring**
