@@ -46,15 +46,13 @@ def test_calculate_output_default():
 
 def test_calculate_output_add():
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
-    holder = simulation.persons.get_holder('variable_with_calculate_output_add')
-    holder.set_input('2017-01', [10])
-    holder.set_input('2017-05', [20])
-    holder.set_input('2017-12', [70])
+    simulation.set_input('variable_with_calculate_output_add', '2017-01', [10])
+    simulation.set_input('variable_with_calculate_output_add', '2017-05', [20])
+    simulation.set_input('variable_with_calculate_output_add', '2017-12', [70])
     assert_near(simulation.calculate_output('variable_with_calculate_output_add', 2017), 100)
 
 
 def test_calculate_output_divide():
     simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
-    holder = simulation.persons.get_holder('variable_with_calculate_output_divide')
-    holder.set_input(2017, [12000])
+    simulation.set_input('variable_with_calculate_output_divide', 2017, [12000])
     assert_near(simulation.calculate_output('variable_with_calculate_output_divide', '2017-06'), 1000)
