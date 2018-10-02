@@ -1,5 +1,24 @@
 # Changelog
 
+## 24.5.0 [#729](https://github.com/openfisca/openfisca-core/pull/729)
+
+- In Python, simplify simulation initialisation:
+
+Before:
+
+```py
+simulation = ...
+holder = simulation.persons.get_holder('salary')
+holder.set_input('2018-08', [4000])
+```
+
+After:
+
+```py
+simulation = ...
+simulation.set_input('salary', '2018-08', [4000])
+```
+
 ## 24.4.0 [#717](https://github.com/openfisca/openfisca-core/pull/717)
 
 - In Python, allow multiline documentation on parameters and variables
@@ -7,10 +26,10 @@
 
 - In the Web API, expose this documentation as a `documentation` property for parameters, variables and variables' formulas
     - on `/parameter` nodes as `/parameter/benefits`
-      > = python `ParameterNode.documentation`  
+      > = python `ParameterNode.documentation`
       > = YAML parameter node (`index.yaml`) `documentation` string attribute
     - on `/parameter` leafs as `/parameter/benefits/housing_allowance`
-      > = python `Parameter.documentation`  
+      > = python `Parameter.documentation`
       > = YAML parameter `documentation` string attribute
     - on `/variable` as `/variable/housing_allowance`
       > = python `Variable.documentation`
