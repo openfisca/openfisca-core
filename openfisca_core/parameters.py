@@ -88,9 +88,10 @@ class Parameter(object):
     """
         A parameter of the legislation. Parameters can change over time.
 
-        :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
-        :param data: Data loaded from a YAML file.
-        :param file_path: File the parameter was loaded from.
+        :param string name: Name of the parameter, e.g. "taxes.some_tax.some_param"
+        :param dict data: Data loaded from a YAML file.
+        :param string file_path: File the parameter was loaded from.
+        :param string documentation: Documentation describing parameter usage and context.
 
 
         Instantiate a parameter without metadata:
@@ -121,18 +122,22 @@ class Parameter(object):
         _validate_parameter(self, data, data_type = dict)
         self.description = None
         self.metadata = {}
+        self.documentation = None
         self.values_history = self  # Only for backward compatibility
 
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference']))
+            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference', 'documentation']))
             self.description = data.get('description')
+
             _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
 
             _validate_parameter(self, data['values'], data_type = dict)
             values = data['values']
+
+            self.documentation = data.get('documentation')
 
         else:  # Simplified parameter declaration: only values are provided
             values = data
@@ -254,9 +259,9 @@ class ParameterAtInstant(object):
 
     def __init__(self, name, instant_str, data = None, file_path = None, metadata = None):
         """
-            :param name: name of the parameter, e.g. "taxes.some_tax.some_param"
-            :param instant_str: Date of the value in the format `YYYY-MM-DD`.
-            :param data: Data, usually loaded from a YAML file.
+            :param string name: name of the parameter, e.g. "taxes.some_tax.some_param"
+            :param string instant_str: Date of the value in the format `YYYY-MM-DD`.
+            :param dict data: Data, usually loaded from a YAML file.
         """
         self.name = name
         self.instant_str = instant_str
@@ -316,6 +321,7 @@ class ParameterNode(object):
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
         :param dict data: Object representing the parameter node. It usually has been extracted from a YAML file.
+        :param string documentation: Documentation describing parameter node usage and context.
         :param string file_path: YAML file from which the `data` has been extracted from.
 
 
@@ -343,6 +349,7 @@ class ParameterNode(object):
         self.name = name
         self.children = {}
         self.description = None
+        self.documentation = None
         self.file_path = None
         self.metadata = {}
 
@@ -359,8 +366,9 @@ class ParameterNode(object):
 
                     if child_name == 'index':
                         data = _load_yaml_file(child_path)
-                        _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'reference'])
-                        self.description = data.get('description', None)
+                        _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'documentation', 'reference'])
+                        self.description = data.get('description')
+                        self.documentation = data.get('documentation')
                         _set_backward_compatibility_metadata(self, data)
                         self.metadata.update(data.get('metadata', {}))
                     else:
@@ -379,8 +387,8 @@ class ParameterNode(object):
         else:
             self.file_path = file_path
             _validate_parameter(self, data, data_type = dict, allowed_keys = self._allowed_keys)
-            # We allow to set a reference and a description for a node.
-            self.description = data.get('description', None)
+            self.description = data.get('description')
+            self.documentation = data.get('documentation')
             _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
             for child_name, child in data.items():

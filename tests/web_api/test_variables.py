@@ -154,3 +154,13 @@ def test_dated_variable_formulas_content():
 def test_variable_encoding():
     variable_response = subject.get('/variable/pension')
     assert_equal(variable_response.status_code, OK)
+
+
+def test_variable_documentation():
+    response = subject.get('/variable/housing_allowance')
+    variable = json.loads(response.data.decode('utf-8'))
+    assert_equal(variable['documentation'],
+        "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016.")
+
+    assert_equal(variable['formulas']['1980-01-01']['documentation'],
+        "\nTo compute this allowance, the 'rent' value must be provided for the same month, but 'housing_occupancy_status' is not necessary.\n")

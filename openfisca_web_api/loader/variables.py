@@ -43,8 +43,10 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
     # Python 2 backward compatibility
     if isinstance(source_code[0], bytes):
         source_code = [source_line.decode('utf-8') for source_line in source_code]
+
     source_code = textwrap.dedent(''.join(source_code))
-    return {
+
+    api_formula = {
         'source': build_source_url(
             country_package_metadata,
             source_file_path,
@@ -53,6 +55,11 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             ),
         'content': to_unicode(source_code),
         }
+
+    if formula.__doc__:
+        api_formula['documentation'] = to_unicode(textwrap.dedent(formula.__doc__))
+
+    return api_formula
 
 
 def build_formulas(formulas, country_package_metadata, source_file_path, tax_benefit_system):
@@ -78,6 +85,9 @@ def build_variable(variable, country_package_metadata, tax_benefit_system):
             source_code
             ),
         }
+
+    if variable.documentation:
+        result['documentation'] = variable.documentation.strip()
 
     if variable.reference:
         result['references'] = variable.reference

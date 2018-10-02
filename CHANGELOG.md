@@ -1,5 +1,22 @@
 # Changelog
 
+## 24.4.0 [#717](https://github.com/openfisca/openfisca-core/pull/717)
+
+- In Python, allow multiline documentation on parameters and variables
+  - Introduce `documentation` attribute on `ParameterNode`, `Parameter` and `Variable` classes
+
+- In the Web API, expose this documentation as a `documentation` property for parameters, variables and variables' formulas
+    - on `/parameter` nodes as `/parameter/benefits`
+      > = python `ParameterNode.documentation`  
+      > = YAML parameter node (`index.yaml`) `documentation` string attribute
+    - on `/parameter` leafs as `/parameter/benefits/housing_allowance`
+      > = python `Parameter.documentation`  
+      > = YAML parameter `documentation` string attribute
+    - on `/variable` as `/variable/housing_allowance`
+      > = python `Variable.documentation`
+    - on every `/variable` leaf formula
+      > = python `Variable` formula **docstring**
+
 ### 24.3.2 [#727](https://github.com/openfisca/openfisca-core/pull/727)
 
 - Add a style formatter that follows community code conventions
@@ -52,7 +69,7 @@ from openfisca_core.tools.simulation_dumper import restore_simulation
 simulation = restore_simulation('/path/to/directory', tax_benefit_system)
 ```
 
-## 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
+### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
 
 - Enhance navigation within the Openfisca Web API.
 - Provides a direct link to individual parameters and variables from the `/parameters` and `/variables` routes.
@@ -82,6 +99,7 @@ becomes:
         },
     ...
 ```
+
 ### 24.0.1 [#711](https://github.com/openfisca/openfisca-core/pull/711)
 
 - Fix spelling in warning about libyaml

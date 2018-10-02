@@ -61,16 +61,28 @@ def test_parameter_values():
     assert_regexp_matches(parameter['source'], GITHUB_URL_REGEX)
     assert_in('taxes/income_tax_rate.yaml', parameter['source'])
 
+    # 'documentation' attribute exists only when a value is defined
+    response = subject.get('/parameter/benefits/housing_allowance')
+    parameter = json.loads(response.data)
+    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'values'])
+    assert_equal(parameter['documentation'],
+        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.')
+
 
 def test_parameter_node():
     response = subject.get('/parameter/benefits')
     assert_equal(response.status_code, OK)
     parameter = json.loads(response.data)
-    assert_equal(sorted(list(parameter.keys())), ['description', 'id', 'metadata', 'source', 'subparams'])
+    assert_equal(sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source', 'subparams'])
+    assert_equal(parameter['documentation'],
+                "Government support for the citizens and residents of society. "
+                "\nThey may be provided to people of any income level, as with social security, "
+                "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
+                "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)")
     assert_equal(parameter['subparams'], {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
-        })
+        }, parameter['subparams'])
 
 
 def test_stopped_parameter_values():
