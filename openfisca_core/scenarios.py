@@ -51,13 +51,12 @@ class AbstractScenario(object):
             if self.input_variables is not None:
                 # Note: For set_input to work, handle days, before months, before years => use sorted().
                 for variable_name, array_by_period in sorted(self.input_variables.items()):
-                    holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
-                    entity = holder.entity
+                    entity = simulation.get_variable_entity(variable_name)
                     for period, array in array_by_period.items():
                         if entity.count == 0:
                             entity.count = len(array)
                             entity.ids = range(entity.count)
-                        holder.set_input(period, array)
+                        simulation.set_input(variable_name, period, array)
 
             if persons.count == 0:
                 persons.count = 1
@@ -99,8 +98,7 @@ class AbstractScenario(object):
                 if self.axes is not None:
                     cache_buffer[variable_name][period] = value
                 else:
-                    holder = simulation.get_variable_entity(variable_name).get_holder(variable_name)
-                    holder.set_input(period, value)
+                    simulation.set_input(variable_name, period, value)
 
             for entity in simulation.entities.values():
                 step_size = len(test_case[entity.plural])
@@ -236,10 +234,9 @@ class AbstractScenario(object):
                             cache_buffer[axis_name][axis_period] = array
 
                 # We pour the buffer in the real cache
-                for variable, values in cache_buffer.items():
-                    holder = simulation.get_variable_entity(variable).get_holder(variable)
+                for variable_name, values in cache_buffer.items():
                     for period, array in values.items():
-                        holder.set_input(period, array)
+                        simulation.set_input(variable_name, period, array)
 
     def init_from_attributes(self, repair = False, **attributes):
         conv.check(self.make_json_or_python_to_attributes(repair = repair))(attributes)
