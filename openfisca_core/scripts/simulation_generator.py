@@ -3,7 +3,6 @@ import numpy as np
 
 import random
 from openfisca_core.simulations import Simulation
-from openfisca_core.periods import period as make_period
 
 
 def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
@@ -66,4 +65,4 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
     variable = simulation.tax_benefit_system.get_variable(variable_name)
     entity = simulation.get_variable_entity(variable_name)
     value = (np.random.rand(entity.count) * max_value * condition).astype(variable.dtype)
-    entity.get_holder(variable_name).set_input(make_period(period), value)
+    simulation.set_input(variable_name, period, value)

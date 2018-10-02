@@ -399,9 +399,7 @@ class Simulation(object):
         """
             Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
-        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        entity = self.entities[variable.entity.key]
-        return entity.get_holder(variable_name)
+        return self.get_variable_entity(variable_name).get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):
         """
@@ -418,6 +416,24 @@ class Simulation(object):
         return result
 
     # ----- Misc ----- #
+
+    def set_input(self, variable, period, value):
+        """
+            Set a variable's value for a given period
+
+            :param variable: the variable to be set
+            :param value: the input value for the variable
+            :param period: the period for which the value is setted
+
+            Example:
+
+            >>> set_input('age', [12, 14], '2018-04')
+            >>> get_array('age', '2018-04')
+            >>> [12, 14]
+
+            If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`.
+        """
+        self.get_holder(variable).set_input(period, value)
 
     def get_variable_entity(self, variable_name):
 
