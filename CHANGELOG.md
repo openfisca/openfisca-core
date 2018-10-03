@@ -1,5 +1,10 @@
 # Changelog
 
+## 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
+
+- Further adopt simplified simulation initialisation
+  - See [#729](https://github.com/openfisca/openfisca-core/pull/729)
+
 ## 24.5.0 [#729](https://github.com/openfisca/openfisca-core/pull/729)
 
 - In Python, simplify simulation initialisation:
