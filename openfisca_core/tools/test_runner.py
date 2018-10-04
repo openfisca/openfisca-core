@@ -22,6 +22,7 @@ import yaml
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
+from openfisca_core.simulation_builder import SimulationBuilder
 
 
 log = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
 
     tests = _parse_test_file(tax_benefit_system, path_to_file)
 
-    for test_index, (path_to_file, name, period_str, test) in enumerate(tests, 1):
+    for test_index, (simulation, test) in enumerate(tests, 1):
         if name_filter is not None and name_filter not in filename \
                 and name_filter not in (test.get('name', '')) \
                 and name_filter not in (test.get('keywords', [])):
@@ -144,13 +145,13 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
         title = "{}: {}{} - {}".format(
             os.path.basename(path_to_file),
             '[{}] '.format(', '.join(keywords)) if keywords else '',
-            name,
-            period_str,
+            test.get('name'),
+            test.get('period'),
             )
 
         def check():
             try:
-                _run_test(period_str, test, verbose, only_variables, ignore_variables, options)
+                _run_test(simulation, test, verbose, only_variables, ignore_variables, options)
             except Exception:
                 log.error(title)
                 raise
@@ -172,12 +173,11 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
 
 
 def _parse_test_file(tax_benefit_system, yaml_path):
-    filename = os.path.splitext(os.path.basename(yaml_path))[0]
     with open(yaml_path) as yaml_file:
         try:
-            tests = yaml.load(yaml_file, Loader=Loader)
+            tests = yaml.load(yaml_file, Loader = Loader)
         except yaml.scanner.ScannerError:
-            log.error("{} is not a valid YAML file".format(yaml_path).encode('utf-8'))
+            log.error("{} is not a valid YAML file".format(yaml_path))
             raise
 
     tests, error = conv.pipe(
@@ -191,37 +191,34 @@ def _parse_test_file(tax_benefit_system, yaml_path):
     if error is not None:
         embedding_error = conv.embed_error(tests, 'errors', error)
         assert embedding_error is None, embedding_error
-        raise ValueError("Error in test {}:\n{}".format(yaml_path, yaml.dump(tests, Dumper=Dumper, allow_unicode = True,
+        raise ValueError("Error in test {}:\n{}".format(yaml_path, yaml.dump(tests, Dumper = Dumper, allow_unicode = True,
             default_flow_style = False, indent = 2, width = 120)))
 
+    filename = os.path.splitext(os.path.basename(yaml_path))[0]
     for test in tests:
-        current_tax_benefit_system = tax_benefit_system
-        if test.get('reforms'):
-            reforms = test.pop('reforms')
-            if not isinstance(reforms, list):
-                reforms = [reforms]
-            for reform_path in reforms:
-                current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
-
-        try:
-            test, error = scenarios.make_json_or_python_to_test(
-                tax_benefit_system = current_tax_benefit_system
-                )(test)
-        except Exception:
-            log.error("{} is not a valid OpenFisca test file".format(yaml_path).encode('utf-8'))
-            raise
-
-        if error is not None:
-            embedding_error = conv.embed_error(test, 'errors', error)
-            assert embedding_error is None, embedding_error
-            raise ValueError("Error in test {}:\n{}\nYaml test content: \n{}\n".format(
-                yaml_path, error, yaml.dump(test, Dumper=Dumper, allow_unicode = True,
-                default_flow_style = False, indent = 2, width = 120)))
-
-        yield yaml_path, test.get('name') or filename, to_unicode(test['scenario'].period), test
+        test['filename'] = filename
+        test['file_path'] = yaml_path
+        yield _parse_test(tax_benefit_system, test)
 
 
-def _run_test(period_str, test, verbose = False, only_variables = None, ignore_variables = None, options = {}):
+def _parse_test(tax_benefit_system, test):
+    current_tax_benefit_system = tax_benefit_system
+    if test.get('reforms'):
+        reforms = test.pop('reforms')
+        if not isinstance(reforms, list):
+            reforms = [reforms]
+        for reform_path in reforms:
+            current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+
+    if not test.get('input'):
+        raise ValueError("Missing key 'input' in test '{}' in file '{}'".format(test['name'], test['file_path']))
+
+    simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input'), test.get('period'))
+
+    return simulation, test
+
+
+def _run_test(simulation, test, verbose = False, only_variables = None, ignore_variables = None, options = {}):
     absolute_error_margin = None
     relative_error_margin = None
     if test.get('absolute_error_margin') is not None:
@@ -229,9 +226,9 @@ def _run_test(period_str, test, verbose = False, only_variables = None, ignore_v
     if test.get('relative_error_margin') is not None:
         relative_error_margin = test.get('relative_error_margin')
 
-    scenario = test['scenario']
-    scenario.suggest()
-    simulation = scenario.new_simulation(trace = verbose)
+    # scenario = test['scenario']
+    # scenario.suggest()
+    # simulation = scenario.new_simulation(trace = verbose)
     output_variables = test.get('output_variables')
     if output_variables is not None:
         try:
@@ -251,10 +248,10 @@ def _run_test(period_str, test, verbose = False, only_variables = None, ignore_v
                             )
                 else:
                     assert_near(
-                        simulation.calculate(variable_name),
+                        simulation.calculate(variable_name, test.get('period')),
                         expected_value,
                         absolute_error_margin = absolute_error_margin,
-                        message = '{}@{}: '.format(variable_name, period_str),
+                        message = '{}@{}: '.format(variable_name, test.get('period')),
                         relative_error_margin = relative_error_margin,
                         )
         finally:
