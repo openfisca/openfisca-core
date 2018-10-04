@@ -316,9 +316,9 @@ class Simulation(object):
     def _check_formula_result(self, value, variable, entity, period):
 
         assert isinstance(value, np.ndarray), (linesep.join([
-            "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
-            "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
-            "instead it returned '{0}' of {1}.".format(value, type(value)).encode('utf-8'),
+            "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)),
+            "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)),
+            "instead it returned '{0}' of {1}.".format(value, type(value)),
             "Learn more about Numpy arrays and vectorial computing:",
             "<https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
