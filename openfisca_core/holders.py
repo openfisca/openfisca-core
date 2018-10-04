@@ -159,8 +159,6 @@ class Holder(object):
         """
 
         period = periods.period(period)
-        if not isinstance(array, np.ndarray):
-            array = np.asarray(array)
         if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for ETERNITY.',
@@ -188,9 +186,13 @@ class Holder(object):
         return self._set(period, array)
 
     def _set(self, period, value, extra_params = None):
+        if not isinstance(value, np.ndarray):
+            value = np.asarray(value)
+        if value.ndim == 0:
+            # 0-dim arrays are casted to scalar when they interect with float. We don't want them.
+            value = value.reshape(1)
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
-
         if value.dtype != self.variable.dtype:
             try:
                 value = value.astype(self.variable.dtype)
@@ -368,7 +370,6 @@ def set_input_divide_by_period(holder, period, array):
 
         To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
     """
-
     period_size = period.size
     period_unit = period.unit
 
@@ -382,7 +383,7 @@ def set_input_divide_by_period(holder, period, array):
     after_instant = period.start.offset(period_size, period_unit)
 
     # Count the number of elementary periods to change, and the difference with what is already known.
-    remaining_array = array.copy()
+    remaining_array = array.copy() if isinstance(array, np.ndarray) else array
     sub_period = period.start.period(cached_period_unit)
     sub_periods_count = 0
     while sub_period.start < after_instant:
