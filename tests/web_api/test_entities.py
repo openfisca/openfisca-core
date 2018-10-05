@@ -24,18 +24,18 @@ def test_response_data():
     assert_equal(
         entities['household'],
         {
-            'description': 'Household',
+            'description': 'All the people in a family or group who live together in the same place.',
             'documentation': test_documentation,
             'plural': 'households',
             'roles': {
                 'child': {
                     'description': 'Other individuals living in the household.',
-                    'plural': 'children'
+                    'plural': 'children',
                     },
                 'parent': {
                     'description': 'The one or two adults in charge of the household.',
+                    'plural': 'parents',
                     'max': 2,
-                    'plural': "parents"
                     }
                 }
             }
