@@ -1,5 +1,11 @@
 # Changelog
 
+## 24.5.3 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+
+- Ignore W503 to enforce Knuth's style (W504)
+- Fix failing entities test
+  - Household description was outdated
+
 ## 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
 
 - Further adopt simplified simulation initialisation
