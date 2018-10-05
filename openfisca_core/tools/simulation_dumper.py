@@ -15,6 +15,9 @@ def dump_simulation(simulation, directory):
     """
         Write simulation data to directory, so that it can be restored later.
     """
+    parent_directory = os.path.abspath(os.path.join(directory, os.pardir))
+    if not os.path.isdir(parent_directory):  # To deal with reforms 
+        os.mkdir(parent_directory)
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -41,7 +44,15 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     for entity in simulation.entities.values():
+        if entity.is_person:
+            continue
+        person_count = _restore_entity(entity, entities_dump_dir)
+
+    for entity in simulation.entities.values():
+        if not entity.is_person:
+            continue
         _restore_entity(entity, entities_dump_dir)
+        entity.count = person_count
 
     variables_to_restore = (variable for variable in os.listdir(directory) if variable != "__entities__")
     for variable in variables_to_restore:
@@ -79,7 +90,7 @@ def _restore_entity(entity, directory):
     path = os.path.join(directory, entity.key)
 
     entity.ids = np.load(os.path.join(path, "id.npy"))
-    entity.count = len(entity.ids)
+    # entity.count = len(entity.ids)
 
     if entity.is_person:
         return
@@ -92,6 +103,9 @@ def _restore_entity(entity, directory):
         [encoded_roles == role.key for role in entity.flattened_roles],
         [role for role in entity.flattened_roles],
         )
+    person_count = len(entity.members_entity_id)
+    entity.count = max(entity.members_entity_id) + 1
+    return person_count
 
 
 def _restore_holder(simulation, variable, directory):

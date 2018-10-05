@@ -184,7 +184,8 @@ class Entity(object):
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {}".format(array, self.key))
+            raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
+                array, self.key, array.size, self.count))
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
