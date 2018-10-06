@@ -742,11 +742,10 @@ class Scale(object):
             raise KeyError(key)
 
     def __repr__(self):
-        return os.linesep.join(['brackets:'] +
-            [
-            indent('-' + indent(repr(bracket))[1:])
-            for bracket in self.brackets
-            ])
+        return os.linesep.join(
+            ['brackets:']
+            + [indent('-' + indent(repr(bracket))[1:]) for bracket in self.brackets]
+            )
 
 
 class Bracket(ParameterNode):

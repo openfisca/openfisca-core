@@ -403,8 +403,12 @@ class Period(tuple):
             return self.__class__((
                 'month',
                 intersection_start,
-                ((intersection_stop.year - intersection_start.year) * 12 + intersection_stop.month -
-                    intersection_start.month + 1),
+                (
+                    (intersection_stop.year - intersection_start.year) * 12
+                    + intersection_stop.month
+                    - intersection_start.month
+                    + 1
+                    ),
                 ))
         return self.__class__((
             'day',
