@@ -167,7 +167,7 @@ class Variable(object):
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
-                self.dtype = '|S{}'.format(self.max_length)
+                self.dtype = '|U{}'.format(self.max_length)
         if self.value_type == Enum:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
         else:

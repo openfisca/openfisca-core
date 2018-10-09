@@ -10,7 +10,6 @@ import dpath
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH
-from openfisca_core.simulations import Simulation
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
@@ -58,6 +57,7 @@ def test_root_nodes():
         dpath.util.get(response_json, 'requestedCalculations'),
         ['disposable_income<2017-01>', 'total_benefits<2017-01>', 'total_taxes<2017-01>']
         )
+
 
 class variable__str_with_max(Variable):
     value_type = str
