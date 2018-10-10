@@ -3,7 +3,7 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 import json
 
-from numpy import str_
+from numpy import unicode_
 from nose.tools import assert_equal, assert_is_instance
 from http.client import OK
 import dpath
@@ -81,4 +81,4 @@ def test_variable__str_with_max():
     tax_benefit_system.add_variable(variable__str_with_max)
     simulation = new_simulation(tax_benefit_system, month)
     variable_value = simulation.calculate('variable__str_with_max', month)[0]
-    assert_equal(str_, type(variable_value))
+    assert_equal(unicode_, type(variable_value))
