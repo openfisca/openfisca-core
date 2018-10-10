@@ -164,7 +164,7 @@ class Variable(object):
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
-            self.dtype = '|U'
+            self.dtype = 'unicode_'
         if self.value_type == Enum:
             self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
             self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
