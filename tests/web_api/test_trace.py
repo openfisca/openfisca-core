@@ -75,7 +75,7 @@ def new_simulation(tax_benefit_system, month):
         ).new_simulation()
 
 
-def test_variable__str_with_max():
+def test_string_variable_is_always_unicode():
     month = '2018-01'
     tax_benefit_system = CountryTaxBenefitSystem()
     tax_benefit_system.add_variable(variable__str_with_max)
