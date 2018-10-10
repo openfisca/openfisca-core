@@ -3,17 +3,10 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 import json
 
-from numpy import unicode_
 from nose.tools import assert_equal, assert_is_instance
 from http.client import OK
 import dpath
 
-from openfisca_core.model_api import Variable
-from openfisca_core.periods import MONTH
-from openfisca_core.simulations import Simulation
-
-from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import Person
 from openfisca_country_template.situation_examples import single, couple
 
 from . import subject
@@ -58,20 +51,3 @@ def test_root_nodes():
         dpath.util.get(response_json, 'requestedCalculations'),
         ['disposable_income<2017-01>', 'total_benefits<2017-01>', 'total_taxes<2017-01>']
         )
-
-
-class variable__str_with_max(Variable):
-    value_type = str
-    max_length = 5
-    entity = Person
-    definition_period = MONTH
-    label = "String variable of specific max length"
-
-
-def test_string_variable_is_always_unicode():
-    month = '2018-01'
-    tax_benefit_system = CountryTaxBenefitSystem()
-    tax_benefit_system.add_variable(variable__str_with_max)
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
-    variable_value = simulation.calculate('variable__str_with_max', month)[0]
-    assert_equal(unicode_, type(variable_value))

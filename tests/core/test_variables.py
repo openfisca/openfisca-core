@@ -2,7 +2,9 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 import datetime
-from nose.tools import raises
+from numpy import unicode_
+
+from nose.tools import raises, assert_equal
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
@@ -474,3 +476,19 @@ def test_unexpected_attr():
         unexpected = '???'
 
     tax_benefit_system.add_variable(variable_with_strange_attr)
+
+
+def test_string_variable_is_always_unicode():
+    class variable__str_with_max(Variable):
+        value_type = str
+        max_length = 5
+        entity = Person
+        definition_period = MONTH
+        label = "String variable of specific max length"
+
+    tax_benefit_system.add_variable(variable__str_with_max)
+    month = '2018-01'
+
+    simulation = new_simulation(tax_benefit_system, month)
+    variable_value = simulation.calculate('variable__str_with_max', month)[0]
+    assert_equal(unicode_, type(variable_value))
