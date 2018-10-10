@@ -1,6 +1,13 @@
 # Changelog
 
-### 24.5.3 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+### 24.5.3 [#737](https://github.com/openfisca/openfisca-core/pull/737)
+
+- Fix an encoding bug of variables with value type str
+- Details:
+  * `str` corresponds to `unicode` in Python 2.7 and `bytes` in Python 3.7
+  * Set encoding with `numpy.unicode_` to dynamically cast to `unicode` both in Python 2.7 and Python 3.7
+
+### 24.5.2 [#734](https://github.com/openfisca/openfisca-core/pull/734)
 
 - Ignore W503 to enforce Knuth's style (W504)
 - Fix failing entities test
