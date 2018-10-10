@@ -10,6 +10,7 @@ import dpath
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH
+from openfisca_core.simulations import Simulation
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
@@ -67,18 +68,10 @@ class variable__str_with_max(Variable):
     label = "String variable of specific max length"
 
 
-def new_simulation(tax_benefit_system, month):
-    return tax_benefit_system.new_scenario().init_from_attributes(
-        period = month,
-        input_variables = dict(
-            ),
-        ).new_simulation()
-
-
 def test_string_variable_is_always_unicode():
     month = '2018-01'
     tax_benefit_system = CountryTaxBenefitSystem()
     tax_benefit_system.add_variable(variable__str_with_max)
-    simulation = new_simulation(tax_benefit_system, month)
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
     variable_value = simulation.calculate('variable__str_with_max', month)[0]
     assert_equal(unicode_, type(variable_value))
