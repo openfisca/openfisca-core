@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import datetime
+
+from nose.tools import raises
+
 from numpy import unicode_
 
-from nose.tools import raises, assert_equal
-
 from openfisca_core.model_api import Variable
-from openfisca_core.periods import MONTH, ETERNITY
+from openfisca_core.periods import ETERNITY, MONTH
 from openfisca_core.simulations import Simulation
 from openfisca_core.tools import assert_near
 
 import openfisca_country_template as country_template
-from openfisca_country_template.situation_examples import couple
 from openfisca_country_template.entities import Person
+from openfisca_country_template.situation_examples import couple
+
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.
 
+# SETUP
 
 tax_benefit_system = country_template.CountryTaxBenefitSystem()
-
 
 # HELPERS
 
@@ -478,17 +481,17 @@ def test_unexpected_attr():
     tax_benefit_system.add_variable(variable_with_strange_attr)
 
 
-def test_string_variable_is_always_unicode():
-    class variable__str_with_max(Variable):
+def test_variable_with_value_type_str_is_always_unicode():
+    class variable_with_type_str(Variable):
         value_type = str
         max_length = 5
         entity = Person
         definition_period = MONTH
         label = "String variable of specific max length"
 
-    tax_benefit_system.add_variable(variable__str_with_max)
+    tax_benefit_system.add_variable(variable_with_type_str)
     month = '2018-01'
 
     simulation = new_simulation(tax_benefit_system, month)
-    variable_value = simulation.calculate('variable__str_with_max', month)[0]
-    assert_equal(unicode_, type(variable_value))
+    variable_value = simulation.calculate('variable_with_type_str', month)[0]
+    assert type(variable_value) == unicode_
