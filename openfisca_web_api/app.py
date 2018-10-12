@@ -163,6 +163,8 @@ def create_app(tax_benefit_system,
                     entity_result = result.decode()[entity_index].name
                 elif variable.value_type == float:
                     entity_result = float(str(result[entity_index]))  # To turn the float32 into a regular float without adding confusing extra decimals. There must be a better way.
+                elif variable.value_type == str:
+                    entity_result = to_unicode(result[entity_index])  # From bytes to unicode
                 else:
                     entity_result = result.tolist()[entity_index]
 
@@ -196,6 +198,8 @@ def create_app(tax_benefit_system,
             value = vector_trace['value'].tolist()
             if isinstance(value[0], Enum):
                 value = [item.name for item in value]
+            if isinstance(value[0], bytes):
+                value = [to_unicode(item) for item in value]
             vector_trace['value'] = value
 
         return jsonify({
