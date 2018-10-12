@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
+from __future__ import unicode_literals, print_function, division, absolute_import
 import json
-from http.client import OK
-
-import dpath
 
 from nose.tools import assert_equal, assert_is_instance
-
-from openfisca_country_template.situation_examples import couple, single
+from http.client import OK
+import dpath
+from openfisca_country_template.situation_examples import single, couple
 
 from . import subject
 
