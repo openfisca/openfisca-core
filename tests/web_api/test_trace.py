@@ -54,7 +54,7 @@ def test_root_nodes():
 
 def test_str_variable():
     new_couple = couple.copy()
-    new_couple['households']['_']['postal_code'] = None
+    new_couple['households']['_']['postal_code']= { '2017-01': None }
     simulation_json = json.dumps(new_couple)
 
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
