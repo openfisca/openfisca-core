@@ -208,6 +208,8 @@ class Variable(object):
         if allowed_type is not None and value is not None and not isinstance(value, allowed_type):
             if allowed_type == float and isinstance(value, int):
                 value = float(value)
+            if allowed_type == str:  # Python 2 backward compatibility
+                value = to_unicode(value)
             else:
                 raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Must be of type '{}'."
                     .format(value, attribute_name, self.name, allowed_type).encode('utf-8'))
