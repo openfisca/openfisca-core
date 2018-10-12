@@ -1,12 +1,21 @@
 # Changelog
 
-## 24.5.3 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+## 24.5.5 [#742](https://github.com/openfisca/openfisca-core/pull/742)
+
+- Fix the internal server error that appeared for the  `/trace` and (less frequently) `/calculate` route of the Web API
+  - This error appeared when a simulation output was a variable of type string
+
+
+> Note: Versions `24.5.3` and `24.5.4` have been unpublished as they accidentally introduced a breaking change. Please use version `24.5.5` or more recent.
+
+
+### 24.5.2 [#734](https://github.com/openfisca/openfisca-core/pull/734)
 
 - Ignore W503 to enforce Knuth's style (W504)
 - Fix failing entities test
   - Household description was outdated
 
-## 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
+### 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
 
 - Further adopt simplified simulation initialisation
   - See [#729](https://github.com/openfisca/openfisca-core/pull/729)
