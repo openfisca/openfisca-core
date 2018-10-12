@@ -50,3 +50,14 @@ def test_root_nodes():
         dpath.util.get(response_json, 'requestedCalculations'),
         ['disposable_income<2017-01>', 'total_benefits<2017-01>', 'total_taxes<2017-01>']
         )
+
+
+def test_str_variable():
+    new_couple = couple.copy()
+    new_couple['households']['_']['postal_code'] = None
+    simulation_json = json.dumps(new_couple)
+
+    response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
+    response_json = json.loads(response.data.decode('utf-8'))
+
+    assert_equal(response.status_code, OK)
