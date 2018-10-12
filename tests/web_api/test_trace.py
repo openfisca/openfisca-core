@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 import json
+from copy import deepcopy
 
 from nose.tools import assert_equal, assert_is_instance
 from http.client import OK
@@ -53,11 +54,10 @@ def test_root_nodes():
 
 
 def test_str_variable():
-    new_couple = couple.copy()
-    new_couple['households']['_']['postal_code']= { '2017-01': None }
+    new_couple = deepcopy(couple)
+    new_couple['households']['_']['postal_code'] = {'2017-01': None}
     simulation_json = json.dumps(new_couple)
 
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
-    response_json = json.loads(response.data.decode('utf-8'))
 
     assert_equal(response.status_code, OK)

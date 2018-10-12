@@ -4,11 +4,13 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 import os
 import json
 from http.client import BAD_REQUEST, OK, NOT_FOUND
+from copy import deepcopy
 
 from nose.tools import assert_equal, assert_in
 import dpath
 
 from openfisca_core.commons import to_unicode
+from openfisca_country_template.situation_examples import couple
 
 from . import subject
 
@@ -283,3 +285,13 @@ def test_encoding_period_id():
             "'à' is not a valid ASCII value.",
             response_json['error']
             )
+
+
+def test_str_variable():
+    new_couple = deepcopy(couple)
+    new_couple['households']['_']['postal_code'] = {'2017-01': None}
+    simulation_json = json.dumps(new_couple)
+
+    response = subject.post('/calculate', data = simulation_json, content_type = 'application/json')
+
+    assert_equal(response.status_code, OK)
