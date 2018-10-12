@@ -485,6 +485,7 @@ def test_variable_with_value_type_str_is_always_unicode():
     class variable_with_type_str(Variable):
         value_type = str
         max_length = 5
+        default_value = "12345678"
         entity = Person
         definition_period = MONTH
         label = "String variable of specific max length"
@@ -495,3 +496,4 @@ def test_variable_with_value_type_str_is_always_unicode():
     simulation = new_simulation(tax_benefit_system, month)
     variable_value = simulation.calculate('variable_with_type_str', month)[0]
     assert type(variable_value) == unicode_
+    assert variable_value == "12345"  # A value longer than 'max_length' is truncated.

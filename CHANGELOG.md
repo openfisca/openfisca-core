@@ -1,5 +1,12 @@
 # Changelog
 
+### 25.5.5 [#739](https://github.com/openfisca/openfisca-core/pull/739)
+
+- Make str variable `default_value` of unicode type for Python 2 backward compatibility
+- Details:
+  * Introduce test check on str variable `max_length` effect
+  * Explicit str variables data type for Python 2 and Python 3
+
 ### 24.5.4 [#738](https://github.com/openfisca/openfisca-core/pull/738)
 
 - Restore `max_length` shortening effect on variable of type str 
