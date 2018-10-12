@@ -46,7 +46,7 @@ VALUE_TYPES = {
         'is_period_size_independent': False,
         },
     str: {
-        'dtype': object,
+        'dtype': np.unicode_,
         'default': '',
         'json_type': 'string',
         'formatted_value_type': 'String',
