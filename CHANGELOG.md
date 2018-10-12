@@ -1,25 +1,12 @@
 # Changelog
 
-### 24.5.4 [#738](https://github.com/openfisca/openfisca-core/pull/738)
-
-- Restore `max_length` shortening effect on variable of type str 
-- Details:
-  * Bug introduced in previous revision (24.5.3)  
-
-### 24.5.3 [#737](https://github.com/openfisca/openfisca-core/pull/737)
-
-- Fix an encoding bug of variables with value type str
-- Details:
-  * `str` corresponds to `unicode` in Python 2.7 and `bytes` in Python 3.7
-  * Set encoding with `numpy.unicode_` to dynamically cast to `unicode` both in Python 2.7 and Python 3.7
-
-### 24.5.2 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+## 24.5.3 [#734](https://github.com/openfisca/openfisca-core/pull/734)
 
 - Ignore W503 to enforce Knuth's style (W504)
 - Fix failing entities test
   - Household description was outdated
 
-### 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
+## 24.5.1 [#732](https://github.com/openfisca/openfisca-core/pull/732)
 
 - Further adopt simplified simulation initialisation
   - See [#729](https://github.com/openfisca/openfisca-core/pull/729)
@@ -71,7 +58,7 @@ simulation.set_input('salary', '2018-08', [4000])
   - Use proper JSON Schema type to describe input types
   - Fix property name in the description of `/parameters` and `/variables`
 
-## 24.3.0 [#714](https://github.com/openfisca/openfisca-core/pull/714)
+### 24.3.0 [#714](https://github.com/openfisca/openfisca-core/pull/714)
 
 - Introduce the `/entities` endpoint for the Web API.
   - Expose information about the country package's entities, and their roles.
@@ -112,7 +99,7 @@ from openfisca_core.tools.simulation_dumper import restore_simulation
 simulation = restore_simulation('/path/to/directory', tax_benefit_system)
 ```
 
-## 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
+### 24.1.0 [#713](https://github.com/openfisca/openfisca-core/pull/713)
 
 - Enhance navigation within the Openfisca Web API.
 - Provides a direct link to individual parameters and variables from the `/parameters` and `/variables` routes.

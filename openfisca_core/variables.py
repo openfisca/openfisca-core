@@ -162,12 +162,13 @@ class Variable(object):
         self.value_type = self.set(attr, 'value_type', required = True, allowed_values = VALUE_TYPES.keys())
         self.dtype = VALUE_TYPES[self.value_type]['dtype']
         self.json_type = VALUE_TYPES[self.value_type]['json_type']
+        if self.value_type == Enum:
+            self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
         if self.value_type == str:
             self.max_length = self.set(attr, 'max_length', allowed_type = int)
             if self.max_length:
-                self.dtype = '|U{}'.format(self.max_length)
+                self.dtype = '|S{}'.format(self.max_length)
         if self.value_type == Enum:
-            self.possible_values = self.set(attr, 'possible_values', required = True, setter = self.set_possible_values)
             self.default_value = self.set(attr, 'default_value', allowed_type = self.possible_values, required = True)
         else:
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = VALUE_TYPES[self.value_type].get('default'))
