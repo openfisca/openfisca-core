@@ -1,5 +1,11 @@
 # Changelog
 
+### 24.5.4 [#738](https://github.com/openfisca/openfisca-core/pull/738)
+
+- Restore `max_length` shortening effect on variable of type str 
+- Details:
+  * Bug introduced in previous revision (24.5.3)  
+
 ### 24.5.3 [#737](https://github.com/openfisca/openfisca-core/pull/737)
 
 - Fix an encoding bug of variables with value type str
