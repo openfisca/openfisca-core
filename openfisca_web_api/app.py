@@ -163,6 +163,8 @@ def create_app(tax_benefit_system,
                     entity_result = result.decode()[entity_index].name
                 elif variable.value_type == float:
                     entity_result = float(str(result[entity_index]))  # To turn the float32 into a regular float without adding confusing extra decimals. There must be a better way.
+                elif variable.value_type == str:
+                    entity_result = to_unicode(result[entity_index])  # From bytes to unicode
                 else:
                     entity_result = result.tolist()[entity_index]
 
