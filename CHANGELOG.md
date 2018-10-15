@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.5.6 [#743](https://github.com/openfisca/openfisca-core/pull/743)
+
+- When there is an empty `index.yaml` in the parameters, ignore it instead of raising an error.
+
 ## 24.5.5 [#742](https://github.com/openfisca/openfisca-core/pull/742)
 
 - Fix the internal server error that appeared for the  `/trace` and (less frequently) `/calculate` route of the Web API
