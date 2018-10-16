@@ -331,61 +331,8 @@ definitions:
         type: "integer"
       plural:
         type: "string"
-  SituationInput:
-    example:
-      individus:
-        Bill:
-          salaire_de_base:
-            "2017": 20000
-        Bob:
-          salaire_de_base:
-            "2017": 30000
-        Janet: {}
-      menages:
-        menage_1:
-          personne_de_reference: [Bill]
-          conjoint: [Bob]
-          enfants: [Janet]
-          revenu_disponible:
-            "2017": null
-          impots_directs:
-            "2017": null
-      familles:
-        famille_1:
-          parents: [Bill, Bob]
-          enfants: [Janet]
-      foyers_fiscaux:
-        foyer_fiscal_1:
-          declarants: [Bill, Bob]
-          personnes_a_charge: [Janet]
-
-  SituationOutput:
-    example:
-      individus:
-        Bill:
-          salaire_de_base:
-            "2017": 20000
-        Bob:
-          salaire_de_base:
-            "2017": 30000
-        Janet: {}
-      menages:
-        menage_1:
-          personne_de_reference: [Bill]
-          conjoint: [Bob]
-          enfants: [Janet]
-          revenu_disponible:
-            "2017": 36585.89
-          impots_directs:
-            "2017": -3733.72
-      familles:
-        famille_1:
-          parents: [Bill, Bob]
-          enfants: [Janet]
-      foyers_fiscaux:
-        foyer_fiscal_1:
-          declarants: [Bill, Bob]
-          personnes_a_charge: [Janet]
+  SituationInput: null
+  SituationOutput: null
 
   Trace:
     type: object
@@ -410,23 +357,7 @@ definitions:
               type: array
               items:
                 type: string
-    example:
-      requestedCalculations: [revenu_disponible<2017>]
-      entitiesDescription:
-        individus: [Bill, Bob, Janet]
-        menages: [menage_1]
-        familles: [famille_1]
-        foyers_fiscaux: [foyer_fiscal_1]
-      trace:
-        revenu_disponible<2017>:
-          value: 18000
-          dependencies: [impots<2017>, salaire<2017>]
-        impots<2017>:
-          value: 2000
-          dependencies: [salaire<2017>]
-        salaire<2017>:
-          value: 20000
-          dependencies: []
+    example: null
 
 commons:
   Headers:
