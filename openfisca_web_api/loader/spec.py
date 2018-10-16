@@ -34,9 +34,9 @@ def build_openAPI_specification(api_data):
         }
 
     # Get example from the served tax benefist system
-    parameter_example = next(iter(api_data['parameters'].values()))
+    parameter_example = tax_benefit_system.open_api_config.get('parameter_example') or next(iter(api_data['parameters'].values()))
     dpath.set(spec, 'definitions/Parameter/example', parameter_example)
-    variable_example = next(iter(api_data['variables'].values()))
+    variable_example = tax_benefit_system.open_api_config.get('variable_example') or next(iter(api_data['variables'].values()))
     dpath.set(spec, 'definitions/Variable/example', variable_example)
 
     return spec

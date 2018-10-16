@@ -63,7 +63,7 @@ class TaxBenefitSystem(object):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables = {}
-
+        self.open_api_config = {}
         self.entities = entities
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")
