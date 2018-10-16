@@ -17,21 +17,21 @@ def build_openAPI_specification(api_data):
     file = open(OPEN_API_CONFIG_FILE, 'r')
     spec = yaml.load(file)
     country_package_name = api_data['country_package_metadata']['name'].title()
-    spec['info']['title'] = spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name)
-    spec['info']['description'] = spec['info']['description'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name)
-    spec['info']['version'] = api_data['country_package_metadata']['version']
+    dpath.set('info/title', spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
+    dpath.set('info/description', spec['info']['description'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
+    dpath.set('info/version', api_data['country_package_metadata']['version'])
 
     for entity in tax_benefit_system.entities:
         name = entity.key.title()
         spec['definitions'][name] = get_entity_json_schema(entity, tax_benefit_system)
 
     situation_schema = get_situation_json_schema(tax_benefit_system)
-    spec['definitions']['SituationInput'].update(situation_schema)
-    spec['definitions']['SituationOutput'].update(situation_schema)
-    spec['definitions']['Trace']['properties']['entitiesDescription']['properties'] = {
+    dpath.set(spec, 'definitions/SituationInput', situation_schema)
+    dpath.set(spec, 'definitions/SituationOutput', situation_schema)
+    dpath.set(spec, 'definitions/Trace/properties/entitiesDescription/properties', {
         entity.plural: {'type': 'array', 'items': {"type": "string"}}
         for entity in tax_benefit_system.entities
-        }
+        })
 
     # Get example from the served tax benefist system
     parameter_example = tax_benefit_system.open_api_config.get('parameter_example') or next(iter(api_data['parameters'].values()))
