@@ -365,7 +365,7 @@ class ParameterNode(object):
                         continue
 
                     if child_name == 'index':
-                        data = _load_yaml_file(child_path)
+                        data = _load_yaml_file(child_path) or {}
                         _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'documentation', 'reference'])
                         self.description = data.get('description')
                         self.documentation = data.get('documentation')
