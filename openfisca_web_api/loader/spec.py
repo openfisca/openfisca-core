@@ -4,13 +4,15 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 import os
 import yaml
 
+import dpath
+
 from openfisca_core.indexed_enums import Enum
 
 
 OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'openAPI.yml')
 
 
-def build_openAPI_specification(tax_benefit_system, country_package_metadata):
+def build_openAPI_specification(tax_benefit_system, country_package_metadata, parameters):
     file = open(OPEN_API_CONFIG_FILE, 'r')
     spec = yaml.load(file)
     country_package_name = country_package_metadata['name'].title()
@@ -29,6 +31,10 @@ def build_openAPI_specification(tax_benefit_system, country_package_metadata):
         entity.plural: {'type': 'array', 'items': {"type": "string"}}
         for entity in tax_benefit_system.entities
         }
+
+    # Get example from the served tax benefist system
+    parameter_example = next(iter(parameters.values()))
+    dpath.set(spec, 'definitions/Parameter/example', parameter_example)
 
     return spec
 

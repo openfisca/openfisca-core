@@ -230,32 +230,7 @@ definitions:
         format: "string"
       source:
         type: "string"
-    example:
-      id: "cotsoc.gen.smic_h_b"
-      description: "SMIC horaire brut"
-      values: {"2001-08-01": 6.67,
-                "2002-07-01": 6.83,
-                "2003-07-01": 7.19,
-                "2004-07-01": 7.61,
-                "2005-07-01": 8.03,
-                "2006-07-01": 8.27,
-                "2007-07-01": 8.44,
-                "2008-05-01": 8.63,
-                "2008-07-01": 8.71,
-                "2009-07-01": 8.82,
-                "2010-01-01": 8.86,
-                "2011-01-01": 9.0,
-                "2011-12-01": 9.19,
-                "2012-01-01": 9.22,
-                "2012-07-01": 9.4,
-                "2013-01-01": 9.43,
-                "2014-01-01": 9.53,
-                "2015-01-01": 9.61,
-                "2016-01-01": 9.67,
-                "2017-01-01": 9.76}
-      source: https://github.com/openfisca/openfisca-france/blob/22.2.1/openfisca_france/parameters/cotsoc/gen/smic_h_b.yaml
-      metadata:
-        unit: "currency-EUR"
+    example: null
 
   Parameters:
     type: "object"
