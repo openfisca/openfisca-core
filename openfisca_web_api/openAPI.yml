@@ -10,8 +10,7 @@ info:
     name: "AGPL"
     url: "https://www.gnu.org/licenses/agpl-3.0"
 host: null
-schemes:
-  - "https"
+schemes: null
 tags:
   - name: "Parameters"
     description: "A parameter is a numeric property of the legislation that can evolve over time."
