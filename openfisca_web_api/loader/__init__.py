@@ -12,13 +12,14 @@ def build_data(tax_benefit_system):
     country_package_metadata = tax_benefit_system.get_package_metadata()
     parameters = build_parameters(tax_benefit_system, country_package_metadata)
     variables = build_variables(tax_benefit_system, country_package_metadata)
-    openAPI_spec = build_openAPI_specification(tax_benefit_system, country_package_metadata)
-    return {
+    data = {
         'tax_benefit_system': tax_benefit_system,
         'country_package_metadata': tax_benefit_system.get_package_metadata(),
-        'openAPI_spec': openAPI_spec,
+        'openAPI_spec': None,
         'parameters': parameters,
         'variables': variables,
         'entities': build_entities(tax_benefit_system),
-        'host': None  # Will be set by mirroring requests
         }
+    data['openAPI_spec'] = build_openAPI_specification(data)
+
+    return data
