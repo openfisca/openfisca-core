@@ -119,7 +119,8 @@ def create_app(tax_benefit_system,
         # Ugly Python2-compatible way
         response = {}
         response.update(data['openAPI_spec'])
-        response.update({'host': request.host_url})
+        response.update({'host': request.host})
+        response.update({'schemes': [request.environ['wsgi.url_scheme']]})
         return jsonify(response)
 
         # Nice Python3 syntax, but doesn't work in Python 2

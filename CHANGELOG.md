@@ -1,5 +1,12 @@
 # Changelog
 
+## 24.6.1 [#745](https://github.com/openfisca/openfisca-core/pull/745)
+
+- Fix `host` property in the OpenAPI `/spec`
+  - It should not contain the scheme (e.g. `http`)
+- Infer scheme from request
+  - Before, we would assume `https`, which is not always accurate
+
 ## 24.6.0 [#744](https://github.com/openfisca/openfisca-core/pull/744)
 
 - Allow TaxBenefitSystem to define the examples to use in the `/spec` route.
