@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.5.2 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+
+- Apply W504 enforcement (Knuth's style)
+- Removes version cap on linting libraries
+
 ## 24.6.1 [#745](https://github.com/openfisca/openfisca-core/pull/745)
 
 - Fix `host` property in the OpenAPI `/spec`
