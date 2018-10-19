@@ -24,7 +24,7 @@ format-style:
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
 	autopep8 `git ls-files | grep "\.py$$"`
 
-test: clean check-syntax-errors format-style check-style
+test: clean check-syntax-errors check-style
 	pytest
 
 api:
