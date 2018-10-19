@@ -10,6 +10,7 @@ general_requirements = [
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
     'future',
+    'nose',  # For openfisca-run-test
     'numpy >= 1.11, < 1.15',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
@@ -23,16 +24,17 @@ api_requirements = [
     ]
 
 dev_requirements = [
-    'nose',
-    'flake8',
-    'autopep8',
+    'autopep8 == 1.4.0',
+    'flake8 >= 3.5.0, < 3.6.0',
+    'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
+    'pytest',
     'openfisca-country-template >= 3.4.0, < 4.0.0',
     'openfisca-extension-template >= 1.1.3, < 2.0.0',
     ] + api_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '24.6.2',
+    version = '24.6.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
