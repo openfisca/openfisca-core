@@ -1,6 +1,14 @@
 # Changelog
 
-### 24.5.2 [#734](https://github.com/openfisca/openfisca-core/pull/734)
+### 24.6.3 [#746](https://github.com/openfisca/openfisca-core/pull/746)
+
+- Use `pytest` to run tests, as `nose` and `nose2` are not in active development anymore
+- Declare `nose` as a dependency so dependee libraries like `openfisca-france`can use `openfisca-run-test` without having to add `nose` as a dependency
+
+_Note: `openfisca-run-test` still depends on `nose`._
+
+
+### 24.6.2 [#735](https://github.com/openfisca/openfisca-core/pull/735)
 
 - Apply W504 enforcement (Knuth's style)
 - Removes version cap on linting libraries
