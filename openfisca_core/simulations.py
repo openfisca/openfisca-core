@@ -168,7 +168,9 @@ class Simulation(object):
             self.max_nb_cycles = max_nb_cycles
 
         # First, try to run a formula
-        array = self._run_formula(variable, entity, period, extra_params, max_nb_cycles)
+        array = None
+        if (period.start >= periods.period('1970').start):
+            array = self._run_formula(variable, entity, period, extra_params, max_nb_cycles)
 
         # If no result, try a base function
         if array is None and variable.base_function:
@@ -258,7 +260,7 @@ class Simulation(object):
             return None
         parameters_at = self.tax_benefit_system.get_parameters_at_instant
         try:
-            self._check_for_cycle(variable, period)
+            #self._check_for_cycle(variable, period)
             if formula.__code__.co_argcount == 2:
                 array = formula(entity, period)
             else:
