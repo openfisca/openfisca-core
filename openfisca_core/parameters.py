@@ -365,7 +365,7 @@ class ParameterNode(object):
                         continue
 
                     if child_name == 'index':
-                        data = _load_yaml_file(child_path)
+                        data = _load_yaml_file(child_path) or {}
                         _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'documentation', 'reference'])
                         self.description = data.get('description')
                         self.documentation = data.get('documentation')
@@ -742,11 +742,10 @@ class Scale(object):
             raise KeyError(key)
 
     def __repr__(self):
-        return os.linesep.join(['brackets:'] +
-            [
-            indent('-' + indent(repr(bracket))[1:])
-            for bracket in self.brackets
-            ])
+        return os.linesep.join(
+            ['brackets:']
+            + [indent('-' + indent(repr(bracket))[1:]) for bracket in self.brackets]
+            )
 
 
 class Bracket(ParameterNode):

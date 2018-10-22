@@ -1,5 +1,8 @@
 all: test
 
+uninstall:
+	pip freeze | grep -v "^-e" | xargs pip uninstall -y
+
 install:
 	pip install --upgrade pip twine wheel
 	pip install --editable .[dev] --upgrade
@@ -22,7 +25,7 @@ format-style:
 	autopep8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors check-style
-	nosetests
+	pytest
 
 api:
 	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template

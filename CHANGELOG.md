@@ -1,6 +1,35 @@
 # Changelog
 
-## 24.5.5 [#742](https://github.com/openfisca/openfisca-core/pull/742)
+### 24.6.3 [#746](https://github.com/openfisca/openfisca-core/pull/746)
+
+- Use `pytest` to run tests, as `nose` and `nose2` are not in active development anymore
+- Declare `nose` as a dependency so dependee libraries like `openfisca-france`can use `openfisca-run-test` without having to add `nose` as a dependency
+
+_Note: `openfisca-run-test` still depends on `nose`._
+
+
+### 24.6.2 [#735](https://github.com/openfisca/openfisca-core/pull/735)
+
+- Apply W504 enforcement (Knuth's style)
+- Removes version cap on linting libraries
+
+## 24.6.1 [#745](https://github.com/openfisca/openfisca-core/pull/745)
+
+- Fix `host` property in the OpenAPI `/spec`
+  - It should not contain the scheme (e.g. `http`)
+- Infer scheme from request
+  - Before, we would assume `https`, which is not always accurate
+
+## 24.6.0 [#744](https://github.com/openfisca/openfisca-core/pull/744)
+
+- Allow TaxBenefitSystem to define the examples to use in the `/spec` route.
+  - See [docs](http://openfisca.org/doc/openfisca-web-api/config-openapi.html).
+
+### 24.5.6 [#743](https://github.com/openfisca/openfisca-core/pull/743)
+
+- When there is an empty `index.yaml` in the parameters, ignore it instead of raising an error.
+
+### 24.5.5 [#742](https://github.com/openfisca/openfisca-core/pull/742)
 
 - Fix the internal server error that appeared for the  `/trace` and (less frequently) `/calculate` route of the Web API
   - This error appeared when a simulation output was a variable of type string
