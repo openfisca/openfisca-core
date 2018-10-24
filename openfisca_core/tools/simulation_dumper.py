@@ -16,7 +16,7 @@ def dump_simulation(simulation, directory):
         Write simulation data to directory, so that it can be restored later.
     """
     parent_directory = os.path.abspath(os.path.join(directory, os.pardir))
-    if not os.path.isdir(parent_directory):  # To deal with reforms 
+    if not os.path.isdir(parent_directory):  # To deal with reforms
         os.mkdir(parent_directory)
     if not os.path.isdir(directory):
         os.mkdir(directory)
@@ -90,7 +90,6 @@ def _restore_entity(entity, directory):
     path = os.path.join(directory, entity.key)
 
     entity.ids = np.load(os.path.join(path, "id.npy"))
-    # entity.count = len(entity.ids)
 
     if entity.is_person:
         return
