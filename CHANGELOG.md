@@ -1,6 +1,11 @@
 # Changelog
 
-### 24.6.4 [#???](https://github.com/openfisca/openfisca-core/pull/???)
+### 24.6.5 [#751](https://github.com/openfisca/openfisca-core/pull/751)
+
+- Fix unproper `entity.count` restoration of a dumped simulation
+- Use more previsible value for average rate even when a division by zero is present
+
+### 24.6.4 [#752](https://github.com/openfisca/openfisca-core/pull/752)
 
 - Improve the warning message incentivizing users to install `libyaml`
   - `pyyaml` needs to be fully reinstalled to use `libyaml`
