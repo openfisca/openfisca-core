@@ -3,7 +3,7 @@
 ### 24.6.4 [#???](https://github.com/openfisca/openfisca-core/pull/???)
 
 - Improve the warning message incentivizing users to install `libyaml`
-  - `pyyaml` need to be fully reinstalled to use `libyaml`
+  - `pyyaml` needs to be fully reinstalled to use `libyaml`
 
 ### 24.6.3 [#746](https://github.com/openfisca/openfisca-core/pull/746)
 
