@@ -263,7 +263,7 @@ class Simulation(object):
                 array = formula(entity, period)
             else:
                 array = formula(entity, period, parameters_at, *extra_params)
-        except CycleError as error:
+        except CycleError:
             self._clean_cycle_detection_data(variable.name)
             # if max_nb_cycles is None:
             #     if self.trace:
