@@ -265,12 +265,12 @@ class Simulation(object):
                 array = formula(entity, period, parameters_at, *extra_params)
         except CycleError as error:
             self._clean_cycle_detection_data(variable.name)
-            if max_nb_cycles is None:
-                if self.trace:
-                    self.tracer.record_calculation_abortion(variable.name, period, extra_params = extra_params)
-                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
-                raise error
-            self.max_nb_cycles = None
+            # if max_nb_cycles is None:
+            #     if self.trace:
+            #         self.tracer.record_calculation_abortion(variable.name, period, extra_params = extra_params)
+            #     # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
+            #     raise error
+            # self.max_nb_cycles = None
             return None
 
         self._check_formula_result(array, variable, entity, period)
