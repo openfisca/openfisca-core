@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.6.8 [#753](https://github.com/openfisca/openfisca-core/pull/753)
+
+- Always allow `documentation` property for `ParameterNode`
+  - Due to a bug, this field  was accepted in an `index.yaml` file, but not in a `ParameterNode` located in a single YAML file
+
 ### 24.6.7 [#760](https://github.com/openfisca/openfisca-core/pull/760)
 
 - Tests the computation of the average tax rate of a targeted net income, according to the varying gross income.
