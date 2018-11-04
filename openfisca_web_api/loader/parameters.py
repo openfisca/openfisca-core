@@ -2,6 +2,13 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from openfisca_core.parameters import Parameter, ParameterNode, Scale
+from openfisca_core.taxscales import AmountTaxScale
+
+import logging
+
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 def build_api_values_history(values_history):
@@ -27,28 +34,63 @@ def get_value(date, values):
 
 def build_api_scale(scale):
     # preprocess brackets
-    brackets = [{
-        'thresholds': build_api_values_history(bracket.threshold),
-        'rates': build_api_values_history(bracket.rate),
-        } for bracket in scale.brackets]
+
+    # try:
+    # brackets = [{
+    #     'thresholds': build_api_values_history(bracket.threshold),
+    #     'rates': build_api_values_history(bracket.rate) if 'rate' in bracket.children else None,
+    #     'amounts': build_api_values_history(bracket.amount) if 'amount' in bracket.children else None,
+    # } for bracket in scale.brackets]
+    # log.debug("---")
+    # log.debug(locals())
+    # log.debug("---")
+
+    brackets = []
+    for bracket in scale.brackets:
+        api_toto_bracket = { 'thresholds': build_api_values_history(bracket.threshold) }
+        
+        if 'rate' in bracket.children:
+            api_toto_bracket['rates'] = build_api_values_history(bracket.rate) 
+        elif 'amount' in bracket.children:
+            api_toto_bracket['amounts'] = build_api_values_history(bracket.amount)
+        
+        brackets.append(api_toto_bracket) 
+
+    log.debug("---")
+    log.debug(locals())
+    log.debug("---")
+
+    # except AttributeError:
+        #log.debug(locals())
+
+
 
     dates = set(sum(
-        [list(bracket['thresholds'].keys()) + list(bracket['rates'].keys()) for bracket in brackets],
+        [list(bracket['thresholds'].keys()) 
+        + list(bracket['rates'].keys() if 'rates' in bracket else [])
+        + list(bracket['amounts'].keys() if 'amounts' in bracket else []) for bracket in brackets],
         []))  # flatten the dates and remove duplicates
 
     # We iterate on all dates as we need to build the whole scale for each of them
     api_scale = {}
     for date in dates:
         for bracket in brackets:
+            rates_or_amounts = {}
+            if 'rates' in bracket:
+                rates_or_amounts = bracket['rates']
+            elif 'amounts' in bracket:
+                rates_or_amounts = bracket['amounts']
+
             threshold_value = get_value(date, bracket['thresholds'])
             if threshold_value is not None:
-                rate_value = get_value(date, bracket['rates'])
+                rate_or_amount_value = get_value(date, rates_or_amounts)
                 api_scale[date] = api_scale.get(date) or {}
-                api_scale[date][threshold_value] = rate_value
+                api_scale[date][threshold_value] = rate_or_amount_value
 
     # Handle stopped parameters: a parameter is stopped if its first bracket is stopped
     latest_date_first_threshold = max(brackets[0]['thresholds'].keys())
     latest_value_first_threshold = brackets[0]['thresholds'][latest_date_first_threshold]
+    
     if latest_value_first_threshold is None:
         api_scale[latest_date_first_threshold] = None
 
