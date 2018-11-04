@@ -2,13 +2,6 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from openfisca_core.parameters import Parameter, ParameterNode, Scale
-from openfisca_core.taxscales import AmountTaxScale
-
-import logging
-
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 def build_api_values_history(values_history):
@@ -37,10 +30,10 @@ def build_api_scale(scale, value_key_name):
     brackets = [{
         'thresholds': build_api_values_history(bracket.threshold),
         'values': build_api_values_history(getattr(bracket, value_key_name))
-    } for bracket in scale.brackets]
+        } for bracket in scale.brackets]
 
     dates = set(sum(
-        [list(bracket['thresholds'].keys()) 
+        [list(bracket['thresholds'].keys())
         + list(bracket['values'].keys()) for bracket in brackets],
         []))  # flatten the dates and remove duplicates
 
@@ -57,7 +50,7 @@ def build_api_scale(scale, value_key_name):
     # Handle stopped parameters: a parameter is stopped if its first bracket is stopped
     latest_date_first_threshold = max(brackets[0]['thresholds'].keys())
     latest_value_first_threshold = brackets[0]['thresholds'][latest_date_first_threshold]
-    
+
     if latest_value_first_threshold is None:
         api_scale[latest_date_first_threshold] = None
 
