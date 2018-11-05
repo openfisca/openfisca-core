@@ -26,13 +26,12 @@ def test_load_extension():
     assert len(tbs.variables) == 16
     assert walk_and_count(tbs.parameters) == 8
     tbs.load_extension('openfisca_extension_template')
-    
+
     assert len(tbs.variables) == 17
     assert tbs.get_variable('local_town_child_allowance') is not None
 
     assert walk_and_count(tbs.parameters) == 9
     assert tbs.parameters.local_town.child_allowance.amount is not None
-    
 
 
 def test_unload_extensions():
