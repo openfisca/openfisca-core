@@ -47,7 +47,7 @@ setup(
         'enum34 >= 1.1.6',
         'future',
         'flask == 0.12',
-        'flask-cors == 3.0.2',
+        'flask-cors ==3.0.6',
         'gunicorn >= 19.7.1',
         'numpy >= 1.11, < 1.15',
         'psutil == 5.4.6',
