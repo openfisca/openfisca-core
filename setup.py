@@ -5,6 +5,7 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 from setuptools import setup, find_packages
 
+
 general_requirements = [
     'Biryani[datetimeconv] >= 0.10.8',
     'dpath == 1.4.0',
