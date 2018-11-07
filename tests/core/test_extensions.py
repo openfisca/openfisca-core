@@ -31,6 +31,7 @@ def test_load_extension():
     assert tbs.get_variable('local_town_child_allowance') is not None
 
     assert walk_and_count(tbs.parameters) == 9
+    assert tbs.parameters('2016-01').local_town.child_allowance.amount == 100.0
     assert tbs.parameters.local_town.child_allowance.amount is not None
 
 
