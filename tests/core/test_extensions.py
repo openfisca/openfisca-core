@@ -23,15 +23,26 @@ def walk_and_count(node):
 
 
 def test_load_extension():
-    assert len(tbs.variables) == 16
-    assert walk_and_count(tbs.parameters) == 8
+    country_template_variables_number = 16
+    country_template_parameters_number = 8
+    assert len(tbs.variables) == country_template_variables_number
+    assert walk_and_count(tbs.parameters) == country_template_parameters_number
+
+    # Access a parameter of the country template > OK
+    assert tbs.parameters('2016-01').benefits.housing_allowance == 0.25
+    assert tbs.parameters.benefits.housing_allowance('2016-01') == 0.25
+    assert tbs.parameters.benefits.housing_allowance is not None
+
     tbs.load_extension('openfisca_extension_template')
 
-    assert len(tbs.variables) == 17
+    # Access a variable of the extension template > OK
+    assert len(tbs.variables) == country_template_variables_number + 1
     assert tbs.get_variable('local_town_child_allowance') is not None
 
-    assert walk_and_count(tbs.parameters) == 9
+    # Access a parameter of the extension template > KO, sometimes
+    assert walk_and_count(tbs.parameters) == country_template_parameters_number + 1
     assert tbs.parameters('2016-01').local_town.child_allowance.amount == 100.0
+    assert tbs.parameters.local_town.child_allowance.amount('2016-01') == 100.0
     assert tbs.parameters.local_town.child_allowance.amount is not None
 
 
