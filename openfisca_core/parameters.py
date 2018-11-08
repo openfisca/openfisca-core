@@ -380,15 +380,13 @@ class ParameterNode(object):
                     else:
                         child_name_expanded = _compose_name(name, child_name)
                         child = load_parameter_file(child_path, child_name_expanded)
-                        self.children[child_name] = child
-                        setattr(self, child_name, child)
+                        self.add_child(child_name, child)
 
                 elif os.path.isdir(child_path):
                     child_name = os.path.basename(child_path)
                     child_name_expanded = _compose_name(name, child_name)
                     child = ParameterNode(child_name_expanded, directory_path = child_path)
-                    self.children[child_name] = child
-                    setattr(self, child_name, child)
+                    self.add_child(child_name, child)
 
         else:
             self.file_path = file_path
@@ -404,8 +402,7 @@ class ParameterNode(object):
                 child_name = str(child_name)
                 child_name_expanded = _compose_name(name, child_name)
                 child = _parse_child(child_name_expanded, child, file_path)
-                self.children[child_name] = child
-                setattr(self, child_name, child)
+                self.add_child(child_name, child)
 
     def __call__(self, instant):
         return self.get_at_instant(instant)
@@ -424,7 +421,7 @@ class ParameterNode(object):
         In case of child name conflict, the other node child will replace the current node child.
         """
         for child_name, child in other.children.items():
-            self.children[child_name] = child
+            self.add_child(child_name, child)
 
     def add_child(self, name, child):
         """
