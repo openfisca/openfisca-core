@@ -256,13 +256,10 @@ class TracingParameterNodeAtInstant():
 
             if isinstance(child, ParameterNode):                
                 return TracingParameterNodeAtInstant(child.get_at_instant(period), self.tracer)
-
-            elif isinstance(child, Parameter):
+            else:
                 parameter_value = child.get_at_instant(period) 
                 self.tracer.record_calculation_parameter_access(child, period)
                 return parameter_value
-            else:
-              raise Exception() 
         except KeyError:
             param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
             raise ParameterNotFound(param_name, self._instant_str) 
