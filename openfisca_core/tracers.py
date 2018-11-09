@@ -40,8 +40,9 @@ class Tracer(object):
             .. code-block:: python
 
               {
-                'income_tax<2017-01': {
-                  'dependencies':['global_income<2017-01>', 'nb_children<2017-01>']
+                'income_tax<2017-01>': {
+                  'dependencies':['global_income<2017-01>', 'nb_children<2017-01>'],
+                  'parameters' : ['taxes.income_tax_rate<2015-01> = 0.15', ...],
                   'value': 600
                   },
                 'global_income<2017-01>': {...}

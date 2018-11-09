@@ -14,7 +14,19 @@ scenario = tax_benefit_system.new_scenario().init_from_attributes(
 
 def test_calculate_with_trace():
     simulation = scenario.new_simulation(trace=True)
-    simulation.calculate('disposable_income', "2014-01")
+    simulation.calculate('income_tax', "2017-01")
+
+    # {
+    #   'income_tax<2017-01>': {
+    #     'dependencies':['global_income<2017-01>', 'nb_children<2017-01>'],
+    #     'parameters' : ['taxes.income_tax_rate<2015-01> = 0.15', ...],
+    #     'value': 600
+    #     },
+    #   'global_income<2017-01>': {...}
+    # }
+
+    parameters = simulation.tracer.trace['income_tax<2017-01>']['parameters']
+    assert 'taxes.income_tax_rate<2015-01> = 0.15' in parameters
 
 
 def test_clone():
