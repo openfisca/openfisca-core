@@ -248,6 +248,12 @@ class Simulation(object):
 
         return variable.calculate_output(self, variable_name, period)
 
+    def trace_parameters_at_instant(self, formula_period):
+        return TracingParameterNodeAtInstant(
+            self.tax_benefit_system.get_parameters_at_instant(formula_period),
+            self.tracer
+            )
+
     def _run_formula(self, variable, entity, period, extra_params, max_nb_cycles):
         """
             Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
@@ -258,10 +264,7 @@ class Simulation(object):
             return None
 
         if self.trace:
-            parameters_at = lambda formula_period: TracingParameterNodeAtInstant(
-                self.tax_benefit_system.get_parameters_at_instant(formula_period),
-                self.tracer
-                )
+            parameters_at = self.trace_parameters_at_instant
         else:
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
