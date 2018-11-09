@@ -11,7 +11,7 @@ import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
-from openfisca_core.tracers import Tracer
+from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -256,11 +256,15 @@ class Simulation(object):
         formula = variable.get_formula(period)
         if formula is None:
             return None
-        parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
         if self.trace:
-            if variable.name == 'income_tax':
-                self.tracer.record_calculation_parameter_access(parameters_at(period).taxes._original_children['income_tax_rate'], period)
+            parameters_at = lambda formula_period: TracingParameterNodeAtInstant(
+                self.tax_benefit_system.get_parameters_at_instant(formula_period),
+                self.tracer
+                )
+            
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
         try:
             self._check_for_cycle(variable, period)

@@ -8,6 +8,8 @@ import logging
 import copy
 from collections import defaultdict
 
+from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
+
 log = logging.getLogger(__name__)
 
 
@@ -114,15 +116,15 @@ class Tracer(object):
         self._computation_log.append((key, len(self.stack)))
         self.usage_stats[variable_name]['nb_requests'] += 1
 
-    def record_calculation_parameter_access(self, parameter_at_instant, period):
+    def record_calculation_parameter_access(self, parameter, period):
         parent = self.stack[-1]
         if 'parameters' not in self.trace[parent]:
             self.trace[parent]['parameters'] = []
         
         parameter_trace = '{}<{}> = {}'.format(
-            parameter_at_instant.name, 
-            period, # parameter_at_instant.get_at_instant, 
-            parameter_at_instant.get_at_instant(period)
+            parameter.name, 
+            period, # parameter.get_at_instant, 
+            parameter.get_at_instant(period)
             )
         self.trace[parent]['parameters'].append(parameter_trace)
 
@@ -239,3 +241,28 @@ class Tracer(object):
         """
         for node, depth in self._computation_log:
             self._print_node(node, depth, aggregate)
+
+
+class TracingParameterNodeAtInstant():
+
+    def __init__(self, parameter_node_at_instant, tracer):
+        self.parameter_node_at_instant = parameter_node_at_instant
+        self.tracer = tracer
+
+    def __getattr__(self, key):
+        try:
+            child = self.parameter_node_at_instant._original_children[key]
+            period = self.parameter_node_at_instant._instant_str
+
+            if isinstance(child, ParameterNode):                
+                return TracingParameterNodeAtInstant(child.get_at_instant(period), self.tracer)
+
+            elif isinstance(child, Parameter):
+                parameter_value = child.get_at_instant(period) 
+                self.tracer.record_calculation_parameter_access(child, period)
+                return parameter_value
+            else:
+              raise Exception() 
+        except KeyError:
+            param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
+            raise ParameterNotFound(param_name, self._instant_str) 
