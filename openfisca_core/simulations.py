@@ -257,6 +257,11 @@ class Simulation(object):
         if formula is None:
             return None
         parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
+        if self.trace:
+            if variable.name == 'income_tax':
+                self.tracer.record_calculation_parameter_access(parameters_at(period).taxes._original_children['income_tax_rate'], period)
+
         try:
             self._check_for_cycle(variable, period)
             if formula.__code__.co_argcount == 2:

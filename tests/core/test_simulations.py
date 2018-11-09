@@ -26,7 +26,7 @@ def test_calculate_with_trace():
     # }
 
     parameters = simulation.tracer.trace['income_tax<2017-01>']['parameters']
-    assert 'taxes.income_tax_rate<2015-01> = 0.15' in parameters
+    assert 'taxes.income_tax_rate<2017-01> = 0.15' in parameters
 
 
 def test_clone():

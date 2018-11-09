@@ -114,6 +114,20 @@ class Tracer(object):
         self._computation_log.append((key, len(self.stack)))
         self.usage_stats[variable_name]['nb_requests'] += 1
 
+    def record_calculation_parameter_access(self, parameter_at_instant, period):
+        parent = self.stack[-1]
+        if 'parameters' not in self.trace[parent]:
+            self.trace[parent]['parameters'] = []
+        
+        parameter_trace = '{}<{}> = {}'.format(
+            parameter_at_instant.name, 
+            period, # parameter_at_instant.get_at_instant, 
+            parameter_at_instant.get_at_instant(period)
+            )
+        self.trace[parent]['parameters'].append(parameter_trace)
+
+
+
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
             Record that OpenFisca finished computing a variable.
