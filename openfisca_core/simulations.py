@@ -262,7 +262,6 @@ class Simulation(object):
                 self.tax_benefit_system.get_parameters_at_instant(formula_period),
                 self.tracer
                 )
-            
         else:
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 

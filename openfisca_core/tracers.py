@@ -8,7 +8,7 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
+from openfisca_core.parameters import ParameterNode, ParameterNotFound
 
 log = logging.getLogger(__name__)
 
@@ -120,15 +120,13 @@ class Tracer(object):
         parent = self.stack[-1]
         if 'parameters' not in self.trace[parent]:
             self.trace[parent]['parameters'] = []
-        
+
         parameter_trace = '{}<{}> = {}'.format(
-            parameter.name, 
-            period, # parameter.get_at_instant, 
+            parameter.name,
+            period,
             parameter.get_at_instant(period)
             )
         self.trace[parent]['parameters'].append(parameter_trace)
-
-
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
@@ -254,12 +252,12 @@ class TracingParameterNodeAtInstant():
             child = self.parameter_node_at_instant._original_children[key]
             period = self.parameter_node_at_instant._instant_str
 
-            if isinstance(child, ParameterNode):                
+            if isinstance(child, ParameterNode):
                 return TracingParameterNodeAtInstant(child.get_at_instant(period), self.tracer)
             else:
-                parameter_value = child.get_at_instant(period) 
+                parameter_value = child.get_at_instant(period)
                 self.tracer.record_calculation_parameter_access(child, period)
                 return parameter_value
         except KeyError:
             param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
-            raise ParameterNotFound(param_name, self._instant_str) 
+            raise ParameterNotFound(param_name, self._instant_str)
