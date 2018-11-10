@@ -6,7 +6,12 @@ import numpy
 
 
 def average_rate(target = None, varying = None):
-    # target: numerator, varying: denominator
+    '''
+    Computes the average rate of a targeted net income, according to the varying gross income.
+
+    :param target: Targeted net income, numerator
+    :param varying: Varying gross income, denominator
+    '''
     return 1 - target / varying
 
 

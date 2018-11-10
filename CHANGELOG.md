@@ -1,5 +1,9 @@
 # Changelog
 
+### 24.6.7 [#760](https://github.com/openfisca/openfisca-core/pull/760)
+
+- Tests the computation of the average tax rate of a targeted net income, according to the varying gross income.
+
 ### 24.6.6 [#758](https://github.com/openfisca/openfisca-core/pull/758)
 
 - Updates the requirements on [numpy](http://www.numpy.org) to permit version 1.16
