@@ -12,7 +12,7 @@ general_requirements = [
     'enum34 >= 1.1.6',
     'future',
     'nose',  # For openfisca-run-test
-    'numpy >= 1.11, < 1.15',
+    'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
     'sortedcontainers == 1.5.9',
@@ -35,7 +35,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '24.6.5',
+    version = '24.6.6',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
