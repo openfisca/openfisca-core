@@ -4,14 +4,19 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 
 import pytest
 
-from openfisca_core.periods import Period, Instant, YEAR, MONTH, period
+from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, period
 from openfisca_core.commons import to_unicode
 
 first_jan = Instant((2014, 1, 1))
 first_march = Instant((2014, 3, 1))
 
 
-# Test Period -> String
+'''
+Test Period -> String
+'''
+
+
+# Years
 
 def test_year():
     assert to_unicode(Period((YEAR, first_jan, 1))) == '2014'
@@ -26,6 +31,13 @@ def test_rolling_year():
     assert to_unicode(Period((YEAR, first_march, 1))) == 'year:2014-03'
 
 
+def test_several_years():
+    assert to_unicode(Period((YEAR, first_jan, 3))) == 'year:2014:3'
+    assert to_unicode(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
+
+
+# Months
+
 def test_month():
     assert to_unicode(Period((MONTH, first_jan, 1))) == '2014-01'
 
@@ -35,27 +47,32 @@ def test_several_months():
     assert to_unicode(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
 
 
-def test_several_years():
-    assert to_unicode(Period((YEAR, first_jan, 3))) == 'year:2014:3'
-    assert to_unicode(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
+# Days
 
-# Test String -> Period
+@pytest.mark.xfail
+def test_day():
+    assert to_unicode(Period((DAY, first_jan, 1))) == '2014-01-01'
 
+
+@pytest.mark.xfail
+def test_several_days():
+    assert to_unicode(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
+    assert to_unicode(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
+
+
+'''
+Test String -> Period
+'''
+
+
+# Years
 
 def test_parsing_year():
     assert period('2014') == Period((YEAR, first_jan, 1))
 
 
-def test_parsing_month():
-    assert period('2014-01') == Period((MONTH, first_jan, 1))
-
-
 def test_parsing_rolling_year():
     assert period('year:2014-03') == Period((YEAR, first_march, 1))
-
-
-def test_parsing_several_months():
-    assert period('month:2014-03:3') == Period((MONTH, first_march, 3))
 
 
 def test_parsing_several_years():
@@ -67,20 +84,39 @@ def test_wrong_syntax_several_years():
         period('2014:2')
 
 
+# Months
+
+def test_parsing_month():
+    assert period('2014-01') == Period((MONTH, first_jan, 1))
+
+
+def test_parsing_several_months():
+    assert period('month:2014-03:3') == Period((MONTH, first_march, 3))
+
+
 def test_wrong_syntax_several_months():
     with pytest.raises(ValueError):
-        period('2014-2:2')
+        period('2014-3:3')
 
 
-def test_daily_period():
-    with pytest.raises(ValueError):
-        period('2014-2-3')
+# Days
+
+@pytest.mark.xfail
+def test_parsing_day():
+    assert period('2014-01-01') == Period((DAY, first_jan, 1))
 
 
-def test_daily_period_2():
+@pytest.mark.xfail
+def test_parsing_several_days():
+    assert period('day:2014-03-01:3') == Period((DAY, first_march, 3))
+
+
+def test_wrong_syntax_several_days():
     with pytest.raises(ValueError):
         period('2014-2-3:2')
 
+
+# Misc
 
 def test_ambiguous_period():
     with pytest.raises(ValueError):

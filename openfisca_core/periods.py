@@ -22,6 +22,7 @@ from openfisca_core import conv
 from openfisca_core.commons import basestring_type, to_unicode
 
 
+DAY = 'day'
 MONTH = 'month'
 YEAR = 'year'
 ETERNITY = 'eternity'
