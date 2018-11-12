@@ -19,14 +19,17 @@ def test_calculate_with_trace():
     # {
     #   'income_tax<2017-01>': {
     #     'dependencies':['global_income<2017-01>', 'nb_children<2017-01>'],
-    #     'parameters' : ['taxes.income_tax_rate<2015-01> = 0.15', ...],
+    #     'parameters' : {'taxes.income_tax_rate<2015-01>': 0.15, ...},
     #     'value': 600
     #     },
     #   'global_income<2017-01>': {...}
     # }
 
-    parameters = simulation.tracer.trace['income_tax<2017-01>']['parameters']
-    assert 'taxes.income_tax_rate<2017-01-01> = 0.15' in parameters
+    salary_trace = simulation.tracer.trace['salary<2017-01>']
+    assert salary_trace['parameters'] == {}
+
+    income_tax_trace = simulation.tracer.trace['income_tax<2017-01>']
+    assert income_tax_trace['parameters']['taxes.income_tax_rate<2017-01-01>'] == 0.15
 
 
 def test_clone():

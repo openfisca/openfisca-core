@@ -44,7 +44,7 @@ class Tracer(object):
               {
                 'income_tax<2017-01>': {
                   'dependencies':['global_income<2017-01>', 'nb_children<2017-01>'],
-                  'parameters' : ['taxes.income_tax_rate<2015-01> = 0.15', ...],
+                  'parameters' : {'taxes.income_tax_rate<2015-01>': 0.15, ...},
                   'value': 600
                   },
                 'global_income<2017-01>': {...}
@@ -111,22 +111,19 @@ class Tracer(object):
             self.requested_calculations.add(key)
 
         if not self.trace.get(key):
-            self.trace[key] = {'dependencies': []}
+            self.trace[key] = {'dependencies': [], 'parameters': {}}
+
         self.stack.append(key)
         self._computation_log.append((key, len(self.stack)))
         self.usage_stats[variable_name]['nb_requests'] += 1
 
     def record_calculation_parameter_access(self, parameter, period):
         parent = self.stack[-1]
-        if 'parameters' not in self.trace[parent]:
-            self.trace[parent]['parameters'] = []
-
-        parameter_trace = '{}<{}> = {}'.format(
+        parameter_key = '{}<{}>'.format(
             parameter.name,
-            period,
-            parameter.get_at_instant(period)
+            period
             )
-        self.trace[parent]['parameters'].append(parameter_trace)
+        self.trace[parent]['parameters'][parameter_key] = parameter.get_at_instant(period)
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
