@@ -32,18 +32,18 @@ class Entity(object):
     doc = ""
     is_person = False
 
-    def __init__(self, simulation, entities_json = None):
+    def __init__(self, simulation, entities_json = None, default_period = None):
         self.simulation = simulation
         self._holders = {}
         if entities_json is not None:
-            self.init_from_json(entities_json)
+            self.init_from_json(entities_json, default_period)
         else:
             self.entities_json = None
             self.count = 0
             self.ids = []
             self.step_size = 0
 
-    def init_from_json(self, entities_json):
+    def init_from_json(self, entities_json, default_period = None):
         """
             Initilalises entities from a JSON dictionnary.
 
@@ -61,12 +61,12 @@ class Entity(object):
                 self.init_members(roles_json, entity_id)
             else:
                 variables_json = entity_object
-            self.init_variable_values(variables_json, entity_id)
+            self.init_variable_values(variables_json, entity_id, default_period = default_period)
 
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init()
 
-    def init_variable_values(self, entity_object, entity_id):
+    def init_variable_values(self, entity_object, entity_id, default_period = None):
         entity_index = self.ids.index(entity_id)
         for variable_name, variable_values in entity_object.items():
             path_in_json = [self.plural, entity_id, variable_name]
@@ -78,8 +78,11 @@ class Entity(object):
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
             if not isinstance(variable_values, dict):
-                raise SituationParsingError(path_in_json,
-                    "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+
+              if default_period is None:
+                  raise SituationParsingError(path_in_json,
+                      "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+              variable_values = {default_period: variable_values}
 
             holder = self.get_holder(variable_name)
             for period_str, value in variable_values.items():
@@ -373,8 +376,8 @@ class GroupEntity(Entity):
     flattened_roles = None
     roles_description = None
 
-    def __init__(self, simulation, entities_json = None):
-        Entity.__init__(self, simulation, entities_json)
+    def __init__(self, simulation, entities_json = None, default_period = None):
+        Entity.__init__(self, simulation, entities_json, default_period)
         if entities_json is None:
             self.members_entity_id = None
             self._members_role = None
@@ -393,7 +396,7 @@ class GroupEntity(Entity):
             }
         return roles_definition, entity_object
 
-    def init_from_json(self, entities_json):
+    def init_from_json(self, entities_json, default_period = None):
         self.members_entity_id = np.empty(
             self.simulation.persons.count,
             dtype = np.int32
@@ -410,7 +413,7 @@ class GroupEntity(Entity):
 
         self.persons_to_allocate = set(self.simulation.persons.ids)
 
-        Entity.init_from_json(self, entities_json)
+        Entity.init_from_json(self, entities_json, default_period = default_period)
 
         if self.persons_to_allocate:
             unallocated_person = self.persons_to_allocate.pop()

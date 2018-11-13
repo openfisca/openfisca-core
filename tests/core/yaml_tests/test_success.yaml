@@ -1,6 +1,6 @@
 - name: "Basic test"
   period: 2015-01
-  input_variables:
+  input:
     salary: 2000
-  output_variables:
+  output:
     income_tax: 300

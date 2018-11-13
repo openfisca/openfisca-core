@@ -212,7 +212,6 @@ def _parse_test(tax_benefit_system, test):
 
     if not test.get('input'):
         raise ValueError("Missing key 'input' in test '{}' in file '{}'".format(test['name'], test['file_path']))
-
     simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input'), test.get('period'))
 
     return simulation, test
@@ -229,10 +228,10 @@ def _run_test(simulation, test, verbose = False, only_variables = None, ignore_v
     # scenario = test['scenario']
     # scenario.suggest()
     # simulation = scenario.new_simulation(trace = verbose)
-    output_variables = test.get('output_variables')
-    if output_variables is not None:
+    output = test.get('output')
+    if output is not None:
         try:
-            for variable_name, expected_value in output_variables.items():
+            for variable_name, expected_value in output.items():
                 variable_ignored = ignore_variables is not None and variable_name in ignore_variables
                 variable_not_tested = only_variables is not None and variable_name not in only_variables
                 if variable_ignored or variable_not_tested:
@@ -247,6 +246,7 @@ def _run_test(simulation, test, verbose = False, only_variables = None, ignore_v
                             relative_error_margin = relative_error_margin,
                             )
                 else:
+                    print("relative_error_margin %s" % relative_error_margin, file=sys.stderr)
                     assert_near(
                         simulation.calculate(variable_name, test.get('period')),
                         expected_value,

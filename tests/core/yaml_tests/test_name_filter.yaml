@@ -1,8 +1,8 @@
 - name: "Test that sould be run because the magic word `success is in its title"
   period: 2015-01
-  input_variables:
+  input:
     salary: 2000
-  output_variables:
+  output:
     income_tax: 0.15 * 2000
 
 - name: "Test that sould be run because the magic word is in its keywords"
@@ -10,14 +10,14 @@
     - some keyword
     - success
   period: 2015-01
-  input_variables:
+  input:
     salary: 2500
-  output_variables:
+  output:
     income_tax: 0.15 * 2500
 
 - name: "Failing test that should not be run"
   period: 2015-01
-  input_variables:
+  input:
     salary: 2000
-  output_variables:
+  output:
     income_tax: 0

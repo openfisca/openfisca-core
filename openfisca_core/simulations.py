@@ -50,6 +50,7 @@ class Simulation(object):
             trace = False,
             opt_out_cache = False,
             memory_config = None,
+            default_period = None,
             ):
         """
             If a ``simulation_json`` is given, initialises a simulation from a JSON dictionary.
@@ -80,9 +81,9 @@ class Simulation(object):
 
         self.memory_config = memory_config
         self._data_storage_dir = None
-        self.instantiate_entities(simulation_json)
+        self.instantiate_entities(simulation_json, default_period = default_period)
 
-    def instantiate_entities(self, simulation_json):
+    def instantiate_entities(self, simulation_json, default_period = None):
         if simulation_json:
             check_type(simulation_json, dict, ['error'])
             allowed_entities = set(entity_class.plural for entity_class in self.tax_benefit_system.entities)
@@ -105,7 +106,7 @@ class Simulation(object):
             if not persons_json:
                 raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
                     'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
-            self.persons = self.tax_benefit_system.person_entity(self, persons_json)
+            self.persons = self.tax_benefit_system.person_entity(self, persons_json, default_period = default_period)
         else:
             self.persons = self.tax_benefit_system.person_entity(self)
 
@@ -115,7 +116,7 @@ class Simulation(object):
         for entity_class in self.tax_benefit_system.group_entities:
             if simulation_json:
                 entities_json = simulation_json.get(entity_class.plural)
-                entities = entity_class(self, entities_json or {})
+                entities = entity_class(self, entities_json or {}, default_period = default_period)
             else:
                 entities = entity_class(self)
             self.entities[entity_class.key] = entities
