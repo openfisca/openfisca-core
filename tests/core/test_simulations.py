@@ -1,26 +1,71 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-from openfisca_country_template.situation_examples import single
+import os
 
 from openfisca_core.simulations import Simulation
+from openfisca_core.variables import Variable
+from openfisca_core.parameters import ParameterNode
+from openfisca_core.periods import MONTH
+
+from openfisca_country_template.situation_examples import single
+from openfisca_country_template.entities import Person
 
 from .test_countries import tax_benefit_system
 
+class zone(Variable):
+    value_type = str
+    entity = Person
+    definition_period = MONTH
+    label = "Variable for fancy indexing inputs"
+
+
+class fancy_indexing(Variable):
+    value_type = int
+    entity = Person
+    definition_period = MONTH
+    label = "Variable using fancy indexing"
+
+    def formula(person, period, parameters):
+        zone = person('zone', period)
+        parameter = parameters(period).rate.single.owner
+        return parameter[zone]
+
+LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
+fancy_indexing_directory = os.path.join(LOCAL_DIR, 'parameters_fancy_indexing')
+parameters = ParameterNode(directory_path = fancy_indexing_directory)
+tax_benefit_system.parameters.merge(parameters)
+
+tax_benefit_system.add_variable(fancy_indexing)
+tax_benefit_system.add_variable(zone)
+
 scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period=2014
+    period='2017-01', input_variables={'zone':['z1','z1','z1']}
     )
 
 
 def test_calculate_with_trace():
     simulation = scenario.new_simulation(trace=True)
-    simulation.calculate('income_tax', "2017-01")
+    simulation.calculate('income_tax', '2017-01')
 
     salary_trace = simulation.tracer.trace['salary<2017-01>']
     assert salary_trace['parameters'] == {}
 
     income_tax_trace = simulation.tracer.trace['income_tax<2017-01>']
     assert income_tax_trace['parameters']['taxes.income_tax_rate<2017-01-01>'] == 0.15
+
+    # Trace parameters called with indirect access
+    simulation.calculate('housing_tax', '2017')
+    housing_tax_trace = simulation.tracer.trace['housing_tax<2017>']
+    assert 'taxes.housing_tax<2017-01-01>' not in housing_tax_trace['parameters']
+    assert housing_tax_trace['parameters']['taxes.housing_tax.rate<2017-01-01>'] == 10
+    assert housing_tax_trace['parameters']['taxes.housing_tax.minimal_amount<2017-01-01>'] == 200
+
+    # Trace parameters called with fancy indexing
+    simulation.calculate('fancy_indexing', '2017-01')
+    fancy_indexing_trace = simulation.tracer.trace['fancy_indexing<2017-01>']
+    assert fancy_indexing_trace['parameters']['rate.single.owner.z1<2017-01-01>'] == 100
+    assert 'rate.single.owner.z2<2017-01-01>' not in fancy_indexing_trace['parameters']
 
 
 def test_clone():

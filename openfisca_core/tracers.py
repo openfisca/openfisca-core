@@ -8,7 +8,7 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNode, ParameterNotFound
+from openfisca_core.parameters import ParameterNode, ParameterNotFound, VectorialParameterNodeAtInstant
 from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
 
 log = logging.getLogger(__name__)
@@ -269,3 +269,11 @@ class TracingParameterNodeAtInstant():
         except KeyError:
             param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
             raise ParameterNotFound(param_name, self._instant_str)
+    
+    def __getitem__(self, key):
+        return self.parameter_node_at_instant[key]
+        # If fancy indexing is used, cast to a vectorial node
+        # if isinstance(key, np.ndarray):
+        #     return VectorialParameterNodeAtInstant.build_from_node(self)[key]
+        # return self._children[key]
+
