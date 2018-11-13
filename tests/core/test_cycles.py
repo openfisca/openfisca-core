@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from nose.tools import raises
+import pytest
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
@@ -12,7 +13,6 @@ from openfisca_core.variables import Variable
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
-
 
 # 1 <--> 2 with same period
 class variable1(Variable):
