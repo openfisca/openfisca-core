@@ -8,7 +8,7 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNode, ParameterNotFound, Scale
+from openfisca_core.parameters import ParameterNode, ParameterNotFound
 from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
 
 log = logging.getLogger(__name__)
@@ -128,12 +128,12 @@ class Tracer(object):
                 at_instant_trace[str(threshold)] = values[index]
         else:
             at_instant_trace = at_instant
-        
+
         parent = self.stack[-1]
         parameter_key = '{}<{}>'.format(
             parameter.name,
             period
-            )   
+            )
         self.trace[parent]['parameters'][parameter_key] = at_instant_trace
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
