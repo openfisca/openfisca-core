@@ -261,7 +261,7 @@ class TracingParameterNodeAtInstant(object):
         if isinstance(child, (ParameterNodeAtInstant, VectorialParameterNodeAtInstant)):
             return TracingParameterNodeAtInstant(child, self.tracer)
         if not isinstance(key, str) or isinstance(self.parameter_node_at_instant, VectorialParameterNodeAtInstant):
-            # In case of vectorialisation, we keep the parent node name as, for instance, rate[status].zone1 is the value of "rate"
+            # In case of vectorization, we keep the parent node name as, for instance, rate[status].zone1 is best described as the value of "rate"
             name = self.parameter_node_at_instant._name
         else:
             name = '.'.join([self.parameter_node_at_instant._name, key])
