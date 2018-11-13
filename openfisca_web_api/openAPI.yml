@@ -356,6 +356,11 @@ definitions:
               type: array
               items:
                 type: string
+            parameters:
+              type: object
+              additionalProperties:
+                type: object
+
     example: null
 
 commons:
