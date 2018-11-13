@@ -14,35 +14,8 @@ from openfisca_country_template.entities import Person
 from .test_countries import tax_benefit_system
 
 
-class zone(Variable):
-    value_type = str
-    entity = Person
-    definition_period = MONTH
-    label = "Variable for fancy indexing inputs"
 
-
-class fancy_indexing(Variable):
-    value_type = int
-    entity = Person
-    definition_period = MONTH
-    label = "Variable using fancy indexing"
-
-    def formula(person, period, parameters):
-        zone = person('zone', period)
-        return parameters(period).rate.single.owner[zone]
-
-
-LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
-fancy_indexing_directory = os.path.join(LOCAL_DIR, 'parameters_fancy_indexing')
-parameters = ParameterNode(directory_path = fancy_indexing_directory)
-tax_benefit_system.parameters.merge(parameters)
-
-tax_benefit_system.add_variable(fancy_indexing)
-tax_benefit_system.add_variable(zone)
-
-scenario = tax_benefit_system.new_scenario().init_from_attributes(
-    period='2017-01', input_variables={'zone': ['z1', 'z1', 'z1']}
-    )
+scenario = tax_benefit_system.new_scenario().init_from_attributes(period = '2017-01')
 
 
 def test_calculate_with_trace():
@@ -61,12 +34,6 @@ def test_calculate_with_trace():
     assert 'taxes.housing_tax<2017-01-01>' not in housing_tax_trace['parameters']
     assert housing_tax_trace['parameters']['taxes.housing_tax.rate<2017-01-01>'] == 10
     assert housing_tax_trace['parameters']['taxes.housing_tax.minimal_amount<2017-01-01>'] == 200
-
-    # Tracing of fancy indexed parameters is not yet supported
-    simulation.calculate('fancy_indexing', '2017-01')
-    fancy_indexing_trace = simulation.tracer.trace['fancy_indexing<2017-01>']
-    assert 'rate.single.owner.z1<2017-01-01>' not in fancy_indexing_trace['parameters']
-    assert 'rate.single.owner.z2<2017-01-01>' not in fancy_indexing_trace['parameters']
 
 
 def test_clone():
