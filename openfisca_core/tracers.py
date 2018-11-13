@@ -9,7 +9,7 @@ import copy
 from collections import defaultdict
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
-from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
+from openfisca_core.taxscales import AbstractTaxScale
 
 log = logging.getLogger(__name__)
 

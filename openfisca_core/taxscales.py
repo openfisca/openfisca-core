@@ -65,6 +65,7 @@ class AbstractTaxScale(object):
             for index, threshold in enumerate(self.thresholds)
             }
 
+
 class AbstractRateTaxScale(AbstractTaxScale):
     """Abstract class for various types of rate-based tax scales (marginal rate, linear average rate)"""
     rates = None

@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-import os
 
 from openfisca_core.simulations import Simulation
-from openfisca_core.variables import Variable
-from openfisca_core.parameters import ParameterNode
-from openfisca_core.periods import MONTH
 
 from openfisca_country_template.situation_examples import single
-from openfisca_country_template.entities import Person
 
 from .test_countries import tax_benefit_system
-
 
 
 scenario = tax_benefit_system.new_scenario().init_from_attributes(period = '2017-01')
