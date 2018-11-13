@@ -98,6 +98,8 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
             walk_node(child, parameters, path_fragments + [child_name], country_package_metadata)
         parameters.append(api_parameter)
 
+    return parameters
+
 
 def build_parameters(tax_benefit_system, country_package_metadata):
     original_parameters = tax_benefit_system.parameters
