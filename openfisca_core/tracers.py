@@ -8,7 +8,7 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNode, ParameterNotFound
+from openfisca_core.parameters import ParameterNodeAtInstant
 from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
 
 log = logging.getLogger(__name__)
@@ -118,23 +118,16 @@ class Tracer(object):
         self._computation_log.append((key, len(self.stack)))
         self.usage_stats[variable_name]['nb_requests'] += 1
 
-    def record_calculation_parameter_access(self, parameter, period):
-        at_instant = parameter.get_at_instant(period)
-
-        if isinstance(at_instant, AbstractTaxScale):
-            values = at_instant.amounts if isinstance(at_instant, AmountTaxScale) else at_instant.rates
-            at_instant_trace = {}
-            for index, threshold in enumerate(at_instant.thresholds):
-                at_instant_trace[str(threshold)] = values[index]
-        else:
-            at_instant_trace = at_instant
+    def record_calculation_parameter_access(self, parameter_name, period, value):
+        if isinstance(value, AbstractTaxScale):
+            value = value.to_dict()
 
         parent = self.stack[-1]
         parameter_key = '{}<{}>'.format(
-            parameter.name,
+            parameter_name,
             period
             )
-        self.trace[parent]['parameters'][parameter_key] = at_instant_trace
+        self.trace[parent]['parameters'][parameter_key] = value
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
@@ -256,19 +249,18 @@ class TracingParameterNodeAtInstant():
         self.tracer = tracer
 
     def __getattr__(self, key):
-        try:
-            child = self.parameter_node_at_instant._original_children[key]
-            period = self.parameter_node_at_instant._instant_str
+        children = self.parameter_node_at_instant._children
 
-            if isinstance(child, ParameterNode):
-                return TracingParameterNodeAtInstant(child.get_at_instant(period), self.tracer)
-            else:
-                at_instant_trace = child.get_at_instant(period)
-                self.tracer.record_calculation_parameter_access(child, period)
-                return at_instant_trace
-        except KeyError:
-            param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
-            raise ParameterNotFound(param_name, self._instant_str)
+        if key not in children:
+            return getattr(self.parameter_node_at_instant, key)  # If the attribute is not a child, don't do anything
+
+        child = children[key]
+        if isinstance(child, ParameterNodeAtInstant):
+            return TracingParameterNodeAtInstant(child, self.tracer)
+        period = self.parameter_node_at_instant._instant_str
+        name = '.'.join([self.parameter_node_at_instant._name, key])
+        self.tracer.record_calculation_parameter_access(name, period, child)
+        return child
 
     def __getitem__(self, key):
         return self.parameter_node_at_instant[key]

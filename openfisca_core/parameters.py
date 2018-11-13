@@ -466,14 +466,10 @@ class ParameterNodeAtInstant(object):
         self._instant_str = instant_str
         self._children = {}
 
-        # if trace:
-        self._original_children = {}
-
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
                 self._children[child_name] = child_at_instant
-                self._original_children[child_name] = child
                 setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
