@@ -43,6 +43,7 @@ def check_tracing(accessor, param_key):
 
 def test_x():
     tests = [
+        (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'), # basic case
         (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'), # fancy indexing on leaf
         (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single<2015-01-01>'), # on a node
         (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single<2015-01-01>'), # double fancy indexing

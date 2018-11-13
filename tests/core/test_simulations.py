@@ -19,7 +19,7 @@ scenario = tax_benefit_system.new_scenario().init_from_attributes(period = '2017
 
 
 def test_calculate_with_trace():
-    simulation = scenario.new_simulation(trace=True)
+    simulation = scenario.new_simulation(trace = True)
     simulation.calculate('income_tax', '2017-01')
 
     salary_trace = simulation.tracer.trace['salary<2017-01>']
