@@ -8,7 +8,7 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNodeAtInstant
+from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant
 from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
 
 log = logging.getLogger(__name__)
@@ -242,7 +242,7 @@ class Tracer(object):
             self._print_node(node, depth, aggregate)
 
 
-class TracingParameterNodeAtInstant():
+class TracingParameterNodeAtInstant(object):
 
     def __init__(self, parameter_node_at_instant, tracer):
         self.parameter_node_at_instant = parameter_node_at_instant
@@ -263,4 +263,29 @@ class TracingParameterNodeAtInstant():
         return child
 
     def __getitem__(self, key):
-        return self.parameter_node_at_instant[key]
+        child = self.parameter_node_at_instant[key]
+        if isinstance(child, VectorialParameterNodeAtInstant):
+            return TracingVectorialParameterNodeAtInstant(child, self.tracer)
+        self.tracer.record_calculation_parameter_access(self.parameter_node_at_instant._name, self.parameter_node_at_instant._instant_str, child)
+        return child
+
+
+class TracingVectorialParameterNodeAtInstant(object):
+
+    def __init__(self, parameter_node_at_instant, tracer):
+        self.parameter_node_at_instant = parameter_node_at_instant
+        self.tracer = tracer
+
+    def __getattr__(self, key):
+        child = getattr(self.parameter_node_at_instant, key)
+        if isinstance(child, VectorialParameterNodeAtInstant):
+            return TracingVectorialParameterNodeAtInstant(child, self.tracer)
+        self.tracer.record_calculation_parameter_access(self.parameter_node_at_instant._name, self.parameter_node_at_instant._instant_str, child)
+        return child
+
+    def __getitem__(self, key):
+        child = self.parameter_node_at_instant[key]
+        if isinstance(child, VectorialParameterNodeAtInstant):
+            return TracingVectorialParameterNodeAtInstant(child, self.tracer)
+        self.tracer.record_calculation_parameter_access(self.parameter_node_at_instant._name, self.parameter_node_at_instant._instant_str, child)
+        return child
