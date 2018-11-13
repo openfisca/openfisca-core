@@ -21,7 +21,7 @@ class SimulationBuilder(object):
     def build_from_dict(self, input_dict, default_period = None):
         entities_plural = [entity.plural for entity in self.tax_benefit_system.entities]
         if all(key in entities_plural for key in input_dict.keys()):
-            return Simulation(self.tax_benefit_system, input_dict)
+            return Simulation(self.tax_benefit_system, input_dict, default_period = default_period)
         else:
             return self.build_from_variables(input_dict, default_period)
 

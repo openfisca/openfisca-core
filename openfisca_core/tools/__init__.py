@@ -5,6 +5,7 @@ from builtins import str
 
 
 import os
+import numexpr as ne
 from ..indexed_enums import Enum, EnumArray
 
 
@@ -38,10 +39,11 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
             else:
                 assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
         else:
+            if isinstance(target_value, str):
+              target_value = ne.evaluate(target_value)
             target_value = np.array(target_value).astype(np.float32)
             value = np.array(value).astype(np.float32)
             diff = abs(target_value - value)
-
             if absolute_error_margin is not None:
                 assert (diff <= absolute_error_margin).all(), \
                     '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
