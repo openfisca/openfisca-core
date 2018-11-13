@@ -35,7 +35,7 @@ housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
 family_status = np.asarray(['single', 'couple', 'single', 'couple'])
 
 
-def check_tracing(accessor, param_key):
+def check_tracing_params(accessor, param_key):
     tracer = Tracer()
     tracer.record_calculation_start('A', '2015-01')
     tracingParams = TracingParameterNodeAtInstant(parameters('2015-01-01'), tracer)
@@ -43,7 +43,7 @@ def check_tracing(accessor, param_key):
     assert_near(tracer.trace['A<2015-01>']['parameters'][param_key], param)
 
 
-def test_x():
+def test_parameters():
     tests = [
         (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'),  # basic case
         (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'),  # fancy indexing on leaf
@@ -53,4 +53,4 @@ def test_x():
         (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate<2015-01-01>'),  # triple
         ]
     for test in tests:
-        yield (check_tracing,) + test
+        yield (check_tracing_params,) + test
