@@ -1,5 +1,28 @@
 # Changelog
 
+## 24.8.0 [#765](https://github.com/openfisca/openfisca-core/pull/765)
+
+- Add called parameters to Web API `/trace` endpoint
+  - For a calculated variable, add `parameters` item next to `dependencies` in `/trace` response
+  - Scale parameter example:
+    ```json
+    # calculated variable period = 2017-01
+    "parameters": {
+      "taxes.social_security_contribution<2017-01-01>": {
+          "0.0": 0.02,
+          "12400.0": 0.12,
+          "6000.0": 0.06
+      }
+    },
+    ```
+  - Simple parameter example:
+    ```json
+    # calculated variable period = 2017-01
+    "parameters": {
+      "taxes.income_tax_rate<2017-01-01>": 0.15
+    },
+    ```
+
 ### 24.7.0 [#756](https://github.com/openfisca/openfisca-core/pull/756)
 
 - Exposes `amount` scales through the Web API
