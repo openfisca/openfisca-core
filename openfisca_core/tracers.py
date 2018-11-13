@@ -8,7 +8,8 @@ import logging
 import copy
 from collections import defaultdict
 
-from openfisca_core.parameters import ParameterNode, ParameterNotFound
+from openfisca_core.parameters import ParameterNode, ParameterNotFound, Scale
+from openfisca_core.taxscales import AbstractTaxScale, AmountTaxScale
 
 log = logging.getLogger(__name__)
 
@@ -118,12 +119,22 @@ class Tracer(object):
         self.usage_stats[variable_name]['nb_requests'] += 1
 
     def record_calculation_parameter_access(self, parameter, period):
+        at_instant = parameter.get_at_instant(period)
+
+        if isinstance(at_instant, AbstractTaxScale):
+            values = at_instant.amounts if isinstance(at_instant, AmountTaxScale) else at_instant.rates
+            at_instant_trace = {}
+            for index, threshold in enumerate(at_instant.thresholds):
+                at_instant_trace[str(threshold)] = values[index]
+        else:
+            at_instant_trace = at_instant
+        
         parent = self.stack[-1]
         parameter_key = '{}<{}>'.format(
             parameter.name,
             period
-            )
-        self.trace[parent]['parameters'][parameter_key] = parameter.get_at_instant(period)
+            )   
+        self.trace[parent]['parameters'][parameter_key] = at_instant_trace
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
@@ -252,9 +263,9 @@ class TracingParameterNodeAtInstant():
             if isinstance(child, ParameterNode):
                 return TracingParameterNodeAtInstant(child.get_at_instant(period), self.tracer)
             else:
-                parameter_value = child.get_at_instant(period)
+                at_instant_trace = child.get_at_instant(period)
                 self.tracer.record_calculation_parameter_access(child, period)
-                return parameter_value
+                return at_instant_trace
         except KeyError:
             param_name = self.parameter_node_at_instant._compose_name(self.parameter_node_at_instant._name, key)
             raise ParameterNotFound(param_name, self._instant_str)
