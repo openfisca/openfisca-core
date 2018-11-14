@@ -35,6 +35,7 @@ FILE_EXTENSIONS = {'.yaml', '.yml'}
 # 'unit' and 'reference' are only listed here for backward compatibility.
 #  It is now recommended to include them in metadata, until a common consensus emerges.
 COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None))
 
 
 def date_constructor(loader, node):
@@ -257,7 +258,6 @@ class ParameterAtInstant(object):
         A value of a parameter at a given instant.
     """
 
-    _allowed_value_data_types = [int, float, bool, type(None)]
     # 'unit' and 'reference' are only listed here for backward compatibility
     _allowed_keys = set(['value', 'metadata', 'unit', 'reference'])
 
@@ -273,7 +273,7 @@ class ParameterAtInstant(object):
         self.metadata = {}
 
         # Accept { 2015-01-01: 4000 }
-        if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
+        if not isinstance(data, dict) and isinstance(data, ALLOWED_PARAM_TYPES):
             self.value = data
             return
 
@@ -294,7 +294,7 @@ class ParameterAtInstant(object):
                 "Missing 'value' property for {}".format(self.name),
                 self.file_path
                 )
-        if type(value) not in self._allowed_value_data_types:
+        if not isinstance(value, ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
                 "Invalid value in {} : {}".format(self.name, value),
                 self.file_path
@@ -465,6 +465,7 @@ class ParameterNodeAtInstant(object):
         self._name = name
         self._instant_str = instant_str
         self._children = {}
+
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
