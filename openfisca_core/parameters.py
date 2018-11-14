@@ -450,7 +450,7 @@ class ParameterNode(object):
 
     def get_descendants(self):
         """
-            Returns all the parameters and nodes recursively contained in this `ParameterNode`
+            Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
         """
         for child in self.children.values():
             yield child
