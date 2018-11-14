@@ -1,5 +1,11 @@
 # Changelog
 
+### 24.7.0 [#756](https://github.com/openfisca/openfisca-core/pull/756)
+
+- Exposes `amount` scales through the Web API
+  - Allows for [AmountTaxScale](https://github.com/openfisca/openfisca-core/blob/2b76b2ae5f684832411694c7c763b2d84c521c3c/openfisca_core/taxscales.py#L119) parameters to be consumed through the Web API
+  - See for an example this [parameter in openfisca-tunisia](https://github.com/openfisca/openfisca-tunisia/blob/10a15168e0aab5000f6850ad2f7779eba5da0fe0/openfisca_tunisia/parameters/impot_revenu/contribution_budget_etat.yaml)
+
 ### 24.6.8 [#753](https://github.com/openfisca/openfisca-core/pull/753)
 
 - Always allow `documentation` property for `ParameterNode`
