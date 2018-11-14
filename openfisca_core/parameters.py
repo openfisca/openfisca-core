@@ -448,6 +448,16 @@ class ParameterNode(object):
             return result.encode('utf-8')
         return result
 
+    def get_descendants(self):
+        """
+            Returns all the parameters and nodes recursively contained in this `ParameterNode`
+        """
+        for child in self.children.values():
+            yield child
+            if isinstance(child, ParameterNode):
+                for descendant in child.get_descendants():  # would be `yield from child.walk()` in Python 3.
+                    yield descendant
+
 
 class ParameterNodeAtInstant(object):
     """
