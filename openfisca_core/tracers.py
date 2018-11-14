@@ -121,6 +121,8 @@ class Tracer(object):
     def record_calculation_parameter_access(self, parameter_name, period, value):
         if isinstance(value, AbstractTaxScale):
             value = value.to_dict()
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
 
         parent = self.stack[-1]
         parameter_key = '{}<{}>'.format(
