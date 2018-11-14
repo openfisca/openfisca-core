@@ -66,49 +66,37 @@ def build_source_url(absolute_file_path, country_package_metadata):
         )
 
 
-def walk_node(node, parameters, path_fragments, country_package_metadata):
-    children = node.children
-
-    for child_name, child in children.items():
-        api_parameter = {
-            'description': getattr(child, "description", None),
-            'id': '.'.join(path_fragments + [child_name]),
-            'metadata': child.metadata
-            }
-        if child.file_path:
-            api_parameter['source'] = build_source_url(child.file_path, country_package_metadata)
-        if isinstance(child, Parameter):
-            if child.documentation:
-                api_parameter['documentation'] = child.documentation.strip()
-            api_parameter['values'] = build_api_values_history(child)
-        elif isinstance(child, Scale):
-            if 'rate' in child.brackets[0].children:
-                api_parameter['brackets'] = build_api_scale(child, 'rate')
-            elif 'amount' in child.brackets[0].children:
-                api_parameter['brackets'] = build_api_scale(child, 'amount')
-        elif isinstance(child, ParameterNode):
-            if child.documentation:
-                api_parameter['documentation'] = child.documentation.strip()
-            api_parameter['subparams'] = {
-                grandchild_name: {
-                    'description': grandchild.description,
-                    }
-                for grandchild_name, grandchild in child.children.items()
+def build_api_parameter(parameter, country_package_metadata):
+    api_parameter = {
+        'description': getattr(parameter, "description", None),
+        'id': parameter.name,
+        'metadata': parameter.metadata
+        }
+    if parameter.file_path:
+        api_parameter['source'] = build_source_url(parameter.file_path, country_package_metadata)
+    if isinstance(parameter, Parameter):
+        if parameter.documentation:
+            api_parameter['documentation'] = parameter.documentation.strip()
+        api_parameter['values'] = build_api_values_history(parameter)
+    elif isinstance(parameter, Scale):
+        if 'rate' in parameter.brackets[0].children:
+            api_parameter['brackets'] = build_api_scale(parameter, 'rate')
+        elif 'amount' in parameter.brackets[0].children:
+            api_parameter['brackets'] = build_api_scale(parameter, 'amount')
+    elif isinstance(parameter, ParameterNode):
+        if parameter.documentation:
+            api_parameter['documentation'] = parameter.documentation.strip()
+        api_parameter['subparams'] = {
+            child_name: {
+                'description': child.description,
                 }
-            walk_node(child, parameters, path_fragments + [child_name], country_package_metadata)
-        parameters.append(api_parameter)
-
-    return parameters
+            for child_name, child in parameter.children.items()
+            }
+    return api_parameter
 
 
 def build_parameters(tax_benefit_system, country_package_metadata):
-    original_parameters = tax_benefit_system.parameters
-    api_parameters = []
-    walk_node(
-        original_parameters,
-        parameters = api_parameters,
-        path_fragments = [],
-        country_package_metadata = country_package_metadata,
-        )
-
-    return {parameter['id'].replace('.', '/'): parameter for parameter in api_parameters}
+    return {
+        parameter.name.replace('.', '/'): build_api_parameter(parameter, country_package_metadata)
+        for parameter in tax_benefit_system.parameters.get_descendants()
+        }
