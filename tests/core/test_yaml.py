@@ -29,8 +29,8 @@ def run_yaml_test(path, options = {}):
     yaml_path = os.path.join(yaml_tests_dir, path)
 
     # We are testing tests, and don't want the latter to print anything, so we temporarily deactivate stderr.
-    #old_stderr = sys.stderr
-    #sys.stderr = open(os.devnull, 'w')
+    old_stderr = sys.stderr
+    sys.stderr = open(os.devnull, 'w')
     result = run_tests(tax_benefit_system, yaml_path, options)
     #sys.stderr = old_stderr
     return result
@@ -84,7 +84,7 @@ def test_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, 'test_success.yaml')
     command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template']
     with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull)
+        subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 @raises(subprocess.CalledProcessError)
@@ -92,14 +92,14 @@ def test_failing_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, 'test_failure.yaml')
     command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country']
     with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull)
+        subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 def test_shell_script_with_reform():
     yaml_path = os.path.join(yaml_tests_dir, 'test_with_reform_2.yaml')
     command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']
     with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull)
+        subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 def test_shell_script_with_extension():
@@ -107,4 +107,4 @@ def test_shell_script_with_extension():
     tests_dir = os.path.join(extension_dir, 'tests')
     command = ['openfisca-run-test', tests_dir, '-c', 'openfisca_country_template', '-e', extension_dir]
     with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull)
+        subprocess.check_call(command, stdout = devnull, stderr = devnull)
