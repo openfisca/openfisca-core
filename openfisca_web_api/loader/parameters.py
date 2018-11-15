@@ -25,15 +25,16 @@ def get_value(date, values):
         return None
 
 
-def build_api_scale(scale):
-    # preprocess brackets
+def build_api_scale(scale, value_key_name):
+    # preprocess brackets for a scale with 'rates' or 'amounts'
     brackets = [{
         'thresholds': build_api_values_history(bracket.threshold),
-        'rates': build_api_values_history(bracket.rate),
+        'values': build_api_values_history(getattr(bracket, value_key_name))
         } for bracket in scale.brackets]
 
     dates = set(sum(
-        [list(bracket['thresholds'].keys()) + list(bracket['rates'].keys()) for bracket in brackets],
+        [list(bracket['thresholds'].keys())
+        + list(bracket['values'].keys()) for bracket in brackets],
         []))  # flatten the dates and remove duplicates
 
     # We iterate on all dates as we need to build the whole scale for each of them
@@ -42,13 +43,14 @@ def build_api_scale(scale):
         for bracket in brackets:
             threshold_value = get_value(date, bracket['thresholds'])
             if threshold_value is not None:
-                rate_value = get_value(date, bracket['rates'])
+                rate_or_amount_value = get_value(date, bracket['values'])
                 api_scale[date] = api_scale.get(date) or {}
-                api_scale[date][threshold_value] = rate_value
+                api_scale[date][threshold_value] = rate_or_amount_value
 
     # Handle stopped parameters: a parameter is stopped if its first bracket is stopped
     latest_date_first_threshold = max(brackets[0]['thresholds'].keys())
     latest_value_first_threshold = brackets[0]['thresholds'][latest_date_first_threshold]
+
     if latest_value_first_threshold is None:
         api_scale[latest_date_first_threshold] = None
 
@@ -80,7 +82,10 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
                 api_parameter['documentation'] = child.documentation.strip()
             api_parameter['values'] = build_api_values_history(child)
         elif isinstance(child, Scale):
-            api_parameter['brackets'] = build_api_scale(child)
+            if 'rate' in child.brackets[0].children:
+                api_parameter['brackets'] = build_api_scale(child, 'rate')
+            elif 'amount' in child.brackets[0].children:
+                api_parameter['brackets'] = build_api_scale(child, 'amount')
         elif isinstance(child, ParameterNode):
             if child.documentation:
                 api_parameter['documentation'] = child.documentation.strip()
@@ -92,6 +97,8 @@ def walk_node(node, parameters, path_fragments, country_package_metadata):
                 }
             walk_node(child, parameters, path_fragments + [child_name], country_package_metadata)
         parameters.append(api_parameter)
+
+    return parameters
 
 
 def build_parameters(tax_benefit_system, country_package_metadata):
