@@ -58,6 +58,13 @@ class AbstractTaxScale(object):
         new.__dict__ = copy.deepcopy(self.__dict__)
         return new
 
+    def to_dict(self):
+        values = self.amounts if isinstance(self, AmountTaxScale) else self.rates
+        return {
+            str(threshold): values[index]
+            for index, threshold in enumerate(self.thresholds)
+            }
+
 
 class AbstractRateTaxScale(AbstractTaxScale):
     """Abstract class for various types of rate-based tax scales (marginal rate, linear average rate)"""

@@ -1,5 +1,45 @@
 # Changelog
 
+## 24.8.0 [#765](https://github.com/openfisca/openfisca-core/pull/765)
+
+- Add called parameters to Web API `/trace` endpoint
+  - For a calculated variable, add `parameters` item next to `dependencies` in `/trace` response
+  - For example:
+  ```JSON
+    {
+      "income_tax<2017-01>": {
+        "dependencies": [
+          "salary<2017-01>"
+        ],
+        "parameters": {
+          "taxes.income_tax_rate<2017-01-01>": 0.15
+        },
+        "value": [150]
+      }
+    }
+  ```
+  - Scale parameters are also traced:
+  ```json
+    "parameters": {
+      "taxes.social_security_contribution<2017-01-01>": {
+          "0.0": 0.02,
+          "12400.0": 0.12,
+          "6000.0": 0.06
+      }
+    },
+  ```
+
+### 24.7.0 [#756](https://github.com/openfisca/openfisca-core/pull/756)
+
+- Exposes `amount` scales through the Web API
+  - Allows for [AmountTaxScale](https://github.com/openfisca/openfisca-core/blob/2b76b2ae5f684832411694c7c763b2d84c521c3c/openfisca_core/taxscales.py#L119) parameters to be consumed through the Web API
+  - See for an example this [parameter in openfisca-tunisia](https://github.com/openfisca/openfisca-tunisia/blob/10a15168e0aab5000f6850ad2f7779eba5da0fe0/openfisca_tunisia/parameters/impot_revenu/contribution_budget_etat.yaml)
+
+### 24.6.8 [#753](https://github.com/openfisca/openfisca-core/pull/753)
+
+- Always allow `documentation` property for `ParameterNode`
+  - Due to a bug, this field  was accepted in an `index.yaml` file, but not in a `ParameterNode` located in a single YAML file
+
 ### 24.6.7 [#760](https://github.com/openfisca/openfisca-core/pull/760)
 
 - Tests the computation of the average tax rate of a targeted net income, according to the varying gross income.

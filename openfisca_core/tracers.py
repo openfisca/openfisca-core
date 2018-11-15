@@ -8,6 +8,9 @@ import logging
 import copy
 from collections import defaultdict
 
+from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
+from openfisca_core.taxscales import AbstractTaxScale
+
 log = logging.getLogger(__name__)
 
 
@@ -40,8 +43,9 @@ class Tracer(object):
             .. code-block:: python
 
               {
-                'income_tax<2017-01': {
-                  'dependencies':['global_income<2017-01>', 'nb_children<2017-01>']
+                'income_tax<2017-01>': {
+                  'dependencies':['global_income<2017-01>', 'nb_children<2017-01>'],
+                  'parameters' : {'taxes.income_tax_rate<2015-01>': 0.15, ...},
                   'value': 600
                   },
                 'global_income<2017-01>': {...}
@@ -108,10 +112,24 @@ class Tracer(object):
             self.requested_calculations.add(key)
 
         if not self.trace.get(key):
-            self.trace[key] = {'dependencies': []}
+            self.trace[key] = {'dependencies': [], 'parameters': {}}
+
         self.stack.append(key)
         self._computation_log.append((key, len(self.stack)))
         self.usage_stats[variable_name]['nb_requests'] += 1
+
+    def record_calculation_parameter_access(self, parameter_name, period, value):
+        if isinstance(value, AbstractTaxScale):
+            value = value.to_dict()
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+
+        parent = self.stack[-1]
+        parameter_key = '{}<{}>'.format(
+            parameter_name,
+            period
+            )
+        self.trace[parent]['parameters'][parameter_key] = value
 
     def record_calculation_end(self, variable_name, period, result, **parameters):
         """
@@ -224,3 +242,31 @@ class Tracer(object):
         """
         for node, depth in self._computation_log:
             self._print_node(node, depth, aggregate)
+
+
+class TracingParameterNodeAtInstant(object):
+
+    def __init__(self, parameter_node_at_instant, tracer):
+        self.parameter_node_at_instant = parameter_node_at_instant
+        self.tracer = tracer
+
+    def __getattr__(self, key):
+        child = getattr(self.parameter_node_at_instant, key)
+        return self.get_traced_child(child, key)
+
+    def __getitem__(self, key):
+        child = self.parameter_node_at_instant[key]
+        return self.get_traced_child(child, key)
+
+    def get_traced_child(self, child, key):
+        period = self.parameter_node_at_instant._instant_str
+        if isinstance(child, (ParameterNodeAtInstant, VectorialParameterNodeAtInstant)):
+            return TracingParameterNodeAtInstant(child, self.tracer)
+        if not isinstance(key, str) or isinstance(self.parameter_node_at_instant, VectorialParameterNodeAtInstant):
+            # In case of vectorization, we keep the parent node name as, for instance, rate[status].zone1 is best described as the value of "rate"
+            name = self.parameter_node_at_instant._name
+        else:
+            name = '.'.join([self.parameter_node_at_instant._name, key])
+        if isinstance(child, (np.ndarray,) + ALLOWED_PARAM_TYPES):
+            self.tracer.record_calculation_parameter_access(name, period, child)
+        return child

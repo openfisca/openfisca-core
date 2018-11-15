@@ -11,7 +11,7 @@ import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
-from openfisca_core.tracers import Tracer
+from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -248,6 +248,12 @@ class Simulation(object):
 
         return variable.calculate_output(self, variable_name, period)
 
+    def trace_parameters_at_instant(self, formula_period):
+        return TracingParameterNodeAtInstant(
+            self.tax_benefit_system.get_parameters_at_instant(formula_period),
+            self.tracer
+            )
+
     def _run_formula(self, variable, entity, period, extra_params, max_nb_cycles):
         """
             Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
@@ -256,7 +262,12 @@ class Simulation(object):
         formula = variable.get_formula(period)
         if formula is None:
             return None
-        parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
+        if self.trace:
+            parameters_at = self.trace_parameters_at_instant
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
+
         try:
             self._check_for_cycle(variable, period)
             if formula.__code__.co_argcount == 2:

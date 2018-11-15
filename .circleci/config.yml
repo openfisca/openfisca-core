@@ -89,8 +89,12 @@ jobs:
             - /tmp/venv/openfisca_core
 
       - run:
-          name: Run tests
+          name: Run Core tests
           command: make test
+
+      - run:
+          name: Run Country Template tests
+          command: openfisca-run-test /tmp/venv/openfisca_core/lib/python*/site-packages/openfisca_country_template/tests/
 
   deploy_python3:
     docker:

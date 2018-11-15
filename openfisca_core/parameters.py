@@ -30,7 +30,12 @@ except ImportError:
     from yaml import Loader
 
 
-PARAM_FILE_EXTENSIONS = {'.yaml', '.yml'}
+FILE_EXTENSIONS = {'.yaml', '.yml'}
+
+# 'unit' and 'reference' are only listed here for backward compatibility.
+#  It is now recommended to include them in metadata, until a common consensus emerges.
+COMMON_KEYS = {'description', 'metadata', 'unit', 'reference', 'documentation'}
+ALLOWED_PARAM_TYPES = (float, int, bool, type(None))
 
 
 def date_constructor(loader, node):
@@ -128,7 +133,7 @@ class Parameter(object):
         # Normal parameter declaration: the values are declared under the 'values' key: parse the description and metadata.
         if data.get('values'):
             # 'unit' and 'reference' are only listed here for backward compatibility
-            _validate_parameter(self, data, allowed_keys = set(['values', 'description', 'metadata', 'unit', 'reference', 'documentation']))
+            _validate_parameter(self, data, allowed_keys = COMMON_KEYS.union({'values'}))
             self.description = data.get('description')
 
             _set_backward_compatibility_metadata(self, data)
@@ -253,7 +258,6 @@ class ParameterAtInstant(object):
         A value of a parameter at a given instant.
     """
 
-    _allowed_value_data_types = [int, float, bool, type(None)]
     # 'unit' and 'reference' are only listed here for backward compatibility
     _allowed_keys = set(['value', 'metadata', 'unit', 'reference'])
 
@@ -269,7 +273,7 @@ class ParameterAtInstant(object):
         self.metadata = {}
 
         # Accept { 2015-01-01: 4000 }
-        if not isinstance(data, dict) and type(data) in self._allowed_value_data_types:
+        if not isinstance(data, dict) and isinstance(data, ALLOWED_PARAM_TYPES):
             self.value = data
             return
 
@@ -290,7 +294,7 @@ class ParameterAtInstant(object):
                 "Missing 'value' property for {}".format(self.name),
                 self.file_path
                 )
-        if type(value) not in self._allowed_value_data_types:
+        if not isinstance(value, ALLOWED_PARAM_TYPES):
             raise ParameterParsingError(
                 "Invalid value in {} : {}".format(self.name, value),
                 self.file_path
@@ -321,7 +325,6 @@ class ParameterNode(object):
         :param string name: Name of the node, eg "taxes.some_tax".
         :param string directory_path: Directory containing YAML files describing the node.
         :param dict data: Object representing the parameter node. It usually has been extracted from a YAML file.
-        :param string documentation: Documentation describing parameter node usage and context.
         :param string file_path: YAML file from which the `data` has been extracted from.
 
 
@@ -361,12 +364,12 @@ class ParameterNode(object):
                     child_name, ext = os.path.splitext(child_name)
 
                     # We ignore non-YAML files
-                    if ext not in PARAM_FILE_EXTENSIONS:
+                    if ext not in FILE_EXTENSIONS:
                         continue
 
                     if child_name == 'index':
                         data = _load_yaml_file(child_path) or {}
-                        _validate_parameter(self, data, allowed_keys = ['metadata', 'description', 'documentation', 'reference'])
+                        _validate_parameter(self, data, allowed_keys = COMMON_KEYS)
                         self.description = data.get('description')
                         self.documentation = data.get('documentation')
                         _set_backward_compatibility_metadata(self, data)
@@ -392,8 +395,8 @@ class ParameterNode(object):
             _set_backward_compatibility_metadata(self, data)
             self.metadata.update(data.get('metadata', {}))
             for child_name, child in data.items():
-                if child_name in {'unit', 'description', 'metadata', 'reference'}:
-                    continue  # do not treat metadata as subparameters. 'unit' and 'reference' are only listed here for backward compatibility
+                if child_name in COMMON_KEYS:
+                    continue  # do not treat reserved keys as subparameters.
 
                 child_name = str(child_name)
                 child_name_expanded = _compose_name(name, child_name)
@@ -462,6 +465,7 @@ class ParameterNodeAtInstant(object):
         self._name = name
         self._instant_str = instant_str
         self._children = {}
+
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
@@ -661,7 +665,7 @@ class Scale(object):
         A parameter scale (for instance a  marginal scale).
     """
     # 'unit' and 'reference' are only listed here for backward compatibility
-    _allowed_keys = set(['brackets', 'description', 'metadata', 'unit', 'reference'])
+    _allowed_keys = COMMON_KEYS.union({'brackets'})
 
     def __init__(self, name, data, file_path):
         """
