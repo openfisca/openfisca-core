@@ -478,8 +478,11 @@ class ParameterNodeAtInstant(object):
         for child_name, child in node.children.items():
             child_at_instant = child._get_at_instant(instant_str)
             if child_at_instant is not None:
-                self._children[child_name] = child_at_instant
-                setattr(self, child_name, child_at_instant)
+                self.add_child(child_name, child_at_instant)
+
+    def add_child(self, child_name, child_at_instant):
+        self._children[child_name] = child_at_instant
+        setattr(self, child_name, child_at_instant)
 
     def __getattr__(self, key):
         param_name = _compose_name(self._name, item_name = key)
