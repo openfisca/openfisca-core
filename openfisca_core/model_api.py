@@ -30,6 +30,6 @@ from openfisca_core.base_functions import (   # noqa analysis:ignore
     )
 from openfisca_core.variables import Variable  # noqa analysis:ignore
 from openfisca_core.formula_helpers import apply_thresholds, concat, switch  # noqa analysis:ignore
-from openfisca_core.periods import MONTH, YEAR, ETERNITY, period  # noqa analysis:ignore
+from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY, period  # noqa analysis:ignore
 from openfisca_core.reforms import Reform  # noqa analysis:ignore
 from openfisca_core.parameters import load_parameter_file, ParameterNode, Scale, Bracket, Parameter, ValuesHistory  # noqa analysis:ignore
