@@ -6,9 +6,12 @@ import numpy as np
 
 from openfisca_core.taxscales import MarginalRateTaxScale, AmountTaxScale, combine_tax_scales
 from openfisca_core.tools import assert_near
+from .test_countries import tax_benefit_system
+from openfisca_core.parameters import Scale
+from openfisca_core.periods import Instant
+import pytest
 
-
-def test_amount_in_scale():
+def test_amount_tax_scale():
     base = np.array([1, 8, 10])
     amount_tax_scale = AmountTaxScale()
     amount_tax_scale.add_bracket(6, 0.23)
@@ -16,6 +19,28 @@ def test_amount_in_scale():
 
     assert_near(amount_tax_scale.calc(base), [0, 0.23, 0.52])
 
+
+def test_amount_in_scale():
+    data = {'description': 'Social security contribution tax scale',
+            'metadata': {'threshold_unit': 'currency-EUR', 'rate_unit': '/1'},
+            'brackets': [
+                {
+                 'amount': {
+                    '2017-10-01': {'value': 6},
+                    },
+                 'threshold': {
+                    '2017-10-01': {'value': 0.23}
+                    }
+                }
+            ]
+            }
+    scale = Scale('amount_scale', data, '')
+    first_jan = Instant((2017, 11, 1))
+    scale_at_instant = scale.get_at_instant(first_jan)
+
+
+    assert type(scale_at_instant) == AmountTaxScale
+    assert scale_at_instant.amounts[0] == 6
 
 def test_simple_linear_average_rate_tax_scale():
     base = np.array([1, 1.5, 2, 2.5, 3.0, 4.0])
