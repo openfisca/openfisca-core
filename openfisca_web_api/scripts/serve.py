@@ -34,7 +34,7 @@ def define_command_line_options(parser):
     parser = add_tax_benefit_system_arguments(parser)
 
     # Define server configuration
-    parser.add_argument('-p', '--port', action = 'store', help = "port to serve on", type = int)
+    parser.add_argument('-p', '--port', action = 'store', help = "port to serve on (use --bind to specify host and port)", type = int)
     parser.add_argument('--tracker-url', action = 'store', help = "tracking service url", type = str)
     parser.add_argument('--tracker-idsite', action = 'store', help = "tracking service id site", type = int)
     parser.add_argument('--tracker-token', action = 'store', help = "tracking service authentication token", type = str)
@@ -48,7 +48,7 @@ def read_user_configuration(default_configuration, command_line_parser):
     configuration = default_configuration
     args, unknown_args = command_line_parser.parse_known_args()
 
-    if args.configuration_file:
+    if 'configuration_file' in vars(args) and args.configuration_file:
         file_configuration = {}
         with open(args.configuration_file, "r") as file:
             exec(file.read(), {}, file_configuration)
