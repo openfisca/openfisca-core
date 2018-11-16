@@ -105,3 +105,16 @@ def test_parameter_documentation():
 def test_get_descendants():
     all_parameters = {parameter.name for parameter in tax_benefit_system.parameters.get_descendants()}
     assert all_parameters.issuperset({'taxes', 'taxes.housing_tax', 'taxes.housing_tax.minimal_amount'})
+
+
+def test_name():
+    parameter_data = {
+        "description": "Parameter indexed by a numeric key",
+        "2010": {
+            "values": {
+                '2006-01-01': 0.0075
+                }
+            }
+        }
+    parameter = ParameterNode('root', data = parameter_data)
+    assert parameter.children["2010"].name == "root.2010"
