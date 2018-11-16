@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.8.2 [#773](https://github.com/openfisca/openfisca-core/pull/773)
+
+- Make sure to cap all dependency versions, in order to avoid unwanted functional and integration breaks caused by external code updates
+  - For example [#772](https://github.com/openfisca/openfisca-core/pull/772)
+
 ### 24.8.1 [#772](https://github.com/openfisca/openfisca-core/pull/772)
 
 - Limits the range of PyTest versions to < 4.0 to avoid CI crashes caused by 4.0.
