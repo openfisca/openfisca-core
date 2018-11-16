@@ -4,8 +4,17 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 import numpy as np
 
-from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
+from openfisca_core.taxscales import MarginalRateTaxScale, AmountTaxScale, combine_tax_scales
 from openfisca_core.tools import assert_near
+
+
+def test_amount_in_scale():
+    base = np.array([1, 8, 10])
+    amount_tax_scale = AmountTaxScale()
+    amount_tax_scale.add_bracket(6, 0.23)
+    amount_tax_scale.add_bracket(9, 0.29)
+
+    assert_near(amount_tax_scale.calc(base), [0, 0.23, 0.52])
 
 
 def test_simple_linear_average_rate_tax_scale():
