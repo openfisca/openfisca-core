@@ -5,13 +5,15 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 from setuptools import setup, find_packages
 
+# Please make sure to cap all dependency versions, in order to avoid unwanted
+# functional and integration breaks caused by external code updates.
 
 general_requirements = [
     'Biryani[datetimeconv] >= 0.10.8',
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
-    'future',
-    'nose',  # For openfisca-run-test
+    'future < 1.0.0',
+    'nose < 2.0.0',  # For openfisca-run-test
     'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
@@ -28,7 +30,7 @@ dev_requirements = [
     'autopep8 == 1.4.0',
     'flake8 >= 3.5.0, < 3.6.0',
     'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
-    'pytest < 4.0',
+    'pytest < 4.0.0',
     'openfisca-country-template >= 3.4.0, < 4.0.0',
     'openfisca-extension-template >= 1.1.3, < 2.0.0',
     ] + api_requirements
