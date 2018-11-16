@@ -1,8 +1,12 @@
 # Changelog
 
+### 24.8.1 [#772](https://github.com/openfisca/openfisca-core/pull/772)
+
+- Limits the range of PyTest versions to < 4.0 to avoid CI crashes caused by 4.0.
+
 ## 24.8.0 [#765](https://github.com/openfisca/openfisca-core/pull/765)
 
-- Add called parameters to Web API `/trace` endpoint
+- Adds called parameters to Web API `/trace` endpoint
   - For a calculated variable, add `parameters` item next to `dependencies` in `/trace` response
   - For example:
   ```JSON

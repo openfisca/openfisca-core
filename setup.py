@@ -28,14 +28,14 @@ dev_requirements = [
     'autopep8 == 1.4.0',
     'flake8 >= 3.5.0, < 3.6.0',
     'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
-    'pytest',
+    'pytest < 4.0',
     'openfisca-country-template >= 3.4.0, < 4.0.0',
     'openfisca-extension-template >= 1.1.3, < 2.0.0',
     ] + api_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '24.8.0',
+    version = '24.8.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
