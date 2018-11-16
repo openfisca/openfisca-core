@@ -100,3 +100,8 @@ def test_parameter_documentation():
     parameter = tax_benefit_system.parameters.benefits.housing_allowance
     assert_equal(parameter.documentation,
         'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n')
+
+
+def test_get_descendants():
+    all_parameters = {parameter.name for parameter in tax_benefit_system.parameters.get_descendants()}
+    assert all_parameters.issuperset({'taxes', 'taxes.housing_tax', 'taxes.housing_tax.minimal_amount'})

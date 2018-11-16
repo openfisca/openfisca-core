@@ -252,6 +252,9 @@ class Parameter(object):
 
         self.values_list = new_values
 
+    def get_descendants(self):
+        return iter(())
+
 
 class ParameterAtInstant(object):
     """
@@ -447,6 +450,15 @@ class ParameterNode(object):
         if sys.version_info < (3, 0):
             return result.encode('utf-8')
         return result
+
+    def get_descendants(self):
+        """
+            Return a generator containing all the parameters and nodes recursively contained in this `ParameterNode`
+        """
+        for child in self.children.values():
+            yield child
+            for descendant in child.get_descendants():  # would be `yield from child.walk()` in Python 3.
+                yield descendant
 
 
 class ParameterNodeAtInstant(object):
@@ -750,6 +762,9 @@ class Scale(object):
             ['brackets:']
             + [indent('-' + indent(repr(bracket))[1:]) for bracket in self.brackets]
             )
+
+    def get_descendants(self):
+        return iter(())
 
 
 class Bracket(ParameterNode):
