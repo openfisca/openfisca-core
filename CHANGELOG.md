@@ -1,6 +1,11 @@
 # Changelog
 
-## 24.9.1 [#770](https://github.com/openfisca/openfisca-core/pull/770)
+### 24.9.2 [#776](https://github.com/openfisca/openfisca-core/pull/776)
+
+- Allow `ParameterNode` children to have a numeric keys
+  - Before, an incorrect id would be set for these children, resulting to inconsistencies in the Web API.
+
+### 24.9.1 [#770](https://github.com/openfisca/openfisca-core/pull/770)
 
 - Fix a bug that prevented amount scale parameters from being accessed in a formula
 
