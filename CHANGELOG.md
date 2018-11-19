@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.9.1 [#770](https://github.com/openfisca/openfisca-core/pull/770)
+
+- Fix a bug that prevented amount scale parameters from being accessed in a formula
+
 ## 24.9.0 [#767](https://github.com/openfisca/openfisca-core/pull/767)
 
 - Introduce `ParameterNode.get_descendants`
