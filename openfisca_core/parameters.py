@@ -724,6 +724,7 @@ class Scale(object):
                     amount = bracket.amount
                     threshold = bracket.threshold
                     scale.add_bracket(threshold, amount)
+            return scale
         elif any('average_rate' in bracket._children for bracket in brackets):
             scale = taxscales.LinearAverageRateTaxScale()
 
