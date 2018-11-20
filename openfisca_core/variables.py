@@ -74,7 +74,7 @@ FORMULA_NAME_PREFIX = 'formula'
 class Variable(object):
     """
 
-    A `variable <http://openfisca.org/doc/variables.html>`_ of the legislation.
+    A `variable <http://openfisca.org/doc/key-concepts/variables.html>`_ of the legislation.
 
     Main attributes:
 
@@ -88,7 +88,7 @@ class Variable(object):
 
        .. py:attribute:: entity
 
-           `Entity <http://openfisca.org/doc/person,_entities,_role.html>`_ the variable is defined for. For instance : ``Person``, ``Household``.
+           `Entity <http://openfisca.org/doc/key-concepts/person,_entities,_role.html>`_ the variable is defined for. For instance : ``Person``, ``Household``.
 
        .. py:attribute:: definition_period
 
@@ -108,13 +108,13 @@ class Variable(object):
 
        .. py:attribute:: default_value
 
-           `Default value <http://openfisca.org/doc/variables.html#default-values>`_ of the variable.
+           `Default value <http://openfisca.org/doc/key-concepts/variables.html#default-values>`_ of the variable.
 
     Secondary attributes:
 
        .. py:attribute:: baseline_variable
 
-           If the variable has been introduced in a `reform <http://openfisca.org/doc/reforms.html>`_ to replace another variable, baseline_variable is the replaced variable.
+           If the variable has been introduced in a `reform <http://openfisca.org/doc/key-concepts/reforms.html>`_ to replace another variable, baseline_variable is the replaced variable.
 
        .. py:attribute:: dtype
 
@@ -142,7 +142,7 @@ class Variable(object):
 
        .. py:attribute:: set_input
 
-           Function used to automatically process variable inputs defined for periods not matching the definition_period of the variable. See more on the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_. Possible values are ``set_input_dispatch_by_period``, ``set_input_divide_by_period``, or nothing.
+           Function used to automatically process variable inputs defined for periods not matching the definition_period of the variable. See more on the `documentation <http://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_. Possible values are ``set_input_dispatch_by_period``, ``set_input_divide_by_period``, or nothing.
 
        .. py:attribute:: unit
 
