@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.9.3 [#778](https://github.com/openfisca/openfisca-core/pull/778)
+
+- Remove the reference doc source, as it's been moved to https://github.com/openfisca/openfisca-doc.
+- Rebuild the doc when the Core codebase changes
+
 ### 24.9.2 [#776](https://github.com/openfisca/openfisca-core/pull/776)
 
 - Allow `ParameterNode` children to have a numeric keys
