@@ -48,7 +48,7 @@ def read_user_configuration(default_configuration, command_line_parser):
     configuration = default_configuration
     args, unknown_args = command_line_parser.parse_known_args()
 
-    if 'configuration_file' in vars(args) and args.configuration_file:
+    if args.configuration_file:
         file_configuration = {}
         with open(args.configuration_file, "r") as file:
             exec(file.read(), {}, file_configuration)
