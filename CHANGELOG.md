@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.9.3 [#778](https://github.com/openfisca/openfisca-core/pull/778)
+
+- Remove the reference doc source, as it's been moved to https://github.com/openfisca/openfisca-doc.
+- Rebuild the doc when the Core codebase changes
+
 ### 24.9.2 [#776](https://github.com/openfisca/openfisca-core/pull/776)
 
 - Allow `ParameterNode` children to have a numeric keys
@@ -104,7 +109,7 @@ _Note: `openfisca-run-test` still depends on `nose`._
 ## 24.6.0 [#744](https://github.com/openfisca/openfisca-core/pull/744)
 
 - Allow TaxBenefitSystem to define the examples to use in the `/spec` route.
-  - See [docs](http://openfisca.org/doc/openfisca-web-api/config-openapi.html).
+  - See [docs](https://openfisca.org/doc/openfisca-web-api/config-openapi.html).
 
 ### 24.5.6 [#743](https://github.com/openfisca/openfisca-core/pull/743)
 
@@ -453,7 +458,7 @@ _Setting `unit` and `reference` out of `metadata` is considered deprecated, but 
 
 * Introduce `TaxBenefitSystem.replace_variable`
   - Unlike `update_variable`, this method does _not_ keep any of the replaced variable in the new one.
-  - See [reference documentation](http://openfisca.readthedocs.io/en/latest/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.replace_variable).
+  - See [reference documentation](https://openfisca.org/doc/openfisca-python-api/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.replace_variable).
 
 ### 23.1.7 [#686](https://github.com/openfisca/openfisca-core/pull/686)
 
@@ -646,7 +651,7 @@ Each value is a simple python function.
 
 ### 22.0.2 [#627](https://github.com/openfisca/openfisca-core/pull/627) [#593](https://github.com/openfisca/openfisca-core/pull/593)
 
-- Update openfisca_serve [rst](http://openfisca.readthedocs.io/en/latest/openfisca_serve.html) documentation
+- Update openfisca_serve [rst](https://openfisca.org/doc/openfisca-python-api/openfisca_serve.html) documentation
   * Make native gunicorn parameters use in `openfisca serve` obvious and make parameters' format more explicit
 
 ### 22.0.1 [#628](https://github.com/openfisca/openfisca-core/pull/628)
@@ -699,7 +704,7 @@ This is a breaking change, as all the adaptations (such as [this one](https://gi
 
 - Improve `Tracer`:
   - Make aggregation more efficient
-  - Introduce [`tracer.print_trace`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.print_trace)
+  - Introduce [`tracer.print_trace`](https://openfisca.org/doc/openfisca-python-api/tracer.html#openfisca_core.tracers.Tracer.print_trace)
 
 ### 21.3.6 [#616](https://github.com/openfisca/openfisca-core/pull/618)
 
@@ -713,7 +718,7 @@ This is a breaking change, as all the adaptations (such as [this one](https://gi
 
 ### 21.3.4 [#604](https://github.com/openfisca/openfisca-core/pull/604)
 
-- Introduce [simulation generator](http://openfisca.readthedocs.io/en/latest/simulation_generator.html)
+- Introduce [simulation generator](https://openfisca.org/doc/openfisca-python-api/simulation_generator.html)
 
 ### 21.3.3 [#608](https://github.com/openfisca/openfisca-core/pull/608)
 
@@ -748,7 +753,7 @@ Add `--only-variables` and `--ignore-variables` options to `openfisca-run-test` 
 
 #### New features
 
-- Improve [`holder.get_memory_usage`]((http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage)):
+- Improve [`holder.get_memory_usage`]((https://openfisca.org/doc/openfisca-python-api/holder.html#openfisca_core.holders.Holder.get_memory_usage)):
   - Add `nb_requests` and `nb_requests_by_array` fields in the memory usage stats for traced simulations.
 
 - Enable intermediate data storage on disk to avoid memory overflow
@@ -772,21 +777,21 @@ config = MemoryConfig(
 
 - Improve `Tracer`:
 
-  - Introduce an `aggregate` option in [`tracer.print_computation_log`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.print_computation_log) to handle large population simulations.
-  - Introduce [`tracer.usage_stats`](http://openfisca.readthedocs.io/en/latest/tracer.html#openfisca_core.tracers.Tracer.usage_stats) to keep track of the number of times a variable is computed.
+  - Introduce an `aggregate` option in [`tracer.print_computation_log`](https://openfisca.org/doc/openfisca-python-api/tracer.html#openfisca_core.tracers.Tracer.print_computation_log) to handle large population simulations.
+  - Introduce [`tracer.usage_stats`](https://openfisca.org/doc/openfisca-python-api/tracer.html#openfisca_core.tracers.Tracer.usage_stats) to keep track of the number of times a variable is computed.
 
 - Introduce methods to keep track of memory usage:
 
-  - Introduce [`holder.get_memory_usage`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage)
+  - Introduce [`holder.get_memory_usage`](https://openfisca.org/doc/openfisca-python-api/holder.html#openfisca_core.holders.Holder.get_memory_usage)
   - Introduce `entity.get_memory_usage`
   - Introduce `simulation.get_memory_usage`
 
 - Improve `Holder` public interface:
 
-  - Enhance [`holder.delete_arrays`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_memory_usage) to be able to remove known values only for a specific period
-  - Introduce [`holder.get_known_periods`](http://openfisca.readthedocs.io/en/latest/holder.html#openfisca_core.holders.Holder.get_known_periods)
+  - Enhance [`holder.delete_arrays`](https://openfisca.org/doc/openfisca-python-api/holder.html#openfisca_core.holders.Holder.get_memory_usage) to be able to remove known values only for a specific period
+  - Introduce [`holder.get_known_periods`](https://openfisca.org/doc/openfisca-python-api/holder.html#openfisca_core.holders.Holder.get_known_periods)
 
-- Introduce [`variable.get_formula`](http://openfisca.readthedocs.io/en/latest/variables.html#openfisca_core.variables.Variable.get_formula)
+- Introduce [`variable.get_formula`](https://openfisca.org/doc/openfisca-python-api/variables.html#openfisca_core.variables.Variable.get_formula)
 
 - Re-introduce `taxscales.combine_tax_scales` to combine several tax scales.
 
@@ -893,7 +898,7 @@ holder.set_input(period, np.asarray(['owner']))
 holder.set_input(period, np.asarray([0])) # Highly not recommanded
 ```
 
-- When calculating an Enum variable, the output will be an [EnumArray](http://openfisca.readthedocs.io/en/latest/enum_array.html#module-openfisca_core.indexed_enums).
+- When calculating an Enum variable, the output will be an [EnumArray](https://openfisca.org/doc/openfisca-python-api/enum_array.html#module-openfisca_core.indexed_enums).
 
 # 20.0.0 [#590](https://github.com/openfisca/openfisca-core/pull/590)
 
@@ -1064,7 +1069,7 @@ class salary(Variable):
 salary_variable = salary()
 ```
 
-You can learn more about `Variable` by checking its [reference documentation](http://openfisca.readthedocs.io/en/latest/variables.html).
+You can learn more about `Variable` by checking its [reference documentation](https://openfisca.org/doc/openfisca-python-api/variables.html).
 
 # 19.0.0 [#583](https://github.com/openfisca/openfisca-core/pull/583)
 > Wrongfully published as 18.2.0
@@ -1188,7 +1193,7 @@ rate = parameters(period).rate[zone]
 ```
 
 
-For more information, check the [documentation](http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html#computing-a-parameter-that-depends-on-a-variable-fancy-indexing)
+For more information, check the [documentation](https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html#computing-a-parameter-that-depends-on-a-variable-fancy-indexing)
 
 ### 17.1.2 [#569](https://github.com/openfisca/openfisca-core/pull/569)
 
@@ -1340,7 +1345,7 @@ For more information, check the [documentation](http://openfisca.org/doc/coding-
   - `preprocess_legislation` -> `preprocess_parameters`
   - `add_legislation_params` -> `load_parameters`
   - `get_compact_legislation` -> `get_parameters_at_instant`
-    + The signature of the method has changed. Check the [documentation](http://openfisca.readthedocs.io/en/latest/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.load_parameters).
+    + The signature of the method has changed. Check the [documentation](https://openfisca.org/doc/openfisca-python-api/tax-benefit-system.html#openfisca_core.taxbenefitsystems.TaxBenefitSystem.load_parameters).
 
 ##### Simulation
 
@@ -1744,7 +1749,7 @@ These breaking changes only concern variable and tax and benefit system **metada
   - Change `periods.period` signature.
     - It now only accepts strings.
   - Restrict the possible inputs for `periods.period`
-    - The authorized formats are listed in [the doc](http://openfisca.org/doc/periodsinstants.html)
+    - The authorized formats are listed in [the doc](https://openfisca.org/doc/key-concepts/periodsinstants.html)
   - Deprecate and remove:
     - `periods.json_or_python_to_period`
     - `periods.make_json_or_python_to_period`
@@ -1806,7 +1811,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 #### Documentation
 
-* the attribute `definition_period` is documented here : http://openfisca.org/doc/coding-the-legislation/35_periods.html
+* the attribute `definition_period` is documented here : https://openfisca.org/doc/coding-the-legislation/35_periods.html
 
 ### 5.0.2
 

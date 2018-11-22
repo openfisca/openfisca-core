@@ -60,6 +60,11 @@ jobs:
           name: Publish a git tag
           command: .circleci/publish-git-tag.sh
 
+      - run:
+          name: Update doc
+          command: |
+            curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
+
   build_python3:
     docker:
       - image: python:3.7
