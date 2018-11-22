@@ -2,7 +2,8 @@
 
 ### 24.9.7 [#769](https://github.com/openfisca/openfisca-core/pull/769)
 
-- Unify the protocol for appending sub-parameters
+- Fix an inconsistency in parameter navigation
+   - In some cases, for instance while using extensions, the `parameters.path.to.subparams` notation was not working
 
 ### 24.9.6 [#771](https://github.com/openfisca/openfisca-core/pull/771)
 
