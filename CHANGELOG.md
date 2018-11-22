@@ -1,5 +1,9 @@
 # Changelog
 
+### 24.9.4 [#777](https://github.com/openfisca/openfisca-core/pull/777)
+
+- Allow OpenFisca-Core users to define their own level of log
+
 ### 24.9.3 [#778](https://github.com/openfisca/openfisca-core/pull/778)
 
 - Remove the reference doc source, as it's been moved to https://github.com/openfisca/openfisca-doc.

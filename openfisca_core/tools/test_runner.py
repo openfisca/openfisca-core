@@ -113,6 +113,7 @@ def run_tests(tax_benefit_system, paths, options = {}):
     argv = sys.argv[:1]  # Nose crashes if it gets any unexpected argument.
     if options.get('verbose'):
         argv.append('--nocapture')  # Do not capture output when verbose mode is activated
+    argv.append('--nologcapture')  # Do not capture logs so that the user can define a log level
     return nose.run(
         # The suite argument must be a lambda for nose to run the tests lazily
         suite = lambda: generate_tests(tax_benefit_system, paths, options),

@@ -8,7 +8,6 @@ import pkgutil
 from os import linesep
 
 log = logging.getLogger(__name__)
-logging.basicConfig(format='%(levelname)s: %(message)s')
 
 
 def add_tax_benefit_system_arguments(parser):
