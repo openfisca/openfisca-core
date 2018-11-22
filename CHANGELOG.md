@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.9.5 [#771](https://github.com/openfisca/openfisca-core/pull/771)
+
+- Improve serve command by documenting the bind option
+- Avoid crashing when no arguments are supplied
+
 ### 24.9.4 [#774](https://github.com/openfisca/openfisca-core/pull/774)
 
 - Clarify the error message when assigning a value larger than MaxInt32 to an 'int' variable
