@@ -316,7 +316,7 @@ class ParameterAtInstant(object):
 
 class ParameterNode(object):
     """
-        A node in the legislation `parameter tree <http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
+        A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
     _allowed_keys = None  # By default, no restriction on the keys
@@ -542,7 +542,7 @@ class VectorialParameterNodeAtInstant(object):
         """
         MESSAGE_PART_1 = "Cannot use fancy indexing on parameter node '{}', as"
         MESSAGE_PART_3 = "To use fancy indexing on parameter node, its children must be homogenous."
-        MESSAGE_PART_4 = "See more at <http://openfisca.org/doc/coding-the-legislation/legislation_parameters#computing-a-parameter-that-depends-on-a-variable-fancy-indexing>."
+        MESSAGE_PART_4 = "See more at <https://openfisca.org/doc/coding-the-legislation/legislation_parameters#computing-a-parameter-that-depends-on-a-variable-fancy-indexing>."
 
         def raise_key_inhomogeneity_error(node_with_key, node_without_key, missing_key):
             message = " ".join([

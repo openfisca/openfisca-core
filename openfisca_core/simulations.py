@@ -320,7 +320,7 @@ class Simulation(object):
             "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
             "instead it returned '{0}' of {1}.".format(value, type(value)).encode('utf-8'),
             "Learn more about Numpy arrays and vectorial computing:",
-            "<http://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
+            "<https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
 
         assert value.size == entity.count, \

@@ -1,6 +1,6 @@
 # OpenFisca Core
 
-[OpenFisca](http://openfisca.org/doc/) is a versatile microsimulation free software. Check the [online documentation](http://openfisca.org/doc/) for more details.
+[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation free software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
 This package contains the core features of OpenFisca, which are meant to be used by country packages such as [OpenFisca-France](https://github.com/openfisca/openfisca-france). Bootstrapping your own country package should not take more than 5 minutes: check our [country package template](https://github.com/openfisca/country-template).
 
@@ -91,7 +91,7 @@ You can test that the API is running by executing the command:
 ```sh
 curl http://localhost:2000/parameters
 ```
-For more information about endpoints and input formatting, see the [official documentation](http://openfisca.org/doc/openfisca-web-api).
+For more information about endpoints and input formatting, see the [official documentation](https://openfisca.org/doc/openfisca-web-api).
 
 ### Tracker
 

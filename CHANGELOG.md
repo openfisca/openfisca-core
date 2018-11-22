@@ -104,7 +104,7 @@ _Note: `openfisca-run-test` still depends on `nose`._
 ## 24.6.0 [#744](https://github.com/openfisca/openfisca-core/pull/744)
 
 - Allow TaxBenefitSystem to define the examples to use in the `/spec` route.
-  - See [docs](http://openfisca.org/doc/openfisca-web-api/config-openapi.html).
+  - See [docs](https://openfisca.org/doc/openfisca-web-api/config-openapi.html).
 
 ### 24.5.6 [#743](https://github.com/openfisca/openfisca-core/pull/743)
 
@@ -1188,7 +1188,7 @@ rate = parameters(period).rate[zone]
 ```
 
 
-For more information, check the [documentation](http://openfisca.org/doc/coding-the-legislation/legislation_parameters.html#computing-a-parameter-that-depends-on-a-variable-fancy-indexing)
+For more information, check the [documentation](https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html#computing-a-parameter-that-depends-on-a-variable-fancy-indexing)
 
 ### 17.1.2 [#569](https://github.com/openfisca/openfisca-core/pull/569)
 
@@ -1744,7 +1744,7 @@ These breaking changes only concern variable and tax and benefit system **metada
   - Change `periods.period` signature.
     - It now only accepts strings.
   - Restrict the possible inputs for `periods.period`
-    - The authorized formats are listed in [the doc](http://openfisca.org/doc/key-concepts/periodsinstants.html)
+    - The authorized formats are listed in [the doc](https://openfisca.org/doc/key-concepts/periodsinstants.html)
   - Deprecate and remove:
     - `periods.json_or_python_to_period`
     - `periods.make_json_or_python_to_period`
@@ -1806,7 +1806,7 @@ These breaking changes only concern variable and tax and benefit system **metada
 
 #### Documentation
 
-* the attribute `definition_period` is documented here : http://openfisca.org/doc/coding-the-legislation/35_periods.html
+* the attribute `definition_period` is documented here : https://openfisca.org/doc/coding-the-legislation/35_periods.html
 
 ### 5.0.2
 

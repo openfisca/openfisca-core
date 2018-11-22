@@ -179,7 +179,7 @@ class Entity(object):
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
                 "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
                 "Learn more about entities in our documentation:",
-                "<http://openfisca.org/doc/coding-the-legislation/50_entities.html>."])
+                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>."])
             raise ValueError(message)
 
     def check_array_compatible_with_entity(self, array):
@@ -200,7 +200,7 @@ You requested computation of variable "{}", but you did not specify on which per
     {}
 When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
     computed_salary = person('salary', period).
-See more information at <http://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
+See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
 '''.format(variable_name, filename, line_number, line_of_code).encode('utf-8'))
 
     def __call__(self, variable_name, period = None, options = [], **parameters):
