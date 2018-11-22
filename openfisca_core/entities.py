@@ -104,7 +104,7 @@ class Entity(object):
                     try:
                         array[entity_index] = value
                     except (OverflowError):
-                        error_message = "Can't deal with value: '{}', it's too large for type {}.".format(value, holder.variable.value_type)
+                        error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, holder.variable.json_type)
                         raise SituationParsingError(path_in_json, error_message)
                     except (ValueError, TypeError):
                         if holder.variable.value_type == date:
