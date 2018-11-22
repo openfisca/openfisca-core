@@ -79,7 +79,7 @@ class Entity(object):
 
             if not isinstance(variable_values, dict):
                 raise SituationParsingError(path_in_json,
-                    "Invalid type: must be of type object. Input variables must be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+                    "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
 
             holder = self.get_holder(variable_name)
             for period_str, value in variable_values.items():
@@ -98,16 +98,19 @@ class Entity(object):
                         except KeyError:
                             possible_values = [item.name for item in holder.variable.possible_values]
                             raise SituationParsingError(path_in_json,
-                                "'{}' is not a valid value for '{}'. Possible values are ['{}'].".format(
+                                "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
                                     value, variable_name, "', '".join(possible_values))
                                 )
                     try:
                         array[entity_index] = value
+                    except (OverflowError):
+                        error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, holder.variable.json_type)
+                        raise SituationParsingError(path_in_json, error_message)
                     except (ValueError, TypeError):
                         if holder.variable.value_type == date:
-                            error_message = "Invalid date: '{}'.".format(value)
+                            error_message = "Can't deal with date: '{}'.".format(value)
                         else:
-                            error_message = "Invalid value: must be of type {}, received '{}'.".format(holder.variable.json_type, value)
+                            error_message = "Can't deal with value: expected type {}, received '{}'.".format(holder.variable.json_type, value)
                         raise SituationParsingError(path_in_json, error_message)
 
                     holder.buffer[period] = array

@@ -1,5 +1,9 @@
 # Changelog
 
+### 24.9.4 [#774](https://github.com/openfisca/openfisca-core/pull/774)
+
+- Clarify the error message when assigning a value larger than MaxInt32 to an 'int' variable
+
 ### 24.9.4 [#777](https://github.com/openfisca/openfisca-core/pull/777)
 
 - Allow OpenFisca-Core users to define their own level of log
