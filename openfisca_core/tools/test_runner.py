@@ -225,9 +225,6 @@ def _run_test(simulation, test, verbose = False, only_variables = None, ignore_v
     if test.get('relative_error_margin') is not None:
         relative_error_margin = test.get('relative_error_margin')
 
-    # scenario = test['scenario']
-    # scenario.suggest()
-    # simulation = scenario.new_simulation(trace = verbose)
     output = test.get('output')
     if output is not None:
         try:

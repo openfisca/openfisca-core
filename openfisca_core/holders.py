@@ -191,6 +191,10 @@ class Holder(object):
         if value.ndim == 0:
             # 0-dim arrays are casted to scalar when they interect with float. We don't want them.
             value = value.reshape(1)
+        if len(value) != self.entity.count:
+            raise ValueError(
+                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
+                .format(value, self.variable.name, len(value), self.entity.count, self.entity.plural))
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
@@ -199,8 +203,7 @@ class Holder(object):
             except ValueError:
                 raise ValueError(
                     'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
-                    .format(value, self.variable.name, self.variable.dtype, value.dtype)
-                    .encode('utf-8'))
+                    .format(value, self.variable.name, self.variable.dtype, value.dtype))
 
         if self.variable.definition_period != ETERNITY:
             if period is None:
@@ -370,6 +373,8 @@ def set_input_divide_by_period(holder, period, array):
 
         To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
     """
+    if not isinstance(array, np.ndarray):
+        array = np.array(array)
     period_size = period.size
     period_unit = period.unit
 
@@ -383,7 +388,7 @@ def set_input_divide_by_period(holder, period, array):
     after_instant = period.start.offset(period_size, period_unit)
 
     # Count the number of elementary periods to change, and the difference with what is already known.
-    remaining_array = array.copy() if isinstance(array, np.ndarray) else array
+    remaining_array = array.copy()
     sub_period = period.start.period(cached_period_unit)
     sub_periods_count = 0
     while sub_period.start < after_instant:
