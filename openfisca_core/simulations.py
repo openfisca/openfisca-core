@@ -428,6 +428,22 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
+    def delete_arrays(self, variable, period):
+        """
+            Delete a variable's value for a given period
+
+            :param variable: the variable to be set
+            :param period: the period for which the value is setted
+
+            Example:
+
+            >>> delete_input('age', '2018-04')
+            >>> get_array('age', '2018-04')
+            >>> [12, 14]
+
+        """
+        self.get_holder(variable).delete_arrays(period)
+
     def set_input(self, variable, period, value):
         """
             Set a variable's value for a given period
