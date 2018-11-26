@@ -13,8 +13,9 @@ class SimulationBuilder(object):
         self.default_simulation_json = {
             entity.plural: {
                 '_': {} if entity.is_person else {
-                    entity.roles[0].plural or entity.roles[0].key : ['_']
-                }}
+                    entity.roles[0].plural or entity.roles[0].key: ['_']
+                    }
+                }
             for entity in self.tax_benefit_system.entities
             }
 

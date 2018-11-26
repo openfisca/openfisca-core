@@ -19,7 +19,7 @@ import nose
 import numpy as np
 import yaml
 
-from openfisca_core import conv, periods, scenarios
+from openfisca_core import conv, periods
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder

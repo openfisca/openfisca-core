@@ -79,10 +79,10 @@ class Entity(object):
 
             if not isinstance(variable_values, dict):
 
-              if default_period is None:
-                  raise SituationParsingError(path_in_json,
-                      "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
-              variable_values = {default_period: variable_values}
+                if default_period is None:
+                    raise SituationParsingError(path_in_json,
+                        "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+                variable_values = {default_period: variable_values}
 
             holder = self.get_holder(variable_name)
             for period_str, value in variable_values.items():

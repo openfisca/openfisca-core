@@ -29,10 +29,8 @@ def run_yaml_test(path, options = {}):
     yaml_path = os.path.join(yaml_tests_dir, path)
 
     # We are testing tests, and don't want the latter to print anything, so we temporarily deactivate stderr.
-    old_stderr = sys.stderr
     sys.stderr = open(os.devnull, 'w')
     result = run_tests(tax_benefit_system, yaml_path, options)
-    #sys.stderr = old_stderr
     return result
 
 
