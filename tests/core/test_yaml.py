@@ -8,11 +8,10 @@ import subprocess
 
 from nose.tools import nottest, raises
 import openfisca_extension_template
-from openfisca_country_template import CountryTaxBenefitSystem
 
 from openfisca_core.tools.test_runner import run_tests, generate_tests
 
-tax_benefit_system = CountryTaxBenefitSystem()
+from .test_countries import tax_benefit_system
 
 
 openfisca_core_dir = pkg_resources.get_distribution('OpenFisca-Core').location
@@ -101,8 +100,7 @@ def test_shell_script_with_reform():
 
 
 def test_shell_script_with_extension():
-    extension_dir = openfisca_extension_template.__path__[0]
-    tests_dir = os.path.join(extension_dir, 'tests')
-    command = ['openfisca-run-test', tests_dir, '-c', 'openfisca_country_template', '-e', extension_dir]
+    tests_dir = os.path.join(openfisca_extension_template.__path__[0], 'tests')
+    command = ['openfisca-run-test', tests_dir, '-c', 'openfisca_country_template', '-e', 'openfisca_extension_template']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)

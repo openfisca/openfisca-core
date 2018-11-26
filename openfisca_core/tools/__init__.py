@@ -6,7 +6,7 @@ from builtins import str
 
 import os
 import numexpr as ne
-from ..indexed_enums import Enum, EnumArray
+from ..indexed_enums import EnumArray
 
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
@@ -26,41 +26,31 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
-    if isinstance(value, (list, tuple)):
+    if not isinstance(value, np.ndarray):
         value = np.array(value)
-    if isinstance(target_value, (list, tuple)):
-        target_value = np.array(target_value)
-    if isinstance(message, str):
-        message = message.encode('utf-8')
-    if isinstance(value, np.ndarray):
-        if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):
-            if not isinstance(value, EnumArray):
-                assert False, "Expected an Enum, got {} of dtype {}".format(value, value.dtype)
-            else:
-                assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
-        else:
-            if isinstance(target_value, str):
-                target_value = ne.evaluate(target_value)
-            target_value = np.array(target_value).astype(np.float32)
-            value = np.array(value).astype(np.float32)
-            diff = abs(target_value - value)
-            if absolute_error_margin is not None:
-                assert (diff <= absolute_error_margin).all(), \
-                    '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                        diff, absolute_error_margin)
-            if relative_error_margin is not None:
-                assert (diff <= abs(relative_error_margin * target_value)).all(), \
-                    '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                        diff, abs(relative_error_margin * target_value))
-    else:
-        if absolute_error_margin is not None:
-            assert abs(target_value - value) <= absolute_error_margin, \
-                '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                    abs(target_value - value), absolute_error_margin)
-        if relative_error_margin is not None:
-            assert abs(target_value - value) <= abs(relative_error_margin * target_value), \
-                '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                    abs(target_value - value), abs(relative_error_margin * target_value))
+    if isinstance(value, EnumArray):
+        return assert_enum_equals(value, target_value, message)
+    if isinstance(target_value, str):
+        try:
+            target_value = ne.evaluate(target_value)
+        except KeyError:
+            pass  # If we evaluating the string fails, keep the string value
+    target_value = np.array(target_value).astype(np.float32)
+    value = np.array(value).astype(np.float32)
+    diff = abs(target_value - value)
+    if absolute_error_margin is not None:
+        assert (diff <= absolute_error_margin).all(), \
+            '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
+                diff, absolute_error_margin)
+    if relative_error_margin is not None:
+        assert (diff <= abs(relative_error_margin * target_value)).all(), \
+            '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
+                diff, abs(relative_error_margin * target_value))
+
+
+def assert_enum_equals(value, target_value, message = ''):
+    value = value.decode_to_str()
+    assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
 
 
 def indent(text):
