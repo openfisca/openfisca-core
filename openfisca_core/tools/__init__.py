@@ -40,7 +40,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
                 assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
         else:
             if isinstance(target_value, str):
-              target_value = ne.evaluate(target_value)
+                target_value = ne.evaluate(target_value)
             target_value = np.array(target_value).astype(np.float32)
             value = np.array(value).astype(np.float32)
             diff = abs(target_value - value)
