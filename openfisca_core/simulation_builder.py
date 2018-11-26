@@ -21,10 +21,29 @@ class SimulationBuilder(object):
 
     def __init__(self, tax_benefit_system):
         self.tax_benefit_system = tax_benefit_system
+        self.entities_plural = [entity.plural for entity in self.tax_benefit_system.entities]
+        self.entities_by_singular = {entity.key: entity for entity in self.tax_benefit_system.entities}
+
+    def explicit_singular_entities(self, input_dict):
+        singular_keys = set(input_dict).intersection(self.entities_by_singular)
+        if not singular_keys:
+            return input_dict
+
+        result = {
+            entity_id: entity_description
+            for (entity_id, entity_description) in input_dict.items()
+            if entity_id in self.entities_plural
+            }  # filter out the singular entities
+
+        for singular in singular_keys:
+            plural = self.entities_by_singular[singular].plural
+            result[plural] = {singular: input_dict[singular]}
+
+        return result
 
     def build_from_dict(self, input_dict, default_period = None):
-        entities_plural = [entity.plural for entity in self.tax_benefit_system.entities]
-        if all(key in entities_plural for key in input_dict.keys()):
+        input_dict = self.explicit_singular_entities(input_dict)
+        if all(key in self.entities_plural for key in input_dict.keys()):
             return Simulation(self.tax_benefit_system, input_dict, default_period = default_period)
         else:
             return self.build_from_variables(input_dict, default_period)

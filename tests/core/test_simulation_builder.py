@@ -37,6 +37,18 @@ def test_vectorial_input():
     simulation.calculate("total_taxes", "2016-10")
 
 
+def test_single_entity():
+    input_yaml = """
+        persons:
+          Alicia: {}
+          Javier: {}
+        household:
+          parents: [Alicia, Javier]
+    """
+
+    simulation_builder.build_from_dict(load(input_yaml))
+
+
 def test_inconsistent_input():
     input_yaml = """
         salary:

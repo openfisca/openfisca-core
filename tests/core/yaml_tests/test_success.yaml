@@ -53,3 +53,17 @@
         income_tax:
           2017-01: 375
           2017-02: 0
+
+- name: "Basic test - entity singular shortcut"
+  period: 2017-01
+  input:
+    persons:
+      Alicia:
+        salary: 4000
+      Javier:
+        salary: 2500
+    household:
+      parents: [Alicia, Javier]
+  output:
+    household:
+      total_benefits: 600 * 2
