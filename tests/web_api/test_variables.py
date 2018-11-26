@@ -144,11 +144,13 @@ def test_dated_variable_formulas_dates():
 
 
 def test_dated_variable_formulas_content():
-    formula_code_2016 = "def formula_2016_12(person, period, parameters):\n    age_condition = person('age', period) >= parameters(period).general.age_of_majority\n    return age_condition * parameters(period).benefits.basic_income  # This '*' is a vectorial 'if'. See https://openfisca.org/doc/coding-the-legislation/30_case_disjunction.html#simple-multiplication\n"
-    formula_code_2015 = "def formula_2015_12(person, period, parameters):\n    age_condition = person('age', period) >= parameters(period).general.age_of_majority\n    salary_condition = person('salary', period) == 0\n    return age_condition * salary_condition * parameters(period).benefits.basic_income  # The '*' is also used as a vectorial 'and'. See https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html#forbidden-operations-and-alternatives\n"
+    formula_code_2016 = dated_variable['formulas']['2016-12-01']['content']
+    formula_code_2015 = dated_variable['formulas']['2015-12-01']['content']
 
-    assert_equal(dated_variable['formulas']['2016-12-01']['content'], formula_code_2016)
-    assert_equal(dated_variable['formulas']['2015-12-01']['content'], formula_code_2015)
+    assert "def formula_2016_12(person, period, parameters):" in formula_code_2016
+    assert "return" in formula_code_2016
+    assert "def formula_2015_12(person, period, parameters):" in formula_code_2015
+    assert "return" in formula_code_2015
 
 
 def test_variable_encoding():
