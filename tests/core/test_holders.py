@@ -126,23 +126,23 @@ def test_delete_arrays_on_disk():
 
 
 def test_cache_disk():
-    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    simulation = get_simulation(couple, memory_config = force_storage_on_disk)  # Force using disk
     month = make_period('2017-01')
-    holder = simulation.person.get_holder('salary')
-    data = np.asarray([2000, 3000, 0, 500])
+    holder = simulation.person.get_holder('disposable_income')
+    data = np.asarray([2000, 3000])
     holder.put_in_cache(data, month)
     stored_data = holder.get_array(month)
     assert_near(data, stored_data)
 
 
 def test_cache_disk_with_extra_params():
-    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    simulation = get_simulation(couple, memory_config = force_storage_on_disk)  # Force using disk
     month = make_period('2017-01')
     extra_param_1 = make_period('2017-02')
     extra_param_2 = make_period('2017-03')
-    holder = simulation.person.get_holder('salary')
-    data_1 = np.asarray([2000, 3000, 0, 500])
-    data_2 = np.asarray([1000, 4000, 200, 200])
+    holder = simulation.person.get_holder('disposable_income')
+    data_1 = np.asarray([2000, 3000])
+    data_2 = np.asarray([1000, 4000])
     holder.put_in_cache(data_1, month, extra_params = [extra_param_1])
     holder.put_in_cache(data_2, month, extra_params = [extra_param_2])
     stored_data_1 = holder.get_array(month, extra_params = [extra_param_1])
@@ -152,11 +152,11 @@ def test_cache_disk_with_extra_params():
 
 
 def test_known_periods():
-    simulation = get_simulation(single, memory_config = force_storage_on_disk)  # Force using disk
+    simulation = get_simulation(couple, memory_config = force_storage_on_disk)  # Force using disk
     month = make_period('2017-01')
     month_2 = make_period('2017-02')
-    holder = simulation.person.get_holder('salary')
-    data = np.asarray([2000, 3000, 0, 500])
+    holder = simulation.person.get_holder('disposable_income')
+    data = np.asarray([2000, 3000])
     holder.put_in_cache(data, month)
     holder._memory_storage.put(data, month_2)
 
