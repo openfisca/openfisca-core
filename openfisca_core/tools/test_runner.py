@@ -246,7 +246,6 @@ def _run_test(simulation, test, verbose = False, only_variables = None, ignore_v
                             relative_error_margin = relative_error_margin,
                             )
                 else:
-                    print("relative_error_margin %s" % relative_error_margin, file=sys.stderr)
                     assert_near(
                         simulation.calculate(variable_name, test.get('period')),
                         expected_value,
