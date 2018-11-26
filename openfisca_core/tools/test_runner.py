@@ -228,7 +228,11 @@ def _run_test(simulation, test):
     for key, expected_value in output.items():
         if simulation.tax_benefit_system.variables.get(key):  # If key is a variable
             return _check_variable(simulation, key, expected_value, test.get('period'), test)
-        entity_array = simulation.get_entity(plural = key)  # If key is an entity
+        if simulation.entities.get(key):  # If key is an entity singular
+            for variable_name, value in expected_value.items():
+                _check_variable(simulation, variable_name, value, test.get('period'), test)
+            return
+        entity_array = simulation.get_entity(plural = key)  # If key is an entity plural
         for entity_id, value_by_entity in expected_value.items():
             for variable_name, value in value_by_entity.items():
                 entity_index = entity_array.ids.index(entity_id)
