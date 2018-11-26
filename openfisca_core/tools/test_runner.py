@@ -130,8 +130,6 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     if isinstance(name_filter, str):
         name_filter = to_unicode(name_filter)
     verbose = options.get('verbose')
-    only_variables = options.get('only_variables')
-    ignore_variables = options.get('ignore_variables')
 
     tests = _parse_test_file(tax_benefit_system, path_to_file)
 
@@ -148,13 +146,18 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
             test.get('name'),
             test.get('period'),
             )
+        test.update({'options': options})
 
         def check():
             try:
-                _run_test(simulation, test, verbose, only_variables, ignore_variables, options)
+                _run_test(simulation, test)
             except Exception:
                 log.error(title)
                 raise
+            finally:
+                if verbose:
+                    print("Computation log:")
+                    simulation.tracer.print_computation_log()
 
         yield unittest.FunctionTestCase(check)
 
@@ -217,40 +220,44 @@ def _parse_test(tax_benefit_system, test):
     return simulation, test
 
 
-def _run_test(simulation, test, verbose = False, only_variables = None, ignore_variables = None, options = {}):
-    absolute_error_margin = None
-    relative_error_margin = None
-    if test.get('absolute_error_margin') is not None:
-        absolute_error_margin = test.get('absolute_error_margin')
-    if test.get('relative_error_margin') is not None:
-        relative_error_margin = test.get('relative_error_margin')
-
+def _run_test(simulation, test):
     output = test.get('output')
-    if output is not None:
-        try:
-            for variable_name, expected_value in output.items():
-                variable_ignored = ignore_variables is not None and variable_name in ignore_variables
-                variable_not_tested = only_variables is not None and variable_name not in only_variables
-                if variable_ignored or variable_not_tested:
-                    continue  # Skip this variable
-                if isinstance(expected_value, dict):
-                    for requested_period, expected_value_at_period in expected_value.items():
-                        assert_near(
-                            simulation.calculate(variable_name, requested_period),
-                            expected_value_at_period,
-                            absolute_error_margin = absolute_error_margin,
-                            message = '{}@{}: '.format(variable_name, requested_period),
-                            relative_error_margin = relative_error_margin,
-                            )
-                else:
-                    assert_near(
-                        simulation.calculate(variable_name, test.get('period')),
-                        expected_value,
-                        absolute_error_margin = absolute_error_margin,
-                        message = '{}@{}: '.format(variable_name, test.get('period')),
-                        relative_error_margin = relative_error_margin,
-                        )
-        finally:
-            if verbose:
-                print("Computation log:")
-                simulation.tracer.print_computation_log()
+
+    if output is None:
+        return
+    for key, expected_value in output.items():
+        if simulation.tax_benefit_system.variables.get(key):  # If key is a variable
+            return _check_variable(simulation, key, expected_value, test.get('period'), test)
+        entity_array = simulation.get_entity(plural = key)  # If key is an entity
+        for entity_id, value_by_entity in expected_value.items():
+            for variable_name, value in value_by_entity.items():
+                entity_index = entity_array.ids.index(entity_id)
+                _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
+
+
+def _should_ignore_variable(variable_name, test):
+    only_variables = test['options'].get('only_variables')
+    ignore_variables = test['options'].get('ignore_variables')
+    variable_ignored = ignore_variables is not None and variable_name in ignore_variables
+    variable_not_tested = only_variables is not None and variable_name not in only_variables
+
+    return variable_ignored or variable_not_tested
+
+
+def _check_variable(simulation, variable_name, expected_value, period, test, entity_index = None):
+    if _should_ignore_variable(variable_name, test):
+        return
+    if isinstance(expected_value, dict):
+        for requested_period, expected_value_at_period in expected_value.items():
+            _check_variable(simulation, variable_name, expected_value_at_period, requested_period, test, entity_index)
+        return
+    actual_value = simulation.calculate(variable_name, period)
+    if entity_index is not None:
+        actual_value = actual_value[entity_index]
+    return assert_near(
+        actual_value,
+        expected_value,
+        absolute_error_margin = test.get('absolute_error_margin'),
+        message = '{}@{}: '.format(variable_name, test.get('period')),
+        relative_error_margin = test.get('relative_error_margin'),
+        )
