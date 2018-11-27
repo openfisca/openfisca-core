@@ -218,6 +218,9 @@ def _parse_test(tax_benefit_system, test, options):
         for reform_path in reforms:
             current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
+    if not test.get('output'):
+        raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
+
     try:
         simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input', {}), default_period = test.get('period'), trace = options.get('verbose'))
     except SituationParsingError as error:
