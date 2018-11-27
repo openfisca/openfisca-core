@@ -437,6 +437,9 @@ class GroupEntity(Entity):
                 role_definition = [role_definition]
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
+                if isinstance(person_id, (float, int)):
+                    person_id = str(person_id)
+                check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
