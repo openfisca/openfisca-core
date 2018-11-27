@@ -2,9 +2,19 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 
+from datetime import date
+import sys
+
+import dpath
 import numpy as np
 
+from openfisca_core.commons import basestring_type
+from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
+from openfisca_core.indexed_enums import Enum
+from openfisca_core.periods import key_period_size, period as make_period
+from openfisca_core.scenarios import iter_over_entity_members
 from openfisca_core.simulations import Simulation
+from openfisca_core.tools import eval_expression
 
 
 def _get_person_count(input_dict):
@@ -21,7 +31,7 @@ class SimulationBuilder(object):
 
     def __init__(self, tax_benefit_system):
         self.tax_benefit_system = tax_benefit_system
-        self.entities_plural = [entity.plural for entity in self.tax_benefit_system.entities]
+        self.entities_plural = {entity.plural for entity in self.tax_benefit_system.entities}
         self.entities_by_singular = {entity.key: entity for entity in self.tax_benefit_system.entities}
 
     def build_from_dict(self, input_dict, **kwargs):
@@ -33,9 +43,46 @@ class SimulationBuilder(object):
             return self.build_default_simulation(**kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
-            return Simulation(self.tax_benefit_system, input_dict, **kwargs)
+            return self.build_from_entities(input_dict, **kwargs)
         else:
             return self.build_from_variables(input_dict, **kwargs)
+
+    def build_from_entities(self, input_dict, simulation = None, default_period = None, **kwargs):
+        """
+            Build a simulation from a Python dict ``input_dict`` fully specifying entities.
+        """
+
+        if simulation is None:
+            simulation = Simulation(self.tax_benefit_system, **kwargs)
+
+        check_type(input_dict, dict, ['error'])
+        unexpected_entities = [entity for entity in input_dict if entity not in self.entities_plural]
+        if unexpected_entities:
+            unexpected_entity = unexpected_entities[0]
+            raise SituationParsingError([unexpected_entity],
+                ''.join([
+                    "Some entities in the situation are not defined in the loaded tax and benefit system.",
+                    "These entities are not found: {0}.",
+                    "The defined entities are: {1}."]
+                    )
+                .format(
+                ', '.join(unexpected_entities),
+                ', '.join(self.entities_plural)
+                    )
+                )
+        persons_json = input_dict.get(self.tax_benefit_system.person_entity.plural, None)
+
+        if not persons_json:
+            raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
+                'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
+
+        self.hydrate_entity(simulation.persons, persons_json, default_period = default_period)
+
+        for entity_class in self.tax_benefit_system.group_entities:
+            entities_json = input_dict.get(entity_class.plural)
+            self.hydrate_entity(simulation.entities[entity_class.key], entities_json, default_period = default_period)
+
+        return simulation
 
     def build_from_variables(self, input_dict, default_period = None, **kwargs):
         """
@@ -104,3 +151,183 @@ class SimulationBuilder(object):
             result[plural] = {singular: input_dict[singular]}
 
         return result
+
+    def hydrate_entity(self, entity, entities_json, default_period = None):
+        """
+            Hydrate an entity from a JSON dictionnary ``entities_json``.
+        """
+        check_type(entities_json, dict, [entity.plural])
+        entities_json = {str(key): value for key, value in entities_json.items()}  # Stringify potential numeric keys
+        entity.count = len(entities_json)
+        entity.step_size = entity.count  # Related to axes.
+        entity.ids = list(entities_json.keys())
+
+        if not entity.is_person:
+            persons = entity.simulation.persons
+            entity.members_entity_id = np.empty(persons.count, dtype = np.int32)
+            entity.members_role = np.empty(persons.count, dtype = object)
+            entity.members_legacy_role = np.empty(persons.count, dtype = np.int32)
+            persons_to_allocate = set(persons.ids)
+
+        if sys.version_info < (3, 6):
+            entity.ids = sorted(entity.ids)  # In Python 3.6+, insertion order is preserved for dicts. For lower versions, we sort it, so that the order is deterministic. This is useful for testing
+        for entity_id, entity_object in entities_json.items():
+            check_type(entity_object, dict, [entity.plural, entity_id])
+            if not entity.is_person:
+                roles_json, variables_json = self.split_variables_and_roles_json(entity, entity_object)
+                persons_to_allocate = self.init_entity_members(entity, roles_json, entity_id, persons_to_allocate)
+            else:
+                variables_json = entity_object
+            self.init_variable_values(entity, variables_json, entity_id, default_period = default_period)
+
+        if not entity.is_person and persons_to_allocate:
+            raise SituationParsingError([entity.plural],
+                '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
+                    persons_to_allocate, entity.simulation.persons.plural, entity.key)
+                )
+
+        # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
+        self.finalize_variables_init(entity, entities_json)
+
+    def init_variable_values(self, entity, entity_object, entity_id, default_period = None):
+        for variable_name, variable_values in entity_object.items():
+            path_in_json = [entity.plural, entity_id, variable_name]
+            try:
+                entity.check_variable_defined_for_entity(variable_name)
+            except ValueError as e:  # The variable is defined for another entity
+                raise SituationParsingError(path_in_json, e.args[0])
+            except VariableNotFound as e:  # The variable doesn't exist
+                raise SituationParsingError(path_in_json, e.message, code = 404)
+
+            if not isinstance(variable_values, dict):
+
+                if default_period is None:
+                    raise SituationParsingError(path_in_json,
+                        "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+                variable_values = {default_period: variable_values}
+
+            for period, value in variable_values.items():
+                self.init_variable_value(entity, entity_id, variable_name, period, value)
+
+    def init_variable_value(self, entity, entity_id, variable_name, period_str, value):
+            path_in_json = [entity.plural, entity_id, variable_name, period_str]
+            entity_index = entity.ids.index(entity_id)
+            holder = entity.get_holder(variable_name)
+            try:
+                period = make_period(period_str)
+            except ValueError as e:
+                raise SituationParsingError(path_in_json, e.args[0])
+            if value is None:
+                return
+            array = holder.buffer.get(period)
+            if array is None:
+                array = holder.default_array()
+            if holder.variable.value_type == Enum and isinstance(value, basestring_type):
+                try:
+                    value = holder.variable.possible_values[value].index
+                except KeyError:
+                    possible_values = [item.name for item in holder.variable.possible_values]
+                    raise SituationParsingError(path_in_json,
+                        "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
+                            value, variable_name, "', '".join(possible_values))
+                        )
+            if holder.variable.value_type in (float, int) and isinstance(value, basestring_type):
+                value = eval_expression(value)
+            try:
+                array[entity_index] = value
+            except (OverflowError):
+                error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, holder.variable.json_type)
+                raise SituationParsingError(path_in_json, error_message)
+            except (ValueError, TypeError):
+                if holder.variable.value_type == date:
+                    error_message = "Can't deal with date: '{}'.".format(value)
+                else:
+                    error_message = "Can't deal with value: expected type {}, received '{}'.".format(holder.variable.json_type, value)
+                raise SituationParsingError(path_in_json, error_message)
+
+            holder.buffer[period] = array
+
+    def finalize_variables_init(self, entity, entities_json):
+        for variable_name, holder in entity._holders.items():
+            periods = holder.buffer.keys()
+            # We need to handle small periods first for set_input to work
+            sorted_periods = sorted(periods, key=key_period_size)
+            for period in sorted_periods:
+                array = holder.buffer[period]
+                try:
+                    holder.set_input(period, array)
+                except PeriodMismatchError as e:
+                    # This errors happens when we try to set a variable value for a period that doesn't match its definition period
+                    # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
+                    # We do a basic research to find the culprit path
+                    culprit_path = next(
+                        dpath.search(entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+                        None)
+                    if culprit_path:
+                        path = [entity.plural] + culprit_path[0].split('/')
+                    else:
+                        path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
+
+                    raise SituationParsingError(path, e.message)
+
+    def split_variables_and_roles_json(self, entity, entity_object):
+        entity_object = entity_object.copy()  # Don't mutate function input
+
+        roles_definition = {
+            role.plural or role.key: entity_object.pop(role.plural or role.key, [])
+            for role in entity.roles
+            }
+        return roles_definition, entity_object
+
+    def init_entity_members(self, entity, roles_json, entity_id, persons_to_allocate):
+
+        roles_json = {
+            role_id: clean_person_list(role_definition)
+            for role_id, role_definition in roles_json.items()
+            }
+
+        persons = entity.simulation.persons
+
+        for role_id, role_definition in roles_json.items():
+            check_type(role_definition, list, [entity.plural, entity_id, role_id])
+            for index, person_id in enumerate(role_definition):
+                check_type(person_id, basestring_type, [entity.plural, entity_id, role_id, str(index)])
+                if person_id not in persons.ids:
+                    raise SituationParsingError([entity.plural, entity_id, role_id],
+                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                            person_id, entity_id, role_id, persons.plural)
+                        )
+                if person_id not in persons_to_allocate:
+                    raise SituationParsingError([entity.plural, entity_id, role_id],
+                        "{} has been declared more than once in {}".format(
+                            person_id, entity.plural)
+                        )
+                persons_to_allocate.discard(person_id)
+
+        entity_index = entity.ids.index(entity_id)
+        for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
+            person_index = persons.ids.index(person_id)
+            entity.members_entity_id[person_index] = entity_index
+            entity.members_role[person_index] = person_role
+            entity.members_legacy_role[person_index] = person_legacy_role
+
+        return persons_to_allocate
+
+
+def check_type(input, input_type, path = []):
+    json_type_map = {
+        dict: "Object",
+        list: "Array",
+        basestring_type: "String",
+        }
+    if not isinstance(input, input_type):
+        raise SituationParsingError(path,
+            "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
+
+
+def clean_person_list(data):
+    if isinstance(data, (str, int)):
+        data = [data]
+    if isinstance(data, list):
+        return [str(item) if isinstance(item, int) else item for item in data]
+    return data

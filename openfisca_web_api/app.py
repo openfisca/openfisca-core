@@ -5,7 +5,7 @@ import logging
 import os
 import traceback
 
-from openfisca_core.simulations import SituationParsingError
+from openfisca_core.errors import SituationParsingError
 from openfisca_core.commons import to_unicode
 from openfisca_web_api.loader import build_data
 from openfisca_web_api.errors import handle_import_error
