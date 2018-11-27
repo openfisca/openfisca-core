@@ -52,13 +52,13 @@ class Entity(object):
             This method, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`
         """
         check_type(entities_json, dict, [self.plural])
-        self.entities_json = entities_json
-        self.count = len(entities_json)
+        self.entities_json = {str(key): value for key, value in entities_json.items()}
+        self.count = len(self.entities_json)
         self.step_size = self.count  # Related to axes.
-        self.ids = list(str(key) for key in entities_json.keys())
+        self.ids = list(self.entities_json.keys())
         if sys.version_info < (3, 6):
             self.ids = sorted(self.ids)  # In Python 3.6+, insertion order is preserved for dicts. For lower versions, we sort it, so that the order is deterministic. This is useful for testing
-        for entity_id, entity_object in entities_json.items():
+        for entity_id, entity_object in self.entities_json.items():
             check_type(entity_object, dict, [self.plural, entity_id])
             if not self.is_person:
                 roles_json, variables_json = self.split_variables_and_roles_json(entity_object)
@@ -432,13 +432,23 @@ class GroupEntity(Entity):
                 )
 
     def init_members(self, roles_json, entity_id):
+
+        def _to_str_list(data):
+            if isinstance(data, (str, int)):
+                data = [data]
+            if isinstance(data, list):
+                return [str(item) if isinstance(item, int) else item for item in data]
+            return data
+
+        # Clean roles_json
+        roles_json = {
+            role_id: _to_str_list(role_definition)
+            for role_id, role_definition in roles_json.items()
+            }
+
         for role_id, role_definition in roles_json.items():
-            if isinstance(role_definition, (str, int)):
-                role_definition = [role_definition]
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
-                if isinstance(person_id, (float, int)):
-                    person_id = str(person_id)
                 check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
