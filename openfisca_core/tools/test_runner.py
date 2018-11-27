@@ -14,6 +14,7 @@ import os
 import sys
 import unittest
 import logging
+import traceback
 
 import nose
 import numpy as np
@@ -23,6 +24,7 @@ from openfisca_core import conv, periods
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.simulations import SituationParsingError
 
 
 log = logging.getLogger(__name__)
@@ -179,9 +181,12 @@ def _parse_test_file(tax_benefit_system, yaml_path):
     with open(yaml_path) as yaml_file:
         try:
             tests = yaml.load(yaml_file, Loader = Loader)
-        except yaml.scanner.ScannerError:
-            log.error("{} is not a valid YAML file".format(yaml_path))
-            raise
+        except (yaml.scanner.ScannerError, TypeError):
+            message = os.linesep.join([
+                traceback.format_exc(),
+                "'{}'' is not a valid YAML file. Check the stack trace above for more details.".format(yaml_path),
+                ])
+            raise ValueError(message)
 
     tests, error = conv.pipe(
         conv.make_item_to_singleton(),
@@ -214,9 +219,17 @@ def _parse_test(tax_benefit_system, test):
             current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
     if not test.get('input'):
-        raise ValueError("Missing key 'input' in test '{}' in file '{}'".format(test['name'], test['file_path']))
-    simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input'), test.get('period'))
-
+        raise ValueError("Missing key 'input' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
+    try:
+        simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input'), test.get('period'))
+    except SituationParsingError as error:
+        message = os.linesep.join([
+            traceback.format_exc(),
+            str(error.error),
+            os.linesep,
+            "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(test.get('name',''), test['file_path']),
+            ])
+        raise ValueError(message)
     return simulation, test
 
 
@@ -262,6 +275,7 @@ def _check_variable(simulation, variable_name, expected_value, period, test, ent
         actual_value,
         expected_value,
         absolute_error_margin = test.get('absolute_error_margin'),
-        message = '{}@{}: '.format(variable_name, test.get('period')),
+        message = "In test '{}', in file '{}', {}@{}: ".format(
+            test.get('name'), test.get('file_path'), variable_name, test.get('period')),
         relative_error_margin = test.get('relative_error_margin'),
         )
