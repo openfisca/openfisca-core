@@ -32,7 +32,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     if isinstance(target_value, str):
         try:
             target_value = ne.evaluate(target_value)
-        except KeyError:
+        except (KeyError, TypeError):
             pass  # If we evaluating the string fails, keep the string value
     target_value = np.array(target_value).astype(np.float32)
 
