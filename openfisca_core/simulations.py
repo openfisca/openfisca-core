@@ -505,7 +505,7 @@ def check_type(input, input_type, path = []):
 class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
-        dpath_path = '/'.join(path)
+        dpath_path = '/'.join([str(item) for item in path])
         message = to_unicode(message)
         message = message.strip(linesep).replace(linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
