@@ -52,7 +52,7 @@ def test_responses():
         ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', BAD_REQUEST, 'persons/bob/salary/invalid period', 'Expected a period',),
         ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', BAD_REQUEST, 'persons/bob/salary/invalid period', 'Expected a period',),
         ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
-        ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}}', BAD_REQUEST, 'households', 'is not a member of any household',),
+        ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}, "households": {}}', BAD_REQUEST, 'households', 'not members of any househol',),
         ('{"persons": {"bob": {"salary": {"ETERNITY": 2000} }}}', BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
         ]
 

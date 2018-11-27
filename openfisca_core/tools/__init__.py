@@ -2,9 +2,10 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 
-
 import os
-import numexpr as ne
+
+import numexpr
+
 from ..indexed_enums import EnumArray
 
 
@@ -30,10 +31,8 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
     if isinstance(target_value, str):
-        try:
-            target_value = ne.evaluate(target_value)
-        except (KeyError, TypeError):
-            pass  # If we evaluating the string fails, keep the string value
+        target_value = eval_expression(target_value)
+
     target_value = np.array(target_value).astype(np.float32)
 
     value = np.array(value).astype(np.float32)
@@ -71,3 +70,10 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         'api_url': api_url,
         })
     return url
+
+
+def eval_expression(expression):
+    try:
+        return numexpr.evaluate(expression)
+    except (KeyError, TypeError):
+        return expression

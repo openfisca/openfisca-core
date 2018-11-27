@@ -8,14 +8,15 @@ import warnings
 
 import numpy as np
 import psutil
-import numexpr
 
 from openfisca_core import periods
-from openfisca_core.commons import empty_clone
-from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.columns import make_column_from_variable
-from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.tools import eval_expression
 
 log = logging.getLogger(__name__)
 
@@ -183,10 +184,7 @@ class Holder(object):
                 Warning
                 )
         if self.variable.value_type in (float, int) and isinstance(array, str):
-            try:
-                array = numexpr.evaluate(array)
-            except KeyError:
-                pass
+            array = eval_expression(array)
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
@@ -326,15 +324,6 @@ class Holder(object):
     def get_extra_param_names(self, period):
         formula = self.variable.get_formula(period)
         return formula.__code__.co_varnames[3:]
-
-
-class PeriodMismatchError(ValueError):
-    def __init__(self, variable_name, period, definition_period, message):
-        self.variable_name = variable_name
-        self.period = period
-        self.definition_period = definition_period
-        self.message = message
-        ValueError.__init__(self, self.message)
 
 
 def set_input_dispatch_by_period(holder, period, array):

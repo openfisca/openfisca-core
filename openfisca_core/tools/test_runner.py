@@ -24,7 +24,7 @@ from openfisca_core import conv, periods
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.simulations import SituationParsingError
+from openfisca_core.errors import SituationParsingError
 
 
 log = logging.getLogger(__name__)
