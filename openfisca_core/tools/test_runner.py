@@ -228,7 +228,7 @@ def _parse_test(tax_benefit_system, test, options):
             traceback.format_exc(),
             str(error.error),
             os.linesep,
-            "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(test.get('name',''), test['file_path']),
+            "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(test.get('name', ''), test['file_path']),
             ])
         raise ValueError(message)
     return simulation, test
