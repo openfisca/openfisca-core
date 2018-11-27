@@ -20,7 +20,7 @@ import nose
 import numpy as np
 import yaml
 
-from openfisca_core import conv, periods
+from openfisca_core import periods
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -188,19 +188,9 @@ def _parse_test_file(tax_benefit_system, yaml_path, options):
                 ])
             raise ValueError(message)
 
-    tests, error = conv.pipe(
-        conv.make_item_to_singleton(),
-        conv.uniform_sequence(
-            conv.noop,
-            drop_none_items = True,
-            ),
-        )(tests)
-
-    if error is not None:
-        embedding_error = conv.embed_error(tests, 'errors', error)
-        assert embedding_error is None, embedding_error
-        raise ValueError("Error in test {}:\n{}".format(yaml_path, yaml.dump(tests, Dumper = Dumper, allow_unicode = True,
-            default_flow_style = False, indent = 2, width = 120)))
+    if not isinstance(tests, list):
+        tests = [tests]
+    tests = filter(lambda test: test, tests)  # Remove empty tests
 
     filename = os.path.splitext(os.path.basename(yaml_path))[0]
     for test in tests:
