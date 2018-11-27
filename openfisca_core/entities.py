@@ -424,6 +424,8 @@ class GroupEntity(Entity):
 
     def init_members(self, roles_json, entity_id):
         for role_id, role_definition in roles_json.items():
+            if isinstance(role_definition, (str, int)):
+                role_definition = [role_definition]
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
                 check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
