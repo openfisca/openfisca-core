@@ -133,7 +133,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
         name_filter = to_unicode(name_filter)
     verbose = options.get('verbose')
 
-    tests = _parse_test_file(tax_benefit_system, path_to_file)
+    tests = _parse_test_file(tax_benefit_system, path_to_file, options)
 
     for test_index, (simulation, test) in enumerate(tests, 1):
         if name_filter is not None and name_filter not in filename \
@@ -177,7 +177,7 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
             yield test
 
 
-def _parse_test_file(tax_benefit_system, yaml_path):
+def _parse_test_file(tax_benefit_system, yaml_path, options):
     with open(yaml_path) as yaml_file:
         try:
             tests = yaml.load(yaml_file, Loader = Loader)
@@ -206,10 +206,10 @@ def _parse_test_file(tax_benefit_system, yaml_path):
     for test in tests:
         test['filename'] = filename
         test['file_path'] = yaml_path
-        yield _parse_test(tax_benefit_system, test)
+        yield _parse_test(tax_benefit_system, test, options)
 
 
-def _parse_test(tax_benefit_system, test):
+def _parse_test(tax_benefit_system, test, options):
     current_tax_benefit_system = tax_benefit_system
     if test.get('reforms'):
         reforms = test.pop('reforms')
@@ -218,10 +218,8 @@ def _parse_test(tax_benefit_system, test):
         for reform_path in reforms:
             current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
-    if not test.get('input'):
-        raise ValueError("Missing key 'input' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
     try:
-        simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input'), test.get('period'))
+        simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input', {}), default_period = test.get('period'), trace = options.get('verbose'))
     except SituationParsingError as error:
         message = os.linesep.join([
             traceback.format_exc(),

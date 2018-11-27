@@ -41,15 +41,15 @@ class SimulationBuilder(object):
 
         return result
 
-    def build_from_dict(self, input_dict, default_period = None):
+    def build_from_dict(self, input_dict, **kwargs):
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
-            return Simulation(self.tax_benefit_system, input_dict, default_period = default_period)
+            return Simulation(self.tax_benefit_system, input_dict, **kwargs)
         else:
-            return self.build_from_variables(input_dict, default_period)
+            return self.build_from_variables(input_dict, **kwargs)
 
-    def init_default_simulation(self, count):
-        simulation = Simulation(self.tax_benefit_system)
+    def init_default_simulation(self, count, **kwargs):
+        simulation = Simulation(self.tax_benefit_system, **kwargs)
         for entity in simulation.entities.values():
             entity.count = count
             entity.ids = np.array(range(count))
@@ -58,9 +58,9 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def build_from_variables(self, input_dict, default_period = None):
+    def build_from_variables(self, input_dict, default_period = None, **kwargs):
         count = _get_person_count(input_dict)
-        simulation = self.init_default_simulation(count)
+        simulation = self.init_default_simulation(count, **kwargs)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 simulation.set_input(variable, default_period, value)
