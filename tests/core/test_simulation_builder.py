@@ -37,7 +37,7 @@ def test_vectorial_input():
     simulation.calculate("total_taxes", "2016-10")
 
 
-def test_single_entity():
+def test_single_entity_shortcut():
     input_yaml = """
         persons:
           Alicia: {}
@@ -46,7 +46,8 @@ def test_single_entity():
           parents: [Alicia, Javier]
     """
 
-    simulation_builder.build_from_dict(load(input_yaml))
+    simulation = simulation_builder.build_from_dict(load(input_yaml))
+    assert simulation.household.count == 1
 
 
 def test_inconsistent_input():
@@ -63,15 +64,21 @@ def test_inconsistent_input():
 
 # Test helpers
 
-def test_init_default_simulation():
-    one_person_simulation = simulation_builder.init_default_simulation(1)
+def test_build_default_simulation():
+    one_person_simulation = simulation_builder.build_default_simulation(1)
     assert one_person_simulation.persons.count == 1
     assert one_person_simulation.household.count == 1
     assert one_person_simulation.household.members_entity_id == [0]
     assert one_person_simulation.household.members_role == Household.FIRST_PARENT
 
-    several_persons_simulation = simulation_builder.init_default_simulation(4)
+    several_persons_simulation = simulation_builder.build_default_simulation(4)
     assert several_persons_simulation.persons.count == 4
     assert several_persons_simulation.household.count == 4
     assert (several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]).all()
     assert (several_persons_simulation.household.members_role == Household.FIRST_PARENT).all()
+
+
+def test_explicit_singular_entities():
+    assert simulation_builder.explicit_singular_entities(
+        {'persons': {'Javier': {}}, 'household': {'parents': ['Alicia']}}
+        ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Alicia']}}}
