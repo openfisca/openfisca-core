@@ -6,6 +6,7 @@ import warnings
 import textwrap
 from os import linesep
 from datetime import date
+import sys
 
 import dpath
 import numexpr
@@ -54,7 +55,9 @@ class Entity(object):
         self.entities_json = entities_json
         self.count = len(entities_json)
         self.step_size = self.count  # Related to axes.
-        self.ids = sorted(entities_json.keys())
+        self.ids = list(str(key) for key in entities_json.keys())
+        if sys.version_info < (3, 6):
+            self.ids = sorted(self.ids)  # In Python 3.6+, insertion order is preserved for dicts. For lower versions, we sort it, so that the order is deterministic. This is useful for testing
         for entity_id, entity_object in entities_json.items():
             check_type(entity_object, dict, [self.plural, entity_id])
             if not self.is_person:
@@ -434,7 +437,6 @@ class GroupEntity(Entity):
                 role_definition = [role_definition]
             check_type(role_definition, list, [self.plural, entity_id, role_id])
             for index, person_id in enumerate(role_definition):
-                check_type(person_id, basestring_type, [self.plural, entity_id, role_id, str(index)])
                 if person_id not in self.simulation.persons.ids:
                     raise SituationParsingError([self.plural, entity_id, role_id],
                         "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
