@@ -35,6 +35,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         except KeyError:
             pass  # If we evaluating the string fails, keep the string value
     target_value = np.array(target_value).astype(np.float32)
+
     value = np.array(value).astype(np.float32)
     diff = abs(target_value - value)
     if absolute_error_margin is not None:
