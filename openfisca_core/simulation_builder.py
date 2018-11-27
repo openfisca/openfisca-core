@@ -42,6 +42,8 @@ class SimulationBuilder(object):
         return result
 
     def build_from_dict(self, input_dict, **kwargs):
+        if not input_dict:
+            return self.init_default_simulation(1, **kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
             return Simulation(self.tax_benefit_system, input_dict, **kwargs)
