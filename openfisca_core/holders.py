@@ -8,6 +8,7 @@ import warnings
 
 import numpy as np
 import psutil
+import numexpr
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
@@ -181,6 +182,11 @@ class Holder(object):
                 warning_message,
                 Warning
                 )
+        if self.variable.value_type in (float, int) and isinstance(array, str):
+            try:
+                array = numexpr.evaluate(array)
+            except KeyError:
+                pass
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)

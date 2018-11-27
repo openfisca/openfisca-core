@@ -7,8 +7,9 @@ import textwrap
 from os import linesep
 from datetime import date
 
-import numpy as np
 import dpath
+import numexpr
+import numpy as np
 
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.scenarios import iter_over_entity_members
@@ -104,6 +105,11 @@ class Entity(object):
                                 "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
                                     value, variable_name, "', '".join(possible_values))
                                 )
+                    if holder.variable.value_type in (float, int) and isinstance(value, basestring_type):
+                        try:
+                            value = numexpr.evaluate(value)
+                        except KeyError:
+                            pass
                     try:
                         array[entity_index] = value
                     except (OverflowError):
