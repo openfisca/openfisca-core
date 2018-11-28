@@ -31,8 +31,8 @@ def test_build_default_simulation():
 
 def test_explicit_singular_entities():
     assert simulation_builder.explicit_singular_entities(
-        {'persons': {'Javier': {}}, 'household': {'parents': ['Alicia']}}
-        ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Alicia']}}}
+        {'persons': {'Javier': {}}, 'household': {'parents': ['Javier']}}
+        ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
 
 
 def test_hydrate_person_entity():
