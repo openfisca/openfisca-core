@@ -83,7 +83,7 @@ class Simulation(object):
         if simulation_json is not None:
             warnings.warn(' '.join([
                 "The 'simulation_json' argument of the Simulation is deprecated since version 25.0, and will be removed in the future.",
-                "The proper way to init a simulation from a JSON-like dict is to use SimulationBuilder.build_from_entities. See <https://openfisca.org/doc/XXXXXXXX>"
+                "The proper way to init a simulation from a JSON-like dict is to use SimulationBuilder.build_from_entities. See <https://openfisca.org/doc/openfisca-python-api/simulation_builder.html#openfisca_core.simulation_builder.SimulationBuilder.build_from_dict>"
                 ]),
                 Warning
                 )
