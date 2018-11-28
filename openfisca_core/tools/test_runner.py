@@ -15,7 +15,6 @@ import logging
 import traceback
 
 import nose
-import yaml
 
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
@@ -23,18 +22,30 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError
 
 
-log = logging.getLogger(__name__)
+def import_yaml():
+    if sys.version_info < (3, 6):
+        # In Python 2, we need a YAML loader that preserves the dict orders, as it's not natively suported.
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        return yaml, None
 
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    log.warning(
-        ' '
-        'libyaml is not installed in your environment, this can make your '
-        'test suite slower to run. Once you have installed libyaml, run `pip '
-        'uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your '
-        'Python environment.')
-    from yaml import Loader
+    import yaml
+    try:
+        from yaml import CLoader as Loader
+    except ImportError:
+        log.warning(
+            ' '
+            'libyaml is not installed in your environment, this can make your '
+            'test suite slower to run. Once you have installed libyaml, run `pip '
+            'uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your '
+            'Python environment.')
+        from yaml import Loader
+    return yaml, Loader
+
+
+yaml, Loader = import_yaml()
+
+log = logging.getLogger(__name__)
 
 _tax_benefit_system_cache = {}
 
@@ -155,7 +166,7 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
 def _parse_test_file(tax_benefit_system, yaml_path, options):
     with open(yaml_path) as yaml_file:
         try:
-            tests = yaml.load(yaml_file, Loader = Loader)
+            tests = yaml.load(yaml_file)
         except (yaml.scanner.ScannerError, TypeError):
             message = os.linesep.join([
                 traceback.format_exc(),
