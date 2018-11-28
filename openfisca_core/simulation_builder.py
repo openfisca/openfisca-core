@@ -34,24 +34,38 @@ class SimulationBuilder(object):
         self.entities_plural = {entity.plural for entity in self.tax_benefit_system.entities}
         self.entities_by_singular = {entity.key: entity for entity in self.tax_benefit_system.entities}
 
-    def build_from_dict(self, input_dict, **kwargs):
+    def build_from_dict(self, input_dict, default_period = None, **kwargs):
         """
-            Build a simulation from a Python dict ``input_dict``
+            Build a simulation from ``input_dict``
+
+            This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
+
+            :param dict input_dict: A dict represeting the input of the simulation
+            :param default_period: If provided, inputs variables without an explicit period will be set for ``default_period``
+            :param kwargs: Same keywords argument than the :any:`Simulation` constructor
+            :return: A :any:`Simulation`
         """
 
         if not input_dict:
             return self.build_default_simulation(**kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
-            return self.build_from_entities(input_dict, **kwargs)
+            return self.build_from_entities(input_dict, default_period, **kwargs)
         else:
-            return self.build_from_variables(input_dict, **kwargs)
+            return self.build_from_variables(input_dict, default_period, **kwargs)
 
-    def build_from_entities(self, input_dict, simulation = None, default_period = None, **kwargs):
+    def build_from_entities(self, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from a Python dict ``input_dict`` fully specifying entities.
-        """
 
+            Examples:
+
+            >>> simulation_builder.build_from_entities({
+                'persons': {'Javier': { 'salary': {'2018-11': 2000}}},
+                'households': {'household': {'parents': ['Javier']}}
+                })
+        """
+        simulation = kwargs.pop('simulation', None)  # Only for backward compatibility with previous Simulation constructor
         if simulation is None:
             simulation = Simulation(self.tax_benefit_system, **kwargs)
 
@@ -130,10 +144,9 @@ class SimulationBuilder(object):
             Example:
 
             >>> simulation_builder.explicit_singular_entities(
-                {'persons': {'Javier': {}}, 'household': {'parents': ['Alicia']}}
+                {'persons': {'Javier': {}, }, 'household': {'parents': ['Javier']}}
                 )
-            >>>
-            >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Alicia']}}
+            >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
         """
 
         singular_keys = set(input_dict).intersection(self.entities_by_singular)
