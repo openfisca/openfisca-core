@@ -10,7 +10,6 @@ import numpy as np
 import psutil
 
 from openfisca_core import periods
-from openfisca_core.columns import make_column_from_variable
 from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
@@ -266,64 +265,6 @@ class Holder(object):
             return EnumArray(array, self.variable.possible_values)
         array.fill(self.variable.default_value)
         return array
-
-    # Legacy method used by the old OpenFisca Web API to display intermediate results
-    def to_value_json(self, use_label = False):
-        column = make_column_from_variable(self.variable)
-        transform_dated_value_to_json = column.transform_dated_value_to_json
-
-        def extra_params_to_json_key(extra_params, period):
-            return '{' + ', '.join(
-                ['{}: {}'.format(name, value)
-                    for name, value in zip(self.get_extra_param_names(period), extra_params)]
-                ) + '}'
-
-        if self.variable.definition_period == ETERNITY:
-            array = self.get_array(None)
-            if array is None:
-                return None
-            return [
-                transform_dated_value_to_json(cell, use_label = use_label)
-                for cell in array.tolist()
-                ]
-        value_json = {}
-        for period, array_or_dict in self._memory_storage._arrays.items():
-            if type(array_or_dict) == dict:
-                values_dict = {}
-                for extra_params, array in array_or_dict.items():
-                    extra_params_key = extra_params_to_json_key(extra_params, period)
-                    values_dict[str(extra_params_key)] = [
-                        transform_dated_value_to_json(cell, use_label = use_label)
-                        for cell in array.tolist()
-                        ]
-                value_json[str(period)] = values_dict
-            else:
-                value_json[str(period)] = [
-                    transform_dated_value_to_json(cell, use_label = use_label)
-                    for cell in array_or_dict.tolist()
-                    ]
-        if self._disk_storage:
-            for period, file_or_dict in self._disk_storage._files.items():
-                if type(file_or_dict) == dict:
-                    values_dict = {}
-                    for extra_params, file in file_or_dict.items():
-                        extra_params_key = extra_params_to_json_key(extra_params, period)
-                        values_dict[str(extra_params_key)] = [
-                            transform_dated_value_to_json(cell, use_label = use_label)
-                            for cell in np.load(file).tolist()
-                            ]
-                    value_json[str(period)] = values_dict
-                else:
-                    value_json[str(period)] = [
-                        transform_dated_value_to_json(cell, use_label = use_label)
-                        for cell in np.load(file_or_dict).tolist()
-                        ]
-        return value_json
-
-    # Legacy method called by to_value_json
-    def get_extra_param_names(self, period):
-        formula = self.variable.get_formula(period)
-        return formula.__code__.co_varnames[3:]
 
 
 def set_input_dispatch_by_period(holder, period, array):

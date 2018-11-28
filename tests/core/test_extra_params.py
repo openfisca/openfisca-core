@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-from nose.tools import assert_equal
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
@@ -68,23 +67,6 @@ def test_cache():
     formula_2_result = simulation.calculate('formula_2', period = reference_period)
     assert_near(formula_1_result, [0])
     assert_near(formula_2_result, [1])
-
-
-def test_get_extra_param_names():
-    simulation = get_simulation()
-    formula_3_holder = simulation.person.get_holder('formula_3')
-    assert formula_3_holder.get_extra_param_names(reference_period) == ('choice',)
-
-
-def test_json_conversion():
-    simulation = get_simulation()
-    simulation.calculate('formula_1', period = reference_period)
-    simulation.calculate('formula_2', period = reference_period)
-    formula_3_holder = simulation.person.get_holder('formula_3')
-    assert_equal(
-        formula_3_holder.to_value_json(),
-        {'2013-01': {'{choice: 1}': [1], '{choice: 0}': [0]}}
-        )
 
 
 def test_base_functions():
