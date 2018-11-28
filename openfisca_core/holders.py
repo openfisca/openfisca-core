@@ -193,7 +193,7 @@ class Holder(object):
         if not isinstance(value, np.ndarray):
             value = np.asarray(value)
         if value.ndim == 0:
-            # 0-dim arrays are casted to scalar when they interect with float. We don't want them.
+            # 0-dim arrays are casted to scalar when they interact with float. We don't want that.
             value = value.reshape(1)
         if len(value) != self.entity.count:
             raise ValueError(
