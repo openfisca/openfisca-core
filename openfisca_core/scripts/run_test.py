@@ -27,9 +27,10 @@ def main(parser = None):
         parser = argparse.ArgumentParser()
         parser = build_parser(parser)
 
-        warnings.warn("The 'openfisca-run-test' command has been deprecated in favor of 'openfisca test' since version 25.0, and will be removed in the future.",
-            Warning
-                      )
+        warnings.warn(
+            "The 'openfisca-run-test' command has been deprecated in favor of 'openfisca test' since version 25.0, and will be removed in the future.",
+            Warning,
+            )
 
     args = parser.parse_args()
     logging.basicConfig(level = logging.DEBUG if args.verbose else logging.WARNING, stream = sys.stdout)
