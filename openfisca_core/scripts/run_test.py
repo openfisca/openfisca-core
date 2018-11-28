@@ -43,7 +43,7 @@ def main(parser = None):
         'ignore_variables': args.ignore_variables,
         }
 
-    paths = map(os.path.abspath, args.path)
+    paths = [os.path.abspath(path) for path in args.path]
     tests_ok = run_tests(tax_benefit_system, paths, options)
 
     if not tests_ok:
