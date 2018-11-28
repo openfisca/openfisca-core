@@ -18,7 +18,7 @@ from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import INSTANT_PATTERN
 from openfisca_core.tools import indent
-from openfisca_core.commons import basestring_type
+from openfisca_core.commons import basestring_type, empty_clone
 
 log = logging.getLogger(__name__)
 
@@ -456,6 +456,18 @@ class ParameterNode(object):
             yield child
             for descendant in child.get_descendants():  # would be `yield from child.walk()` in Python 3.
                 yield descendant
+
+    def clone(self):
+        new = empty_clone(self)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.items():
+            if key not in ('children', 'metadata'):
+                new_dict[key] = value
+
+        new_dict['children'] = self.children.copy()
+        new_dict['metadata'] = self.metadata.copy()
+        return new
 
 
 class ParameterNodeAtInstant(object):

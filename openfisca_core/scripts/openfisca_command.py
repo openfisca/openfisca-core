@@ -36,5 +36,6 @@ def main():
     if args.command == 'test':
         return sys.exit(run_test(parser))
 
+
 if __name__ == '__main__':
     sys.exit(main())
