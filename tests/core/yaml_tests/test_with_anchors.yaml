@@ -1,4 +1,4 @@
-- name: "Basic test - defining"
+- name: "Basic test - defining an anchor"
   period: 2017-01
   input:
     persons: &persons
@@ -13,7 +13,7 @@
     total_benefits: 1200
 
 
-- name: "Basic test - "
+- name: "Basic test - using an anchor"
   period: 2017-01
   input:
     persons:
