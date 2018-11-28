@@ -11,6 +11,7 @@ import numpy as np
 from openfisca_core import conv, periods, simulations, json_to_test_case, columns
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.commons import basestring_type
+from openfisca_core.simulation_builder import iter_over_entity_members
 
 
 def N_(message):
@@ -707,24 +708,3 @@ def make_json_or_python_to_test(tax_benefit_system):
             }, None
 
     return json_or_python_to_test
-
-
-def iter_over_entity_members(entity_description, scenario_entity):
-    # One by one, yield individu_role, individy_legacy_role, individu_id
-    legacy_role_i = 0
-    for role in entity_description.roles:
-        role_name = role.plural or role.key
-        individus = scenario_entity.get(role_name)
-
-        if individus:
-            if not type(individus) == list:
-                individus = [individus]
-
-            legacy_role_j = 0
-            for individu in individus:
-                if role.subroles:
-                    yield role.subroles[legacy_role_j], legacy_role_i + legacy_role_j, individu
-                else:
-                    yield role, legacy_role_i + legacy_role_j, individu
-                legacy_role_j += 1
-        legacy_role_i += (role.max or 1)
