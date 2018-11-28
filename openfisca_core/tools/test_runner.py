@@ -40,6 +40,7 @@ except ImportError:
         'Python environment.')
     from yaml import Loader, Dumper
 
+_tax_benefit_system_cache = {}
 
 # Yaml module configuration
 
@@ -199,22 +200,31 @@ def _parse_test_file(tax_benefit_system, yaml_path, options):
         yield _parse_test(tax_benefit_system, test, options)
 
 
-def _parse_test(tax_benefit_system, test, options):
-    current_tax_benefit_system = tax_benefit_system
-    if test.get('reforms'):
-        reforms = test.pop('reforms')
-        if not isinstance(reforms, list):
-            reforms = [reforms]
-        for reform_path in reforms:
-            current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+def _get_tax_benefit_system(baseline, reforms, extensions):
+    key = hash((id(baseline), frozenset(reforms), frozenset(extensions)))
+    if _tax_benefit_system_cache.get(key):
+        return _tax_benefit_system_cache.get(key)
 
-    if test.get('extensions'):
-        extensions = test.pop('extensions')
-        if not isinstance(extensions, list):
-            extensions = [extensions]
-        for extension in extensions:
-            current_tax_benefit_system = current_tax_benefit_system.clone()
-            current_tax_benefit_system.load_extension(extension)
+    current_tax_benefit_system = baseline
+
+    if not isinstance(reforms, list):
+        reforms = [reforms]
+    for reform_path in reforms:
+        current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
+
+    if not isinstance(extensions, list):
+        extensions = [extensions]
+    for extension in extensions:
+        current_tax_benefit_system = current_tax_benefit_system.clone()
+        current_tax_benefit_system.load_extension(extension)
+
+    _tax_benefit_system_cache[key] = current_tax_benefit_system
+
+    return current_tax_benefit_system
+
+
+def _parse_test(tax_benefit_system, test, options):
+    current_tax_benefit_system = _get_tax_benefit_system(tax_benefit_system, test.get('reforms', []), test.get('extensions', []))
 
     if not test.get('output'):
         raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
