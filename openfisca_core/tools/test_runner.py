@@ -7,8 +7,6 @@ A module to run openfisca yaml tests
 from __future__ import unicode_literals, print_function, division, absolute_import
 from builtins import str
 
-import collections
-import copy
 import glob
 import os
 import sys
@@ -17,10 +15,8 @@ import logging
 import traceback
 
 import nose
-import numpy as np
 import yaml
 
-from openfisca_core import periods
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -30,7 +26,7 @@ from openfisca_core.errors import SituationParsingError
 log = logging.getLogger(__name__)
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
     log.warning(
         ' '
@@ -38,31 +34,9 @@ except ImportError:
         'test suite slower to run. Once you have installed libyaml, run `pip '
         'uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your '
         'Python environment.')
-    from yaml import Loader, Dumper
+    from yaml import Loader
 
 _tax_benefit_system_cache = {}
-
-# Yaml module configuration
-
-
-class unicode_folder(str):
-    pass
-
-
-class unicode_literal(str):
-    pass
-
-
-Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, lambda loader, node: collections.OrderedDict(loader.construct_pairs(node)))
-Dumper.add_representer(collections.OrderedDict, lambda dumper, data: dumper.represent_dict((copy.deepcopy(key), value) for key, value in data.items()))
-Dumper.add_representer(dict, lambda dumper, data: dumper.represent_dict((copy.deepcopy(key), value) for key, value in data.items()))
-Dumper.add_representer(np.ndarray, lambda dumper, data: dumper.represent_list(data.tolist()))
-Dumper.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
-Dumper.add_representer(unicode_folder, lambda dumper, data: dumper.represent_scalar('tag:yaml.org,2002:str', data, style='>'))
-Dumper.add_representer(unicode_literal, lambda dumper, data: dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|'))
-Dumper.add_representer(periods.Instant, lambda dumper, data: dumper.represent_scalar('tag:yaml.org,2002:str', str(data)))
-Dumper.add_representer(periods.Period, lambda dumper, data: dumper.represent_scalar('tag:yaml.org,2002:str', str(data)))
-Dumper.add_representer(str, lambda dumper, data: dumper.represent_scalar('tag:yaml.org,2002:str', data))
 
 
 # Exposed methods
