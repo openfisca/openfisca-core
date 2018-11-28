@@ -79,7 +79,7 @@ def test_name_filter():
 
 def test_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, 'test_success.yaml')
-    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template']
+    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
@@ -87,20 +87,20 @@ def test_shell_script():
 @raises(subprocess.CalledProcessError)
 def test_failing_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, 'test_failure.yaml')
-    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_dummy_country']
+    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_dummy_country']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 def test_shell_script_with_reform():
     yaml_path = os.path.join(yaml_tests_dir, 'test_with_reform_2.yaml')
-    command = ['openfisca-run-test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']
+    command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template', '-r', 'openfisca_country_template.reforms.removal_basic_income.removal_basic_income']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 def test_shell_script_with_extension():
     tests_dir = os.path.join(openfisca_extension_template.__path__[0], 'tests')
-    command = ['openfisca-run-test', tests_dir, '-c', 'openfisca_country_template', '-e', 'openfisca_extension_template']
+    command = ['openfisca', 'test', tests_dir, '-c', 'openfisca_country_template', '-e', 'openfisca_extension_template']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)

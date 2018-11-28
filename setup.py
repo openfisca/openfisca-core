@@ -13,7 +13,7 @@ general_requirements = [
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
     'future < 1.0.0',
-    'nose < 2.0.0',  # For openfisca-run-test
+    'nose < 2.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
