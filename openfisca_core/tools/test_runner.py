@@ -208,6 +208,14 @@ def _parse_test(tax_benefit_system, test, options):
         for reform_path in reforms:
             current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
+    if test.get('extensions'):
+        extensions = test.pop('extensions')
+        if not isinstance(extensions, list):
+            extensions = [extensions]
+        for extension in extensions:
+            current_tax_benefit_system = current_tax_benefit_system.clone()
+            current_tax_benefit_system.load_extension(extension)
+
     if not test.get('output'):
         raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
 
