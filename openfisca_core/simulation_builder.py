@@ -16,16 +16,6 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.tools import eval_expression
 
 
-def _get_person_count(input_dict):
-    first_value = next(iter(input_dict.values()))
-    if isinstance(first_value, dict):
-        first_value = next(iter(first_value.values()))
-
-    if not isinstance(first_value, list):
-        return 1
-    return len(first_value)
-
-
 class SimulationBuilder(object):
 
     def __init__(self, tax_benefit_system):
@@ -362,3 +352,13 @@ def iter_over_entity_members(entity_description, scenario_entity):
                     yield role, legacy_role_i + legacy_role_j, individu
                 legacy_role_j += 1
         legacy_role_i += (role.max or 1)
+
+
+def _get_person_count(input_dict):
+    first_value = next(iter(input_dict.values()))
+    if isinstance(first_value, dict):
+        first_value = next(iter(first_value.values()))
+
+    if not isinstance(first_value, list):
+        return 1
+    return len(first_value)
