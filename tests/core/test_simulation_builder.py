@@ -1,8 +1,12 @@
-from yaml import load
+# -*- coding: utf-8 -*-
+
+from collections import OrderedDict
+
 from pytest import raises
 
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
+from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
 
@@ -37,20 +41,23 @@ def test_explicit_singular_entities():
 
 def test_hydrate_person_entity():
     persons = Simulation(tax_benefit_system).persons
-    simulation_builder.hydrate_entity(persons, {'Alicia': {}, 'Javier': {}})
+    persons_json = OrderedDict([('Alicia', {'salary': {}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    simulation_builder.hydrate_entity(persons, persons_json)
     assert persons.count == 2
     assert persons.ids == ['Alicia', 'Javier']
 
 
 def test_hydrate_person_entity_with_variables():
     persons = Simulation(tax_benefit_system).persons
-    simulation_builder.hydrate_entity(persons, {'Alicia': {'salary': {'2018-11': 3000}}, 'Javier': {}})
+    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    simulation_builder.hydrate_entity(persons, persons_json)
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
 
 
 def test_hydrate_group_entity():
     simulation = Simulation(tax_benefit_system)
-    simulation_builder.hydrate_entity(simulation.persons, {'Alicia': {}, 'Javier': {}, 'Sarah': {}, 'Tom': {}})
+    simulation_builder.hydrate_entity(simulation.persons,
+        OrderedDict([('Alicia', {}), ('Javier', {}), ('Sarah', {}), ('Tom', {})]))
     simulation_builder.hydrate_entity(simulation.household, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
         'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},
@@ -68,7 +75,7 @@ def test_simulation():
             2016-10: 12000
     """
 
-    simulation = simulation_builder.build_from_dict(load(input_yaml))
+    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
 
     assert simulation.get_array("salary", "2016-10") == 12000
     simulation.calculate("income_tax", "2016-10")
@@ -81,7 +88,7 @@ def test_vectorial_input():
             2016-10: [12000, 20000]
     """
 
-    simulation = simulation_builder.build_from_dict(load(input_yaml))
+    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
 
     assert_near(simulation.get_array("salary", "2016-10"), [12000, 20000])
     simulation.calculate("income_tax", "2016-10")
@@ -103,8 +110,26 @@ def test_single_entity_shortcut():
           parents: [Alicia, Javier]
     """
 
-    simulation = simulation_builder.build_from_dict(load(input_yaml))
+    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
     assert simulation.household.count == 1
+
+
+def test_order_preserved():
+    input_yaml = """
+        persons:
+          Javier: {}
+          Alicia: {}
+          Sarah: {}
+          Tom: {}
+        household:
+          parents: [Alicia, Javier]
+          children: [Tom, Sarah]
+    """
+
+    data = yaml.load(input_yaml)
+    simulation = simulation_builder.build_from_dict(data)
+
+    assert simulation.persons.ids == ['Javier', 'Alicia', 'Sarah', 'Tom']
 
 
 def test_inconsistent_input():
@@ -115,5 +140,5 @@ def test_inconsistent_input():
             2016-10: [100, 200, 300]
     """
     with raises(ValueError) as error:
-        simulation_builder.build_from_dict(load(input_yaml))
+        simulation_builder.build_from_dict(yaml.load(input_yaml))
     assert "its length is 3 while there are 2" in error.value.args[0]

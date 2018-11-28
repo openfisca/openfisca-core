@@ -3,7 +3,7 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 
 from datetime import date
-import sys
+from collections import OrderedDict  # Only for Python 2
 
 import dpath
 import numpy as np
@@ -170,7 +170,7 @@ class SimulationBuilder(object):
             Hydrate an entity from a JSON dictionnary ``entities_json``.
         """
         check_type(entities_json, dict, [entity.plural])
-        entities_json = {str(key): value for key, value in entities_json.items()}  # Stringify potential numeric keys
+        entities_json = OrderedDict((str(key), value) for key, value in entities_json.items())  # Stringify potential numeric keys, but keep the order
         entity.count = len(entities_json)
         entity.step_size = entity.count  # Related to axes.
         entity.ids = list(entities_json.keys())
@@ -182,8 +182,6 @@ class SimulationBuilder(object):
             entity.members_legacy_role = np.empty(persons.count, dtype = np.int32)
             persons_to_allocate = set(persons.ids)
 
-        if sys.version_info < (3, 6):
-            entity.ids = sorted(entity.ids)  # In Python 3.6+, insertion order is preserved for dicts. For lower versions, we sort it, so that the order is deterministic. This is useful for testing
         for entity_id, entity_object in entities_json.items():
             check_type(entity_object, dict, [entity.plural, entity_id])
             if not entity.is_person:
