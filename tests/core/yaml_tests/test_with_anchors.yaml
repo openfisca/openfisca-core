@@ -1,0 +1,25 @@
+- name: "Basic test - defining"
+  period: 2017-01
+  input:
+    persons: &persons
+      Alicia:
+        salary: 4000
+      Javier:
+        salary: 2500
+    households:
+      household_1:
+        parents: [Alicia, Javier]
+  output:
+    total_benefits: 1200
+
+
+- name: "Basic test - "
+  period: 2017-01
+  input:
+    persons:
+      <<: *persons
+    households:
+      household_1:
+        parents: [Alicia, Javier]
+  output:
+    total_benefits: 600 * 2

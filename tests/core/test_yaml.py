@@ -70,6 +70,10 @@ def test_with_extension():
     assert run_yaml_test('test_with_extension.yaml')
 
 
+def test_with_anchors():
+    assert run_yaml_test('test_with_anchors.yaml')
+
+
 def test_run_tests_from_directory_fail():
     assert run_yaml_test(yaml_tests_dir) is False
 
