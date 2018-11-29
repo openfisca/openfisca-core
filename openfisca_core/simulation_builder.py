@@ -36,7 +36,7 @@ class SimulationBuilder(object):
         """
 
         if not input_dict:
-            return self.build_default_simulation(**kwargs)
+            return self.build_default_simulation(self.tax_benefit_system, **kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
             return self.build_from_entities(input_dict, default_period, **kwargs)
@@ -100,7 +100,7 @@ class SimulationBuilder(object):
                 )
         """
         count = _get_person_count(input_dict)
-        simulation = self.build_default_simulation(count, **kwargs)
+        simulation = self.build_default_simulation(self.tax_benefit_system, count, **kwargs)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 simulation.set_input(variable, default_period, value)
@@ -109,7 +109,7 @@ class SimulationBuilder(object):
                     simulation.set_input(variable, period, dated_value)
         return simulation
 
-    def build_default_simulation(self, count = 1, **kwargs):
+    def build_default_simulation(self, tax_benefit_system, count = 1, **kwargs):
         """
             Build a simulation where:
                 - There are ``count`` persons
@@ -117,7 +117,7 @@ class SimulationBuilder(object):
                 - Every person has, in each entity, the first role
         """
 
-        simulation = Simulation(self.tax_benefit_system, **kwargs)
+        simulation = Simulation(tax_benefit_system, **kwargs)
         for entity in simulation.entities.values():
             entity.count = count
             entity.ids = np.array(range(count))

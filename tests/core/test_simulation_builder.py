@@ -20,13 +20,13 @@ simulation_builder = SimulationBuilder(tax_benefit_system)
 
 
 def test_build_default_simulation():
-    one_person_simulation = simulation_builder.build_default_simulation(1)
+    one_person_simulation = simulation_builder.build_default_simulation(tax_benefit_system, 1)
     assert one_person_simulation.persons.count == 1
     assert one_person_simulation.household.count == 1
     assert one_person_simulation.household.members_entity_id == [0]
     assert one_person_simulation.household.members_role == Household.FIRST_PARENT
 
-    several_persons_simulation = simulation_builder.build_default_simulation(4)
+    several_persons_simulation = simulation_builder.build_default_simulation(tax_benefit_system, 4)
     assert several_persons_simulation.persons.count == 4
     assert several_persons_simulation.household.count == 4
     assert (several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]).all()
