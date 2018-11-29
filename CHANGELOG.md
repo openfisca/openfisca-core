@@ -6,7 +6,7 @@
 
 ### 24.9.7 [#769](https://github.com/openfisca/openfisca-core/pull/769)
 
-- Unify the protocol for appending sub-parameters
+- Ensure `path.to.parameter` syntax works consistently across country and extension
 
 ### 24.9.6 [#771](https://github.com/openfisca/openfisca-core/pull/771)
 
