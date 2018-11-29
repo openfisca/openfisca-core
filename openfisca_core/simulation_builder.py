@@ -23,7 +23,7 @@ class SimulationBuilder(object):
         self.entities_plural = {entity.plural for entity in self.tax_benefit_system.entities}
         self.entities_by_singular = {entity.key: entity for entity in self.tax_benefit_system.entities}
 
-    def build_from_dict(self, input_dict, default_period = None, **kwargs):
+    def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from ``input_dict``
 
@@ -36,7 +36,7 @@ class SimulationBuilder(object):
         """
 
         if not input_dict:
-            return self.build_default_simulation(self.tax_benefit_system, **kwargs)
+            return self.build_default_simulation(tax_benefit_system, **kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
             return self.build_from_entities(input_dict, default_period, **kwargs)
