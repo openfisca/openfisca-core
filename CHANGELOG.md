@@ -1,5 +1,9 @@
 # Changelog
 
+### 24.9.8 [#780](https://github.com/openfisca/openfisca-core/pull/780)
+
+- Allow non-integral inputs to int variables
+
 ### 24.9.7 [#769](https://github.com/openfisca/openfisca-core/pull/769)
 
 - Unify the protocol for appending sub-parameters
