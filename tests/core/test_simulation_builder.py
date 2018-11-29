@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 
-from pytest import raises
+from pytest import raises, fixture
 
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
@@ -13,13 +13,12 @@ from openfisca_country_template.situation_examples import couple
 from .test_countries import tax_benefit_system
 
 
-simulation_builder = SimulationBuilder()
+@fixture
+def simulation_builder():
+    return SimulationBuilder()
 
 
-# Test helpers
-
-
-def test_build_default_simulation():
+def test_build_default_simulation(simulation_builder):
     one_person_simulation = simulation_builder.build_default_simulation(tax_benefit_system, 1)
     assert one_person_simulation.persons.count == 1
     assert one_person_simulation.household.count == 1
@@ -33,14 +32,14 @@ def test_build_default_simulation():
     assert (several_persons_simulation.household.members_role == Household.FIRST_PARENT).all()
 
 
-def test_explicit_singular_entities():
+def test_explicit_singular_entities(simulation_builder):
     assert simulation_builder.explicit_singular_entities(
         tax_benefit_system,
         {'persons': {'Javier': {}}, 'household': {'parents': ['Javier']}}
         ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
 
 
-def test_hydrate_person_entity():
+def test_hydrate_person_entity(simulation_builder):
     persons = Simulation(tax_benefit_system).persons
     persons_json = OrderedDict([('Alicia', {'salary': {}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.hydrate_entity(persons, persons_json)
@@ -48,14 +47,14 @@ def test_hydrate_person_entity():
     assert persons.ids == ['Alicia', 'Javier']
 
 
-def test_hydrate_person_entity_with_variables():
+def test_hydrate_person_entity_with_variables(simulation_builder):
     persons = Simulation(tax_benefit_system).persons
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.hydrate_entity(persons, persons_json)
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
 
 
-def test_hydrate_group_entity():
+def test_hydrate_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system)
     simulation_builder.hydrate_entity(simulation.persons,
         OrderedDict([('Alicia', {}), ('Javier', {}), ('Sarah', {}), ('Tom', {})]))
@@ -70,7 +69,7 @@ def test_hydrate_group_entity():
 # Test Intégration
 
 
-def test_simulation():
+def test_simulation(simulation_builder):
     input_yaml = """
         salary:
             2016-10: 12000
@@ -83,7 +82,7 @@ def test_simulation():
     simulation.calculate("total_taxes", "2016-10")
 
 
-def test_vectorial_input():
+def test_vectorial_input(simulation_builder):
     input_yaml = """
         salary:
             2016-10: [12000, 20000]
@@ -96,13 +95,13 @@ def test_vectorial_input():
     simulation.calculate("total_taxes", "2016-10")
 
 
-def test_fully_specified_entities():
+def test_fully_specified_entities(simulation_builder):
     simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
     assert simulation.household.count == 1
     assert simulation.persons.count == 2
 
 
-def test_single_entity_shortcut():
+def test_single_entity_shortcut(simulation_builder):
     input_yaml = """
         persons:
           Alicia: {}
@@ -115,7 +114,7 @@ def test_single_entity_shortcut():
     assert simulation.household.count == 1
 
 
-def test_order_preserved():
+def test_order_preserved(simulation_builder):
     input_yaml = """
         persons:
           Javier: {}
@@ -133,7 +132,7 @@ def test_order_preserved():
     assert simulation.persons.ids == ['Javier', 'Alicia', 'Sarah', 'Tom']
 
 
-def test_inconsistent_input():
+def test_inconsistent_input(simulation_builder):
     input_yaml = """
         salary:
             2016-10: [12000, 20000]
