@@ -215,7 +215,11 @@ def _parse_test(tax_benefit_system, test, options):
         raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
 
     try:
-        simulation = SimulationBuilder(current_tax_benefit_system).build_from_dict(test.pop('input', {}), default_period = test.get('period'), trace = options.get('verbose'))
+        builder = SimulationBuilder(current_tax_benefit_system)
+        input = test.pop('input', {})
+        period = test.get('period')
+        verbose = options.get('verbose')
+        simulation = builder.build_from_dict(current_tax_benefit_system, input, default_period = period, trace = verbose)
     except SituationParsingError as error:
         message = os.linesep.join([
             traceback.format_exc(),

@@ -20,13 +20,13 @@ simulation_builder = SimulationBuilder(tax_benefit_system)
 
 
 def test_build_default_simulation():
-    one_person_simulation = simulation_builder.build_default_simulation(1)
+    one_person_simulation = simulation_builder.build_default_simulation(tax_benefit_system, 1)
     assert one_person_simulation.persons.count == 1
     assert one_person_simulation.household.count == 1
     assert one_person_simulation.household.members_entity_id == [0]
     assert one_person_simulation.household.members_role == Household.FIRST_PARENT
 
-    several_persons_simulation = simulation_builder.build_default_simulation(4)
+    several_persons_simulation = simulation_builder.build_default_simulation(tax_benefit_system, 4)
     assert several_persons_simulation.persons.count == 4
     assert several_persons_simulation.household.count == 4
     assert (several_persons_simulation.household.members_entity_id == [0, 1, 2, 3]).all()
@@ -75,7 +75,7 @@ def test_simulation():
             2016-10: 12000
     """
 
-    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
 
     assert simulation.get_array("salary", "2016-10") == 12000
     simulation.calculate("income_tax", "2016-10")
@@ -88,7 +88,7 @@ def test_vectorial_input():
             2016-10: [12000, 20000]
     """
 
-    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
 
     assert_near(simulation.get_array("salary", "2016-10"), [12000, 20000])
     simulation.calculate("income_tax", "2016-10")
@@ -96,7 +96,7 @@ def test_vectorial_input():
 
 
 def test_fully_specified_entities():
-    simulation = simulation_builder.build_from_dict(couple)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
     assert simulation.household.count == 1
     assert simulation.persons.count == 2
 
@@ -110,7 +110,7 @@ def test_single_entity_shortcut():
           parents: [Alicia, Javier]
     """
 
-    simulation = simulation_builder.build_from_dict(yaml.load(input_yaml))
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
     assert simulation.household.count == 1
 
 
@@ -127,7 +127,7 @@ def test_order_preserved():
     """
 
     data = yaml.load(input_yaml)
-    simulation = simulation_builder.build_from_dict(data)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
 
     assert simulation.persons.ids == ['Javier', 'Alicia', 'Sarah', 'Tom']
 
@@ -140,5 +140,5 @@ def test_inconsistent_input():
             2016-10: [100, 200, 300]
     """
     with raises(ValueError) as error:
-        simulation_builder.build_from_dict(yaml.load(input_yaml))
+        simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
     assert "its length is 3 while there are 2" in error.value.args[0]

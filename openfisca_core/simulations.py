@@ -88,7 +88,7 @@ class Simulation(object):
                 Warning
                 )
             from openfisca_core.simulation_builder import SimulationBuilder
-            SimulationBuilder(tax_benefit_system).build_from_entities(simulation_json, simulation = self)
+            SimulationBuilder(tax_benefit_system).build_from_entities(tax_benefit_system, simulation_json, simulation = self)
 
     def instantiate_entities(self):
         self.persons = self.tax_benefit_system.person_entity(self)
