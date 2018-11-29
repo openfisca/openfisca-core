@@ -13,7 +13,7 @@ from openfisca_country_template.situation_examples import couple
 from .test_countries import tax_benefit_system
 
 
-simulation_builder = SimulationBuilder(tax_benefit_system)
+simulation_builder = SimulationBuilder()
 
 
 # Test helpers
@@ -35,6 +35,7 @@ def test_build_default_simulation():
 
 def test_explicit_singular_entities():
     assert simulation_builder.explicit_singular_entities(
+        tax_benefit_system,
         {'persons': {'Javier': {}}, 'household': {'parents': ['Javier']}}
         ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
 

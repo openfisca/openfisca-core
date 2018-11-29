@@ -215,7 +215,7 @@ def _parse_test(tax_benefit_system, test, options):
         raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
 
     try:
-        builder = SimulationBuilder(current_tax_benefit_system)
+        builder = SimulationBuilder()
         input = test.pop('input', {})
         period = test.get('period')
         verbose = options.get('verbose')

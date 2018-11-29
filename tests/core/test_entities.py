@@ -32,7 +32,7 @@ CHILD = Household.CHILD
 YEAR = 2016
 MONTH = "2016-01"
 
-simulation_builder = SimulationBuilder(tax_benefit_system)
+simulation_builder = SimulationBuilder()
 
 
 def new_simulation(test_case, period = MONTH):

@@ -18,11 +18,6 @@ from openfisca_core.tools import eval_expression
 
 class SimulationBuilder(object):
 
-    def __init__(self, tax_benefit_system):
-        self.tax_benefit_system = tax_benefit_system
-        self.entities_plural = tax_benefit_system.entities_plural()
-        self.entities_by_singular = tax_benefit_system.entities_by_singular()
-
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from ``input_dict``
@@ -37,8 +32,8 @@ class SimulationBuilder(object):
 
         if not input_dict:
             return self.build_default_simulation(tax_benefit_system, **kwargs)
-        input_dict = self.explicit_singular_entities(input_dict)
-        if all(key in self.entities_plural for key in input_dict.keys()):
+        input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
+        if all(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict, default_period, **kwargs)
         else:
             return self.build_from_variables(tax_benefit_system, input_dict, default_period, **kwargs)
@@ -59,7 +54,7 @@ class SimulationBuilder(object):
             simulation = Simulation(tax_benefit_system, **kwargs)
 
         check_type(input_dict, dict, ['error'])
-        unexpected_entities = [entity for entity in input_dict if entity not in self.entities_plural]
+        unexpected_entities = [entity for entity in input_dict if entity not in tax_benefit_system.entities_plural()]
         if unexpected_entities:
             unexpected_entity = unexpected_entities[0]
             raise SituationParsingError([unexpected_entity],
@@ -70,7 +65,7 @@ class SimulationBuilder(object):
                     )
                 .format(
                 ', '.join(unexpected_entities),
-                ', '.join(self.entities_plural)
+                ', '.join(tax_benefit_system.entities_plural())
                     )
                 )
         persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
@@ -126,7 +121,7 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def explicit_singular_entities(self, input_dict):
+    def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
             Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
 
@@ -138,18 +133,18 @@ class SimulationBuilder(object):
             >>> {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}
         """
 
-        singular_keys = set(input_dict).intersection(self.entities_by_singular)
+        singular_keys = set(input_dict).intersection(tax_benefit_system.entities_by_singular())
         if not singular_keys:
             return input_dict
 
         result = {
             entity_id: entity_description
             for (entity_id, entity_description) in input_dict.items()
-            if entity_id in self.entities_plural
+            if entity_id in tax_benefit_system.entities_plural()
             }  # filter out the singular entities
 
         for singular in singular_keys:
-            plural = self.entities_by_singular[singular].plural
+            plural = tax_benefit_system.entities_by_singular()[singular].plural
             result[plural] = {singular: input_dict[singular]}
 
         return result
