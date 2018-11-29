@@ -41,7 +41,7 @@ class SimulationBuilder(object):
         if all(key in self.entities_plural for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict, default_period, **kwargs)
         else:
-            return self.build_from_variables(input_dict, default_period, **kwargs)
+            return self.build_from_variables(tax_benefit_system, input_dict, default_period, **kwargs)
 
     def build_from_entities(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
@@ -87,7 +87,7 @@ class SimulationBuilder(object):
 
         return simulation
 
-    def build_from_variables(self, input_dict, default_period = None, **kwargs):
+    def build_from_variables(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
@@ -100,7 +100,7 @@ class SimulationBuilder(object):
                 )
         """
         count = _get_person_count(input_dict)
-        simulation = self.build_default_simulation(self.tax_benefit_system, count, **kwargs)
+        simulation = self.build_default_simulation(tax_benefit_system, count, **kwargs)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 simulation.set_input(variable, default_period, value)
