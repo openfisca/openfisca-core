@@ -20,8 +20,8 @@ class SimulationBuilder(object):
 
     def __init__(self, tax_benefit_system):
         self.tax_benefit_system = tax_benefit_system
-        self.entities_plural = {entity.plural for entity in self.tax_benefit_system.entities}
-        self.entities_by_singular = {entity.key: entity for entity in self.tax_benefit_system.entities}
+        self.entities_plural = tax_benefit_system.entities_plural()
+        self.entities_by_singular = tax_benefit_system.entities_by_singular()
 
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
