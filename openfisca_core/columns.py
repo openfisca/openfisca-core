@@ -259,7 +259,6 @@ class IntCol(Column):
     @property
     def json_to_dated_python(self):
         return conv.pipe(
-            conv.test_isinstance((int, basestring_type)),
             conv.make_anything_to_int(accept_expression = True),
             )
 

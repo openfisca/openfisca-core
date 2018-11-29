@@ -178,3 +178,11 @@ def test_set_not_chaged_variable():
     array = np.asarray([2000])
     holder.set_input('2015-01', array)
     assert_equal(simulation.calculate('salary', '2015-01'), array)
+
+
+def test_set_input_float_to_int():
+    simulation = get_simulation(couple)
+    age = np.asarray([50.6])
+    simulation.person.get_holder('age').set_input(period, age)
+    result = simulation.calculate('age', period)
+    assert_equal(result, np.asarray([50]))
