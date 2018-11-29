@@ -416,3 +416,9 @@ class TaxBenefitSystem(object):
         new_dict['variables'] = self.variables.copy()
         new_dict['open_api_config'] = self.open_api_config.copy()
         return new
+
+    def entities_plural(self):
+        return {entity.plural for entity in self.entities}
+
+    def entities_by_singular(self):
+        return {entity.key: entity for entity in self.entities}
