@@ -39,11 +39,11 @@ class SimulationBuilder(object):
             return self.build_default_simulation(tax_benefit_system, **kwargs)
         input_dict = self.explicit_singular_entities(input_dict)
         if all(key in self.entities_plural for key in input_dict.keys()):
-            return self.build_from_entities(input_dict, default_period, **kwargs)
+            return self.build_from_entities(tax_benefit_system, input_dict, default_period, **kwargs)
         else:
             return self.build_from_variables(input_dict, default_period, **kwargs)
 
-    def build_from_entities(self, input_dict, default_period = None, **kwargs):
+    def build_from_entities(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 
@@ -56,7 +56,7 @@ class SimulationBuilder(object):
         """
         simulation = kwargs.pop('simulation', None)  # Only for backward compatibility with previous Simulation constructor
         if simulation is None:
-            simulation = Simulation(self.tax_benefit_system, **kwargs)
+            simulation = Simulation(tax_benefit_system, **kwargs)
 
         check_type(input_dict, dict, ['error'])
         unexpected_entities = [entity for entity in input_dict if entity not in self.entities_plural]
@@ -73,15 +73,15 @@ class SimulationBuilder(object):
                 ', '.join(self.entities_plural)
                     )
                 )
-        persons_json = input_dict.get(self.tax_benefit_system.person_entity.plural, None)
+        persons_json = input_dict.get(tax_benefit_system.person_entity.plural, None)
 
         if not persons_json:
-            raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
+            raise SituationParsingError([tax_benefit_system.person_entity.plural],
+                'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
         self.hydrate_entity(simulation.persons, persons_json, default_period = default_period)
 
-        for entity_class in self.tax_benefit_system.group_entities:
+        for entity_class in tax_benefit_system.group_entities:
             entities_json = input_dict.get(entity_class.plural)
             self.hydrate_entity(simulation.entities[entity_class.key], entities_json, default_period = default_period)
 
