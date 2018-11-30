@@ -1,5 +1,10 @@
 # Changelog
 
+### 24.9.9 [#780](https://github.com/openfisca/openfisca-core/pull/780)
+
+- Set a 120s default timeout in OpenFisca Serve
+  - Otherwise, they regularly restart with an anxiety-provoking "[CRITICAL] WORKER TIMEOUT (pid:2137)" message in log
+
 ### 24.9.8 [#780](https://github.com/openfisca/openfisca-core/pull/780)
 
 - Allow non-integral inputs to int variables
