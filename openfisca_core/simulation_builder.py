@@ -186,8 +186,8 @@ class SimulationBuilder(object):
                         persons_plural = persons.plural
                         persons_ids = persons.ids
                         self.check_persons_to_allocate(persons_plural, entity_plural,
-                                                       persons_ids,  
-                                                       person_id, entity_id, role_id, 
+                                                       persons_ids,
+                                                       person_id, entity_id, role_id,
                                                        persons_to_allocate, index)
 
                         persons_to_allocate.discard(person_id)
@@ -213,8 +213,8 @@ class SimulationBuilder(object):
         self.finalize_variables_init(entity, entities_json)
 
     def check_persons_to_allocate(self, persons_plural, entity_plural,
-                                  persons_ids,  
-                                  person_id, entity_id, role_id, 
+                                  persons_ids,
+                                  person_id, entity_id, role_id,
                                   persons_to_allocate, index):
         check_type(person_id, basestring_type, [entity_plural, entity_id, role_id, str(index)])
         if person_id not in persons_ids:
@@ -227,7 +227,6 @@ class SimulationBuilder(object):
                 "{} has been declared more than once in {}".format(
                     person_id, entity_plural)
                 )
-
 
     def init_variable_values(self, entity, entity_object, entity_id, default_period = None):
         for variable_name, variable_values in entity_object.items():
@@ -309,6 +308,7 @@ class SimulationBuilder(object):
                         path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
                     raise SituationParsingError(path, e.message)
+
 
 def check_type(input, input_type, path = []):
     json_type_map = {

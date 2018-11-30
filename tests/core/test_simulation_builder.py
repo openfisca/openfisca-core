@@ -65,6 +65,7 @@ def test_hydrate_group_entity(simulation_builder):
     assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
     assert_near(simulation.persons.has_role(Household.PARENT), [True, True, False, True])
 
+
 def test_check_persons_to_allocate(simulation_builder):
     person_id = 'Alicia'
     entity_id = 'famille1'
@@ -75,9 +76,10 @@ def test_check_persons_to_allocate(simulation_builder):
     persons_ids = ['Alicia']
     persons_plural = 'individus'
     simulation_builder.check_persons_to_allocate(persons_plural, entity_plural,
-                                                 persons_ids,  
-                                                 person_id, entity_id, role_id, 
+                                                 persons_ids,
+                                                 person_id, entity_id, role_id,
                                                  persons_to_allocate, index)
+
 
 # Test Intégration
 
