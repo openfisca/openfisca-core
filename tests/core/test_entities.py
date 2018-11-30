@@ -203,6 +203,16 @@ def test_has_role_with_subrole():
     assert_near(individu.has_role(SECOND_PARENT), [False, True, False, False, False, False])
 
 
+def test_has_role_with_position():
+
+    simulation = new_simulation(TEST_CASE)
+    individu = simulation.persons
+    assert_near(individu.has_role(PARENT, 0), [True, False, False, False, True, False])
+    assert_near(individu.has_role(PARENT, 1), [False, True, False, False, False, False])
+    assert_near(individu.has_role(CHILD, 0), [False, False, True, False, False, True])
+    assert_near(individu.has_role(CHILD, 1), [False, False, False, True, False, False])
+
+
 def test_project():
     test_case = deepcopy(TEST_CASE)
     test_case['households'][0]['housing_tax'] = 20000
@@ -277,6 +287,9 @@ def test_sum():
     total_salary_parents_by_household = household.sum(salary, role = PARENT)
 
     assert_near(total_salary_parents_by_household, [2500, 3000])
+
+    total_salary_first_parent = household.sum(salary, role = (PARENT, 0))
+    assert_near(total_salary_first_parent, [1000, 3000])
 
 
 def test_any():

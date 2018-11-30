@@ -191,6 +191,8 @@ class Entity(object):
                 array, self.key, array.size, self.count))
 
     def check_role_validity(self, role):
+        if isinstance(role, tuple):
+            role, _ = role
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
@@ -287,7 +289,7 @@ class PersonEntity(Entity):
     # Projection person -> person
 
     @projectable
-    def has_role(self, role):
+    def has_role(self, role, position = None):
         """
             Check if a person has a given role within its :any:`GroupEntity`
 
@@ -297,11 +299,18 @@ class PersonEntity(Entity):
             >>> array([False])
         """
         self.check_role_validity(role)
+        if isinstance(role, tuple):
+            role, position = role
         entity = self.simulation.get_entity(role.entity_class)
-        if role.subroles:
-            return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
+
+        if position is None:
+            position_filter = True
         else:
-            return entity.members_role == role
+            position_filter = entity.members_position_by_role == position
+        if role.subroles:
+            return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles]) * position_filter
+        else:
+            return (entity.members_role == role) * position_filter
 
     @projectable
     def value_from_partner(self, array, entity, role):
