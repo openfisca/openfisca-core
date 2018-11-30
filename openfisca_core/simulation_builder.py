@@ -169,8 +169,36 @@ class SimulationBuilder(object):
         for entity_id, entity_object in entities_json.items():
             check_type(entity_object, dict, [entity.plural, entity_id])
             if not entity.is_person:
-                roles_json, variables_json = self.split_variables_and_roles_json(entity, entity_object)
-                persons_to_allocate = self.init_entity_members(entity, roles_json, entity_id, persons_to_allocate)
+
+                variables_json = entity_object.copy()  # Don't mutate function input
+
+                roles_json = {
+                    role.plural or role.key: clean_person_list(variables_json.pop(role.plural or role.key, []))
+                    for role in entity.roles
+                    }
+
+                persons = entity.simulation.persons
+
+                for role_id, role_definition in roles_json.items():
+                    check_type(role_definition, list, [entity.plural, entity_id, role_id])
+                    for index, person_id in enumerate(role_definition):
+                        entity_plural = entity.plural
+                        persons_plural = persons.plural
+                        persons_ids = persons.ids
+                        self.check_persons_to_allocate(persons_plural, entity_plural,
+                                                       persons_ids,  
+                                                       person_id, entity_id, role_id, 
+                                                       persons_to_allocate, index)
+
+                        persons_to_allocate.discard(person_id)
+
+                entity_index = entity.ids.index(entity_id)
+                for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
+                    person_index = persons.ids.index(person_id)
+                    entity.members_entity_id[person_index] = entity_index
+                    entity.members_role[person_index] = person_role
+                    entity.members_legacy_role[person_index] = person_legacy_role
+
             else:
                 variables_json = entity_object
             self.init_variable_values(entity, variables_json, entity_id, default_period = default_period)
@@ -183,6 +211,23 @@ class SimulationBuilder(object):
 
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init(entity, entities_json)
+
+    def check_persons_to_allocate(self, persons_plural, entity_plural,
+                                  persons_ids,  
+                                  person_id, entity_id, role_id, 
+                                  persons_to_allocate, index):
+        check_type(person_id, basestring_type, [entity_plural, entity_id, role_id, str(index)])
+        if person_id not in persons_ids:
+            raise SituationParsingError([entity_plural, entity_id, role_id],
+                "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
+                    person_id, entity_id, role_id, persons_plural)
+                )
+        if person_id not in persons_to_allocate:
+            raise SituationParsingError([entity_plural, entity_id, role_id],
+                "{} has been declared more than once in {}".format(
+                    person_id, entity_plural)
+                )
+
 
     def init_variable_values(self, entity, entity_object, entity_id, default_period = None):
         for variable_name, variable_values in entity_object.items():
@@ -264,50 +309,6 @@ class SimulationBuilder(object):
                         path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
                     raise SituationParsingError(path, e.message)
-
-    def split_variables_and_roles_json(self, entity, entity_object):
-        entity_object = entity_object.copy()  # Don't mutate function input
-
-        roles_definition = {
-            role.plural or role.key: entity_object.pop(role.plural or role.key, [])
-            for role in entity.roles
-            }
-        return roles_definition, entity_object
-
-    def init_entity_members(self, entity, roles_json, entity_id, persons_to_allocate):
-
-        roles_json = {
-            role_id: clean_person_list(role_definition)
-            for role_id, role_definition in roles_json.items()
-            }
-
-        persons = entity.simulation.persons
-
-        for role_id, role_definition in roles_json.items():
-            check_type(role_definition, list, [entity.plural, entity_id, role_id])
-            for index, person_id in enumerate(role_definition):
-                check_type(person_id, basestring_type, [entity.plural, entity_id, role_id, str(index)])
-                if person_id not in persons.ids:
-                    raise SituationParsingError([entity.plural, entity_id, role_id],
-                        "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
-                            person_id, entity_id, role_id, persons.plural)
-                        )
-                if person_id not in persons_to_allocate:
-                    raise SituationParsingError([entity.plural, entity_id, role_id],
-                        "{} has been declared more than once in {}".format(
-                            person_id, entity.plural)
-                        )
-                persons_to_allocate.discard(person_id)
-
-        entity_index = entity.ids.index(entity_id)
-        for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
-            person_index = persons.ids.index(person_id)
-            entity.members_entity_id[person_index] = entity_index
-            entity.members_role[person_index] = person_role
-            entity.members_legacy_role[person_index] = person_legacy_role
-
-        return persons_to_allocate
-
 
 def check_type(input, input_type, path = []):
     json_type_map = {
