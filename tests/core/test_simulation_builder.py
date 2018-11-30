@@ -7,9 +7,12 @@ from pytest import raises, fixture
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
+from openfisca_core.entities import PersonEntity
+from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
+from openfisca_core.periods import ETERNITY
 
 from .test_countries import tax_benefit_system
 
@@ -17,6 +20,30 @@ from .test_countries import tax_benefit_system
 @fixture
 def simulation_builder():
     return SimulationBuilder()
+
+
+@fixture
+def persons():
+
+    class TestVariable(Variable):
+        definition_period = ETERNITY
+        value_type = str
+        dtype = 'O'
+        default_value = '0'
+        is_neutralized = False
+        set_input = None
+
+        def __init__(self):
+            pass
+
+    class TestPersonEntity(PersonEntity):
+        def get_variable(self, variable_name):
+            return TestVariable()
+
+        def check_variable_defined_for_entity(self, variable_name):
+            return True
+
+    return TestPersonEntity(None)
 
 
 def test_build_default_simulation(simulation_builder):
@@ -40,16 +67,14 @@ def test_explicit_singular_entities(simulation_builder):
         ) == {'persons': {'Javier': {}}, 'households': {'household': {'parents': ['Javier']}}}
 
 
-def test_hydrate_person_entity(simulation_builder):
-    persons = Simulation(tax_benefit_system).persons
+def test_hydrate_person_entity(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.hydrate_entity(persons, persons_json)
     assert persons.count == 2
     assert persons.ids == ['Alicia', 'Javier']
 
 
-def test_hydrate_person_entity_with_variables(simulation_builder):
-    persons = Simulation(tax_benefit_system).persons
+def test_hydrate_person_entity_with_variables(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.hydrate_entity(persons, persons_json)
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])

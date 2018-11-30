@@ -134,12 +134,15 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
+    def get_variable(self, variable_name):
+        return self.simulation.tax_benefit_system.get_variable(variable_name)
+
     def get_holder(self, variable_name):
         self.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        variable = self.simulation.tax_benefit_system.get_variable(variable_name)
+        variable = self.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
             variable = variable,

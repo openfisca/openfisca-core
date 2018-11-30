@@ -36,7 +36,7 @@ class Holder(object):
         self._disk_storage = None
         self._on_disk_storable = False
         self._do_not_store = False
-        if self.simulation.memory_config:
+        if self.simulation and self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
                 self._disk_storage = self.create_disk_storage()
                 self._on_disk_storable = True
