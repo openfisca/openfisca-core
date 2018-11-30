@@ -153,6 +153,8 @@ class SimulationBuilder(object):
         """
             Hydrate an entity from a JSON dictionnary ``entities_json``.
         """
+        if entities_json is None:
+            entities_json = {}
         check_type(entities_json, dict, [entity.plural])
         entities_json = OrderedDict((str(key), value) for key, value in entities_json.items())  # Stringify potential numeric keys, but keep the order
         entity.count = len(entities_json)
@@ -204,10 +206,11 @@ class SimulationBuilder(object):
             self.init_variable_values(entity, variables_json, entity_id, default_period = default_period)
 
         if not entity.is_person and persons_to_allocate:
-            raise SituationParsingError([entity.plural],
-                '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
-                    persons_to_allocate, entity.simulation.persons.plural, entity.key)
-                )
+            for person_id in persons_to_allocate:
+                person_index = persons.ids.index(person_id)
+                entity.members_entity_id[person_index] = -1
+                entity.members_role[person_index] = None
+                entity.members_legacy_role[person_index] = -1
 
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init(entity, entities_json)

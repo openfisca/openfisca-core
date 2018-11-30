@@ -5,6 +5,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 import os
 
 import dpath
+import numpy as np
 
 from openfisca_core.commons import to_unicode
 
@@ -66,3 +67,21 @@ class PeriodMismatchError(ValueError):
         self.definition_period = definition_period
         self.message = message
         ValueError.__init__(self, self.message)
+
+
+class UndefinedEntityError(ValueError):
+
+    def __init__(self, entity):
+        self.entity = entity
+        unallocated_persons = np.array(entity.members.ids)[
+            np.where(entity.members_entity_id == -1)
+            ].tolist()
+        message = "A calculation tried to access '{}.{}', but the {} {} do not belong to any {}.".format(
+            entity.members.key,
+            entity.key,
+            entity.members.plural,
+            unallocated_persons,
+            entity.key,
+            )
+
+        ValueError.__init__(self, message)

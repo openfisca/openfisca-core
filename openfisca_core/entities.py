@@ -10,6 +10,7 @@ import numpy as np
 
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder
+from openfisca_core.errors import UndefinedEntityError
 
 ADD = 'add'
 DIVIDE = 'divide'
@@ -279,6 +280,7 @@ class GroupEntity(Entity):
         self.members = self.simulation.persons
         self._roles_count = None
         self._ordered_members_map = None
+        self._is_defined_for_all_persons = None
 
     @property
     def members_role(self):
@@ -343,6 +345,12 @@ class GroupEntity(Entity):
         if self._ordered_members_map is None:
             return np.argsort(self.members_entity_id)
         return self._ordered_members_map
+
+    @property
+    def is_defined_for_all_persons(self):
+        if self._is_defined_for_all_persons is None:
+            self._is_defined_for_all_persons = (self.members_entity_id >= 0).all()
+        return self._is_defined_for_all_persons
 
     #  Aggregation persons -> entity
 
@@ -684,10 +692,12 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
     if entity.is_person:
         if shortcut in entity.simulation.entities:
             entity_2 = entity.simulation.entities[shortcut]
-            return EntityToPersonProjector(entity_2, parent)
-    else:
-        if shortcut == 'first_person':
-            return FirstPersonToEntityProjector(entity, parent)
-        role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
-        if role:
-            return UniqueRoleToEntityProjector(entity, role, parent)
+            if entity_2.is_defined_for_all_persons:
+                return EntityToPersonProjector(entity_2, parent)
+            raise UndefinedEntityError(entity_2)
+        return
+    if shortcut == 'first_person':
+        return FirstPersonToEntityProjector(entity, parent)
+    role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+    if role:
+        return UniqueRoleToEntityProjector(entity, role, parent)

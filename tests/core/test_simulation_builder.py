@@ -4,15 +4,15 @@ from collections import OrderedDict
 
 from pytest import raises, fixture
 
+from openfisca_core.entities import PersonEntity
+from openfisca_core.errors import SituationParsingError, UndefinedEntityError
+from openfisca_core.periods import ETERNITY
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
-from openfisca_core.entities import PersonEntity
 from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
-from openfisca_core.errors import SituationParsingError
-from openfisca_core.periods import ETERNITY
 
 from .test_countries import tax_benefit_system
 
@@ -219,3 +219,32 @@ def test_inconsistent_input(simulation_builder):
     with raises(ValueError) as error:
         simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
     assert "its length is 3 while there are 2" in error.value.args[0]
+
+
+def test_one_person_without_household(simulation_builder):
+    simulation_dict = {'persons': {'Alicia': {}}}
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, simulation_dict)
+    assert_near(simulation.household.members_entity_id, -1)
+    assert_near(simulation.household.members_role, None)
+
+
+def test_some_person_without_household(simulation_builder):
+    input_yaml = """
+        persons: {'Alicia': {}, 'Bob': {}}
+        household: {'parents': ['Alicia']}
+    """
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
+    assert_near(simulation.household.members_entity_id, [0, -1])
+    assert_near(simulation.household.members_role, [Household.FIRST_PARENT, None])
+
+
+def test_access_undefined_entity(simulation_builder):
+    input_yaml = """
+        persons: {'Alicia': {}, 'Bob': {}, 'Clara': {}, 'Damian': {}, 'Emile': {}}
+        household: {'parents': ['Alicia'], 'children': ['Clara', 'Emile']}
+    """
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
+
+    with raises(UndefinedEntityError) as error:
+        simulation.persons.household
+    assert "['Bob', 'Damian'] do not belong to any household" in error.value.args[0]
