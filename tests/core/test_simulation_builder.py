@@ -9,6 +9,7 @@ from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
+from openfisca_core.errors import SituationParsingError
 
 from .test_countries import tax_benefit_system
 
@@ -67,18 +68,54 @@ def test_hydrate_group_entity(simulation_builder):
 
 
 def test_check_persons_to_allocate(simulation_builder):
+    entity_plural = 'familles'
+    persons_plural = 'individus'
     person_id = 'Alicia'
     entity_id = 'famille1'
     role_id = 'parents'
     persons_to_allocate = ['Alicia']
-    index = 0
-    entity_plural = 'familles'
     persons_ids = ['Alicia']
-    persons_plural = 'individus'
+    index = 0
     simulation_builder.check_persons_to_allocate(persons_plural, entity_plural,
                                                  persons_ids,
                                                  person_id, entity_id, role_id,
                                                  persons_to_allocate, index)
+
+
+def test_allocate_undeclared_person(simulation_builder):
+    entity_plural = 'familles'
+    persons_plural = 'individus'
+    person_id = 'Alicia'
+    entity_id = 'famille1'
+    role_id = 'parents'
+    persons_to_allocate = ['Alicia']
+    persons_ids = []
+    index = 0
+    with raises(SituationParsingError) as exception:
+        simulation_builder.check_persons_to_allocate(
+            persons_plural, entity_plural,
+            persons_ids,
+            person_id, entity_id, role_id,
+            persons_to_allocate, index)
+    assert exception.value.error == {'familles': {'famille1': {'parents': 'Unexpected value: Alicia. Alicia has been declared in famille1 parents, but has not been declared in individus.'}}}
+
+
+def test_allocate_person_twice(simulation_builder):
+    entity_plural = 'familles'
+    persons_plural = 'individus'
+    person_id = 'Alicia'
+    entity_id = 'famille1'
+    role_id = 'parents'
+    persons_to_allocate = []
+    persons_ids = ['Alicia']
+    index = 0
+    with raises(SituationParsingError) as exception:
+        simulation_builder.check_persons_to_allocate(
+            persons_plural, entity_plural,
+            persons_ids,
+            person_id, entity_id, role_id,
+            persons_to_allocate, index)
+    assert exception.value.error == {'familles': {'famille1': {'parents': 'Alicia has been declared more than once in familles'}}}
 
 
 # Test Intégration
