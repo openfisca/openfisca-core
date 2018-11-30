@@ -70,7 +70,7 @@ class Entity(object):
     # Calculations
 
     def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.simulation.tax_benefit_system.get_variable(variable_name, check_existence = True).entity
+        variable_entity = self.get_variable(variable_name, check_existence = True).entity
         if not isinstance(self, variable_entity):
             message = linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
@@ -134,8 +134,8 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             warnings.simplefilter("ignore")
             return np.full(self.count, value, dtype)
 
-    def get_variable(self, variable_name):
-        return self.simulation.tax_benefit_system.get_variable(variable_name)
+    def get_variable(self, variable_name, check_existence = False):
+        return self.simulation.tax_benefit_system.get_variable(variable_name, check_existence)
 
     def get_holder(self, variable_name):
         self.check_variable_defined_for_entity(variable_name)
