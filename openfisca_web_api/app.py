@@ -57,6 +57,7 @@ def create_app(tax_benefit_system,
 
     app.config['JSON_AS_ASCII'] = False  # When False, lets jsonify encode to utf-8
     app.url_map.strict_slashes = False  # Accept url like /parameters/
+    app.config['JSON_SORT_KEYS'] = False  # Don't sort JSON keys in the Web API
 
     data = build_data(tax_benefit_system)
 
