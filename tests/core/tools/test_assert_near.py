@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 
 import numpy as np
+from pytest import raises
 
 from openfisca_core.tools import assert_near
 
@@ -19,3 +20,13 @@ def test_enum_2():
     value = possible_values.encode(np.array(['tenant', 'owner']))
     expected_value = ['tenant', 'owner']
     assert_near(value, expected_value)
+
+
+def test_object():
+    assert_near(np.array([None]), None)
+    assert_near(np.array([{}]), {})
+
+
+def test_object_fail():
+    with raises(AssertionError):
+        assert_near(np.array([{'A'}]), {'B'})

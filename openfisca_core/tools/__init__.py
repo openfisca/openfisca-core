@@ -31,6 +31,9 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         value = np.array(value)
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
+    if value.dtype == np.object:
+        assert (value == target_value).all()
+        return
     if isinstance(target_value, basestring_type):
         target_value = eval_expression(target_value)
 
