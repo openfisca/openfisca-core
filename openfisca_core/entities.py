@@ -804,7 +804,7 @@ class Projector(object):
             return self.parent.transform_and_bubble_up(transformed_result)
 
     def transform(self, result):
-        return NotImplementedError()
+        raise NotImplementedError
 
 
 # For instance person.family
@@ -856,7 +856,12 @@ class MultipleRoleToEntityProjector(Projector):
         return RoleAndPositionProjector(self.target_entity, self.role, key, self.parent)
 
     def transform(self, result):
-        return result * self.reference_entity.has_role(self.role)
+        error_message = "You cannot use '{entity}.{role_plural}' to calculate a variable, as '{role_key}' is not a unique role. However, you can for instance calculate the variable for the 1st '{role_key}' with '{entity}.{role_plural}[0]'".format(
+            entity = self.target_entity.key,
+            role_key = self.role.key,
+            role_plural = self.role.plural
+            )
+        raise NotImplementedError(error_message)  # TODO: Add a nice error message
 
 
 # For instance household.parents[0]

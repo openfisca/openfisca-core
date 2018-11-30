@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from copy import deepcopy
+from pytest import raises
 
 from openfisca_core.tools import assert_near
 from openfisca_core.simulations import Simulation
@@ -449,10 +450,6 @@ def test_multiple_role_projector():
     household = simulation.household
 
     assert_near(
-        household.parents('salary', period = MONTH),
-        [1000, 1500, 0, 0, 3000, 0])
-
-    assert_near(
         household.parents[0]('salary', period = MONTH),
         [1000, 3000])
 
@@ -599,3 +596,11 @@ def test_undoredered_persons():
     assert_near(household.share_between_members(accommodation_size, role = PARENT), [60, 0, 80, 0, 0, 80])
     assert_near(household.value_nth_person(0, salary, role = CHILD), [20, 500])
     assert_near(household.children[0]('salary', MONTH), [20, 500])
+
+
+def test_use_multiple_role_for_calc():
+    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
+
+    with raises(NotImplementedError) as error:
+        simulation.household.parents('salary', '2017-01')
+    assert 'not a unique role' in error.value.args[0]
