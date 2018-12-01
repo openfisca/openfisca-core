@@ -35,6 +35,7 @@ dev_requirements = [
     'pytest >= 3.0, < 4.0.0',
     'openfisca-country-template >= 3.6.0rc0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'odictliteral < 2.0.0'
     ] + api_requirements
 
 setup(
