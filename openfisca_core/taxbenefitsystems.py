@@ -84,6 +84,12 @@ class TaxBenefitSystem(object):
                 self.attributes = attributes
                 return self
 
+            def init_from_dict(self, dict):
+                self.attributes = None
+                self.dict = dict
+                self.period = dict.pop('period')
+                return self
+
             def new_simulation(self, debug = False, opt_out_cache = False, use_baseline = False, trace = False):
                 # Legacy from scenarios, used in reforms
                 tax_benefit_system = self.tax_benefit_system
@@ -94,10 +100,15 @@ class TaxBenefitSystem(object):
                             break
                         tax_benefit_system = baseline
 
-                variables = self.attributes.get('input_variables') or {}
-                period = self.attributes.get('period')
-                simulation = SimulationBuilder().build_from_variables(
-                    tax_benefit_system, variables, default_period = period)
+                if self.attributes:
+                    variables = self.attributes.get('input_variables') or {}
+                    period = self.attributes.get('period')
+                    simulation = SimulationBuilder().build_from_variables(
+                        tax_benefit_system, variables, default_period = period)
+                else:
+                    simulation = SimulationBuilder().build_from_entities(
+                        tax_benefit_system, self.dict, default_period = self.period)
+                    simulation.period = periods.period(self.period)
 
                 simulation.debug = debug
                 simulation.opt_out_cache = opt_out_cache
