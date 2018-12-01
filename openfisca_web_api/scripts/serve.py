@@ -24,6 +24,7 @@ except ImportError as error:
 DEFAULT_PORT = '5000'
 HOST = '127.0.0.1'
 DEFAULT_WORKERS_NUMBER = '3'
+DEFAULT_TIMEOUT = 120
 
 
 log = logging.getLogger(__name__)
@@ -112,6 +113,7 @@ def main(parser = None):
         'port': DEFAULT_PORT,
         'bind': '{}:{}'.format(HOST, DEFAULT_PORT),
         'workers': DEFAULT_WORKERS_NUMBER,
+        'timeout': DEFAULT_TIMEOUT,
         }
     configuration = read_user_configuration(configuration, parser)
     OpenFiscaWebAPIApplication(configuration).run()
