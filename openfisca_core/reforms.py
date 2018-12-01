@@ -49,7 +49,6 @@ class Reform(TaxBenefitSystem):
         self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
         self.variables = baseline.variables.copy()
         self.decomposition_file_path = baseline.decomposition_file_path
-        self.Scenario = baseline.Scenario
         self.key = to_unicode(self.__class__.__name__)
         if not hasattr(self, 'apply'):
             raise Exception("Reform {} must define an `apply` function".format(self.key))

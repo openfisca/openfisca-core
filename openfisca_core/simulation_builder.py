@@ -351,10 +351,13 @@ def iter_over_entity_members(entity_description, scenario_entity):
 
 
 def _get_person_count(input_dict):
-    first_value = next(iter(input_dict.values()))
-    if isinstance(first_value, dict):
-        first_value = next(iter(first_value.values()))
+    try:
+        first_value = next(iter(input_dict.values()))
+        if isinstance(first_value, basestring_type):
+            return 1
+        if isinstance(first_value, dict):
+            first_value = next(iter(first_value.values()))
 
-    if not isinstance(first_value, list):
+        return len(first_value)
+    except Exception:
         return 1
-    return len(first_value)
