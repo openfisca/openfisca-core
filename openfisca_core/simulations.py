@@ -428,6 +428,30 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
+    def delete_arrays(self, variable, period):
+        """
+            Delete a variable's value for a given period
+
+            :param variable: the variable to be set
+            :param period: the period for which the value should be deleted
+
+            Example:
+
+            >>> from openfisca_country_template import CountryTaxBenefitSystem
+            >>> simulation = Simulation(CountryTaxBenefitSystem())
+            >>> simulation.set_input('age', '2018-04', [12, 14])
+            >>> simulation.set_input('age', '2018-05', [13, 14])
+            >>> simulation.get_array('age', '2018-05')
+            array([13, 14], dtype=int32)
+            >>> simulation.delete_arrays('age', '2018-05')
+            >>> simulation.get_array('age', '2018-04')
+            array([12, 14], dtype=int32)
+            >>> simulation.get_array('age', '2018-05') is None
+            True
+
+        """
+        self.get_holder(variable).delete_arrays(period)
+
     def set_input(self, variable, period, value):
         """
             Set a variable's value for a given period
@@ -437,10 +461,11 @@ class Simulation(object):
             :param period: the period for which the value is setted
 
             Example:
-
-            >>> set_input('age', [12, 14], '2018-04')
-            >>> get_array('age', '2018-04')
-            >>> [12, 14]
+            >>> from openfisca_country_template import CountryTaxBenefitSystem
+            >>> simulation = Simulation(CountryTaxBenefitSystem())
+            >>> simulation.set_input('age', '2018-04', [12, 14])
+            >>> simulation.get_array('age', '2018-04')
+            array([12, 14], dtype=int32)
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """

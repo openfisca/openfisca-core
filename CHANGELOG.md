@@ -1,5 +1,24 @@
 # Changelog
 
+## 24.10.0 [#784](https://github.com/openfisca/openfisca-core/pull/784)
+
+- In Python, simplify simulation array deletion:
+
+Before:
+
+```py
+simulation = ...
+holder = simulation.persons.get_holder('salary')
+holder.delete_arrays('2018-08')
+```
+
+After:
+
+```py
+simulation = ...
+simulation.delete_arrays('salary', '2018-08')
+```
+
 ### 24.9.9 [#786](https://github.com/openfisca/openfisca-core/pull/786)
 
 - Set a 120s default timeout in `openfisca serve`
