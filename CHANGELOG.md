@@ -1,5 +1,13 @@
 # Changelog
 
+## 24.11.0 [#789](https://github.com/openfisca/openfisca-core/pull/789)
+
+- Deprecate subroles, and introduce a new syntax to replace them:
+  - For instance, if the role `parent` had two subroles `first_parent` and `second_parent`:
+    - `household.first_parent('salary', period)` can be replaced by `household.parents[0]('salary', period)`
+    - `person.has_role(Household.FIRST_PARENT)` can be replaced by `person.has_role(Household.PARENT, 0)`
+    - `family.sum(salary, role = Household.FIRST_PARENT)` can be replaced by `family.sum(salary, role = (Household.PARENT, 0))`
+
 ## 24.10.0 [#784](https://github.com/openfisca/openfisca-core/pull/784)
 
 - In Python, simplify simulation array deletion:
