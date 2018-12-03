@@ -31,6 +31,7 @@ def test_dump():
     assert_array_equal(simulation.household.members_position, simulation_2.household.members_position)
     assert_array_equal(simulation.household.members_entity_id, simulation_2.household.members_entity_id)
     assert_array_equal(simulation.household.members_legacy_role, simulation_2.household.members_legacy_role)
+    assert_array_equal(simulation.household.members_position_by_role, simulation_2.household.members_position_by_role)
     assert_array_equal(simulation.household.members_role, simulation_2.household.members_role)
 
     # Check calculated values are in cache
