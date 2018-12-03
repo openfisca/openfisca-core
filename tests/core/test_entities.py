@@ -51,6 +51,14 @@ def test_role_index_and_positions():
     assert(simulation.household.ids == [0, 1])
 
 
+def test_infer_positions():
+    household = Simulation(tax_benefit_system).household
+    household.members_entity_id = [1, 1, 0, 0, 1, 0, 0]
+    household.members_role = [PARENT, CHILD, PARENT, CHILD, PARENT, CHILD, CHILD]
+    assert_near(household.members_position, [0, 1, 0, 1, 2, 2, 3])
+    assert_near(household.members_position_by_role, [0, 0, 0, 0, 1, 1, 2])
+
+
 def test_entity_structure_with_constructor():
     simulation_json = {
         "persons": {
@@ -527,7 +535,7 @@ def test_get_memory_usage():
     assert(len(memory_usage['by_variable']) == 1)
 
 
-def test_undoredered_persons():
+def test_unordedered_persons():
     test_case = {
         'persons': [{'id': 'ind4'}, {'id': 'ind3'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind5'}, {'id': 'ind0'}],
         'households': [

@@ -6,6 +6,7 @@ import warnings
 import textwrap
 from os import linesep
 from datetime import date
+from collections import defaultdict
 
 import numpy as np
 import dpath
@@ -389,7 +390,7 @@ class GroupEntity(Entity):
             self._members_role = None
             self._members_position = None
             self.members_legacy_role = None
-            self.members_position_by_role = None
+            self._members_position_by_role = None
         self.members = self.simulation.persons
         self._roles_count = None
         self._ordered_members_map = None
@@ -469,18 +470,44 @@ class GroupEntity(Entity):
 
     @property
     def members_position(self):
-        if self._members_position is None and self.members_entity_id is not None:
-            # We could use self.count and self.members.count , but with the current initilization, we are not sure count will be set before members_position is called
-            nb_entities = np.max(self.members_entity_id) + 1
-            nb_persons = len(self.members_entity_id)
-            self._members_position = np.empty_like(self.members_entity_id)
-            counter_by_entity = np.zeros(nb_entities)
-            for k in range(nb_persons):
-                entity_index = self.members_entity_id[k]
-                self._members_position[k] = counter_by_entity[entity_index]
-                counter_by_entity[entity_index] += 1
+        if self._members_position is not None:
+            return self._members_position
+        if self.members_entity_id is None:
+            return
+
+        nb_entities = np.max(self.members_entity_id) + 1
+        nb_persons = len(self.members_entity_id)
+        self._members_position = np.empty_like(self.members_entity_id)
+        counter_by_entity = np.zeros(nb_entities)
+
+        for k in range(nb_persons):
+            entity_index = self.members_entity_id[k]
+            self._members_position[k] = counter_by_entity[entity_index]
+            counter_by_entity[entity_index] += 1
 
         return self._members_position
+
+    @property
+    def members_position_by_role(self):
+        if self._members_position_by_role is not None:
+            return self._members_position_by_role
+        if self.members_entity_id is None or self.members_role is None:
+            return
+
+        nb_entities = np.max(self.members_entity_id) + 1
+        nb_persons = len(self.members_entity_id)
+        self._members_position_by_role = np.empty_like(self.members_entity_id)
+        counter_by_entity_by_role = defaultdict(lambda: np.zeros(nb_entities))
+
+        for k in range(nb_persons):
+            entity_index = self.members_entity_id[k]
+            role = self.members_role[k]
+            if role.parent_role:  # _members_position_by_role should be defined relatively to real roles, not subroles
+                role = role.parent_role
+            self._members_position_by_role[k] = counter_by_entity_by_role[role][entity_index]
+            counter_by_entity_by_role[role][entity_index] += 1
+
+        return self._members_position_by_role
 
     @members_role.setter
     def members_role(self, members_role):
@@ -489,6 +516,10 @@ class GroupEntity(Entity):
     @members_position.setter
     def members_position(self, members_position):
         self._members_position = members_position
+
+    @members_position_by_role.setter
+    def members_position_by_role(self, members_position_by_role):
+        self._members_position_by_role = members_position_by_role
 
     @property
     def roles_count(self):
@@ -760,7 +791,7 @@ class GroupEntity(Entity):
 
 class Role(object):
 
-    def __init__(self, description, entity):
+    def __init__(self, description, entity, parent_role = None):
         self.entity_class = entity
         self.key = description['key']
         self.label = description.get('label')
@@ -768,6 +799,7 @@ class Role(object):
         self.doc = textwrap.dedent(description.get('doc', ""))
         self.max = description.get('max')
         self.subroles = None
+        self.parent_role = parent_role
 
     def __repr__(self):
         return "Role({})".format(self.key)
@@ -893,7 +925,7 @@ def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
             if role_description.get('subroles'):
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
+                    subrole = Role({'key': subrole_key, 'max': 1}, entity_class, parent_role = role)
                     setattr(entity_class, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
