@@ -923,6 +923,10 @@ def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
             entity_class.roles.append(role)
             setattr(entity_class, role.key.upper(), role)
             if role_description.get('subroles'):
+                warnings.warn(
+                    "Entities subroles are deprecated since OpenFisca Core 24.11.0, and will be removed in the future. Check that version's Changelog for help migrating.",
+                    Warning
+                    )
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
                     subrole = Role({'key': subrole_key, 'max': 1}, entity_class, parent_role = role)
