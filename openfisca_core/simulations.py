@@ -465,12 +465,11 @@ class Simulation(object):
             >>> simulation = Simulation(CountryTaxBenefitSystem())
             >>> simulation.set_input('age', '2018-04', [12, 14])
             >>> simulation.set_input('age', '2018-05', [13, 14])
-            >>> simulation.s summarize
-            >>> print(simulation.get_known_periods('age'))
-            True
+            >>> simulation.get_known_periods('age')
+            [Period((u'month', Instant((2018, 5, 1)), 1)), Period((u'month', Instant((2018, 4, 1)), 1))]
 
         """
-        self.get_holder(variable).get_known_periods()
+        return self.get_holder(variable).get_known_periods()
 
 
 
