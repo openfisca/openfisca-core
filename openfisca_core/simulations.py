@@ -452,6 +452,28 @@ class Simulation(object):
         """
         self.get_holder(variable).delete_arrays(period)
 
+
+    def get_known_periods(self, variable):
+        """
+            Get a list variable's known period, i.e. the periods where a value has been initialized and
+
+            :param variable: the variable to be set
+
+            Example:
+
+            >>> from openfisca_country_template import CountryTaxBenefitSystem
+            >>> simulation = Simulation(CountryTaxBenefitSystem())
+            >>> simulation.set_input('age', '2018-04', [12, 14])
+            >>> simulation.set_input('age', '2018-05', [13, 14])
+            >>> simulation.s summarize
+            >>> print(simulation.get_known_periods('age'))
+            True
+
+        """
+        self.get_holder(variable).get_known_periods()
+
+
+
     def set_input(self, variable, period, value):
         """
             Set a variable's value for a given period
