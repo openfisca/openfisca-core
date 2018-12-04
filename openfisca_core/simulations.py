@@ -452,7 +452,6 @@ class Simulation(object):
         """
         self.get_holder(variable).delete_arrays(period)
 
-
     def get_known_periods(self, variable):
         """
             Get a list variable's known period, i.e. the periods where a value has been initialized and
@@ -470,8 +469,6 @@ class Simulation(object):
 
         """
         return self.get_holder(variable).get_known_periods()
-
-
 
     def set_input(self, variable, period, value):
         """
