@@ -181,7 +181,7 @@ def test_set_not_chaged_variable():
 
 
 def test_set_input_float_to_int():
-    simulation = get_simulation(couple)
+    simulation = get_simulation(single)
     age = np.asarray([50.6])
     simulation.person.get_holder('age').set_input(period, age)
     result = simulation.calculate('age', period)
