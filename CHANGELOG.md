@@ -6,7 +6,7 @@
 
   - Change the syntax of OpenFisca YAML tests
 
-  For instance, a test that was using the `input_variable` keyword like:
+  For instance, a test that was using the `input_variables` keyword like:
 
   ```yaml
   - name: Basic income
