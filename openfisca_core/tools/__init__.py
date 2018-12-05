@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function, division, absolute_import
-from builtins import str
-
 
 import os
-from ..indexed_enums import Enum, EnumArray
+
+import numexpr
+
+from openfisca_core.commons import basestring_type
+from openfisca_core.indexed_enums import EnumArray
 
 
 def assert_near(value, target_value, absolute_error_margin = None, message = '', relative_error_margin = None):
@@ -25,40 +27,30 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
 
     if absolute_error_margin is None and relative_error_margin is None:
         absolute_error_margin = 0
-    if isinstance(value, (list, tuple)):
+    if not isinstance(value, np.ndarray):
         value = np.array(value)
-    if isinstance(target_value, (list, tuple)):
-        target_value = np.array(target_value)
-    if isinstance(message, str):
-        message = message.encode('utf-8')
-    if isinstance(value, np.ndarray):
-        if isinstance(target_value, Enum) or (isinstance(target_value, np.ndarray) and target_value.dtype == object):
-            if not isinstance(value, EnumArray):
-                assert False, "Expected an Enum, got {} of dtype {}".format(value, value.dtype)
-            else:
-                assert (target_value == value.decode()).all(), "Expected {}, got {}".format(target_value, value)
-        else:
-            target_value = np.array(target_value).astype(np.float32)
-            value = np.array(value).astype(np.float32)
-            diff = abs(target_value - value)
+    if isinstance(value, EnumArray):
+        return assert_enum_equals(value, target_value, message)
+    if isinstance(target_value, basestring_type):
+        target_value = eval_expression(target_value)
 
-            if absolute_error_margin is not None:
-                assert (diff <= absolute_error_margin).all(), \
-                    '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                        diff, absolute_error_margin)
-            if relative_error_margin is not None:
-                assert (diff <= abs(relative_error_margin * target_value)).all(), \
-                    '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                        diff, abs(relative_error_margin * target_value))
-    else:
-        if absolute_error_margin is not None:
-            assert abs(target_value - value) <= absolute_error_margin, \
-                '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
-                    abs(target_value - value), absolute_error_margin)
-        if relative_error_margin is not None:
-            assert abs(target_value - value) <= abs(relative_error_margin * target_value), \
-                '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
-                    abs(target_value - value), abs(relative_error_margin * target_value))
+    target_value = np.array(target_value).astype(np.float32)
+
+    value = np.array(value).astype(np.float32)
+    diff = abs(target_value - value)
+    if absolute_error_margin is not None:
+        assert (diff <= absolute_error_margin).all(), \
+            '{}{} differs from {} with an absolute margin {} > {}'.format(message, value, target_value,
+                diff, absolute_error_margin)
+    if relative_error_margin is not None:
+        assert (diff <= abs(relative_error_margin * target_value)).all(), \
+            '{}{} differs from {} with a relative margin {} > {}'.format(message, value, target_value,
+                diff, abs(relative_error_margin * target_value))
+
+
+def assert_enum_equals(value, target_value, message = ''):
+    value = value.decode_to_str()
+    assert (value == target_value).all(), '{}{} differs from {}.'.format(message, value, target_value)
 
 
 def indent(text):
@@ -79,3 +71,10 @@ def get_trace_tool_link(scenario, variables, api_url, trace_tool_url):
         'api_url': api_url,
         })
     return url
+
+
+def eval_expression(expression):
+    try:
+        return numexpr.evaluate(expression)
+    except (KeyError, TypeError):
+        return expression

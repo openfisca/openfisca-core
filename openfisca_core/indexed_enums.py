@@ -107,5 +107,17 @@ class EnumArray(np.ndarray):
         """
         return np.select([self == item.index for item in self.possible_values], [item for item in self.possible_values])
 
+    def decode_to_str(self):
+        """
+            Return the array of string identifiers corresponding to self
+
+            >>> enum_array = household('housing_occupancy_status', period)
+            >>> enum_array[0]
+            >>> 2  # Encoded value
+            >>> enum_array.decode_to_str()[0]
+            >>> 'free_lodger' # String identifier
+        """
+        return np.select([self == item.index for item in self.possible_values], [item.name for item in self.possible_values])
+
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.decode()))

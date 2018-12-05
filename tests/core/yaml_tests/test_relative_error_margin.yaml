@@ -1,7 +1,7 @@
 - name: "Result within relative error margin"
   period: 2015-01
   relative_error_margin: 0.05
-  input_variables:
+  input:
     salary: 2000
-  output_variables:
+  output:
     income_tax: 290 # 300

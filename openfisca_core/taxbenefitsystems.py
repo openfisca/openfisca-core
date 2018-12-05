@@ -19,7 +19,7 @@ from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.errors import VariableNotFound
-from openfisca_core.commons import to_unicode, basestring_type
+from openfisca_core.commons import to_unicode, basestring_type, empty_clone
 
 
 log = logging.getLogger(__name__)
@@ -61,6 +61,7 @@ class TaxBenefitSystem(object):
 
     def __init__(self, entities):
         # TODO: Currently: Don't use a weakref, because they are cleared by Paste (at least) at each call.
+        self.parameters = None
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables = {}
         self.open_api_config = {}
@@ -401,3 +402,23 @@ class TaxBenefitSystem(object):
                 for variable_name, variable in self.variables.items()
                 if variable.entity == entity
                 }
+
+    def clone(self):
+        new = empty_clone(self)
+        new_dict = new.__dict__
+
+        for key, value in self.__dict__.items():
+            if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
+                new_dict[key] = value
+
+        new_dict['parameters'] = self.parameters.clone()
+        new_dict['_parameters_at_instant_cache'] = {}
+        new_dict['variables'] = self.variables.copy()
+        new_dict['open_api_config'] = self.open_api_config.copy()
+        return new
+
+    def entities_plural(self):
+        return {entity.plural for entity in self.entities}
+
+    def entities_by_singular(self):
+        return {entity.key: entity for entity in self.entities}

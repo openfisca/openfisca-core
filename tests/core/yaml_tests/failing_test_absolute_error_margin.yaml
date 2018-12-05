@@ -1,7 +1,7 @@
 - name: "Failing test: result out of absolute error margin"
   period: 2015-01
   absolute_error_margin: 50
-  input_variables:
+  input:
     salary: 2000
-  output_variables:
+  output:
     income_tax: 351 # 300

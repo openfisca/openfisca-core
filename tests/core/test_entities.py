@@ -3,8 +3,9 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 from copy import deepcopy
 
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
-from openfisca_core.simulations import Simulation
+from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import single, couple
 
@@ -31,6 +32,8 @@ CHILD = Household.CHILD
 YEAR = 2016
 MONTH = "2016-01"
 
+simulation_builder = SimulationBuilder()
+
 
 def new_simulation(test_case, period = MONTH):
     return tax_benefit_system.new_scenario().init_from_test_case(
@@ -50,26 +53,28 @@ def test_role_index_and_positions():
 
 
 def test_entity_structure_with_constructor():
-    simulation_json = {
-        "persons": {
-            "bill": {},
-            "bob": {},
-            "claudia": {},
-            "janet": {},
-            "tom": {},
-            },
-        "households": {
-            "first_household": {
-                "parents": ['bill', 'bob'],
-                "children": ['janet', 'tom']
-                },
-            "second_household": {
-                "parents": ["claudia"]
-                }
-            }
-        }
+    simulation_yaml = """
+        persons:
+          bill: {}
+          bob: {}
+          claudia: {}
+          janet: {}
+          tom: {}
+        households:
+          first_household:
+            parents:
+            - bill
+            - bob
+            children:
+            - janet
+            - tom
+          second_household:
+            parents:
+            - claudia
+    """
 
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+
     household = simulation.household
 
     assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
@@ -79,109 +84,103 @@ def test_entity_structure_with_constructor():
 
 
 def test_entity_variables_with_constructor():
-    simulation_json = {
-        "persons": {
-            "bill": {},
-            "bob": {},
-            "claudia": {},
-            "janet": {},
-            "tom": {},
-            },
-        "households": {
-            "first_household": {
-                "parents": ['bill', 'bob'],
-                "children": ['janet', 'tom'],
-                "rent": {"2017-06": 800}
-                },
-            "second_household": {
-                "parents": ["claudia"],
-                "rent": {"2017-06": 600}
-                }
-            }
-        }
+    simulation_yaml = """
+        persons:
+          bill: {}
+          bob: {}
+          claudia: {}
+          janet: {}
+          tom: {}
+        households:
+          first_household:
+            parents:
+            - bill
+            - bob
+            children:
+            - janet
+            - tom
+            rent:
+              2017-06: 800
+          second_household:
+            parents:
+            - claudia
+            rent:
+              2017-06: 600
+    """
 
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     household = simulation.household
     assert_near(household('rent', "2017-06"), [800, 600])
 
 
 def test_person_variable_with_constructor():
-    simulation_json = {
-        "persons": {
-            "bill": {
-                "salary": {
-                    "2017-11": 1500,
-                    "2017-12": 2000
-                    }
-                },
-            "bob": {
-                "salary": {}
-                },
-            "claudia": {
-                "salary": {
-                    "2017-11": 3000,
-                    "2017-12": 4000
-                    }
-                },
-            "janet": {},
-            "tom": {},
-            },
-        "households": {
-            "first_household": {
-                "parents": ['bill', 'bob'],
-                "children": ['janet', 'tom'],
-                },
-            "second_household": {
-                "parents": ["claudia"],
-                }
-            }
-        }
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    simulation_yaml = """
+        persons:
+          bill:
+            salary:
+              2017-11: 1500
+              2017-12: 2000
+          bob:
+            salary: {}
+          claudia:
+            salary:
+              2017-11: 3000
+              2017-12: 4000
+          janet: {}
+          tom: {}
+        households:
+          first_household:
+            parents:
+            - bill
+            - bob
+            children:
+            - janet
+            - tom
+          second_household:
+            parents:
+            - claudia
+    """
+
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-11"), [1500, 0, 3000, 0, 0])
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
 
 
 def test_set_input_with_constructor():
-    simulation_json = {
-        "persons": {
-            "bill": {
-                "salary": {
-                    "2017": 24000,
-                    "2017-11": 2000,
-                    "2017-12": 2000
+    simulation_yaml = """
+        persons:
+          bill:
+            salary:
+              '2017': 24000
+              2017-11: 2000
+              2017-12: 2000
+          bob:
+            salary:
+              '2017': 30000
+              2017-11: 0
+              2017-12: 0
+          claudia:
+            salary:
+              '2017': 24000
+              2017-11: 4000
+              2017-12: 4000
+          janet: {}
+          tom: {}
+        households:
+          first_household:
+            parents:
+            - bill
+            - bob
+            children:
+            - janet
+            - tom
+          second_household:
+            parents:
+            - claudia
+    """
 
-                    }
-                },
-            "bob": {
-                "salary": {
-                    "2017": 30000,
-                    "2017-11": 0,
-                    "2017-12": 0
-                    }
-                },
-            "claudia": {
-                "salary": {
-                    "2017": 24000,
-                    "2017-11": 4000,
-                    "2017-12": 4000,
-                    }
-                },
-            "janet": {},
-            "tom": {},
-            },
-        "households": {
-            "first_household": {
-                "parents": ['bill', 'bob'],
-                "children": ['janet', 'tom'],
-                },
-            "second_household": {
-                "parents": ["claudia"],
-                }
-            }
-        }
-
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = simulation_json)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
     assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
@@ -401,7 +400,7 @@ def test_value_from_first_person():
 
 
 def test_projectors_methods():
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
     household = simulation.household
     person = simulation.person
 
@@ -462,7 +461,7 @@ def test_sum_following_bug_ipp_2():
 
 
 def test_get_memory_usage():
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)

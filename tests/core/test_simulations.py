@@ -49,7 +49,6 @@ def test_clone():
 
     for entity_id, entity in simulation.entities.items():
         assert entity != simulation_clone.entities[entity_id]
-        assert entity.entities_json == simulation_clone.entities[entity_id].entities_json
 
     assert simulation.persons != simulation_clone.persons
 

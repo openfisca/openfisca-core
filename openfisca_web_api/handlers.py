@@ -6,13 +6,13 @@ from copy import deepcopy
 
 import dpath
 
-from openfisca_core.simulations import Simulation
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.commons import to_unicode
 
 
 def calculate(tax_benefit_system, input_data):
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data)
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
 
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     computation_results = {}
@@ -42,7 +42,7 @@ def calculate(tax_benefit_system, input_data):
 
 
 def trace(tax_benefit_system, input_data):
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = input_data, trace = True)
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data, trace = True)
 
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:

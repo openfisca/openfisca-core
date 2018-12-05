@@ -11,10 +11,11 @@ import psutil
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.periods import MONTH, YEAR, ETERNITY
-from openfisca_core.columns import make_column_from_variable
-from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
+from openfisca_core.errors import PeriodMismatchError
+from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.periods import MONTH, YEAR, ETERNITY
+from openfisca_core.tools import eval_expression
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class Holder(object):
         self._disk_storage = None
         self._on_disk_storable = False
         self._do_not_store = False
-        if self.simulation.memory_config:
+        if self.simulation and self.simulation.memory_config:
             if self.variable.name not in self.simulation.memory_config.priority_variables:
                 self._disk_storage = self.create_disk_storage()
                 self._on_disk_storable = True
@@ -159,8 +160,6 @@ class Holder(object):
         """
 
         period = periods.period(period)
-        if not isinstance(array, np.ndarray):
-            array = np.asarray(array)
         if period.unit == ETERNITY and self.variable.definition_period != ETERNITY:
             error_message = os.linesep.join([
                 'Unable to set a value for variable {0} for ETERNITY.',
@@ -183,22 +182,31 @@ class Holder(object):
                 warning_message,
                 Warning
                 )
+        if self.variable.value_type in (float, int) and isinstance(array, str):
+            array = eval_expression(array)
         if self.variable.set_input:
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
     def _set(self, period, value, extra_params = None):
+        if not isinstance(value, np.ndarray):
+            value = np.asarray(value)
+        if value.ndim == 0:
+            # 0-dim arrays are casted to scalar when they interact with float. We don't want that.
+            value = value.reshape(1)
+        if len(value) != self.entity.count:
+            raise ValueError(
+                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
+                .format(value, self.variable.name, len(value), self.entity.count, self.entity.plural))
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
-
         if value.dtype != self.variable.dtype:
             try:
                 value = value.astype(self.variable.dtype)
             except ValueError:
                 raise ValueError(
                     'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
-                    .format(value, self.variable.name, self.variable.dtype, value.dtype)
-                    .encode('utf-8'))
+                    .format(value, self.variable.name, self.variable.dtype, value.dtype))
 
         if self.variable.definition_period != ETERNITY:
             if period is None:
@@ -258,73 +266,6 @@ class Holder(object):
         array.fill(self.variable.default_value)
         return array
 
-    # Legacy method used by the old OpenFisca Web API to display intermediate results
-    def to_value_json(self, use_label = False):
-        column = make_column_from_variable(self.variable)
-        transform_dated_value_to_json = column.transform_dated_value_to_json
-
-        def extra_params_to_json_key(extra_params, period):
-            return '{' + ', '.join(
-                ['{}: {}'.format(name, value)
-                    for name, value in zip(self.get_extra_param_names(period), extra_params)]
-                ) + '}'
-
-        if self.variable.definition_period == ETERNITY:
-            array = self.get_array(None)
-            if array is None:
-                return None
-            return [
-                transform_dated_value_to_json(cell, use_label = use_label)
-                for cell in array.tolist()
-                ]
-        value_json = {}
-        for period, array_or_dict in self._memory_storage._arrays.items():
-            if type(array_or_dict) == dict:
-                values_dict = {}
-                for extra_params, array in array_or_dict.items():
-                    extra_params_key = extra_params_to_json_key(extra_params, period)
-                    values_dict[str(extra_params_key)] = [
-                        transform_dated_value_to_json(cell, use_label = use_label)
-                        for cell in array.tolist()
-                        ]
-                value_json[str(period)] = values_dict
-            else:
-                value_json[str(period)] = [
-                    transform_dated_value_to_json(cell, use_label = use_label)
-                    for cell in array_or_dict.tolist()
-                    ]
-        if self._disk_storage:
-            for period, file_or_dict in self._disk_storage._files.items():
-                if type(file_or_dict) == dict:
-                    values_dict = {}
-                    for extra_params, file in file_or_dict.items():
-                        extra_params_key = extra_params_to_json_key(extra_params, period)
-                        values_dict[str(extra_params_key)] = [
-                            transform_dated_value_to_json(cell, use_label = use_label)
-                            for cell in np.load(file).tolist()
-                            ]
-                    value_json[str(period)] = values_dict
-                else:
-                    value_json[str(period)] = [
-                        transform_dated_value_to_json(cell, use_label = use_label)
-                        for cell in np.load(file_or_dict).tolist()
-                        ]
-        return value_json
-
-    # Legacy method called by to_value_json
-    def get_extra_param_names(self, period):
-        formula = self.variable.get_formula(period)
-        return formula.__code__.co_varnames[3:]
-
-
-class PeriodMismatchError(ValueError):
-    def __init__(self, variable_name, period, definition_period, message):
-        self.variable_name = variable_name
-        self.period = period
-        self.definition_period = definition_period
-        self.message = message
-        ValueError.__init__(self, self.message)
-
 
 def set_input_dispatch_by_period(holder, period, array):
     """
@@ -368,7 +309,8 @@ def set_input_divide_by_period(holder, period, array):
 
         To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
     """
-
+    if not isinstance(array, np.ndarray):
+        array = np.array(array)
     period_size = period.size
     period_unit = period.unit
 

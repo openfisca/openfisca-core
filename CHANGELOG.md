@@ -1,6 +1,122 @@
 # Changelog
 
-## 24.10.0 [#791](https://github.com/openfisca/openfisca-core/pull/791)
+# 25.0 [#781](https://github.com/openfisca/openfisca-core/pull/781)
+
+#### Breaking changes
+
+  - Change the syntax of OpenFisca YAML tests
+
+  For instance, a test that was using the `input_variables` keyword like:
+
+  ```yaml
+  - name: Basic income
+    period: 2016-12
+    input_variables:
+      salary: 1200
+    output_variables:
+      basic_income: 600
+  ```
+
+  becomes:
+
+  ```yaml
+  - name: Basic income
+    period: 2016-12
+    input:
+      salary: 1200
+    output:
+      basic_income: 600
+  ```
+
+  A test that was fully specifying its entities like:
+
+  ```yaml
+  name: Housing tax
+    period: 2017-01
+    households:
+      - parents: [ Alicia ]
+        children: [ Michael ]
+    persons:
+      - id: Alicia
+          birth: 1961-01-15
+      - id: Michael
+          birth: 2002-01-15
+    output_variables:
+      housing_tax:
+        2017: 1000
+  ```
+
+  becomes:
+
+  ```yaml
+  name: Housing tax
+    period: 2017-01
+    input:
+      household:
+        parents: [ Alicia ]
+        children: [ Michael ]
+      persons:
+        Alicia:
+          birth: 1961-01-15
+        Michael:
+          birth: 2002-01-15
+    output:
+      housing_tax:
+        2017: 1000
+  ```
+
+  A **migration script** is available to automatically convert tests:
+
+  ```sh
+  python openfisca_core/scripts/migrations/v24_to_25.py /path/to/tests/
+  ```
+
+  > Note for country packages using Scenarios (e.g. France, Tunisia):
+  > Tests are not using scenarios anymore. Therefore, tests cannot partially specify entities anymore. Tests using entities inference may need manual adaptation in addition to the script.
+
+  - The `Entity` constructor (usually not directly called by users) does not accept an `entities_json` parameter anymore.
+
+
+#### Deprecation
+
+  - Deprecate `openfisca-run-test`
+    - `openfisca test` should be used instead.
+
+  - Deprecate the use of the `simulation_json` parameter in the `Simulation` constructor.
+    - `SimulationBuilder(tax_benefit_system).build_from_entities(simulation_json)` should be used instead
+
+
+#### New features
+
+  - In YAML tests, allow to define expected output for a specific entity
+
+  For instance:
+
+  ```yaml
+  name: Housing tax
+    period: 2017-01
+    input:
+      ...
+    output:
+      persons:
+        Alicia:
+          salary: 3000
+  ```
+
+  - In YAML tests, allow to specify an extension to use to run the test:
+    - See [example](https://github.com/openfisca/openfisca-core/blob/25.0.0/tests/core/yaml_tests/test_with_extension.yaml)
+
+  - In YAML tests, allow the use of YAML anchors:
+    - See [example](https://github.com/openfisca/openfisca-core/blob/25.0.0/tests/core/yaml_tests/test_with_anchors.yaml)
+
+  - Introduce [`EnumArray.decode_to_str`](https://openfisca.org/doc/openfisca-python-api/enum_array.html#openfisca_core.indexed_enums.EnumArray.decode_to_str)
+
+
+#### Architecture changes
+
+  - Move the complex initialisation logics (for JSON-like inputs) to `SimulationBuilder`, away from the `Simulation` and `Entity` classes
+
+## 24.11.0 [#791](https://github.com/openfisca/openfisca-core/pull/791)
 
 - In Python, simplify getting known periods for variable in a simulation:
 

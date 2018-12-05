@@ -5,12 +5,12 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 from os import linesep
 import tempfile
 import logging
+import warnings
 
-import dpath
 import numpy as np
 
 from openfisca_core import periods
-from openfisca_core.commons import empty_clone, stringify_array, basestring_type, to_unicode
+from openfisca_core.commons import empty_clone, stringify_array
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 
@@ -52,11 +52,9 @@ class Simulation(object):
             memory_config = None,
             ):
         """
-            If a ``simulation_json`` is given, initialises a simulation from a JSON dictionary.
+            Create an empty simulation
 
-            Note: This way of initialising a simulation, still under experimentation, aims at replacing the initialisation from `scenario.make_json_or_python_to_attributes`.
-
-            If no ``simulation_json`` is given, initialises an empty simulation.
+            To fill the simulation with input data, you can use the :any:`SimulationBuilder` or proceed manually.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
@@ -80,44 +78,25 @@ class Simulation(object):
 
         self.memory_config = memory_config
         self._data_storage_dir = None
-        self.instantiate_entities(simulation_json)
+        self.instantiate_entities()
 
-    def instantiate_entities(self, simulation_json):
-        if simulation_json:
-            check_type(simulation_json, dict, ['error'])
-            allowed_entities = set(entity_class.plural for entity_class in self.tax_benefit_system.entities)
-            unexpected_entities = [entity for entity in simulation_json if entity not in allowed_entities]
-            if unexpected_entities:
-                unexpected_entity = unexpected_entities[0]
-                raise SituationParsingError([unexpected_entity],
-                    ''.join([
-                        "Some entities in the situation are not defined in the loaded tax and benefit system.",
-                        "These entities are not found: {0}.",
-                        "The defined entities are: {1}."]
-                        )
-                    .format(
-                    ', '.join(unexpected_entities),
-                    ', '.join(allowed_entities)
-                        )
-                    )
-            persons_json = simulation_json.get(self.tax_benefit_system.person_entity.plural, None)
+        if simulation_json is not None:
+            warnings.warn(' '.join([
+                "The 'simulation_json' argument of the Simulation is deprecated since version 25.0, and will be removed in the future.",
+                "The proper way to init a simulation from a JSON-like dict is to use SimulationBuilder.build_from_entities. See <https://openfisca.org/doc/openfisca-python-api/simulation_builder.html#openfisca_core.simulation_builder.SimulationBuilder.build_from_dict>"
+                ]),
+                Warning
+                )
+            from openfisca_core.simulation_builder import SimulationBuilder
+            SimulationBuilder().build_from_entities(tax_benefit_system, simulation_json, simulation = self)
 
-            if not persons_json:
-                raise SituationParsingError([self.tax_benefit_system.person_entity.plural],
-                    'No {0} found. At least one {0} must be defined to run a simulation.'.format(self.tax_benefit_system.person_entity.key))
-            self.persons = self.tax_benefit_system.person_entity(self, persons_json)
-        else:
-            self.persons = self.tax_benefit_system.person_entity(self)
-
+    def instantiate_entities(self):
+        self.persons = self.tax_benefit_system.person_entity(self)
         self.entities = {self.persons.key: self.persons}
         setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
         for entity_class in self.tax_benefit_system.group_entities:
-            if simulation_json:
-                entities_json = simulation_json.get(entity_class.plural)
-                entities = entity_class(self, entities_json or {})
-            else:
-                entities = entity_class(self)
+            entities = entity_class(self)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
 
@@ -316,9 +295,9 @@ class Simulation(object):
     def _check_formula_result(self, value, variable, entity, period):
 
         assert isinstance(value, np.ndarray), (linesep.join([
-            "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)).encode('utf-8'),
-            "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)).encode('utf-8'),
-            "instead it returned '{0}' of {1}.".format(value, type(value)).encode('utf-8'),
+            "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)),
+            "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)),
+            "instead it returned '{0}' of {1}.".format(value, type(value)),
             "Learn more about Numpy arrays and vectorial computing:",
             "<https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
@@ -498,7 +477,7 @@ class Simulation(object):
         if entity_type:
             return self.entities[entity_type.key]
         if plural:
-            return [entity for entity in self.entities.values() if entity.plural == plural][0]
+            return next((entity for entity in self.entities.values() if entity.plural == plural))
 
     def clone(self, debug = False, trace = False):
         """
@@ -531,31 +510,6 @@ class Simulation(object):
                 new_dict['tracer'] = Tracer()
 
         return new
-
-
-def check_type(input, input_type, path = []):
-    json_type_map = {
-        dict: "Object",
-        list: "Array",
-        basestring_type: "String",
-        }
-    if not isinstance(input, input_type):
-        raise SituationParsingError(path,
-            "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
-
-
-class SituationParsingError(Exception):
-    def __init__(self, path, message, code = None):
-        self.error = {}
-        dpath_path = '/'.join(path)
-        message = to_unicode(message)
-        message = message.strip(linesep).replace(linesep, ' ')
-        dpath.util.new(self.error, dpath_path, message)
-        self.code = code
-        Exception.__init__(self, str(self.error).encode('utf-8'))
-
-    def __str__(self):
-        return str(self.error)
 
 
 def calculate_output_add(simulation, variable_name, period):

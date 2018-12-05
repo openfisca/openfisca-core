@@ -30,7 +30,7 @@ DEFAULT_TIMEOUT = 120
 log = logging.getLogger(__name__)
 
 
-def define_command_line_options(parser):
+def build_parser(parser):
     # Define OpenFisca modules configuration
     parser = add_tax_benefit_system_arguments(parser)
 
@@ -107,7 +107,7 @@ class OpenFiscaWebAPIApplication(BaseApplication):
 def main(parser = None):
     if not parser:
         parser = argparse.ArgumentParser()
-        parser = define_command_line_options(parser)
+        parser = build_parser(parser)
 
     configuration = {
         'port': DEFAULT_PORT,
