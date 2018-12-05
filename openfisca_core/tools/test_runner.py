@@ -43,6 +43,8 @@ def import_yaml():
     return yaml, Loader
 
 
+TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
+
 yaml, Loader = import_yaml()
 
 log = logging.getLogger(__name__)
@@ -178,11 +180,8 @@ def _parse_test_file(tax_benefit_system, yaml_path, options):
         tests = [tests]
     tests = filter(lambda test: test, tests)  # Remove empty tests
 
-    filename = os.path.splitext(os.path.basename(yaml_path))[0]
     for test in tests:
-        test['filename'] = filename
-        test['file_path'] = yaml_path
-        yield _parse_test(tax_benefit_system, test, options)
+        yield _parse_test(tax_benefit_system, test, options, yaml_path)
 
 
 def _get_tax_benefit_system(baseline, reforms, extensions):
@@ -208,11 +207,16 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
     return current_tax_benefit_system
 
 
-def _parse_test(tax_benefit_system, test, options):
-    current_tax_benefit_system = _get_tax_benefit_system(tax_benefit_system, test.get('reforms', []), test.get('extensions', []))
-
+def _parse_test(tax_benefit_system, test, options, yaml_path):
+    name = test.get('name', '')
     if not test.get('output'):
-        raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(test.get('name', ''), test['file_path']))
+        raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(name, yaml_path))
+    if not TEST_KEYWORDS.issuperset(test.keys()):
+        unexpected_keys = set(test.keys()).difference(TEST_KEYWORDS)
+        raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, name, yaml_path))
+    test['file_path'] = yaml_path
+
+    current_tax_benefit_system = _get_tax_benefit_system(tax_benefit_system, test.get('reforms', []), test.get('extensions', []))
 
     try:
         builder = SimulationBuilder()
@@ -225,7 +229,7 @@ def _parse_test(tax_benefit_system, test, options):
             traceback.format_exc(),
             str(error.error),
             os.linesep,
-            "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(test.get('name', ''), test['file_path']),
+            "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(name, yaml_path),
             ])
         raise ValueError(message)
     return simulation, test
