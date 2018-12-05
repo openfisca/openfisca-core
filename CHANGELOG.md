@@ -1,5 +1,24 @@
 # Changelog
 
+## 24.10.0 [#791](https://github.com/openfisca/openfisca-core/pull/791)
+
+- In Python, simplify getting known periods for variable in a simulation:
+
+Before:
+
+```py
+simulation = ...
+holder = simulation.persons.get_holder('salary')
+holder.get_known_periods()
+```
+
+After:
+
+```py
+simulation = ...
+simulation.get_known_periods('salary')
+```
+
 ## 24.10.0 [#784](https://github.com/openfisca/openfisca-core/pull/784)
 
 - In Python, simplify simulation array deletion:
