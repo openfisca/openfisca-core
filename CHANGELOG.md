@@ -68,10 +68,10 @@
   A **migration script** is available to automatically convert tests:
 
   ```sh
-    python openfisca_core/scripts/migrations/v24_to_25.py /path/to/tests/
+  python openfisca_core/scripts/migrations/v24_to_25.py /path/to/tests/
   ```
 
-  > Note for country package using Scenarios (e.g. France, Tunisia):
+  > Note for country packages using Scenarios (e.g. France, Tunisia):
   > Tests are not using scenarios anymore. Therefore, tests cannot partially specify entities anymore. Tests using entities inference may need manual adaptation in addition to the script.
 
   - The `Entity` constructor (usually not directly called by users) does not accept an `entities_json` parameter anymore.
