@@ -185,10 +185,13 @@ def test_subperiods():
         assert subperiods[-1] == last
 
     tests = [
+        (period('year:2014:2'), YEAR, 2, period('2014'), period('2015')),
         (period(2017), MONTH, 12, period('2017-01'), period('2017-12')),
         (period('year:2014:2'), MONTH, 24, period('2014-01'), period('2015-12')),
         (period('month:2014-03:3'), MONTH, 3, period('2014-03'), period('2014-05')),
-        (period('year:2014:2'), YEAR, 2, period('2014'), period('2015')),
+        (period(2017), DAY, 365, period('2017-01-01'), period('2017-12-31')),
+        (period('year:2014:2'), DAY, 730, period('2014-01-01'), period('2015-12-31')),
+        (period('month:2014-03:3'), DAY, 92, period('2014-03-01'), period('2014-05-31')),
         ]
 
     for test in tests:
