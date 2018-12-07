@@ -34,11 +34,9 @@ CHILD = Household.CHILD
 YEAR = 2016
 MONTH = "2016-01"
 
-simulation_builder = SimulationBuilder()
-
 
 def new_simulation(test_case, period = MONTH):
-    return simulation_builder.build_from_entities(tax_benefit_system, test_case, default_period = period)
+    return SimulationBuilder().build_from_entities(tax_benefit_system, test_case, default_period = period)
 
 
 def test_role_index_and_positions():
@@ -72,7 +70,7 @@ def test_entity_structure_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
 
     household = simulation.household
 
@@ -107,7 +105,7 @@ def test_entity_variables_with_constructor():
               2017-06: 600
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     household = simulation.household
     assert_near(household('rent', "2017-06"), [800, 600])
 
@@ -140,7 +138,7 @@ def test_person_variable_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-11"), [1500, 0, 3000, 0, 0])
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
@@ -179,7 +177,7 @@ def test_set_input_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
     assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
@@ -399,7 +397,7 @@ def test_value_from_first_person():
 
 
 def test_projectors_methods():
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, couple)
     household = simulation.household
     person = simulation.person
 
@@ -460,7 +458,7 @@ def test_sum_following_bug_ipp_2():
 
 
 def test_get_memory_usage():
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, single)
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)

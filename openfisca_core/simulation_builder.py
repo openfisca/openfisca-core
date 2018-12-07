@@ -293,17 +293,20 @@ class SimulationBuilder(object):
         if not variable_name in self.input:
             self.input[variable_name] = {}
 
-        self.input[variable_name][period_str] = array
+        self.input[variable_name][str(period_str)] = array
 
         holder.buffer[period] = array
 
     def finalize_variables_init(self, entity, entities_json):
         for variable_name, holder in entity._holders.items():
-            periods = holder.buffer.keys()
+            if not variable_name in self.input:
+                continue
+            buffer = self.input[variable_name]
+            periods = [make_period(period_str) for period_str in self.input[variable_name].keys()]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, key=key_period_size)
             for period in sorted_periods:
-                array = holder.buffer[period]
+                array = buffer[str(period)]
                 try:
                     holder.set_input(period, array)
                 except PeriodMismatchError as e:
