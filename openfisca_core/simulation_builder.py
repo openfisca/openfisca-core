@@ -18,6 +18,9 @@ from openfisca_core.tools import eval_expression
 
 class SimulationBuilder(object):
 
+    def __init__(self):
+        self.input = {}
+
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
             Build a simulation from ``input_dict``
@@ -212,6 +215,9 @@ class SimulationBuilder(object):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init(entity, entities_json)
 
+    def get_input(self, variable, period):
+        return self.input[variable][period]
+
     def check_persons_to_allocate(self, persons_plural, entity_plural,
                                   persons_ids,
                                   person_id, entity_id, role_id,
@@ -283,6 +289,11 @@ class SimulationBuilder(object):
             else:
                 error_message = "Can't deal with value: expected type {}, received '{}'.".format(holder.variable.json_type, value)
             raise SituationParsingError(path_in_json, error_message)
+
+        if not variable_name in self.input:
+            self.input[variable_name] = {}
+
+        self.input[variable_name][period_str] = array
 
         holder.buffer[period] = array
 

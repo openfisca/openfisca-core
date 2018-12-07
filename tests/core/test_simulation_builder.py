@@ -80,6 +80,12 @@ def test_hydrate_person_entity_with_variables(simulation_builder, persons):
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
 
 
+def test_hydrate_person_entity_with_variables_set_input(simulation_builder, persons):
+    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    simulation_builder.hydrate_entity(persons, persons_json)
+    assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+
+
 def test_hydrate_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system)
     simulation_builder.hydrate_entity(simulation.persons,
