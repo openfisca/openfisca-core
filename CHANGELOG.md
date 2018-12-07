@@ -39,37 +39,37 @@
 
   ```yaml
   name: Housing tax
-    period: 2017-01
-    households:
-      - parents: [ Alicia ]
-        children: [ Michael ]
-    persons:
-      - id: Alicia
-          birth: 1961-01-15
-      - id: Michael
-          birth: 2002-01-15
-    output_variables:
-      housing_tax:
-        2017: 1000
+  period: 2017-01
+  households:
+    - parents: [ Alicia ]
+      children: [ Michael ]
+  persons:
+    - id: Alicia
+        birth: 1961-01-15
+    - id: Michael
+        birth: 2002-01-15
+  output_variables:
+    housing_tax:
+      2017: 1000
   ```
 
   becomes:
 
   ```yaml
   name: Housing tax
-    period: 2017-01
-    input:
-      household:
-        parents: [ Alicia ]
-        children: [ Michael ]
-      persons:
-        Alicia:
-          birth: 1961-01-15
-        Michael:
-          birth: 2002-01-15
-    output:
-      housing_tax:
-        2017: 1000
+  period: 2017-01
+  input:
+    household:
+      parents: [ Alicia ]
+      children: [ Michael ]
+    persons:
+      Alicia:
+        birth: 1961-01-15
+      Michael:
+        birth: 2002-01-15
+  output:
+    housing_tax:
+      2017: 1000
   ```
 
   A **migration script** is available to automatically convert tests:
@@ -100,14 +100,14 @@
   For instance:
 
   ```yaml
-  name: Housing tax
-    period: 2017-01
-    input:
-      ...
-    output:
-      persons:
-        Alicia:
-          salary: 3000
+name: Housing tax
+period: 2017-01
+input:
+  ...
+output:
+  persons:
+    Alicia:
+      salary: 3000
   ```
 
   - In YAML tests, allow to specify an extension to use to run the test:
