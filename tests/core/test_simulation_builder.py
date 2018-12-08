@@ -58,6 +58,10 @@ def persons():
             pass
 
     class TestPersonEntity(PersonEntity):
+        def __init__(self):
+            super().__init__(None)
+            self.plural = "persons"
+
         def get_variable(self, variable_name):
             result = TestVariable()
             result.name = variable_name
@@ -66,7 +70,7 @@ def persons():
         def check_variable_defined_for_entity(self, variable_name):
             return True
 
-    return TestPersonEntity(None)
+    return TestPersonEntity()
 
 
 def test_build_default_simulation(simulation_builder):
@@ -131,8 +135,9 @@ def test_fail_on_ill_formed_expression(simulation_builder, persons):
     instance_index = 0
     persons.count = 1
     salary = persons.get_variable('salary')
-    with raises(SituationParsingError):
+    with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '2 * / 1000')
+    assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "I couldn't understand '2 * / 1000' as a value for 'salary'"}}}}
 
 
 def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
