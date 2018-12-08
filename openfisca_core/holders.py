@@ -13,7 +13,7 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
-from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
 
@@ -261,13 +261,7 @@ class Holder(object):
         Return a new array of the appropriate length for the entity, filled with the variable default values.
         """
 
-        array_size = self.entity.count
-        array = np.empty(array_size, dtype = self.variable.dtype)
-        if self.variable.value_type == Enum:
-            array.fill(self.variable.default_value.index)
-            return EnumArray(array, self.variable.possible_values)
-        array.fill(self.variable.default_value)
-        return array
+        return self.variable.default_array(self.entity)
 
 
 def set_input_dispatch_by_period(holder, period, array):

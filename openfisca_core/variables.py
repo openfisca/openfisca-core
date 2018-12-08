@@ -12,7 +12,7 @@ from datetime import date
 
 from openfisca_core import entities
 from openfisca_core import periods
-from openfisca_core.indexed_enums import Enum, ENUM_ARRAY_DTYPE
+from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
 from openfisca_core.base_functions import (
     missing_value,
@@ -440,6 +440,15 @@ class Variable(object):
                         value, self.name)
                     )
         return value
+
+    def default_array(self, entity):
+        array_size = entity.count
+        array = np.empty(array_size, dtype = self.dtype)
+        if self.value_type == Enum:
+            array.fill(self.default_value.index)
+            return EnumArray(array, self.possible_values)
+        array.fill(self.default_value)
+        return array
 
 
 def _partition(dict, predicate):
