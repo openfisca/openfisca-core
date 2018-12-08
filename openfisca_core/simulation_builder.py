@@ -16,7 +16,7 @@ from openfisca_core.simulations import Simulation
 class SimulationBuilder(object):
 
     def __init__(self):
-        self.input = {}
+        self.input_buffer = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
@@ -213,7 +213,7 @@ class SimulationBuilder(object):
         self.finalize_variables_init(entity, instances_json)
 
     def get_input(self, variable, period):
-        return self.input[variable][period]
+        return self.input_buffer[variable][period]
 
     def check_persons_to_allocate(self, persons_plural, entity_plural,
                                   persons_ids,
@@ -263,9 +263,9 @@ class SimulationBuilder(object):
         if value is None:
             return
 
-        if variable.name not in self.input:
-            self.input[variable.name] = {}
-        array = self.input[variable.name].get(str(period_str))
+        if variable.name not in self.input_buffer:
+            self.input_buffer[variable.name] = {}
+        array = self.input_buffer[variable.name].get(str(period_str))
 
         if array is None:
             array = variable.default_array(entity)
@@ -277,16 +277,16 @@ class SimulationBuilder(object):
 
         array[instance_index] = value
 
-        self.input[variable.name][str(period_str)] = array
+        self.input_buffer[variable.name][str(period_str)] = array
 
     def finalize_variables_init(self, entity, entities_json):
-        for variable_name in self.input.keys():
+        for variable_name in self.input_buffer.keys():
             try:
                 holder = entity.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
-            buffer = self.input[variable_name]
-            periods = [make_period(period_str) for period_str in self.input[variable_name].keys()]
+            buffer = self.input_buffer[variable_name]
+            periods = [make_period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, key=key_period_size)
             for period in sorted_periods:
