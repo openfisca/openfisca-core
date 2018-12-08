@@ -25,6 +25,20 @@ def simulation_builder():
 
 
 @fixture
+def int_variable(persons):
+
+    class intvar(Variable):
+        definition_period = ETERNITY
+        value_type = int
+        entity = persons.__class__
+
+        def __init__(self):
+            super().__init__()
+
+    return intvar()
+
+
+@fixture
 def enum_variable():
 
     class TestEnum(Variable):
@@ -138,6 +152,14 @@ def test_fail_on_ill_formed_expression(simulation_builder, persons):
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '2 * / 1000')
     assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "I couldn't understand '2 * / 1000' as a value for 'salary'"}}}}
+
+
+def test_fail_on_integer_overflow(simulation_builder, persons, int_variable):
+    instance_index = 0
+    persons.count = 1
+    with raises(SituationParsingError) as excinfo:
+        simulation_builder.add_variable_value(persons, int_variable, instance_index, 'Alicia', '2018-11', 9223372036854775808)
+    assert excinfo.value.error == {'persons': {'Alicia': {'intvar': {'2018-11': "Can't deal with value: '9223372036854775808', it's too large for type 'integer'."}}}}
 
 
 def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
