@@ -152,15 +152,15 @@ class SimulationBuilder(object):
 
         return result
 
-    def hydrate_entity(self, entity, entities_json, default_period = None):
+    def hydrate_entity(self, entity, instances_json, default_period = None):
         """
-            Hydrate an entity from a JSON dictionnary ``entities_json``.
+            Hydrate an entity from a JSON dictionnary ``instances_json``.
         """
-        check_type(entities_json, dict, [entity.plural])
-        entities_json = OrderedDict((str(key), value) for key, value in entities_json.items())  # Stringify potential numeric keys, but keep the order
-        entity.count = len(entities_json)
+        check_type(instances_json, dict, [entity.plural])
+        instances_json = OrderedDict((str(key), value) for key, value in instances_json.items())  # Stringify potential numeric keys, but keep the order
+        entity.count = len(instances_json)
         entity.step_size = entity.count  # Related to axes.
-        entity.ids = list(entities_json.keys())
+        entity.ids = list(instances_json.keys())
 
         if not entity.is_person:
             persons = entity.simulation.persons
@@ -169,11 +169,11 @@ class SimulationBuilder(object):
             entity.members_legacy_role = np.empty(persons.count, dtype = np.int32)
             persons_to_allocate = set(persons.ids)
 
-        for entity_id, entity_object in entities_json.items():
-            check_type(entity_object, dict, [entity.plural, entity_id])
+        for instance_id, instance_object in instances_json.items():
+            check_type(instance_object, dict, [entity.plural, instance_id])
             if not entity.is_person:
 
-                variables_json = entity_object.copy()  # Don't mutate function input
+                variables_json = instance_object.copy()  # Don't mutate function input
 
                 roles_json = {
                     role.plural or role.key: clean_person_list(variables_json.pop(role.plural or role.key, []))
@@ -183,19 +183,19 @@ class SimulationBuilder(object):
                 persons = entity.simulation.persons
 
                 for role_id, role_definition in roles_json.items():
-                    check_type(role_definition, list, [entity.plural, entity_id, role_id])
+                    check_type(role_definition, list, [entity.plural, instance_id, role_id])
                     for index, person_id in enumerate(role_definition):
                         entity_plural = entity.plural
                         persons_plural = persons.plural
                         persons_ids = persons.ids
                         self.check_persons_to_allocate(persons_plural, entity_plural,
                                                        persons_ids,
-                                                       person_id, entity_id, role_id,
+                                                       person_id, instance_id, role_id,
                                                        persons_to_allocate, index)
 
                         persons_to_allocate.discard(person_id)
 
-                entity_index = entity.ids.index(entity_id)
+                entity_index = entity.ids.index(instance_id)
                 for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
                     person_index = persons.ids.index(person_id)
                     entity.members_entity_id[person_index] = entity_index
@@ -203,8 +203,8 @@ class SimulationBuilder(object):
                     entity.members_legacy_role[person_index] = person_legacy_role
 
             else:
-                variables_json = entity_object
-            self.init_variable_values(entity, variables_json, entity_id, default_period = default_period)
+                variables_json = instance_object
+            self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
 
         if not entity.is_person and persons_to_allocate:
             raise SituationParsingError([entity.plural],
@@ -213,7 +213,7 @@ class SimulationBuilder(object):
                 )
 
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
-        self.finalize_variables_init(entity, entities_json)
+        self.finalize_variables_init(entity, instances_json)
 
     def get_input(self, variable, period):
         return self.input[variable][period]
@@ -234,9 +234,9 @@ class SimulationBuilder(object):
                     person_id, entity_plural)
                 )
 
-    def init_variable_values(self, entity, entity_object, entity_id, default_period = None):
-        for variable_name, variable_values in entity_object.items():
-            path_in_json = [entity.plural, entity_id, variable_name]
+    def init_variable_values(self, entity, instance_object, instance_id, default_period = None):
+        for variable_name, variable_values in instance_object.items():
+            path_in_json = [entity.plural, instance_id, variable_name]
             try:
                 entity.check_variable_defined_for_entity(variable_name)
             except ValueError as e:  # The variable is defined for another entity
@@ -252,10 +252,10 @@ class SimulationBuilder(object):
                 variable_values = {default_period: variable_values}
 
             for period, value in variable_values.items():
-                self.init_variable_value(entity, entity_id, variable_name, period, value)
+                self.init_variable_value(entity, instance_id, variable_name, period, value)
 
-    def init_variable_value(self, entity, entity_id, variable_name, period_str, value):
-        path_in_json = [entity.plural, entity_id, variable_name, period_str]
+    def init_variable_value(self, entity, instance_id, variable_name, period_str, value):
+        path_in_json = [entity.plural, instance_id, variable_name, period_str]
         try:
             make_period(period_str)
         except ValueError as e:
@@ -268,7 +268,7 @@ class SimulationBuilder(object):
             self.input[variable_name] = {}
         array = self.input[variable_name].get(str(period_str))
 
-        entity_index = entity.ids.index(entity_id)
+        entity_index = entity.ids.index(instance_id)
         holder = entity.get_holder(variable_name)
         if array is None:
             array = holder.default_array()
