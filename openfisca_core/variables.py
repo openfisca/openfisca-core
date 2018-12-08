@@ -442,13 +442,13 @@ class Variable(object):
 
         try:
             value = np.array([value], dtype = self.dtype)[0]
-        except (TypeError, ValueError) as error:
+        except (TypeError, ValueError):
             if (self.value_type == date):
                 error_message = "Can't deal with date: '{}'.".format(value)
             else:
                 error_message = "Can't deal with value: expected type {}, received '{}'.".format(self.json_type, value)
             raise ValueError(error_message)
-        except (OverflowError) as error:
+        except (OverflowError):
             error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, self.json_type)
             raise ValueError(error_message)
 
