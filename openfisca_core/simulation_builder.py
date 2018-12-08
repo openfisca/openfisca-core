@@ -257,14 +257,14 @@ class SimulationBuilder(object):
     def init_variable_value(self, entity, entity_id, variable_name, period_str, value):
         path_in_json = [entity.plural, entity_id, variable_name, period_str]
         try:
-            period = make_period(period_str)
+            make_period(period_str)
         except ValueError as e:
             raise SituationParsingError(path_in_json, e.args[0])
 
         if value is None:
             return
 
-        if not variable_name in self.input:
+        if variable_name not in self.input:
             self.input[variable_name] = {}
         array = self.input[variable_name].get(str(period_str))
 
@@ -299,7 +299,7 @@ class SimulationBuilder(object):
 
     def finalize_variables_init(self, entity, entities_json):
         for variable_name, holder in entity._holders.items():
-            if not variable_name in self.input:
+            if variable_name not in self.input:
                 continue
             buffer = self.input[variable_name]
             periods = [make_period(period_str) for period_str in self.input[variable_name].keys()]
