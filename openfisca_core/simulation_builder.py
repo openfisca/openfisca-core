@@ -280,6 +280,7 @@ class SimulationBuilder(object):
 
         if variable.value_type in (float, int) and isinstance(value, basestring_type):
             value = eval_expression(value)
+
         try:
             array[instance_index] = value
         except (OverflowError):

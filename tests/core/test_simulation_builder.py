@@ -48,7 +48,7 @@ def persons():
 
     class TestVariable(Variable):
         definition_period = ETERNITY
-        value_type = str
+        value_type = float
         dtype = 'O'
         default_value = '0'
         is_neutralized = False
@@ -114,6 +114,15 @@ def test_add_variable_value(simulation_builder, persons):
     persons.count = 1
     salary = persons.get_variable('salary')
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 3000)
+    input_array = simulation_builder.get_input('salary', '2018-11')
+    assert input_array[instance_index] == approx(3000)
+
+
+def test_add_variable_value_as_expression(simulation_builder, persons):
+    instance_index = 0
+    persons.count = 1
+    salary = persons.get_variable('salary')
+    simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '3 * 1000')
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
 
