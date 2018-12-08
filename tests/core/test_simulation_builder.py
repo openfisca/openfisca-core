@@ -13,6 +13,8 @@ from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.periods import ETERNITY
+from openfisca_core.indexed_enums import Enum as OFEnum
+from enum import Enum
 
 from .test_countries import tax_benefit_system
 
@@ -20,6 +22,25 @@ from .test_countries import tax_benefit_system
 @fixture
 def simulation_builder():
     return SimulationBuilder()
+
+
+@fixture
+def enum_variable():
+
+    class TestEnum(Variable):
+        definition_period = ETERNITY
+        value_type = OFEnum
+        dtype = 'O'
+        default_value = '0'
+        is_neutralized = False
+        set_input = None
+        possible_values = Enum('foo', 'bar')
+        name = "enum"
+
+        def __init__(self):
+            pass
+
+    return TestEnum()
 
 
 @fixture
@@ -95,6 +116,13 @@ def test_add_variable_value(simulation_builder, persons):
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 3000)
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
+
+
+def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
+    instance_index = 0
+    persons.count = 1
+    with raises(SituationParsingError):
+        simulation_builder.add_variable_value(persons, enum_variable, instance_index, 'Alicia', '2018-11', 'baz')
 
 
 def test_hydrate_group_entity(simulation_builder):
