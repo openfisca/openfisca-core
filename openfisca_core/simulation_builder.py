@@ -278,14 +278,8 @@ class SimulationBuilder(object):
 
         try:
             array[instance_index] = value
-        except (OverflowError):
-            error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, variable.json_type)
-            raise SituationParsingError(path_in_json, error_message)
         except (ValueError, TypeError):
-            if variable.value_type == date:
-                error_message = "Can't deal with date: '{}'.".format(value)
-            else:
-                error_message = "Can't deal with value: expected type {}, received '{}'.".format(variable.json_type, value)
+            error_message = "Can't deal with date: '{}'.".format(value)
             raise SituationParsingError(path_in_json, error_message)
 
         self.input[variable.name][str(period_str)] = array

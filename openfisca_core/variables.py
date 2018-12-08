@@ -439,6 +439,16 @@ class Variable(object):
                     "I couldn't understand '{}' as a value for '{}'".format(
                         value, self.name)
                     )
+
+        try:
+            value = np.array([value], dtype = self.dtype)[0]
+        except ValueError as error:
+            error.args = ["Can't deal with value: expected type {}, received '{}'.".format(self.json_type, value)]
+            raise error
+        except (OverflowError) as error:
+            error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, self.json_type)
+            raise ValueError(error_message)
+
         return value
 
     def default_array(self, entity):
