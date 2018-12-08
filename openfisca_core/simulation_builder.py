@@ -268,9 +268,8 @@ class SimulationBuilder(object):
             self.input[variable.name] = {}
         array = self.input[variable.name].get(str(period_str))
 
-        holder = entity.get_holder(variable.name)
         if array is None:
-            array = holder.default_array()
+            array = variable.default_array(entity)
 
         try:
             value = variable.check_set_value(value)
@@ -292,8 +291,10 @@ class SimulationBuilder(object):
         self.input[variable.name][str(period_str)] = array
 
     def finalize_variables_init(self, entity, entities_json):
-        for variable_name, holder in entity._holders.items():
-            if variable_name not in self.input:
+        for variable_name in self.input.keys():
+            try:
+                holder = entity.get_holder(variable_name)
+            except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input[variable_name]
             periods = [make_period(period_str) for period_str in self.input[variable_name].keys()]
