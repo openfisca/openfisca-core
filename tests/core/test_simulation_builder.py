@@ -63,13 +63,10 @@ def persons():
     class TestVariable(Variable):
         definition_period = ETERNITY
         value_type = float
-        dtype = 'O'
-        default_value = '0'
-        is_neutralized = False
-        set_input = None
 
-        def __init__(self):
-            pass
+        def __init__(self, entity):
+            self.__class__.entity = entity
+            super().__init__()
 
     class TestPersonEntity(PersonEntity):
         def __init__(self):
@@ -77,7 +74,7 @@ def persons():
             self.plural = "persons"
 
         def get_variable(self, variable_name):
-            result = TestVariable()
+            result = TestVariable(TestPersonEntity)
             result.name = variable_name
             return result
 
@@ -143,6 +140,15 @@ def test_add_variable_value_as_expression(simulation_builder, persons):
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '3 * 1000')
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
+
+
+def test_fail_on_wrong_data(simulation_builder, persons):
+    instance_index = 0
+    persons.count = 1
+    salary = persons.get_variable('salary')
+    with raises(SituationParsingError) as excinfo:
+        simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 'alicia')
+    assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "Can't deal with value: expected type number, received 'alicia'."}}}}
 
 
 def test_fail_on_ill_formed_expression(simulation_builder, persons):
