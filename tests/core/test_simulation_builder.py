@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
+from enum import Enum
+from datetime import date
 
 from pytest import raises, fixture, approx
 
@@ -14,7 +16,7 @@ from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
 from openfisca_core.periods import ETERNITY
 from openfisca_core.indexed_enums import Enum as OFEnum
-from enum import Enum
+
 
 from .test_countries import tax_benefit_system
 
@@ -36,6 +38,20 @@ def int_variable(persons):
             super().__init__()
 
     return intvar()
+
+
+@fixture
+def date_variable(persons):
+
+    class datevar(Variable):
+        definition_period = ETERNITY
+        value_type = date
+        entity = persons.__class__
+
+        def __init__(self):
+            super().__init__()
+
+    return datevar()
 
 
 @fixture
@@ -166,6 +182,14 @@ def test_fail_on_integer_overflow(simulation_builder, persons, int_variable):
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, int_variable, instance_index, 'Alicia', '2018-11', 9223372036854775808)
     assert excinfo.value.error == {'persons': {'Alicia': {'intvar': {'2018-11': "Can't deal with value: '9223372036854775808', it's too large for type 'integer'."}}}}
+
+
+def test_fail_on_date_parsing(simulation_builder, persons, date_variable):
+    instance_index = 0
+    persons.count = 1
+    with raises(SituationParsingError) as excinfo:
+        simulation_builder.add_variable_value(persons, date_variable, instance_index, 'Alicia', '2018-11', '2019-02-30')
+    assert excinfo.value.error == {'persons': {'Alicia': {'datevar': {'2018-11': "Can't deal with date: '2019-02-30'."}}}}
 
 
 def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):

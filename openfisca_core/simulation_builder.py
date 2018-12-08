@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 
-from datetime import date
 from collections import OrderedDict  # Only for Python 2
 
 import dpath
@@ -276,11 +275,7 @@ class SimulationBuilder(object):
         except ValueError as error:
             raise SituationParsingError(path_in_json, *error.args)
 
-        try:
-            array[instance_index] = value
-        except (ValueError, TypeError):
-            error_message = "Can't deal with date: '{}'.".format(value)
-            raise SituationParsingError(path_in_json, error_message)
+        array[instance_index] = value
 
         self.input[variable.name][str(period_str)] = array
 
