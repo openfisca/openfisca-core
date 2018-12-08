@@ -38,7 +38,9 @@ def persons():
 
     class TestPersonEntity(PersonEntity):
         def get_variable(self, variable_name):
-            return TestVariable()
+            result = TestVariable()
+            result.name = variable_name
+            return result
 
         def check_variable_defined_for_entity(self, variable_name):
             return True
@@ -89,7 +91,8 @@ def test_set_entity_input_values(simulation_builder, persons):
 def test_add_variable_value(simulation_builder, persons):
     instance_index = 0
     persons.count = 1
-    simulation_builder.add_variable_value(persons, instance_index, 'Alicia', 'salary', '2018-11', 3000)
+    salary = persons.get_variable('salary')
+    simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 3000)
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
 

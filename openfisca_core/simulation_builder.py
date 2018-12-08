@@ -257,45 +257,46 @@ class SimulationBuilder(object):
                     make_period(period)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
-                self.add_variable_value(entity, instance_index, instance_id, variable_name, period, value)
+                variable = entity.get_variable(variable_name)
+                self.add_variable_value(entity, variable, instance_index, instance_id, period, value)
 
-    def add_variable_value(self, entity, instance_index, instance_id, variable_name, period_str, value):
-        path_in_json = [entity.plural, instance_id, variable_name, period_str]
+    def add_variable_value(self, entity, variable, instance_index, instance_id, period_str, value):
+        path_in_json = [entity.plural, instance_id, variable.name, period_str]
 
         if value is None:
             return
 
-        if variable_name not in self.input:
-            self.input[variable_name] = {}
-        array = self.input[variable_name].get(str(period_str))
+        if variable.name not in self.input:
+            self.input[variable.name] = {}
+        array = self.input[variable.name].get(str(period_str))
 
-        holder = entity.get_holder(variable_name)
+        holder = entity.get_holder(variable.name)
         if array is None:
             array = holder.default_array()
-        if holder.variable.value_type == Enum and isinstance(value, basestring_type):
+        if variable.value_type == Enum and isinstance(value, basestring_type):
             try:
-                value = holder.variable.possible_values[value].index
+                value = variable.possible_values[value].index
             except KeyError:
-                possible_values = [item.name for item in holder.variable.possible_values]
+                possible_values = [item.name for item in variable.possible_values]
                 raise SituationParsingError(path_in_json,
                     "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
-                        value, variable_name, "', '".join(possible_values))
+                        value, variable.name, "', '".join(possible_values))
                     )
-        if holder.variable.value_type in (float, int) and isinstance(value, basestring_type):
+        if variable.value_type in (float, int) and isinstance(value, basestring_type):
             value = eval_expression(value)
         try:
             array[instance_index] = value
         except (OverflowError):
-            error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, holder.variable.json_type)
+            error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, variable.json_type)
             raise SituationParsingError(path_in_json, error_message)
         except (ValueError, TypeError):
-            if holder.variable.value_type == date:
+            if variable.value_type == date:
                 error_message = "Can't deal with date: '{}'.".format(value)
             else:
-                error_message = "Can't deal with value: expected type {}, received '{}'.".format(holder.variable.json_type, value)
+                error_message = "Can't deal with value: expected type {}, received '{}'.".format(variable.json_type, value)
             raise SituationParsingError(path_in_json, error_message)
 
-        self.input[variable_name][str(period_str)] = array
+        self.input[variable.name][str(period_str)] = array
 
     def finalize_variables_init(self, entity, entities_json):
         for variable_name, holder in entity._holders.items():
