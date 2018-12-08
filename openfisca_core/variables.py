@@ -434,7 +434,7 @@ class Variable(object):
         if self.value_type in (float, int) and isinstance(value, basestring_type):
             try:
                 value = eval_expression(value)
-            except SyntaxError as error:
+            except SyntaxError:
                 raise ValueError(
                     "I couldn't understand '{}' as a value for '{}'".format(
                         value, self.name)
