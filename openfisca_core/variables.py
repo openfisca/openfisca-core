@@ -420,6 +420,18 @@ class Variable(object):
         clone = self.__class__()
         return clone
 
+    def check_set_value(self, value):
+        if self.value_type == Enum and isinstance(value, basestring_type):
+            try:
+                return self.possible_values[value].index
+            except KeyError:
+                possible_values = [item.name for item in self.possible_values]
+                raise ValueError(
+                    "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
+                        value, self.name, "', '".join(possible_values))
+                    )
+        return value
+
 
 def _partition(dict, predicate):
     true_dict = {}

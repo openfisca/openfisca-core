@@ -10,7 +10,6 @@ import numpy as np
 
 from openfisca_core.commons import basestring_type
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
-from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import key_period_size, period as make_period
 from openfisca_core.simulations import Simulation
 from openfisca_core.tools import eval_expression
@@ -273,15 +272,12 @@ class SimulationBuilder(object):
         holder = entity.get_holder(variable.name)
         if array is None:
             array = holder.default_array()
-        if variable.value_type == Enum and isinstance(value, basestring_type):
-            try:
-                value = variable.possible_values[value].index
-            except KeyError:
-                possible_values = [item.name for item in variable.possible_values]
-                raise SituationParsingError(path_in_json,
-                    "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
-                        value, variable.name, "', '".join(possible_values))
-                    )
+
+        try:
+            value = variable.check_set_value(value)
+        except ValueError as error:
+            raise SituationParsingError(path_in_json, *error.args)
+
         if variable.value_type in (float, int) and isinstance(value, basestring_type):
             value = eval_expression(value)
         try:
