@@ -244,22 +244,23 @@ class SimulationBuilder(object):
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
-            if not isinstance(variable_values, dict):
+            instance_index = entity.ids.index(instance_id)
 
+            if not isinstance(variable_values, dict):
                 if default_period is None:
                     raise SituationParsingError(path_in_json,
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
                 variable_values = {default_period: variable_values}
 
             for period, value in variable_values.items():
-                self.init_variable_value(entity, instance_id, variable_name, period, value)
+                try:
+                    make_period(period)
+                except ValueError as e:
+                    raise SituationParsingError(path_in_json, e.args[0])
+                self.add_variable_value(entity, instance_index, instance_id, variable_name, period, value)
 
-    def init_variable_value(self, entity, instance_id, variable_name, period_str, value):
+    def add_variable_value(self, entity, instance_index, instance_id, variable_name, period_str, value):
         path_in_json = [entity.plural, instance_id, variable_name, period_str]
-        try:
-            make_period(period_str)
-        except ValueError as e:
-            raise SituationParsingError(path_in_json, e.args[0])
 
         if value is None:
             return
@@ -268,7 +269,6 @@ class SimulationBuilder(object):
             self.input[variable_name] = {}
         array = self.input[variable_name].get(str(period_str))
 
-        entity_index = entity.ids.index(instance_id)
         holder = entity.get_holder(variable_name)
         if array is None:
             array = holder.default_array()
@@ -284,7 +284,7 @@ class SimulationBuilder(object):
         if holder.variable.value_type in (float, int) and isinstance(value, basestring_type):
             value = eval_expression(value)
         try:
-            array[entity_index] = value
+            array[instance_index] = value
         except (OverflowError):
             error_message = "Can't deal with value: '{}', it's too large for type '{}'.".format(value, holder.variable.json_type)
             raise SituationParsingError(path_in_json, error_message)

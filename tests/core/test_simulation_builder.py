@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 
-from pytest import raises, fixture
+from pytest import raises, fixture, approx
 
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
@@ -84,6 +84,14 @@ def test_set_entity_input_values(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.hydrate_entity(persons, persons_json)
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+
+
+def test_add_variable_value(simulation_builder, persons):
+    instance_index = 0
+    persons.count = 1
+    simulation_builder.add_variable_value(persons, instance_index, 'Alicia', 'salary', '2018-11', 3000)
+    input_array = simulation_builder.get_input('salary', '2018-11')
+    assert input_array[instance_index] == approx(3000)
 
 
 def test_hydrate_group_entity(simulation_builder):

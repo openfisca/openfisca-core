@@ -458,7 +458,9 @@ def test_sum_following_bug_ipp_2():
 
 
 def test_get_memory_usage():
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, single)
+    test_case = deepcopy(single)
+    test_case["persons"]["Alicia"]["salary"] = {"2017-01": 0}
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, test_case)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
