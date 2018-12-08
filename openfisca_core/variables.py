@@ -21,6 +21,7 @@ from openfisca_core.base_functions import (
     requested_period_last_value,
     )
 from openfisca_core.commons import basestring_type, to_unicode
+from openfisca_core.tools import eval_expression
 
 
 VALUE_TYPES = {
@@ -423,12 +424,20 @@ class Variable(object):
     def check_set_value(self, value):
         if self.value_type == Enum and isinstance(value, basestring_type):
             try:
-                return self.possible_values[value].index
+                value = self.possible_values[value].index
             except KeyError:
                 possible_values = [item.name for item in self.possible_values]
                 raise ValueError(
                     "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
                         value, self.name, "', '".join(possible_values))
+                    )
+        if self.value_type in (float, int) and isinstance(value, basestring_type):
+            try:
+                value = eval_expression(value)
+            except SyntaxError as error:
+                raise ValueError(
+                    "I couldn't understand '{}' as a value for '{}'".format(
+                        value, self.name)
                     )
         return value
 

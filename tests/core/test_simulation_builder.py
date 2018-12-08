@@ -127,6 +127,14 @@ def test_add_variable_value_as_expression(simulation_builder, persons):
     assert input_array[instance_index] == approx(3000)
 
 
+def test_fail_on_ill_formed_expression(simulation_builder, persons):
+    instance_index = 0
+    persons.count = 1
+    salary = persons.get_variable('salary')
+    with raises(SituationParsingError):
+        simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '2 * / 1000')
+
+
 def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
     instance_index = 0
     persons.count = 1

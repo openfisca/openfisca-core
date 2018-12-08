@@ -12,7 +12,6 @@ from openfisca_core.commons import basestring_type
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
 from openfisca_core.periods import key_period_size, period as make_period
 from openfisca_core.simulations import Simulation
-from openfisca_core.tools import eval_expression
 
 
 class SimulationBuilder(object):
@@ -277,9 +276,6 @@ class SimulationBuilder(object):
             value = variable.check_set_value(value)
         except ValueError as error:
             raise SituationParsingError(path_in_json, *error.args)
-
-        if variable.value_type in (float, int) and isinstance(value, basestring_type):
-            value = eval_expression(value)
 
         try:
             array[instance_index] = value
