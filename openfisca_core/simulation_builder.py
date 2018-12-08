@@ -256,15 +256,20 @@ class SimulationBuilder(object):
 
     def init_variable_value(self, entity, entity_id, variable_name, period_str, value):
         path_in_json = [entity.plural, entity_id, variable_name, period_str]
-        entity_index = entity.ids.index(entity_id)
-        holder = entity.get_holder(variable_name)
         try:
             period = make_period(period_str)
         except ValueError as e:
             raise SituationParsingError(path_in_json, e.args[0])
+
         if value is None:
             return
-        array = holder.buffer.get(period)
+
+        if not variable_name in self.input:
+            self.input[variable_name] = {}
+        array = self.input[variable_name].get(str(period_str))
+
+        entity_index = entity.ids.index(entity_id)
+        holder = entity.get_holder(variable_name)
         if array is None:
             array = holder.default_array()
         if holder.variable.value_type == Enum and isinstance(value, basestring_type):
@@ -290,12 +295,7 @@ class SimulationBuilder(object):
                 error_message = "Can't deal with value: expected type {}, received '{}'.".format(holder.variable.json_type, value)
             raise SituationParsingError(path_in_json, error_message)
 
-        if not variable_name in self.input:
-            self.input[variable_name] = {}
-
         self.input[variable_name][str(period_str)] = array
-
-        holder.buffer[period] = array
 
     def finalize_variables_init(self, entity, entities_json):
         for variable_name, holder in entity._holders.items():
