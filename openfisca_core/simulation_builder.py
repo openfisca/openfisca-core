@@ -75,7 +75,10 @@ class SimulationBuilder(object):
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
         persons_ids = self.add_person_entity(simulation.persons, persons_json, default_period = default_period)
-        self.finalize_variables_init(simulation.persons, persons_json)
+        try:
+            self.finalize_variables_init(simulation.persons)
+        except PeriodMismatchError as e:
+            self.raise_period_mismatch(simulation.persons, persons_json, e)
 
         for entity_class in tax_benefit_system.group_entities:
             entity = simulation.entities[entity_class.key]
@@ -218,7 +221,10 @@ class SimulationBuilder(object):
                     persons_to_allocate, persons_plural, entity.key)
                 )
 
-        self.finalize_variables_init(entity, instances_json)
+        try:
+            self.finalize_variables_init(entity)
+        except PeriodMismatchError as e:
+            self.raise_period_mismatch(entity, instances_json, e)
 
     def get_input(self, variable, period):
         return self.input_buffer[variable][period]
@@ -291,7 +297,7 @@ class SimulationBuilder(object):
 
         self.input_buffer[variable.name][str(period_str)] = array
 
-    def finalize_variables_init(self, entity, entities_json):
+    def finalize_variables_init(self, entity):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
         if entity.plural in self.entity_counts:
@@ -308,21 +314,21 @@ class SimulationBuilder(object):
             sorted_periods = sorted(periods, key=key_period_size)
             for period in sorted_periods:
                 array = buffer[str(period)]
-                try:
-                    holder.set_input(period, array)
-                except PeriodMismatchError as e:
-                    # This errors happens when we try to set a variable value for a period that doesn't match its definition period
-                    # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
-                    # We do a basic research to find the culprit path
-                    culprit_path = next(
-                        dpath.search(entities_json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
-                        None)
-                    if culprit_path:
-                        path = [entity.plural] + culprit_path[0].split('/')
-                    else:
-                        path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
+                holder.set_input(period, array)
 
-                    raise SituationParsingError(path, e.message)
+    def raise_period_mismatch(self, entity, json, e):
+        # This error happens when we try to set a variable value for a period that doesn't match its definition period
+        # It is only raised when we consume the buffer. We thus don't know which exact key caused the error.
+        # We do a basic research to find the culprit path
+        culprit_path = next(
+            dpath.search(json, "*/{}/{}".format(e.variable_name, str(e.period)), yielded = True),
+            None)
+        if culprit_path:
+            path = [entity.plural] + culprit_path[0].split('/')
+        else:
+            path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
+
+        raise SituationParsingError(path, e.message)
 
     def get_count(self, entity_name):
         return self.entity_counts[entity_name]

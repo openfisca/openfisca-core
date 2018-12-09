@@ -134,15 +134,6 @@ def test_add_entity_with_values(simulation_builder, persons):
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
 
-def test_add_person_entity_with_variables(simulation_builder, persons):
-    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
-    simulation_builder.add_person_entity(persons, persons_json)
-    simulation_builder.finalize_variables_init(persons, persons_json)
-    assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
-    assert persons.count == 2
-    assert persons.ids == ['Alicia', 'Javier']
-
-
 def test_add_variable_value(simulation_builder, persons):
     instance_index = 0
     persons.count = 1
@@ -202,12 +193,22 @@ def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_varia
         simulation_builder.add_variable_value(persons, enum_variable, instance_index, 'Alicia', '2018-11', 'baz')
 
 
-def test_add_group_entity(simulation_builder):
+def test_finalize_person_entity(simulation_builder, persons):
+    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.finalize_variables_init(persons)
+    assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
+    assert persons.count == 2
+    assert persons.ids == ['Alicia', 'Javier']
+
+
+def test_finalize_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system)
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
         'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},
         })
+    simulation_builder.finalize_variables_init(simulation.household)
     assert_near(simulation.household.members_entity_id, [0, 0, 1, 1])
     assert_near(simulation.persons.has_role(Household.PARENT), [True, True, False, True])
 
