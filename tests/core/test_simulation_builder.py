@@ -124,9 +124,8 @@ def test_explicit_singular_entities(simulation_builder):
 def test_add_person_entity(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.add_person_entity(persons, persons_json)
-    simulation_builder.finalize_variables_init(persons, persons_json)
-    assert persons.count == 2
-    assert persons.ids == ['Alicia', 'Javier']
+    assert simulation_builder.get_count('persons') == 2
+    assert simulation_builder.get_ids('persons') == ['Alicia', 'Javier']
 
 
 def test_add_entity_with_values(simulation_builder, persons):
@@ -135,11 +134,13 @@ def test_add_entity_with_values(simulation_builder, persons):
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
 
-def test_hydrate_person_entity_with_variables(simulation_builder, persons):
+def test_add_person_entity_with_variables(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.add_person_entity(persons, persons_json)
     simulation_builder.finalize_variables_init(persons, persons_json)
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
+    assert persons.count == 2
+    assert persons.ids == ['Alicia', 'Javier']
 
 
 def test_add_variable_value(simulation_builder, persons):

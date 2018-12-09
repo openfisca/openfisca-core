@@ -261,7 +261,7 @@ class Holder(object):
         Return a new array of the appropriate length for the entity, filled with the variable default values.
         """
 
-        return self.variable.default_array(self.entity)
+        return self.variable.default_array(self.entity.count)
 
 
 def set_input_dispatch_by_period(holder, period, array):

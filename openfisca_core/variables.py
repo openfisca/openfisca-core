@@ -454,8 +454,7 @@ class Variable(object):
 
         return value
 
-    def default_array(self, entity):
-        array_size = entity.count
+    def default_array(self, array_size):
         array = np.empty(array_size, dtype = self.dtype)
         if self.value_type == Enum:
             array.fill(self.default_value.index)

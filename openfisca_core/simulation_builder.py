@@ -17,6 +17,8 @@ class SimulationBuilder(object):
 
     def __init__(self):
         self.input_buffer = {}
+        self.entity_counts = {}
+        self.entity_ids = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
@@ -153,16 +155,12 @@ class SimulationBuilder(object):
             Add the simulation's persons as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
-        instances_json = OrderedDict((str(key), value) for key, value in instances_json.items())  # Stringify potential numeric keys, but keep the order
-        entity.count = len(instances_json)
-        entity.step_size = entity.count  # Related to axes.
-        entity.ids = list(instances_json.keys())
+        self.entity_counts[entity.plural] = len(instances_json)
+        self.entity_ids[entity.plural] = list(instances_json.keys())
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
-
-            variables_json = instance_object
-            self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
+            self.init_variable_values(entity, instance_object, str(instance_id), default_period = default_period)
 
     def hydrate_entity(self, entity, instances_json, default_period = None):
         """
@@ -174,54 +172,50 @@ class SimulationBuilder(object):
         entity.step_size = entity.count  # Related to axes.
         entity.ids = list(instances_json.keys())
 
-        if not entity.is_person:
-            persons = entity.simulation.persons
-            entity.members_entity_id = np.empty(persons.count, dtype = np.int32)
-            entity.members_role = np.empty(persons.count, dtype = object)
-            entity.members_legacy_role = np.empty(persons.count, dtype = np.int32)
-            persons_to_allocate = set(persons.ids)
+        persons = entity.simulation.persons
+        persons_plural = persons.plural
+        persons_ids = self.get_ids(persons_plural)
+        persons_count = self.get_count(persons_plural)
+
+        entity.members_entity_id = np.empty(persons_count, dtype = np.int32)
+        entity.members_role = np.empty(persons_count, dtype = object)
+        entity.members_legacy_role = np.empty(persons_count, dtype = np.int32)
+        persons_to_allocate = set(self.get_ids(persons_plural))
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
-            if not entity.is_person:
 
-                variables_json = instance_object.copy()  # Don't mutate function input
+            variables_json = instance_object.copy()  # Don't mutate function input
 
-                roles_json = {
-                    role.plural or role.key: clean_person_list(variables_json.pop(role.plural or role.key, []))
-                    for role in entity.roles
-                    }
+            roles_json = {
+                role.plural or role.key: clean_person_list(variables_json.pop(role.plural or role.key, []))
+                for role in entity.roles
+                }
 
-                persons = entity.simulation.persons
+            for role_id, role_definition in roles_json.items():
+                check_type(role_definition, list, [entity.plural, instance_id, role_id])
+                for index, person_id in enumerate(role_definition):
+                    entity_plural = entity.plural
+                    self.check_persons_to_allocate(persons_plural, entity_plural,
+                                                   persons_ids,
+                                                   person_id, instance_id, role_id,
+                                                   persons_to_allocate, index)
 
-                for role_id, role_definition in roles_json.items():
-                    check_type(role_definition, list, [entity.plural, instance_id, role_id])
-                    for index, person_id in enumerate(role_definition):
-                        entity_plural = entity.plural
-                        persons_plural = persons.plural
-                        persons_ids = persons.ids
-                        self.check_persons_to_allocate(persons_plural, entity_plural,
-                                                       persons_ids,
-                                                       person_id, instance_id, role_id,
-                                                       persons_to_allocate, index)
+                    persons_to_allocate.discard(person_id)
 
-                        persons_to_allocate.discard(person_id)
+            entity_index = entity.ids.index(instance_id)
+            for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
+                person_index = persons_ids.index(person_id)
+                entity.members_entity_id[person_index] = entity_index
+                entity.members_role[person_index] = person_role
+                entity.members_legacy_role[person_index] = person_legacy_role
 
-                entity_index = entity.ids.index(instance_id)
-                for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
-                    person_index = persons.ids.index(person_id)
-                    entity.members_entity_id[person_index] = entity_index
-                    entity.members_role[person_index] = person_role
-                    entity.members_legacy_role[person_index] = person_legacy_role
-
-            else:
-                variables_json = instance_object
             self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
 
-        if not entity.is_person and persons_to_allocate:
+        if persons_to_allocate:
             raise SituationParsingError([entity.plural],
                 '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
-                    persons_to_allocate, entity.simulation.persons.plural, entity.key)
+                    persons_to_allocate, persons_plural, entity.key)
                 )
 
         self.finalize_variables_init(entity, instances_json)
@@ -255,7 +249,10 @@ class SimulationBuilder(object):
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
-            instance_index = entity.ids.index(instance_id)
+            if entity.plural in self.entity_ids and instance_id in self.get_ids(entity.plural):
+                instance_index = self.get_ids(entity.plural).index(instance_id)
+            else:
+                instance_index = entity.ids.index(instance_id)
 
             if not isinstance(variable_values, dict):
                 if default_period is None:
@@ -282,7 +279,8 @@ class SimulationBuilder(object):
         array = self.input_buffer[variable.name].get(str(period_str))
 
         if array is None:
-            array = variable.default_array(entity)
+            array_size = self.get_count(entity.plural) if entity.plural in self.entity_counts else entity.count
+            array = variable.default_array(array_size)
 
         try:
             value = variable.check_set_value(value)
@@ -296,6 +294,9 @@ class SimulationBuilder(object):
     def finalize_variables_init(self, entity, entities_json):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
+        if entity.plural in self.entity_counts:
+            entity.count = self.get_count(entity.plural)
+            entity.ids = self.get_ids(entity.plural)
         for variable_name in self.input_buffer.keys():
             try:
                 holder = entity.get_holder(variable_name)
@@ -322,6 +323,12 @@ class SimulationBuilder(object):
                         path = [entity.plural]  # Fallback: if we can't find the culprit, just set the error at the entities level
 
                     raise SituationParsingError(path, e.message)
+
+    def get_count(self, entity_name):
+        return self.entity_counts[entity_name]
+
+    def get_ids(self, entity_name):
+        return self.entity_ids[entity_name]
 
 
 def check_type(input, input_type, path = []):
