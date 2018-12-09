@@ -14,6 +14,7 @@ from openfisca_core.simulations import Simulation
 class SimulationBuilder(object):
 
     def __init__(self):
+        self.default_period = None
         self.persons_entity = None
         self.input_buffer = {}
         self.entity_counts = {}
@@ -22,25 +23,24 @@ class SimulationBuilder(object):
         self.roles = {}
         self.axes = [[]]
 
-    def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
+    def build_from_dict(self, tax_benefit_system, input_dict, **kwargs):
         """
             Build a simulation from ``input_dict``
 
             This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
 
             :param dict input_dict: A dict represeting the input of the simulation
-            :param default_period: If provided, inputs variables without an explicit period will be set for ``default_period``
             :param kwargs: Same keywords argument than the :any:`Simulation` constructor
             :return: A :any:`Simulation`
         """
 
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
         if all(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
-            return self.build_from_entities(tax_benefit_system, input_dict, default_period, **kwargs)
+            return self.build_from_entities(tax_benefit_system, input_dict, **kwargs)
         else:
-            return self.build_from_variables(tax_benefit_system, input_dict, default_period, **kwargs)
+            return self.build_from_variables(tax_benefit_system, input_dict, **kwargs)
 
-    def build_from_entities(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
+    def build_from_entities(self, tax_benefit_system, input_dict, **kwargs):
         """
             Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 
@@ -76,7 +76,7 @@ class SimulationBuilder(object):
             raise SituationParsingError([tax_benefit_system.person_entity.plural],
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
-        persons_ids = self.add_person_entity(simulation.persons, persons_json, default_period = default_period)
+        persons_ids = self.add_person_entity(simulation.persons, persons_json)
         try:
             self.finalize_variables_init(simulation.persons)
         except PeriodMismatchError as e:
@@ -85,7 +85,7 @@ class SimulationBuilder(object):
         for entity_class in tax_benefit_system.group_entities:
             entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
-            self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json, default_period = default_period)
+            self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
             try:
                 self.finalize_variables_init(entity)
             except PeriodMismatchError as e:
@@ -93,7 +93,7 @@ class SimulationBuilder(object):
 
         return simulation
 
-    def build_from_variables(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
+    def build_from_variables(self, tax_benefit_system, input_dict, **kwargs):
         """
             Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
@@ -109,7 +109,10 @@ class SimulationBuilder(object):
         simulation = self.build_default_simulation(tax_benefit_system, count, **kwargs)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
-                simulation.set_input(variable, default_period, value)
+                if self.default_period is None:
+                    raise SituationParsingError([variable],
+                        "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
+                simulation.set_input(variable, self.default_period, value)
             else:
                 for period, dated_value in value.items():
                     simulation.set_input(variable, period, dated_value)
@@ -160,7 +163,7 @@ class SimulationBuilder(object):
 
         return result
 
-    def add_person_entity(self, entity, instances_json, default_period = None):
+    def add_person_entity(self, entity, instances_json):
         """
             Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
@@ -172,11 +175,11 @@ class SimulationBuilder(object):
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
-            self.init_variable_values(entity, instance_object, str(instance_id), default_period = default_period)
+            self.init_variable_values(entity, instance_object, str(instance_id))
 
         return self.get_ids(entity.plural)
 
-    def add_group_entity(self, persons_plural, persons_ids, entity, instances_json, default_period = None):
+    def add_group_entity(self, persons_plural, persons_ids, entity, instances_json):
         """
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
@@ -217,13 +220,16 @@ class SimulationBuilder(object):
                 self.memberships[entity.plural][person_index] = entity_index
                 self.roles[entity.plural][person_index] = person_role
 
-            self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
+            self.init_variable_values(entity, variables_json, instance_id)
 
         if persons_to_allocate:
             raise SituationParsingError([entity.plural],
                 '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
                     persons_to_allocate, persons_plural, entity.key)
                 )
+
+    def set_default_period(self, period):
+        self.default_period = period
 
     def get_input(self, variable, period):
         if variable not in self.input_buffer:
@@ -246,7 +252,7 @@ class SimulationBuilder(object):
                     person_id, entity_plural)
                 )
 
-    def init_variable_values(self, entity, instance_object, instance_id, default_period = None):
+    def init_variable_values(self, entity, instance_object, instance_id):
         for variable_name, variable_values in instance_object.items():
             path_in_json = [entity.plural, instance_id, variable_name]
             try:
@@ -259,10 +265,10 @@ class SimulationBuilder(object):
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
             if not isinstance(variable_values, dict):
-                if default_period is None:
+                if self.default_period is None:
                     raise SituationParsingError(path_in_json,
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
-                variable_values = {default_period: variable_values}
+                variable_values = {self.default_period: variable_values}
 
             for period, value in variable_values.items():
                 try:

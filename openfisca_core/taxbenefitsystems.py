@@ -100,14 +100,15 @@ class TaxBenefitSystem(object):
                             break
                         tax_benefit_system = baseline
 
+                builder = SimulationBuilder()
                 if self.attributes:
                     variables = self.attributes.get('input_variables') or {}
                     period = self.attributes.get('period')
-                    simulation = SimulationBuilder().build_from_variables(
-                        tax_benefit_system, variables, default_period = period)
+                    builder.set_default_period(period)
+                    simulation = builder.build_from_variables(tax_benefit_system, variables)
                 else:
-                    simulation = SimulationBuilder().build_from_entities(
-                        tax_benefit_system, self.dict, default_period = self.period)
+                    builder.set_default_period(self.period)
+                    simulation = builder.build_from_entities(tax_benefit_system, self.dict)
                     simulation.period = periods.period(self.period)
 
                 simulation.debug = debug

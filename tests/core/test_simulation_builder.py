@@ -160,6 +160,13 @@ def test_add_person_entity_with_values(simulation_builder, persons):
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
 
+def test_add_person_values_with_default_period(simulation_builder, persons):
+    simulation_builder.set_default_period('2018-11')
+    persons_json = OrderedDict([('Alicia', {'salary': 3000}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    simulation_builder.add_person_entity(persons, persons_json)
+    assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+
+
 def test_add_group_entity(simulation_builder, group_entity):
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], group_entity, {
         'Household_1': {'parents': ['Alicia', 'Javier']},

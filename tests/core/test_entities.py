@@ -36,7 +36,9 @@ MONTH = "2016-01"
 
 
 def new_simulation(test_case, period = MONTH):
-    return SimulationBuilder().build_from_entities(tax_benefit_system, test_case, default_period = period)
+    builder = SimulationBuilder()
+    builder.set_default_period(period)
+    return builder.build_from_entities(tax_benefit_system, test_case)
 
 
 def test_role_index_and_positions():
