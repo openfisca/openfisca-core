@@ -171,6 +171,17 @@ def test_add_group_entity(simulation_builder, group_entity):
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'parent', 'child', 'parent']
 
 
+def test_add_group_entity_loose_syntax(simulation_builder, group_entity):
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', '1'], group_entity, {
+        'Household_1': {'parents': ['Alicia', 'Javier']},
+        'Household_2': {'parents': '1', 'children': 'Sarah'},
+        })
+    assert simulation_builder.get_count('households') == 2
+    assert simulation_builder.get_ids('households') == ['Household_1', 'Household_2']
+    assert simulation_builder.get_memberships('households').tolist() == [0, 0, 1, 1]
+    assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'parent', 'child', 'parent']
+
+
 def test_add_variable_value(simulation_builder, persons):
     instance_index = 0
     persons.count = 1

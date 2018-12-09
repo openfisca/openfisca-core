@@ -194,7 +194,7 @@ class SimulationBuilder(object):
             variables_json = instance_object.copy()  # Don't mutate function input
 
             roles_json = {
-                role.plural or role.key: clean_person_list(variables_json.pop(role.plural or role.key, []))
+                role.plural or role.key: transform_to_strict_syntax(variables_json.pop(role.plural or role.key, []))
                 for role in entity.roles
                 }
 
@@ -354,7 +354,7 @@ def check_type(input, input_type, path = []):
             "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
 
 
-def clean_person_list(data):
+def transform_to_strict_syntax(data):
     if isinstance(data, (str, int)):
         data = [data]
     if isinstance(data, list):
