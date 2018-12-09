@@ -1,6 +1,13 @@
 # Changelog
 
-# 25.0 [#781](https://github.com/openfisca/openfisca-core/pull/781)
+## 25.1.0 [#787](https://github.com/openfisca/openfisca-core/pull/787)
+
+- Don't sort JSON keys in the Web API
+  - By default, `flask` sorts JSON _object_ keys alphabetically
+  - This is useful for reusing http caches for example, at the cost of some performance overhead
+  - But the [JSON specification](https://www.json.org/) doesn’t require to keep an order, as _objects_ are defined as "an unordered set of name/value pairs"
+
+# 25.0.0 [#781](https://github.com/openfisca/openfisca-core/pull/781)
 
 #### Breaking changes
 
