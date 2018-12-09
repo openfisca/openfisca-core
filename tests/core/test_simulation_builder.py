@@ -202,11 +202,9 @@ def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_varia
         simulation_builder.add_variable_value(persons, enum_variable, instance_index, 'Alicia', '2018-11', 'baz')
 
 
-def test_hydrate_group_entity(simulation_builder):
+def test_add_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system)
-    simulation_builder.add_person_entity(simulation.persons,
-        OrderedDict([('Alicia', {}), ('Javier', {}), ('Sarah', {}), ('Tom', {})]))
-    simulation_builder.hydrate_entity(simulation.household, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
         'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},
         })

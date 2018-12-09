@@ -74,12 +74,13 @@ class SimulationBuilder(object):
             raise SituationParsingError([tax_benefit_system.person_entity.plural],
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
-        self.add_person_entity(simulation.persons, persons_json, default_period = default_period)
+        persons_ids = self.add_person_entity(simulation.persons, persons_json, default_period = default_period)
         self.finalize_variables_init(simulation.persons, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
-            entities_json = input_dict.get(entity_class.plural)
-            self.hydrate_entity(simulation.entities[entity_class.key], entities_json, default_period = default_period)
+            entity = simulation.entities[entity_class.key]
+            instances_json = input_dict.get(entity_class.plural)
+            self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json, default_period = default_period)
 
         return simulation
 
@@ -152,7 +153,7 @@ class SimulationBuilder(object):
 
     def add_person_entity(self, entity, instances_json, default_period = None):
         """
-            Add the simulation's persons as described in ``instances_json``.
+            Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
         self.entity_counts[entity.plural] = len(instances_json)
@@ -162,9 +163,11 @@ class SimulationBuilder(object):
             check_type(instance_object, dict, [entity.plural, instance_id])
             self.init_variable_values(entity, instance_object, str(instance_id), default_period = default_period)
 
-    def hydrate_entity(self, entity, instances_json, default_period = None):
+        return self.get_ids(entity.plural)
+
+    def add_group_entity(self, persons_plural, persons_ids, entity, instances_json, default_period = None):
         """
-            Hydrate an entity from a JSON dictionnary ``instances_json``.
+            Add all instances of one of the model's entities as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
         instances_json = OrderedDict((str(key), value) for key, value in instances_json.items())  # Stringify potential numeric keys, but keep the order
@@ -172,15 +175,12 @@ class SimulationBuilder(object):
         entity.step_size = entity.count  # Related to axes.
         entity.ids = list(instances_json.keys())
 
-        persons = entity.simulation.persons
-        persons_plural = persons.plural
-        persons_ids = self.get_ids(persons_plural)
-        persons_count = self.get_count(persons_plural)
+        persons_count = len(persons_ids)
 
         entity.members_entity_id = np.empty(persons_count, dtype = np.int32)
         entity.members_role = np.empty(persons_count, dtype = object)
         entity.members_legacy_role = np.empty(persons_count, dtype = np.int32)
-        persons_to_allocate = set(self.get_ids(persons_plural))
+        persons_to_allocate = set(persons_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
