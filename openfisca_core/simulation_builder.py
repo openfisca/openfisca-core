@@ -30,8 +30,6 @@ class SimulationBuilder(object):
             :return: A :any:`Simulation`
         """
 
-        if not input_dict:
-            return self.build_default_simulation(tax_benefit_system, **kwargs)
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
         if all(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict, default_period, **kwargs)
@@ -74,7 +72,8 @@ class SimulationBuilder(object):
             raise SituationParsingError([tax_benefit_system.person_entity.plural],
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
-        self.hydrate_entity(simulation.persons, persons_json, default_period = default_period)
+        self.add_person_entity(simulation.persons, persons_json, default_period = default_period)
+        self.finalize_variables_init(simulation.persons, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
             entities_json = input_dict.get(entity_class.plural)
@@ -149,6 +148,22 @@ class SimulationBuilder(object):
 
         return result
 
+    def add_person_entity(self, entity, instances_json, default_period = None):
+        """
+            Add the simulation's persons as described in ``instances_json``.
+        """
+        check_type(instances_json, dict, [entity.plural])
+        instances_json = OrderedDict((str(key), value) for key, value in instances_json.items())  # Stringify potential numeric keys, but keep the order
+        entity.count = len(instances_json)
+        entity.step_size = entity.count  # Related to axes.
+        entity.ids = list(instances_json.keys())
+
+        for instance_id, instance_object in instances_json.items():
+            check_type(instance_object, dict, [entity.plural, instance_id])
+
+            variables_json = instance_object
+            self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
+
     def hydrate_entity(self, entity, instances_json, default_period = None):
         """
             Hydrate an entity from a JSON dictionnary ``instances_json``.
@@ -209,7 +224,6 @@ class SimulationBuilder(object):
                     persons_to_allocate, entity.simulation.persons.plural, entity.key)
                 )
 
-        # Due to set_input mechanism, we must bufferize all inputs, then actually set them, so that the months are set first and the years last.
         self.finalize_variables_init(entity, instances_json)
 
     def get_input(self, variable, period):
@@ -280,6 +294,8 @@ class SimulationBuilder(object):
         self.input_buffer[variable.name][str(period_str)] = array
 
     def finalize_variables_init(self, entity, entities_json):
+        # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
+        # so that the months are set first and the years last.
         for variable_name in self.input_buffer.keys():
             try:
                 holder = entity.get_holder(variable_name)
