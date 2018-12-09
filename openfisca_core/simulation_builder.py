@@ -163,8 +163,9 @@ class SimulationBuilder(object):
             Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
-        self.entity_counts[entity.plural] = len(instances_json)
-        self.entity_ids[entity.plural] = list(instances_json.keys())
+        entity_ids = list(instances_json.keys())
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -183,6 +184,7 @@ class SimulationBuilder(object):
         entity_ids = list(instances_json.keys())
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
+
         self.memberships[entity.plural] = np.empty(persons_count, dtype = np.int32)
         self.roles[entity.plural] = np.empty(persons_count, dtype = object)
 

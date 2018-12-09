@@ -301,6 +301,15 @@ def test_allocate_person_twice(simulation_builder):
     assert exception.value.error == {'familles': {'famille1': {'parents': 'Alicia has been declared more than once in familles'}}}
 
 
+def test_unallocated_person(simulation_builder, group_entity):
+    with raises(SituationParsingError) as exception:
+        simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], group_entity, {
+            'Household_1': {'parents': ['Alicia', 'Javier']},
+            'Household_2': {'parents': ['Tom']},
+            })
+    assert exception.value.error == {'households': "{'Sarah'} have been declared in persons, but are not members of any household. All persons must be allocated to a household."}
+
+
 # Test Intégration
 
 
