@@ -36,10 +36,6 @@ def timeit(method):
 
 # Entities
 
-
-PARENT1 = 0
-PARENT2 = 1
-
 Famille = build_entity(
     key = "famille",
     plural = "familles",
@@ -200,8 +196,6 @@ def check_revenu_disponible(year, city_code, expected_revenu_disponible):
     individu.step_size = 2
     simulation.get_or_new_holder("city_code").array = np.array([city_code, city_code, city_code])
     famille.members_entity_id = np.array([0, 0, 1, 1, 2, 2])
-    famille.members_legacy_role = np.array([PARENT1, PARENT2, PARENT1, PARENT2, PARENT1,
-        PARENT2])
     simulation.get_or_new_holder("salaire_brut").array = np.array([0.0, 0.0, 50000.0, 0.0, 100000.0, 0.0])
     revenu_disponible = simulation.calculate('revenu_disponible')
     assert_near(revenu_disponible, expected_revenu_disponible, absolute_error_margin = 0.005)

@@ -43,7 +43,6 @@ def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
     assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert((simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all())
-    assert_near(simulation.household.members_legacy_role, [0, 1, 2, 3, 0, 2])
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
     assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
     assert(simulation.household.ids == ['h1', 'h2'])
@@ -76,7 +75,6 @@ def test_entity_structure_with_constructor():
 
     assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
     assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
-    assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
     assert_near(household.members_position, [0, 1, 0, 2, 3])
 
 

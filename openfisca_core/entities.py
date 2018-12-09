@@ -275,18 +275,12 @@ class GroupEntity(Entity):
         self.members_entity_id = None
         self._members_role = None
         self._members_position = None
-        self.members_legacy_role = None
         self.members = self.simulation.persons
         self._roles_count = None
         self._ordered_members_map = None
 
     @property
     def members_role(self):
-        if self._members_role is None and self.members_legacy_role is not None:
-            self._members_role = np.asarray([
-                self.flattened_roles[legacy_role] if legacy_role < len(self.flattened_roles) else self.flattened_roles[-1]
-                for legacy_role in self.members_legacy_role
-                ])
         return self._members_role
 
     @property
@@ -311,28 +305,6 @@ class GroupEntity(Entity):
     @members_position.setter
     def members_position(self, members_position):
         self._members_position = members_position
-
-    @property
-    def roles_count(self):
-        warnings.warn(' '.join([
-            "entity.roles_count is deprecated.",
-            "Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
-            ]),
-            Warning
-            )
-        if self._roles_count is None:
-            self._roles_count = self.members_legacy_role.max() + 1
-        return self._roles_count
-
-    @roles_count.setter
-    def roles_count(self, value):
-        warnings.warn(' '.join([
-            "entity.roles_count is deprecated.",
-            "Since OpenFisca Core 23.0, this attribute has strictly no effect, and it is not necessary to set it."
-            ]),
-            Warning
-            )
-        self._roles_count = value
 
     @property
     def ordered_members_map(self):

@@ -78,7 +78,6 @@ def _dump_entity(entity, directory):
 
     np.save(os.path.join(path, "members_position.npy"), entity.members_position)
     np.save(os.path.join(path, "members_entity_id.npy"), entity.members_entity_id)
-    np.save(os.path.join(path, "members_legacy_role.npy"), entity.members_legacy_role)
     encoded_roles = np.select(
         [entity.members_role == role for role in entity.flattened_roles],
         [role.key for role in entity.flattened_roles],
@@ -96,7 +95,6 @@ def _restore_entity(entity, directory):
 
     entity.members_position = np.load(os.path.join(path, "members_position.npy"))
     entity.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
-    entity.members_legacy_role = np.load(os.path.join(path, "members_legacy_role.npy"))
     encoded_roles = np.load(os.path.join(path, "members_role.npy"))
     entity.members_role = np.select(
         [encoded_roles == role.key for role in entity.flattened_roles],

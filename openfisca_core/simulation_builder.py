@@ -182,7 +182,6 @@ class SimulationBuilder(object):
 
         entity.members_entity_id = np.empty(persons_count, dtype = np.int32)
         entity.members_role = np.empty(persons_count, dtype = object)
-        entity.members_legacy_role = np.empty(persons_count, dtype = np.int32)
         persons_to_allocate = set(persons_ids)
 
         for instance_id, instance_object in instances_json.items():
@@ -207,11 +206,10 @@ class SimulationBuilder(object):
                     persons_to_allocate.discard(person_id)
 
             entity_index = entity.ids.index(instance_id)
-            for person_role, person_legacy_role, person_id in iter_over_entity_members(entity, roles_json):
+            for person_role, person_id in iter_over_entity_members(entity, roles_json):
                 person_index = persons_ids.index(person_id)
                 entity.members_entity_id[person_index] = entity_index
                 entity.members_role[person_index] = person_role
-                entity.members_legacy_role[person_index] = person_legacy_role
 
             self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
 
@@ -370,9 +368,9 @@ def iter_over_entity_members(entity_description, scenario_entity):
             legacy_role_j = 0
             for individu in individus:
                 if role.subroles:
-                    yield role.subroles[legacy_role_j], legacy_role_i + legacy_role_j, individu
+                    yield role.subroles[legacy_role_j], individu
                 else:
-                    yield role, legacy_role_i + legacy_role_j, individu
+                    yield role, individu
                 legacy_role_j += 1
         legacy_role_i += (role.max or 1)
 
