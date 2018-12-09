@@ -2,8 +2,6 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 
-from collections import OrderedDict  # Only for Python 2
-
 import dpath
 import numpy as np
 
@@ -19,6 +17,8 @@ class SimulationBuilder(object):
         self.input_buffer = {}
         self.entity_counts = {}
         self.entity_ids = {}
+        self.memberships = {}
+        self.roles = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
@@ -172,17 +172,15 @@ class SimulationBuilder(object):
         """
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        check_type(instances_json, dict, [entity.plural])
-        instances_json = OrderedDict((str(key), value) for key, value in instances_json.items())  # Stringify potential numeric keys, but keep the order
-        entity.count = len(instances_json)
-        entity.step_size = entity.count  # Related to axes.
-        entity.ids = list(instances_json.keys())
-
         persons_count = len(persons_ids)
-
-        entity.members_entity_id = np.empty(persons_count, dtype = np.int32)
-        entity.members_role = np.empty(persons_count, dtype = object)
         persons_to_allocate = set(persons_ids)
+
+        check_type(instances_json, dict, [entity.plural])
+        entity_ids = list(instances_json.keys())
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
+        self.memberships[entity.plural] = np.empty(persons_count, dtype = np.int32)
+        self.roles[entity.plural] = np.empty(persons_count, dtype = object)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -205,11 +203,11 @@ class SimulationBuilder(object):
 
                     persons_to_allocate.discard(person_id)
 
-            entity_index = entity.ids.index(instance_id)
+            entity_index = entity_ids.index(instance_id)
             for person_role, person_id in iter_over_entity_members(entity, roles_json):
                 person_index = persons_ids.index(person_id)
-                entity.members_entity_id[person_index] = entity_index
-                entity.members_role[person_index] = person_role
+                self.memberships[entity.plural][person_index] = entity_index
+                self.roles[entity.plural][person_index] = person_role
 
             self.init_variable_values(entity, variables_json, instance_id, default_period = default_period)
 
@@ -301,6 +299,9 @@ class SimulationBuilder(object):
         if entity.plural in self.entity_counts:
             entity.count = self.get_count(entity.plural)
             entity.ids = self.get_ids(entity.plural)
+        if entity.plural in self.memberships:
+            entity.members_entity_id = self.get_memberships(entity.plural)
+            entity.members_role = self.get_roles(entity.plural)
         for variable_name in self.input_buffer.keys():
             try:
                 holder = entity.get_holder(variable_name)
@@ -333,6 +334,12 @@ class SimulationBuilder(object):
 
     def get_ids(self, entity_name):
         return self.entity_ids[entity_name]
+
+    def get_memberships(self, entity_name):
+        return self.memberships[entity_name]
+
+    def get_roles(self, entity_name):
+        return self.roles[entity_name]
 
 
 def check_type(input, input_type, path = []):

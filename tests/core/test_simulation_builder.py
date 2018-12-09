@@ -9,7 +9,7 @@ from pytest import raises, fixture, approx
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
-from openfisca_core.entities import PersonEntity
+from openfisca_core.entities import PersonEntity, GroupEntity, build_entity
 from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
@@ -19,6 +19,15 @@ from openfisca_core.indexed_enums import Enum as OFEnum
 
 
 from .test_countries import tax_benefit_system
+
+
+class TestVariable(Variable):
+    definition_period = ETERNITY
+    value_type = float
+
+    def __init__(self, entity):
+        self.__class__.entity = entity
+        super().__init__()
 
 
 @fixture
@@ -75,15 +84,6 @@ def enum_variable():
 
 @fixture
 def persons():
-
-    class TestVariable(Variable):
-        definition_period = ETERNITY
-        value_type = float
-
-        def __init__(self, entity):
-            self.__class__.entity = entity
-            super().__init__()
-
     class TestPersonEntity(PersonEntity):
         def __init__(self):
             super().__init__(None)
@@ -98,6 +98,32 @@ def persons():
             return True
 
     return TestPersonEntity()
+
+
+@fixture
+def group_entity():
+    class Household(GroupEntity):
+        def __init__(self):
+            pass
+
+        def get_variable(self, variable_name):
+            result = TestVariable(Household)
+            result.name = variable_name
+            return result
+
+        def check_variable_defined_for_entity(self, variable_name):
+            return True
+
+    roles = [{
+        'key': 'parent',
+        'plural': 'parents',
+        'max': 2
+        }, {
+        'key': 'child',
+        'plural': 'children'
+        }]
+
+    return build_entity("household", "households", "", doc = "", roles = roles, is_person = False)
 
 
 def test_build_default_simulation(simulation_builder):
@@ -128,10 +154,21 @@ def test_add_person_entity(simulation_builder, persons):
     assert simulation_builder.get_ids('persons') == ['Alicia', 'Javier']
 
 
-def test_add_entity_with_values(simulation_builder, persons):
+def test_add_person_entity_with_values(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.add_person_entity(persons, persons_json)
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
+
+
+def test_add_group_entity(simulation_builder, group_entity):
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], group_entity, {
+        'Household_1': {'parents': ['Alicia', 'Javier']},
+        'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},
+        })
+    assert simulation_builder.get_count('households') == 2
+    assert simulation_builder.get_ids('households') == ['Household_1', 'Household_2']
+    assert simulation_builder.get_memberships('households').tolist() == [0, 0, 1, 1]
+    assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'parent', 'child', 'parent']
 
 
 def test_add_variable_value(simulation_builder, persons):
