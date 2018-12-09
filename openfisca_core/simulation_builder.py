@@ -14,11 +14,13 @@ from openfisca_core.simulations import Simulation
 class SimulationBuilder(object):
 
     def __init__(self):
+        self.persons_entity = None
         self.input_buffer = {}
         self.entity_counts = {}
         self.entity_ids = {}
         self.memberships = {}
         self.roles = {}
+        self.axes = [[]]
 
     def build_from_dict(self, tax_benefit_system, input_dict, default_period = None, **kwargs):
         """
@@ -166,6 +168,7 @@ class SimulationBuilder(object):
         entity_ids = list(instances_json.keys())
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
+        self.persons_entity = entity
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -223,7 +226,9 @@ class SimulationBuilder(object):
                 )
 
     def get_input(self, variable, period):
-        return self.input_buffer[variable][period]
+        if variable not in self.input_buffer:
+            self.input_buffer[variable] = {}
+        return self.input_buffer[variable].get(period)
 
     def check_persons_to_allocate(self, persons_plural, entity_plural,
                                   persons_ids,
@@ -273,9 +278,7 @@ class SimulationBuilder(object):
         if value is None:
             return
 
-        if variable.name not in self.input_buffer:
-            self.input_buffer[variable.name] = {}
-        array = self.input_buffer[variable.name].get(str(period_str))
+        array = self.get_input(variable.name, str(period_str))
 
         if array is None:
             array_size = self.get_count(entity.plural)
@@ -337,6 +340,30 @@ class SimulationBuilder(object):
 
     def get_roles(self, entity_name):
         return self.roles[entity_name]
+
+    def add_parallel_axis(self, axis):
+        # All parallel axes have the same count and entity.
+        # Search for a compatible axis, if none exists, error out
+        self.axes[0].append(axis)
+
+    def expand_axes(self):
+        if len(self.axes) == 1 and len(self.axes[0]):
+            parallel_axes = self.axes[0]
+            first_axis = parallel_axes[0]
+            axis_count = first_axis['count']
+            axis_entity = self.persons_entity
+            axis_entity_count = axis_count * self.get_count(axis_entity.plural)
+            axis_entity_step_size = 1
+            for axis in parallel_axes:
+                axis_index = axis.get('index', 0)
+                axis_period = axis['period']
+                axis_name = axis['name']
+                variable = axis_entity.get_variable(axis_name)
+                array = self.get_input(axis_name, axis_period)
+                if array is None:
+                    array = variable.default_array(axis_entity_count)
+                array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+                self.input_buffer[axis_name][axis_period] = array
 
 
 def check_type(input, input_type, path = []):

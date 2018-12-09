@@ -35,7 +35,6 @@ class Simulation(object):
     """
     debug = False
     period = None
-    steps_count = 1
     tax_benefit_system = None
     trace = False
 
