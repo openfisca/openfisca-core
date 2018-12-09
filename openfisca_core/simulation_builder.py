@@ -84,6 +84,10 @@ class SimulationBuilder(object):
             entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
             self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json, default_period = default_period)
+            try:
+                self.finalize_variables_init(entity)
+            except PeriodMismatchError as e:
+                self.raise_period_mismatch(entity, instances_json, e)
 
         return simulation
 
@@ -216,11 +220,6 @@ class SimulationBuilder(object):
                 '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
                     persons_to_allocate, persons_plural, entity.key)
                 )
-
-        try:
-            self.finalize_variables_init(entity)
-        except PeriodMismatchError as e:
-            self.raise_period_mismatch(entity, instances_json, e)
 
     def get_input(self, variable, period):
         return self.input_buffer[variable][period]
