@@ -177,14 +177,13 @@ class SimulationBuilder(object):
         """
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
-        persons_count = len(persons_ids)
-        persons_to_allocate = set(persons_ids)
-
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(instances_json.keys())
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
 
+        persons_count = len(persons_ids)
+        persons_to_allocate = set(persons_ids)
         self.memberships[entity.plural] = np.empty(persons_count, dtype = np.int32)
         self.roles[entity.plural] = np.empty(persons_count, dtype = object)
 
@@ -252,10 +251,7 @@ class SimulationBuilder(object):
             except VariableNotFound as e:  # The variable doesn't exist
                 raise SituationParsingError(path_in_json, e.message, code = 404)
 
-            if entity.plural in self.entity_ids and instance_id in self.get_ids(entity.plural):
-                instance_index = self.get_ids(entity.plural).index(instance_id)
-            else:
-                instance_index = entity.ids.index(instance_id)
+            instance_index = self.get_ids(entity.plural).index(instance_id)
 
             if not isinstance(variable_values, dict):
                 if default_period is None:
@@ -282,7 +278,7 @@ class SimulationBuilder(object):
         array = self.input_buffer[variable.name].get(str(period_str))
 
         if array is None:
-            array_size = self.get_count(entity.plural) if entity.plural in self.entity_counts else entity.count
+            array_size = self.get_count(entity.plural)
             array = variable.default_array(array_size)
 
         try:

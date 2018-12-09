@@ -183,36 +183,36 @@ def test_add_group_entity_loose_syntax(simulation_builder, group_entity):
 
 
 def test_add_variable_value(simulation_builder, persons):
-    instance_index = 0
-    persons.count = 1
     salary = persons.get_variable('salary')
+    instance_index = 0
+    simulation_builder.entity_counts['persons'] = 1
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 3000)
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
 
 
 def test_add_variable_value_as_expression(simulation_builder, persons):
-    instance_index = 0
-    persons.count = 1
     salary = persons.get_variable('salary')
+    instance_index = 0
+    simulation_builder.entity_counts['persons'] = 1
     simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '3 * 1000')
     input_array = simulation_builder.get_input('salary', '2018-11')
     assert input_array[instance_index] == approx(3000)
 
 
 def test_fail_on_wrong_data(simulation_builder, persons):
-    instance_index = 0
-    persons.count = 1
     salary = persons.get_variable('salary')
+    instance_index = 0
+    simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', 'alicia')
     assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "Can't deal with value: expected type number, received 'alicia'."}}}}
 
 
 def test_fail_on_ill_formed_expression(simulation_builder, persons):
-    instance_index = 0
-    persons.count = 1
     salary = persons.get_variable('salary')
+    instance_index = 0
+    simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, salary, instance_index, 'Alicia', '2018-11', '2 * / 1000')
     assert excinfo.value.error == {'persons': {'Alicia': {'salary': {'2018-11': "I couldn't understand '2 * / 1000' as a value for 'salary'"}}}}
@@ -220,7 +220,7 @@ def test_fail_on_ill_formed_expression(simulation_builder, persons):
 
 def test_fail_on_integer_overflow(simulation_builder, persons, int_variable):
     instance_index = 0
-    persons.count = 1
+    simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, int_variable, instance_index, 'Alicia', '2018-11', 9223372036854775808)
     assert excinfo.value.error == {'persons': {'Alicia': {'intvar': {'2018-11': "Can't deal with value: '9223372036854775808', it's too large for type 'integer'."}}}}
@@ -228,7 +228,7 @@ def test_fail_on_integer_overflow(simulation_builder, persons, int_variable):
 
 def test_fail_on_date_parsing(simulation_builder, persons, date_variable):
     instance_index = 0
-    persons.count = 1
+    simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError) as excinfo:
         simulation_builder.add_variable_value(persons, date_variable, instance_index, 'Alicia', '2018-11', '2019-02-30')
     assert excinfo.value.error == {'persons': {'Alicia': {'datevar': {'2018-11': "Can't deal with date: '2019-02-30'."}}}}
@@ -236,7 +236,7 @@ def test_fail_on_date_parsing(simulation_builder, persons, date_variable):
 
 def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_variable):
     instance_index = 0
-    persons.count = 1
+    simulation_builder.entity_counts['persons'] = 1
     with raises(SituationParsingError):
         simulation_builder.add_variable_value(persons, enum_variable, instance_index, 'Alicia', '2018-11', 'baz')
 
