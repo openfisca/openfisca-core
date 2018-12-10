@@ -1,5 +1,10 @@
 # Changelog
 
+### 25.1.1 [#...](https://github.com/openfisca/openfisca-core/pull/...)
+
+- Explicit test runner dependencies in Python 2.7
+  - Using an older version of `ruamel` caused a `'CommentedSeq' object has no attribute 'get'` error.
+
 ## 25.1.0 [#787](https://github.com/openfisca/openfisca-core/pull/787)
 
 - Don't sort JSON keys in the Web API
