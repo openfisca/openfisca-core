@@ -1,6 +1,6 @@
 # Changelog
 
-### 25.1.1 [#...](https://github.com/openfisca/openfisca-core/pull/...)
+### 25.1.1 [#794](https://github.com/openfisca/openfisca-core/pull/794)
 
 - Explicit test runner dependencies in Python 2.7
   - Using an older version of `ruamel` caused a `'CommentedSeq' object has no attribute 'get'` error.
