@@ -618,19 +618,19 @@ class Period(tuple):
         >>> period('year', '2012', 1).size_in_days
         366
         """
-        period, instant, length = self
+        unit, instant, length = self
 
-        if period == DAY:
+        if unit == DAY:
             return length
-        if period in [MONTH, YEAR]:
+        if unit in [MONTH, YEAR]:
             if length == 1:
                 # from the first to the last of self.start
-                return (self.start.offset('last-of', period).date - self.start.offset('first-of', period).date).days + 1
+                return (self.start.offset('last-of', unit).date - self.start.offset('first-of', unit).date).days + 1
             else:
                 # From the first of start to the first of stop
-                return (self.stop.offset('first-of', period).date - self.start.offset('first-of', period).date).days
+                return (self.stop.offset('first-of', unit).date - self.start.offset('first-of', unit).date).days
 
-        raise ValueError("Cannot calculate number of days in {0}".format(period))
+        raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
     @property
     def start(self):
