@@ -850,7 +850,7 @@ def period(value):
         message = linesep.join([
             "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
             "Learn more about legal period formats in OpenFisca:",
-            "<https://openfisca.org/doc/key-concepts/periodsinstants.html>."
+            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
             ]).encode('utf-8')
         raise ValueError(message)
 
