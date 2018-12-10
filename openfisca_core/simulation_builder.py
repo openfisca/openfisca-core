@@ -365,15 +365,16 @@ class SimulationBuilder(object):
             first_axis = parallel_axes[0]
             axis_count = first_axis['count']
             axis_entity = self.persons_entity
-            axis_entity_step_size = 1
+            axis_entity_step_size = self.get_count(axis_entity.plural)
             # Adjust counts
-            axis_entity_count = axis_count * self.get_count(axis_entity.plural)
+            axis_entity_count = axis_count * axis_entity_step_size
             self.axes_entity_counts[axis_entity.plural] = axis_entity_count
             # Adjust ids
             original_ids = self.get_ids(axis_entity.plural) * axis_entity_count
             indices = np.arange(0, axis_entity_count)
             adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
             self.axes_entity_ids[axis_entity.plural] = adjusted_ids
+            # Distribute values along axes or spaces
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
                 axis_period = axis['period']
