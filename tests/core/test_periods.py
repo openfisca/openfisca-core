@@ -141,10 +141,14 @@ def test_year_size_in_days():
 
 
 def test_leap_year_size_in_days():
-    assert Period(('year', Instant((2012, 12, 1)), 1)).size_in_days == 366
+    assert Period(('year', Instant((2012, 1, 1)), 1)).size_in_days == 366
 
+
+def test_2_years_size_in_days():
+    assert Period(('year', Instant((2014, 1, 1)), 2)).size_in_days == 730
 
 # Misc
+
 
 def test_ambiguous_period():
     with pytest.raises(ValueError):

@@ -623,12 +623,8 @@ class Period(tuple):
         if unit == DAY:
             return length
         if unit in [MONTH, YEAR]:
-            if length == 1:
-                # from the first to the last of self.start
-                return (self.start.offset('last-of', unit).date - self.start.offset('first-of', unit).date).days + 1
-            else:
-                # From the first of start to the first of stop
-                return (self.stop.offset('first-of', unit).date - self.start.offset('first-of', unit).date).days
+            last_day = self.start.offset(length, unit).offset(-1, DAY)
+            return (last_day.date - self.start.date).days + 1
 
         raise ValueError("Cannot calculate number of days in {0}".format(unit))
 
