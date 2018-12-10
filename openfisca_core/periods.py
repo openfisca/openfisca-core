@@ -829,6 +829,9 @@ def period(value):
     if isinstance(value, Period):
         return value
 
+    if isinstance(value, Instant):
+        return Period((DAY, value, 1))
+
     def parse_simple_period(value):
         """
         Parses simple periods respecting the ISO format, such as 2012 or 2015-03
