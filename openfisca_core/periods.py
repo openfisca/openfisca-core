@@ -436,10 +436,14 @@ class Period(tuple):
         if unit_weight(self.unit) < unit_weight(unit):
             raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
 
-        if self.unit == YEAR and unit == YEAR:
+        if unit == YEAR:
             return [self.this_year.offset(i, YEAR) for i in range(self.size)]
 
-        return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+        if unit == MONTH:
+            return [self.first_month.offset(i, MONTH) for i in range(self.size_in_months)]
+
+        if unit == DAY:
+            return [self.first_day.offset(i, DAY) for i in range(self.size_in_days)]
 
     def offset(self, offset, unit = None):
         """Increment (or decrement) the given period with offset units.
@@ -741,6 +745,10 @@ class Period(tuple):
     @property
     def first_month(self):
         return self.start.offset('first-of', 'month').period('month')
+
+    @property
+    def first_day(self):
+        return self.start.period('day')
 
 
 def instant(instant):
