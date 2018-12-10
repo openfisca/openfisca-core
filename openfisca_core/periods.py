@@ -22,11 +22,12 @@ from openfisca_core import conv
 from openfisca_core.commons import basestring_type, to_unicode
 
 
+DAY = 'day'
 MONTH = 'month'
 YEAR = 'year'
 ETERNITY = 'eternity'
 
-INSTANT_PATTERN = re.compile('^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01'
+INSTANT_PATTERN = re.compile('^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
 
 
 def N_(message):
@@ -126,7 +127,7 @@ class Instant(tuple):
         >>> instant('2014-2-3').period('day', size = 2)
         Period(('day', Instant((2014, 2, 3)), 2))
         """
-        assert unit in ('day', 'month', 'year'), 'Invalid unit: {} of type {}'.format(unit, type(unit))
+        assert unit in (DAY, MONTH, YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
         assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
         return Period((to_unicode(unit), self, size))
 
@@ -211,23 +212,22 @@ class Instant(tuple):
         Instant((2014, 12, 31))
         """
         year, month, day = self
+        assert unit in (DAY, MONTH, YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
         if offset == 'first-of':
-            if unit == 'month':
+            if unit == MONTH:
                 day = 1
-            else:
-                assert unit == 'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+            elif unit == YEAR:
                 month = 1
                 day = 1
         elif offset == 'last-of':
-            if unit == 'month':
+            if unit == MONTH:
                 day = calendar.monthrange(year, month)[1]
-            else:
-                assert unit == 'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+            elif unit == YEAR:
                 month = 12
                 day = 31
         else:
             assert isinstance(offset, int), 'Invalid offset: {} of type {}'.format(offset, type(offset))
-            if unit == 'day':
+            if unit == DAY:
                 day += offset
                 if offset < 0:
                     while day < 1:
@@ -245,7 +245,7 @@ class Instant(tuple):
                             month = 1
                         day -= month_last_day
                         month_last_day = calendar.monthrange(year, month)[1]
-            elif unit == 'month':
+            elif unit == MONTH:
                 month += offset
                 if offset < 0:
                     while month < 1:
@@ -258,13 +258,13 @@ class Instant(tuple):
                 month_last_day = calendar.monthrange(year, month)[1]
                 if day > month_last_day:
                     day = month_last_day
-            else:
-                assert unit == 'year', 'Invalid unit: {} of type {}'.format(unit, type(unit))
+            elif unit == YEAR:
                 year += offset
                 # Handle february month of leap year.
                 month_last_day = calendar.monthrange(year, month)[1]
                 if day > month_last_day:
                     day = month_last_day
+
         return self.__class__((year, month, day))
 
     @property
@@ -323,8 +323,7 @@ class Period(tuple):
         unit, start_instant, size = self
         if unit == ETERNITY:
             return 'ETERNITY'
-        start_instant = start_instant[:2]  # we always ignore the day, 1 by construction
-        year, month = start_instant
+        year, month, day = start_instant
 
         # 1 year long period
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
@@ -340,6 +339,12 @@ class Period(tuple):
         # several civil years
         if unit == YEAR and month == 1:
             return '{}:{}:{}'.format(unit, year, size)
+
+        if unit == DAY:
+            if size == 1:
+                return '{}-{:02d}-{:02d}'.format(year, month, day)
+            else:
+                return '{}:{}-{:02d}-{:02d}:{}'.format(unit, year, month, day, size)
 
         # complex period
         return '{}:{}-{:02d}:{}'.format(unit, year, month, size)
@@ -428,8 +433,9 @@ class Period(tuple):
             >>> period('year:2014:2').get_subperiods(YEAR)
             >>> [period('2014'), period('2015')]
         """
-        if self.unit == MONTH and unit == YEAR:
-            raise ValueError('Cannot subdivise months into years')
+        if unit_weight(self.unit) < unit_weight(unit):
+            raise ValueError('Cannot subdivide {0} into {1}'.format(self.unit, unit))
+
         if self.unit == YEAR and unit == YEAR:
             return [self.this_year.offset(i, YEAR) for i in range(self.size)]
 
@@ -599,8 +605,32 @@ class Period(tuple):
         """
         if (self[0] == MONTH):
             return self[2]
-        else:
+        if(self[0] == YEAR):
             return self[2] * 12
+        raise ValueError("Cannot calculate number of months in {0}".format(self[0]))
+
+    @property
+    def size_in_days(self):
+        """Return the size of the period in days.
+
+        >>> period('month', '2012-2-29', 4).size_in_days
+        28
+        >>> period('year', '2012', 1).size_in_days
+        366
+        """
+        period, instant, length = self
+
+        if period == DAY:
+            return length
+        if period in [MONTH, YEAR]:
+            if length == 1:
+                # from the first to the last of self.start
+                return (self.start.offset('last-of', period).date - self.start.offset('first-of', period).date).days + 1
+            else:
+                # From the first of start to the first of stop
+                return (self.stop.offset('first-of', period).date - self.start.offset('first-of', period).date).days
+
+        raise ValueError("Cannot calculate number of days in {0}".format(period))
 
     @property
     def start(self):
@@ -805,7 +835,12 @@ def period(value):
             try:
                 date = datetime.datetime.strptime(value, '%Y-%m')
             except ValueError:
-                return None
+                try:
+                    date = datetime.datetime.strptime(value, '%Y-%m-%d')
+                except ValueError:
+                    return None
+                else:
+                    return Period((DAY, Instant((date.year, date.month, date.day)), 1))
             else:
                 return Period((MONTH, Instant((date.year, date.month, 1)), 1))
         else:
@@ -813,9 +848,9 @@ def period(value):
 
     def raise_error(value):
         message = linesep.join([
-            "Expected a period (eg. '2017', '2017-01', ...); got: '{}'.".format(value),
+            "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
             "Learn more about legal period formats in OpenFisca:",
-            "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
+            "<https://openfisca.org/doc/key-concepts/periodsinstants.html>."
             ]).encode('utf-8')
         raise ValueError(message)
 
@@ -841,7 +876,7 @@ def period(value):
 
     # left-most component must be a valid unit
     unit = components[0]
-    if unit not in (MONTH, YEAR):
+    if unit not in (DAY, MONTH, YEAR):
         raise_error(value)
 
     # middle component must be a valid iso period
@@ -885,17 +920,22 @@ def key_period_size(period):
 
     """
 
-    unit_weights = {
-        MONTH: 1,
-        YEAR: 2,
-        ETERNITY: 3,
-        }
-
     unit, start, size = period
 
-    return '{}_{}'.format(unit_weights[unit], size)
+    return '{}_{}'.format(unit_weight(unit), size)
 
 
+def unit_weights():
+    return {
+        DAY: 100,
+        MONTH: 200,
+        YEAR: 300,
+        ETERNITY: 400,
+        }
+
+
+def unit_weight(unit):
+    return unit_weights()[unit]
 # Level-1 converters
 
 
