@@ -21,7 +21,12 @@ class SimulationBuilder(object):
         self.entity_ids = {}
         self.memberships = {}
         self.roles = {}
+
         self.axes = [[]]
+        self.axes_entity_counts = {}
+        self.axes_entity_ids = {}
+        self.axes_memberships = {}
+        self.axes_roles = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict, **kwargs):
         """
@@ -336,10 +341,10 @@ class SimulationBuilder(object):
         raise SituationParsingError(path, e.message)
 
     def get_count(self, entity_name):
-        return self.entity_counts[entity_name]
+        return self.axes_entity_counts.get(entity_name, self.entity_counts[entity_name])
 
     def get_ids(self, entity_name):
-        return self.entity_ids[entity_name]
+        return self.axes_entity_ids.get(entity_name, self.entity_ids[entity_name])
 
     def get_memberships(self, entity_name):
         return self.memberships[entity_name]
@@ -353,13 +358,22 @@ class SimulationBuilder(object):
         self.axes[0].append(axis)
 
     def expand_axes(self):
+        # This method should be idempotent & allow change in axes
+        self.axes_entity_counts = {}
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
             axis_count = first_axis['count']
             axis_entity = self.persons_entity
-            axis_entity_count = axis_count * self.get_count(axis_entity.plural)
             axis_entity_step_size = 1
+            # Adjust counts
+            axis_entity_count = axis_count * self.get_count(axis_entity.plural)
+            self.axes_entity_counts[axis_entity.plural] = axis_entity_count
+            # Adjust ids
+            original_ids = self.get_ids(axis_entity.plural) * axis_entity_count
+            indices = np.arange(0, axis_entity_count)
+            adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
+            self.axes_entity_ids[axis_entity.plural] = adjusted_ids
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
                 axis_period = axis['period']
@@ -369,6 +383,7 @@ class SimulationBuilder(object):
                 if array is None:
                     array = variable.default_array(axis_entity_count)
                 array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
+                # Set input
                 self.input_buffer[axis_name][axis_period] = array
 
 
