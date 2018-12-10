@@ -174,14 +174,15 @@ class Simulation(object):
             period = periods.period(period)
 
         # Check that the requested period matches definition_period
-        if variable.definition_period == periods.YEAR and period.unit == periods.MONTH:
-            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for year-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
+        if periods.unit_weight(variable.definition_period) > periods.unit_weight(period.unit):
+            raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' can only be computed for {2}-long periods. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
                 variable.name,
                 period,
+                variable.definition_period
                 ).encode('utf-8'))
 
-        if variable.definition_period not in [periods.MONTH, periods.YEAR]:
-            raise ValueError("Unable to sum constant variable '{}' over period {}: only variables defined monthly or yearly can be summed over time.".format(
+        if variable.definition_period not in [periods.DAY, periods.MONTH, periods.YEAR]:
+            raise ValueError("Unable to sum constant variable '{}' over period {}: only variables defined daily, monthly, or yearly can be summed over time.".format(
                 variable.name,
                 period).encode('utf-8'))
 
