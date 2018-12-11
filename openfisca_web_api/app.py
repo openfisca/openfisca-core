@@ -61,7 +61,7 @@ def create_app(tax_benefit_system,
 
     data = build_data(tax_benefit_system)
 
-    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/index.html) and the OpenAPI specification of this instance ({}spec)."
+    DEFAULT_WELCOME_MESSAGE = "This is the root of an OpenFisca Web API. To learn how to use it, check the general documentation (https://openfisca.org/doc/) and the OpenAPI specification of this instance ({}spec)."
 
     @app.route('/')
     def get_root():
