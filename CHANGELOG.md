@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.1 [#796](https://github.com/openfisca/openfisca-core/pull/796)
+
+- Update documentation URL in the API welcome message
+
 ### 25.2.0 [#766](https://github.com/openfisca/openfisca-core/pull/766)
 
 - Support DAY periods
