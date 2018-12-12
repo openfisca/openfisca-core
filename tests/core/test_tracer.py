@@ -29,6 +29,25 @@ def test_variable_stats():
     assert_equals(tracer.usage_stats['C']['nb_requests'], 0)
 
 
+def test_log_format():
+    tracer = Tracer()
+    tracer.record_calculation_start("A", 2017)
+    tracer.record_calculation_start("B", 2017)
+    tracer.record_calculation_end("B", 2017, 1)
+    tracer.record_calculation_end("A", 2017, 2)
+
+    from io import StringIO
+    import contextlib
+
+    log = StringIO()
+    with contextlib.redirect_stdout(log):
+        tracer.print_computation_log()
+
+    lines = log.getvalue().split('\n')
+    assert_equals(lines[0], '  A<2017> >> 2')
+    assert_equals(lines[1], '    B<2017> >> 1')
+
+
 #  Tests on tracing with fancy indexing
 zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
 housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
