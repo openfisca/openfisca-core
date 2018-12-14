@@ -3,4 +3,5 @@
   input:
     salary: 2000
   output:
+    pension: 0
     income_tax: 0
