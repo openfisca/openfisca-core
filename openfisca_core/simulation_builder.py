@@ -22,6 +22,8 @@ class SimulationBuilder(object):
         self.memberships = {}
         self.roles = {}
 
+        self.variable_entities = {}
+
         self.axes = [[]]
         self.axes_entity_counts = {}
         self.axes_entity_ids = {}
@@ -40,7 +42,7 @@ class SimulationBuilder(object):
         """
 
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
-        if all(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
+        if any(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
             return self.build_from_entities(tax_benefit_system, input_dict, **kwargs)
         else:
             return self.build_from_variables(tax_benefit_system, input_dict, **kwargs)
@@ -60,7 +62,13 @@ class SimulationBuilder(object):
         if simulation is None:
             simulation = Simulation(tax_benefit_system, **kwargs)
 
+        # Register variables so get_variable_entity can find them
+        for (variable_name, variable) in tax_benefit_system.variables.items():
+            self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
+
         check_type(input_dict, dict, ['error'])
+        axes = input_dict.pop('axes', None)
+
         unexpected_entities = [entity for entity in input_dict if entity not in tax_benefit_system.entities_plural()]
         if unexpected_entities:
             unexpected_entity = unexpected_entities[0]
@@ -91,6 +99,15 @@ class SimulationBuilder(object):
             entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
             self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
+
+        for perpendicular_dimensions in axes or []:
+            for parallel_axes in perpendicular_dimensions:
+                for axis in parallel_axes:
+                    self.add_parallel_axis(axis)
+        if axes:
+            self.expand_axes()
+
+        for entity_class in tax_benefit_system.group_entities:
             try:
                 self.finalize_variables_init(entity)
             except PeriodMismatchError as e:
@@ -364,7 +381,7 @@ class SimulationBuilder(object):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
             axis_count = first_axis['count']
-            axis_entity = self.persons_entity
+            axis_entity = self.get_variable_entity(first_axis['name'])
             axis_entity_step_size = self.get_count(axis_entity.plural)
             # Adjust counts
             axis_entity_count = axis_count * axis_entity_step_size
@@ -386,6 +403,12 @@ class SimulationBuilder(object):
                 array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                 # Set input
                 self.input_buffer[axis_name][axis_period] = array
+
+    def get_variable_entity(self, variable_name):
+        return self.variable_entities[variable_name]
+
+    def register_variable(self, variable_name, entity):
+        self.variable_entities[variable_name] = entity
 
 
 def check_type(input, input_type, path = []):

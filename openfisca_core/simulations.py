@@ -95,7 +95,7 @@ class Simulation(object):
         setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
 
         for entity_class in self.tax_benefit_system.group_entities:
-            entities = entity_class(self)
+            entities = entity_class(self, self.persons)
             self.entities[entity_class.key] = entities
             setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
 

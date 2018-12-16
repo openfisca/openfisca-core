@@ -104,7 +104,7 @@ def persons():
 def group_entity():
     class Household(GroupEntity):
         def __init__(self):
-            pass
+            super().__init__(None)
 
         def get_variable(self, variable_name):
             result = TestVariable(Household)
@@ -123,7 +123,8 @@ def group_entity():
         'plural': 'children'
         }]
 
-    return build_entity("household", "households", "", doc = "", roles = roles, is_person = False)
+    entity_class = build_entity("household", "households", "", doc = "", roles = roles, is_person = False, eclass = Household)
+    return entity_class()
 
 
 def test_build_default_simulation(simulation_builder):

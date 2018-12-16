@@ -270,12 +270,12 @@ class GroupEntity(Entity):
     flattened_roles = None
     roles_description = None
 
-    def __init__(self, simulation):
+    def __init__(self, simulation, persons = None):
         Entity.__init__(self, simulation)
         self.members_entity_id = None
         self._members_role = None
         self._members_position = None
-        self.members = self.simulation.persons
+        self.members = persons
         self._roles_count = None
         self._ordered_members_map = None
 
@@ -334,7 +334,7 @@ class GroupEntity(Entity):
             >>> array([3500])
         """
         self.check_role_validity(role)
-        self.simulation.persons.check_array_compatible_with_entity(array)
+        self.members.check_array_compatible_with_entity(array)
         if role is not None:
             role_filter = self.members.has_role(role)
             return np.bincount(
@@ -364,7 +364,7 @@ class GroupEntity(Entity):
 
     @projectable
     def reduce(self, array, reducer, neutral_element, role = None):
-        self.simulation.persons.check_array_compatible_with_entity(array)
+        self.members.check_array_compatible_with_entity(array)
         self.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
@@ -466,7 +466,7 @@ class GroupEntity(Entity):
                 'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
                 .format(self.key, role.key)
                 )
-        self.simulation.persons.check_array_compatible_with_entity(array)
+        self.members.check_array_compatible_with_entity(array)
         members_map = self.ordered_members_map
         result = self.filled_array(default, dtype = array.dtype)
         if isinstance(array, EnumArray):
@@ -489,7 +489,7 @@ class GroupEntity(Entity):
 
             The result is a vector which dimension is the number of entities.
         """
-        self.simulation.persons.check_array_compatible_with_entity(array)
+        self.members.check_array_compatible_with_entity(array)
         positions = self.members_position
         nb_persons_per_entity = self.nb_persons()
         members_map = self.ordered_members_map
@@ -530,17 +530,6 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         nb_persons_per_entity = self.nb_persons(role)
         return self.project(array / nb_persons_per_entity, role = role)
-
-    # Projection entity -> entity
-
-    # Doesn't seem to be used either, as we can do entity1.first_person.entity2
-    # Maybe should not introduce
-    @projectable
-    def transpose(self, array, origin_entity):
-        origin_entity = self.simulation.get_entity(origin_entity)
-        origin_entity.check_array_compatible_with_entity(array)
-        input_projected = origin_entity.project(array)
-        return self.value_from_first_person(input_projected)
 
 
 class Role(object):
@@ -628,13 +617,13 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def build_entity(key, plural, label, doc = "", roles = None, is_person = False):
+def build_entity(key, plural, label, doc = "", roles = None, is_person = False, eclass = None):
     entity_class_name = key.title()
     attributes = {'key': key, 'plural': plural, 'label': label, 'doc': textwrap.dedent(doc), 'roles_description': roles}
     if is_person:
-        entity_class = type(entity_class_name, (PersonEntity,), attributes)
+        entity_class = type(entity_class_name, (eclass or PersonEntity,), attributes)
     elif roles:
-        entity_class = type(entity_class_name, (GroupEntity,), attributes)
+        entity_class = type(entity_class_name, (eclass or GroupEntity,), attributes)
         entity_class.roles = []
         for role_description in roles:
             role = Role(role_description, entity_class)
