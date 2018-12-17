@@ -374,6 +374,10 @@ class SimulationBuilder(object):
         # Search for a compatible axis, if none exists, error out
         self.axes[0].append(axis)
 
+    def add_perpendicular_axis(self, axis):
+        # This adds an axis perpendicular to all previous dimensions
+        self.axes.append([axis])
+
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
         self.axes_entity_counts = {}
@@ -394,7 +398,7 @@ class SimulationBuilder(object):
             # Distribute values along axes or spaces
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
-                axis_period = axis['period']
+                axis_period = axis['period'] or self.default_period
                 axis_name = axis['name']
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, axis_period)
@@ -403,6 +407,48 @@ class SimulationBuilder(object):
                 array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                 # Set input
                 self.input_buffer[axis_name][axis_period] = array
+        else:
+            axes_linspaces = [
+                np.linspace(0, first_axis['count'] - 1, first_axis['count'])
+                for first_axis in (
+                    parallel_axes[0]
+                    for parallel_axes in self.axes
+                    )
+                ]
+            axes_meshes = np.meshgrid(*axes_linspaces)
+            steps_count = 1
+            entity_sizes = {}
+            for parallel_axes in self.axes:
+                first_axis = parallel_axes[0]
+                axis_count = first_axis['count']
+                steps_count *= axis_count
+                axis_entity = self.get_variable_entity(first_axis['name'])
+                entity_sizes[axis_entity.plural] = self.get_count(axis_entity.plural)
+            for parallel_axes, mesh in zip(self.axes, axes_meshes):
+                first_axis = parallel_axes[0]
+                axis_count = first_axis['count']
+                axis_entity = self.get_variable_entity(first_axis['name'])
+                # Adjust counts
+                axis_entity_step_size = entity_sizes[axis_entity.plural]
+                axis_entity_count = steps_count * axis_entity_step_size
+                self.axes_entity_counts[axis_entity.plural] = axis_entity_count
+                # Adjust ids
+                original_ids = self.get_ids(axis_entity.plural) * axis_entity_count
+                indices = np.arange(0, axis_entity_count)
+                adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
+                self.axes_entity_ids[axis_entity.plural] = adjusted_ids
+                # Distribute values along axes or spaces
+                for axis in parallel_axes:
+                    axis_index = axis.get('index', 0)
+                    axis_period = axis['period'] or self.default_period
+                    axis_name = axis['name']
+                    variable = axis_entity.get_variable(axis_name)
+                    array = self.get_input(axis_name, axis_period)
+                    if array is None:
+                        array = variable.default_array(axis_entity_count)
+                    array[axis_index:: axis_entity_step_size] = axis['min'] \
+                        + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                    self.input_buffer[axis_name][axis_period] = array
 
     def get_variable_entity(self, variable_name):
         return self.variable_entities[variable_name]
