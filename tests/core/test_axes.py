@@ -101,12 +101,11 @@ def test_simulation_with_axes(simulation_builder):
             parents: [Tom]
         axes:
             -
-                -
-                    - count: 2
-                      name: rent
-                      min: 0
-                      max: 3000
-                      period: 2018-11
+                - count: 2
+                  name: rent
+                  min: 0
+                  max: 3000
+                  period: 2018-11
     """
     data = yaml.load(input_yaml)
     simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
