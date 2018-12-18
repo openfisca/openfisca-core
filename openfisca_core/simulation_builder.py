@@ -109,6 +109,7 @@ class SimulationBuilder(object):
 
         for entity_class in tax_benefit_system.group_entities:
             try:
+                entity = simulation.entities[entity_class.key]
                 self.finalize_variables_init(entity)
             except PeriodMismatchError as e:
                 self.raise_period_mismatch(entity, instances_json, e)
