@@ -414,7 +414,7 @@ class SimulationBuilder(object):
             # Distribute values along axes or spaces
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
-                axis_period = axis['period'] or self.default_period
+                axis_period = axis.get('period', self.default_period)
                 axis_name = axis['name']
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, axis_period)
