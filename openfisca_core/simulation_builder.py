@@ -244,6 +244,10 @@ class SimulationBuilder(object):
 
             self.init_variable_values(entity, variables_json, instance_id)
 
+        # Convert back to Python array
+        self.roles[entity.plural] = self.roles[entity.plural].tolist()
+        self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
+
         if persons_to_allocate:
             raise SituationParsingError([entity.plural],
                 '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
@@ -328,8 +332,8 @@ class SimulationBuilder(object):
             entity.count = self.get_count(entity.plural)
             entity.ids = self.get_ids(entity.plural)
         if entity.plural in self.memberships:
-            entity.members_entity_id = self.get_memberships(entity.plural)
-            entity.members_role = self.get_roles(entity.plural)
+            entity.members_entity_id = np.array(self.get_memberships(entity.plural))
+            entity.members_role = np.array(self.get_roles(entity.plural))
         for variable_name in self.input_buffer.keys():
             try:
                 holder = entity.get_holder(variable_name)
@@ -364,10 +368,12 @@ class SimulationBuilder(object):
         return self.axes_entity_ids.get(entity_name, self.entity_ids[entity_name])
 
     def get_memberships(self, entity_name):
-        return self.memberships[entity_name]
+        # Return empty array for the "persons" entity
+        return self.axes_memberships.get(entity_name, self.memberships.get(entity_name, []))
 
     def get_roles(self, entity_name):
-        return self.roles[entity_name]
+        # Return empty array for the "persons" entity
+        return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
 
     def add_parallel_axis(self, axis):
         # All parallel axes have the same count and entity.
@@ -395,6 +401,18 @@ class SimulationBuilder(object):
             indices = np.arange(0, axis_entity_count)
             adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
             self.axes_entity_ids[axis_entity.plural] = adjusted_ids
+            # Adjust roles
+            original_roles = self.get_roles(axis_entity.plural)
+            adjusted_roles = original_roles * axis_count
+            self.axes_roles[axis_entity.plural] = adjusted_roles
+            # Adjust memberships
+            original_memberships = self.get_memberships(axis_entity.plural)
+            # If this is not the 'persons entity'
+            if (len(original_memberships)):
+                repeated_memberships = original_memberships * axis_count
+                indices = np.repeat(np.arange(0, axis_count), len(original_memberships)) * axis_entity_step_size
+                adjusted_memberships = (np.array(repeated_memberships) + indices).tolist()
+                self.axes_memberships[axis_entity.plural] = adjusted_memberships
             # Distribute values along axes or spaces
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)

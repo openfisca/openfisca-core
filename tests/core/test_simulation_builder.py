@@ -175,7 +175,7 @@ def test_add_group_entity(simulation_builder, group_entity):
         })
     assert simulation_builder.get_count('households') == 2
     assert simulation_builder.get_ids('households') == ['Household_1', 'Household_2']
-    assert simulation_builder.get_memberships('households').tolist() == [0, 0, 1, 1]
+    assert simulation_builder.get_memberships('households') == [0, 0, 1, 1]
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'parent', 'child', 'parent']
 
 
@@ -186,7 +186,7 @@ def test_add_group_entity_loose_syntax(simulation_builder, group_entity):
         })
     assert simulation_builder.get_count('households') == 2
     assert simulation_builder.get_ids('households') == ['Household_1', 'Household_2']
-    assert simulation_builder.get_memberships('households').tolist() == [0, 0, 1, 1]
+    assert simulation_builder.get_memberships('households') == [0, 0, 1, 1]
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'parent', 'child', 'parent']
 
 
