@@ -428,7 +428,7 @@ class SimulationBuilder(object):
                     array = variable.default_array(axis_entity_count)
                 array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                 # Set input
-                self.input_buffer[axis_name][axis_period] = array
+                self.input_buffer[axis_name][str(axis_period)] = array
         else:
             axes_linspaces = [
                 np.linspace(0, first_axis['count'] - 1, first_axis['count'])
@@ -470,7 +470,7 @@ class SimulationBuilder(object):
                         array = variable.default_array(axis_entity_count)
                     array[axis_index:: axis_entity_step_size] = axis['min'] \
                         + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
-                    self.input_buffer[axis_name][axis_period] = array
+                    self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):
         return self.variable_entities[variable_name]
