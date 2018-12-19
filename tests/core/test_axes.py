@@ -48,7 +48,8 @@ def test_add_axis_with_group(simulation_builder, persons):
     assert simulation_builder.get_ids('persons') == ['Alicia0', 'Javier1', 'Alicia2', 'Javier3']
 
 
-def test_add_axis_on_group_entity(simulation_builder, group_entity):
+def test_add_axis_on_group_entity(simulation_builder, persons, group_entity):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
         'housea': {'parents': ['Alicia', 'Javier']},
         'houseb': {'parents': ['Tom']},
@@ -61,7 +62,20 @@ def test_add_axis_on_group_entity(simulation_builder, group_entity):
     assert simulation_builder.get_input('rent', '2018-11') == approx([0, 0, 3000, 0])
 
 
-def test_add_axis_distributes_roles(simulation_builder, group_entity):
+def test_axis_on_group_expands_persons(simulation_builder, persons, group_entity):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
+        'housea': {'parents': ['Alicia', 'Javier']},
+        'houseb': {'parents': ['Tom']},
+        })
+    simulation_builder.register_variable('rent', group_entity)
+    simulation_builder.add_parallel_axis({'count': 2, 'name': 'rent', 'min': 0, 'max': 3000, 'period': '2018-11'})
+    simulation_builder.expand_axes()
+    assert simulation_builder.get_count('persons') == 6
+
+
+def test_add_axis_distributes_roles(simulation_builder, persons, group_entity):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
         'housea': {'parents': ['Alicia']},
         'houseb': {'parents': ['Tom'], 'children': ['Javier']},
@@ -72,7 +86,8 @@ def test_add_axis_distributes_roles(simulation_builder, group_entity):
     assert [role.key for role in simulation_builder.get_roles('households')] == ['parent', 'child', 'parent', 'parent', 'child', 'parent']
 
 
-def test_add_axis_distributes_memberships(simulation_builder, group_entity):
+def test_add_axis_distributes_memberships(simulation_builder, persons, group_entity):
+    simulation_builder.add_person_entity(persons, {'Alicia': {}, 'Javier': {}, 'Tom': {}})
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Tom'], group_entity, {
         'housea': {'parents': ['Alicia']},
         'houseb': {'parents': ['Tom'], 'children': ['Javier']},
@@ -100,7 +115,7 @@ def test_simulation_with_axes(simulation_builder):
     from .test_countries import tax_benefit_system
     input_yaml = """
         persons:
-          Alicia: {}
+          Alicia: {salary: {2018-11: 0}}
           Javier: {}
           Tom: {}
         households:
@@ -118,4 +133,5 @@ def test_simulation_with_axes(simulation_builder):
     """
     data = yaml.load(input_yaml)
     simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
+    assert simulation.get_array('salary', '2018-11') == approx([0, 0, 0, 0, 0, 0])
     assert simulation.get_array('rent', '2018-11') == approx([0, 0, 3000, 0])

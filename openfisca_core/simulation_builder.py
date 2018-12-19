@@ -90,10 +90,6 @@ class SimulationBuilder(object):
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
         persons_ids = self.add_person_entity(simulation.persons, persons_json)
-        try:
-            self.finalize_variables_init(simulation.persons)
-        except PeriodMismatchError as e:
-            self.raise_period_mismatch(simulation.persons, persons_json, e)
 
         for entity_class in tax_benefit_system.group_entities:
             entity = simulation.entities[entity_class.key]
@@ -103,6 +99,11 @@ class SimulationBuilder(object):
         if axes:
             self.axes = axes
             self.expand_axes()
+
+        try:
+            self.finalize_variables_init(simulation.persons)
+        except PeriodMismatchError as e:
+            self.raise_period_mismatch(simulation.persons, persons_json, e)
 
         for entity_class in tax_benefit_system.group_entities:
             try:
@@ -342,7 +343,10 @@ class SimulationBuilder(object):
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, key=key_period_size)
             for period in sorted_periods:
-                array = buffer[str(period)]
+                values = buffer[str(period)]
+                # Hack to replicate the values in the persons entity
+                # when we have an axis along a group entity but not persons
+                array = np.tile(values, entity.count // len(values))
                 holder.set_input(period, array)
 
     def raise_period_mismatch(self, entity, json, e):
@@ -404,13 +408,15 @@ class SimulationBuilder(object):
             adjusted_roles = original_roles * axis_count
             self.axes_roles[axis_entity.plural] = adjusted_roles
             # Adjust memberships
-            original_memberships = self.get_memberships(axis_entity.plural)
-            # If this is not the 'persons entity'
-            if (len(original_memberships)):
+            if not axis_entity.is_person:
+                original_memberships = self.get_memberships(axis_entity.plural)
                 repeated_memberships = original_memberships * axis_count
                 indices = np.repeat(np.arange(0, axis_count), len(original_memberships)) * axis_entity_step_size
                 adjusted_memberships = (np.array(repeated_memberships) + indices).tolist()
                 self.axes_memberships[axis_entity.plural] = adjusted_memberships
+                # Adjust the count of persons, too
+                original_person_count = self.entity_counts.get(self.persons_entity.plural, 1)
+                self.entity_counts[self.persons_entity.plural] = original_person_count * axis_count
             # Distribute values along axes or spaces
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
