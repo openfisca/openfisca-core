@@ -45,9 +45,9 @@ def import_yaml():
 
 TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
 
-yaml, Loader = import_yaml()
-
 log = logging.getLogger(__name__)
+
+yaml, Loader = import_yaml()
 
 _tax_benefit_system_cache = {}
 
