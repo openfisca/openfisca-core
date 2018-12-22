@@ -4,6 +4,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 
 import dpath
 import numpy as np
+from copy import deepcopy
 
 from openfisca_core.commons import basestring_type
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
@@ -58,6 +59,8 @@ class SimulationBuilder(object):
                 'households': {'household': {'parents': ['Javier']}}
                 })
         """
+        input_dict = deepcopy(input_dict)
+
         simulation = kwargs.pop('simulation', None)  # Only for backward compatibility with previous Simulation constructor
         if simulation is None:
             simulation = Simulation(tax_benefit_system, **kwargs)
