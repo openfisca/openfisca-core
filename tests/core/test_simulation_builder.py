@@ -155,6 +155,13 @@ def test_add_person_entity(simulation_builder, persons):
     assert simulation_builder.get_ids('persons') == ['Alicia', 'Javier']
 
 
+def test_numeric_ids(simulation_builder, persons):
+    persons_json = OrderedDict([(1, {'salary': {}}), (2, {})])  # We need an OrderedDict in Python 2
+    simulation_builder.add_person_entity(persons, persons_json)
+    assert simulation_builder.get_count('persons') == 2
+    assert simulation_builder.get_ids('persons') == ['1', '2']
+
+
 def test_add_person_entity_with_values(simulation_builder, persons):
     persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
     simulation_builder.add_person_entity(persons, persons_json)
@@ -189,7 +196,7 @@ def test_add_group_entity(simulation_builder, group_entity):
 def test_add_group_entity_loose_syntax(simulation_builder, group_entity):
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', '1'], group_entity, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
-        'Household_2': {'parents': '1', 'children': 'Sarah'},
+        'Household_2': {'parents': 1, 'children': 'Sarah'},
         })
     assert simulation_builder.get_count('households') == 2
     assert simulation_builder.get_ids('households') == ['Household_1', 'Household_2']

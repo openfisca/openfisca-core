@@ -192,7 +192,7 @@ class SimulationBuilder(object):
             Add the simulation's instances of the persons entity as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
-        entity_ids = list(instances_json.keys())
+        entity_ids = list(map(str, instances_json.keys()))
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
         self.persons_plural = entity.plural
@@ -208,7 +208,7 @@ class SimulationBuilder(object):
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
-        entity_ids = list(instances_json.keys())
+        entity_ids = list(map(str, instances_json.keys()))
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
 
