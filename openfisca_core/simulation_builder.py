@@ -257,7 +257,8 @@ class SimulationBuilder(object):
                 )
 
     def set_default_period(self, period):
-        self.default_period = period
+        if period:
+            self.default_period = str(make_period(period))
 
     def get_input(self, variable, period):
         if variable not in self.input_buffer:
