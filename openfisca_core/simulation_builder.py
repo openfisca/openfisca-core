@@ -15,7 +15,7 @@ class SimulationBuilder(object):
 
     def __init__(self):
         self.default_period = None
-        self.persons_entity = None
+        self.persons_plural = None
         self.input_buffer = {}
         self.entity_counts = {}
         self.entity_ids = {}
@@ -192,7 +192,7 @@ class SimulationBuilder(object):
         entity_ids = list(instances_json.keys())
         self.entity_ids[entity.plural] = entity_ids
         self.entity_counts[entity.plural] = len(entity_ids)
-        self.persons_entity = entity
+        self.persons_plural = entity.plural
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -388,36 +388,44 @@ class SimulationBuilder(object):
 
     def expand_axes(self):
         # This method should be idempotent & allow change in axes
-        self.axes_entity_counts = {}
+        perpendicular_dimensions = self.axes
+
+        cell_count = 1
+        for parallel_axes in perpendicular_dimensions:
+            first_axis = parallel_axes[0]
+            axis_count = first_axis['count']
+            cell_count *= axis_count
+
+        # Scale the "prototype" situation, repeating it cell_count times
+        for entity_name in self.entity_counts.keys():
+            # Adjust counts
+            self.axes_entity_counts[entity_name] = self.get_count(entity_name) * cell_count
+            # Adjust ids
+            original_ids = self.get_ids(entity_name) * cell_count
+            indices = np.arange(0, cell_count * self.entity_counts[entity_name])
+            adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
+            self.axes_entity_ids[entity_name] = adjusted_ids
+            # Adjust roles
+            original_roles = self.get_roles(entity_name)
+            adjusted_roles = original_roles * cell_count
+            self.axes_roles[entity_name] = adjusted_roles
+            # Adjust memberships, for group entities only
+            if entity_name != self.persons_plural:
+                original_memberships = self.get_memberships(entity_name)
+                repeated_memberships = original_memberships * cell_count
+                indices = np.repeat(np.arange(0, cell_count), len(original_memberships)) * self.entity_counts[entity_name]
+                adjusted_memberships = (np.array(repeated_memberships) + indices).tolist()
+                self.axes_memberships[entity_name] = adjusted_memberships
+
+        # Now generate input values along the specified axes
+        # TODO - factor out the common logic here
         if len(self.axes) == 1 and len(self.axes[0]):
             parallel_axes = self.axes[0]
             first_axis = parallel_axes[0]
             axis_count = first_axis['count']
             axis_entity = self.get_variable_entity(first_axis['name'])
-            axis_entity_step_size = self.get_count(axis_entity.plural)
-            # Adjust counts
-            axis_entity_count = axis_count * axis_entity_step_size
-            self.axes_entity_counts[axis_entity.plural] = axis_entity_count
-            # Adjust ids
-            original_ids = self.get_ids(axis_entity.plural) * axis_entity_count
-            indices = np.arange(0, axis_entity_count)
-            adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
-            self.axes_entity_ids[axis_entity.plural] = adjusted_ids
-            # Adjust roles
-            original_roles = self.get_roles(axis_entity.plural)
-            adjusted_roles = original_roles * axis_count
-            self.axes_roles[axis_entity.plural] = adjusted_roles
-            # Adjust memberships
-            if not axis_entity.is_person:
-                original_memberships = self.get_memberships(axis_entity.plural)
-                repeated_memberships = original_memberships * axis_count
-                indices = np.repeat(np.arange(0, axis_count), len(original_memberships)) * axis_entity_step_size
-                adjusted_memberships = (np.array(repeated_memberships) + indices).tolist()
-                self.axes_memberships[axis_entity.plural] = adjusted_memberships
-                # Adjust the count of persons, too
-                original_person_count = self.entity_counts.get(self.persons_entity.plural, 1)
-                self.entity_counts[self.persons_entity.plural] = original_person_count * axis_count
-            # Distribute values along axes or spaces
+            axis_entity_step_size = self.entity_counts[axis_entity.plural]
+            # Distribute values along axes
             for axis in parallel_axes:
                 axis_index = axis.get('index', 0)
                 axis_period = axis.get('period', self.default_period)
@@ -425,7 +433,7 @@ class SimulationBuilder(object):
                 variable = axis_entity.get_variable(axis_name)
                 array = self.get_input(axis_name, axis_period)
                 if array is None:
-                    array = variable.default_array(axis_entity_count)
+                    array = variable.default_array(axis_count * axis_entity_step_size)
                 array[axis_index:: axis_entity_step_size] = np.linspace(axis['min'], axis['max'], axis_count)
                 # Set input
                 self.input_buffer[axis_name][str(axis_period)] = array
@@ -438,28 +446,12 @@ class SimulationBuilder(object):
                     )
                 ]
             axes_meshes = np.meshgrid(*axes_linspaces)
-            steps_count = 1
-            entity_sizes = {}
-            for parallel_axes in self.axes:
-                first_axis = parallel_axes[0]
-                axis_count = first_axis['count']
-                steps_count *= axis_count
-                axis_entity = self.get_variable_entity(first_axis['name'])
-                entity_sizes[axis_entity.plural] = self.get_count(axis_entity.plural)
             for parallel_axes, mesh in zip(self.axes, axes_meshes):
                 first_axis = parallel_axes[0]
                 axis_count = first_axis['count']
                 axis_entity = self.get_variable_entity(first_axis['name'])
-                # Adjust counts
-                axis_entity_step_size = entity_sizes[axis_entity.plural]
-                axis_entity_count = steps_count * axis_entity_step_size
-                self.axes_entity_counts[axis_entity.plural] = axis_entity_count
-                # Adjust ids
-                original_ids = self.get_ids(axis_entity.plural) * axis_entity_count
-                indices = np.arange(0, axis_entity_count)
-                adjusted_ids = [id + str(ix) for id, ix in zip(original_ids, indices)]
-                self.axes_entity_ids[axis_entity.plural] = adjusted_ids
-                # Distribute values along axes or spaces
+                axis_entity_step_size = self.entity_counts[axis_entity.plural]
+                # Distribute values along the grid
                 for axis in parallel_axes:
                     axis_index = axis.get('index', 0)
                     axis_period = axis['period'] or self.default_period
@@ -467,9 +459,9 @@ class SimulationBuilder(object):
                     variable = axis_entity.get_variable(axis_name)
                     array = self.get_input(axis_name, axis_period)
                     if array is None:
-                        array = variable.default_array(axis_entity_count)
+                        array = variable.default_array(cell_count * axis_entity_step_size)
                     array[axis_index:: axis_entity_step_size] = axis['min'] \
-                        + mesh.reshape(steps_count) * (axis['max'] - axis['min']) / (axis_count - 1)
+                        + mesh.reshape(cell_count) * (axis['max'] - axis['min']) / (axis_count - 1)
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):
