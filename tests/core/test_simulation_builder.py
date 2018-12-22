@@ -272,6 +272,13 @@ def test_finalize_person_entity(simulation_builder, persons):
     assert persons.ids == ['Alicia', 'Javier']
 
 
+def test_canonicalize_period_keys(simulation_builder, persons):
+    persons_json = {'Alicia': {'salary': {'year:2018-01': 100}}}
+    simulation_builder.add_person_entity(persons, persons_json)
+    simulation_builder.finalize_variables_init(persons)
+    assert_near(persons.get_holder('salary').get_array('2018-12'), [100])
+
+
 def test_finalize_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system)
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household, {

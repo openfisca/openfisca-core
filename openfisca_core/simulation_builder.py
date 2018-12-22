@@ -326,7 +326,7 @@ class SimulationBuilder(object):
 
         array[instance_index] = value
 
-        self.input_buffer[variable.name][str(period_str)] = array
+        self.input_buffer[variable.name][str(make_period(period_str))] = array
 
     def finalize_variables_init(self, entity):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
