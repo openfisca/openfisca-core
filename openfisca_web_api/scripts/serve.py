@@ -3,9 +3,8 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 import sys
 import logging
-import argparse
 
-from openfisca_core.scripts import add_tax_benefit_system_arguments, build_tax_benefit_system
+from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app
 from openfisca_web_api.errors import handle_import_error
 
@@ -28,21 +27,6 @@ DEFAULT_TIMEOUT = 120
 
 
 log = logging.getLogger(__name__)
-
-
-def build_parser(parser):
-    # Define OpenFisca modules configuration
-    parser = add_tax_benefit_system_arguments(parser)
-
-    # Define server configuration
-    parser.add_argument('-p', '--port', action = 'store', help = "port to serve on (use --bind to specify host and port)", type = int)
-    parser.add_argument('--tracker-url', action = 'store', help = "tracking service url", type = str)
-    parser.add_argument('--tracker-idsite', action = 'store', help = "tracking service id site", type = int)
-    parser.add_argument('--tracker-token', action = 'store', help = "tracking service authentication token", type = str)
-    parser.add_argument('--welcome-message', action = 'store', help = "welcome message users will get when visiting the API root", type = str)
-    parser.add_argument('-f', '--configuration-file', action = 'store', help = "configuration file", type = str)
-
-    return parser
 
 
 def read_user_configuration(default_configuration, command_line_parser):
@@ -104,11 +88,7 @@ class OpenFiscaWebAPIApplication(BaseApplication):
             )
 
 
-def main(parser = None):
-    if not parser:
-        parser = argparse.ArgumentParser()
-        parser = build_parser(parser)
-
+def main(parser):
     configuration = {
         'port': DEFAULT_PORT,
         'bind': '{}:{}'.format(HOST, DEFAULT_PORT),
@@ -117,7 +97,3 @@ def main(parser = None):
         }
     configuration = read_user_configuration(configuration, parser)
     OpenFiscaWebAPIApplication(configuration).run()
-
-
-if __name__ == '__main__':
-    sys.exit(main())
