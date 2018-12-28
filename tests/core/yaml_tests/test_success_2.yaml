@@ -1,0 +1,14 @@
+- name: "Basic test - N/A management"
+  description:  Alicia basic_income should not be null
+  period: 2017-01
+  input:
+    persons:
+      Alicia:
+        salary: 4000
+      Javier:
+        basic_income: 0
+    household:
+      parents: [Alicia, Javier]
+  output:
+    household:
+      total_benefits: 600
