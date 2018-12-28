@@ -408,7 +408,7 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
-    def delete_arrays(self, variable, period):
+    def delete_arrays(self, variable, period = None):
         """
             Delete a variable's value for a given period
 
