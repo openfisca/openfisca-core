@@ -104,7 +104,7 @@ class Holder(object):
             :returns: Memory usage data
             :rtype: dict
 
-            Exemple:
+            Example:
 
             >>> holder.get_memory_usage()
             >>> {
@@ -149,7 +149,7 @@ class Holder(object):
             :param array: the input value for the variable
             :param period: the period at which the value is setted
 
-            Exemple :
+            Example :
 
             >>> holder.set_input([12, 14], '2018-04')
             >>> holder.get_array('2018-04')

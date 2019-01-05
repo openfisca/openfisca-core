@@ -188,7 +188,7 @@ class PersonEntity(Entity):
         """
             Check if a person has a given role within its :any:`GroupEntity`
 
-            Exemple:
+            Example:
 
             >>> person.has_role(Household.CHILD)
             >>> array([False])
@@ -224,7 +224,7 @@ class PersonEntity(Entity):
         The person with rank 0 has the minimum value of criteria.
         If condition is specified, then the persons who don't respect it are not taken into account and their rank is -1.
 
-        Exemple:
+        Example:
 
         >>> age = person('age', period)  # e.g [32, 34, 2, 8, 1]
         >>> person.get_rank(household, age)
