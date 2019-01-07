@@ -58,7 +58,7 @@ setup(
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
         ],
     entry_points = {
-        'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main'],
+        'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main','openfisca-run-test=openfisca_core.scripts.openfisca_command:main'],
         },
     extras_require = {
         'web-api': api_requirements,

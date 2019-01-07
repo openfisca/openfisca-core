@@ -1,5 +1,6 @@
 from __future__ import unicode_literals, print_function, division, absolute_import
 import argparse
+import warnings
 import sys
 
 from openfisca_core.scripts import add_tax_benefit_system_arguments
@@ -48,6 +49,11 @@ def get_parser():
 
 
 def main():
+    if sys.argv[0].endswith('openfisca-run-test'):
+        sys.argv[0:2] = ['openfisca','test']
+        message = "The 'openfisca-run-test' command has been deprecated in favor of 'openfisca test' since version 25.0, and will be removed in the future."
+        warnings.warn(message, Warning)
+
     parser = get_parser()
 
     args, _ = parser.parse_known_args()
