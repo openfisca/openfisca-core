@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.3 [#800](https://github.com/openfisca/openfisca-core/pull/800)
+
+- Fixes an exception on yaml import in test runner
+
 ### 25.2.2 [#798](https://github.com/openfisca/openfisca-core/pull/798)
 
 - Fixes a regression in the YAML test runner. If you have changed any YAML tests since 25.0.0, please rerun them.
