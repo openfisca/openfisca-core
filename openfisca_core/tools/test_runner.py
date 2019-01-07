@@ -22,6 +22,9 @@ from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError
 
 
+log = logging.getLogger(__name__)
+
+
 def import_yaml():
     if sys.version_info < (3, 6):
         # In Python 2, we need a YAML loader that preserves the dict orders, as it's not natively suported.
@@ -44,8 +47,6 @@ def import_yaml():
 
 
 TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_variables', 'input', 'keywords', 'name', 'only_variables', 'output', 'period', 'reforms', 'relative_error_margin'}
-
-log = logging.getLogger(__name__)
 
 yaml, Loader = import_yaml()
 
