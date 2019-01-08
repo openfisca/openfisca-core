@@ -241,7 +241,7 @@ class TaxBenefitSystem(object):
 
         :returns: A reformed tax and benefit system.
 
-        Exemple:
+        Example:
 
         >>> self.apply_reform('openfisca_france.reforms.inversion_revenus')
 
@@ -294,7 +294,7 @@ class TaxBenefitSystem(object):
 
         :param path_to_yaml_dir: Absolute path towards the YAML parameter directory.
 
-        Exemples:
+        Example:
 
         >>> self.load_parameters('/path/to/yaml/parameters/dir')
         """
@@ -340,7 +340,7 @@ class TaxBenefitSystem(object):
             :returns: Country package metadata
             :rtype: dict
 
-            Exemple:
+            Example:
 
             >>> tax_benefit_system.get_package_metadata()
             >>> {

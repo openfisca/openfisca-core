@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.4 [#806](https://github.com/openfisca/openfisca-core/pull/806)
+
+- Fixes a missing default parameter in `Simulation.delete_arrays` method.
+
 ### 25.2.3 [#800](https://github.com/openfisca/openfisca-core/pull/800)
 
 - Fixes an exception on yaml import in test runner

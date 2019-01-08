@@ -408,7 +408,7 @@ class Simulation(object):
 
     # ----- Misc ----- #
 
-    def delete_arrays(self, variable, period):
+    def delete_arrays(self, variable, period = None):
         """
             Delete a variable's value for a given period
 
@@ -428,7 +428,12 @@ class Simulation(object):
             array([12, 14], dtype=int32)
             >>> simulation.get_array('age', '2018-05') is None
             True
-
+            >>> simulation.set_input('age', '2018-05', [13, 14])
+            >>> simulation.delete_arrays('age')
+            >>> simulation.get_array('age', '2018-04') is None
+            True
+            >>> simulation.get_array('age', '2018-05') is None
+            True
         """
         self.get_holder(variable).delete_arrays(period)
 

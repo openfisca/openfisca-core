@@ -9,7 +9,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     """
         Generate a simulation containing nb_persons persons spread in nb_groups groups.
 
-        Exemple:
+        Example:
 
         >>> from openfisca_core.scripts.simulation_generator import make_simulation
         >>> from openfisca_france import CountryTaxBenefitSystem
@@ -51,7 +51,7 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
         Initialise a variable with random values (from 0 to max_value) for the given period.
         If a condition vector is provided, only set the value of persons or groups for which condition is True.
 
-        Exemple:
+        Example:
 
         >>> from openfisca_core.scripts.simulation_generator import make_simulation, randomly_init_variable
         >>> from openfisca_france import CountryTaxBenefitSystem
