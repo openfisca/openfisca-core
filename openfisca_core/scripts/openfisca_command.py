@@ -50,7 +50,7 @@ def get_parser():
 
 def main():
     if sys.argv[0].endswith('openfisca-run-test'):
-        sys.argv[0:2] = ['openfisca','test']
+        sys.argv[0:2] = ['openfisca', 'test']
         message = "The 'openfisca-run-test' command has been deprecated in favor of 'openfisca test' since version 25.0, and will be removed in the future."
         warnings.warn(message, Warning)
 
