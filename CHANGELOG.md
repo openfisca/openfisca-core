@@ -1,16 +1,20 @@
 # Changelog
 
+### 25.2.5 [#802](https://github.com/openfisca/openfisca-core/pull/802)
+
+- Load extensions more reliably, by removing dead code in load_extension
+
 ### 25.2.4 [#806](https://github.com/openfisca/openfisca-core/pull/806)
 
-- Fixes a missing default parameter in `Simulation.delete_arrays` method.
+- Supply a missing default parameter in `Simulation.delete_arrays` method.
 
 ### 25.2.3 [#800](https://github.com/openfisca/openfisca-core/pull/800)
 
-- Fixes an exception on yaml import in test runner
+- Fix an exception on yaml import in test runner
 
 ### 25.2.2 [#798](https://github.com/openfisca/openfisca-core/pull/798)
 
-- Fixes a regression in the YAML test runner. If you have changed any YAML tests since 25.0.0, please rerun them.
+- Fix a regression in the YAML test runner. If you have changed any YAML tests since 25.0.0, please rerun them.
 
 ### 25.2.1 [#796](https://github.com/openfisca/openfisca-core/pull/796)
 
