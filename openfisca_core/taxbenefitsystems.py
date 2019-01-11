@@ -11,7 +11,6 @@ import logging
 import inspect
 import pkg_resources
 import traceback
-from setuptools import find_packages
 
 from openfisca_core import conv
 from openfisca_core import periods
@@ -206,24 +205,16 @@ class TaxBenefitSystem(object):
         :param string extension: The extension to load. Can be an absolute path pointing to an extension directory, or the name of an OpenFisca extension installed as a pip package.
 
         """
-        if path.isdir(extension):
-            if find_packages(extension):
-                # Load extension from a package directory
-                extension_directory = path.join(extension, find_packages(extension)[0])
-            else:
-                # Load extension from a simple directory
-                extension_directory = extension
-        else:
-            # Load extension from installed pip package
-            try:
-                package = importlib.import_module(extension)
-                extension_directory = package.__path__[0]
-            except ImportError:
-                message = linesep.join([traceback.format_exc(),
-                                        'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
-                                        'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
-                                        'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
-                raise ValueError(message)
+        # Load extension from installed pip package
+        try:
+            package = importlib.import_module(extension)
+            extension_directory = package.__path__[0]
+        except ImportError:
+            message = linesep.join([traceback.format_exc(),
+                                    'Error loading extension: `{}` is neither a directory, nor a package.'.format(extension),
+                                    'Are you sure it is installed in your environment? If so, look at the stack trace above to determine the origin of this error.',
+                                    'See more at <https://github.com/openfisca/openfisca-extension-template#installing>.'])
+            raise ValueError(message)
 
         self.add_variables_from_directory(extension_directory)
         param_dir = path.join(extension_directory, 'parameters')
