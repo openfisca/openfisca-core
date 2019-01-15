@@ -51,9 +51,9 @@ class Simulation(object):
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
         # See use in formulas.py.
-        # The data structure of requested_periods_by_variable_name is: {variable_name: [period1, period2]}
-        self.requested_periods_by_variable_name = {}
-        self.max_nb_cycles = None
+        # The data structure of computation_stack is:
+        # [[ 'variable_name', 'period1'], ['variable_name', 'period2']]
+        self.computation_stack = []
 
         self.debug = False
         self.trace = False
@@ -123,12 +123,13 @@ class Simulation(object):
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
             return cached_array
 
-        max_nb_cycles = parameters.get('max_nb_cycles')
-        if max_nb_cycles is not None:
-            self.max_nb_cycles = max_nb_cycles
+        input_only = parameters.get('input_only')
+
+        array = None
 
         # First, try to run a formula
-        array = self._run_formula(variable, entity, period, max_nb_cycles)
+        if not input_only:
+            array = self._run_formula(variable, entity, period)
 
         # If no result, try a base function
         if array is None and variable.base_function:
@@ -137,10 +138,6 @@ class Simulation(object):
         # If no result, use the default value
         if array is None:
             array = holder.default_array()
-
-        self._clean_cycle_detection_data(variable.name)
-        if max_nb_cycles is not None:
-            self.max_nb_cycles = None
 
         holder.put_in_cache(array, period)
         if self.trace:
@@ -215,7 +212,7 @@ class Simulation(object):
             self.tracer
             )
 
-    def _run_formula(self, variable, entity, period, max_nb_cycles):
+    def _run_formula(self, variable, entity, period):
         """
             Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
         """
@@ -229,21 +226,14 @@ class Simulation(object):
         else:
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
-        try:
-            self._check_for_cycle(variable, period)
-            if formula.__code__.co_argcount == 2:
-                array = formula(entity, period)
-            else:
-                array = formula(entity, period, parameters_at)
-        except CycleError as error:
-            self._clean_cycle_detection_data(variable.name)
-            if max_nb_cycles is None:
-                if self.trace:
-                    self.tracer.record_calculation_abortion(variable.name, period)
-                # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
-                raise error
-            self.max_nb_cycles = None
-            return None
+        self._check_for_cycle(variable, period)
+
+        if formula.__code__.co_argcount == 2:
+            array = formula(entity, period)
+        else:
+            array = formula(entity, period, parameters_at)
+
+        self._clean_cycle_detection_data(variable.name)
 
         self._check_formula_result(array, variable, entity, period)
         return self._cast_formula_result(array, variable)
@@ -313,47 +303,28 @@ class Simulation(object):
 
     def _check_for_cycle(self, variable, period):
         """
-        Return a boolean telling if the current variable has already been called without being allowed by
-        the parameter max_nb_cycles of the calculate method.
+        Raise an exception in the case of a circular definition, where evaluating a variable for
+        a given period loops around to evaluating the same variable/period pair. Also guards, as
+        a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
+        the same variable at a different period.
         """
-        def get_error_message():
-            return "Circular definition detected on formula {}@{}. Formulas and periods involved: {}.".format(
-                variable.name,
-                period,
-                ", ".join(sorted(set(
-                    "{}@{}".format(variable_name, period2)
-                    for variable_name, periods in requested_periods_by_variable_name.items()
-                    for period2 in periods
-                    ))).encode('utf-8'),
-                )
-        requested_periods_by_variable_name = self.requested_periods_by_variable_name
-        variable_name = variable.name
-        if variable_name in requested_periods_by_variable_name:
-            # Make sure the formula doesn't call itself for the same period it is being called for.
-            # It would be a pure circular definition.
-            requested_periods = requested_periods_by_variable_name[variable_name]
-            assert period not in requested_periods and (variable.definition_period != periods.ETERNITY), get_error_message()
-            if self.max_nb_cycles is None or len(requested_periods) > self.max_nb_cycles:
-                message = get_error_message()
-                if self.max_nb_cycles is None:
-                    message += ' Hint: use "max_nb_cycles = 0" to get a default value, or "= N" to allow N cycles.'
-                raise CycleError(message)
-            else:
-                requested_periods.append(period)
-        else:
-            requested_periods_by_variable_name[variable_name] = [period]
+        previous = [(name, period) for (name, period) in self.computation_stack if name == variable.name]
+        for pair in previous:
+            if pair == (variable.name, str(period)):
+                raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
+        if len(previous) > 1:
+            message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
+            raise CycleError(message)
+
+        self.computation_stack.append([variable.name, str(period)])
+
 
     def _clean_cycle_detection_data(self, variable_name):
         """
         When the value of a formula have been computed, remove the period from
         requested_periods_by_variable_name[variable_name] and delete the latter if empty.
         """
-
-        requested_periods_by_variable_name = self.requested_periods_by_variable_name
-        if variable_name in requested_periods_by_variable_name:
-            requested_periods_by_variable_name[variable_name].pop()
-            if len(requested_periods_by_variable_name[variable_name]) == 0:
-                del requested_periods_by_variable_name[variable_name]
+        self.computation_stack.pop()
 
     # ----- Methods to access stored values ----- #
 
