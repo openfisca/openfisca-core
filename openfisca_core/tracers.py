@@ -198,7 +198,7 @@ class Tracer(object):
     def _print_node(self, key, depth, aggregate):
 
         def print_line(depth, node, value):
-            print("{}{} >> {}".format('  ' * depth, node, value))
+            return "{}{} >> {}".format('  ' * depth, node, value)
 
         if not self.trace.get(key):
             return print_line(depth, key, "Calculation aborted due to a circular dependency")
@@ -224,14 +224,14 @@ class Tracer(object):
         def _print_details(key, depth):
             if depth > 0 and ignore_zero and np.all(self.trace[key]['value'] == 0):
                 return
-            self._print_node(key, depth, aggregate)
+            yield self._print_node(key, depth, aggregate)
             if depth < max_depth:
                 for dependency in self.trace[key]['dependencies']:
-                    _print_details(dependency, depth + 1)
+                    return _print_details(dependency, depth + 1)
 
-        _print_details(key, 0)
+        return _print_details(key, 0)
 
-    def print_computation_log(self, aggregate = False):
+    def computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
 
@@ -240,8 +240,11 @@ class Tracer(object):
             If ``aggregate`` is ``True``, only print the minimum, maximum, and average value of each computed vector.
             This mode is more suited for simulations on a large population.
         """
-        for node, depth in self._computation_log:
-            self._print_node(node, depth, aggregate)
+        return [self._print_node(node, depth, aggregate) for node, depth in self._computation_log]
+
+    def print_computation_log(self, aggregate = False):
+        for line in self.computation_log(aggregate):
+            print(line)
 
 
 class TracingParameterNodeAtInstant(object):

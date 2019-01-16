@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.6 [#797](https://github.com/openfisca/openfisca-core/pull/797)
+
+- Improve `print_computation_log` and make it a tested, thus supported call
+
 ### 25.2.5 [#802](https://github.com/openfisca/openfisca-core/pull/802)
 
 - Load extensions more reliably, by removing dead code in load_extension
