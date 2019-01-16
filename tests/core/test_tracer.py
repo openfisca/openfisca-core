@@ -36,14 +36,7 @@ def test_log_format():
     tracer.record_calculation_end("B", 2017, 1)
     tracer.record_calculation_end("A", 2017, 2)
 
-    from io import StringIO
-    import contextlib
-
-    log = StringIO()
-    with contextlib.redirect_stdout(log):
-        tracer.print_computation_log()
-
-    lines = log.getvalue().split('\n')
+    lines = tracer.computation_log()
     assert_equals(lines[0], '  A<2017> >> 2')
     assert_equals(lines[1], '    B<2017> >> 1')
 
