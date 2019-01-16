@@ -29,7 +29,7 @@ def persons():
         definition_period = ETERNITY
         value_type = str
         dtype = 'O'
-        default_value = '0'
+        default_value = 0
         is_neutralized = False
         set_input = None
 
