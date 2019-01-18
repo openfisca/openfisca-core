@@ -146,9 +146,19 @@ class AmountTaxScale(AbstractTaxScale):
             self.thresholds.insert(i, threshold)
             self.amounts.insert(i, amount)
 
-    def calc(self, base, right=False):
-        bracket_indices = np.digitize(base, self.thresholds, right=right)
-        return np.array(self.amounts)[bracket_indices - 1]
+    def calc(self, base):
+        base1 = np.tile(base, (len(self.thresholds), 1)).T
+        thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
+        a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
+        return np.dot(self.amounts, a.T > 0)
+
+
+class LookupTaxScale(AmountTaxScale):
+    def calc(self, base, right=True):
+        guarded_thresholds = np.array([-np.inf] + self.thresholds + [np.inf])
+        bracket_indices = np.digitize(base, guarded_thresholds, right=right)
+        guarded_amounts = np.array([0] + self.amounts + [0])
+        return guarded_amounts[bracket_indices - 1]
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):
