@@ -64,6 +64,15 @@ jobs:
             source /tmp/venv/openfisca_core/bin/activate
             .circleci/publish-python-package.sh
 
+      - run:
+          name: Publish a git tag
+          command: .circleci/publish-git-tag.sh
+
+      - run:
+          name: Update doc
+          command: |
+            curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
+
   check_version_and_changelog:
     docker:
       - image: python:3.6
