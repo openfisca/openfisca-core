@@ -1,5 +1,10 @@
 # Changelog
 
+### 25.2.7 [#803](https://github.com/openfisca/openfisca-core/pull/803)
+
+- Allow country package users to run `openfisca test` without installing the `web_api` dependency
+- Alias `openfisca-run-test` to `openfisca test`
+
 ### 25.2.6 [#797](https://github.com/openfisca/openfisca-core/pull/797)
 
 - Improve `print_computation_log` and make it a tested, thus supported call
