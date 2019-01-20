@@ -23,7 +23,6 @@ from openfisca_core.simulations import (  # noqa analysis:ignore
     )
 from openfisca_core.base_functions import (   # noqa analysis:ignore
     missing_value,
-    requested_period_default_value,
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
