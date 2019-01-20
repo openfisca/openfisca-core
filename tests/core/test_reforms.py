@@ -370,7 +370,6 @@ def test_attributes_conservation():
         definition_period = MONTH
         set_input = set_input_divide_by_period
         calculate_output = calculate_output_add
-        base_function = requested_period_last_value
 
     tax_benefit_system.add_variable(some_variable)
 
@@ -390,7 +389,6 @@ def test_attributes_conservation():
     assert reform_variable.definition_period == baseline_variable.definition_period
     assert reform_variable.set_input == baseline_variable.set_input
     assert reform_variable.calculate_output == baseline_variable.calculate_output
-    assert reform_variable.base_function == baseline_variable.base_function
 
 
 def test_formulas_removal():

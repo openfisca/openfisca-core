@@ -13,10 +13,6 @@ from openfisca_core import entities
 from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
-from openfisca_core.base_functions import (
-    missing_value,
-    requested_period_last_value,
-    )
 from openfisca_core.tools import eval_expression
 
 
@@ -180,7 +176,6 @@ class Variable(object):
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
-        self.base_function = self.set_base_function(attr.pop('base_function', None))
 
         formulas_attr, unexpected_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
         self.formulas = self.set_formulas(formulas_attr)
@@ -260,21 +255,6 @@ class Variable(object):
     def set_documentation(self, documentation):
         if documentation:
             return textwrap.dedent(documentation)
-
-    def set_base_function(self, base_function):
-        if not base_function and self.baseline_variable:
-            return self.baseline_variable.base_function
-
-        if base_function and base_function not in {
-                missing_value,
-                requested_period_last_value
-                }:
-            raise ValueError('Unexpected base_function {}'.format(base_function).encode('utf-8'))
-
-        if self.is_period_size_independent and base_function is None:
-            return requested_period_last_value
-
-        return base_function
 
     def set_set_input(self, set_input):
         if not set_input and self.baseline_variable:

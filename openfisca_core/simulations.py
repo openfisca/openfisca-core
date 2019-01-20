@@ -137,10 +137,6 @@ class Simulation(object):
             self._check_for_cycle(variable, period)
             array = self._run_formula(variable, entity, period)
 
-            # If no result, try a base function
-            if array is None and variable.base_function:
-                array = variable.base_function(holder, period)
-
             # If no result, use the default value and cache it
             if array is None:
                 array = holder.default_array()
