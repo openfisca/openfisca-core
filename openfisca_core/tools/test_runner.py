@@ -279,6 +279,6 @@ def _check_variable(simulation, variable_name, expected_value, period, test, ent
         expected_value,
         absolute_error_margin = test.get('absolute_error_margin'),
         message = "In test '{}', in file '{}', {}@{}: ".format(
-            test.get('name'), test.get('file_path'), variable_name, test.get('period')),
+            test.get('name'), test.get('file_path'), variable_name, period),
         relative_error_margin = test.get('relative_error_margin'),
         )
