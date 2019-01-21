@@ -1,0 +1,6 @@
+- name: "Help message should contain '2015-02'"
+  period: 2015-01
+  input:
+  output:
+    income_tax:
+      2015-02: 10
