@@ -2,6 +2,7 @@
 
 import pkg_resources
 import os
+import re
 import sys
 
 from nose.tools import nottest
@@ -31,4 +32,4 @@ def test_fail():
     assert run_yaml_test('test_failure_help_message.yaml') is False
     sys.stderr.seek(0)
     helpMessage = sys.stderr.read()
-    assert b'income_tax@2015-02:' in helpMessage
+    assert len(list(re.finditer(b'income_tax@2015-02', helpMessage))) == 2
