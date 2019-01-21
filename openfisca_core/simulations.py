@@ -27,6 +27,10 @@ class CycleError(Exception):
     pass
 
 
+class SpiralError(Exception):
+    pass
+
+
 class Simulation(object):
     """
         Represents a simulation, and handles the calculation logic
@@ -123,13 +127,10 @@ class Simulation(object):
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
             return cached_array
 
-        input_only = parameters.get('input_only')
-
         array = None
 
         # First, try to run a formula
-        if not input_only:
-            array = self._run_formula(variable, entity, period)
+        array = self._run_formula(variable, entity, period)
 
         # If no result, try a base function
         if array is None and variable.base_function:
@@ -226,14 +227,19 @@ class Simulation(object):
         else:
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
-        self._check_for_cycle(variable, period)
+        try:
+            self._check_for_cycle(variable, period)
 
-        if formula.__code__.co_argcount == 2:
-            array = formula(entity, period)
-        else:
-            array = formula(entity, period, parameters_at)
+            if formula.__code__.co_argcount == 2:
+                array = formula(entity, period)
+            else:
+                array = formula(entity, period, parameters_at)
 
-        self._clean_cycle_detection_data(variable.name)
+            self._clean_cycle_detection_data(variable.name)
+        except SpiralError as spiral:
+            if self.tracer:
+                self.tracer._computation_log.append(["spiral_"+ variable.name +  ":" + str(period), 1])
+            return None  # Use default value
 
         self._check_formula_result(array, variable, entity, period)
         return self._cast_formula_result(array, variable)
@@ -314,7 +320,7 @@ class Simulation(object):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
         if len(previous) > 1:
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
-            raise CycleError(message)
+            raise SpiralError(message)
 
         self.computation_stack.append([variable.name, str(period)])
 
