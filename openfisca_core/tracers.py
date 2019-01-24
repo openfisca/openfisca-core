@@ -232,6 +232,9 @@ class Tracer(object):
         return _print_details(key, 0)
 
     def computation_log(self, aggregate = False):
+        return [self._print_node(node, depth, aggregate) for node, depth in self._computation_log]
+
+    def print_computation_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
 
@@ -240,9 +243,6 @@ class Tracer(object):
             If ``aggregate`` is ``True``, only print the minimum, maximum, and average value of each computed vector.
             This mode is more suited for simulations on a large population.
         """
-        return [self._print_node(node, depth, aggregate) for node, depth in self._computation_log]
-
-    def print_computation_log(self, aggregate = False):
         for line in self.computation_log(aggregate):
             print(line)
 
