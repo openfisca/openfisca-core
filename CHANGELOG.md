@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.8 [#815](https://github.com/openfisca/openfisca-core/pull/815)
+
+- Quell a warning in the build of openfisca-doc by moving a docstring to the right place
+
 ### 25.2.7 [#803](https://github.com/openfisca/openfisca-core/pull/803)
 
 - Allow country package users to run `openfisca test` without installing the `web_api` dependency
