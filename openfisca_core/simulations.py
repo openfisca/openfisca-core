@@ -129,20 +129,32 @@ class Simulation(object):
 
         array = None
 
-        # First, try to run a formula
-        array = self._run_formula(variable, entity, period)
+        try:
+            # First, try to run a formula
+            self._check_for_cycle(variable, period)
+            array = self._run_formula(variable, entity, period)
 
-        # If no result, try a base function
-        if array is None and variable.base_function:
-            array = variable.base_function(holder, period)
+            # If no result, try a base function
+            if array is None and variable.base_function:
+                array = variable.base_function(holder, period)
+
+            if array is not None:
+                holder.put_in_cache(array, period)
+        except SpiralError as spiral:
+            spiral_marker = spiral.args[1]
+            occurrences = [pair[0] for pair in self.computation_stack if pair[0] == spiral_marker]
+            if len(occurrences) > 1:
+                raise spiral
+            if self.tracer:
+                self.tracer._computation_log.append(["spiral_" + variable.name + ":" + str(period), 1])
+        finally:
+            if self.trace:
+                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
+            self._clean_cycle_detection_data(variable.name)
 
         # If no result, use the default value
         if array is None:
             array = holder.default_array()
-
-        holder.put_in_cache(array, period)
-        if self.trace:
-            self.tracer.record_calculation_end(variable.name, period, array, **parameters)
 
         return array
 
@@ -227,19 +239,10 @@ class Simulation(object):
         else:
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
-        try:
-            self._check_for_cycle(variable, period)
-
-            if formula.__code__.co_argcount == 2:
-                array = formula(entity, period)
-            else:
-                array = formula(entity, period, parameters_at)
-
-            self._clean_cycle_detection_data(variable.name)
-        except SpiralError as spiral:
-            if self.tracer:
-                self.tracer._computation_log.append(["spiral_"+ variable.name +  ":" + str(period), 1])
-            return None  # Use default value
+        if formula.__code__.co_argcount == 2:
+            array = formula(entity, period)
+        else:
+            array = formula(entity, period, parameters_at)
 
         self._check_formula_result(array, variable, entity, period)
         return self._cast_formula_result(array, variable)
@@ -315,14 +318,14 @@ class Simulation(object):
         the same variable at a different period.
         """
         previous = [(name, period) for (name, period) in self.computation_stack if name == variable.name]
+        self.computation_stack.append([variable.name, str(period)])
         for pair in previous:
             if pair == (variable.name, str(period)):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
         if len(previous) > 1:
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
-            raise SpiralError(message)
+            raise SpiralError(message, variable.name)
 
-        self.computation_stack.append([variable.name, str(period)])
 
 
     def _clean_cycle_detection_data(self, variable_name):
