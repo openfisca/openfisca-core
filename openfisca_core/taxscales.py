@@ -154,7 +154,7 @@ class AmountTaxScale(AbstractTaxScale):
 
 
 class LookupTaxScale(AmountTaxScale):
-    def calc(self, base, right=True):
+    def calc(self, base, right=False):
         guarded_thresholds = np.array([-np.inf] + self.thresholds + [np.inf])
         bracket_indices = np.digitize(base, guarded_thresholds, right=right)
         guarded_amounts = np.array([0] + self.amounts + [0])
