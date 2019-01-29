@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.2.9 [#814](https://github.com/openfisca/openfisca-core/pull/814)
+
+- When a YAML test fails, display the correct period for wrong output variable
+
 ### 25.2.8 [#815](https://github.com/openfisca/openfisca-core/pull/815)
 
 - Quell a warning in the build of openfisca-doc by moving a docstring to the right place
