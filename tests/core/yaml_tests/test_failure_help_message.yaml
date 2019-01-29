@@ -1,6 +1,0 @@
-- name: "Help message should contain 'income_tax@2015-02' twice"
-  period: 2015-01
-  input:
-  output:
-    income_tax:
-      2015-02: 10
