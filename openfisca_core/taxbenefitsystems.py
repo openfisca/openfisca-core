@@ -151,7 +151,8 @@ class TaxBenefitSystem(object):
         """
         return self.load_variable(variable, update = True)
 
-    def add_variables_from_file(self, file_path):
+    def add_variables_from_file(self, file_path, ignored_variables = None, replaced_variables = None,
+            updated_variables = None):
         """
         Adds all OpenFisca variables contained in a given file to the tax and benefit system.
         """
@@ -173,21 +174,29 @@ class TaxBenefitSystem(object):
             for pot_variable in potential_variables:
                 # We only want to get the module classes defined in this module (not imported)
                 if isclass(pot_variable) and issubclass(pot_variable, Variable) and pot_variable.__module__ == module_name:
-                    self.add_variable(pot_variable)
+                    if ignored_variables is not None and pot_variable.__name__ in ignored_variables:
+                        continue
+                    elif replaced_variables is not None and pot_variable.__name__ in replaced_variables:
+                        self.replace_variable(pot_variable)
+                    elif updated_variables is not None and pot_variable.__name__ in updated_variables:
+                        self.update_variable(pot_variable)
+                    else:
+                        self.add_variable(pot_variable)
         except Exception:
             log.error('Unable to load OpenFisca variables from file "{}"'.format(file_path))
             raise
 
-    def add_variables_from_directory(self, directory):
+    def add_variables_from_directory(self, directory, ignored_variables = None, replaced_variables = None,
+            updated_variables = None):
         """
         Recursively explores a directory, and adds all OpenFisca variables found there to the tax and benefit system.
         """
         py_files = glob.glob(path.join(directory, "*.py"))
         for py_file in py_files:
-            self.add_variables_from_file(py_file)
+            self.add_variables_from_file(py_file, ignored_variables, replaced_variables, updated_variables)
         subdirectories = glob.glob(path.join(directory, "*/"))
         for subdirectory in subdirectories:
-            self.add_variables_from_directory(subdirectory)
+            self.add_variables_from_directory(subdirectory, ignored_variables, replaced_variables, updated_variables)
 
     def add_variables(self, *variables):
         """
