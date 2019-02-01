@@ -483,7 +483,7 @@ class Simulation(object):
         if entity_type:
             return self.entities[entity_type.key]
         if plural:
-            return next((entity for entity in self.entities.values() if entity.plural == plural))
+            return next((entity for entity in self.entities.values() if entity.plural == plural), None)
 
     def clone(self, debug = False, trace = False):
         """

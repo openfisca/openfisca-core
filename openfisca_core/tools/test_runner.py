@@ -248,11 +248,15 @@ def _run_test(simulation, test):
             for variable_name, value in expected_value.items():
                 _check_variable(simulation, variable_name, value, test.get('period'), test)
         else:
-            entity_array = simulation.get_entity(plural = key)  # If key is an entity plural
-            for entity_id, value_by_entity in expected_value.items():
-                for variable_name, value in value_by_entity.items():
-                    entity_index = entity_array.ids.index(entity_id)
-                    _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
+            entity_array = simulation.get_entity(plural = key)
+            if entity_array is not None:  # If key is an entity plural
+                for entity_id, value_by_entity in expected_value.items():
+                    for variable_name, value in value_by_entity.items():
+                        entity_index = entity_array.ids.index(entity_id)
+                        _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
+            else:
+                message = "In test '{}', in file '{}', you wanted to check the value of {}, but we don't know a variable with this name."
+                raise ValueError(message.format(test.get('name'), test.get('file_path'), key))
 
 
 def _should_ignore_variable(variable_name, test):
