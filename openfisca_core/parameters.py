@@ -729,8 +729,8 @@ class Scale(object):
     def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
-        if self.metadata.get('type') == 'lookup':
-            scale = taxscales.LookupTaxScale()
+        if self.metadata.get('type') == 'single_amount':
+            scale = taxscales.SingleAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount
@@ -738,7 +738,7 @@ class Scale(object):
                     scale.add_bracket(threshold, amount)
             return scale
         elif any('amount' in bracket._children for bracket in brackets):
-            scale = taxscales.AmountTaxScale()
+            scale = taxscales.MarginalAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount

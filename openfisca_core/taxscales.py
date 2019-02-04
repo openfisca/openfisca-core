@@ -59,7 +59,7 @@ class AbstractTaxScale(object):
         return new
 
     def to_dict(self):
-        values = self.amounts if isinstance(self, AmountTaxScale) else self.rates
+        values = self.amounts if isinstance(self, SingleAmountTaxScale) else self.rates
         return {
             str(threshold): values[index]
             for index, threshold in enumerate(self.thresholds)
@@ -123,11 +123,11 @@ class AbstractRateTaxScale(AbstractTaxScale):
         return new_tax_scale
 
 
-class AmountTaxScale(AbstractTaxScale):
+class SingleAmountTaxScale(AbstractTaxScale):
     amounts = None
 
     def __init__(self, name = None, option = None, unit = None):
-        super(AmountTaxScale, self).__init__(name = name, option = option, unit = unit)
+        super(SingleAmountTaxScale, self).__init__(name = name, option = option, unit = unit)
         self.amounts = []
 
     def __repr__(self):
@@ -146,19 +146,19 @@ class AmountTaxScale(AbstractTaxScale):
             self.thresholds.insert(i, threshold)
             self.amounts.insert(i, amount)
 
-    def calc(self, base):
-        base1 = np.tile(base, (len(self.thresholds), 1)).T
-        thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
-        a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
-        return np.dot(self.amounts, a.T > 0)
-
-
-class LookupTaxScale(AmountTaxScale):
     def calc(self, base, right=False):
         guarded_thresholds = np.array([-np.inf] + self.thresholds + [np.inf])
         bracket_indices = np.digitize(base, guarded_thresholds, right=right)
         guarded_amounts = np.array([0] + self.amounts + [0])
         return guarded_amounts[bracket_indices - 1]
+
+
+class MarginalAmountTaxScale(SingleAmountTaxScale):
+    def calc(self, base):
+        base1 = np.tile(base, (len(self.thresholds), 1)).T
+        thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
+        a = max_(min_(base1, thresholds1[:, 1:]) - thresholds1[:, :-1], 0)
+        return np.dot(self.amounts, a.T > 0)
 
 
 class LinearAverageRateTaxScale(AbstractRateTaxScale):

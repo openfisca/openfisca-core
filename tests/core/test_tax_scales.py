@@ -12,16 +12,16 @@ from openfisca_core.periods import Instant
 
 def test_amount_tax_scale():
     base = np.array([1, 8, 10])
-    amount_tax_scale = AmountTaxScale()
+    amount_tax_scale = MarginalAmountTaxScale()
     amount_tax_scale.add_bracket(6, 0.23)
     amount_tax_scale.add_bracket(9, 0.29)
 
     assert_near(amount_tax_scale.calc(base), [0, 0.23, 0.52])
 
 
-def test_lookup_tax_scale():
+def test_single_amount_tax_scale():
     base = np.array([1, 8, 10, 12])
-    tax_scale = LookupTaxScale()
+    tax_scale = SingleAmountTaxScale()
     tax_scale.add_bracket(6, 0.23)
     tax_scale.add_bracket(9, 0.29)
     tax_scale.add_bracket(11, 0)
@@ -47,29 +47,19 @@ def test_amount_in_scale():
     first_jan = Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
-    assert type(scale_at_instant) == AmountTaxScale
+    assert type(scale_at_instant) == MarginalAmountTaxScale
     assert scale_at_instant.amounts[0] == 6
 
 
 def test_dispatch_scale_creation_on_type():
     data = {'description': 'Social security contribution tax scale',
-            'metadata': {'type': 'lookup', 'threshold_unit': 'currency-EUR', 'rate_unit': '/1'},
-            'brackets': [
-                {
-                    'amount': {
-                        '2017-10-01': {'value': 6},
-                        },
-                    'threshold': {
-                        '2017-10-01': {'value': 0.23}
-                        }
-                    }
-                ]
+            'metadata': {'type': 'single_amount', 'threshold_unit': 'currency-EUR', 'rate_unit': '/1'},
             }
     scale = Scale('amount_scale', data, '')
     first_jan = Instant((2017, 11, 1))
     scale_at_instant = scale.get_at_instant(first_jan)
 
-    assert type(scale_at_instant) == LookupTaxScale
+    assert type(scale_at_instant) == SingleAmountTaxScale
 
 
 def test_simple_linear_average_rate_tax_scale():
