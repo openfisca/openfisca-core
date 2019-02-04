@@ -124,6 +124,10 @@ class AbstractRateTaxScale(AbstractTaxScale):
 
 
 class SingleAmountTaxScale(AbstractTaxScale):
+    '''
+    A SingleAmountTaxScale's calc() method matches the input amount to a set of brackets
+    and returns the single cell value that fits within that bracket.
+    '''
     amounts = None
 
     def __init__(self, name = None, option = None, unit = None):
@@ -154,6 +158,10 @@ class SingleAmountTaxScale(AbstractTaxScale):
 
 
 class MarginalAmountTaxScale(SingleAmountTaxScale):
+    '''
+    A MarginalAmountTaxScale's calc() method matches the input amount to a set of brackets
+    and returns the sum of cell values from the lowest bracket to the one containing the input.
+    '''
     def calc(self, base):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))
