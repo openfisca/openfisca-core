@@ -705,7 +705,7 @@ class Scale(object):
         _set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
 
-        if not isinstance(data['brackets'], list):
+        if not isinstance(data.get('brackets', []), list):
             raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be of type array."
                 .format(self.name),
@@ -713,7 +713,7 @@ class Scale(object):
                 )
 
         brackets = []
-        for i, bracket_data in enumerate(data['brackets']):
+        for i, bracket_data in enumerate(data.get('brackets', [])):
             bracket_name = _compose_name(name, item_name = i)
             bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
