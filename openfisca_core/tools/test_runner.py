@@ -19,7 +19,7 @@ import nose
 from openfisca_core.tools import assert_near
 from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.errors import SituationParsingError
+from openfisca_core.errors import SituationParsingError, VariableNotFound
 
 
 log = logging.getLogger(__name__)
@@ -237,12 +237,13 @@ def _parse_test(tax_benefit_system, test, options, yaml_path):
 
 
 def _run_test(simulation, test):
+    tax_benefit_system = simulation.tax_benefit_system
     output = test.get('output')
 
     if output is None:
         return
     for key, expected_value in output.items():
-        if simulation.tax_benefit_system.variables.get(key):  # If key is a variable
+        if tax_benefit_system.variables.get(key):  # If key is a variable
             _check_variable(simulation, key, expected_value, test.get('period'), test)
         elif simulation.entities.get(key):  # If key is an entity singular
             for variable_name, value in expected_value.items():
@@ -255,8 +256,7 @@ def _run_test(simulation, test):
                         entity_index = entity_array.ids.index(entity_id)
                         _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
             else:
-                message = "In test '{}', in file '{}', you wanted to check the value of {}, but we don't know a variable with this name."
-                raise ValueError(message.format(test.get('name'), test.get('file_path'), key))
+                raise VariableNotFound(key, tax_benefit_system)
 
 
 def _should_ignore_variable(variable_name, test):
