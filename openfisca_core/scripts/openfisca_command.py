@@ -36,6 +36,7 @@ def get_parser():
         parser.add_argument('path', help = "paths (files or directories) of tests to execute", nargs = '+')
         parser = add_tax_benefit_system_arguments(parser)
         parser.add_argument('-n', '--name_filter', default = None, help = "partial name of tests to execute. Only tests with the given name_filter in their name, file name, or keywords will be run.")
+        parser.add_argument('-p', '--pdb', action = 'store_true', default = False, help = "drop into debugger on failures or errors")
         parser.add_argument('-v', '--verbose', action = 'store_true', default = False, help = "increase output verbosity")
         parser.add_argument('-o', '--only-variables', nargs = '*', default = None, help = "variables to test. If specified, only test the given variables.")
         parser.add_argument('-i', '--ignore-variables', nargs = '*', default = None, help = "variables to ignore. If specified, do not test the given variables.")

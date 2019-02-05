@@ -16,6 +16,7 @@ def main(parser):
     tax_benefit_system = build_tax_benefit_system(args.country_package, args.extensions, args.reforms)
 
     options = {
+        'pdb': args.pdb,
         'verbose': args.verbose,
         'name_filter': args.name_filter,
         'only_variables': args.only_variables,
