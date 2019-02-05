@@ -59,7 +59,7 @@ class AbstractTaxScale(object):
         return new
 
     def to_dict(self):
-        values = self.amounts if isinstance(self, AmountTaxScale) else self.rates
+        values = self.amounts if isinstance(self, SingleAmountTaxScale) else self.rates
         return {
             str(threshold): values[index]
             for index, threshold in enumerate(self.thresholds)
@@ -123,11 +123,15 @@ class AbstractRateTaxScale(AbstractTaxScale):
         return new_tax_scale
 
 
-class AmountTaxScale(AbstractTaxScale):
+class SingleAmountTaxScale(AbstractTaxScale):
+    '''
+    A SingleAmountTaxScale's calc() method matches the input amount to a set of brackets
+    and returns the single cell value that fits within that bracket.
+    '''
     amounts = None
 
     def __init__(self, name = None, option = None, unit = None):
-        super(AmountTaxScale, self).__init__(name = name, option = option, unit = unit)
+        super(SingleAmountTaxScale, self).__init__(name = name, option = option, unit = unit)
         self.amounts = []
 
     def __repr__(self):
@@ -146,6 +150,18 @@ class AmountTaxScale(AbstractTaxScale):
             self.thresholds.insert(i, threshold)
             self.amounts.insert(i, amount)
 
+    def calc(self, base, right=False):
+        guarded_thresholds = np.array([-np.inf] + self.thresholds + [np.inf])
+        bracket_indices = np.digitize(base, guarded_thresholds, right=right)
+        guarded_amounts = np.array([0] + self.amounts + [0])
+        return guarded_amounts[bracket_indices - 1]
+
+
+class MarginalAmountTaxScale(SingleAmountTaxScale):
+    '''
+    A MarginalAmountTaxScale's calc() method matches the input amount to a set of brackets
+    and returns the sum of cell values from the lowest bracket to the one containing the input.
+    '''
     def calc(self, base):
         base1 = np.tile(base, (len(self.thresholds), 1)).T
         thresholds1 = np.tile(np.hstack((self.thresholds, np.inf)), (len(base), 1))

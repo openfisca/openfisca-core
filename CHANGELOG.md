@@ -1,5 +1,18 @@
 # Changelog
 
+## 25.3.0 [#811](https://github.com/openfisca/openfisca-core/pull/811)
+
+#### Technical changes
+
+- Allow France to model "Chèque Energie" in a cleaner way:
+  - Introduce SingleAmountTaxScale (SATS), a simpler form of MarginalAmountTaxScale (MATS)
+    - whereas MATS sums the values in brackets, up to the amount subject to the scale, SATS only "looks up" the appropriate value for the amount subject to the scale, and is thus the simpler mechanism
+    - use `numpy.digitize`, allowing callers to specify right or left intervals
+    - introduce a `type` tag in `brackets` object, thus far with only `single_amount` allowed
+  - Rename AmountTaxScale to MarginalAmountTaxScale and make it inherit from SATS
+
+This is non-breaking, as there are no direct clients of these classes outside of Core.
+
 ### 25.2.9 [#814](https://github.com/openfisca/openfisca-core/pull/814)
 
 - When a YAML test fails, display the correct period for wrong output variable

@@ -705,7 +705,7 @@ class Scale(object):
         _set_backward_compatibility_metadata(self, data)
         self.metadata.update(data.get('metadata', {}))
 
-        if not isinstance(data['brackets'], list):
+        if not isinstance(data.get('brackets', []), list):
             raise ParameterParsingError(
                 "Property 'brackets' of scale '{}' must be of type array."
                 .format(self.name),
@@ -713,7 +713,7 @@ class Scale(object):
                 )
 
         brackets = []
-        for i, bracket_data in enumerate(data['brackets']):
+        for i, bracket_data in enumerate(data.get('brackets', [])):
             bracket_name = _compose_name(name, item_name = i)
             bracket = Bracket(name = bracket_name, data = bracket_data, file_path = file_path)
             brackets.append(bracket)
@@ -729,8 +729,16 @@ class Scale(object):
     def _get_at_instant(self, instant):
         brackets = [bracket.get_at_instant(instant) for bracket in self.brackets]
 
-        if any('amount' in bracket._children for bracket in brackets):
-            scale = taxscales.AmountTaxScale()
+        if self.metadata.get('type') == 'single_amount':
+            scale = taxscales.SingleAmountTaxScale()
+            for bracket in brackets:
+                if 'amount' in bracket._children and 'threshold' in bracket._children:
+                    amount = bracket.amount
+                    threshold = bracket.threshold
+                    scale.add_bracket(threshold, amount)
+            return scale
+        elif any('amount' in bracket._children for bracket in brackets):
+            scale = taxscales.MarginalAmountTaxScale()
             for bracket in brackets:
                 if 'amount' in bracket._children and 'threshold' in bracket._children:
                     amount = bracket.amount
