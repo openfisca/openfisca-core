@@ -141,6 +141,8 @@ class Simulation(object):
             if array is None:
                 array = holder.default_array()
 
+            array = self._cast_formula_result(array, variable)
+
             holder.put_in_cache(array, period)
         except SpiralError:
             array = holder.default_array()
@@ -248,7 +250,7 @@ class Simulation(object):
             array = formula(entity, period, parameters_at)
 
         self._check_formula_result(array, variable, entity, period)
-        return self._cast_formula_result(array, variable)
+        return array
 
     def _check_period_consistency(self, period, variable):
         """
