@@ -75,7 +75,7 @@ class EnumArray(np.ndarray):
 
     def __eq__(self, other):
         # When comparing to an item of self.possible_values, use the item index to speed up the comparison
-        if other.__class__ is self.possible_values:
+        if str(other.__class__) == str(self.possible_values):
             return self.view(np.ndarray) == other.index  # use view(np.ndarray) so that the result is a classic ndarray, not an EnumArray
         return self.view(np.ndarray) == other
 
