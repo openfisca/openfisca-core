@@ -1,5 +1,10 @@
 # Changelog
 
+### 25.3.1 [#820](https://github.com/openfisca/openfisca-core/pull/820)
+
+- Outputs a more helpful message when a variable checked in a test doesn't exist
+- Introduces unit tests for the test runner
+
 ## 25.3.0 [#811](https://github.com/openfisca/openfisca-core/pull/811)
 
 #### Technical changes

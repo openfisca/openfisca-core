@@ -30,6 +30,11 @@ def test_calculate_with_trace():
     assert housing_tax_trace['parameters']['taxes.housing_tax.minimal_amount<2017-01-01>'] == 200
 
 
+def test_get_entity_not_found():
+    simulation = scenario.new_simulation(trace = True)
+    assert simulation.get_entity(plural = "no_such_entities") is None
+
+
 def test_clone():
     simulation = Simulation(
         tax_benefit_system = tax_benefit_system,

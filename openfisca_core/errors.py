@@ -34,6 +34,7 @@ class VariableNotFound(Exception):
             "it is probably available on <https://github.com/openfisca/{0}/blob/master/CHANGELOG.md>.".format(country_package_name)
             ])
         self.message = message
+        self.variable_name = variable_name
         Exception.__init__(self, self.message.encode('utf-8'))
 
 
