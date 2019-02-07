@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.3.2 [824](https://github.com/openfisca/openfisca-core/pull/824)
+
+- Rename LICENSE.AGPL.txt to LICENSE to let github recognize it
+
 ### 25.3.1 [#820](https://github.com/openfisca/openfisca-core/pull/820)
 
 - Outputs a more helpful message when a variable checked in a test doesn't exist
