@@ -55,7 +55,7 @@ setup(
     url = 'https://github.com/openfisca/openfisca-core',
 
     data_files = [
-        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE.AGPL.txt', 'README.md']),
+        ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
     entry_points = {
         'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main', 'openfisca-run-test=openfisca_core.scripts.openfisca_command:main'],
