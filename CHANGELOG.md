@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.3.3 [821](https://github.com/openfisca/openfisca-core/pull/821)
+
+- Bring up the debugger on integration test failures with `openfisca test --pdb` optional argument
+
 ### 25.3.2 [824](https://github.com/openfisca/openfisca-core/pull/824)
 
 - Rename LICENSE.AGPL.txt to LICENSE to let github recognize it
