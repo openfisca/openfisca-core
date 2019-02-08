@@ -191,14 +191,15 @@ def _parse_test_file(tax_benefit_system, yaml_path, options):
 
 
 def _get_tax_benefit_system(baseline, reforms, extensions):
+    if not isinstance(reforms, list):
+        reforms = [reforms]
+
     key = hash((id(baseline), frozenset(reforms), frozenset(extensions)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
     current_tax_benefit_system = baseline
 
-    if not isinstance(reforms, list):
-        reforms = [reforms]
     for reform_path in reforms:
         current_tax_benefit_system = current_tax_benefit_system.apply_reform(reform_path)
 
@@ -217,6 +218,7 @@ def _parse_test(tax_benefit_system, test, options, yaml_path):
     name = test.get('name', '')
     if not test.get('output'):
         raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(name, yaml_path))
+
     if not TEST_KEYWORDS.issuperset(test.keys()):
         unexpected_keys = set(test.keys()).difference(TEST_KEYWORDS)
         raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, name, yaml_path))
