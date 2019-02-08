@@ -28,7 +28,7 @@ class Simulation:
 
     def get_entity(self, plural = None):
         return None
-    
+
 
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
@@ -50,7 +50,7 @@ class reform_ba(Reform):
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
     extensions = []
-    
+
     ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', extensions)
     ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', extensions)
     assert ab_tax_benefit_system != ba_tax_benefit_system
