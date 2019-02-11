@@ -7,7 +7,6 @@ import warnings
 
 import numpy as np
 import psutil
-from datetime import date
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
