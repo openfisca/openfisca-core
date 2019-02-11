@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 import psutil
+from datetime import date
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
@@ -87,7 +88,7 @@ class Holder(object):
 
             If the value is not known, return ``None``.
         """
-        if self.variable.is_neutralized:
+        if self.variable.is_neutralized or ((self.variable.end is not None) and (period.startd.date > self.variable.end)):
             return self.default_array()
         value = self._memory_storage.get(period, extra_params)
         if value is not None:
