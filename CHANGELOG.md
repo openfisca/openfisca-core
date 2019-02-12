@@ -1,6 +1,6 @@
 # Changelog
 
-### 25.3.4 [???](https://github.com/openfisca/openfisca-core/pull/???)
+### 25.3.4 [827](https://github.com/openfisca/openfisca-core/pull/827)
 
 - Optimize `set_input_dispath_by_period` so that it doesn't create vecor duplicated in memory
 
