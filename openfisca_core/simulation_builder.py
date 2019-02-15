@@ -165,6 +165,34 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
+    def build_entity(self, tax_benefit_system, entity_plural, entity_ids):
+        self.memberships[entity_plural] = entity_ids
+        self.entity_ids[entity_plural] = entity_ids
+        self.entity_counts[entity_plural] = len(entity_ids)
+
+    def build(self, tax_benefit_system, **kwargs):
+        if self.memberships == {}:
+            raise SituationParsingError([tax_benefit_system.person_entity.plural],
+                'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
+        else:
+            simulation = Simulation(tax_benefit_system, **kwargs)
+            self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
+
+        try:
+            self.finalize_variables_init(simulation.persons)
+        except PeriodMismatchError as e:
+            self.raise_period_mismatch(simulation.persons, persons_json, e)
+
+        for entity_class in tax_benefit_system.group_entities:
+            try:
+                entity = simulation.entities[entity_class.key]
+                self.finalize_variables_init(entity)
+            except PeriodMismatchError as e:
+                self.raise_period_mismatch(entity, instances_json, e)
+
+
+
+
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
             Preprocess ``input_dict`` to explicit entities defined using the single-entity shortcut
@@ -297,6 +325,13 @@ class SimulationBuilder(object):
                 "{} has been declared more than once in {}".format(
                     person_id, entity_plural)
                 )
+
+    def init_variable_values_for_period(self, tax_benefit_system, period_str, variable_name, variable_values):
+        variable_entity = tax_benefit_system.get_variable_entity(variable_name)
+        self.register_variable(variable_name, variable_entity)
+        # array[instance_index] = value
+        self.input_buffer[variable_name][str(make_period(period_str))] = array
+
 
     def init_variable_values(self, entity, instance_object, instance_id):
         for variable_name, variable_values in instance_object.items():
