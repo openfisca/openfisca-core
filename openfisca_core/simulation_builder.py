@@ -370,20 +370,20 @@ class SimulationBuilder(object):
 
         raise SituationParsingError(path, e.message)
 
-    # Returns the total number of instances of this entity, allowing for replication along axes
+    # Returns the total number of instances of this entity, including when there is replication along axes
     def get_count(self, entity_name):
         return self.axes_entity_counts.get(entity_name, self.entity_counts[entity_name])
 
-    # Returns the ids of instances of this entity, allowing for replication along axes
+    # Returns the ids of instances of this entity, including when there is replication along axes
     def get_ids(self, entity_name):
         return self.axes_entity_ids.get(entity_name, self.entity_ids[entity_name])
 
-    # Returns the memberships of individuals in this entity, allowing for replication along axes
+    # Returns the memberships of individuals in this entity, including when there is replication along axes
     def get_memberships(self, entity_name):
         # Return empty array for the "persons" entity
         return self.axes_memberships.get(entity_name, self.memberships.get(entity_name, []))
 
-    # Returns the roles of individuals in this entity, allowing for replication along axes
+    # Returns the roles of individuals in this entity, including when there is replication along axes
     def get_roles(self, entity_name):
         # Return empty array for the "persons" entity
         return self.axes_roles.get(entity_name, self.roles.get(entity_name, []))
