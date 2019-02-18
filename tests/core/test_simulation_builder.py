@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from typing import Iterable
+import numpy as np
+
 from enum import Enum
 from datetime import date
 
@@ -355,6 +358,38 @@ def test_some_person_without_household(simulation_builder):
     assert simulation.household.count == 2
     parents_in_households = simulation.household.nb_persons(role = simulation.household.PARENT)
     assert parents_in_households.tolist() == [1, 1]  # household member default role is first_parent
+
+
+def test_build_entity(simulation_builder):
+    persons_ids : Iterable = [5, 4, 1, 2, 3]
+    simulation_builder.declare_entity(tax_benefit_system, 'persons', persons_ids)
+    assert simulation_builder.get_count('persons') == len(persons_ids)
+
+
+def test_memberships(simulation_builder):
+    persons_ids : Iterable = np.ndarray([5, 4, 1, 2, 3])
+    simulation_builder.build_entity(tax_benefit_system, 'persons', persons_ids)
+    household_ids : Iterable = np.ndarray(['a', 'b', 'c', 'c', 'a'])
+    simulation_builder.build_entity(tax_benefit_system, 'households', household_ids)
+
+    simulation_builder.link_persons_to_group_entity('households', persons_ids, household_ids)
+
+    person_index = 2
+    household_index = simulation_builder.entity_id['household']['c']
+    assert simulation_builder.memberships['households'][person_index] == household_index
+
+def test_finalize_iterative_build(simulation_builder):
+    pass
+
+
+# def test_build_iteratively(simulation_builder):
+#     persons_ids : Iterable = [5, 4, 1, 2, 3]
+#     persons_ages: Iterable = [42, 45, 23, 35, 10]
+#     simulation_builder.build_entity(tax_benefit_system, 'persons', persons_ids)
+#     
+#     # persons.get_variable('salary')
+#     simulation_builder.init_variable_values_for_period(tax_benefit_system, '2019-01', 'age', persons_ages)
+#     simulation_builder.finalize_variables_init(tax_benefit_system.person_entity.plural)
 
 
 # Test Intégration
