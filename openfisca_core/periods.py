@@ -9,11 +9,7 @@ A period is a triple (unit, start, size), where unit is either "month" or "year"
 Since a period is a triple it can be used as a dictionary key.
 """
 
-from __future__ import unicode_literals, print_function, division, absolute_import
-from builtins import str
-
 import calendar
-import collections
 import datetime
 import re
 from os import linesep
@@ -705,15 +701,6 @@ class Period(tuple):
                         month = 1
                     day -= month_last_day
         return Instant((year, month, day))
-
-    def to_json_dict(self):
-        if not isinstance(self[1], str):
-            self[1] = to_unicode(self[1])
-        return collections.OrderedDict((
-            ('unit', self[0]),
-            ('start', self[1]),
-            ('size', self[2]),
-            ))
 
     @property
     def unit(self):
