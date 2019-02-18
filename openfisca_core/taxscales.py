@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import unicode_literals, print_function, division, absolute_import
-
 from bisect import bisect_left, bisect_right
 import copy
 import logging

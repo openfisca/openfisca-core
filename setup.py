@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 from setuptools import setup, find_packages
 
 # Please make sure to cap all dependency versions, in order to avoid unwanted

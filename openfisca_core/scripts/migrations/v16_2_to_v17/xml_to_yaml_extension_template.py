@@ -7,7 +7,6 @@ Usage :
 or just (output is written in a directory called `yaml_parameters`):
   `python xml_to_yaml_extension_template.py`
 '''
-from __future__ import unicode_literals, print_function, division, absolute_import
 
 import sys
 import os
