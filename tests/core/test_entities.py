@@ -2,8 +2,6 @@
 
 from __future__ import unicode_literals, print_function, division, absolute_import
 from copy import deepcopy
-# For Python 2 compatibility
-from odictliteral import odict
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
@@ -14,11 +12,11 @@ from openfisca_country_template.situation_examples import single, couple
 from .test_countries import tax_benefit_system
 
 TEST_CASE = {
-    'persons': odict['ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}],
-    'households': odict[
+    'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}},
+    'households': {
         'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
         'h2': {'children': ['ind5'], 'parents': ['ind4']}
-        ],
+        },
     }
 
 TEST_CASE_AGES = deepcopy(TEST_CASE)
@@ -415,11 +413,11 @@ def test_projectors_methods():
 
 def test_sum_following_bug_ipp_1():
     test_case = {
-        'persons': odict['ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}],
-        'households': odict[
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
+        'households': {
             'h1': {'parents': ['ind0']},
             'h2': {'parents': ['ind1'], 'children': ['ind2', 'ind3']}
-            ],
+            },
         }
     test_case['persons']['ind0']['salary'] = 2000
     test_case['persons']['ind1']['salary'] = 2000
@@ -437,11 +435,11 @@ def test_sum_following_bug_ipp_1():
 
 def test_sum_following_bug_ipp_2():
     test_case = {
-        'persons': odict['ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}],
-        'households': odict[
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
+        'households': {
             'h1': {'parents': ['ind1'], 'children': ['ind2', 'ind3']},
             'h2': {'parents': ['ind0']},
-            ],
+            },
         }
     test_case['persons']['ind0']['salary'] = 2000
     test_case['persons']['ind1']['salary'] = 2000
@@ -469,11 +467,11 @@ def test_get_memory_usage():
 
 def test_unordered_persons():
     test_case = {
-        'persons': odict['ind4': {}, 'ind3': {}, 'ind1': {}, 'ind2': {}, 'ind5': {}, 'ind0': {}],
-        'households': odict[
+        'persons': {'ind4': {}, 'ind3': {}, 'ind1': {}, 'ind2': {}, 'ind5': {}, 'ind0': {}},
+        'households': {
             'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
             'h2': {'children': ['ind5'], 'parents': ['ind4']}
-            ],
+            },
         }
     # 1st family
     test_case['persons']['ind0']['salary'] = 1000
