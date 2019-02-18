@@ -75,6 +75,7 @@ class TaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
+    # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
         class ScenarioAdapter(object):
             def __init__(self, tax_benefit_system):
