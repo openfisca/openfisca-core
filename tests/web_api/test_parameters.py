@@ -8,7 +8,7 @@ from . import subject
 # /parameters
 
 parameters_response = subject.get('/parameters')
-GITHUB_URL_REGEX = '^https://github\.com/openfisca/country-template/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/openfisca_country_template/parameters/(.)+\.yaml$'
+GITHUB_URL_REGEX = r'^https://github\.com/openfisca/country-template/blob/\d+\.\d+\.\d+((.dev|rc)\d+)?/openfisca_country_template/parameters/(.)+\.yaml$'
 
 
 def test_return_code():

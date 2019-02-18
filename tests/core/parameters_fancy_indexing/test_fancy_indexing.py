@@ -146,7 +146,7 @@ def test_with_bareme():
     try:
         P_3[city_code], [100, 300, 200]
     except NotImplementedError as e:
-        assert_regexp_matches(get_message(e), "'bareme.7501\d' is a 'MarginalRateTaxScale'")
+        assert_regexp_matches(get_message(e), r"'bareme.7501\d' is a 'MarginalRateTaxScale'")
         assert_in("has not been implemented", get_message(e))
         raise
 

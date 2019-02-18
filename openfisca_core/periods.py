@@ -21,7 +21,7 @@ MONTH = 'month'
 YEAR = 'year'
 ETERNITY = 'eternity'
 
-INSTANT_PATTERN = re.compile('^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
+INSTANT_PATTERN = re.compile(r'^\d{4}(?:-\d{1,2}){0,2}$')  # matches '2015', '2015-01', '2015-01-01'
 
 
 def N_(message):
