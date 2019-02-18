@@ -110,7 +110,7 @@ def test_get_memory_usage_with_trace():
     assert_equal(memory_usage['nb_requests_by_array'], 1.25)  # 15 calculations / 12 arrays
 
 
-def test_set_input_dispath_by_period():
+def test_set_input_dispatch_by_period():
     simulation = get_simulation(single)
     variable = simulation.tax_benefit_system.get_variable('housing_occupancy_status')
     entity = simulation.household
