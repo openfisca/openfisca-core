@@ -76,7 +76,7 @@ class TaxBenefitSystem(object):
         return base_tax_benefit_system
 
     def new_scenario(self):
-        class FakeScenario(object):
+        class ScenarioAdapter(object):
             def __init__(self, tax_benefit_system):
                 self.tax_benefit_system = tax_benefit_system
 
@@ -119,7 +119,7 @@ class TaxBenefitSystem(object):
 
                 return simulation
 
-        return FakeScenario(self)
+        return ScenarioAdapter(self)
 
     def prefill_cache(self):
         pass
