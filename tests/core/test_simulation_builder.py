@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
 from enum import Enum
 from datetime import date
 
@@ -149,35 +148,35 @@ def test_explicit_singular_entities(simulation_builder):
 
 
 def test_add_person_entity(simulation_builder, persons):
-    persons_json = OrderedDict([('Alicia', {'salary': {}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    persons_json = {'Alicia': {'salary': {}}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
     assert simulation_builder.get_count('persons') == 2
     assert simulation_builder.get_ids('persons') == ['Alicia', 'Javier']
 
 
 def test_numeric_ids(simulation_builder, persons):
-    persons_json = OrderedDict([(1, {'salary': {}}), (2, {})])  # We need an OrderedDict in Python 2
+    persons_json = {1: {'salary': {}}, 2: {}}
     simulation_builder.add_person_entity(persons, persons_json)
     assert simulation_builder.get_count('persons') == 2
     assert simulation_builder.get_ids('persons') == ['1', '2']
 
 
 def test_add_person_entity_with_values(simulation_builder, persons):
-    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    persons_json = {'Alicia': {'salary': {'2018-11': 3000}}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
 
 def test_add_person_values_with_default_period(simulation_builder, persons):
     simulation_builder.set_default_period('2018-11')
-    persons_json = OrderedDict([('Alicia', {'salary': 3000}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    persons_json = {'Alicia': {'salary': 3000}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
 
 def test_add_person_values_with_default_period_old_syntax(simulation_builder, persons):
     simulation_builder.set_default_period('month:2018-11')
-    persons_json = OrderedDict([('Alicia', {'salary': 3000}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    persons_json = {'Alicia': {'salary': 3000}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
     assert_near(simulation_builder.get_input('salary', '2018-11'), [3000, 0])
 
@@ -264,7 +263,7 @@ def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_varia
 
 
 def test_finalize_person_entity(simulation_builder, persons):
-    persons_json = OrderedDict([('Alicia', {'salary': {'2018-11': 3000}}), ('Javier', {})])  # We need an OrderedDict in Python 2
+    persons_json = {'Alicia': {'salary': {'2018-11': 3000}}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
     simulation_builder.finalize_variables_init(persons)
     assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
