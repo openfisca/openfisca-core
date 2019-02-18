@@ -1,5 +1,9 @@
 # Changelog
 
+### 25.3.4 [827](https://github.com/openfisca/openfisca-core/pull/827)
+
+- Optimize `set_input_dispatch_by_period` so that it doesn't create duplicate vectors in memory
+
 ### 25.3.3 [821](https://github.com/openfisca/openfisca-core/pull/821)
 
 - Bring up the debugger on integration test failures with `openfisca test --pdb` optional argument

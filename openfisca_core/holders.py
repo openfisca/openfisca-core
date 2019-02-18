@@ -188,7 +188,7 @@ class Holder(object):
             return self.variable.set_input(self, period, array)
         return self._set(period, array)
 
-    def _set(self, period, value, extra_params = None):
+    def _to_array(self, value):
         if not isinstance(value, np.ndarray):
             value = np.asarray(value)
         if value.ndim == 0:
@@ -207,7 +207,10 @@ class Holder(object):
                 raise ValueError(
                     'Unable to set value "{}" for variable "{}", as the variable dtype "{}" does not match the value dtype "{}".'
                     .format(value, self.variable.name, self.variable.dtype, value.dtype))
+        return value
 
+    def _set(self, period, value, extra_params = None):
+        value = self._to_array(value)
         if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with ETERNITY as as period_definition.')
@@ -275,6 +278,7 @@ def set_input_dispatch_by_period(holder, period, array):
 
         To read more about ``set_input`` attributes, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#set-input-automatically-process-variable-inputs-defined-for-periods-not-matching-the-definition-period>`_.
     """
+    array = holder._to_array(array)
 
     period_size = period.size
     period_unit = period.unit

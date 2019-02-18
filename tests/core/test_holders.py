@@ -10,6 +10,7 @@ from openfisca_core.simulations import Simulation
 from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
+from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from .test_countries import tax_benefit_system
 
 
@@ -107,6 +108,16 @@ def test_get_memory_usage_with_trace():
     memory_usage = salary_holder.get_memory_usage()
     assert_equal(memory_usage['nb_requests'], 15)
     assert_equal(memory_usage['nb_requests_by_array'], 1.25)  # 15 calculations / 12 arrays
+
+
+def test_set_input_dispatch_by_period():
+    simulation = get_simulation(single)
+    variable = simulation.tax_benefit_system.get_variable('housing_occupancy_status')
+    entity = simulation.household
+    holder = Holder(variable, entity)
+    set_input_dispatch_by_period(holder, make_period(2019), 'owner')
+    assert holder.get_array('2019-01') == holder.get_array('2019-12')  # Check the feature
+    assert holder.get_array('2019-01') is holder.get_array('2019-12')  # Check that the vectors are the same in memory, to avoid duplication
 
 
 force_storage_on_disk = MemoryConfig(max_memory_occupation = 0)
