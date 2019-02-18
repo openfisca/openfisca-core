@@ -40,7 +40,6 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
     for entity in simulation.entities.values():
         if not entity.is_person:
             entity.members_entity_id = members_entity_id
-            entity.members_legacy_role = members_legacy_role
             entity.count = nb_groups
             entity.members_role = np.where(members_legacy_role == 0, entity.flattened_roles[0], entity.flattened_roles[-1])
     return simulation

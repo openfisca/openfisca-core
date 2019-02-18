@@ -9,7 +9,6 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'Biryani[datetimeconv] >= 0.10.8',
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
     'future < 1.0.0',
@@ -34,12 +33,12 @@ dev_requirements = [
     'pycodestyle >= 2.3.0, < 2.4.0',  # To avoid incompatibility with flake8
     'pytest >= 3.0, < 4.0.0',
     'openfisca-country-template >= 3.6.0rc0, < 4.0.0',
-    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0',
+    'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
     ] + api_requirements
 
 setup(
     name = 'OpenFisca-Core',
-    version = '25.3.4',
+    version = '26.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

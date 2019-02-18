@@ -1,5 +1,33 @@
 # Changelog
 
+# 26.0.0 [#790](https://github.com/openfisca/openfisca-core/pull/790)
+
+#### What this PR brings
+
+An exciting but under-documented feature, "axes", now has much better test coverage and thus long-term maintainability (the documentation is still lacking, but see https://github.com/openfisca/tutorial for demos)
+
+#### Breaking changes
+
+This PR deprecates the `new_scenario` approach to constructing Simulation objects. This will impact you if:
+- your notebooks or scripts or other Python code rely on the France model and use the old form of creating a Simulation object (see below)
+- **or** your country package defines a Scenario class and injects it [the way France does](https://github.com/openfisca/openfisca-france/blob/11b18985ce4decc31b5666114b2525dddf42652b/openfisca_france/france_taxbenefitsystem.py#L29)
+
+**To migrate to this version**, if you are in the first case, the minimum required change is this:
+
+*The old way:*
+```
+simulation = tax_benefit_system.new_scenario().init_single_entity(...some data...).new_simulation()
+```
+*The new way:*
+```
+# At the top of your file
+from openfisca_france.scenarios import init_single_entity
+# Below
+simulation = init_single_entity(tax_benefit_system.new_scenario(), ...some data...).new_simulation()
+```
+
+If you are in the latter case, you must also transform your `init_single_entity` from a Scenario method to a regular function at global scope, and change your tests and reuses as described above.
+
 ### 25.3.4 [827](https://github.com/openfisca/openfisca-core/pull/827)
 
 - Optimize `set_input_dispatch_by_period` so that it doesn't create duplicate vectors in memory

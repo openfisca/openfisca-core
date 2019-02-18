@@ -12,16 +12,16 @@ from openfisca_country_template.situation_examples import single, couple
 from .test_countries import tax_benefit_system
 
 TEST_CASE = {
-    'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}, {'id': 'ind4'}, {'id': 'ind5'}],
-    'households': [
-        {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
-        {'children': ['ind5'], 'parents': ['ind4']}
-        ],
+    'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}},
+    'households': {
+        'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
+        'h2': {'children': ['ind5'], 'parents': ['ind4']}
+        },
     }
 
 TEST_CASE_AGES = deepcopy(TEST_CASE)
 AGES = [40, 37, 7, 9, 54, 20]
-for (individu, age) in zip(TEST_CASE_AGES['persons'], AGES):
+for (individu, age) in zip(TEST_CASE_AGES['persons'].values(), AGES):
     individu['age'] = age
 
 FIRST_PARENT = Household.FIRST_PARENT
@@ -32,24 +32,20 @@ CHILD = Household.CHILD
 YEAR = 2016
 MONTH = "2016-01"
 
-simulation_builder = SimulationBuilder()
-
 
 def new_simulation(test_case, period = MONTH):
-    return tax_benefit_system.new_scenario().init_from_test_case(
-        period = period,
-        test_case = test_case
-        ).new_simulation()
+    builder = SimulationBuilder()
+    builder.set_default_period(period)
+    return builder.build_from_entities(tax_benefit_system, test_case)
 
 
 def test_role_index_and_positions():
     simulation = new_simulation(TEST_CASE)
     assert_near(simulation.household.members_entity_id, [0, 0, 0, 0, 1, 1])
     assert((simulation.household.members_role == [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD]).all())
-    assert_near(simulation.household.members_legacy_role, [0, 1, 2, 3, 0, 2])
     assert_near(simulation.household.members_position, [0, 1, 2, 3, 0, 1])
     assert(simulation.person.ids == ["ind0", "ind1", "ind2", "ind3", "ind4", "ind5"])
-    assert(simulation.household.ids == [0, 1])
+    assert(simulation.household.ids == ['h1', 'h2'])
 
 
 def test_entity_structure_with_constructor():
@@ -73,13 +69,12 @@ def test_entity_structure_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
 
     household = simulation.household
 
     assert_near(household.members_entity_id, [0, 0, 1, 0, 0])
     assert((household.members_role == [FIRST_PARENT, SECOND_PARENT, FIRST_PARENT, CHILD, CHILD]).all())
-    assert_near(household.members_legacy_role, [0, 1, 0, 2, 3])
     assert_near(household.members_position, [0, 1, 0, 2, 3])
 
 
@@ -108,7 +103,7 @@ def test_entity_variables_with_constructor():
               2017-06: 600
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     household = simulation.household
     assert_near(household('rent', "2017-06"), [800, 600])
 
@@ -141,7 +136,7 @@ def test_person_variable_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-11"), [1500, 0, 3000, 0, 0])
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
@@ -180,7 +175,7 @@ def test_set_input_with_constructor():
             - claudia
     """
 
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
     assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
@@ -202,7 +197,7 @@ def test_has_role_with_subrole():
 
 def test_project():
     test_case = deepcopy(TEST_CASE)
-    test_case['households'][0]['housing_tax'] = 20000
+    test_case['households']['h1']['housing_tax'] = 20000
 
     simulation = new_simulation(test_case, YEAR)
     household = simulation.household
@@ -218,7 +213,7 @@ def test_project():
 
 def test_implicit_projection():
     test_case = deepcopy(TEST_CASE)
-    test_case['households'][0]['housing_tax'] = 20000
+    test_case['households']['h1']['housing_tax'] = 20000
 
     simulation = new_simulation(test_case, YEAR)
     individu = simulation.person
@@ -229,8 +224,8 @@ def test_implicit_projection():
 
 def test_project_on_first_person():
     test_case = deepcopy(TEST_CASE)
-    test_case['households'][0]['housing_tax'] = 20000
-    test_case['households'][1]['housing_tax'] = 5000
+    test_case['households']['h1']['housing_tax'] = 20000
+    test_case['households']['h2']['housing_tax'] = 5000
 
     simulation = new_simulation(test_case, YEAR)
     household = simulation.household
@@ -243,8 +238,8 @@ def test_project_on_first_person():
 
 def test_share_between_members():
     test_case = deepcopy(TEST_CASE)
-    test_case['households'][0]['housing_tax'] = 20000
-    test_case['households'][1]['housing_tax'] = 5000
+    test_case['households']['h1']['housing_tax'] = 20000
+    test_case['households']['h2']['housing_tax'] = 5000
 
     simulation = new_simulation(test_case, YEAR)
     household = simulation.household
@@ -258,10 +253,10 @@ def test_share_between_members():
 
 def test_sum():
     test_case = deepcopy(TEST_CASE)
-    test_case['persons'][0]['salary'] = 1000
-    test_case['persons'][1]['salary'] = 1500
-    test_case['persons'][4]['salary'] = 3000
-    test_case['persons'][5]['salary'] = 500
+    test_case['persons']['ind0']['salary'] = 1000
+    test_case['persons']['ind1']['salary'] = 1500
+    test_case['persons']['ind4']['salary'] = 3000
+    test_case['persons']['ind5']['salary'] = 500
 
     simulation = new_simulation(test_case, MONTH)
     household = simulation.household
@@ -368,10 +363,10 @@ def test_rank():
 
 def test_partner():
     test_case = deepcopy(TEST_CASE)
-    test_case['persons'][0]['salary'] = 1000
-    test_case['persons'][1]['salary'] = 1500
-    test_case['persons'][4]['salary'] = 3000
-    test_case['persons'][5]['salary'] = 500
+    test_case['persons']['ind0']['salary'] = 1000
+    test_case['persons']['ind1']['salary'] = 1500
+    test_case['persons']['ind4']['salary'] = 3000
+    test_case['persons']['ind5']['salary'] = 500
 
     simulation = new_simulation(test_case)
     persons = simulation.persons
@@ -385,10 +380,10 @@ def test_partner():
 
 def test_value_from_first_person():
     test_case = deepcopy(TEST_CASE)
-    test_case['persons'][0]['salary'] = 1000
-    test_case['persons'][1]['salary'] = 1500
-    test_case['persons'][4]['salary'] = 3000
-    test_case['persons'][5]['salary'] = 500
+    test_case['persons']['ind0']['salary'] = 1000
+    test_case['persons']['ind1']['salary'] = 1500
+    test_case['persons']['ind4']['salary'] = 3000
+    test_case['persons']['ind5']['salary'] = 500
 
     simulation = new_simulation(test_case)
     household = simulation.household
@@ -400,7 +395,7 @@ def test_value_from_first_person():
 
 
 def test_projectors_methods():
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, couple)
     household = simulation.household
     person = simulation.person
 
@@ -418,16 +413,16 @@ def test_projectors_methods():
 
 def test_sum_following_bug_ipp_1():
     test_case = {
-        'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}],
-        'households': [
-            {'parents': ['ind0']},
-            {'parents': ['ind1'], 'children': ['ind2', 'ind3']}
-            ],
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
+        'households': {
+            'h1': {'parents': ['ind0']},
+            'h2': {'parents': ['ind1'], 'children': ['ind2', 'ind3']}
+            },
         }
-    test_case['persons'][0]['salary'] = 2000
-    test_case['persons'][1]['salary'] = 2000
-    test_case['persons'][2]['salary'] = 1000
-    test_case['persons'][3]['salary'] = 1000
+    test_case['persons']['ind0']['salary'] = 2000
+    test_case['persons']['ind1']['salary'] = 2000
+    test_case['persons']['ind2']['salary'] = 1000
+    test_case['persons']['ind3']['salary'] = 1000
 
     simulation = new_simulation(test_case)
     household = simulation.household
@@ -440,16 +435,16 @@ def test_sum_following_bug_ipp_1():
 
 def test_sum_following_bug_ipp_2():
     test_case = {
-        'persons': [{'id': 'ind0'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind3'}],
-        'households': [
-            {'parents': ['ind1'], 'children': ['ind2', 'ind3']},
-            {'parents': ['ind0']}
-            ],
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}},
+        'households': {
+            'h1': {'parents': ['ind1'], 'children': ['ind2', 'ind3']},
+            'h2': {'parents': ['ind0']},
+            },
         }
-    test_case['persons'][0]['salary'] = 2000
-    test_case['persons'][1]['salary'] = 2000
-    test_case['persons'][2]['salary'] = 1000
-    test_case['persons'][3]['salary'] = 1000
+    test_case['persons']['ind0']['salary'] = 2000
+    test_case['persons']['ind1']['salary'] = 2000
+    test_case['persons']['ind2']['salary'] = 1000
+    test_case['persons']['ind3']['salary'] = 1000
 
     simulation = new_simulation(test_case)
     household = simulation.household
@@ -461,31 +456,33 @@ def test_sum_following_bug_ipp_2():
 
 
 def test_get_memory_usage():
-    simulation = simulation_builder.build_from_dict(tax_benefit_system, single)
+    test_case = deepcopy(single)
+    test_case["persons"]["Alicia"]["salary"] = {"2017-01": 0}
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, test_case)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.person.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
     assert(len(memory_usage['by_variable']) == 1)
 
 
-def test_undoredered_persons():
+def test_unordered_persons():
     test_case = {
-        'persons': [{'id': 'ind4'}, {'id': 'ind3'}, {'id': 'ind1'}, {'id': 'ind2'}, {'id': 'ind5'}, {'id': 'ind0'}],
-        'households': [
-            {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
-            {'children': ['ind5'], 'parents': ['ind4']}
-            ],
+        'persons': {'ind4': {}, 'ind3': {}, 'ind1': {}, 'ind2': {}, 'ind5': {}, 'ind0': {}},
+        'households': {
+            'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
+            'h2': {'children': ['ind5'], 'parents': ['ind4']}
+            },
         }
     # 1st family
-    test_case['persons'][5]['salary'] = 1000
-    test_case['persons'][2]['salary'] = 1500
-    test_case['persons'][3]['salary'] = 20
-    test_case['households'][0]['accommodation_size'] = 160
+    test_case['persons']['ind0']['salary'] = 1000
+    test_case['persons']['ind1']['salary'] = 1500
+    test_case['persons']['ind2']['salary'] = 20
+    test_case['households']['h1']['accommodation_size'] = 160
 
     # 2nd family
-    test_case['persons'][0]['salary'] = 3000
-    test_case['persons'][4]['salary'] = 500
-    test_case['households'][1]['accommodation_size'] = 60
+    test_case['persons']['ind4']['salary'] = 3000
+    test_case['persons']['ind5']['salary'] = 500
+    test_case['households']['h2']['accommodation_size'] = 60
 
     # household.members_entity_id == [1, 0, 0, 0, 1, 0]
 

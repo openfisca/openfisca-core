@@ -12,13 +12,13 @@ import inspect
 import pkg_resources
 import traceback
 
-from openfisca_core import conv
 from openfisca_core import periods
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
-from openfisca_core.scenarios import AbstractScenario
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import to_unicode, basestring_type, empty_clone
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tracers import Tracer
 
 
 log = logging.getLogger(__name__)
@@ -49,12 +49,7 @@ class TaxBenefitSystem(object):
     _parameters_at_instant_cache = None
     person_key_plural = None
     preprocess_parameters = None
-    json_to_attributes = staticmethod(conv.pipe(
-        conv.test_isinstance(dict),
-        conv.struct({}),
-        ))
     baseline = None  # Baseline tax-benefit system. Used only by reforms. Note: Reforms can be chained.
-    Scenario = AbstractScenario
     cache_blacklist = None
     decomposition_file_path = None
 
@@ -80,20 +75,52 @@ class TaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
-    @classmethod
-    def json_to_instance(cls, value, state = None):
-        attributes, error = conv.pipe(
-            cls.json_to_attributes,
-            conv.default({}),
-            )(value, state = state or conv.default_state)
-        if error is not None:
-            return attributes, error
-        return cls(**attributes), None
-
+    # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
-        scenario = self.Scenario()
-        scenario.tax_benefit_system = self
-        return scenario
+        class ScenarioAdapter(object):
+            def __init__(self, tax_benefit_system):
+                self.tax_benefit_system = tax_benefit_system
+
+            def init_from_attributes(self, **attributes):
+                self.attributes = attributes
+                return self
+
+            def init_from_dict(self, dict):
+                self.attributes = None
+                self.dict = dict
+                self.period = dict.pop('period')
+                return self
+
+            def new_simulation(self, debug = False, opt_out_cache = False, use_baseline = False, trace = False):
+                # Legacy from scenarios, used in reforms
+                tax_benefit_system = self.tax_benefit_system
+                if use_baseline:
+                    while True:
+                        baseline = tax_benefit_system.baseline
+                        if baseline is None:
+                            break
+                        tax_benefit_system = baseline
+
+                builder = SimulationBuilder()
+                if self.attributes:
+                    variables = self.attributes.get('input_variables') or {}
+                    period = self.attributes.get('period')
+                    builder.set_default_period(period)
+                    simulation = builder.build_from_variables(tax_benefit_system, variables)
+                else:
+                    builder.set_default_period(self.period)
+                    simulation = builder.build_from_entities(tax_benefit_system, self.dict)
+                    simulation.period = periods.period(self.period)
+
+                simulation.debug = debug
+                simulation.opt_out_cache = opt_out_cache
+                if trace:
+                    simulation.trace = trace
+                    simulation.tracer = Tracer()
+
+                return simulation
+
+        return ScenarioAdapter(self)
 
     def prefill_cache(self):
         pass
