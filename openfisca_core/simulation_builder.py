@@ -17,12 +17,16 @@ from openfisca_core.simulations import Simulation
 class SimulationBuilder(object):
 
     def __init__(self):
-        self.default_period = None
-        self.persons_plural = None
+        self.default_period = None  # Simulation period used for variables when no period is defined
+        self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
+        # Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
+        # Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``.
         self.entity_counts: Dict[Entity.plural, int] = {}
+        # List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
         self.entity_ids: Dict[Entity.plural, List[int]] = {}
+        # Links entities with persons ids. For each person index defined inside an entity, set this person id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
         self.memberships: Dict[Entity.plural, List[int]] = {}
         self.roles: Dict[Entity.plural, List[int]] = {}
 
