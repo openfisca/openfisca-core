@@ -29,7 +29,6 @@ class Holder(object):
         self.entity = entity
         self.variable = variable
         self.simulation = entity.simulation
-        self.buffer = {}
         self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
