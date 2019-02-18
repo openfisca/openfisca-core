@@ -617,13 +617,13 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def build_entity(key, plural, label, doc = "", roles = None, is_person = False, eclass = None):
+def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None):
     entity_class_name = key.title()
     attributes = {'key': key, 'plural': plural, 'label': label, 'doc': textwrap.dedent(doc), 'roles_description': roles}
     if is_person:
-        entity_class = type(entity_class_name, (eclass or PersonEntity,), attributes)
+        entity_class = type(entity_class_name, (class_override or PersonEntity,), attributes)
     elif roles:
-        entity_class = type(entity_class_name, (eclass or GroupEntity,), attributes)
+        entity_class = type(entity_class_name, (class_override or GroupEntity,), attributes)
         entity_class.roles = []
         for role_description in roles:
             role = Role(role_description, entity_class)

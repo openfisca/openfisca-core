@@ -123,7 +123,7 @@ def group_entity():
         'plural': 'children'
         }]
 
-    entity_class = build_entity("household", "households", "", doc = "", roles = roles, is_person = False, eclass = Household)
+    entity_class = build_entity("household", "households", "", doc = "", roles = roles, is_person = False, class_override = Household)
     return entity_class()
 
 
