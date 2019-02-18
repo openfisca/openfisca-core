@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals, print_function, division, absolute_import
+from typing import Dict, List
 
 import dpath
 import numpy as np
 from copy import deepcopy
 
+from openfisca_core.entities import Entity
+from openfisca_core.variables import Variable
+
 from openfisca_core.commons import basestring_type
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
-from openfisca_core.periods import key_period_size, period as make_period
+from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
 
 
@@ -17,19 +19,20 @@ class SimulationBuilder(object):
     def __init__(self):
         self.default_period = None
         self.persons_plural = None
-        self.input_buffer = {}
-        self.entity_counts = {}
-        self.entity_ids = {}
-        self.memberships = {}
-        self.roles = {}
 
-        self.variable_entities = {}
+        self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
+        self.entity_counts: Dict[Entity.plural, int] = {}
+        self.entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.memberships: Dict[Entity.plural, List[int]] = {}
+        self.roles: Dict[Entity.plural, List[int]] = {}
+
+        self.variable_entities: Dict[Variable.name, Entity] = {}
 
         self.axes = [[]]
-        self.axes_entity_counts = {}
-        self.axes_entity_ids = {}
-        self.axes_memberships = {}
-        self.axes_roles = {}
+        self.axes_entity_counts: Dict[Entity.plural, int] = {}
+        self.axes_entity_ids: Dict[Entity.plural, List[int]] = {}
+        self.axes_memberships: Dict[Entity.plural, List[int]] = {}
+        self.axes_roles: Dict[Entity.plural, List[int]] = {}
 
     def build_from_dict(self, tax_benefit_system, input_dict, **kwargs):
         """
@@ -138,8 +141,8 @@ class SimulationBuilder(object):
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
                 simulation.set_input(variable, self.default_period, value)
             else:
-                for period, dated_value in value.items():
-                    simulation.set_input(variable, period, dated_value)
+                for period_str, dated_value in value.items():
+                    simulation.set_input(variable, period_str, dated_value)
         return simulation
 
     def build_default_simulation(self, tax_benefit_system, count = 1, **kwargs):
@@ -256,14 +259,14 @@ class SimulationBuilder(object):
                     persons_to_allocate, persons_plural, entity.key)
                 )
 
-    def set_default_period(self, period):
-        if period:
-            self.default_period = str(make_period(period))
+    def set_default_period(self, period_str):
+        if period_str:
+            self.default_period = str(period(period_str))
 
-    def get_input(self, variable, period):
+    def get_input(self, variable, period_str):
         if variable not in self.input_buffer:
             self.input_buffer[variable] = {}
-        return self.input_buffer[variable].get(period)
+        return self.input_buffer[variable].get(period_str)
 
     def check_persons_to_allocate(self, persons_plural, entity_plural,
                                   persons_ids,
@@ -299,13 +302,13 @@ class SimulationBuilder(object):
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
                 variable_values = {self.default_period: variable_values}
 
-            for period, value in variable_values.items():
+            for period_str, value in variable_values.items():
                 try:
-                    make_period(period)
+                    period(period_str)
                 except ValueError as e:
                     raise SituationParsingError(path_in_json, e.args[0])
                 variable = entity.get_variable(variable_name)
-                self.add_variable_value(entity, variable, instance_index, instance_id, period, value)
+                self.add_variable_value(entity, variable, instance_index, instance_id, period_str, value)
 
     def add_variable_value(self, entity, variable, instance_index, instance_id, period_str, value):
         path_in_json = [entity.plural, instance_id, variable.name, period_str]
@@ -326,7 +329,7 @@ class SimulationBuilder(object):
 
         array[instance_index] = value
 
-        self.input_buffer[variable.name][str(make_period(period_str))] = array
+        self.input_buffer[variable.name][str(period(period_str))] = array
 
     def finalize_variables_init(self, entity):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
@@ -343,15 +346,15 @@ class SimulationBuilder(object):
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]
-            periods = [make_period(period_str) for period_str in self.input_buffer[variable_name].keys()]
+            periods = [period(period_str) for period_str in self.input_buffer[variable_name].keys()]
             # We need to handle small periods first for set_input to work
             sorted_periods = sorted(periods, key=key_period_size)
-            for period in sorted_periods:
-                values = buffer[str(period)]
+            for period_value in sorted_periods:
+                values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
                 array = np.tile(values, entity.count // len(values))
-                holder.set_input(period, array)
+                holder.set_input(period_value, array)
 
     def raise_period_mismatch(self, entity, json, e):
         # This error happens when we try to set a variable value for a period that doesn't match its definition period
