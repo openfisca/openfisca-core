@@ -169,15 +169,25 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def declare_person_entity(entity_plural, entity_ids):
-        self.persons_plural = entity_plural
-        self.entity_ids[entity_plural] = entity_ids
-        self.entity_counts[entity_plural] = len(entity_ids)
+    def declare_person_entity(self, persons_plural, persons_ids):
+        self.persons_plural = persons_plural
+        self.entity_ids[persons_plural] = persons_ids
+        self.entity_counts[persons_plural] = len(persons_ids)
 
     def declare_entity(self, entity_plural, entity_ids):
         self.entity_ids[entity_plural] = entity_ids
         self.entity_counts[entity_plural] = len(entity_ids)
     
+    def nb_persons(self, entity_plural):
+        pass
+
+    def iter_over_members(entity_plural):
+        for entity_ids in self.entity_ids[entity_plural]:
+            yield entity_ids.index()
+
+    def join(self, persons_ids, entity_ids, entity_plural):
+        self.memberships[entity_plural] = {}
+
     def link_to_persons(self, entity_plural, persons_ids, joined_entity_ids):
         if self.persons_plural is None:
             raise SituationParsingError(entity_plural, 'Unable to link {0} entity to undefined persons.')
@@ -254,9 +264,7 @@ class SimulationBuilder(object):
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
-        self.persons_plural = entity.plural
+        self.declare_person_entity(entity.plural, entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -276,6 +284,8 @@ class SimulationBuilder(object):
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
+
+        self.declare_entity(entity.plural, entity_ids)
 
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)
@@ -596,7 +606,6 @@ def iter_over_entity_members(entity_description, scenario_entity):
                     yield role, individu
                 legacy_role_j += 1
         legacy_role_i += (role.max or 1)
-
 
 def _get_person_count(input_dict):
     try:

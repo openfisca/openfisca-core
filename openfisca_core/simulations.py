@@ -5,6 +5,7 @@ from os import linesep
 import tempfile
 import logging
 import warnings
+from typing import Dict
 
 import numpy as np
 
@@ -42,6 +43,7 @@ class Simulation(object):
     def __init__(
             self,
             tax_benefit_system,
+            tbs_entities = None,
             simulation_json = None,
             debug = False,
             period = None,
@@ -56,6 +58,15 @@ class Simulation(object):
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
+
+        if tbs_entities is not None:
+            self.entities = tbs_entities
+        else:
+            self.entities = self.instantiate_entities(tax_benefit_system)
+        self.persons = self.entities[tax_benefit_system.person_entity.key]
+        self.link_to_entities_instances()
+        self.create_shortcuts()
+
         if period:
             assert isinstance(period, periods.Period)
         self.period = period
@@ -76,7 +87,6 @@ class Simulation(object):
 
         self.memory_config = memory_config
         self._data_storage_dir = None
-        self.instantiate_entities()
 
         if simulation_json is not None:
             warnings.warn(' '.join([
@@ -86,17 +96,25 @@ class Simulation(object):
                 Warning
                 )
             from openfisca_core.simulation_builder import SimulationBuilder
-            SimulationBuilder().build_from_entities(tax_benefit_system, simulation_json, simulation = self)
+            SimulationBuilder().build_from_entities(self.tax_benefit_system, simulation_json, simulation = self)
 
-    def instantiate_entities(self):
-        self.persons = self.tax_benefit_system.person_entity(self)
-        self.entities = {self.persons.key: self.persons}
-        setattr(self, self.persons.key, self.persons)  # create shortcut simulation.person (for instance)
+    def instantiate_entities(self, tax_benefit_system):
+        person_instance = tax_benefit_system.person_entity(None)
+        entities_instances : Dict[Entity.key, Entity] = {person_instance.key: person_instance}
 
-        for entity_class in self.tax_benefit_system.group_entities:
-            entities = entity_class(self, self.persons)
-            self.entities[entity_class.key] = entities
-            setattr(self, entity_class.key, entities)  # create shortcut simulation.household (for instance)
+        for entity_class in tax_benefit_system.group_entities:
+            entities_instances[entity_class.key] = entity_class(None, person_instance)
+
+        return entities_instances
+
+    def link_to_entities_instances(self):
+        for key, entity_instance in self.entities.items():
+            entity_instance.simulation = self
+
+    def create_shortcuts(self):
+        for key, entity_instance in self.entities.items():
+            # create shortcut simulation.person and simulation.household (for instance)
+            setattr(self, entity_instance.key, entity_instance)
 
     @property
     def data_storage_dir(self):
