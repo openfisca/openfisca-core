@@ -22,7 +22,7 @@ class SimulationBuilder(object):
 
         # Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
-        # Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``.
+        # Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
         # List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
         self.entity_ids: Dict[Entity.plural, List[int]] = {}
@@ -169,15 +169,19 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def declare_entity(self, tax_benefit_system, entity_plural, entity_ids):
-        if tax_benefit_system.person_entity.plural == entity_plural:
-            self.persons_plural = entity_plural
-            self.memberships[entity_plural] = entity_ids
+    def declare_person_entity(entity_plural, entity_ids):
+        self.persons_plural = entity_plural
+        self.entity_ids[entity_plural] = entity_ids
+        self.entity_counts[entity_plural] = len(entity_ids)
 
+    def declare_entity(self, entity_plural, entity_ids):
         self.entity_ids[entity_plural] = entity_ids
         self.entity_counts[entity_plural] = len(entity_ids)
     
     def link_to_persons(self, entity_plural, persons_ids, joined_entity_ids):
+        if self.persons_plural is None:
+            raise SituationParsingError(entity_plural, 'Unable to link {0} entity to undefined persons.')
+
         persons_count = len(persons_ids)
         if persons_count != len(joined_entity_ids):
             raise SituationParsingError([entity_plural, len(persons_ids), len(joined_entity_ids)], 
@@ -186,10 +190,12 @@ class SimulationBuilder(object):
         self.memberships[entity_plural] = {}
 
         indexed_persons = self.entity_ids[self.persons_plural].tolist()
-        indexed_entity = self.entity_ids[entity_plural].tolist()
+        indexed_entities = self.entity_ids[entity_plural].tolist()
         for index, person_id in enumerate(persons_ids):
             entity_id = joined_entity_ids[index]
-            self.memberships[entity_plural][indexed_persons.index(person_id)] = indexed_entity.index(entity_id)
+            person_index = indexed_persons.index(person_id)
+            entity_index = indexed_entities.index(entity_id)
+            self.memberships[entity_plural][person_index] = entity_index
 
     def build(self, tax_benefit_system, **kwargs):
         if self.memberships == {}:
