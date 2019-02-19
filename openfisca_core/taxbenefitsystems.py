@@ -74,6 +74,15 @@ class TaxBenefitSystem(object):
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
 
+    def instantiate_entities(self):
+        person_instance = self.person_entity(None)
+        entities_instances : Dict[Entity.key, Entity] = {person_instance.key: person_instance}
+
+        for entity_class in self.group_entities:
+            entities_instances[entity_class.key] = entity_class(None, person_instance)
+
+        return entities_instances
+
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
         class ScenarioAdapter(object):

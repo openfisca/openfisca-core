@@ -62,7 +62,7 @@ class Simulation(object):
         if tbs_entities is not None:
             self.entities = tbs_entities
         else:
-            self.entities = self.instantiate_entities(tax_benefit_system)
+            self.entities = tax_benefit_system.instantiate_entities()
         self.persons = self.entities[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
@@ -97,15 +97,6 @@ class Simulation(object):
                 )
             from openfisca_core.simulation_builder import SimulationBuilder
             SimulationBuilder().build_from_entities(self.tax_benefit_system, simulation_json, simulation = self)
-
-    def instantiate_entities(self, tax_benefit_system):
-        person_instance = tax_benefit_system.person_entity(None)
-        entities_instances : Dict[Entity.key, Entity] = {person_instance.key: person_instance}
-
-        for entity_class in tax_benefit_system.group_entities:
-            entities_instances[entity_class.key] = entity_class(None, person_instance)
-
-        return entities_instances
 
     def link_to_entities_instances(self):
         for key, entity_instance in self.entities.items():
