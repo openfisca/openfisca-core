@@ -361,11 +361,9 @@ def test_some_person_without_household(simulation_builder):
 
 
 def test_count_members(simulation_builder):
-    persons_ids: Iterable = [5, 4, 1, 2, 3]
     households_ids: Iterable = ['a', 'a', 'b', 'c', 'c']
 
     simulation_builder.create_entities(tax_benefit_system)
-    simulation_builder.declare_person_entity('person', persons_ids)
     simulation_builder.declare_entity('household', households_ids)
 
     persons_in_households = simulation_builder.nb_persons('household')
@@ -374,6 +372,23 @@ def test_count_members(simulation_builder):
 
 
 # Test Intégration
+
+
+def test_from_person_variable_to_group(simulation_builder):
+    persons_ids: Iterable = [0, 1, 2, 3, 4]
+    persons_salaries: Iterable = [6000, 2000, 1000, 1500, 1500]
+    households_ids: Iterable = ['c', 'a', 'a', 'b', 'a']
+    period = '2018-12'
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    simulation_builder.declare_entity('household', households_ids)
+    
+    simulation = simulation_builder.build(tax_benefit_system)
+    simulation.set_input('salary', period, persons_salaries)
+    result = simulation.calculate('total_taxes', period)
+
+    assert result == approx([4500, 1500, 6000])
 
 
 def test_simulation(simulation_builder):

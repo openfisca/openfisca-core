@@ -196,6 +196,9 @@ class SimulationBuilder(object):
     def nb_persons(self, entity_singular):
         return self.entities_instances[entity_singular].nb_persons()
 
+    def build(self, tax_benefit_system):
+        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
+
     def bind(self, entity_plural, entity_ids, entity_persons_ids):
         if self.persons_plural is None:
             raise SituationParsingError(entity_plural, 'Unable to link {0} entity to undefined persons.')

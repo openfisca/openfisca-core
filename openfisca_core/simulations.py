@@ -42,7 +42,7 @@ class Simulation(object):
     def __init__(
             self,
             tax_benefit_system,
-            tbs_entities = None,
+            entities_instances = None,
             simulation_json = None,
             debug = False,
             period = None,
@@ -58,8 +58,8 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        if tbs_entities is not None:
-            self.entities = tbs_entities
+        if entities_instances is not None:
+            self.entities = entities_instances
         else:
             self.entities = tax_benefit_system.instantiate_entities()
         self.persons = self.entities[tax_benefit_system.person_entity.key]
