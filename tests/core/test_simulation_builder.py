@@ -364,13 +364,13 @@ def test_count_members(simulation_builder):
     persons_ids: Iterable = [5, 4, 1, 2, 3]
     households_ids: Iterable = ['a', 'a', 'b', 'c', 'c']
 
-    # tbs for tax_benefit_system.entities_instances or simulation.persons...
-    simulation_builder.declare_person_entity(tax_benefit_system.entities_instances['person'], persons_ids)
-    simulation_builder.declare_entity(tax_benefit_system.entities_instances['household'], households_ids)
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    simulation_builder.declare_entity('household', households_ids)
 
-    persons_in_households = simulation_builder.nb_persons(tax_benefit_system, 'household')
+    persons_in_households = simulation_builder.nb_persons('household')
 
-    assert all(persons_in_households == np.array([2, 1, 2]))
+    assert persons_in_households.tolist() == [2, 1, 2]
 
 
 # Test Intégration

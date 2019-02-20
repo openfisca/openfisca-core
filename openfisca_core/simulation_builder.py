@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List
+from typing import Dict, List, Iterable
 
 import dpath
 import numpy as np
@@ -22,6 +22,7 @@ class SimulationBuilder(object):
 
         # Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
+        self.entities_instances: Dict[Entity.key, Entity] = {}
         # Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
         # List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
@@ -169,31 +170,31 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def declare_person_entity(self, person_instance, persons_ids):
-        self.persons_plural = person_instance.plural
+    def create_entities(self, tax_benefit_system):
+        self.entities_instances = tax_benefit_system.instantiate_entities()
 
-        if isinstance(persons_ids, np.ndarray):
-            person_instance.ids = np.unique(persons_ids)
-        else:
-            person_instance.ids = np.unique(np.array(persons_ids))
+    def declare_person_entity(self, person_singular, persons_ids: Iterable):
+        person_instance = self.entities_instances[person_singular]
+
+        self.persons_plural = person_instance.plural
+        person_instance.ids = np.unique(np.array(list(persons_ids)))
+
         self.entity_counts[self.persons_plural] = len(person_instance.ids)
         self.entity_ids[self.persons_plural] = person_instance.ids
 
-    def declare_entity(self, entity_instance, entity_ids):
-        if isinstance(entity_ids, np.ndarray):
-            entity_instance.ids = np.unique(entity_ids)
-        else:
-            entity_instance.ids = np.unique(np.array(entity_ids))
+    def declare_entity(self, entity_singular, entity_ids: Iterable):
+        entity_instance = self.entities_instances[entity_singular]
+        entity_instance.ids = np.unique(np.array(list(entity_ids)))
+ 
         self.entity_counts[entity_instance.plural] = len(entity_instance.ids)
         self.entity_ids[entity_instance.plural] = entity_instance.ids
 
-        assert entity_instance.ids is not None  # We needs the ids to be set to make sure we match households.
-        ids, inverse = entity_instance.members_entity_id = np.unique(entity_ids, return_inverse = True)
+        ids, inverse = np.unique(entity_ids, return_inverse = True)
         assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
         entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
 
-    def nb_persons(self, tax_benefit_system, entity_singular):
-        return tax_benefit_system.entities_instances[entity_singular].nb_persons()
+    def nb_persons(self, entity_singular):
+        return self.entities_instances[entity_singular].nb_persons()
 
     def bind(self, entity_plural, entity_ids, entity_persons_ids):
         if self.persons_plural is None:

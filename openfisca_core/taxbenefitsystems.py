@@ -65,7 +65,6 @@ class TaxBenefitSystem(object):
             raise Exception("A tax and benefit sytem must have at least an entity.")
         self.person_entity = [entity for entity in entities if entity.is_person][0]
         self.group_entities = [entity for entity in entities if not entity.is_person]
-        self.entities_instances = self.instantiate_entities()
 
     @property
     def base_tax_benefit_system(self):
