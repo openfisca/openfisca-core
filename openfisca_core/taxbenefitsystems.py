@@ -2,6 +2,7 @@
 
 
 import glob
+from typing import Dict
 from inspect import isclass
 from os import path, linesep
 from imp import find_module, load_module
@@ -12,6 +13,7 @@ import pkg_resources
 import traceback
 
 from openfisca_core import periods
+from openfisca_core.entities import Entity
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
@@ -63,6 +65,7 @@ class TaxBenefitSystem(object):
             raise Exception("A tax and benefit sytem must have at least an entity.")
         self.person_entity = [entity for entity in entities if entity.is_person][0]
         self.group_entities = [entity for entity in entities if not entity.is_person]
+        self.entities_instances = self.instantiate_entities()
 
     @property
     def base_tax_benefit_system(self):
@@ -76,7 +79,7 @@ class TaxBenefitSystem(object):
 
     def instantiate_entities(self):
         person_instance = self.person_entity(None)
-        entities_instances : Dict[Entity.key, Entity] = {person_instance.key: person_instance}
+        entities_instances: Dict[Entity.key, Entity] = {person_instance.key: person_instance}
 
         for entity_class in self.group_entities:
             entities_instances[entity_class.key] = entity_class(None, person_instance)

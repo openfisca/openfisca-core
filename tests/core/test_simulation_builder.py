@@ -360,49 +360,17 @@ def test_some_person_without_household(simulation_builder):
     assert parents_in_households.tolist() == [1, 1]  # household member default role is first_parent
 
 
-# def test_build_entity(simulation_builder):
-#     persons_ids : Iterable = [5, 4, 1, 2, 3]
-#     simulation_builder.declare_entity(tax_benefit_system, 'persons', persons_ids)
-#     assert simulation_builder.get_count('persons') == len(persons_ids)
-
-
-# def test_memberships(simulation_builder):
-#     persons_ids : Iterable = np.ndarray([5, 4, 1, 2, 3])
-#     simulation_builder.build_entity(tax_benefit_system, 'persons', persons_ids)
-#     household_ids : Iterable = np.ndarray(['a', 'b', 'c', 'c', 'a'])
-#     simulation_builder.build_entity(tax_benefit_system, 'households', household_ids)
-# 
-#     simulation_builder.link_to_persons('households', persons_ids, household_ids)
-# 
-#     person_index = 2
-#     household_index = simulation_builder.entity_id['household']['c']
-#     assert simulation_builder.memberships['households'][person_index] == household_index
-
-
-# def test_finalize_iterative_build(simulation_builder):
-#     pass
-
-
-# def test_build_iteratively(simulation_builder):
-#     persons_ids : Iterable = [5, 4, 1, 2, 3]
-#     persons_ages: Iterable = [42, 45, 23, 35, 10]
-#     simulation_builder.build_entity(tax_benefit_system, 'persons', persons_ids)
-#     
-#     # persons.get_variable('salary')
-#     simulation_builder.init_variable_values_for_period(tax_benefit_system, '2019-01', 'age', persons_ages)
-#     simulation_builder.finalize_variables_init(tax_benefit_system.person_entity.plural)
-
-
 def test_count_members(simulation_builder):
-    persons_ids : Iterable = [5, 4, 1, 2, 3]
-    households_ids : Iterable = ['a', 'a', 'b', 'c', 'c']
+    persons_ids: Iterable = [5, 4, 1, 2, 3]
+    households_ids: Iterable = ['a', 'a', 'b', 'c', 'c']
 
-    simulation_builder.declare_person_entity('persons', persons_ids)
-    simulation_builder.declare_entity('households', households_ids)
+    # tbs for tax_benefit_system.entities_instances or simulation.persons...
+    simulation_builder.declare_person_entity(tax_benefit_system.entities_instances['person'], persons_ids)
+    simulation_builder.declare_entity(tax_benefit_system.entities_instances['household'], households_ids)
 
-    persons_in_households = simulation_builder.nb_persons('households')
+    persons_in_households = simulation_builder.nb_persons(tax_benefit_system, 'household')
 
-    assert persons_in_households == [2, 1, 2]
+    assert all(persons_in_households == np.array([2, 1, 2]))
 
 
 # Test Intégration

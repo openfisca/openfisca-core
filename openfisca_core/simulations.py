@@ -5,7 +5,6 @@ from os import linesep
 import tempfile
 import logging
 import warnings
-from typing import Dict
 
 import numpy as np
 

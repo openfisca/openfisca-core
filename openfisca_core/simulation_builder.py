@@ -169,66 +169,50 @@ class SimulationBuilder(object):
                 entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
-    def declare_person_entity(self, persons_plural, persons_ids):
-        self.persons_plural = persons_plural
-        self.entity_ids[persons_plural] = persons_ids
-        self.entity_counts[persons_plural] = len(persons_ids)
+    def declare_person_entity(self, person_instance, persons_ids):
+        self.persons_plural = person_instance.plural
 
-    def declare_entity(self, entity_plural, entity_ids):
-        self.entity_ids[entity_plural] = entity_ids
-        self.entity_counts[entity_plural] = len(entity_ids)
-    
-    def nb_persons(self, entity_plural):
-        pass
+        if isinstance(persons_ids, np.ndarray):
+            person_instance.ids = np.unique(persons_ids)
+        else:
+            person_instance.ids = np.unique(np.array(persons_ids))
+        self.entity_counts[self.persons_plural] = len(person_instance.ids)
+        self.entity_ids[self.persons_plural] = person_instance.ids
 
-    def iter_over_members(entity_plural):
-        for entity_ids in self.entity_ids[entity_plural]:
-            yield entity_ids.index()
+    def declare_entity(self, entity_instance, entity_ids):
+        if isinstance(entity_ids, np.ndarray):
+            entity_instance.ids = np.unique(entity_ids)
+        else:
+            entity_instance.ids = np.unique(np.array(entity_ids))
+        self.entity_counts[entity_instance.plural] = len(entity_instance.ids)
+        self.entity_ids[entity_instance.plural] = entity_instance.ids
 
-    def join(self, persons_ids, entity_ids, entity_plural):
-        self.memberships[entity_plural] = {}
+        assert entity_instance.ids is not None  # We needs the ids to be set to make sure we match households.
+        ids, inverse = entity_instance.members_entity_id = np.unique(entity_ids, return_inverse = True)
+        assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
+        entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
 
-    def link_to_persons(self, entity_plural, persons_ids, joined_entity_ids):
+    def nb_persons(self, tax_benefit_system, entity_singular):
+        return tax_benefit_system.entities_instances[entity_singular].nb_persons()
+
+    def bind(self, entity_plural, entity_ids, entity_persons_ids):
         if self.persons_plural is None:
             raise SituationParsingError(entity_plural, 'Unable to link {0} entity to undefined persons.')
 
-        persons_count = len(persons_ids)
-        if persons_count != len(joined_entity_ids):
-            raise SituationParsingError([entity_plural, len(persons_ids), len(joined_entity_ids)], 
+        persons_count = len(entity_persons_ids)
+        if persons_count != len(entity_ids):
+            raise SituationParsingError([entity_plural, len(entity_persons_ids), len(entity_ids)],
                 'Unable to link persons to {0} entity. Persons ids list ({1}) should be equal to given entity ids ({2}).')
 
         self.memberships[entity_plural] = {}
 
         indexed_persons = self.entity_ids[self.persons_plural].tolist()
         indexed_entities = self.entity_ids[entity_plural].tolist()
-        for index, person_id in enumerate(persons_ids):
-            entity_id = joined_entity_ids[index]
+        for index, person_id in enumerate(entity_persons_ids):
+            entity_id = entity_ids[index]
             person_index = indexed_persons.index(person_id)
             entity_index = indexed_entities.index(entity_id)
             self.memberships[entity_plural][person_index] = entity_index
-
-    def build(self, tax_benefit_system, **kwargs):
-        if self.memberships == {}:
-            raise SituationParsingError([tax_benefit_system.person_entity.plural],
-                'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
-        else:
-            simulation = Simulation(tax_benefit_system, **kwargs)
-            self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
-
-        try:
-            self.finalize_variables_init(simulation.persons)
-        except PeriodMismatchError as e:
-            self.raise_period_mismatch(simulation.persons, persons_json, e)
-
-        for entity_class in tax_benefit_system.group_entities:
-            try:
-                entity = simulation.entities[entity_class.key]
-                self.finalize_variables_init(entity)
-            except PeriodMismatchError as e:
-                self.raise_period_mismatch(entity, instances_json, e)
-
-
-
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
@@ -264,7 +248,9 @@ class SimulationBuilder(object):
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.declare_person_entity(entity.plural, entity_ids)
+        self.persons_plural = entity.plural
+        self.entity_ids[self.persons_plural] = entity_ids
+        self.entity_counts[self.persons_plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -285,7 +271,8 @@ class SimulationBuilder(object):
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
 
-        self.declare_entity(entity.plural, entity_ids)
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
 
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)
@@ -362,13 +349,6 @@ class SimulationBuilder(object):
                 "{} has been declared more than once in {}".format(
                     person_id, entity_plural)
                 )
-
-    def init_variable_values_for_period(self, tax_benefit_system, period_str, variable_name, variable_values):
-        variable_entity = tax_benefit_system.get_variable_entity(variable_name)
-        self.register_variable(variable_name, variable_entity)
-        # array[instance_index] = value
-        self.input_buffer[variable_name][str(make_period(period_str))] = array
-
 
     def init_variable_values(self, entity, instance_object, instance_id):
         for variable_name, variable_values in instance_object.items():
@@ -606,6 +586,7 @@ def iter_over_entity_members(entity_description, scenario_entity):
                     yield role, individu
                 legacy_role_j += 1
         legacy_role_i += (role.max or 1)
+
 
 def _get_person_count(input_dict):
     try:
