@@ -376,19 +376,29 @@ def test_count_members(simulation_builder):
 
 def test_from_person_variable_to_group(simulation_builder):
     persons_ids: Iterable = [0, 1, 2, 3, 4]
+    households_ids: Iterable = ['c', 'a', 'b']
+    
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+
     persons_salaries: Iterable = [6000, 2000, 1000, 1500, 1500]
-    households_ids: Iterable = ['c', 'a', 'a', 'b', 'a']
+    households_rents = [1036.6667, 781.6667, 271.6667]
+
     period = '2018-12'
 
     simulation_builder.create_entities(tax_benefit_system)
     simulation_builder.declare_person_entity('person', persons_ids)
-    simulation_builder.declare_entity('household', households_ids)
+    
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+    simulation_builder.join_with_persons(household_instance, persons_households)
     
     simulation = simulation_builder.build(tax_benefit_system)
     simulation.set_input('salary', period, persons_salaries)
-    result = simulation.calculate('total_taxes', period)
+    simulation.set_input('rent', period, households_rents)
 
-    assert result == approx([4500, 1500, 6000])
+    total_taxes = simulation.calculate('total_taxes', period)
+    assert total_taxes == approx(households_rents) # [4500, 1500, 6000]
+
+    assert total_taxes/simulation.calculate('rent', period) == approx(1)
 
 
 def test_simulation(simulation_builder):

@@ -20,13 +20,14 @@ class SimulationBuilder(object):
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
-        # Memory of known input values. Indexed by variable or axis name.
+        # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
         self.entities_instances: Dict[Entity.key, Entity] = {}
-        # Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
+        # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
-        # List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
+        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
         self.entity_ids: Dict[Entity.plural, List[int]] = {}
+
         # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
         self.memberships: Dict[Entity.plural, List[int]] = {}
         self.roles: Dict[Entity.plural, List[int]] = {}
@@ -175,29 +176,28 @@ class SimulationBuilder(object):
 
     def declare_person_entity(self, person_singular, persons_ids: Iterable):
         person_instance = self.entities_instances[person_singular]
+        person_instance.ids = np.unique(np.array(list(persons_ids)))
+        person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.plural
-        person_instance.ids = np.unique(np.array(list(persons_ids)))
-
-        self.entity_counts[self.persons_plural] = len(person_instance.ids)
-        self.entity_ids[self.persons_plural] = person_instance.ids
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.entities_instances[entity_singular]
         entity_instance.ids = np.unique(np.array(list(entity_ids)))
- 
-        self.entity_counts[entity_instance.plural] = len(entity_instance.ids)
-        self.entity_ids[entity_instance.plural] = entity_instance.ids
+        entity_instance.count = len(entity_instance.ids)
 
         ids, inverse = np.unique(entity_ids, return_inverse = True)
         assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
         entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
 
+        return entity_instance
+
     def nb_persons(self, entity_singular):
         return self.entities_instances[entity_singular].nb_persons()
 
-    def build(self, tax_benefit_system):
-        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
+
+    def join_with_persons(self, group_instance, persons_ids_in_groups):
+        pass
 
     def bind(self, entity_plural, entity_ids, entity_persons_ids):
         if self.persons_plural is None:
@@ -217,6 +217,11 @@ class SimulationBuilder(object):
             person_index = indexed_persons.index(person_id)
             entity_index = indexed_entities.index(entity_id)
             self.memberships[entity_plural][person_index] = entity_index
+
+
+    def build(self, tax_benefit_system):
+        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
+
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
