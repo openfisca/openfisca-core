@@ -19,6 +19,7 @@ class SimulationBuilder(object):
     def __init__(self):
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
+        self.person_singular = None
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
@@ -176,28 +177,30 @@ class SimulationBuilder(object):
 
     def declare_person_entity(self, person_singular, persons_ids: Iterable):
         person_instance = self.entities_instances[person_singular]
-        person_instance.ids = np.unique(np.array(list(persons_ids)))
+        person_instance.ids = np.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
+        self.person_singular = person_singular
         self.persons_plural = person_instance.plural
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.entities_instances[entity_singular]
-        entity_instance.ids = np.unique(np.array(list(entity_ids)))
+        entity_instance.ids = np.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
-
-        ids, inverse = np.unique(entity_ids, return_inverse = True)
-        assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
-        entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
-
         return entity_instance
 
     def nb_persons(self, entity_singular):
         return self.entities_instances[entity_singular].nb_persons()
 
+    def join_with_persons(self, group_instance, group_to_person_projection):
+        persons_instance = self.entities_instances[self.person_singular]
 
-    def join_with_persons(self, group_instance, persons_ids_in_groups):
-        pass
+        # ids, inverse = np.unique(entity_ids, return_inverse = True)
+        # assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
+        # entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
+
+        group_sorted_indices = np.unique(group_to_person_projection, return_inverse = True)[1]
+        group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
 
     def bind(self, entity_plural, entity_ids, entity_persons_ids):
         if self.persons_plural is None:
