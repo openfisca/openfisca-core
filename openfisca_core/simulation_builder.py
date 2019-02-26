@@ -189,38 +189,13 @@ class SimulationBuilder(object):
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 
-    def nb_persons(self, entity_singular):
-        return self.entities_instances[entity_singular].nb_persons()
+    def nb_persons(self, entity_singular, role = None):
+        return self.entities_instances[entity_singular].nb_persons(role = role)
 
     def join_with_persons(self, group_instance, group_to_person_projection):
         persons_instance = self.entities_instances[self.person_singular]
-
-        # ids, inverse = np.unique(entity_ids, return_inverse = True)
-        # assert all(ids == np.unique(entity_instance.ids))  # otherwise, input are inconsistent
-        # entity_instance.members_entity_id = np.argsort(entity_instance.ids)[inverse]
-
         group_sorted_indices = np.unique(group_to_person_projection, return_inverse = True)[1]
         group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
-
-    def bind(self, entity_plural, entity_ids, entity_persons_ids):
-        if self.persons_plural is None:
-            raise SituationParsingError(entity_plural, 'Unable to link {0} entity to undefined persons.')
-
-        persons_count = len(entity_persons_ids)
-        if persons_count != len(entity_ids):
-            raise SituationParsingError([entity_plural, len(entity_persons_ids), len(entity_ids)],
-                'Unable to link persons to {0} entity. Persons ids list ({1}) should be equal to given entity ids ({2}).')
-
-        self.memberships[entity_plural] = {}
-
-        indexed_persons = self.entity_ids[self.persons_plural].tolist()
-        indexed_entities = self.entity_ids[entity_plural].tolist()
-        for index, person_id in enumerate(entity_persons_ids):
-            entity_id = entity_ids[index]
-            person_index = indexed_persons.index(person_id)
-            entity_index = indexed_entities.index(entity_id)
-            self.memberships[entity_plural][person_index] = entity_index
-
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, entities_instances = self.entities_instances)

@@ -193,11 +193,11 @@ class PersonEntity(Entity):
             >>> array([False])
         """
         self.check_role_validity(role)
-        entity = self.simulation.get_entity(role.entity_class)
+        group_entity = self.simulation.get_entity(role.entity_class)
         if role.subroles:
-            return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
+            return np.logical_or.reduce([group_entity.members_role == subrole for subrole in role.subroles])
         else:
-            return entity.members_role == role
+            return group_entity.members_role == role
 
     @projectable
     def value_from_partner(self, array, entity, role):
@@ -271,16 +271,12 @@ class GroupEntity(Entity):
 
     def __init__(self, simulation, persons = None):
         Entity.__init__(self, simulation)
-        self.members_entity_id = None
+        self._members_entity_id = None
         self._members_role = None
         self._members_position = None
         self.members = persons
         self._roles_count = None
         self._ordered_members_map = None
-
-    @property
-    def members_role(self):
-        return self._members_role
 
     @property
     def members_position(self):
@@ -296,6 +292,20 @@ class GroupEntity(Entity):
                 counter_by_entity[entity_index] += 1
 
         return self._members_position
+
+    @property
+    def members_entity_id(self):
+        return self._members_entity_id
+
+    @members_entity_id.setter
+    def members_entity_id(self, members_entity_id):
+        self._members_entity_id = members_entity_id
+
+    @property
+    def members_role(self):
+        if self._members_role is None:
+            self._members_role = np.repeat(-1, len(self.members_entity_id))
+        return self._members_role
 
     @members_role.setter
     def members_role(self, members_role):
@@ -441,7 +451,9 @@ class GroupEntity(Entity):
             If ``role`` is provided, only the entity member with the given role are taken into account.
         """
         if role:
-            role_condition = self.members.has_role(role)
+            # role_condition = self.members.has_role(role)
+            role_condition = self.members_role == role
+            print(role_condition)
             return self.sum(role_condition)
         else:
             return np.bincount(self.members_entity_id)
