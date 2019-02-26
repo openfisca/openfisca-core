@@ -4,6 +4,7 @@ import traceback
 import warnings
 import textwrap
 from os import linesep
+from typing import Iterable
 
 import numpy as np
 
@@ -308,8 +309,14 @@ class GroupEntity(Entity):
         return self._members_role
 
     @members_role.setter
-    def members_role(self, members_role):
-        self._members_role = members_role
+    def members_role(self, members_role: Iterable):
+        if members_role is not None:
+            self._members_role = np.array(list([self.get_role(role_name) for role_name in members_role]))
+
+    def get_role(self, role_name):
+        for possible_role in self.roles:
+            if possible_role.key == role_name:
+                return possible_role
 
     @members_position.setter
     def members_position(self, members_position):
@@ -451,9 +458,7 @@ class GroupEntity(Entity):
             If ``role`` is provided, only the entity member with the given role are taken into account.
         """
         if role:
-            # role_condition = self.members.has_role(role)
             role_condition = self.members_role == role
-            print(role_condition)
             return self.sum(role_condition)
         else:
             return np.bincount(self.members_entity_id)
