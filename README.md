@@ -6,7 +6,6 @@
 
 [![CircleCI](https://img.shields.io/circleci/project/github/openfisca/openfisca-core/master.svg?style=flat)](https://circleci.com/gh/openfisca/openfisca-core)
 [![Coveralls](https://img.shields.io/coveralls/github/openfisca/openfisca-core/master.svg?style=flat)](https://coveralls.io/github/openfisca/openfisca-core?branch=master)
-[![Codacy](https://img.shields.io/codacy/grade/3e889d9be7eb46849e585b84b8be6305/master.svg?type=flat)](https://app.codacy.com/project/maukoquiroga/openfisca-core/dashboard)
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-core.svg)](https://pypi.python.org/pypi/openfisca-core)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-core.svg?style=flat)](https://pypi.python.org/pypi/openfisca-core)
 
