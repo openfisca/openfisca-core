@@ -1,5 +1,9 @@
 # Changelog
 
+### 26.0.1 [831](https://github.com/openfisca/openfisca-core/pull/831)
+
+- Greet visitors to our Github repo with badges providing contact and code information
+
 # 26.0.0 [#790](https://github.com/openfisca/openfisca-core/pull/790)
 
 #### What this PR brings
