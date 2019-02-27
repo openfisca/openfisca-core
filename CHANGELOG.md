@@ -1,5 +1,10 @@
 # Changelog
 
+### 26.0.3 [828](https://github.com/openfisca/openfisca-core/pull/828)
+
+- Remove `__future__` statements
+  - As Python 2 support has been dropped, they are not needed anymore.
+
 ### 26.0.2 [830](https://github.com/openfisca/openfisca-core/pull/830)
 
 - Collect and publish measurements of which lines of codes are exercised (or not) by our tests

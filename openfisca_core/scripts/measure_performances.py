@@ -3,7 +3,6 @@
 
 
 """Measure performances of a basic tax-benefit system to compare to other OpenFisca implementations."""
-from __future__ import unicode_literals, print_function, division, absolute_import
 import argparse
 import logging
 import sys

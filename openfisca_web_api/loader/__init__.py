@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 
 from openfisca_web_api.loader.parameters import build_parameters
 from openfisca_web_api.loader.variables import build_variables

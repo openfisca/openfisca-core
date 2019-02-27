@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 import glob
 from inspect import isclass
 from os import path, linesep

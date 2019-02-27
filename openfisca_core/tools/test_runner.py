@@ -4,7 +4,6 @@
 A module to run openfisca yaml tests
 """
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 from builtins import str
 
 import glob

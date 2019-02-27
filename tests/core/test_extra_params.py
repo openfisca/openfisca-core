@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 
 from openfisca_core import periods
 from openfisca_core.periods import MONTH

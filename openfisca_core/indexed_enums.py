@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function, division, absolute_import
 
 import numpy as np
 from enum import Enum as BaseEnum
