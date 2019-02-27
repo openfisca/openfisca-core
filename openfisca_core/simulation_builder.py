@@ -169,7 +169,6 @@ class SimulationBuilder(object):
             entity.ids = np.array(range(count))
             if not entity.is_person:
                 entity.members_entity_id = entity.ids  # Each person is its own group entity
-                entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
 
     def create_entities(self, tax_benefit_system):
@@ -192,11 +191,13 @@ class SimulationBuilder(object):
     def nb_persons(self, entity_singular, role = None):
         return self.entities_instances[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_instance, group_to_person_projection, roles = None):
+    def join_with_persons(self, group_instance, group_to_person_projection, roles: Iterable[str] = None):
         persons_instance = self.entities_instances[self.person_singular]
         group_sorted_indices = np.unique(group_to_person_projection, return_inverse = True)[1]
         group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
-        group_instance.members_role = roles
+
+        if roles is not None:
+            group_instance.members_role = [group_instance.get_role(role_name) for role_name in roles]
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, entities_instances = self.entities_instances)

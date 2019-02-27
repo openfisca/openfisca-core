@@ -387,14 +387,14 @@ def test_nb_persons_no_role(simulation_builder):
     simulation_builder.join_with_persons(household_instance, persons_households)
     parents_in_households = household_instance.nb_persons(role = household_instance.PARENT)
 
-    assert parents_in_households.tolist() == [0, 0, 0]
+    assert parents_in_households.tolist() == [1, 3, 1]  # household member default role is first_parent
 
 
 def test_nb_persons_by_role(simulation_builder):
     persons_ids: Iterable = [2, 0, 1, 4, 3]
     households_ids: Iterable = ['c', 'a', 'b']
     persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
-    persons_households_roles: Iterable = ['child', 'parent', 'parent', 'parent', 'child']
+    persons_households_roles: Iterable = ['child', 'first_parent', 'second_parent', 'first_parent', 'child']
 
     simulation_builder.create_entities(tax_benefit_system)
     simulation_builder.declare_person_entity('person', persons_ids)
@@ -405,12 +405,9 @@ def test_nb_persons_by_role(simulation_builder):
         persons_households, 
         roles = persons_households_roles
         )
+    parents_in_households = household_instance.nb_persons(role = household_instance.FIRST_PARENT)
 
-    # parents_in_households = simulation_builder.nb_persons('household', role = household_instance.PARENT)
-    parents_in_households = household_instance.nb_persons(role = household_instance.PARENT)
-    # household_instance.roles
-
-    assert parents_in_households.tolist() == [0, 2, 1]
+    assert parents_in_households.tolist() == [0, 1, 1]
 
 
 

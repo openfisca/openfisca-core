@@ -15,6 +15,21 @@ ADD = 'add'
 DIVIDE = 'divide'
 
 
+class Role(object):
+
+    def __init__(self, description, entity):
+        self.entity_class = entity
+        self.key = description['key']
+        self.label = description.get('label')
+        self.plural = description.get('plural')
+        self.doc = textwrap.dedent(description.get('doc', ""))
+        self.max = description.get('max')
+        self.subroles = None
+
+    def __repr__(self):
+        return "Role({})".format(self.key)
+
+
 class Entity(object):
     """
         Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
@@ -305,16 +320,17 @@ class GroupEntity(Entity):
     @property
     def members_role(self):
         if self._members_role is None:
-            self._members_role = np.repeat(-1, len(self.members_entity_id))
+            default_role = self.flattened_roles[0]
+            self._members_role = np.repeat(default_role, len(self.members_entity_id))
         return self._members_role
 
     @members_role.setter
-    def members_role(self, members_role: Iterable):
+    def members_role(self, members_role: Iterable[Role]):
         if members_role is not None:
-            self._members_role = np.array(list([self.get_role(role_name) for role_name in members_role]))
+            self._members_role = np.array(list(members_role))
 
     def get_role(self, role_name):
-        for possible_role in self.roles:
+        for possible_role in self.flattened_roles:
             if possible_role.key == role_name:
                 return possible_role
 
@@ -458,7 +474,10 @@ class GroupEntity(Entity):
             If ``role`` is provided, only the entity member with the given role are taken into account.
         """
         if role:
-            role_condition = self.members_role == role
+            if role.subroles:
+                role_condition = np.logical_or.reduce([self.members_role == subrole for subrole in role.subroles])
+            else:
+                role_condition = self.members_role == role
             return self.sum(role_condition)
         else:
             return np.bincount(self.members_entity_id)
@@ -546,21 +565,6 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         nb_persons_per_entity = self.nb_persons(role)
         return self.project(array / nb_persons_per_entity, role = role)
-
-
-class Role(object):
-
-    def __init__(self, description, entity):
-        self.entity_class = entity
-        self.key = description['key']
-        self.label = description.get('label')
-        self.plural = description.get('plural')
-        self.doc = textwrap.dedent(description.get('doc', ""))
-        self.max = description.get('max')
-        self.subroles = None
-
-    def __repr__(self):
-        return "Role({})".format(self.key)
 
 
 class Projector(object):
