@@ -1,5 +1,9 @@
 # Changelog
 
+### 26.0.2 [830](https://github.com/openfisca/openfisca-core/pull/830)
+
+- Collect and publish measurements of which lines of codes are exercised (or not) by our tests
+
 ### 26.0.1 [831](https://github.com/openfisca/openfisca-core/pull/831)
 
 - Greet visitors to our Github repo with badges providing contact and code information

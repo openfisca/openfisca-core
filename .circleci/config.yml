@@ -1,8 +1,6 @@
-# CircleCI 2.0 configuration file. See <https://circleci.com/docs/2.0/language-python/>.
 version: 2
 jobs:
-
-  build:
+  run_tests:
     docker:
       - image: python:3.7
 
@@ -35,11 +33,54 @@ jobs:
           name: Run Core tests
           command: make test
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .coverage
+
       - run:
           name: Run Country Template tests
           command: |
             COUNTRY_TEMPLATE_PATH=`python -c "import openfisca_country_template; print(openfisca_country_template.CountryTaxBenefitSystem().get_package_metadata()['location'])"`
             openfisca test $COUNTRY_TEMPLATE_PATH/openfisca_country_template/tests/
+
+  check_version:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - run:
+          name: Check version number has been properly updated
+          command: |
+            git fetch
+            .circleci/is-version-number-acceptable.sh
+
+  submit_coverage:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Submit coverage to Coveralls
+          command: |
+            source /tmp/venv/openfisca_core/bin/activate
+            pip install coveralls
+            coveralls
+
+      - save_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca_core
 
   deploy:
     docker:
@@ -73,28 +114,19 @@ jobs:
           command: |
             curl -X POST --header "Content-Type: application/json" -d '{"branch":"master"}' https://circleci.com/api/v1.1/project/github/openfisca/openfisca-doc/build?circle-token=$CIRCLE_TOKEN
 
-  check_version_and_changelog:
-    docker:
-      - image: python:3.6
-    steps:
-      - checkout
-
-      - run:
-          name: Check version number has been properly updated
-          command: |
-            git fetch
-            .circleci/is-version-number-acceptable.sh
-
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - build
-      - check_version_and_changelog
+      - run_tests
+      - check_version
+      - submit_coverage:
+          requires:
+            - run_tests
       - deploy:
           requires:
-            - build
-            - check_version_and_changelog
+            - run_tests
+            - check_version
           filters:
             branches:
               only: master
