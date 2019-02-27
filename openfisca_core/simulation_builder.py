@@ -19,7 +19,6 @@ class SimulationBuilder(object):
     def __init__(self):
         self.default_period = None  # Simulation period used for variables when no period is defined
         self.persons_plural = None  # Plural name for person entity in current tax and benefits system
-        self.person_singular = None
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
@@ -179,7 +178,6 @@ class SimulationBuilder(object):
         person_instance.ids = np.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
-        self.person_singular = person_singular
         self.persons_plural = person_instance.plural
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
@@ -192,7 +190,6 @@ class SimulationBuilder(object):
         return self.entities_instances[entity_singular].nb_persons(role = role)
 
     def join_with_persons(self, group_instance, group_to_person_projection, roles: Iterable[str] = None):
-        persons_instance = self.entities_instances[self.person_singular]
         group_sorted_indices = np.unique(group_to_person_projection, return_inverse = True)[1]
         group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
 
@@ -201,7 +198,6 @@ class SimulationBuilder(object):
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
-
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
