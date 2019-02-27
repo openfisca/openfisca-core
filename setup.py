@@ -38,15 +38,17 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '26.0.0',
+    version = '26.0.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
-        "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
-        "Operating System :: POSIX",
-        "Programming Language :: Python",
-        "Topic :: Scientific/Engineering :: Information Analysis",
+        'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Topic :: Scientific/Engineering :: Information Analysis',
         ],
     description = 'A versatile microsimulation free software',
     keywords = 'benefit microsimulation social tax',
