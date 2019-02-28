@@ -53,13 +53,14 @@ def check_tracing_params(accessor, param_key):
     param = accessor(tracingParams)
     assert_near(tracer.trace['A<2015-01>']['parameters'][param_key], param)
 
+
 @pytest.mark.parametrize("test", [
-        (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'),  # basic case
-        (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'),  # fancy indexing on leaf
-        (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single<2015-01-01>'),  # on a node
-        (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single<2015-01-01>'),  # double fancy indexing
-        (lambda P: P.rate[family_status][housing_occupancy_status].z2, 'rate<2015-01-01>'),  # double + node
-        (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate<2015-01-01>'),  # triple
-        ])
+    (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'),  # basic case
+    (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'),  # fancy indexing on leaf
+    (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single<2015-01-01>'),  # on a node
+    (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single<2015-01-01>'),  # double fancy indexing
+    (lambda P: P.rate[family_status][housing_occupancy_status].z2, 'rate<2015-01-01>'),  # double + node
+    (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate<2015-01-01>'),  # triple
+    ])
 def test_parameters(test):
     check_tracing_params(*test)

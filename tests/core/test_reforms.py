@@ -137,7 +137,7 @@ def test_update_items():
         value_history.update(period=None, start=start_instant, stop=stop_instant, value=value)
         assert_equal(value_history, expected_items)
 
-    check_update_items (
+    check_update_items(
         'Replace an item by a new item',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
@@ -145,7 +145,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}, "2014-01-01": {'value': None}}),
         )
-    check_update_items (
+    check_update_items(
         'Replace an item by a new item in a list of items, the last being open',
         ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 9.61}, "2016-01-01": {'value': 9.67}}),
         periods.period(2015).start,
@@ -153,7 +153,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2014-01-01": {'value': 9.53}, "2015-01-01": {'value': 1.0}, "2016-01-01": {'value': 9.67}}),
         )
-    check_update_items (
+    check_update_items(
         'Open the stop instant to the future',
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2013).start,
@@ -161,7 +161,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2013-01-01": {'value': 1.0}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new item in the middle of an existing item',
         ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         periods.period(2011).start,
@@ -169,7 +169,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2010-01-01": {'value': 0.0}, "2011-01-01": {'value': 1.0}, "2012-01-01": {'value': 0.0}, "2014-01-01": {'value': None}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new open item coming after the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2015).start,
@@ -177,7 +177,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}, "2015-01-01": {'value': 1.0}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
@@ -185,7 +185,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}, "2015-01-01": {'value': 0.14}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new open item starting at the same date than the last open item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2014).start,
@@ -193,7 +193,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 1.0}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new item coming before the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
@@ -201,7 +201,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new item coming before the first item with a hole',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2003).start,
@@ -209,7 +209,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2003-01-01": {'value': 1.0}, "2004-01-01": {'value': None}, "2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new open item starting before the start date of the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2005).start,
@@ -217,7 +217,7 @@ def test_update_items():
         1.0,
         ValuesHistory('dummy_name', {"2005-01-01": {'value': 1.0}}),
         )
-    check_update_items (
+    check_update_items(
         'Insert a new open item starting at the same date than the first item',
         ValuesHistory('dummy_name', {"2006-01-01": {'value': 0.055}, "2014-01-01": {'value': 0.14}}),
         periods.period(2006).start,

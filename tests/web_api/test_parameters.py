@@ -2,6 +2,7 @@
 
 from http.client import OK, NOT_FOUND
 import json
+import pytest
 from nose.tools import assert_equal, assert_regexp_matches, assert_in
 from . import subject
 
@@ -108,20 +109,18 @@ def check_code(route, code):
     assert_equal(response.status_code, code)
 
 
-def test_routes_robustness():
-    expected_codes = {
-        '/parameters/': OK,
-        '/parameter': NOT_FOUND,
-        '/parameter/': NOT_FOUND,
-        '/parameter/with-ÜNı©ød€': NOT_FOUND,
-        '/parameter/with%20url%20encoding': NOT_FOUND,
-        '/parameter/taxes/income_tax_rate/': OK,
-        '/parameter/taxes/income_tax_rate/too-much-nesting': NOT_FOUND,
-        '/parameter//taxes/income_tax_rate/': NOT_FOUND,
-        }
-
-    for route, code in expected_codes.items():
-        yield check_code, route, code
+@pytest.mark.parametrize("expected_code", [
+    ('/parameters/', OK),
+    ('/parameter', NOT_FOUND),
+    ('/parameter/', NOT_FOUND),
+    ('/parameter/with-ÜNı©ød€', NOT_FOUND),
+    ('/parameter/with%20url%20encoding', NOT_FOUND),
+    ('/parameter/taxes/income_tax_rate/', OK),
+    ('/parameter/taxes/income_tax_rate/too-much-nesting', NOT_FOUND),
+    ('/parameter//taxes/income_tax_rate/', NOT_FOUND),
+    ])
+def test_routes_robustness(expected_code):
+    check_code(*expected_code)
 
 
 def test_parameter_encoding():

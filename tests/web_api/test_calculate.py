@@ -32,27 +32,27 @@ def check_response(data, expected_error_code, path_to_check, content_to_check):
 
 
 @pytest.mark.parametrize("test", [
-        ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
-        ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
-        ('{"persons": {}}', BAD_REQUEST, 'persons', 'At least one person'),
-        ('{"persons": {"bob": {}}, "unknown_entity": {}}', BAD_REQUEST, 'unknown_entity', 'entities are not found',),
-        ('{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}', BAD_REQUEST, 'households/dupont/parents', 'type',),
-        ('{"persons": {"bob": {"unknown_variable": {}}}}', NOT_FOUND, 'persons/bob/unknown_variable', 'You tried to calculate or to set',),
-        ('{"persons": {"bob": {"housing_allowance": {}}}}', BAD_REQUEST, 'persons/bob/housing_allowance', "You tried to compute the variable 'housing_allowance' for the entity 'persons'",),
-        ('{"persons": {"bob": {"salary": 4000 }}}', BAD_REQUEST, 'persons/bob/salary', 'period',),
-        ('{"persons": {"bob": {"salary": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
-        ('{"persons": {"bob": {"salary": {"2017-01": {}} }}}', BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
-        ('{"persons": {"bob": {"age": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/age/2017-01', 'expected type integer',),
-        ('{"persons": {"bob": {"birth": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/birth/2017-01', 'Can\'t deal with date',),
-        ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}', BAD_REQUEST, 'households/household/parents', 'has not been declared in persons',),
-        ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}', BAD_REQUEST, 'households/household/parents', 'has been declared more than once',),
-        ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}', BAD_REQUEST, 'households/household/parents/1', 'Invalid type',),
-        ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
-        ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
-        ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
-        ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
-        ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}, "households": {}}', BAD_REQUEST, 'households', 'not members of any household',),
-        ])
+    ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
+    ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
+    ('{"persons": {}}', BAD_REQUEST, 'persons', 'At least one person'),
+    ('{"persons": {"bob": {}}, "unknown_entity": {}}', BAD_REQUEST, 'unknown_entity', 'entities are not found',),
+    ('{"persons": {"bob": {}}, "households": {"dupont": {"parents": {}}}}', BAD_REQUEST, 'households/dupont/parents', 'type',),
+    ('{"persons": {"bob": {"unknown_variable": {}}}}', NOT_FOUND, 'persons/bob/unknown_variable', 'You tried to calculate or to set',),
+    ('{"persons": {"bob": {"housing_allowance": {}}}}', BAD_REQUEST, 'persons/bob/housing_allowance', "You tried to compute the variable 'housing_allowance' for the entity 'persons'",),
+    ('{"persons": {"bob": {"salary": 4000 }}}', BAD_REQUEST, 'persons/bob/salary', 'period',),
+    ('{"persons": {"bob": {"salary": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
+    ('{"persons": {"bob": {"salary": {"2017-01": {}} }}}', BAD_REQUEST, 'persons/bob/salary/2017-01', 'expected type number',),
+    ('{"persons": {"bob": {"age": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/age/2017-01', 'expected type integer',),
+    ('{"persons": {"bob": {"birth": {"2017-01": "toto"} }}}', BAD_REQUEST, 'persons/bob/birth/2017-01', 'Can\'t deal with date',),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["unexpected_person_id"]}}}', BAD_REQUEST, 'households/household/parents', 'has not been declared in persons',),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", "bob"]}}}', BAD_REQUEST, 'households/household/parents', 'has been declared more than once',),
+    ('{"persons": {"bob": {}}, "households": {"household": {"parents": ["bob", {}]}}}', BAD_REQUEST, 'households/household/parents/1', 'Invalid type',),
+    ('{"persons": {"bob": {"salary": {"invalid period": 2000 }}}}', BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
+    ('{"persons": {"bob": {"salary": {"invalid period": null }}}}', BAD_REQUEST, 'persons/bob/salary', 'Expected a period',),
+    ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
+    ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
+    ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}, "households": {}}', BAD_REQUEST, 'households', 'not members of any household',),
+    ])
 def test_responses(test):
     check_response(*test)
 
@@ -181,7 +181,7 @@ def test_enum_wrong_value():
     response_json = json.loads(response.data.decode('utf-8'))
     message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
     text = dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
-    assert message in text        
+    assert message in text
 
 
 def test_encoding_variable_value():
@@ -208,7 +208,7 @@ def test_encoding_variable_value():
     response_json = json.loads(response.data.decode('utf-8'))
     message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
     text = dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
-    assert message in text        
+    assert message in text
 
 
 def test_encoding_entity_name():
@@ -235,7 +235,7 @@ def test_encoding_entity_name():
     if response.status_code != OK:
         message = "'O‘Ryan' is not a valid ASCII value."
         text = response_json['error']
-        assert message in text        
+        assert message in text
 
 
 def test_encoding_period_id():
@@ -277,7 +277,7 @@ def test_encoding_period_id():
     if "Expected a period" not in to_unicode(response.data):
         message = "'à' is not a valid ASCII value."
         text = response_json['error']
-        assert message in text        
+        assert message in text
 
 
 def test_str_variable():
