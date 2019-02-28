@@ -340,13 +340,21 @@ def test_allocate_person_twice(simulation_builder):
     assert exception.value.error == {'familles': {'famille1': {'parents': 'Alicia has been declared more than once in familles'}}}
 
 
-def test_unallocated_person(simulation_builder, group_entity):
-    with raises(SituationParsingError) as exception:
-        simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], group_entity, {
-            'Household_1': {'parents': ['Alicia', 'Javier']},
-            'Household_2': {'parents': ['Tom']},
-            })
-    assert exception.value.error == {'households': "{'Sarah'} have been declared in persons, but are not members of any household. All persons must be allocated to a household."}
+def test_one_person_without_household(simulation_builder):
+    simulation_dict = {'persons': {'Alicia': {}}}
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, simulation_dict)
+    assert simulation.household.count == 1
+
+
+def test_some_person_without_household(simulation_builder):
+    input_yaml = """
+        persons: {'Alicia': {}, 'Bob': {}}
+        household: {'parents': ['Alicia']}
+    """
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, yaml.load(input_yaml))
+    assert simulation.household.count == 2
+    parents_in_households = simulation.household.nb_persons(role = simulation.household.PARENT)
+    assert parents_in_households.tolist() == [1, 1]  # household member default role is first_parent
 
 
 # Test Intégration
