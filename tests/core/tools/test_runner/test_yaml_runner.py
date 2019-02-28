@@ -49,8 +49,7 @@ class reform_ba(Reform):
 
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
-    extensions = []
 
-    ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', extensions)
-    ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', extensions)
+    ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', [])
+    ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', [])
     assert ab_tax_benefit_system != ba_tax_benefit_system
