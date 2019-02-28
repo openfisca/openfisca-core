@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from nose.tools import raises, assert_equals
 import numpy as np
+import pytest
 
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.tools import assert_near
@@ -9,11 +9,11 @@ from openfisca_core.tools import assert_near
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
-@raises(ValueError)
 def test_consistency():
-    tracer = Tracer()
-    tracer.record_calculation_start("rsa", 2017)
-    tracer.record_calculation_end("unkwonn", 2017, 100)
+    with pytest.raises(ValueError):
+        tracer = Tracer()
+        tracer.record_calculation_start("rsa", 2017)
+        tracer.record_calculation_end("unkwonn", 2017, 100)
 
 
 def test_variable_stats():
@@ -23,9 +23,9 @@ def test_variable_stats():
     tracer.record_calculation_start("B", 2017)
     tracer.record_calculation_start("B", 2016)
 
-    assert_equals(tracer.usage_stats['B']['nb_requests'], 3)
-    assert_equals(tracer.usage_stats['A']['nb_requests'], 1)
-    assert_equals(tracer.usage_stats['C']['nb_requests'], 0)
+    assert tracer.usage_stats['B']['nb_requests'] == 3
+    assert tracer.usage_stats['A']['nb_requests'] == 1
+    assert tracer.usage_stats['C']['nb_requests'] == 0
 
 
 def test_log_format():
@@ -36,8 +36,8 @@ def test_log_format():
     tracer.record_calculation_end("A", 2017, 2)
 
     lines = tracer.computation_log()
-    assert_equals(lines[0], '  A<2017> >> 2')
-    assert_equals(lines[1], '    B<2017> >> 1')
+    assert lines[0] == '  A<2017> >> 2'
+    assert lines[1] == '    B<2017> >> 1'
 
 
 #  Tests on tracing with fancy indexing
@@ -53,15 +53,13 @@ def check_tracing_params(accessor, param_key):
     param = accessor(tracingParams)
     assert_near(tracer.trace['A<2015-01>']['parameters'][param_key], param)
 
-
-def test_parameters():
-    tests = [
+@pytest.mark.parametrize("test", [
         (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'),  # basic case
         (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'),  # fancy indexing on leaf
         (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single<2015-01-01>'),  # on a node
         (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single<2015-01-01>'),  # double fancy indexing
         (lambda P: P.rate[family_status][housing_occupancy_status].z2, 'rate<2015-01-01>'),  # double + node
         (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate<2015-01-01>'),  # triple
-        ]
-    for test in tests:
-        yield (check_tracing_params,) + test
+        ])
+def test_parameters(test):
+    check_tracing_params(*test)
