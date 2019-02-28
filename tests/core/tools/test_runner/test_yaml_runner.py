@@ -37,19 +37,18 @@ def test_variable_not_found():
     assert excinfo.value.variable_name == "unknown_variable"
 
 
-class reform_ab(Reform):
-    def apply(self):
-        self.key = self.__class__.__name__
-
-
-class reform_ba(Reform):
-    def apply(self):
-        self.key = self.__class__.__name__
-
-
 def test_tax_benefit_systems_with_reform_cache():
     baseline = TaxBenefitSystem()
 
     ab_tax_benefit_system = _get_tax_benefit_system(baseline, 'ab', [])
     ba_tax_benefit_system = _get_tax_benefit_system(baseline, 'ba', [])
     assert ab_tax_benefit_system != ba_tax_benefit_system
+
+
+def test_yaml_one_reform():
+    pass
+
+
+def test_yaml_reforms_list():
+    # Test order
+    pass
