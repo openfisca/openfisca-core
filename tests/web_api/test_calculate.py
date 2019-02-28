@@ -5,7 +5,7 @@ import json
 from http.client import BAD_REQUEST, OK, NOT_FOUND
 from copy import deepcopy
 
-from nose.tools import assert_equal, assert_in
+import pytest
 import dpath
 
 from openfisca_core.commons import to_unicode
@@ -24,15 +24,14 @@ def post_json(data = None, file = None):
 
 def check_response(data, expected_error_code, path_to_check, content_to_check):
     response = post_json(data)
-    assert_equal(response.status_code, expected_error_code)
+    assert response.status_code == expected_error_code
     json_response = json.loads(response.data.decode('utf-8'))
     if path_to_check:
         content = dpath.util.get(json_response, path_to_check)
-        assert_in(content_to_check, content)
+        assert content_to_check in content
 
 
-def test_responses():
-    tests = [
+@pytest.mark.parametrize("test", [
         ('{"a" : "x", "b"}', BAD_REQUEST, 'error', 'Invalid JSON'),
         ('["An", "array"]', BAD_REQUEST, 'error', 'Invalid type'),
         ('{"persons": {}}', BAD_REQUEST, 'persons', 'At least one person'),
@@ -53,10 +52,9 @@ def test_responses():
         ('{"persons": {"bob": {"basic_income": {"2017": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/basic_income/2017', 'basic_income is only defined for months',),
         ('{"persons": {"bob": {"salary": {"ETERNITY": 2000 }}}, "households": {"household": {"parents": ["bob"]}}}', BAD_REQUEST, 'persons/bob/salary/ETERNITY', 'salary is only defined for months',),
         ('{"persons": {"bob": {"birth": {"ETERNITY": "1980-01-01"} }}, "households": {}}', BAD_REQUEST, 'households', 'not members of any household',),
-        ]
-
-    for test in tests:
-        yield (check_response,) + test
+        ])
+def test_responses(test):
+    check_response(*test)
 
 
 def test_basic_calculation():
@@ -105,14 +103,14 @@ def test_basic_calculation():
         })
 
     response = post_json(simulation_json)
-    assert_equal(response.status_code, OK)
+    assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert_equal(dpath.get(response_json, 'persons/bill/basic_income/2017-12'), 600)  # Universal basic income
-    assert_equal(dpath.get(response_json, 'persons/bill/income_tax/2017-12'), 300)  # 15% of the salary
-    assert_equal(dpath.get(response_json, 'persons/bill/age/2017-12'), 37)  # 15% of the salary
-    assert_equal(dpath.get(response_json, 'persons/bob/basic_income/2017-12'), 600)
-    assert_equal(dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12'), 816)  # From social_security_contribution.yaml test
-    assert_equal(dpath.get(response_json, 'households/first_household/housing_tax/2017'), 3000)
+    assert dpath.get(response_json, 'persons/bill/basic_income/2017-12') == 600  # Universal basic income
+    assert dpath.get(response_json, 'persons/bill/income_tax/2017-12') == 300  # 15% of the salary
+    assert dpath.get(response_json, 'persons/bill/age/2017-12') == 37  # 15% of the salary
+    assert dpath.get(response_json, 'persons/bob/basic_income/2017-12') == 600
+    assert dpath.get(response_json, 'persons/bob/social_security_contribution/2017-12') == 816  # From social_security_contribution.yaml test
+    assert dpath.get(response_json, 'households/first_household/housing_tax/2017') == 3000
 
 
 def test_enums_sending_identifier():
@@ -137,9 +135,9 @@ def test_enums_sending_identifier():
         })
 
     response = post_json(simulation_json)
-    assert_equal(response.status_code, OK)
+    assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert_equal(dpath.get(response_json, 'households/_/housing_tax/2017'), 0)
+    assert dpath.get(response_json, 'households/_/housing_tax/2017') == 0
 
 
 def test_enum_output():
@@ -158,9 +156,9 @@ def test_enum_output():
         })
 
     response = post_json(simulation_json)
-    assert_equal(response.status_code, OK)
+    assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
-    assert_equal(dpath.get(response_json, "households/_/housing_occupancy_status/2017-01"), "tenant")
+    assert dpath.get(response_json, "households/_/housing_occupancy_status/2017-01") == "tenant"
 
 
 def test_enum_wrong_value():
@@ -179,12 +177,11 @@ def test_enum_wrong_value():
         })
 
     response = post_json(simulation_json)
-    assert_equal(response.status_code, BAD_REQUEST)
+    assert response.status_code == BAD_REQUEST
     response_json = json.loads(response.data.decode('utf-8'))
-    assert_in(
-        "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']",
-        dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
-        )
+    message = "Possible values are ['owner', 'tenant', 'free_lodger', 'homeless']"
+    text = dpath.get(response_json, "households/_/housing_occupancy_status/2017-01")
+    assert message in text        
 
 
 def test_encoding_variable_value():
@@ -207,12 +204,11 @@ def test_encoding_variable_value():
 
     # No UnicodeDecodeError
     response = post_json(simulation_json)
-    assert_equal(response.status_code, BAD_REQUEST, response.data.decode('utf-8'))
+    assert response.status_code == BAD_REQUEST, response.data.decode('utf-8')
     response_json = json.loads(response.data.decode('utf-8'))
-    assert_in(
-        "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are ",
-        dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
-        )
+    message = "'Locataire ou sous-locataire d‘un logement loué vide non-HLM' is not a known value for 'housing_occupancy_status'. Possible values are "
+    text = dpath.get(response_json, 'households/_/housing_occupancy_status/2017-07')
+    assert message in text        
 
 
 def test_encoding_entity_name():
@@ -237,10 +233,9 @@ def test_encoding_entity_name():
 
     # In Python 3, there is no encoding issue.
     if response.status_code != OK:
-        assert_in(
-            "'O‘Ryan' is not a valid ASCII value.",
-            response_json['error']
-            )
+        message = "'O‘Ryan' is not a valid ASCII value."
+        text = response_json['error']
+        assert message in text        
 
 
 def test_encoding_period_id():
@@ -275,15 +270,14 @@ def test_encoding_period_id():
 
     # No UnicodeDecodeError
     response = post_json(simulation_json)
-    assert_equal(response.status_code, BAD_REQUEST)
+    assert response.status_code == BAD_REQUEST
     response_json = json.loads(response.data.decode('utf-8'))
 
     # In Python 3, there is no encoding issue.
     if "Expected a period" not in to_unicode(response.data):
-        assert_in(
-            "'à' is not a valid ASCII value.",
-            response_json['error']
-            )
+        message = "'à' is not a valid ASCII value."
+        text = response_json['error']
+        assert message in text        
 
 
 def test_str_variable():
@@ -293,4 +287,4 @@ def test_str_variable():
 
     response = subject.post('/calculate', data = simulation_json, content_type = 'application/json')
 
-    assert_equal(response.status_code, OK)
+    assert response.status_code == OK
