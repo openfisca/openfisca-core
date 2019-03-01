@@ -52,3 +52,10 @@ def test_reforms_formats():
     list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ['lonely_reform'], [])
     assert lonely_reform_tbs == list_lonely_reform_tbs
 
+
+def test_reforms_order():
+    baseline = TaxBenefitSystem()
+
+    abba_tax_benefit_system = _get_tax_benefit_system(baseline, ['ab', 'ba'], [])
+    baab_tax_benefit_system = _get_tax_benefit_system(baseline, ['ba', 'ab'], [])
+    assert abba_tax_benefit_system != baab_tax_benefit_system # keep reforms order in cache
