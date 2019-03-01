@@ -45,10 +45,10 @@ def test_tax_benefit_systems_with_reform_cache():
     assert ab_tax_benefit_system != ba_tax_benefit_system
 
 
-def test_yaml_one_reform():
-    pass
+def test_reforms_formats():
+    baseline = TaxBenefitSystem()
 
+    lonely_reform_tbs = _get_tax_benefit_system(baseline, 'lonely_reform', [])
+    list_lonely_reform_tbs = _get_tax_benefit_system(baseline, ['lonely_reform'], [])
+    assert lonely_reform_tbs == list_lonely_reform_tbs
 
-def test_yaml_reforms_list():
-    # Test order
-    pass
