@@ -194,7 +194,8 @@ def _get_tax_benefit_system(baseline, reforms, extensions):
     if not isinstance(reforms, list):
         reforms = [reforms]
 
-    key = hash((id(baseline), frozenset(reforms), frozenset(extensions)))
+    # keep reforms order in cache
+    key = hash((id(baseline), ':'.join(reforms), frozenset(extensions)))
     if _tax_benefit_system_cache.get(key):
         return _tax_benefit_system_cache.get(key)
 
