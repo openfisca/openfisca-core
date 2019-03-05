@@ -1,6 +1,12 @@
 # Changelog
 
-## 26.0.4 [#825](https://github.com/openfisca/openfisca-core/pull/825)
+### 26.0.5 [#829](https://github.com/openfisca/openfisca-core/pull/829)
+
+- Update autopep8 and flake8, which in particular now enforce rules W504 and W605
+  - W504 goes against house style, so we add it to ignored rules
+  - W605 may seem like an [overreach](https://github.com/PyCQA/pycodestyle/issues/755) but does make sense (additional details in PR description), so we upgrade a few regexes to raw strings
+
+### 26.0.4 [#825](https://github.com/openfisca/openfisca-core/pull/825)
 
 - Fixes regression introduced by Core v25 when running YAML tests with reforms or extensions
 
