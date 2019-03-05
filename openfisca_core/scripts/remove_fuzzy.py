@@ -20,9 +20,9 @@ lines_2 = [
     for line in lines
     ]
 
-regex_indent = '^(\s*)<VALUE '
-regex_fin = ' fin="([0-9\-]+)"'
-regex_iso8601 = '([0-9]+)-([0-9]+)-([0-9]+)'
+regex_indent = r'^(\s*)<VALUE '
+regex_fin = r' fin="([0-9\-]+)"'
+regex_iso8601 = r'([0-9]+)-([0-9]+)-([0-9]+)'
 one_day = datetime.timedelta(days=1)
 
 lines_3 = []
@@ -84,7 +84,7 @@ position_code = list(zip(index_code, index_code_end))
 
 
 end_to_remove = []
-regex_deb = ' deb="([0-9\-]+)"'
+regex_deb = r' deb="([0-9\-]+)"'
 
 for code_begining, code_end in position_code:
     deb_list = []
