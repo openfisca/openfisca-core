@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.0.4 [#825](https://github.com/openfisca/openfisca-core/pull/825)
+
+- Fixes regression introduced by Core v25 when running YAML tests with reforms or extensions
+
 ### 26.0.3 [828](https://github.com/openfisca/openfisca-core/pull/828)
 
 - Remove `__future__` statements
