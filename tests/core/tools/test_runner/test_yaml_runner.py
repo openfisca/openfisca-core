@@ -22,7 +22,6 @@ class TaxBenefitSystem:
         return TaxBenefitSystem()
 
 
-
 class Reform(TaxBenefitSystem):
     def __init__(self, baseline):
         self.baseline = baseline
@@ -65,7 +64,7 @@ def test_reforms_order():
 
     abba_tax_benefit_system = _get_tax_benefit_system(baseline, ['ab', 'ba'], [])
     baab_tax_benefit_system = _get_tax_benefit_system(baseline, ['ba', 'ab'], [])
-    assert abba_tax_benefit_system != baab_tax_benefit_system # keep reforms order in cache
+    assert abba_tax_benefit_system != baab_tax_benefit_system  # keep reforms order in cache
 
 
 def test_tax_benefit_systems_with_extensions_cache():
@@ -84,9 +83,9 @@ def test_extensions_formats():
     assert lonely_extension_tbs == list_lonely_extension_tbs
 
 
-def test_reforms_order():
+def test_extensions_order():
     baseline = TaxBenefitSystem()
 
     xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['x', 'y'])
     yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['y', 'x'])
-    assert xy_tax_benefit_system == yx_tax_benefit_system # extensions order is ignored in cache
+    assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
