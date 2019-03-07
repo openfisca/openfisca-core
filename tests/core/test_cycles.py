@@ -137,7 +137,7 @@ def test_spirals_result_in_default_value(simulation, reference_period):
 
 def test_spiral_heuristic(simulation, reference_period):
     """
-    Calculate variable5 then variable6 then in the order order, to verify that the first calculated variable
+    Calculate variable5 then variable6 then in the other order, to verify that the first calculated variable
     has no effect on the result.
     """
     variable5 = simulation.calculate('variable5', period = reference_period, trace=True)
