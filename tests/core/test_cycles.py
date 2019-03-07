@@ -151,17 +151,9 @@ def test_spiral_heuristic(simulation, reference_period):
     assert_near(variable6_last_month, [11])
 
 
-def test_allowed_cycle_different_order(simulation, reference_period):
-    variable5 = simulation.calculate('variable5', period = reference_period)
-    variable6 = simulation.calculate('variable6', period = reference_period)
-    variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
-    assert_near(variable5, [5])
-    assert_near(variable6, [11])
-    assert_near(variable6_last_month, [0])
-
-
 def test_cotisation_1_level(simulation, reference_period):
-    cotisation = simulation.calculate('cotisation', period = reference_period.last_month)
+    month = reference_period.last_month
+    cotisation = simulation.calculate('cotisation', period = month)
     assert_near(cotisation, [2])
 
 
