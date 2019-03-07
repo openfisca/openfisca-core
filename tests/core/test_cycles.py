@@ -98,32 +98,10 @@ class cotisation(Variable):
             return person.empty_array() + 1
 
 
-# 7 -f-> 8 with a period offset, with explicit cycle allowed (1 level)
-#   <---
-class variable7(Variable):
-    value_type = int
-    entity = Person
-    definition_period = MONTH
-
-    def formula(person, period):
-        variable8 = person('variable8', period.last_month, max_nb_cycles = 1)
-        return 7 + variable8
-
-
-class variable8(Variable):
-    value_type = int
-    entity = Person
-    definition_period = MONTH
-
-    def formula(person, period):
-        variable7 = person('variable7', period)
-        return 8 + variable7
-
-
 # TaxBenefitSystem instance declared after formulas
 tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
-    variable5, variable6, cotisation, variable7, variable8)
+    variable5, variable6, cotisation)
 
 
 def test_pure_cycle(simulation, reference_period):
@@ -155,9 +133,3 @@ def test_cotisation_1_level(simulation, reference_period):
     month = reference_period.last_month
     cotisation = simulation.calculate('cotisation', period = month)
     assert_near(cotisation, [2])
-
-
-def test_cycle_1_level(simulation, reference_period):
-    variable7 = simulation.calculate('variable7', period = reference_period)
-    # variable8 = simulation.calculate('variable8')
-    assert_near(variable7, [22])
