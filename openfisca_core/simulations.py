@@ -149,7 +149,7 @@ class Simulation(object):
                 self.tracer._computation_log.append(["spiral_" + variable.name + ":" + str(period), 1])
         finally:
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
+                self.tracer.record_calculation_end(variable.name, period, np.array(["SpiralError"]), **parameters)
             self._clean_cycle_detection_data(variable.name)
 
         # If no result, use the default value
