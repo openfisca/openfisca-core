@@ -2,6 +2,7 @@
 
 from http.client import OK, NOT_FOUND
 import json
+import pytest
 from nose.tools import assert_equal, assert_regexp_matches, assert_in, assert_is_none, assert_not_in
 from . import subject
 
@@ -51,18 +52,16 @@ def check_input_variable_value(key, expected_value):
     assert_equal(input_variable[key], expected_value)
 
 
-def test_input_variable_value():
-    expected_values = {
-        'description': 'Birth date',
-        'valueType': 'Date',
-        'defaultValue': '1970-01-01',
-        'definitionPeriod': 'ETERNITY',
-        'entity': 'person',
-        'references': ['https://en.wiktionary.org/wiki/birthdate'],
-        }
-
-    for key, expected_value in expected_values.items():
-        yield check_input_variable_value, key, expected_value
+@pytest.mark.parametrize("expected_values", [
+    ('description', 'Birth date'),
+    ('valueType', 'Date'),
+    ('defaultValue', '1970-01-01'),
+    ('definitionPeriod', 'ETERNITY'),
+    ('entity', 'person'),
+    ('references', ['https://en.wiktionary.org/wiki/birthdate']),
+    ])
+def test_input_variable_value(expected_values):
+    check_input_variable_value(*expected_values)
 
 
 def test_input_variable_github_url():
@@ -81,17 +80,15 @@ def check_variable_value(key, expected_value):
     assert_equal(variable[key], expected_value)
 
 
-def test_variable_value():
-    expected_values = {
-        'description': 'Income tax',
-        'valueType': 'Float',
-        'defaultValue': 0,
-        'definitionPeriod': 'MONTH',
-        'entity': 'person',
-        }
-
-    for key, expected_value in expected_values.items():
-        yield check_variable_value, key, expected_value
+@pytest.mark.parametrize("expected_values", [
+    ('description', 'Income tax'),
+    ('valueType', 'Float'),
+    ('defaultValue', 0),
+    ('definitionPeriod', 'MONTH'),
+    ('entity', 'person'),
+    ])
+def test_variable_value(expected_values):
+    check_variable_value(*expected_values)
 
 
 def test_variable_formula_github_link():
