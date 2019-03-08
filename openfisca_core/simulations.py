@@ -138,7 +138,8 @@ class Simulation(object):
             if array is None and variable.base_function:
                 array = variable.base_function(holder, period)
 
-            if array is not None:
+            last_variable, last_period, last_status = self.computation_stack[-1]
+            if array is not None and last_status:
                 holder.put_in_cache(array, period)
         except SpiralError as spiral:
             spiral_marker = spiral.args[1]
@@ -149,7 +150,7 @@ class Simulation(object):
                 self.tracer._computation_log.append(["spiral_" + variable.name + ":" + str(period), 1])
         finally:
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, np.array(["SpiralError"]), **parameters)
+                self.tracer.record_calculation_end(variable.name, period, array or np.array(["SpiralError"]), **parameters)
             self._clean_cycle_detection_data(variable.name)
 
         # If no result, use the default value
@@ -317,12 +318,15 @@ class Simulation(object):
         a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
         the same variable at a different period.
         """
-        previous = [(name, period) for (name, period) in self.computation_stack if name == variable.name]
-        self.computation_stack.append([variable.name, str(period)])
+        previous = [(name, period) for (name, period, status) in self.computation_stack if name == variable.name]
+        spiral = len(previous) > 1
+        self.computation_stack.append([variable.name, str(period), True])
         for pair in previous:
             if pair == (variable.name, str(period)):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
-        if len(previous) > 1:
+        if spiral:
+            for frame in self.computation_stack[::-1]:
+                frame[2] = False
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
             raise SpiralError(message, variable.name)
 
