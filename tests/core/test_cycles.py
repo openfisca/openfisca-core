@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
 from openfisca_core.simulation_builder import SimulationBuilder
