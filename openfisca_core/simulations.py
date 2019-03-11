@@ -138,8 +138,14 @@ class Simulation(object):
             if array is None and variable.base_function:
                 array = variable.base_function(holder, period)
 
+            # If no result use the default value
+            # This is duplicated with the code in 'finally' because we
+            # want to also cache inputs
+            if array is None:
+                array = holder.default_array()
+
             last_variable, last_period, last_status = self.computation_stack[-1]
-            if array is not None and last_status:
+            if last_status:
                 holder.put_in_cache(array, period)
         except SpiralError as spiral:
             spiral_marker = spiral.args[1]
@@ -149,13 +155,12 @@ class Simulation(object):
             if self.tracer:
                 self.tracer._computation_log.append(["spiral_" + variable.name + ":" + str(period), 1])
         finally:
+            # If aborted due to a spiral, also use the default
+            if array is None:
+                array = holder.default_array()
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array or np.array(["SpiralError"]), **parameters)
+                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
             self._clean_cycle_detection_data(variable.name)
-
-        # If no result, use the default value
-        if array is None:
-            array = holder.default_array()
 
         return array
 
@@ -319,7 +324,7 @@ class Simulation(object):
         the same variable at a different period.
         """
         max_spiral_loops = 2
-        previous = [(name, period) for (name, period, status) in self.computation_stack if name == variable.name]
+        previous = [(_name, _period) for (_name, _period, _status) in self.computation_stack if _name == variable.name]
         spiral = len(previous) >= max_spiral_loops
         self.computation_stack.append([variable.name, str(period), True])
         for pair in previous:
