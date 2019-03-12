@@ -111,6 +111,16 @@ def test_variable__end_attribute():
     assert variable.end == datetime.date(1989, 12, 31)
 
 
+def test_variable__end_attribute_set_input():
+    month_before_end = '1989-01'
+    month_after_end = '1990-01'
+    simulation = new_simulation(tax_benefit_system, month_before_end)
+    simulation.set_input('variable__end_attribute', month_before_end, 10)
+    simulation.set_input('variable__end_attribute', month_after_end, 10)
+    assert simulation.calculate('variable__end_attribute', month_before_end) == 10
+    assert simulation.calculate('variable__end_attribute', month_after_end) == 0
+
+
 # end, one formula without date
 
 class end_attribute__one_simple_formula(Variable):
