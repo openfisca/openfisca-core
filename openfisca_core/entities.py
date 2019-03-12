@@ -330,9 +330,7 @@ class GroupEntity(Entity):
             self._members_role = np.array(list(members_role))
 
     def get_role(self, role_name):
-        for possible_role in self.flattened_roles:
-            if possible_role.key == role_name:
-                return possible_role
+        return next((role for role in self.flattened_roles if role.key == role_name), None)
 
     @members_position.setter
     def members_position(self, members_position):
