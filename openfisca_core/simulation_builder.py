@@ -189,8 +189,8 @@ class SimulationBuilder(object):
     def nb_persons(self, entity_singular, role = None):
         return self.entities_instances[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_instance, group_to_person_projection, roles: Iterable[str] = None):
-        group_sorted_indices = np.unique(group_to_person_projection, return_inverse = True)[1]
+    def join_with_persons(self, group_instance, persons_group_assignment, roles: Iterable[str] = None):
+        group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
         group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
 
         if roles is not None:
