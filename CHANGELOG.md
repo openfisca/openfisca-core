@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.1.0 [#835](https://github.com/openfisca/openfisca-core/pull/835)
+
+- No longer raise an error when a group entity is not specified in a test case, or partially specified.
+  - Instead, each person is by default allocated to a group of which they are the sole member, with the default role in that group.
+
 ### 26.0.6 [#836](https://github.com/openfisca/openfisca-core/pull/836)
 
 - Convert tests that were incompatible with Pytest 4.0+ and reported "xfail" when run with that version
