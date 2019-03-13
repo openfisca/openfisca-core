@@ -100,7 +100,10 @@ class SimulationBuilder(object):
         for entity_class in tax_benefit_system.group_entities:
             entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
-            self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
+            if instances_json is not None:
+                self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
+            else:
+                self.add_default_group_entity(persons_ids, entity)
 
         if axes:
             self.axes = axes
@@ -206,19 +209,26 @@ class SimulationBuilder(object):
 
         return self.get_ids(entity.plural)
 
+    def add_default_group_entity(self, persons_ids, entity):
+        persons_count = len(persons_ids)
+        self.entity_ids[entity.plural] = persons_ids
+        self.entity_counts[entity.plural] = persons_count
+        self.memberships[entity.plural] = np.arange(0, persons_count - 1, dtype = np.int32)
+
     def add_group_entity(self, persons_plural, persons_ids, entity, instances_json):
         """
             Add all instances of one of the model's entities as described in ``instances_json``.
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
 
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)
         self.memberships[entity.plural] = np.empty(persons_count, dtype = np.int32)
         self.roles[entity.plural] = np.empty(persons_count, dtype = object)
+
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -249,15 +259,19 @@ class SimulationBuilder(object):
 
             self.init_variable_values(entity, variables_json, instance_id)
 
+        if persons_to_allocate:
+            entity_ids = entity_ids + list(persons_to_allocate)
+            for person_id in persons_to_allocate:
+                person_index = persons_ids.index(person_id)
+                self.memberships[entity.plural][person_index] = entity_ids.index(person_id)
+                self.roles[entity.plural][person_index] = entity.flattened_roles[0]
+            # Adjust previously computed ids and counts
+            self.entity_ids[entity.plural] = entity_ids
+            self.entity_counts[entity.plural] = len(entity_ids)
+
         # Convert back to Python array
         self.roles[entity.plural] = self.roles[entity.plural].tolist()
         self.memberships[entity.plural] = self.memberships[entity.plural].tolist()
-
-        if persons_to_allocate:
-            raise SituationParsingError([entity.plural],
-                '{0} have been declared in {1}, but are not members of any {2}. All {1} must be allocated to a {2}.'.format(
-                    persons_to_allocate, persons_plural, entity.key)
-                )
 
     def set_default_period(self, period_str):
         if period_str:
