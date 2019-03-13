@@ -50,6 +50,15 @@ class Enum(BaseEnum):
         if array.dtype.kind in {'U', 'S'}:  # String array
             array = np.select([array == item.name for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
         elif array.dtype.kind == 'O':  # Enum items arrays
+            # Ensure we are comparing the comparable. The problem this fixes:
+            #  On entering "cls" this method will generally come from variable.possible_values,
+            #  while the array values may come from directly importing a module containing an Enum class.
+            #  However, variables (and hence their possible_values) are loaded by a call to load_module,
+            #  which gives them a different identity from the ones imported in the usual way.
+            #  So, instead of relying on the "cls" passed in, we use only its name to check that
+            #  the values in the array, if non-empty, are of the right type.
+            if len(array) > 0 and cls.__name__ is array[0].__class__.__name__:
+                cls = array[0].__class__
             array = np.select([array == item for item in cls], [item.index for item in cls]).astype(ENUM_ARRAY_DTYPE)
         return EnumArray(array, cls)
 
