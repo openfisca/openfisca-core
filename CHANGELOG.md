@@ -4,7 +4,7 @@
 
 #### Breaking changes
 
-- No longer honor calls to set_input for variables which have an end date and for periods after that date.
+- No longer honor calls to `set_input` for variables which have an end date and for periods after that date.
 
 #### Migration guide
 
