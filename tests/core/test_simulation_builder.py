@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from typing import Iterable
+
 from enum import Enum
 from datetime import date
 
@@ -357,7 +359,83 @@ def test_some_person_without_household(simulation_builder):
     assert parents_in_households.tolist() == [1, 1]  # household member default role is first_parent
 
 
+def test_nb_persons_in_group_entity(simulation_builder):
+    persons_ids: Iterable = [2, 0, 1, 4, 3]
+    households_ids: Iterable = ['c', 'a', 'b']
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
+
+    persons_in_households = simulation_builder.nb_persons('household')
+
+    assert persons_in_households.tolist() == [1, 3, 1]
+
+
+def test_nb_persons_no_role(simulation_builder):
+    persons_ids: Iterable = [2, 0, 1, 4, 3]
+    households_ids: Iterable = ['c', 'a', 'b']
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
+    parents_in_households = household_instance.nb_persons(role = household_instance.PARENT)
+
+    assert parents_in_households.tolist() == [1, 3, 1]  # household member default role is first_parent
+
+
+def test_nb_persons_by_role(simulation_builder):
+    persons_ids: Iterable = [2, 0, 1, 4, 3]
+    households_ids: Iterable = ['c', 'a', 'b']
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+    persons_households_roles: Iterable = ['child', 'first_parent', 'second_parent', 'first_parent', 'child']
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+
+    simulation_builder.join_with_persons(
+        household_instance,
+        persons_households,
+        persons_households_roles
+        )
+    parents_in_households = household_instance.nb_persons(role = household_instance.FIRST_PARENT)
+
+    assert parents_in_households.tolist() == [0, 1, 1]
+
+
 # Test Intégration
+
+
+def test_from_person_variable_to_group(simulation_builder):
+    persons_ids: Iterable = [2, 0, 1, 4, 3]
+    households_ids: Iterable = ['c', 'a', 'b']
+
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+
+    persons_salaries: Iterable = [6000, 2000, 1000, 1500, 1500]
+    households_rents = [1036.6667, 781.6667, 271.6667]
+
+    period = '2018-12'
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
+
+    simulation = simulation_builder.build(tax_benefit_system)
+    simulation.set_input('salary', period, persons_salaries)
+    simulation.set_input('rent', period, households_rents)
+
+    total_taxes = simulation.calculate('total_taxes', period)
+    assert total_taxes == approx(households_rents)
+    assert total_taxes / simulation.calculate('rent', period) == approx(1)
 
 
 def test_simulation(simulation_builder):

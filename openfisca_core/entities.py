@@ -4,6 +4,7 @@ import traceback
 import warnings
 import textwrap
 from os import linesep
+from typing import Iterable
 
 import numpy as np
 
@@ -12,6 +13,21 @@ from openfisca_core.holders import Holder
 
 ADD = 'add'
 DIVIDE = 'divide'
+
+
+class Role(object):
+
+    def __init__(self, description, entity):
+        self.entity_class = entity
+        self.key = description['key']
+        self.label = description.get('label')
+        self.plural = description.get('plural')
+        self.doc = textwrap.dedent(description.get('doc', ""))
+        self.max = description.get('max')
+        self.subroles = None
+
+    def __repr__(self):
+        return "Role({})".format(self.key)
 
 
 class Entity(object):
@@ -193,11 +209,11 @@ class PersonEntity(Entity):
             >>> array([False])
         """
         self.check_role_validity(role)
-        entity = self.simulation.get_entity(role.entity_class)
+        group_entity = self.simulation.get_entity(role.entity_class)
         if role.subroles:
-            return np.logical_or.reduce([entity.members_role == subrole for subrole in role.subroles])
+            return np.logical_or.reduce([group_entity.members_role == subrole for subrole in role.subroles])
         else:
-            return entity.members_role == role
+            return group_entity.members_role == role
 
     @projectable
     def value_from_partner(self, array, entity, role):
@@ -271,16 +287,12 @@ class GroupEntity(Entity):
 
     def __init__(self, simulation, persons = None):
         Entity.__init__(self, simulation)
-        self.members_entity_id = None
+        self._members_entity_id = None
         self._members_role = None
         self._members_position = None
         self.members = persons
         self._roles_count = None
         self._ordered_members_map = None
-
-    @property
-    def members_role(self):
-        return self._members_role
 
     @property
     def members_position(self):
@@ -297,9 +309,28 @@ class GroupEntity(Entity):
 
         return self._members_position
 
+    @property
+    def members_entity_id(self):
+        return self._members_entity_id
+
+    @members_entity_id.setter
+    def members_entity_id(self, members_entity_id):
+        self._members_entity_id = members_entity_id
+
+    @property
+    def members_role(self):
+        if self._members_role is None:
+            default_role = self.flattened_roles[0]
+            self._members_role = np.repeat(default_role, len(self.members_entity_id))
+        return self._members_role
+
     @members_role.setter
-    def members_role(self, members_role):
-        self._members_role = members_role
+    def members_role(self, members_role: Iterable[Role]):
+        if members_role is not None:
+            self._members_role = np.array(list(members_role))
+
+    def get_role(self, role_name):
+        return next((role for role in self.flattened_roles if role.key == role_name), None)
 
     @members_position.setter
     def members_position(self, members_position):
@@ -441,7 +472,10 @@ class GroupEntity(Entity):
             If ``role`` is provided, only the entity member with the given role are taken into account.
         """
         if role:
-            role_condition = self.members.has_role(role)
+            if role.subroles:
+                role_condition = np.logical_or.reduce([self.members_role == subrole for subrole in role.subroles])
+            else:
+                role_condition = self.members_role == role
             return self.sum(role_condition)
         else:
             return np.bincount(self.members_entity_id)
@@ -529,21 +563,6 @@ class GroupEntity(Entity):
         self.check_role_validity(role)
         nb_persons_per_entity = self.nb_persons(role)
         return self.project(array / nb_persons_per_entity, role = role)
-
-
-class Role(object):
-
-    def __init__(self, description, entity):
-        self.entity_class = entity
-        self.key = description['key']
-        self.label = description.get('label')
-        self.plural = description.get('plural')
-        self.doc = textwrap.dedent(description.get('doc', ""))
-        self.max = description.get('max')
-        self.subroles = None
-
-    def __repr__(self):
-        return "Role({})".format(self.key)
 
 
 class Projector(object):

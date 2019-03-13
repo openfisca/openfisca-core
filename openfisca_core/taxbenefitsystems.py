@@ -2,6 +2,7 @@
 
 
 import glob
+from typing import Dict
 from inspect import isclass
 from os import path, linesep
 from imp import find_module, load_module
@@ -12,6 +13,7 @@ import pkg_resources
 import traceback
 
 from openfisca_core import periods
+from openfisca_core.entities import Entity
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
@@ -73,6 +75,15 @@ class TaxBenefitSystem(object):
                 return self
             self._base_tax_benefit_system = base_tax_benefit_system = baseline.base_tax_benefit_system
         return base_tax_benefit_system
+
+    def instantiate_entities(self):
+        person_instance = self.person_entity(None)
+        entities_instances: Dict[Entity.key, Entity] = {person_instance.key: person_instance}
+
+        for entity_class in self.group_entities:
+            entities_instances[entity_class.key] = entity_class(None, person_instance)
+
+        return entities_instances
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List
+from typing import Dict, List, Iterable
 
 import dpath
 import numpy as np
@@ -17,12 +17,18 @@ from openfisca_core.simulations import Simulation
 class SimulationBuilder(object):
 
     def __init__(self):
-        self.default_period = None
-        self.persons_plural = None
+        self.default_period = None  # Simulation period used for variables when no period is defined
+        self.persons_plural = None  # Plural name for person entity in current tax and benefits system
 
+        # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
+        self.entities_instances: Dict[Entity.key, Entity] = {}
+        # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
+        # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
         self.entity_ids: Dict[Entity.plural, List[int]] = {}
+
+        # Links entities with persons. For each person index in persons ids list, set entity index in entity ids id. E.g.: self.memberships[entity.plural][person_index] = entity_ids.index(instance_id)
         self.memberships: Dict[Entity.plural, List[int]] = {}
         self.roles: Dict[Entity.plural, List[int]] = {}
 
@@ -162,8 +168,35 @@ class SimulationBuilder(object):
             entity.ids = np.array(range(count))
             if not entity.is_person:
                 entity.members_entity_id = entity.ids  # Each person is its own group entity
-                entity.members_role = entity.filled_array(entity.flattened_roles[0])
         return simulation
+
+    def create_entities(self, tax_benefit_system):
+        self.entities_instances = tax_benefit_system.instantiate_entities()
+
+    def declare_person_entity(self, person_singular, persons_ids: Iterable):
+        person_instance = self.entities_instances[person_singular]
+        person_instance.ids = np.array(list(persons_ids))
+        person_instance.count = len(person_instance.ids)
+
+        self.persons_plural = person_instance.plural
+
+    def declare_entity(self, entity_singular, entity_ids: Iterable):
+        entity_instance = self.entities_instances[entity_singular]
+        entity_instance.ids = np.array(list(entity_ids))
+        entity_instance.count = len(entity_instance.ids)
+        return entity_instance
+
+    def nb_persons(self, entity_singular, role = None):
+        return self.entities_instances[entity_singular].nb_persons(role = role)
+
+    def join_with_persons(self, group_instance, persons_group_assignment, roles: Iterable[str]):
+        group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
+        group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
+        role_names_array = np.array(roles)
+        group_instance.members_role = np.select([role_names_array == role.key for role in group_instance.flattened_roles], group_instance.flattened_roles)
+
+    def build(self, tax_benefit_system):
+        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
@@ -199,9 +232,9 @@ class SimulationBuilder(object):
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
-        self.entity_ids[entity.plural] = entity_ids
-        self.entity_counts[entity.plural] = len(entity_ids)
         self.persons_plural = entity.plural
+        self.entity_ids[self.persons_plural] = entity_ids
+        self.entity_counts[self.persons_plural] = len(entity_ids)
 
         for instance_id, instance_object in instances_json.items():
             check_type(instance_object, dict, [entity.plural, instance_id])
@@ -221,6 +254,9 @@ class SimulationBuilder(object):
         """
         check_type(instances_json, dict, [entity.plural])
         entity_ids = list(map(str, instances_json.keys()))
+
+        self.entity_ids[entity.plural] = entity_ids
+        self.entity_counts[entity.plural] = len(entity_ids)
 
         persons_count = len(persons_ids)
         persons_to_allocate = set(persons_ids)

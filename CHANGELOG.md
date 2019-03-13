@@ -1,5 +1,19 @@
 # Changelog
 
+## 26.2.0 [#833](https://github.com/openfisca/openfisca-core/pull/833)
+
+- Introduce a way to build a simulation for tabular inputs
+
+#### New features
+
+- Allow to create a simulation step by step:
+  1. Create entities with `SimulationBuilder.create_entities(...)`
+  2. Declare your population 
+      with `SimulationBuilder.declare_person_entity(...)` and `SimulationBuilder.declare_entity(...)`
+  3. Link between persons in population definition with `SimulationBuilder.join_with_persons(...)`
+  4. Build a simulation with `SimulationBuilder.build(...)`
+  5. Set variable values with the already existing `Simulation.set_input(...)` method
+
 ## 26.1.0 [#835](https://github.com/openfisca/openfisca-core/pull/835)
 
 - No longer raise an error when a group entity is not specified in a test case, or partially specified.
