@@ -172,7 +172,7 @@ class Holder(object):
                 self.variable.definition_period,
                 error_message
                 )
-        if self.variable.is_neutralized or ((self.variable.end is not None) and (period.start.date > self.variable.end)):
+        if self.variable.is_neutralized:
             warning_message = "You cannot set a value for the variable {}, as it has been neutralized. The value you provided ({}) will be ignored.".format(self.variable.name, array)
             if sys.version_info < (3, 0):
                 warning_message = warning_message.encode('utf-8')
