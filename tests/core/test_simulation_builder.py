@@ -367,7 +367,7 @@ def test_nb_persons_in_group_entity(simulation_builder):
     simulation_builder.create_entities(tax_benefit_system)
     simulation_builder.declare_person_entity('person', persons_ids)
     household_instance = simulation_builder.declare_entity('household', households_ids)
-    simulation_builder.join_with_persons(household_instance, persons_households, None)
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
 
     persons_in_households = simulation_builder.nb_persons('household')
 
@@ -383,7 +383,7 @@ def test_nb_persons_no_role(simulation_builder):
     simulation_builder.declare_person_entity('person', persons_ids)
     household_instance = simulation_builder.declare_entity('household', households_ids)
 
-    simulation_builder.join_with_persons(household_instance, persons_households, None)
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
     parents_in_households = household_instance.nb_persons(role = household_instance.PARENT)
 
     assert parents_in_households.tolist() == [1, 3, 1]  # household member default role is first_parent
@@ -427,7 +427,7 @@ def test_from_person_variable_to_group(simulation_builder):
     simulation_builder.declare_person_entity('person', persons_ids)
 
     household_instance = simulation_builder.declare_entity('household', households_ids)
-    simulation_builder.join_with_persons(household_instance, persons_households, None)
+    simulation_builder.join_with_persons(household_instance, persons_households, ['first_parent'] * 5)
 
     simulation = simulation_builder.build(tax_benefit_system)
     simulation.set_input('salary', period, persons_salaries)

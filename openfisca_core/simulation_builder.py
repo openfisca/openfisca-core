@@ -192,9 +192,7 @@ class SimulationBuilder(object):
     def join_with_persons(self, group_instance, persons_group_assignment, roles: Iterable[str]):
         group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
         group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
-
-        if roles is not None:
-            group_instance.members_role = np.array([group_instance.get_role(role_name) for role_name in roles])
+        group_instance.members_role = np.array([group_instance.get_role(role_name) for role_name in roles])
 
     def build(self, tax_benefit_system):
         return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
