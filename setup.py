@@ -10,7 +10,6 @@ from setuptools import setup, find_packages
 general_requirements = [
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
-    'future < 1.0.0',
     'nose < 2.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
@@ -37,7 +36,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '26.2.0',
+    version = '27.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

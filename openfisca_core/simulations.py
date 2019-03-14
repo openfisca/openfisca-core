@@ -461,7 +461,7 @@ class Simulation(object):
         """
         return self.get_holder(variable).get_known_periods()
 
-    def set_input(self, variable, period, value):
+    def set_input(self, variable_name, period, value):
         """
             Set a variable's value for a given period
 
@@ -478,7 +478,11 @@ class Simulation(object):
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
-        self.get_holder(variable).set_input(period, value)
+        variable = self.tax_benefit_system.get_variable(variable_name)
+        period = periods.period(period)
+        if ((variable.end is not None) and (period.start.date > variable.end)):
+            return
+        self.get_holder(variable_name).set_input(period, value)
 
     def get_variable_entity(self, variable_name):
 

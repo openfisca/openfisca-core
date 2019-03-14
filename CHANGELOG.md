@@ -1,5 +1,15 @@
 # Changelog
 
+# 27.0.0 [#826](https://github.com/openfisca/openfisca-core/pull/826)
+
+#### Breaking changes
+
+- No longer honor calls to `set_input` for variables which have an end date and for periods after that date.
+
+#### Migration guide
+
+This change is not expected to actually break much reusing code (if any), as it is unlikely that one would deliberately specify an end date for a variable and use it in computations for periods past that date. However, nothing has previously ruled out relying on that behaviour and it may have been introduced by accident. In particular, it can happen that a variable with a formula and an end date is also, in some applications, used as an input.
+
 ## 26.2.0 [#833](https://github.com/openfisca/openfisca-core/pull/833)
 
 - Introduce a way to build a simulation for tabular inputs
