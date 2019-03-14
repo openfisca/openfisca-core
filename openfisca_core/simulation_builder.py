@@ -404,7 +404,11 @@ class SimulationBuilder(object):
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
                 array = np.tile(values, entity.count // len(values))
-                holder.set_input(period_value, array)
+                variable = holder.variable
+                # TODO - this duplicates the check in Simulation.set_input, but
+                # fixing that requires improving Simulation's handling of entities
+                if (variable.end is None) or (period_value.start.date > variable.end):
+                    holder.set_input(period_value, array)
 
     def raise_period_mismatch(self, entity, json, e):
         # This error happens when we try to set a variable value for a period that doesn't match its definition period
