@@ -25,7 +25,7 @@ format-style:
 	autopep8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors check-style
-	env PYTEST_ADDOPTS="--cov=openfisca_core --exitfirst" pytest
+	env PYTEST_ADDOPTS="$$PYTEST_ADDOPTS --cov=openfisca_core" pytest
 
 api:
 	openfisca serve --country-package openfisca_country_template --extensions openfisca_extension_template
