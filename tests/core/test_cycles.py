@@ -101,7 +101,7 @@ class cotisation(Variable):
 
     def formula(person, period):
         if period.start.month == 12:
-            return 2 * person('cotisation', period.last_month, max_nb_cycles = 1)
+            return 2 * person('cotisation', period.last_month)
         else:
             return person.empty_array() + 1
 
