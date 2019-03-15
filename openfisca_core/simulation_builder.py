@@ -69,7 +69,7 @@ class SimulationBuilder(object):
         """
         input_dict = deepcopy(input_dict)
 
-        simulation = Simulation(tax_benefit_system)
+        simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
         # Register variables so get_variable_entity can find them
         for (variable_name, variable) in tax_benefit_system.variables.items():
@@ -159,7 +159,7 @@ class SimulationBuilder(object):
                 - Every person has, in each entity, the first role
         """
 
-        simulation = Simulation(tax_benefit_system)
+        simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
         for entity in simulation.entities.values():
             entity.count = count
             entity.ids = np.array(range(count))

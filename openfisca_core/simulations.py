@@ -37,17 +37,14 @@ class Simulation(object):
             entities_instances = None
             ):
         """
-            Create an empty simulation
-
-            To fill the simulation with input data, you can use the :any:`SimulationBuilder` or proceed manually.
+            This constructor is reserved for internal use; see :any:`SimulationBuilder`,
+            which is the preferred way to obtain a Simulation initialized with a consistent
+            set of Entities.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        if entities_instances is not None:
-            self.entities = entities_instances
-        else:
-            self.entities = tax_benefit_system.instantiate_entities()
+        self.entities = entities_instances
         self.persons = self.entities[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
