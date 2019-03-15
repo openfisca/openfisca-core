@@ -120,7 +120,6 @@ class TaxBenefitSystem(object):
                 else:
                     builder.set_default_period(self.period)
                     simulation = builder.build_from_entities(tax_benefit_system, self.dict)
-                    simulation.period = periods.period(self.period)
 
                 simulation.debug = debug
                 simulation.opt_out_cache = opt_out_cache

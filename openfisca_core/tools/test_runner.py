@@ -227,7 +227,8 @@ def _parse_test(tax_benefit_system, test, options, yaml_path):
         period = test.get('period')
         verbose = options.get('verbose')
         builder.set_default_period(period)
-        simulation = builder.build_from_dict(current_tax_benefit_system, input, trace = verbose)
+        simulation = builder.build_from_dict(current_tax_benefit_system, input)
+        simulation.trace = verbose
     except Exception:
         raise ValueError("Unexpected error while parsing {}".format(test['file_path']))
     except SituationParsingError as error:

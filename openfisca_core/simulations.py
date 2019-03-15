@@ -31,22 +31,10 @@ class Simulation(object):
     """
         Represents a simulation, and handles the calculation logic
     """
-    debug = False
-    period = None
-    tax_benefit_system = None
-
-    # ----- Simulation construction ----- #
-
     def __init__(
             self,
             tax_benefit_system,
-            entities_instances = None,
-            simulation_json = None,
-            debug = False,
-            period = None,
-            trace = False,
-            opt_out_cache = False,
-            memory_config = None,
+            entities_instances = None
             ):
         """
             Create an empty simulation
@@ -64,21 +52,17 @@ class Simulation(object):
         self.link_to_entities_instances()
         self.create_shortcuts()
 
-        if period:
-            assert isinstance(period, periods.Period)
-        self.period = period
-
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
         # See use in formulas.py.
         # The data structure of requested_periods_by_variable_name is: {variable_name: [period1, period2]}
         self.requested_periods_by_variable_name = {}
         self.max_nb_cycles = None
 
-        self.debug = debug
-        self.trace = trace or self.debug
-        self.opt_out_cache = opt_out_cache
+        self.debug = False
+        self.trace = False
+        self.opt_out_cache = False
 
-        self.memory_config = memory_config
+        self.memory_config = None
         self._data_storage_dir = None
 
     @property
