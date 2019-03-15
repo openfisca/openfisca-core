@@ -5,12 +5,14 @@ from nose.tools import raises
 
 from openfisca_core.model_api import Variable
 from openfisca_core.periods import MONTH, ETERNITY
-from openfisca_core.simulations import Simulation
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 
 import openfisca_country_template as country_template
-from openfisca_country_template.situation_examples import couple
+import openfisca_country_template.situation_examples
 from openfisca_country_template.entities import Person
+
+from pytest import fixture
 
 # Check which date is applied whether it comes from Variable attribute (end)
 # or formula(s) dates.
@@ -20,6 +22,10 @@ tax_benefit_system = country_template.CountryTaxBenefitSystem()
 
 
 # HELPERS
+
+@fixture
+def couple():
+    return SimulationBuilder().build_from_entities(tax_benefit_system, openfisca_country_template.situation_examples.couple)
 
 
 def new_simulation(tax_benefit_system, month):
@@ -464,10 +470,10 @@ def test_call__end_attribute__formulas__different_names():
     assert simulation.calculate('end_attribute__formulas__different_names', month) == 300
 
 
-def test_get_formula():
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = couple)
-    disposable_income_formula = tax_benefit_system.get_variable('disposable_income').get_formula()
+def test_get_formula(couple):
+    simulation = couple
     person = simulation.person
+    disposable_income_formula = tax_benefit_system.get_variable('disposable_income').get_formula()
     disposable_income = person('disposable_income', '2017-01')
     disposable_income_2 = disposable_income_formula(person, '2017-01', None)  # No need for parameters here
 

@@ -70,9 +70,7 @@ class SimulationBuilder(object):
         """
         input_dict = deepcopy(input_dict)
 
-        simulation = kwargs.pop('simulation', None)  # Only for backward compatibility with previous Simulation constructor
-        if simulation is None:
-            simulation = Simulation(tax_benefit_system, **kwargs)
+        simulation = Simulation(tax_benefit_system, **kwargs)
 
         # Register variables so get_variable_entity can find them
         for (variable_name, variable) in tax_benefit_system.variables.items():

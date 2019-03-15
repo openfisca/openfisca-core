@@ -4,7 +4,6 @@
 from os import linesep
 import tempfile
 import logging
-import warnings
 
 import numpy as np
 
@@ -35,7 +34,6 @@ class Simulation(object):
     debug = False
     period = None
     tax_benefit_system = None
-    trace = False
 
     # ----- Simulation construction ----- #
 
@@ -78,24 +76,22 @@ class Simulation(object):
 
         self.debug = debug
         self.trace = trace or self.debug
-        if self.trace:
-            self.tracer = Tracer()
-        else:
-            self.tracer = None
         self.opt_out_cache = opt_out_cache
 
         self.memory_config = memory_config
         self._data_storage_dir = None
 
-        if simulation_json is not None:
-            warnings.warn(' '.join([
-                "The 'simulation_json' argument of the Simulation is deprecated since version 25.0, and will be removed in the future.",
-                "The proper way to init a simulation from a JSON-like dict is to use SimulationBuilder.build_from_entities. See <https://openfisca.org/doc/openfisca-python-api/simulation_builder.html#openfisca_core.simulation_builder.SimulationBuilder.build_from_dict>"
-                ]),
-                Warning
-                )
-            from openfisca_core.simulation_builder import SimulationBuilder
-            SimulationBuilder().build_from_entities(self.tax_benefit_system, simulation_json, simulation = self)
+    @property
+    def trace(self):
+        return self._trace
+
+    @trace.setter
+    def trace(self, trace):
+        self._trace = trace
+        if trace:
+            self.tracer = Tracer()
+        else:
+            self.tracer = None
 
     def link_to_entities_instances(self):
         for key, entity_instance in self.entities.items():
@@ -483,7 +479,6 @@ class Simulation(object):
         self.get_holder(variable_name).set_input(period, value)
 
     def get_variable_entity(self, variable_name):
-
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.get_entity(variable.entity)
 
