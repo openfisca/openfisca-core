@@ -1,5 +1,14 @@
 # Changelog
 
+### 27.0.1 [#839](https://github.com/openfisca/openfisca-core/pull/839)
+
+#### Technical changes
+
+- Provide three levels of information when running tests depending on context:
+  - when running `pytest`, all failures are reported, coverage is omitted
+  - when running `make test`, all failures are reported, with coverage also reported
+  - in continuous integration, exit on first failure, but report coverage always
+
 # 27.0.0 [#826](https://github.com/openfisca/openfisca-core/pull/826)
 
 #### Breaking changes

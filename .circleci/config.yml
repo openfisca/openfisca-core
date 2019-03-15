@@ -31,7 +31,7 @@ jobs:
 
       - run:
           name: Run Core tests
-          command: make test
+          command: env PYTEST_ADDOPTS="--exitfirst" make test
 
       - persist_to_workspace:
           root: .
