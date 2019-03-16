@@ -1,5 +1,11 @@
 # Changelog
 
+### 27.0.2 [#844](https://github.com/openfisca/openfisca-core/pull/844)
+
+> Note: Versions `27.0.0` and `27.0.1` have been unpublished as the former accidentally introduced a bug affecting test inputs. Please use version `27.0.2` or more recent.
+
+- Fix a bug introduced in 27.0.0, affecting YAML tests; because of an incorrect date comparison, input variables would be ignored if they had an end date.
+
 ### 27.0.1 [#839](https://github.com/openfisca/openfisca-core/pull/839)
 
 #### Technical changes
