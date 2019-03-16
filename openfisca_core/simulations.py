@@ -35,6 +35,7 @@ class Simulation(object):
     """
         Represents a simulation, and handles the calculation logic
     """
+
     def __init__(
             self,
             tax_benefit_system,
@@ -54,10 +55,10 @@ class Simulation(object):
         self.create_shortcuts()
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
-        # See use in formulas.py.
         # The data structure of computation_stack is:
-        # [[ 'variable_name', 'period1'], ['variable_name', 'period2']]
+        # [('variable_name', 'period1'), ('variable_name', 'period2')]
         self.computation_stack = []
+        self.invalidated_caches = set()
 
         self.debug = False
         self.trace = False
@@ -129,40 +130,34 @@ class Simulation(object):
 
         array = None
 
-        try:
-            # First, try to run a formula
-            self._check_for_cycle(variable, period)
+        # First, try to run a formula
+        proceed = self._check_for_cycle(variable, period)
+        if proceed:
             array = self._run_formula(variable, entity, period)
 
             # If no result, try a base function
             if array is None and variable.base_function:
                 array = variable.base_function(holder, period)
 
-            # If no result use the default value
-            # This is duplicated with the code in 'finally' because we
-            # want to also cache inputs
-            if array is None:
-                array = holder.default_array()
+        # If no result, or aborted computation, use the default value
+        if array is None:
+            array = holder.default_array()
 
-            last_variable, last_period, last_status = self.computation_stack[-1]
-            if last_status:
-                holder.put_in_cache(array, period)
-        except SpiralError as spiral:
-            spiral_marker = spiral.args[1]
-            occurrences = [pair[0] for pair in self.computation_stack if pair[0] == spiral_marker]
-            if len(occurrences) > 1:
-                raise spiral
-            if self.tracer:
-                self.tracer._computation_log.append(["spiral_" + variable.name + ":" + str(period), 1])
-        finally:
-            # If aborted due to a spiral, also use the default
-            if array is None:
-                array = holder.default_array()
-            if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
-            self._clean_cycle_detection_data(variable.name)
+        holder.put_in_cache(array, period)
+
+        if self.trace:
+            self.tracer.record_calculation_end(variable.name, period, array, **parameters)
+        self._clean_cycle_detection_data(variable.name)
+
+        self._check_end_of_calculate()
 
         return array
+
+    def _check_end_of_calculate(self):
+        if len(self.computation_stack) == 0:
+            for (_name, _period) in self.invalidated_caches:
+                holder = self.get_holder(_name)
+                holder.delete_arrays(_period)
 
     def calculate_add(self, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name)
@@ -323,23 +318,25 @@ class Simulation(object):
         a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
         the same variable at a different period.
         """
-        max_spiral_loops = 2
-        previous = [(_name, _period) for (_name, _period, _status) in self.computation_stack if _name == variable.name]
-        spiral = len(previous) >= max_spiral_loops
-        self.computation_stack.append([variable.name, str(period), True])
+        previous = [(_name, _period) for (_name, _period) in self.computation_stack if _name == variable.name]
+        self.computation_stack.append((variable.name, str(period)))
         for pair in previous:
             if pair == (variable.name, str(period)):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
+        spiral = len(previous) >= self.max_spiral_loops
         if spiral:
-            count = 0
-            for frame in self.computation_stack[::-1]:
-                frame[2] = False
-                if frame[0] == variable.name:
-                    count += 1
-                    if count > max_spiral_loops:
-                        break
-            message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
-            raise SpiralError(message, variable.name)
+            self.invalidate_spiral_variables(variable)
+            return False
+        return True
+
+    def invalidate_spiral_variables(self, variable):
+        count = 0
+        for frame in self.computation_stack[::-1]:
+            self.invalidated_caches.add(frame)
+            if frame[0] == variable.name:
+                count += 1
+                if count > self.max_spiral_loops:
+                    break
 
     def _clean_cycle_detection_data(self, variable_name):
         """
