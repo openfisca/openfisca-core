@@ -67,3 +67,15 @@
   output:
     household:
       total_benefits: 600 * 2
+
+- name: "Basic test - variable with end date"
+  period: 2015-01
+  input:
+    persons:
+      Alicia: {}
+    household:
+      housing_allowance: 100
+      parents: [Alicia]
+  output:
+    household:
+      housing_allowance: 100
