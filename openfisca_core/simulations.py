@@ -142,18 +142,13 @@ class Simulation(object):
                 # If no result, use the default value and cache it
             if array is None:
                 array = holder.default_array()
-            if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
 
             holder.put_in_cache(array, period)
         except SpiralError:
-            _name, _period, _status = self.computation_stack[-1]
-            if not _status:
-                raise
-            # We're done unwinding the stack, return default
-            if array is None:
-                array = holder.default_array()
+            array = holder.default_array()
         finally:
+            if self.trace:
+                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
             self._clean_cycle_detection_data(variable.name)
 
         self._check_end_of_calculate()
@@ -325,8 +320,8 @@ class Simulation(object):
         a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
         the same variable at a different period.
         """
-        previous = [(_name, _period) for (_name, _period, _status) in self.computation_stack if _name == variable.name]
-        self.computation_stack.append([variable.name, str(period), True])
+        previous = [(_name, _period) for (_name, _period) in self.computation_stack if _name == variable.name]
+        self.computation_stack.append((variable.name, str(period)))
         for pair in previous:
             if pair == (variable.name, str(period)):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
@@ -339,14 +334,11 @@ class Simulation(object):
     def invalidate_spiral_variables(self, variable):
         count = 0
         for frame in self.computation_stack[::-1]:
-            (name, period, status) = frame
-            self.invalidated_caches.add((name, period))
+            self.invalidated_caches.add(frame)
             if frame[0] == variable.name:
                 count += 1
                 if count > self.max_spiral_loops:
                     break
-            # The status of the variable that started the loop is true, so that it returns a value
-            frame[2] = False
 
     def _clean_cycle_detection_data(self, variable_name):
         """
