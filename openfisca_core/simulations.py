@@ -131,23 +131,30 @@ class Simulation(object):
         array = None
 
         # First, try to run a formula
-        proceed = self._check_for_cycle(variable, period)
-        if proceed:
+        try:
+            self._check_for_cycle(variable, period)
             array = self._run_formula(variable, entity, period)
 
             # If no result, try a base function
             if array is None and variable.base_function:
                 array = variable.base_function(holder, period)
 
-        # If no result, or aborted computation, use the default value
-        if array is None:
-            array = holder.default_array()
+                # If no result, use the default value and cache it
+            if array is None:
+                array = holder.default_array()
+            if self.trace:
+                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
 
-        holder.put_in_cache(array, period)
-
-        if self.trace:
-            self.tracer.record_calculation_end(variable.name, period, array, **parameters)
-        self._clean_cycle_detection_data(variable.name)
+            holder.put_in_cache(array, period)
+        except SpiralError:
+            _name, _period, _status = self.computation_stack[-1]
+            if not _status:
+                raise
+            # We're done unwinding the stack, return default
+            if array is None:
+                array = holder.default_array()
+        finally:
+            self._clean_cycle_detection_data(variable.name)
 
         self._check_end_of_calculate()
 
@@ -318,25 +325,28 @@ class Simulation(object):
         a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
         the same variable at a different period.
         """
-        previous = [(_name, _period) for (_name, _period) in self.computation_stack if _name == variable.name]
-        self.computation_stack.append((variable.name, str(period)))
+        previous = [(_name, _period) for (_name, _period, _status) in self.computation_stack if _name == variable.name]
+        self.computation_stack.append([variable.name, str(period), True])
         for pair in previous:
             if pair == (variable.name, str(period)):
                 raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
         spiral = len(previous) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
-            return False
-        return True
+            message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
+            raise SpiralError(message, variable.name)
 
     def invalidate_spiral_variables(self, variable):
         count = 0
         for frame in self.computation_stack[::-1]:
-            self.invalidated_caches.add(frame)
+            (name, period, status) = frame
+            self.invalidated_caches.add((name, period))
             if frame[0] == variable.name:
                 count += 1
                 if count > self.max_spiral_loops:
                     break
+            # The status of the variable that started the loop is true, so that it returns a value
+            frame[2] = False
 
     def _clean_cycle_detection_data(self, variable_name):
         """
