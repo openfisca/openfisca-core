@@ -143,7 +143,7 @@ def test_simulation_with_axes(simulation_builder):
                   max: 3000
                   period: 2018-11
     """
-    data = yaml.load(input_yaml)
+    data = yaml.load(input_yaml, Loader=yaml.FullLoader)
     simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
     assert simulation.get_array('salary', '2018-11') == approx([0, 0, 0, 0, 0, 0])
     assert simulation.get_array('rent', '2018-11') == approx([0, 0, 3000, 0])
