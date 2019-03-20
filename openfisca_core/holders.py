@@ -81,19 +81,19 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period, extra_params = None):
+    def get_array(self, period):
         """
-            Get the value of the variable for the given period (and possibly a list of extra parameters).
+            Get the value of the variable for the given period.
 
             If the value is not known, return ``None``.
         """
-        if self.variable.is_neutralized or ((self.variable.end is not None) and (period.start.date > self.variable.end)):
+        if self.variable.is_neutralized:
             return self.default_array()
-        value = self._memory_storage.get(period, extra_params)
+        value = self._memory_storage.get(period)
         if value is not None:
             return value
         if self._disk_storage:
-            return self._disk_storage.get(period, extra_params)
+            return self._disk_storage.get(period)
 
     def get_memory_usage(self):
         """
@@ -207,7 +207,7 @@ class Holder(object):
                     .format(value, self.variable.name, self.variable.dtype, value.dtype))
         return value
 
-    def _set(self, period, value, extra_params = None):
+    def _set(self, period, value):
         value = self._to_array(value)
         if self.variable.definition_period != ETERNITY:
             if period is None:
@@ -234,16 +234,16 @@ class Holder(object):
 
         should_store_on_disk = (
             self._on_disk_storable and
-            self._memory_storage.get(period, extra_params) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
+            self._memory_storage.get(period) is None and  # If there is already a value in memory, replace it and don't put a new value in the disk storage
             psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
             )
 
         if should_store_on_disk:
-            self._disk_storage.put(value, period, extra_params)
+            self._disk_storage.put(value, period)
         else:
-            self._memory_storage.put(value, period, extra_params)
+            self._memory_storage.put(value, period)
 
-    def put_in_cache(self, value, period, extra_params = None):
+    def put_in_cache(self, value, period):
         if self._do_not_store:
             return
 
@@ -252,7 +252,7 @@ class Holder(object):
                 self.variable.name in self.simulation.tax_benefit_system.cache_blacklist):
             return
 
-        self._set(period, value, extra_params)
+        self._set(period, value)
 
     def default_array(self):
         """

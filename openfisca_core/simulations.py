@@ -139,10 +139,8 @@ class Simulation(object):
 
         self._check_period_consistency(period, variable)
 
-        extra_params = parameters.get('extra_params', ())
-
         # First look for a value already cached
-        cached_array = holder.get_array(period, extra_params)
+        cached_array = holder.get_array(period)
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
@@ -153,11 +151,11 @@ class Simulation(object):
             self.max_nb_cycles = max_nb_cycles
 
         # First, try to run a formula
-        array = self._run_formula(variable, entity, period, extra_params, max_nb_cycles)
+        array = self._run_formula(variable, entity, period, max_nb_cycles)
 
         # If no result, try a base function
         if array is None and variable.base_function:
-            array = variable.base_function(holder, period, *extra_params)
+            array = variable.base_function(holder, period)
 
         # If no result, use the default value
         if array is None:
@@ -167,7 +165,7 @@ class Simulation(object):
         if max_nb_cycles is not None:
             self.max_nb_cycles = None
 
-        holder.put_in_cache(array, period, extra_params)
+        holder.put_in_cache(array, period)
         if self.trace:
             self.tracer.record_calculation_end(variable.name, period, array, **parameters)
 
@@ -240,7 +238,7 @@ class Simulation(object):
             self.tracer
             )
 
-    def _run_formula(self, variable, entity, period, extra_params, max_nb_cycles):
+    def _run_formula(self, variable, entity, period, max_nb_cycles):
         """
             Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
         """
@@ -259,12 +257,12 @@ class Simulation(object):
             if formula.__code__.co_argcount == 2:
                 array = formula(entity, period)
             else:
-                array = formula(entity, period, parameters_at, *extra_params)
+                array = formula(entity, period, parameters_at)
         except CycleError as error:
             self._clean_cycle_detection_data(variable.name)
             if max_nb_cycles is None:
                 if self.trace:
-                    self.tracer.record_calculation_abortion(variable.name, period, extra_params = extra_params)
+                    self.tracer.record_calculation_abortion(variable.name, period)
                 # Re-raise until reaching the first variable called with max_nb_cycles != None in the stack.
                 raise error
             self.max_nb_cycles = None

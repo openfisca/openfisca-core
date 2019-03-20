@@ -19,7 +19,7 @@ class InMemoryStorage(object):
         self._arrays = {}
         self.is_eternal = is_eternal
 
-    def get(self, period, extra_params = None):
+    def get(self, period):
         if self.is_eternal:
             period = periods.period(ETERNITY)
         period = periods.period(period)
@@ -27,23 +27,16 @@ class InMemoryStorage(object):
         values = self._arrays.get(period)
         if values is None:
             return None
-        if extra_params:
-            return values.get(tuple(extra_params))
         if isinstance(values, dict):
             return next(iter(values.values()))
         return values
 
-    def put(self, value, period, extra_params = None):
+    def put(self, value, period):
         if self.is_eternal:
             period = periods.period(ETERNITY)
         period = periods.period(period)
 
-        if not extra_params:
-            self._arrays[period] = value
-        else:
-            if self._arrays.get(period) is None:
-                self._arrays[period] = {}
-            self._arrays[period][tuple(extra_params)] = value
+        self._arrays[period] = value
 
     def delete(self, period = None):
         if period is None:
@@ -105,7 +98,7 @@ class OnDiskStorage(object):
         else:
             return np.load(file)
 
-    def get(self, period, extra_params = None):
+    def get(self, period):
         if self.is_eternal:
             period = periods.period(ETERNITY)
         period = periods.period(period)
@@ -113,37 +106,22 @@ class OnDiskStorage(object):
         values = self._files.get(period)
         if values is None:
             return None
-        if extra_params:
-            extra_params = tuple(str(param) for param in extra_params)
-            value = values.get(extra_params)
-            if value is None:
-                return None
-            return self._decode_file(value)
         if isinstance(values, dict):
             return self._decode_file(next(iter(values.values())))
         return self._decode_file(values)
 
-    def put(self, value, period, extra_params = None):
+    def put(self, value, period):
         if self.is_eternal:
             period = periods.period(ETERNITY)
         period = periods.period(period)
 
         filename = str(period)
-        if extra_params:
-            extra_params = tuple(str(param) for param in extra_params)
-            filename = '{}_{}'.format(
-                filename, '_'.join(extra_params))
         path = os.path.join(self.storage_dir, filename) + '.npy'
         if isinstance(value, EnumArray):
             self._enums[path] = value.possible_values
             value = value.view(np.ndarray)
         np.save(path, value)
-        if not extra_params:
-            self._files[period] = path
-        else:
-            if self._files.get(period) is None:
-                self._files[period] = {}
-            self._files[period][extra_params] = path
+        self._files[period] = path
 
     def delete(self, period = None):
         if period is None:
@@ -172,14 +150,8 @@ class OnDiskStorage(object):
                 continue
             path = os.path.join(self.storage_dir, filename)
             filename_core = filename.rsplit('.', 1)[0]
-            if '_' in filename_core:
-                period, extra_params_str = filename_core.split('_', 1)
-                period = periods.period(period)
-                extra_params = tuple(extra_params_str.split('_'))
-                files.setdefault(period, {})[extra_params] = path
-            else:
-                period = periods.period(filename_core)
-                files[period] = path
+            period = periods.period(filename_core)
+            files[period] = path
 
     def __del__(self):
         if self.preserve_storage_dir:

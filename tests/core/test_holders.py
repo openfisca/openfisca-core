@@ -145,22 +145,6 @@ def test_cache_disk():
     assert_near(data, stored_data)
 
 
-def test_cache_disk_with_extra_params():
-    simulation = get_simulation(couple, memory_config = force_storage_on_disk)  # Force using disk
-    month = make_period('2017-01')
-    extra_param_1 = make_period('2017-02')
-    extra_param_2 = make_period('2017-03')
-    holder = simulation.person.get_holder('disposable_income')
-    data_1 = np.asarray([2000, 3000])
-    data_2 = np.asarray([1000, 4000])
-    holder.put_in_cache(data_1, month, extra_params = [extra_param_1])
-    holder.put_in_cache(data_2, month, extra_params = [extra_param_2])
-    stored_data_1 = holder.get_array(month, extra_params = [extra_param_1])
-    stored_data_2 = holder.get_array(month, extra_params = [extra_param_2])
-    assert_near(data_1, stored_data_1)
-    assert_near(data_2, stored_data_2)
-
-
 def test_known_periods():
     simulation = get_simulation(couple, memory_config = force_storage_on_disk)  # Force using disk
     month = make_period('2017-01')
