@@ -1,5 +1,9 @@
 # Changelog
 
+### 28.0.1 [#845](https://github.com/openfisca/openfisca-core/pull/845)
+
+- Consistently use the safe approach to YAML loading, fixing [this deprecation warning](https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation) introduced in PyYAML 5.1
+
 # 28.0.0 [#847](https://github.com/openfisca/openfisca-core/pull/847)
 
 #### Breaking changes
