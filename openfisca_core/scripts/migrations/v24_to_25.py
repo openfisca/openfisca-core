@@ -52,7 +52,7 @@ class Migrator(object):
         print('Migrating {}.'.format(path))
 
         with open(path) as yaml_file:
-            tests = yaml.load(yaml_file, Loader=yaml.FullLoader)
+            tests = yaml.safe_load(yaml_file)
         if isinstance(tests, CommentedSeq):
             migrated_tests = [self.convert_test(test) for test in tests]
         else:
