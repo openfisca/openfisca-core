@@ -1,5 +1,32 @@
 # Changelog
 
+# 29.0.0 [#843](https://github.com/openfisca/openfisca-core/pull/843)
+
+#### Breaking changes
+
+- Remove argument `simulation_json` of `Simulation` constructor, which was deprecated as of Core 25
+- Remove keyword arguments from Simulation constructor, which should be called only from SimulationBuilder; introduce a property for `trace`
+- Remove `period` attribute of Simulation
+
+#### Migration notes
+
+- As of Core 25, the preferred way of constructing new Simulation instances is via SimulationBuilder, any remaining uses of scenarios should be migrated to that API first.
+- Any period attribute of the Simulation was coming from the simulation data (test case or JSON structure), use that instead of the attribute in the Simulation instance.
+- Any keyword arguments of Simulation that you were using (or passing to Simulation-constructing methods) can now be accessed directly or as properties, `trace` being the most widely used. Example below:
+
+**Before**
+
+```Python
+simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data, trace = True)
+```
+
+**After**
+
+```Python
+simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
+simulation.trace = True
+```
+
 ### 28.0.1 [#845](https://github.com/openfisca/openfisca-core/pull/845)
 
 - Consistently use the safe approach to YAML loading, fixing [this deprecation warning](https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation) introduced in PyYAML 5.1
