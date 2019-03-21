@@ -146,7 +146,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
                 raise
             finally:
                 if verbose:
-                    print("Computation log:")
+                    print("Computation log:")  # noqa T001
                     simulation.tracer.print_computation_log()
 
         yield unittest.FunctionTestCase(check)

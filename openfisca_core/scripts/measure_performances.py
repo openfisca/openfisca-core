@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# flake8: noqa T001
 
 
 """Measure performances of a basic tax-benefit system to compare to other OpenFisca implementations."""

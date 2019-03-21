@@ -1,3 +1,4 @@
+# flake8: noqa T001
 
 import numpy as np
 import timeit
