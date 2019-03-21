@@ -118,6 +118,7 @@ class Simulation(object):
 
         # First look for a value already cached
         cached_array = holder.get_array(period)
+        print("cached", variable_name, period, cached_array)
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
@@ -221,6 +222,7 @@ class Simulation(object):
         """
 
         formula = variable.get_formula(period)
+        print("formula", variable.name, period, formula)
         if formula is None:
             return None
 
