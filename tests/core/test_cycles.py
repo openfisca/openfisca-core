@@ -1,16 +1,27 @@
 # -*- coding: utf-8 -*-
 
 
-from nose.tools import raises
-
 from openfisca_core import periods
 from openfisca_core.periods import MONTH
 from openfisca_core.simulations import CycleError
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.variables import Variable
 
 from openfisca_country_template import CountryTaxBenefitSystem
 from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
+
+from pytest import fixture, raises
+
+
+@fixture
+def reference_period():
+    return periods.period('2013-01')
+
+
+@fixture
+def simulation(reference_period):
+    return SimulationBuilder().build_default_simulation(tax_benefit_system)
 
 
 # 1 <--> 2 with same period
@@ -113,33 +124,22 @@ tax_benefit_system = CountryTaxBenefitSystem()
 tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
     variable5, variable6, cotisation, variable7, variable8)
 
-reference_period = periods.period('2013-01')
+
+def test_pure_cycle(simulation, reference_period):
+    with raises(AssertionError):
+        simulation.calculate('variable1', period = reference_period)
 
 
-@raises(AssertionError)
-def test_pure_cycle():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = reference_period,
-        ).new_simulation(debug = True)
-    simulation.calculate('variable1', period = reference_period)
+def test_cycle_time_offset(simulation, reference_period):
+    with raises(CycleError):
+        simulation.calculate('variable3', period = reference_period)
 
 
-@raises(CycleError)
-def test_cycle_time_offset():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = reference_period,
-        ).new_simulation(debug = True)
-    simulation.calculate('variable3', period = reference_period)
-
-
-def test_allowed_cycle():
+def test_allowed_cycle(simulation, reference_period):
     """
     Calculate variable5 then variable6 then in the order order, to verify that the first calculated variable
     has no effect on the result.
     """
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = reference_period,
-        ).new_simulation(debug = True)
     variable6 = simulation.calculate('variable6', period = reference_period)
     variable5 = simulation.calculate('variable5', period = reference_period)
     variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
@@ -148,10 +148,7 @@ def test_allowed_cycle():
     assert_near(variable6_last_month, [0])
 
 
-def test_allowed_cycle_different_order():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = reference_period,
-        ).new_simulation(debug = True)
+def test_allowed_cycle_different_order(simulation, reference_period):
     variable5 = simulation.calculate('variable5', period = reference_period)
     variable6 = simulation.calculate('variable6', period = reference_period)
     variable6_last_month = simulation.calculate('variable6', reference_period.last_month)
@@ -160,19 +157,12 @@ def test_allowed_cycle_different_order():
     assert_near(variable6_last_month, [0])
 
 
-def test_cotisation_1_level():
-    month = reference_period.last_month
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = month,  # December
-        ).new_simulation(debug = True)
-    cotisation = simulation.calculate('cotisation', period = month)
+def test_cotisation_1_level(simulation, reference_period):
+    cotisation = simulation.calculate('cotisation', period = reference_period.last_month)
     assert_near(cotisation, [2])
 
 
-def test_cycle_1_level():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = reference_period,
-        ).new_simulation(debug = True)
+def test_cycle_1_level(simulation, reference_period):
     variable7 = simulation.calculate('variable7', period = reference_period)
     # variable8 = simulation.calculate('variable8')
     assert_near(variable7, [22])
