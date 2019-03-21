@@ -1,5 +1,9 @@
 # Changelog
 
+# 29.0.1 [#851](https://github.com/openfisca/openfisca-core/pull/851)
+
+- Remove print statements from `simulations.py`, add linting options to detect stray print statements
+
 # 29.0.0 [#843](https://github.com/openfisca/openfisca-core/pull/843)
 
 #### Breaking changes
