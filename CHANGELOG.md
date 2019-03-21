@@ -1,5 +1,18 @@
 # Changelog
 
+# 28.0.0 [#847](https://github.com/openfisca/openfisca-core/pull/847)
+
+#### Breaking changes
+
+Remove extra_params altogether from Core. This puts all formulas on an equal footing and simplifies 
+simulation and data storage code.
+
+#### Migration notes
+
+For almost all users, no migration is needed.
+
+You may be impacted only if you were computing (for instance in a notebook) one of the two variables from France that used this non-standard extension to the `calculate(variable, period)` API: `rsa_fictif` or `ppa_fictive`. In that case you had to supply the additional parameter `mois_demande`. Use `rsa` or `ppa` directly, and go back to the standard API.
+
 ### 27.0.2 [#844](https://github.com/openfisca/openfisca-core/pull/844)
 
 > Note: Versions `27.0.0` and `27.0.1` have been unpublished as the former accidentally introduced a bug affecting test inputs. Please use version `27.0.2` or more recent.

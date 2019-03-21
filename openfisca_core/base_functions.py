@@ -8,7 +8,7 @@
 """
 
 
-def requested_period_default_value(holder, period, *extra_params):
+def requested_period_default_value(holder, period):
     """
         This formula is used for variables for which we don't want to make any inference about the value for a given period based on past or future values.
 
@@ -17,7 +17,7 @@ def requested_period_default_value(holder, period, *extra_params):
     return None
 
 
-def requested_period_last_value(holder, period, *extra_params, **kwargs):
+def requested_period_last_value(holder, period, **kwargs):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable
@@ -30,20 +30,20 @@ def requested_period_last_value(holder, period, *extra_params, **kwargs):
     known_periods = sorted(known_periods, key=lambda period: period.start, reverse = True)
     for last_period in known_periods:
         if last_period.start <= period.start:
-            return holder.get_array(last_period, extra_params)
+            return holder.get_array(last_period)
     if accept_future_value:
         next_period = known_periods[-1]
-        return holder.get_array(next_period, extra_params)
+        return holder.get_array(next_period)
     return None
 
 
-def requested_period_last_or_next_value(holder, period, *extra_params):
+def requested_period_last_or_next_value(holder, period):
     """
         This formula is used for variables that are constants between events and period size independent.
         If the variable has no formula, it will return the latest known value of the variable, or the next value if there is no past value.
     """
-    return requested_period_last_value(holder, period, *extra_params, accept_future_value = True)
+    return requested_period_last_value(holder, period, accept_future_value = True)
 
 
-def missing_value(holder, period, *extra_params):
+def missing_value(holder, period):
     raise ValueError("Missing value for variable {} at {}".format(holder.variable.name, period))

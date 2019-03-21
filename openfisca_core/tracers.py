@@ -90,8 +90,6 @@ class Tracer(object):
 
     @staticmethod
     def _get_key(variable_name, period, **parameters):
-        if parameters.get('extra_params'):
-            return "{}<{}><{}>".format(variable_name, period, '><'.join(map(str, parameters['extra_params'])))
         return "{}<{}>".format(variable_name, period)
 
     def record_calculation_start(self, variable_name, period, **parameters):
@@ -207,18 +205,17 @@ class Tracer(object):
 
         return print_line(depth, key, self._get_aggregate(key))
 
-    def print_trace(self, variable_name, period, extra_params = None, max_depth = 1, aggregate = False, ignore_zero = False):
+    def print_trace(self, variable_name, period, max_depth = 1, aggregate = False, ignore_zero = False):
         """
             Print value, the dependencies, and the dependencies values of the variable for the given period (and possibly the given set of extra parameters).
 
             :param str variable_name: Name of the variable to investigate
             :param Period period: Period to investigate
-            :param list extra_params: Set of extra parameters
             :param int max_depth: Maximum level of recursion
             :param bool aggregate: See :any:`print_computation_log`
             :param bool ignore_zero: If ``True``, don't print dependencies if their value is 0
         """
-        key = self._get_key(variable_name, period, extra_params = extra_params)
+        key = self._get_key(variable_name, period)
 
         def _print_details(key, depth):
             if depth > 0 and ignore_zero and np.all(self.trace[key]['value'] == 0):
