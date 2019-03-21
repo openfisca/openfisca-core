@@ -41,7 +41,7 @@ def import_yaml():
             'test suite slower to run. Once you have installed libyaml, run `pip '
             'uninstall pyyaml && pip install pyyaml --no-cache-dir` so that it is used in your '
             'Python environment.')
-        from yaml import Loader
+        from yaml import SafeLoader as Loader
     return yaml, Loader
 
 
@@ -174,7 +174,7 @@ def _generate_tests_from_directory(tax_benefit_system, path_to_dir, options):
 def _parse_test_file(tax_benefit_system, yaml_path, options):
     with open(yaml_path) as yaml_file:
         try:
-            tests = yaml.safe_load(yaml_file)
+            tests = yaml.load(yaml_file, Loader = Loader)
         except (yaml.scanner.ScannerError, TypeError):
             message = os.linesep.join([
                 traceback.format_exc(),
