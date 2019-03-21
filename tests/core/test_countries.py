@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from nose.tools import raises, assert_raises
+from pytest import fixture, raises
 
 from openfisca_core.variables import Variable
 from openfisca_core.periods import MONTH
+from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
 from openfisca_core.entities import DIVIDE
@@ -15,49 +16,126 @@ from openfisca_core.tools import assert_near
 tax_benefit_system = CountryTaxBenefitSystem()
 
 
-def test_input_variable():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = {
-            'salary': 2000,
-            },
-        ).new_simulation()
+@fixture
+def period():
+    return "2016-01"
+
+
+@fixture
+def make_simulation(period):
+    def _make_simulation(data):
+        builder = SimulationBuilder()
+        builder.default_period = period
+        return builder.build_from_variables(tax_benefit_system, data)
+    return _make_simulation
+
+
+@fixture
+def make_isolated_simulation(period):
+    def _make_simulation(tbs, data):
+        builder = SimulationBuilder()
+        builder.default_period = period
+        return builder.build_from_variables(tbs, data)
+    return _make_simulation
+
+
+def test_input_variable(make_simulation, period):
+    simulation = make_simulation({'salary': 2000})
     assert_near(simulation.calculate('salary', period), [2000], absolute_error_margin = 0.01)
 
 
-def test_basic_calculation():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            salary = 2000,
-            ),
-        ).new_simulation()
+def test_basic_calculation(make_simulation, period):
+    simulation = make_simulation({'salary': 2000})
     assert_near(simulation.calculate('income_tax', period), [300], absolute_error_margin = 0.01)
 
 
-def test_calculate_add():
-    period = 2016
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            salary = 24000,
-            ),
-        ).new_simulation()
+def test_calculate_add(make_simulation, period):
+    simulation = make_simulation({'salary': 24000})
     assert_near(simulation.calculate_add('income_tax', period), [3600], absolute_error_margin = 0.01)
 
 
-def test_calculate_divide():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            accommodation_size = 100,
-            housing_occupancy_status = 'tenant',
-            ),
-        ).new_simulation()
+def test_calculate_divide(make_simulation, period):
+    simulation = make_simulation({
+        'accommodation_size': 100,
+        'housing_occupancy_status': 'tenant',
+        })
     assert_near(simulation.calculate_divide('housing_tax', period), [1000 / 12.], absolute_error_margin = 0.01)
+
+
+def test_bareme(make_simulation, period):
+    simulation = make_simulation({'salary': 20000})
+    expected_result = 0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600
+    assert_near(simulation.calculate('social_security_contribution', period), [expected_result], absolute_error_margin = 0.01)
+
+
+def test_non_existing_variable(make_simulation):
+    simulation = make_simulation({})
+    with raises(VariableNotFound):
+        simulation.calculate('non_existent_variable', 2013)
+
+
+def test_calculate_variable_with_wrong_definition_period(make_simulation):
+    simulation = make_simulation({})
+
+    with raises(ValueError) as error:
+        simulation.calculate('basic_income', 2016)
+
+    error_message = str(error.value)
+    expected_words = ['period', '2016', 'month', 'basic_income', 'ADD']
+
+    for word in expected_words:
+        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)
+
+
+def test_divide_option_on_month_defined_variable(make_simulation):
+    simulation = make_simulation({})
+    with raises(ValueError):
+        simulation.person('disposable_income', "2016-01", options = [DIVIDE])
+
+
+def test_divide_option_with_complex_period(make_simulation):
+    simulation = make_simulation({})
+    quarter = periods.period('2013-12').last_3_months
+    with raises(ValueError):
+        simulation.household('housing_tax', quarter, options = [DIVIDE])
+
+
+def test_input_with_wrong_period(make_simulation):
+    with raises(ValueError):
+        make_simulation({'basic_income': {2015: 12000}})
+
+
+def test_variable_with_reference(make_isolated_simulation):
+    tax_benefit_system = CountryTaxBenefitSystem()  # Work in isolation
+
+    simulation_base = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
+
+    revenu_disponible_avant_reforme = simulation_base.calculate('disposable_income', "2016-01")
+    assert(revenu_disponible_avant_reforme > 0)
+
+    class disposable_income(Variable):
+        definition_period = MONTH
+
+        def formula(household, period):
+            return household.empty_array()
+
+    tax_benefit_system.update_variable(disposable_income)
+
+    simulation_reform = make_isolated_simulation(tax_benefit_system, {'salary': 4000})
+    revenu_disponible_apres_reforme = simulation_reform.calculate('disposable_income', "2016-01")
+
+    assert(revenu_disponible_apres_reforme == 0)
+
+
+def test_variable_name_conflict():
+    class disposable_income(Variable):
+        reference = 'disposable_income'
+        definition_period = MONTH
+
+        def formula(household, period):
+            return household.empty_array()
+    with raises(VariableNameConflict):
+        tax_benefit_system.add_variable(disposable_income)
 
 
 class income_tax_no_period(Variable):
@@ -73,119 +151,10 @@ class income_tax_no_period(Variable):
         return salary * 0.15
 
 
-@raises(ValueError)
-def test_no_period():
-    year = 2016
-
+def test_no_period(make_isolated_simulation, period):
     buggy_tbf = CountryTaxBenefitSystem()
     buggy_tbf.add_variable(income_tax_no_period)
 
-    simulation = buggy_tbf.new_scenario().init_from_attributes(
-        period = year,
-        input_variables = dict(
-            salary = 2000,
-            ),
-        ).new_simulation()
-    simulation.calculate('income_tax_no_period', year)
-
-
-def test_bareme():
-    period = "2016-01"
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = period,
-        input_variables = dict(
-            salary = 20000,
-            ),
-        ).new_simulation()
-    expected_result = 0.02 * 6000 + 0.06 * 6400 + 0.12 * 7600
-    assert_near(simulation.calculate('social_security_contribution', period), [expected_result], absolute_error_margin = 0.01)
-
-
-def test_variable_with_reference():
-    tax_benefit_system = CountryTaxBenefitSystem()  # Work in isolation
-
-    def new_simulation():
-        return tax_benefit_system.new_scenario().init_from_attributes(
-            period = "2016-01",
-            input_variables = dict(
-                salary = 4000,
-                ),
-            ).new_simulation()
-
-    revenu_disponible_avant_reforme = new_simulation().calculate('disposable_income', "2016-01")
-    assert(revenu_disponible_avant_reforme > 0)
-
-    class disposable_income(Variable):
-        definition_period = MONTH
-
-        def formula(household, period):
-            return household.empty_array()
-
-    tax_benefit_system.update_variable(disposable_income)
-    revenu_disponible_apres_reforme = new_simulation().calculate('disposable_income', "2016-01")
-
-    assert(revenu_disponible_apres_reforme == 0)
-
-
-@raises(VariableNameConflict)
-def test_variable_name_conflict():
-    class disposable_income(Variable):
-        reference = 'disposable_income'
-        definition_period = MONTH
-
-        def formula(household, period):
-            return household.empty_array()
-    tax_benefit_system.add_variable(disposable_income)
-
-
-@raises(VariableNotFound)
-def test_non_existing_variable():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = "2016-01",
-        ).new_simulation()
-
-    simulation.calculate('non_existent_variable', 2013)
-
-
-def test_calculate_variable_with_wrong_definition_period():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = "2016-01"
-        ).new_simulation()
-
-    with assert_raises(ValueError) as error:
-        simulation.calculate('basic_income', 2016)
-
-    error_message = str(error.exception)
-    expected_words = ['period', '2016', 'month', 'basic_income', 'ADD']
-
-    for word in expected_words:
-        assert word in error_message, 'Expected "{}" in error message "{}"'.format(word, error_message)
-
-
-@raises(ValueError)
-def test_divide_option_on_month_defined_variable():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = "2016-01"
-        ).new_simulation()
-
-    simulation.person('disposable_income', "2016-01", options = [DIVIDE])
-
-
-@raises(ValueError)
-def test_divide_option_with_complex_period():
-    simulation = tax_benefit_system.new_scenario().init_from_attributes(
-        period = "2016-01"
-        ).new_simulation()
-
-    quarter = periods.period('2013-12').last_3_months
-    simulation.household('housing_tax', quarter, options = [DIVIDE])
-
-
-@raises(ValueError)
-def test_input_with_wrong_period():
-    tax_benefit_system.new_scenario().init_from_attributes(
-        period = 2013,
-        input_variables = dict(
-            basic_income = {2015: 12000},
-            ),
-        ).new_simulation()
+    simulation = make_isolated_simulation(buggy_tbf, {'salary': 2000})
+    with raises(ValueError):
+        simulation.calculate('income_tax_no_period', period)
