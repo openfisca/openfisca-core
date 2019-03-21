@@ -16,7 +16,7 @@ OPEN_API_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 def build_openAPI_specification(api_data):
     tax_benefit_system = api_data['tax_benefit_system']
     file = open(OPEN_API_CONFIG_FILE, 'r')
-    spec = yaml.load(file)
+    spec = yaml.safe_load(file)
     country_package_name = api_data['country_package_metadata']['name'].title()
     dpath.new(spec, 'info/title', spec['info']['title'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))
     dpath.new(spec, 'info/description', spec['info']['description'].replace("{COUNTRY_PACKAGE_NAME}", country_package_name))

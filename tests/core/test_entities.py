@@ -68,7 +68,7 @@ def test_entity_structure_with_constructor():
             - claudia
     """
 
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
 
     household = simulation.household
 
@@ -102,7 +102,7 @@ def test_entity_variables_with_constructor():
               2017-06: 600
     """
 
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
     household = simulation.household
     assert_near(household('rent', "2017-06"), [800, 600])
 
@@ -135,7 +135,7 @@ def test_person_variable_with_constructor():
             - claudia
     """
 
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-11"), [1500, 0, 3000, 0, 0])
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
@@ -174,7 +174,7 @@ def test_set_input_with_constructor():
             - claudia
     """
 
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.load(simulation_yaml))
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
     person = simulation.person
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
     assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
