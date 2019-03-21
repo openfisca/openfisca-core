@@ -25,12 +25,6 @@ log = logging.getLogger(__name__)
 
 
 def import_yaml():
-    if sys.version_info < (3, 6):
-        # In Python 2, we need a YAML loader that preserves the dict orders, as it's not natively suported.
-        from ruamel.yaml import YAML
-        yaml = YAML()
-        return yaml, None
-
     import yaml
     try:
         from yaml import CLoader as Loader
