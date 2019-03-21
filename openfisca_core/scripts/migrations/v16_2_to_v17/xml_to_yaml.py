@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa T001
 
 
 ''' xml_to_yaml.py : Parse XML parameter files and convert them to YAML files

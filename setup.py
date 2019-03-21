@@ -28,6 +28,7 @@ api_requirements = [
 dev_requirements = [
     'autopep8 >= 1.4.0, < 1.5.0',
     'flake8 >= 3.7.0, < 3.8.0',
+    'flake8-print',
     'pytest >= 4.0.0, < 5.0.0',
     'pytest-cov >= 2.0.0, < 3.0.0',
     'openfisca-country-template >= 3.6.0rc0, < 4.0.0',

@@ -240,7 +240,7 @@ class Tracer(object):
             This mode is more suited for simulations on a large population.
         """
         for line in self.computation_log(aggregate):
-            print(line)
+            print(line)  # noqa T001
 
 
 class TracingParameterNodeAtInstant(object):
