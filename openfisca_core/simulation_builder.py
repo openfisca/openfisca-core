@@ -40,24 +40,23 @@ class SimulationBuilder(object):
         self.axes_memberships: Dict[Entity.plural, List[int]] = {}
         self.axes_roles: Dict[Entity.plural, List[int]] = {}
 
-    def build_from_dict(self, tax_benefit_system, input_dict, **kwargs):
+    def build_from_dict(self, tax_benefit_system, input_dict):
         """
             Build a simulation from ``input_dict``
 
             This method uses :any:`build_from_entities` if entities are fully specified, or :any:`build_from_variables` if not.
 
             :param dict input_dict: A dict represeting the input of the simulation
-            :param kwargs: Same keywords argument than the :any:`Simulation` constructor
             :return: A :any:`Simulation`
         """
 
         input_dict = self.explicit_singular_entities(tax_benefit_system, input_dict)
         if any(key in tax_benefit_system.entities_plural() for key in input_dict.keys()):
-            return self.build_from_entities(tax_benefit_system, input_dict, **kwargs)
+            return self.build_from_entities(tax_benefit_system, input_dict)
         else:
-            return self.build_from_variables(tax_benefit_system, input_dict, **kwargs)
+            return self.build_from_variables(tax_benefit_system, input_dict)
 
-    def build_from_entities(self, tax_benefit_system, input_dict, **kwargs):
+    def build_from_entities(self, tax_benefit_system, input_dict):
         """
             Build a simulation from a Python dict ``input_dict`` fully specifying entities.
 
@@ -70,9 +69,7 @@ class SimulationBuilder(object):
         """
         input_dict = deepcopy(input_dict)
 
-        simulation = kwargs.pop('simulation', None)  # Only for backward compatibility with previous Simulation constructor
-        if simulation is None:
-            simulation = Simulation(tax_benefit_system, **kwargs)
+        simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
         # Register variables so get_variable_entity can find them
         for (variable_name, variable) in tax_benefit_system.variables.items():
@@ -129,7 +126,7 @@ class SimulationBuilder(object):
 
         return simulation
 
-    def build_from_variables(self, tax_benefit_system, input_dict, **kwargs):
+    def build_from_variables(self, tax_benefit_system, input_dict):
         """
             Build a simulation from a Python dict ``input_dict`` describing variables values without expliciting entities.
 
@@ -142,7 +139,7 @@ class SimulationBuilder(object):
                 )
         """
         count = _get_person_count(input_dict)
-        simulation = self.build_default_simulation(tax_benefit_system, count, **kwargs)
+        simulation = self.build_default_simulation(tax_benefit_system, count)
         for variable, value in input_dict.items():
             if not isinstance(value, dict):
                 if self.default_period is None:
@@ -154,7 +151,7 @@ class SimulationBuilder(object):
                     simulation.set_input(variable, period_str, dated_value)
         return simulation
 
-    def build_default_simulation(self, tax_benefit_system, count = 1, **kwargs):
+    def build_default_simulation(self, tax_benefit_system, count = 1):
         """
             Build a simulation where:
                 - There are ``count`` persons
@@ -162,7 +159,7 @@ class SimulationBuilder(object):
                 - Every person has, in each entity, the first role
         """
 
-        simulation = Simulation(tax_benefit_system, **kwargs)
+        simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
         for entity in simulation.entities.values():
             entity.count = count
             entity.ids = np.array(range(count))

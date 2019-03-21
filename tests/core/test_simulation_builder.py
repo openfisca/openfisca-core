@@ -281,7 +281,7 @@ def test_canonicalize_period_keys(simulation_builder, persons):
 
 
 def test_finalize_group_entity(simulation_builder):
-    simulation = Simulation(tax_benefit_system)
+    simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
     simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
         'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},

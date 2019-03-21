@@ -4,7 +4,6 @@
 from os import linesep
 import tempfile
 import logging
-import warnings
 
 import numpy as np
 
@@ -32,43 +31,23 @@ class Simulation(object):
     """
         Represents a simulation, and handles the calculation logic
     """
-    debug = False
-    period = None
-    tax_benefit_system = None
-    trace = False
-
-    # ----- Simulation construction ----- #
-
     def __init__(
             self,
             tax_benefit_system,
-            entities_instances = None,
-            simulation_json = None,
-            debug = False,
-            period = None,
-            trace = False,
-            opt_out_cache = False,
-            memory_config = None,
+            entities_instances = None
             ):
         """
-            Create an empty simulation
-
-            To fill the simulation with input data, you can use the :any:`SimulationBuilder` or proceed manually.
+            This constructor is reserved for internal use; see :any:`SimulationBuilder`,
+            which is the preferred way to obtain a Simulation initialized with a consistent
+            set of Entities.
         """
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        if entities_instances is not None:
-            self.entities = entities_instances
-        else:
-            self.entities = tax_benefit_system.instantiate_entities()
+        self.entities = entities_instances
         self.persons = self.entities[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
-
-        if period:
-            assert isinstance(period, periods.Period)
-        self.period = period
 
         # To keep track of the values (formulas and periods) being calculated to detect circular definitions.
         # See use in formulas.py.
@@ -76,26 +55,24 @@ class Simulation(object):
         self.requested_periods_by_variable_name = {}
         self.max_nb_cycles = None
 
-        self.debug = debug
-        self.trace = trace or self.debug
-        if self.trace:
+        self.debug = False
+        self.trace = False
+        self.opt_out_cache = False
+
+        self.memory_config = None
+        self._data_storage_dir = None
+
+    @property
+    def trace(self):
+        return self._trace
+
+    @trace.setter
+    def trace(self, trace):
+        self._trace = trace
+        if trace:
             self.tracer = Tracer()
         else:
             self.tracer = None
-        self.opt_out_cache = opt_out_cache
-
-        self.memory_config = memory_config
-        self._data_storage_dir = None
-
-        if simulation_json is not None:
-            warnings.warn(' '.join([
-                "The 'simulation_json' argument of the Simulation is deprecated since version 25.0, and will be removed in the future.",
-                "The proper way to init a simulation from a JSON-like dict is to use SimulationBuilder.build_from_entities. See <https://openfisca.org/doc/openfisca-python-api/simulation_builder.html#openfisca_core.simulation_builder.SimulationBuilder.build_from_dict>"
-                ]),
-                Warning
-                )
-            from openfisca_core.simulation_builder import SimulationBuilder
-            SimulationBuilder().build_from_entities(self.tax_benefit_system, simulation_json, simulation = self)
 
     def link_to_entities_instances(self):
         for key, entity_instance in self.entities.items():
@@ -141,6 +118,7 @@ class Simulation(object):
 
         # First look for a value already cached
         cached_array = holder.get_array(period)
+        print("cached", variable_name, period, cached_array)
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
@@ -244,6 +222,7 @@ class Simulation(object):
         """
 
         formula = variable.get_formula(period)
+        print("formula", variable.name, period, formula)
         if formula is None:
             return None
 
@@ -483,7 +462,6 @@ class Simulation(object):
         self.get_holder(variable_name).set_input(period, value)
 
     def get_variable_entity(self, variable_name):
-
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.get_entity(variable.entity)
 

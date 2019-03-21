@@ -39,7 +39,7 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
     """
         Restore simulation from directory
     """
-    simulation = Simulation(tax_benefit_system, **kwargs)
+    simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
     entities_dump_dir = os.path.join(directory, "__entities__")
     for entity in simulation.entities.values():

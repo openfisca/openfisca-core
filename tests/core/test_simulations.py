@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_core.simulations import Simulation
+from openfisca_core.simulation_builder import SimulationBuilder
 
 from openfisca_country_template.situation_examples import single
 
 from .test_countries import tax_benefit_system
 
 
-scenario = tax_benefit_system.new_scenario().init_from_attributes(period = '2017-01')
-
-
 def test_calculate_with_trace():
-    simulation = scenario.new_simulation(trace = True)
+    simulation = SimulationBuilder().build_default_simulation(tax_benefit_system)
+    simulation.trace = True
     simulation.calculate('income_tax', '2017-01')
 
     salary_trace = simulation.tracer.trace['salary<2017-01>']
@@ -30,23 +28,22 @@ def test_calculate_with_trace():
 
 
 def test_get_entity_not_found():
-    simulation = scenario.new_simulation(trace = True)
+    simulation = SimulationBuilder().build_default_simulation(tax_benefit_system)
     assert simulation.get_entity(plural = "no_such_entities") is None
 
 
 def test_clone():
-    simulation = Simulation(
-        tax_benefit_system = tax_benefit_system,
-        simulation_json = {
-            "persons": {
-                "bill": {"salary": {"2017-01": 3000}},
-                },
-            "households": {
-                "household": {
-                    "parents": ["bill"]
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system,
+            {
+                "persons": {
+                    "bill": {"salary": {"2017-01": 3000}},
+                    },
+                "households": {
+                    "household": {
+                        "parents": ["bill"]
+                        }
                     }
-                }
-            })
+                })
 
     simulation_clone = simulation.clone()
     assert simulation != simulation_clone
@@ -65,7 +62,7 @@ def test_clone():
 
 
 def test_get_memory_usage():
-    simulation = Simulation(tax_benefit_system = tax_benefit_system, simulation_json = single)
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, single)
     simulation.calculate('disposable_income', '2017-01')
     memory_usage = simulation.get_memory_usage(variables = ['salary'])
     assert(memory_usage['total_nb_bytes'] > 0)
