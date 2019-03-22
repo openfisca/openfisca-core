@@ -13,8 +13,6 @@ import datetime
 import re
 from os import linesep
 
-from openfisca_core.commons import basestring_type, to_unicode
-
 
 DAY = 'day'
 MONTH = 'month'
@@ -28,7 +26,6 @@ def N_(message):
     return message
 
 
-# Note: weak references are not used, because Python 2.7 can't create weak reference to 'datetime.date' objects.
 date_by_instant_cache = {}
 str_by_instant_cache = {}
 year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
@@ -57,12 +54,6 @@ class Instant(tuple):
         >>> str(instant('2014-2-3'))
         '2014-02-03'
 
-        >>> to_unicode(instant(2014))
-        '2014-01-01'
-        >>> to_unicode(instant('2014-2'))
-        '2014-02-01'
-        >>> to_unicode(instant('2014-2-3'))
-        '2014-02-03'
         """
         instant_str = str_by_instant_cache.get(self)
         if instant_str is None:
@@ -123,7 +114,7 @@ class Instant(tuple):
         """
         assert unit in (DAY, MONTH, YEAR), 'Invalid unit: {} of type {}'.format(unit, type(unit))
         assert isinstance(size, int) and size >= 1, 'Invalid size: {} of type {}'.format(size, type(size))
-        return Period((to_unicode(unit), self, size))
+        return Period((unit, self, size))
 
     def offset(self, offset, unit):
         """Increment (or decrement) the given instant with offset units.
@@ -291,26 +282,26 @@ class Period(tuple):
     def __str__(self):
         """Transform period to a string.
 
-        >>> to_unicode(period(YEAR, 2014))
+        >>> str(period(YEAR, 2014))
         '2014'
 
-        >>> to_unicode(period(YEAR, '2014-2'))
+        >>> str(period(YEAR, '2014-2'))
         'year:2014-02'
-        >>> to_unicode(period(MONTH, '2014-2'))
+        >>> str(period(MONTH, '2014-2'))
         '2014-02'
 
-        >>> to_unicode(period(YEAR, 2012, size = 2))
+        >>> str(period(YEAR, 2012, size = 2))
         'year:2012:2'
-        >>> to_unicode(period(MONTH, 2012, size = 2))
+        >>> str(period(MONTH, 2012, size = 2))
         'month:2012-01:2'
-        >>> to_unicode(period(MONTH, 2012, size = 12))
+        >>> str(period(MONTH, 2012, size = 12))
         '2012'
 
-        >>> to_unicode(period(YEAR, '2012-3', size = 2))
+        >>> str(period(YEAR, '2012-3', size = 2))
         'year:2012-03:2'
-        >>> to_unicode(period(MONTH, '2012-3', size = 2))
+        >>> str(period(MONTH, '2012-3', size = 2))
         'month:2012-03:2'
-        >>> to_unicode(period(MONTH, '2012-3', size = 12))
+        >>> str(period(MONTH, '2012-3', size = 12))
         'year:2012-03'
         """
 
@@ -323,7 +314,7 @@ class Period(tuple):
         if (unit == MONTH and size == 12 or unit == YEAR and size == 1):
             if month == 1:
                 # civil year starting from january
-                return to_unicode(year)
+                return str(year)
             else:
                 # rolling year
                 return '{}:{}-{:02d}'.format(YEAR, year, month)
@@ -758,7 +749,7 @@ def instant(instant):
         return None
     if isinstance(instant, Instant):
         return instant
-    if isinstance(instant, basestring_type):
+    if isinstance(instant, str):
         if not INSTANT_PATTERN.match(instant):
             raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant).encode('utf-8'))
         instant = Instant(
@@ -852,7 +843,7 @@ def period(value):
     # check the type
     if isinstance(value, int):
         return Period((YEAR, Instant((value, 1, 1)), 1))
-    if not isinstance(value, basestring_type):
+    if not isinstance(value, str):
         raise_error(value)
 
     # try to parse as a simple period

@@ -5,7 +5,6 @@ import os
 
 import numexpr
 
-from openfisca_core.commons import basestring_type
 from openfisca_core.indexed_enums import EnumArray
 
 
@@ -30,7 +29,7 @@ def assert_near(value, target_value, absolute_error_margin = None, message = '',
         value = np.array(value)
     if isinstance(value, EnumArray):
         return assert_enum_equals(value, target_value, message)
-    if isinstance(target_value, basestring_type):
+    if isinstance(target_value, str):
         target_value = eval_expression(target_value)
 
     target_value = np.array(target_value).astype(np.float32)

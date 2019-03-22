@@ -5,7 +5,6 @@ import os
 import traceback
 
 from openfisca_core.errors import SituationParsingError
-from openfisca_core.commons import to_unicode
 from openfisca_web_api.loader import build_data
 from openfisca_web_api.errors import handle_import_error
 from openfisca_web_api import handlers
@@ -116,15 +115,11 @@ def create_app(tax_benefit_system,
 
     @app.route('/spec')
     def get_spec():
-        # Ugly Python2-compatible way
-        response = {}
-        response.update(data['openAPI_spec'])
-        response.update({'host': request.host})
-        response.update({'schemes': [request.environ['wsgi.url_scheme']]})
-        return jsonify(response)
-
-        # Nice Python3 syntax, but doesn't work in Python 2
-        # return jsonify({**data['openAPI_spec'], **{'host': request.host_url}})
+        return jsonify({
+            **data['openAPI_spec'],
+            **{'host': request.host_url},
+            **{'schemes': [request.environ['wsgi.url_scheme']]}
+            })
 
     def handle_invalid_json(error):
         json_response = jsonify({
@@ -184,7 +179,7 @@ def create_app(tax_benefit_system,
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        message = to_unicode(e.args[0])
+        message = str(e.args[0])
         if type(e) == UnicodeEncodeError or type(e) == UnicodeDecodeError:
             response = jsonify({"error": "Internal server error: '" + e[1] + "' is not a valid ASCII value."})
         elif message:

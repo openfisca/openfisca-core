@@ -4,7 +4,6 @@
 import pytest
 
 from openfisca_core.periods import Period, Instant, YEAR, MONTH, DAY, period
-from openfisca_core.commons import to_unicode
 
 first_jan = Instant((2014, 1, 1))
 first_march = Instant((2014, 3, 1))
@@ -18,43 +17,43 @@ Test Period -> String
 # Years
 
 def test_year():
-    assert to_unicode(Period((YEAR, first_jan, 1))) == '2014'
+    assert str(Period((YEAR, first_jan, 1))) == '2014'
 
 
 def test_12_months_is_a_year():
-    assert to_unicode(Period((MONTH, first_jan, 12))) == '2014'
+    assert str(Period((MONTH, first_jan, 12))) == '2014'
 
 
 def test_rolling_year():
-    assert to_unicode(Period((MONTH, first_march, 12))) == 'year:2014-03'
-    assert to_unicode(Period((YEAR, first_march, 1))) == 'year:2014-03'
+    assert str(Period((MONTH, first_march, 12))) == 'year:2014-03'
+    assert str(Period((YEAR, first_march, 1))) == 'year:2014-03'
 
 
 def test_several_years():
-    assert to_unicode(Period((YEAR, first_jan, 3))) == 'year:2014:3'
-    assert to_unicode(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
+    assert str(Period((YEAR, first_jan, 3))) == 'year:2014:3'
+    assert str(Period((YEAR, first_march, 3))) == 'year:2014-03:3'
 
 
 # Months
 
 def test_month():
-    assert to_unicode(Period((MONTH, first_jan, 1))) == '2014-01'
+    assert str(Period((MONTH, first_jan, 1))) == '2014-01'
 
 
 def test_several_months():
-    assert to_unicode(Period((MONTH, first_jan, 3))) == 'month:2014-01:3'
-    assert to_unicode(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
+    assert str(Period((MONTH, first_jan, 3))) == 'month:2014-01:3'
+    assert str(Period((MONTH, first_march, 3))) == 'month:2014-03:3'
 
 
 # Days
 
 def test_day():
-    assert to_unicode(Period((DAY, first_jan, 1))) == '2014-01-01'
+    assert str(Period((DAY, first_jan, 1))) == '2014-01-01'
 
 
 def test_several_days():
-    assert to_unicode(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
-    assert to_unicode(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
+    assert str(Period((DAY, first_jan, 3))) == 'day:2014-01-01:3'
+    assert str(Period((DAY, first_march, 3))) == 'day:2014-03-01:3'
 
 
 '''

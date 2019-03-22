@@ -16,7 +16,6 @@ import traceback
 import nose
 
 from openfisca_core.tools import assert_near
-from openfisca_core.commons import to_unicode
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
 
@@ -117,8 +116,6 @@ def run_tests(tax_benefit_system, paths, options = {}):
 def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
     filename = os.path.splitext(os.path.basename(path_to_file))[0]
     name_filter = options.get('name_filter')
-    if isinstance(name_filter, str):
-        name_filter = to_unicode(name_filter)
     verbose = options.get('verbose')
 
     tests = _parse_test_file(tax_benefit_system, path_to_file, options)

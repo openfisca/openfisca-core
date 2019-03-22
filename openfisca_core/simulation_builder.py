@@ -8,7 +8,6 @@ from copy import deepcopy
 from openfisca_core.entities import Entity
 from openfisca_core.variables import Variable
 
-from openfisca_core.commons import basestring_type
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
 from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
@@ -319,7 +318,7 @@ class SimulationBuilder(object):
                                   persons_ids,
                                   person_id, entity_id, role_id,
                                   persons_to_allocate, index):
-        check_type(person_id, basestring_type, [entity_plural, entity_id, role_id, str(index)])
+        check_type(person_id, str, [entity_plural, entity_id, role_id, str(index)])
         if person_id not in persons_ids:
             raise SituationParsingError([entity_plural, entity_id, role_id],
                 "Unexpected value: {0}. {0} has been declared in {1} {2}, but has not been declared in {3}.".format(
@@ -537,7 +536,7 @@ def check_type(input, input_type, path = []):
     json_type_map = {
         dict: "Object",
         list: "Array",
-        basestring_type: "String",
+        str: "String",
         }
     if not isinstance(input, input_type):
         raise SituationParsingError(path,
@@ -578,7 +577,7 @@ def _get_person_count(input_dict):
         first_value = next(iter(input_dict.values()))
         if isinstance(first_value, dict):
             first_value = next(iter(first_value.values()))
-        if isinstance(first_value, basestring_type):
+        if isinstance(first_value, str):
             return 1
 
         return len(first_value)

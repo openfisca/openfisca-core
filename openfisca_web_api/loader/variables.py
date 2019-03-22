@@ -5,7 +5,6 @@ import inspect
 import textwrap
 
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.commons import to_unicode
 from openfisca_core.variables import VALUE_TYPES
 
 
@@ -39,9 +38,6 @@ def build_source_url(country_package_metadata, source_file_path, start_line_numb
 
 def build_formula(formula, country_package_metadata, source_file_path, tax_benefit_system):
     source_code, start_line_number = inspect.getsourcelines(formula)
-    # Python 2 backward compatibility
-    if isinstance(source_code[0], bytes):
-        source_code = [source_line.decode('utf-8') for source_line in source_code]
 
     source_code = textwrap.dedent(''.join(source_code))
 
@@ -52,11 +48,11 @@ def build_formula(formula, country_package_metadata, source_file_path, tax_benef
             start_line_number,
             source_code
             ),
-        'content': to_unicode(source_code),
+        'content': source_code,
         }
 
     if formula.__doc__:
-        api_formula['documentation'] = to_unicode(textwrap.dedent(formula.__doc__))
+        api_formula['documentation'] = textwrap.dedent(formula.__doc__)
 
     return api_formula
 

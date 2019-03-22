@@ -19,7 +19,6 @@ from openfisca_core.base_functions import (
     requested_period_last_or_next_value,
     requested_period_last_value,
     )
-from openfisca_core.commons import basestring_type, to_unicode
 from openfisca_core.tools import eval_expression
 
 
@@ -154,7 +153,7 @@ class Variable(object):
     """
 
     def __init__(self, baseline_variable = None):
-        self.name = to_unicode(self.__class__.__name__)
+        self.name = self.__class__.__name__
         attr = {
             name: value for name, value in self.__class__.__dict__.items()
             if not name.startswith('__')}
@@ -174,12 +173,12 @@ class Variable(object):
             self.default_value = self.set(attr, 'default_value', allowed_type = self.value_type, default = VALUE_TYPES[self.value_type].get('default'))
         self.entity = self.set(attr, 'entity', required = True, setter = self.set_entity)
         self.definition_period = self.set(attr, 'definition_period', required = True, allowed_values = (DAY, MONTH, YEAR, ETERNITY))
-        self.label = self.set(attr, 'label', allowed_type = basestring_type, setter = self.set_label)
-        self.end = self.set(attr, 'end', allowed_type = basestring_type, setter = self.set_end)
+        self.label = self.set(attr, 'label', allowed_type = str, setter = self.set_label)
+        self.end = self.set(attr, 'end', allowed_type = str, setter = self.set_end)
         self.reference = self.set(attr, 'reference', setter = self.set_reference)
-        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (basestring_type, dict))
-        self.unit = self.set(attr, 'unit', allowed_type = basestring_type)
-        self.documentation = self.set(attr, 'documentation', allowed_type = basestring_type, setter = self.set_documentation)
+        self.cerfa_field = self.set(attr, 'cerfa_field', allowed_type = (str, dict))
+        self.unit = self.set(attr, 'unit', allowed_type = str)
+        self.documentation = self.set(attr, 'documentation', allowed_type = str, setter = self.set_documentation)
         self.set_input = self.set_set_input(attr.pop('set_input', None))
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
@@ -232,7 +231,7 @@ class Variable(object):
 
     def set_label(self, label):
         if label:
-            return to_unicode(label)
+            return label
 
     def set_end(self, end):
         if end:
@@ -243,8 +242,8 @@ class Variable(object):
 
     def set_reference(self, reference):
         if reference:
-            if isinstance(reference, basestring_type):
-                reference = [to_unicode(reference)]
+            if isinstance(reference, str):
+                reference = [reference]
             elif isinstance(reference, list):
                 pass
             elif isinstance(reference, tuple):
@@ -253,7 +252,7 @@ class Variable(object):
                 raise TypeError('The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(self.name, type(reference)))
 
             for element in reference:
-                if not isinstance(element, basestring_type):
+                if not isinstance(element, str):
                     raise TypeError(
                         'The reference of the variable {} is a {} instead of a String or a List of Strings.'.format(
                             self.name, type(reference)))
@@ -373,14 +372,11 @@ class Variable(object):
             source_file_path = absolute_file_path.replace(tax_benefit_system.get_package_metadata()['location'], '')
         try:
             source_lines, start_line_number = inspect.getsourcelines(cls)
-            # Python 2 backward compatibility
-            if isinstance(source_lines[0], bytes):
-                source_lines = [source_line.decode('utf-8') for source_line in source_lines]
             source_code = textwrap.dedent(''.join(source_lines))
         except (IOError, TypeError):
             source_code, start_line_number = None, None
 
-        return comments, to_unicode(source_file_path), to_unicode(source_code), start_line_number
+        return comments, source_file_path, source_code, start_line_number
 
     def get_formula(self, period = None):
         """
@@ -421,7 +417,7 @@ class Variable(object):
         return clone
 
     def check_set_value(self, value):
-        if self.value_type == Enum and isinstance(value, basestring_type):
+        if self.value_type == Enum and isinstance(value, str):
             try:
                 value = self.possible_values[value].index
             except KeyError:
@@ -430,7 +426,7 @@ class Variable(object):
                     "'{}' is not a known value for '{}'. Possible values are ['{}'].".format(
                         value, self.name, "', '".join(possible_values))
                     )
-        if self.value_type in (float, int) and isinstance(value, basestring_type):
+        if self.value_type in (float, int) and isinstance(value, str):
             try:
                 value = eval_expression(value)
             except SyntaxError:

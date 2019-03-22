@@ -7,7 +7,6 @@ import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.indexed_enums import Enum
-from openfisca_core.commons import to_unicode
 
 
 def calculate(tax_benefit_system, input_data):
@@ -29,7 +28,7 @@ def calculate(tax_benefit_system, input_data):
         elif variable.value_type == float:
             entity_result = float(str(result[entity_index]))  # To turn the float32 into a regular float without adding confusing extra decimals. There must be a better way.
         elif variable.value_type == str:
-            entity_result = to_unicode(result[entity_index])  # From bytes to unicode
+            entity_result = str(result[entity_index])
         else:
             entity_result = result.tolist()[entity_index]
 
@@ -56,7 +55,7 @@ def trace(tax_benefit_system, input_data):
         if isinstance(value[0], Enum):
             value = [item.name for item in value]
         if isinstance(value[0], bytes):
-            value = [to_unicode(item) for item in value]
+            value = [str(item) for item in value]
         vector_trace['value'] = value
 
     return {

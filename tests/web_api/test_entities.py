@@ -4,7 +4,6 @@ from http.client import OK
 from nose.tools import assert_equal
 import json
 import openfisca_country_template
-from openfisca_core.commons import to_unicode
 from . import subject
 
 entities_response = subject.get('/entities')
@@ -18,7 +17,7 @@ def test_return_code():
 
 def test_response_data():
     entities = json.loads(entities_response.data.decode('utf-8'))
-    test_documentation = to_unicode(openfisca_country_template.entities.Household.doc.strip())
+    test_documentation = openfisca_country_template.entities.Household.doc.strip()
 
     assert_equal(
         entities['household'],

@@ -1,24 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import str
-
-
-# The following variable and the to_unicode function are there to bridge string types across Python 2 & 3
-basestring_type = (bytes, str)
-
-
-def to_unicode(string):
-    """
-    :param string: a string that needs to be unicoded
-    :return: a unicode string
-    if the string is a python 2 str type, returns a unicode version of the string.
-    """
-    if isinstance(string, str):
-        return string
-    if isinstance(string, bytes):
-        return string.decode('utf-8')
-    return str(string)
-
 
 class Dummy(object):
     """A class that does nothing
@@ -40,6 +21,6 @@ def stringify_array(array):
         Generate a clean string representation of a NumPY array.
     """
     return '[{}]'.format(', '.join(
-        to_unicode(cell)
+        str(cell)
         for cell in array
         )) if array is not None else 'None'
