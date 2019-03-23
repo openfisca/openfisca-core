@@ -228,7 +228,9 @@ class Entity(object):
 
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.get_variable(variable_name, check_existence = True).entity
-        if variable_entity is not self:
+        # Should be this:
+        # if variable_entity is not self:
+        if variable_entity.key != self.key:
             message = linesep.join([
                 "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
                 "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),

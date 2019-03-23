@@ -50,8 +50,8 @@ class uses_switch(Variable):
 
 
 # TaxBenefitSystem instance declared after formulas
-tax_benefit_system = CountryTaxBenefitSystem()
-tax_benefit_system.add_variables(choice, uses_multiplication, uses_switch)
+ourtbs = CountryTaxBenefitSystem()
+ourtbs.add_variables(choice, uses_multiplication, uses_switch)
 
 
 @fixture
@@ -63,7 +63,7 @@ def month():
 def simulation(month):
     builder = SimulationBuilder()
     builder.default_period = month
-    simulation = builder.build_from_variables(tax_benefit_system, {'choice': np.random.randint(2, size = 1000) + 1})
+    simulation = builder.build_from_variables(ourtbs, {'choice': np.random.randint(2, size = 1000) + 1})
     simulation.debug = True
     return simulation
 

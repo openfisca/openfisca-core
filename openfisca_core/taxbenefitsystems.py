@@ -11,6 +11,7 @@ import logging
 import inspect
 import pkg_resources
 import traceback
+import copy
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity, Population, GroupPopulation
@@ -60,12 +61,13 @@ class TaxBenefitSystem(object):
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables = {}
         self.open_api_config = {}
-        self.entities = entities
+        # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")
-        self.person_entity = [entity for entity in entities if entity.is_person][0]
-        self.group_entities = [entity for entity in entities if not entity.is_person]
-        for entity in entities:
+        self.entities = [copy.copy(entity) for entity in entities]
+        self.person_entity = [entity for entity in self.entities if entity.is_person][0]
+        self.group_entities = [entity for entity in self.entities if not entity.is_person]
+        for entity in self.entities:
             entity.set_tax_benefit_system(self)
 
     @property
