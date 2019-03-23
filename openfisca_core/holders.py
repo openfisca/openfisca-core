@@ -24,10 +24,10 @@ class Holder(object):
         A holder keeps tracks of a variable values after they have been calculated, or set as an input.
     """
 
-    def __init__(self, variable, entity):
-        self.entity = entity
+    def __init__(self, variable, population):
+        self.population = population
         self.variable = variable
-        self.simulation = entity.simulation
+        self.simulation = population.simulation
         self._memory_storage = InMemoryStorage(is_eternal = (self.variable.definition_period == ETERNITY))
 
         # By default, do not activate on-disk storage, or variable dropping
@@ -41,7 +41,7 @@ class Holder(object):
             if self.variable.name in self.simulation.memory_config.variables_to_drop:
                 self._do_not_store = True
 
-    def clone(self, entity):
+    def clone(self, population):
         """
             Copy the holder just enough to be able to run a new simulation without modifying the original simulation.
         """
@@ -49,11 +49,11 @@ class Holder(object):
         new_dict = new.__dict__
 
         for key, value in self.__dict__.items():
-            if key not in ('entity', 'formula', 'simulation'):
+            if key not in ('population', 'formula', 'simulation'):
                 new_dict[key] = value
 
-        new_dict['entity'] = entity
-        new_dict['simulation'] = entity.simulation
+        new_dict['population'] = population
+        new_dict['simulation'] = population.simulation
 
         return new
 
@@ -117,7 +117,7 @@ class Holder(object):
         """
 
         usage = dict(
-            nb_cells_by_array = self.entity.count,
+            nb_cells_by_array = self.population.count,
             dtype = self.variable.dtype,
             )
 
@@ -192,10 +192,10 @@ class Holder(object):
         if value.ndim == 0:
             # 0-dim arrays are casted to scalar when they interact with float. We don't want that.
             value = value.reshape(1)
-        if len(value) != self.entity.count:
+        if len(value) != self.population.count:
             raise ValueError(
                 'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
-                .format(value, self.variable.name, len(value), self.entity.count, self.entity.plural))
+                .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
@@ -255,7 +255,7 @@ class Holder(object):
         Return a new array of the appropriate length for the entity, filled with the variable default values.
         """
 
-        return self.variable.default_array(self.entity.count)
+        return self.variable.default_array(self.population.count)
 
 
 def set_input_dispatch_by_period(holder, period, array):
