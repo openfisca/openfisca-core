@@ -111,8 +111,8 @@ class Simulation(object):
 
             :returns: A numpy array containing the result of the calculation
         """
-        entity = self.get_variable_entity(variable_name)
-        holder = entity.get_holder(variable_name)
+        population = self.get_variable_population(variable_name)
+        holder = population.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -135,7 +135,7 @@ class Simulation(object):
         # First, try to run a formula
         try:
             self._check_for_cycle(variable, period)
-            array = self._run_formula(variable, entity, period)
+            array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
             if array is None:
@@ -230,9 +230,9 @@ class Simulation(object):
             self.tracer
             )
 
-    def _run_formula(self, variable, entity, period):
+    def _run_formula(self, variable, population, period):
         """
-            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
+            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
         """
 
         formula = variable.get_formula(period)
@@ -245,11 +245,11 @@ class Simulation(object):
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
         if formula.__code__.co_argcount == 2:
-            array = formula(entity, period)
+            array = formula(population, period)
         else:
-            array = formula(entity, period, parameters_at)
+            array = formula(population, period, parameters_at)
 
-        self._check_formula_result(array, variable, entity, period)
+        self._check_formula_result(array, variable, population, period)
         return array
 
     def _check_period_consistency(self, period, variable):
@@ -368,7 +368,7 @@ class Simulation(object):
         """
             Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
-        return self.get_variable_entity(variable_name).get_holder(variable_name)
+        return self.get_variable_population(variable_name).get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):
         """
@@ -456,7 +456,7 @@ class Simulation(object):
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_entity(self, variable_name):
+    def get_variable_population(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         return self.entities[variable.entity.key]
 

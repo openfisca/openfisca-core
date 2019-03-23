@@ -61,6 +61,6 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
     if condition is None:
         condition = True
     variable = simulation.tax_benefit_system.get_variable(variable_name)
-    entity = simulation.get_variable_entity(variable_name)
-    value = (np.random.rand(entity.count) * max_value * condition).astype(variable.dtype)
+    population = simulation.get_variable_population(variable_name)
+    value = (np.random.rand(population.count) * max_value * condition).astype(variable.dtype)
     simulation.set_input(variable_name, period, value)

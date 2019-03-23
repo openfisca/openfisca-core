@@ -70,9 +70,9 @@ class SimulationBuilder(object):
 
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
-        # Register variables so get_variable_entity can find them
+        # Register variables so get_variable_population can find them
         for (variable_name, _variable) in tax_benefit_system.variables.items():
-            self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
+            self.register_variable(variable_name, simulation.get_variable_population(variable_name))
 
         check_type(input_dict, dict, ['error'])
         axes = input_dict.pop('axes', None)
@@ -159,11 +159,11 @@ class SimulationBuilder(object):
         """
 
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
-        for entity in simulation.entities.values():
-            entity.count = count
-            entity.ids = np.array(range(count))
-            if not entity.is_person:
-                entity.members_entity_id = entity.ids  # Each person is its own group entity
+        for population in simulation.entities.values():
+            population.count = count
+            population.ids = np.array(range(count))
+            if not population.entity.is_person:
+                population.members_entity_id = population.ids  # Each person is its own group entity
         return simulation
 
     def create_entities(self, tax_benefit_system):
@@ -527,7 +527,7 @@ class SimulationBuilder(object):
                     self.input_buffer[axis_name][str(axis_period)] = array
 
     def get_variable_entity(self, variable_name):
-        return self.variable_entities[variable_name]
+        return self.variable_entities[variable_name].entity
 
     def register_variable(self, variable_name, entity):
         self.variable_entities[variable_name] = entity
