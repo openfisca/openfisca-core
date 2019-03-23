@@ -38,9 +38,9 @@ class Role(object):
 
 
 class Population(object):
-    def __init__(self, entity, simulation):
+    def __init__(self, entity):
+        self.simulation = None
         self.entity = entity
-        self.simulation = simulation
         self._holders = {}
         self.count = 0
         self.ids = []
@@ -51,26 +51,13 @@ class Population(object):
     def filled_array(self, value, dtype = None):
         return np.full(self.count, value, dtype or float)
 
-    def __getattr__(self, attribute):
-        projector = get_projector_from_shortcut(self, attribute)
-        if not projector:
-            raise AttributeError("Entity {} has no attribute {}".format(self.key, attribute))
-        return projector
+    # def __getattr__(self, attribute):
+    #     projector = get_projector_from_shortcut(self, attribute)
+    #     if not projector:
+    #         raise AttributeError("Entity {} has no attribute {}".format(self.key, attribute))
+    #     return projector
 
     # Calculations
-
-    def get_variable(self, variable_name, check_existence = False):
-        return self.simulation.tax_benefit_system.get_variable(variable_name, check_existence)
-
-    def check_variable_defined_for_entity(self, variable_name):
-        variable_entity = self.get_variable(variable_name, check_existence = True).entity
-        if not isinstance(self, variable_entity):
-            message = linesep.join([
-                "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
-                "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
-                "Learn more about entities in our documentation:",
-                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>."])
-            raise ValueError(message)
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
@@ -88,7 +75,7 @@ class Population(object):
 
             :returns: A numpy array containing the result of the calculation
         """
-        self.check_variable_defined_for_entity(variable_name)
+        self.entity.check_variable_defined_for_entity(variable_name)
 
         if options is None:
             options = []
@@ -105,11 +92,11 @@ class Population(object):
     # Helpers
 
     def get_holder(self, variable_name):
-        self.check_variable_defined_for_entity(variable_name)
+        self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
             return holder
-        variable = self.get_variable(variable_name)
+        variable = self.entity.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(
             entity = self,
             variable = variable,
@@ -142,7 +129,7 @@ class Population(object):
             >>> person.has_role(Household.CHILD)
             >>> array([False])
         """
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
         group_entity = self.simulation.get_entity(role.entity_class)
         if role.subroles:
             return np.logical_or.reduce([group_entity.members_role == subrole for subrole in role.subroles])
@@ -152,7 +139,7 @@ class Population(object):
     @projectable
     def value_from_partner(self, array, entity, role):
         self.check_array_compatible_with_entity(array)
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
 
         if not role.subroles or not len(role.subroles) == 2:
             raise Exception('Projection to partner is only implemented for roles having exactly two subroles.')
@@ -214,35 +201,52 @@ class Entity(object):
     """
         Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
-    def __init__(self, key, label, plural, doc):
+    def __init__(self, key, plural, label, doc):
         self.key = key
         self.label = label
         self.plural = plural
         self.doc = textwrap.dedent(doc)
-        self.is_person = False
+        self.is_person = True
+        self.tax_benefit_system = None
 
-    @classmethod
-    def to_json(cls):
+    def set_tax_benefit_system(self, tax_benefit_system):
+        self.tax_benefit_system = tax_benefit_system
+
+    def to_json(self):
         return {
-            'isPersonsEntity': cls.is_person,
-            'key': cls.key,
-            'label': cls.label,
-            'plural': cls.plural,
-            'doc': cls.doc,
-            'roles': cls.roles_description,
+            'isPersonsEntity': self.is_person,
+            'key': self.key,
+            'label': self.label,
+            'plural': self.plural,
+            'doc': self.doc,
+            'roles': self.roles_description,
             }
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
+    def get_variable(self, variable_name, check_existence = False):
+        return self.tax_benefit_system.get_variable(variable_name, check_existence)
+
+    def check_variable_defined_for_entity(self, variable_name):
+        variable_entity = self.get_variable(variable_name, check_existence = True).entity
+        if variable_entity is not self:
+            message = linesep.join([
+                "You tried to compute the variable '{0}' for the entity '{1}';".format(variable_name, self.plural),
+                "however the variable '{0}' is defined for '{1}'.".format(variable_name, variable_entity.plural),
+                "Learn more about entities in our documentation:",
+                "<https://openfisca.org/doc/coding-the-legislation/50_entities.html>."])
+            raise ValueError(message)
+
 
 class GroupPopulation(Population):
-    def __init__(self):
-        super.__init__(self)
+    def __init__(self, entity, members):
+        super().__init__(entity)
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
+        self.members = members
 
     @property
     def members_position(self):
@@ -303,7 +307,7 @@ class GroupPopulation(Population):
             >>> household.sum(salaries)
             >>> array([3500])
         """
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
         self.members.check_array_compatible_with_entity(array)
         if role is not None:
             role_filter = self.members.has_role(role)
@@ -335,7 +339,7 @@ class GroupPopulation(Population):
     @projectable
     def reduce(self, array, reducer, neutral_element, role = None):
         self.members.check_array_compatible_with_entity(array)
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
         position_in_entity = self.members_position
         role_filter = self.members.has_role(role) if role is not None else True
         filtered_array = np.where(role_filter, array, neutral_element)
@@ -433,7 +437,7 @@ class GroupPopulation(Population):
 
             The result is a vector which dimension is the number of entities
         """
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
         if role.max != 1:
             raise Exception(
                 'You can only use value_from_person with a role that is unique in {}. Role {} is not unique.'
@@ -481,7 +485,7 @@ class GroupPopulation(Population):
 
     def project(self, array, role = None):
         self.check_array_compatible_with_entity(array)
-        self.check_role_validity(role)
+        self.entity.check_role_validity(role)
         if role is None:
             return array[self.members_entity_id]
         else:
@@ -493,20 +497,23 @@ class GroupEntity(Entity):
     """
         Represents an entity composed of several persons with different roles, on which calculations are run.
     """
-    def __init__(self, key, label, plural, doc, roles):
-        super.__init__(self, key, label, plural, doc)
+    def __init__(self, key, plural, label, doc, roles):
+        super().__init__(key, plural, label, doc)
         self.roles_description = roles
         self.roles = []
         for role_description in roles:
-            role = Role(role_description)
+            role = Role(role_description, self)
+            setattr(self, role.key.upper(), role)
             self.roles.append(role)
             if role_description.get('subroles'):
                 role.subroles = []
                 for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key, 'max': 1})
+                    subrole = Role({'key': subrole_key, 'max': 1}, self)
+                    setattr(self, subrole.key.upper(), subrole)
                     role.subroles.append(subrole)
                 role.max = len(role.subroles)
         self.flattened_roles = sum([role2.subroles or [role2] for role2 in self.roles], [])
+        self.is_person = False
 
 
 class Projector(object):

@@ -86,9 +86,9 @@ class Simulation(object):
             entity_instance.simulation = self
 
     def create_shortcuts(self):
-        for _key, entity_instance in self.entities.items():
+        for _key, population in self.entities.items():
             # create shortcut simulation.person and simulation.household (for instance)
-            setattr(self, entity_instance.key, entity_instance)
+            setattr(self, population.entity.key, population)
 
     @property
     def data_storage_dir(self):
@@ -458,13 +458,20 @@ class Simulation(object):
 
     def get_variable_entity(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        return self.get_entity(variable.entity)
+        return self.entities[variable.entity.key]
 
-    def get_entity(self, entity_type = None, plural = None):
-        if entity_type:
-            return self.entities[entity_type.key]
-        if plural:
-            return next((entity for entity in self.entities.values() if entity.plural == plural), None)
+    def get_population(self, plural = None):
+        return next((population for population in self.entities.values() if population.entity.plural == plural), None)
+
+    def get_entity(self, plural = None):
+        return self.get_population(plural).entity
+
+    def get_index(self, plural, id):
+        population = self.get_population(plural)
+        return population.ids.index(id)
+
+    def describe_entities(self):
+        return {population.entity.plural: population.ids for population in self.entities.values()}
 
     def clone(self, debug = False, trace = False):
         """

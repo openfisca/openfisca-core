@@ -10,7 +10,7 @@ from pytest import raises, fixture, approx
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
-from openfisca_core.entities import PersonEntity, GroupEntity, build_entity
+from openfisca_core.entities import Entity, GroupEntity
 from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
@@ -85,11 +85,7 @@ def enum_variable():
 
 @fixture
 def persons():
-    class TestPersonEntity(PersonEntity):
-        def __init__(self):
-            super().__init__(None)
-            self.plural = "persons"
-
+    class TestPersonEntity(Entity):
         def get_variable(self, variable_name):
             result = TestVariable(TestPersonEntity)
             result.name = variable_name
@@ -98,15 +94,12 @@ def persons():
         def check_variable_defined_for_entity(self, variable_name):
             return True
 
-    return TestPersonEntity()
+    return TestPersonEntity("person", "persons", "", "")
 
 
 @fixture
 def group_entity():
     class Household(GroupEntity):
-        def __init__(self):
-            super().__init__(None)
-
         def get_variable(self, variable_name):
             result = TestVariable(Household)
             result.name = variable_name
@@ -124,8 +117,7 @@ def group_entity():
         'plural': 'children'
         }]
 
-    entity_class = build_entity("household", "households", "", doc = "", roles = roles, is_person = False, class_override = Household)
-    return entity_class()
+    return Household("household", "households", "", "", roles)
 
 
 def test_build_default_simulation(simulation_builder):

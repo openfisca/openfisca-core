@@ -97,15 +97,15 @@ class SimulationBuilder(object):
             raise SituationParsingError([tax_benefit_system.person_entity.plural],
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
-        persons_ids = self.add_person_entity(simulation.persons, persons_json)
+        persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
             entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
             if instances_json is not None:
-                self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
+                self.add_group_entity(self.persons_plural, persons_ids, entity_class, instances_json)
             else:
-                self.add_default_group_entity(persons_ids, entity)
+                self.add_default_group_entity(persons_ids, entity_class)
 
         if axes:
             self.axes = axes
@@ -174,7 +174,7 @@ class SimulationBuilder(object):
         person_instance.ids = np.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
-        self.persons_plural = person_instance.plural
+        self.persons_plural = person_instance.entity.plural
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
         entity_instance = self.entities_instances[entity_singular]
@@ -377,18 +377,19 @@ class SimulationBuilder(object):
 
         self.input_buffer[variable.name][str(period(period_str))] = array
 
-    def finalize_variables_init(self, entity):
+    def finalize_variables_init(self, population):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
-        if entity.plural in self.entity_counts:
-            entity.count = self.get_count(entity.plural)
-            entity.ids = self.get_ids(entity.plural)
-        if entity.plural in self.memberships:
-            entity.members_entity_id = np.array(self.get_memberships(entity.plural))
-            entity.members_role = np.array(self.get_roles(entity.plural))
+        plural_key = population.entity.plural
+        if plural_key in self.entity_counts:
+            population.count = self.get_count(plural_key)
+            population.ids = self.get_ids(plural_key)
+        if plural_key in self.memberships:
+            population.members_entity_id = np.array(self.get_memberships(plural_key))
+            population.members_role = np.array(self.get_roles(plural_key))
         for variable_name in self.input_buffer.keys():
             try:
-                holder = entity.get_holder(variable_name)
+                holder = population.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]
@@ -399,7 +400,7 @@ class SimulationBuilder(object):
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
-                array = np.tile(values, entity.count // len(values))
+                array = np.tile(values, population.count // len(values))
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities

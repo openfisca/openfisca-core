@@ -20,8 +20,7 @@ def calculate(tax_benefit_system, input_data):
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
         result = simulation.calculate(variable_name, period)
-        entity = simulation.get_entity(plural = entity_plural)
-        entity_index = entity.ids.index(entity_id)
+        entity_index = simulation.get_index(entity_plural, entity_id)
 
         if variable.value_type == Enum:
             entity_result = result.decode()[entity_index].name
@@ -60,6 +59,6 @@ def trace(tax_benefit_system, input_data):
 
     return {
         "trace": trace,
-        "entitiesDescription": {entity.plural: entity.ids for entity in simulation.entities.values()},
+        "entitiesDescription": simulation.describe_entities(),
         "requestedCalculations": list(simulation.tracer.requested_calculations)
         }

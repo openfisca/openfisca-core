@@ -13,7 +13,7 @@ import pkg_resources
 import traceback
 
 from openfisca_core import periods
-from openfisca_core.entities import Entity
+from openfisca_core.entities import Entity, Population, GroupPopulation
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
@@ -65,6 +65,8 @@ class TaxBenefitSystem(object):
             raise Exception("A tax and benefit sytem must have at least an entity.")
         self.person_entity = [entity for entity in entities if entity.is_person][0]
         self.group_entities = [entity for entity in entities if not entity.is_person]
+        for entity in entities:
+            entity.set_tax_benefit_system(self)
 
     @property
     def base_tax_benefit_system(self):
@@ -77,13 +79,14 @@ class TaxBenefitSystem(object):
         return base_tax_benefit_system
 
     def instantiate_entities(self):
-        person_instance = self.person_entity(None)
-        entities_instances: Dict[Entity.key, Entity] = {person_instance.key: person_instance}
+        person = self.person_entity
+        members = Population(person)
+        entities: Dict[Entity.key, Entity] = {person.key: members}
 
-        for entity_class in self.group_entities:
-            entities_instances[entity_class.key] = entity_class(None, person_instance)
+        for entity in self.group_entities:
+            entities[entity.key] = GroupPopulation(entity, members)
 
-        return entities_instances
+        return entities
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
