@@ -274,7 +274,7 @@ class GroupPopulation(Population):
     @property
     def members_role(self):
         if self._members_role is None:
-            default_role = self.flattened_roles[0]
+            default_role = self.entity.flattened_roles[0]
             self._members_role = np.repeat(default_role, len(self.members_entity_id))
         return self._members_role
 
@@ -284,7 +284,7 @@ class GroupPopulation(Population):
             self._members_role = np.array(list(members_role))
 
     def get_role(self, role_name):
-        return next((role for role in self.flattened_roles if role.key == role_name), None)
+        return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
 
     @members_position.setter
     def members_position(self, members_position):
