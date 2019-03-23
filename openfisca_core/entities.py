@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import traceback
-import warnings
 import textwrap
 from os import linesep
 from typing import Iterable
@@ -13,6 +11,15 @@ from openfisca_core.holders import Holder
 
 ADD = 'add'
 DIVIDE = 'divide'
+
+
+def projectable(function):
+    """
+    Decorator to indicate that when called on a projector, the outcome of the function must be projected.
+    For instance person.household.sum(...) must be projected on person, while it would not make sense for person.household.get_holder.
+    """
+    function.projectable = True
+    return function
 
 
 class Role(object):
@@ -30,40 +37,19 @@ class Role(object):
         return "Role({})".format(self.key)
 
 
-class Entity(object):
-    """
-        Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
-    """
-    key = None
-    plural = None
-    label = None
-    doc = ""
-    is_person = False
-
-    def __init__(self, simulation):
+class Population(object):
+    def __init__(self, entity, simulation):
+        self.entity = entity
         self.simulation = simulation
         self._holders = {}
         self.count = 0
         self.ids = []
-        self.step_size = 0
 
-    def clone(self, new_simulation):
-        """
-            Returns an entity instance with the same structure, but no variable value set.
-        """
-        new = self.__class__(new_simulation)
-        new_dict = new.__dict__
+    def empty_array(self):
+        return np.zeros(self.count)
 
-        for key, value in self.__dict__.items():
-            if key == '_holders':
-                new_dict[key] = {
-                    name: holder.clone(new)
-                    for name, holder in self._holders.items()
-                    }
-            elif key != 'simulation':
-                new_dict[key] = value
-
-        return new
+    def filled_array(self, value, dtype = None):
+        return np.full(self.count, value, dtype or float)
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -71,18 +57,10 @@ class Entity(object):
             raise AttributeError("Entity {} has no attribute {}".format(self.key, attribute))
         return projector
 
-    @classmethod
-    def to_json(cls):
-        return {
-            'isPersonsEntity': cls.is_person,
-            'key': cls.key,
-            'label': cls.label,
-            'plural': cls.plural,
-            'doc': cls.doc,
-            'roles': cls.roles_description,
-            }
-
     # Calculations
+
+    def get_variable(self, variable_name, check_existence = False):
+        return self.simulation.tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.get_variable(variable_name, check_existence = True).entity
@@ -99,23 +77,7 @@ class Entity(object):
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
                 array, self.key, array.size, self.count))
 
-    def check_role_validity(self, role):
-        if role is not None and not type(role) == Role:
-            raise ValueError("{} is not a valid role".format(role))
-
-    def check_period_validity(self, variable_name, period):
-        if period is None:
-            stack = traceback.extract_stack()
-            filename, line_number, function_name, line_of_code = stack[-3]
-            raise ValueError('''
-You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
-    {}
-When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
-    computed_salary = person('salary', period).
-See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
-'''.format(variable_name, filename, line_number, line_of_code).encode('utf-8'))
-
-    def __call__(self, variable_name, period = None, options = None, **parameters):
+    def __call__(self, variable_name, period, options = None, **parameters):
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -127,8 +89,6 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             :returns: A numpy array containing the result of the calculation
         """
         self.check_variable_defined_for_entity(variable_name)
-
-        self.check_period_validity(variable_name, period)
 
         if options is None:
             options = []
@@ -143,17 +103,6 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             return self.simulation.calculate(variable_name, period, **parameters)
 
     # Helpers
-
-    def empty_array(self):
-        return np.zeros(self.count)
-
-    def filled_array(self, value, dtype = None):
-        with warnings.catch_warnings():  # Avoid a non-relevant warning
-            warnings.simplefilter("ignore")
-            return np.full(self.count, value, dtype)
-
-    def get_variable(self, variable_name, check_existence = False):
-        return self.simulation.tax_benefit_system.get_variable(variable_name, check_existence)
 
     def get_holder(self, variable_name):
         self.check_variable_defined_for_entity(variable_name)
@@ -182,24 +131,6 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
             total_nb_bytes = total_memory_usage,
             by_variable = holders_memory_usage
             )
-
-
-def projectable(function):
-    """
-    Decorator to indicate that when called on a projector, the outcome of the function must be projected.
-    For instance person.household.sum(...) must be projected on person, while it would not make sense for person.household.get_holder.
-    """
-    function.projectable = True
-    return function
-
-
-class PersonEntity(Entity):
-    """
-        Represents a person on which calculations are run.
-    """
-    is_person = True
-
-    # Projection person -> person
 
     @projectable
     def has_role(self, role):
@@ -279,23 +210,39 @@ class PersonEntity(Entity):
         return np.where(condition, result, -1)
 
 
-class GroupEntity(Entity):
+class Entity(object):
     """
-        Represents an entity composed of several persons with different roles, on which calculations are run.
+        Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
+    def __init__(self, key, label, plural, doc):
+        self.key = key
+        self.label = label
+        self.plural = plural
+        self.doc = textwrap.dedent(doc)
+        self.is_person = False
 
-    roles = None
-    flattened_roles = None
-    roles_description = None
+    @classmethod
+    def to_json(cls):
+        return {
+            'isPersonsEntity': cls.is_person,
+            'key': cls.key,
+            'label': cls.label,
+            'plural': cls.plural,
+            'doc': cls.doc,
+            'roles': cls.roles_description,
+            }
 
-    def __init__(self, simulation, persons = None):
-        Entity.__init__(self, simulation)
+    def check_role_validity(self, role):
+        if role is not None and not type(role) == Role:
+            raise ValueError("{} is not a valid role".format(role))
+
+
+class GroupPopulation(Population):
+    def __init__(self):
+        super.__init__(self)
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
-        self.members = persons
-        self._roles_count = None
-        self._ordered_members_map = None
 
     @property
     def members_position(self):
@@ -338,16 +285,6 @@ class GroupEntity(Entity):
     @members_position.setter
     def members_position(self, members_position):
         self._members_position = members_position
-
-    @property
-    def ordered_members_map(self):
-        """
-        Mask to group the persons by entity
-        This function only caches the map value, to see what the map is used for, see value_nth_person method.
-        """
-        if self._ordered_members_map is None:
-            return np.argsort(self.members_entity_id)
-        return self._ordered_members_map
 
     #  Aggregation persons -> entity
 
@@ -551,21 +488,25 @@ class GroupEntity(Entity):
             role_condition = self.members.has_role(role)
             return np.where(role_condition, array[self.members_entity_id], 0)
 
-    # Does it really make sense ? Should not we use roles instead of position when projecting on someone in particular ?
-    # Doesn't seem to be used, maybe should just not introduce
-    def project_on_first_person(self, array):
-        self.check_array_compatible_with_entity(array)
-        entity_position_array = self.members_position
-        entity_index_array = self.members_entity_id
-        position_filter = (entity_position_array == 0)
-        return np.where(position_filter, array[entity_index_array], 0)
 
-    @projectable
-    def share_between_members(self, array, role = None):
-        self.check_array_compatible_with_entity(array)
-        self.check_role_validity(role)
-        nb_persons_per_entity = self.nb_persons(role)
-        return self.project(array / nb_persons_per_entity, role = role)
+class GroupEntity(Entity):
+    """
+        Represents an entity composed of several persons with different roles, on which calculations are run.
+    """
+    def __init__(self, key, label, plural, doc, roles):
+        super.__init__(self, key, label, plural, doc)
+        self.roles_description = roles
+        self.roles = []
+        for role_description in roles:
+            role = Role(role_description)
+            self.roles.append(role)
+            if role_description.get('subroles'):
+                role.subroles = []
+                for subrole_key in role_description['subroles']:
+                    subrole = Role({'key': subrole_key, 'max': 1})
+                    role.subroles.append(subrole)
+                role.max = len(role.subroles)
+        self.flattened_roles = sum([role2.subroles or [role2] for role2 in self.roles], [])
 
 
 class Projector(object):
@@ -638,30 +579,6 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None):
-    entity_class_name = key.title()
-    attributes = {'key': key, 'plural': plural, 'label': label, 'doc': textwrap.dedent(doc), 'roles_description': roles}
-    if is_person:
-        entity_class = type(entity_class_name, (class_override or PersonEntity,), attributes)
-    elif roles:
-        entity_class = type(entity_class_name, (class_override or GroupEntity,), attributes)
-        entity_class.roles = []
-        for role_description in roles:
-            role = Role(role_description, entity_class)
-            entity_class.roles.append(role)
-            setattr(entity_class, role.key.upper(), role)
-            if role_description.get('subroles'):
-                role.subroles = []
-                for subrole_key in role_description['subroles']:
-                    subrole = Role({'key': subrole_key, 'max': 1}, entity_class)
-                    setattr(entity_class, subrole.key.upper(), subrole)
-                    role.subroles.append(subrole)
-                role.max = len(role.subroles)
-        entity_class.flattened_roles = sum([role2.subroles or [role2] for role2 in entity_class.roles], [])
-
-    return entity_class
-
-
 def get_projector_from_shortcut(entity, shortcut, parent = None):
     if entity.is_person:
         if shortcut in entity.simulation.entities:
@@ -673,3 +590,10 @@ def get_projector_from_shortcut(entity, shortcut, parent = None):
         role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return UniqueRoleToEntityProjector(entity, role, parent)
+
+
+def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None):
+    if is_person:
+        return Entity(key, plural, label, doc)
+    else:
+        return GroupEntity(key, plural, label, doc, roles)
