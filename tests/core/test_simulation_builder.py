@@ -87,7 +87,7 @@ def enum_variable():
 def persons():
     class TestPersonEntity(Entity):
         def get_variable(self, variable_name):
-            result = TestVariable(TestPersonEntity)
+            result = TestVariable(self)
             result.name = variable_name
             return result
 
@@ -101,7 +101,7 @@ def persons():
 def group_entity():
     class Household(GroupEntity):
         def get_variable(self, variable_name):
-            result = TestVariable(Household)
+            result = TestVariable(self)
             result.name = variable_name
             return result
 

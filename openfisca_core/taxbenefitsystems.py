@@ -303,10 +303,11 @@ class TaxBenefitSystem(object):
         :param variable_name: Name of the requested variable.
         :param check_existence: If True, raise an error if the requested variable does not exist.
         """
-        variables = self.variables.get(variable_name)
-        if not variables and check_existence:
+        variables = self.variables
+        found = variables.get(variable_name)
+        if not found and check_existence:
             raise VariableNotFound(variable_name, self)
-        return variables
+        return found
 
     def neutralize_variable(self, variable_name):
         """
