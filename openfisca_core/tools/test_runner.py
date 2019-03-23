@@ -258,11 +258,11 @@ def _run_test(simulation, test):
             for variable_name, value in expected_value.items():
                 _check_variable(simulation, variable_name, value, test.get('period'), test)
         else:
-            entity_array = simulation.get_entity(plural = key)
-            if entity_array is not None:  # If key is an entity plural
-                for entity_id, value_by_entity in expected_value.items():
-                    for variable_name, value in value_by_entity.items():
-                        entity_index = entity_array.ids.index(entity_id)
+            population = simulation.get_population(plural = key)
+            if population is not None:  # If key is an entity plural
+                for instance_id, instance_values in expected_value.items():
+                    for variable_name, value in instance_values.items():
+                        entity_index = simulation.get_index(key, instance_id)
                         _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
             else:
                 raise VariableNotFound(key, tax_benefit_system)
