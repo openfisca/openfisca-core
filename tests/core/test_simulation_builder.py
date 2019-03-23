@@ -10,7 +10,7 @@ from pytest import raises, fixture, approx
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
-from openfisca_core.entities import Entity, GroupEntity
+from openfisca_core.entities import Entity, GroupEntity, Population, GroupPopulation
 from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
@@ -259,22 +259,24 @@ def test_add_unknown_enum_variable_value(simulation_builder, persons, enum_varia
 def test_finalize_person_entity(simulation_builder, persons):
     persons_json = {'Alicia': {'salary': {'2018-11': 3000}}, 'Javier': {}}
     simulation_builder.add_person_entity(persons, persons_json)
-    simulation_builder.finalize_variables_init(persons)
-    assert_near(persons.get_holder('salary').get_array('2018-11'), [3000, 0])
-    assert persons.count == 2
-    assert persons.ids == ['Alicia', 'Javier']
+    population = Population(persons)
+    simulation_builder.finalize_variables_init(population)
+    assert_near(population.get_holder('salary').get_array('2018-11'), [3000, 0])
+    assert population.count == 2
+    assert population.ids == ['Alicia', 'Javier']
 
 
 def test_canonicalize_period_keys(simulation_builder, persons):
     persons_json = {'Alicia': {'salary': {'year:2018-01': 100}}}
     simulation_builder.add_person_entity(persons, persons_json)
-    simulation_builder.finalize_variables_init(persons)
-    assert_near(persons.get_holder('salary').get_array('2018-12'), [100])
+    population = Population(persons)
+    simulation_builder.finalize_variables_init(population)
+    assert_near(population.get_holder('salary').get_array('2018-12'), [100])
 
 
 def test_finalize_group_entity(simulation_builder):
     simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
-    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household, {
+    simulation_builder.add_group_entity('persons', ['Alicia', 'Javier', 'Sarah', 'Tom'], simulation.household.entity, {
         'Household_1': {'parents': ['Alicia', 'Javier']},
         'Household_2': {'parents': ['Tom'], 'children': ['Sarah']},
         })
