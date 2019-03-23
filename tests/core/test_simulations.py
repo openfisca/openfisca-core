@@ -58,7 +58,7 @@ def test_clone():
 
     assert salary_holder != salary_holder_clone
     assert salary_holder_clone.simulation == simulation_clone
-    assert salary_holder_clone.entity == simulation_clone.person
+    assert salary_holder_clone.population == simulation_clone.persons
 
 
 def test_get_memory_usage():

@@ -39,7 +39,7 @@ class Simulation(object):
     def __init__(
             self,
             tax_benefit_system,
-            entities_instances = None
+            populations
             ):
         """
             This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -49,7 +49,7 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        self.entities = entities_instances
+        self.entities = populations
         self.persons = self.entities[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
@@ -464,7 +464,8 @@ class Simulation(object):
         return next((population for population in self.entities.values() if population.entity.plural == plural), None)
 
     def get_entity(self, plural = None):
-        return self.get_population(plural).entity
+        population = self.get_population(plural)
+        return population and population.entity
 
     def get_index(self, plural, id):
         population = self.get_population(plural)
@@ -485,13 +486,13 @@ class Simulation(object):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)
-        setattr(new, new.persons.key, new.persons)
-        new.entities = {new.persons.key: new.persons}
+        setattr(new, new.persons.entity.key, new.persons)
+        new.entities = {new.persons.entity.key: new.persons}
 
-        for entity_class in self.tax_benefit_system.group_entities:
-            entity = self.entities[entity_class.key].clone(new)
-            new.entities[entity.key] = entity
-            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
+        for entity in self.tax_benefit_system.group_entities:
+            population = self.entities[entity.key].clone(new)
+            new.entities[entity.key] = population
+            setattr(new, entity.key, population)  # create shortcut simulation.household (for instance)
 
         new.debug = debug
         new.trace = trace

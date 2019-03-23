@@ -45,6 +45,14 @@ class Population(object):
         self.count = 0
         self.ids = []
 
+    def clone(self, simulation):
+        result = Population(self.entity)
+        result.simulation = simulation
+        result._holders = {variable: holder.clone(result) for (variable, holder) in self._holders.items()}
+        result.count = self.count
+        result.ids = self.ids
+        return result
+
     def empty_array(self):
         return np.zeros(self.count)
 
@@ -242,11 +250,23 @@ class Entity(object):
 class GroupPopulation(Population):
     def __init__(self, entity, members):
         super().__init__(entity)
+        self.members = members
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
-        self.members = members
         self._ordered_members_map = None
+
+    def clone(self, simulation):
+        result = GroupPopulation(self.entity, self.members)
+        result.simulation = simulation
+        result._holders = {variable: holder.clone(self) for (variable, holder) in self._holders.items()}
+        result.count = self.count
+        result.ids = self.ids
+        result._members_entity_id = self._members_entity_id
+        result._members_role = self._members_role
+        result._members_position = self._members_position
+        result._ordered_members_map = self._ordered_members_map
+        return result
 
     @property
     def members_position(self):
