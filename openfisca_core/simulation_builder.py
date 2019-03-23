@@ -100,7 +100,6 @@ class SimulationBuilder(object):
         persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
-            entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
             if instances_json is not None:
                 self.add_group_entity(self.persons_plural, persons_ids, entity_class, instances_json)
@@ -193,7 +192,7 @@ class SimulationBuilder(object):
         group_population.members_role = np.select([role_names_array == role.key for role in flattened_roles], flattened_roles)
 
     def build(self, tax_benefit_system):
-        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
+        return Simulation(tax_benefit_system, self.entities_instances)
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """

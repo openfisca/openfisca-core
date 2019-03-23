@@ -9,7 +9,6 @@ from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFo
 from openfisca_core import periods
 from openfisca_core.entities import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 
 
