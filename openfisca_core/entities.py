@@ -51,11 +51,11 @@ class Population(object):
     def filled_array(self, value, dtype = None):
         return np.full(self.count, value, dtype or float)
 
-    # def __getattr__(self, attribute):
-    #     projector = get_projector_from_shortcut(self, attribute)
-    #     if not projector:
-    #         raise AttributeError("Entity {} has no attribute {}".format(self.key, attribute))
-    #     return projector
+    def __getattr__(self, attribute):
+        projector = get_projector_from_shortcut(self, attribute)
+        if not projector:
+            raise AttributeError("Entity {} has no attribute {}".format(self.entity.key, attribute))
+        return projector
 
     # Calculations
 
@@ -244,6 +244,7 @@ class GroupPopulation(Population):
         self._members_role = None
         self._members_position = None
         self.members = members
+        self._ordered_members_map = None
 
     @property
     def members_position(self):
@@ -279,6 +280,16 @@ class GroupPopulation(Population):
     def members_role(self, members_role: Iterable[Role]):
         if members_role is not None:
             self._members_role = np.array(list(members_role))
+
+    @property
+    def ordered_members_map(self):
+        """
+        Mask to group the persons by entity
+        This function only caches the map value, to see what the map is used for, see value_nth_person method.
+        """
+        if self._ordered_members_map is None:
+            return np.argsort(self.members_entity_id)
+        return self._ordered_members_map
 
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
@@ -583,17 +594,17 @@ class UniqueRoleToEntityProjector(Projector):
         return self.target_entity.value_from_person(result, self.role)
 
 
-def get_projector_from_shortcut(entity, shortcut, parent = None):
-    if entity.is_person:
-        if shortcut in entity.simulation.entities:
-            entity_2 = entity.simulation.entities[shortcut]
+def get_projector_from_shortcut(population, shortcut, parent = None):
+    if population.entity.is_person:
+        if shortcut in population.simulation.entities:
+            entity_2 = population.simulation.entities[shortcut]
             return EntityToPersonProjector(entity_2, parent)
     else:
         if shortcut == 'first_person':
-            return FirstPersonToEntityProjector(entity, parent)
-        role = next((role for role in entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+            return FirstPersonToEntityProjector(population, parent)
+        role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
-            return UniqueRoleToEntityProjector(entity, role, parent)
+            return UniqueRoleToEntityProjector(population, role, parent)
 
 
 def build_entity(key, plural, label, doc = "", roles = None, is_person = False, class_override = None):
