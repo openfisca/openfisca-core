@@ -25,7 +25,7 @@ def projectable(function):
 class Role(object):
 
     def __init__(self, description, entity):
-        self.entity_class = entity
+        self.entity = entity
         self.key = description['key']
         self.label = description.get('label')
         self.plural = description.get('plural')
@@ -130,11 +130,11 @@ class Population(object):
             >>> array([False])
         """
         self.entity.check_role_validity(role)
-        group_entity = self.simulation.get_entity(role.entity_class)
+        group_population = self.simulation.get_population(role.entity.plural)
         if role.subroles:
-            return np.logical_or.reduce([group_entity.members_role == subrole for subrole in role.subroles])
+            return np.logical_or.reduce([group_population.members_role == subrole for subrole in role.subroles])
         else:
-            return group_entity.members_role == role
+            return group_population.members_role == role
 
     @projectable
     def value_from_partner(self, array, entity, role):
