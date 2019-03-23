@@ -97,10 +97,7 @@ class Population(object):
         if holder:
             return holder
         variable = self.entity.get_variable(variable_name)
-        self._holders[variable_name] = holder = Holder(
-            entity = self,
-            variable = variable,
-            )
+        self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
     def get_memory_usage(self, variables = None):
