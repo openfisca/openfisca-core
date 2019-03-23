@@ -32,7 +32,7 @@ class Simulation:
         self.tax_benefit_system = TaxBenefitSystem()
         self.entities = {}
 
-    def get_entity(self, plural = None):
+    def get_population(self, plural = None):
         return None
 
 
