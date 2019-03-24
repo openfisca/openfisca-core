@@ -35,13 +35,13 @@ class goes_to_school(Variable):
 tax_benefit_system.add_variable(goes_to_school)
 
 
-class test_basic_income_neutralization(Reform):
+class WithBasicIncomeNeutralized(Reform):
     def apply(self):
         self.neutralize_variable('basic_income')
 
 
 def test_formula_neutralization(make_simulation):
-    reform = test_basic_income_neutralization(tax_benefit_system)
+    reform = WithBasicIncomeNeutralized(tax_benefit_system)
 
     period = '2017-01'
     simulation = make_simulation(reform.base_tax_benefit_system, period, {})
@@ -76,7 +76,7 @@ def test_neutralization_variable_with_default_value(make_simulation):
 
 
 def test_neutralization_optimization(make_simulation):
-    reform = test_basic_income_neutralization(tax_benefit_system)
+    reform = WithBasicIncomeNeutralized(tax_benefit_system)
 
     period = '2017-01'
     simulation = make_simulation(reform, period, {})
