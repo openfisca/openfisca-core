@@ -57,7 +57,7 @@ class Population(object):
         return np.zeros(self.count)
 
     def filled_array(self, value, dtype = None):
-        return np.full(self.count, value, dtype or float)
+        return np.full(self.count, value, dtype)
 
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
@@ -381,7 +381,8 @@ class GroupPopulation(Population):
         biggest_entity_size = np.max(position_in_entity) + 1
 
         for p in range(biggest_entity_size):
-            result = reducer(result, self.value_nth_person(p, filtered_array, default = neutral_element))
+            values = self.value_nth_person(p, filtered_array, default = neutral_element)
+            result = reducer(result, values)
 
         return result
 
