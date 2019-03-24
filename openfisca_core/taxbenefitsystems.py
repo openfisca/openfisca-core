@@ -444,6 +444,8 @@ class TaxBenefitSystem(object):
         for key, value in self.__dict__.items():
             if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
                 new_dict[key] = value
+        for entity in new_dict['entities']:
+            entity.set_tax_benefit_system(new)
 
         new_dict['parameters'] = self.parameters.clone()
         new_dict['_parameters_at_instant_cache'] = {}
