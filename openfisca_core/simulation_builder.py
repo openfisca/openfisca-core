@@ -5,7 +5,7 @@ import dpath
 import numpy as np
 from copy import deepcopy
 
-from openfisca_core.entities import Entity
+from openfisca_core.entities import Entity, Population
 from openfisca_core.variables import Variable
 
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
@@ -21,7 +21,7 @@ class SimulationBuilder(object):
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
-        self.entities_instances: Dict[Entity.key, Entity] = {}
+        self.populations: Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
@@ -166,23 +166,23 @@ class SimulationBuilder(object):
         return simulation
 
     def create_entities(self, tax_benefit_system):
-        self.entities_instances = tax_benefit_system.instantiate_entities()
+        self.populations = tax_benefit_system.instantiate_entities()
 
     def declare_person_entity(self, person_singular, persons_ids: Iterable):
-        person_instance = self.entities_instances[person_singular]
+        person_instance = self.populations[person_singular]
         person_instance.ids = np.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
         self.persons_plural = person_instance.entity.plural
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
-        entity_instance = self.entities_instances[entity_singular]
+        entity_instance = self.populations[entity_singular]
         entity_instance.ids = np.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 
     def nb_persons(self, entity_singular, role = None):
-        return self.entities_instances[entity_singular].nb_persons(role = role)
+        return self.populations[entity_singular].nb_persons(role = role)
 
     def join_with_persons(self, group_population, persons_group_assignment, roles: Iterable[str]):
         group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
@@ -192,7 +192,7 @@ class SimulationBuilder(object):
         group_population.members_role = np.select([role_names_array == role.key for role in flattened_roles], flattened_roles)
 
     def build(self, tax_benefit_system):
-        return Simulation(tax_benefit_system, self.entities_instances)
+        return Simulation(tax_benefit_system, self.populations)
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
