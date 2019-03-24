@@ -42,6 +42,7 @@ class Reform(TaxBenefitSystem):
         """
         :param baseline: Baseline TaxBenefitSystem.
         """
+        super().__init__(baseline.entities)
         self.baseline = baseline
         self.parameters = baseline.parameters
         self._parameters_at_instant_cache = baseline._parameters_at_instant_cache
