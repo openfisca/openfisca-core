@@ -491,11 +491,6 @@ class Simulation(object):
 
         new.debug = debug
         new.trace = trace
-        if debug or trace:
-            if self.debug or self.trace:
-                new_dict['tracer'] = self.tracer.clone()
-            else:
-                new_dict['tracer'] = Tracer()
 
         return new
 
