@@ -489,15 +489,8 @@ class Simulation(object):
             new.entities[entity.key] = entity
             setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
 
-        if debug:
-            new_dict['debug'] = True
-        if trace:
-            new_dict['trace'] = True
-        if debug or trace:
-            if self.debug or self.trace:
-                new_dict['tracer'] = self.tracer.clone()
-            else:
-                new_dict['tracer'] = Tracer()
+        new.debug = debug
+        new.trace = trace
 
         return new
 

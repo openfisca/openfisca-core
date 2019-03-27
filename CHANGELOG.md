@@ -1,6 +1,14 @@
 # Changelog
 
-# 29.0.1 [#851](https://github.com/openfisca/openfisca-core/pull/851)
+### 29.0.2 [#858](https://github.com/openfisca/openfisca-core/pull/858)
+
+#### Bug fix
+
+- Fix error on simulation debug attribute at simulation clone
+- Details:   
+  - Fixes `AttributeError: 'Simulation' object has no attribute 'debug'` introduced by Core v.`29.0.0`.
+
+### 29.0.1 [#851](https://github.com/openfisca/openfisca-core/pull/851)
 
 - Remove print statements from `simulations.py`, add linting options to detect stray print statements
 
