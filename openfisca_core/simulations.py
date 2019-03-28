@@ -320,12 +320,11 @@ class Simulation(object):
         a heuristic, against "quasicircles", where the evaluation of a variable at a period involves
         the same variable at a different period.
         """
-        previous = [(_name, _period) for (_name, _period) in self.computation_stack if _name == variable.name]
+        previous_periods = [_period for (_name, _period) in self.computation_stack if _name == variable.name]
         self.computation_stack.append((variable.name, str(period)))
-        for pair in previous:
-            if pair == (variable.name, str(period)):
-                raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
-        spiral = len(previous) >= self.max_spiral_loops
+        if str(period) in previous_periods:
+            raise CycleError("Circular definition detected on formula {}@{}".format(variable.name, period))
+        spiral = len(previous_periods) >= self.max_spiral_loops
         if spiral:
             self.invalidate_spiral_variables(variable)
             message = "Quasicircular definition detected on formula {}@{} involving {}".format(variable.name, period, self.computation_stack)
