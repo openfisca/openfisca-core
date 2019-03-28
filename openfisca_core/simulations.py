@@ -332,7 +332,7 @@ class Simulation(object):
 
     def invalidate_spiral_variables(self, variable):
         count = 0
-        for frame in self.computation_stack[::-1]:
+        for frame in reversed(self.computation_stack):
             self.invalidated_caches.add(frame)
             if frame[0] == variable.name:
                 count += 1
