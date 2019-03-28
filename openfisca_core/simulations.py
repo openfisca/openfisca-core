@@ -331,6 +331,10 @@ class Simulation(object):
             raise SpiralError(message, variable.name)
 
     def invalidate_spiral_variables(self, variable):
+        # Visit the stack, from the bottom (most recent) up; we know that we'll find
+        # the variable implicated in the spiral (max_spiral_loops+1) times; we keep the
+        # intermediate values computed (to avoid impacting performance) but we mark them
+        # for deletion from the cache once the calculation ends.
         count = 0
         for frame in reversed(self.computation_stack):
             self.invalidated_caches.add(frame)
