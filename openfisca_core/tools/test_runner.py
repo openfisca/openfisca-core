@@ -47,7 +47,7 @@ _tax_benefit_system_cache = {}
 
 # Exposed methods
 
-def generate_tests(tax_benefit_system, paths, options = {}):
+def generate_tests(tax_benefit_system, paths, options = None):
     """
     Generates a lazy iterator of all the YAML tests contained in a file or a directory.
 
@@ -60,6 +60,9 @@ def generate_tests(tax_benefit_system, paths, options = {}):
     if isinstance(paths, str):
         paths = [paths]
 
+    if options is None:
+        options = {}
+
     for path in paths:
         if os.path.isdir(path):
             for test in _generate_tests_from_directory(tax_benefit_system, path, options):
@@ -69,7 +72,7 @@ def generate_tests(tax_benefit_system, paths, options = {}):
                 yield test
 
 
-def run_tests(tax_benefit_system, paths, options = {}):
+def run_tests(tax_benefit_system, paths, options = None):
     """
     Runs all the YAML tests contained in a file or a directory.
 
@@ -95,6 +98,9 @@ def run_tests(tax_benefit_system, paths, options = {}):
 
     """
     argv = sys.argv[:1]  # Nose crashes if it gets any unexpected argument.
+
+    if options is None:
+        options = {}
 
     if options.get('pdb'):
         argv.append('--pdb')

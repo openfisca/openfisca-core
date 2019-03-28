@@ -23,8 +23,11 @@ nottest(generate_tests)
 
 
 @nottest
-def run_yaml_test(path, options = {}):
+def run_yaml_test(path, options = None):
     yaml_path = os.path.join(yaml_tests_dir, path)
+
+    if options is None:
+        options = {}
 
     # We are testing tests, and don't want the latter to print anything, so we temporarily deactivate stderr.
     sys.stderr = open(os.devnull, 'w')

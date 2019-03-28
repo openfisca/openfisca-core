@@ -532,12 +532,16 @@ class SimulationBuilder(object):
         self.variable_entities[variable_name] = entity
 
 
-def check_type(input, input_type, path = []):
+def check_type(input, input_type, path = None):
     json_type_map = {
         dict: "Object",
         list: "Array",
         str: "String",
         }
+
+    if path is None:
+        path = []
+
     if not isinstance(input, input_type):
         raise SituationParsingError(path,
             "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))
