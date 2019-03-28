@@ -71,7 +71,7 @@ class SimulationBuilder(object):
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
         # Register variables so get_variable_entity can find them
-        for (variable_name, variable) in tax_benefit_system.variables.items():
+        for (variable_name, _variable) in tax_benefit_system.variables.items():
             self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
 
         check_type(input_dict, dict, ['error'])

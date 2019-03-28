@@ -126,7 +126,7 @@ def _generate_tests_from_file(tax_benefit_system, path_to_file, options):
 
     tests = _parse_test_file(tax_benefit_system, path_to_file, options)
 
-    for test_index, (simulation, test) in enumerate(tests, 1):
+    for _test_index, (simulation, test) in enumerate(tests, 1):
         if name_filter is not None and name_filter not in filename \
                 and name_filter not in (test.get('name', '')) \
                 and name_filter not in (test.get('keywords', [])):
