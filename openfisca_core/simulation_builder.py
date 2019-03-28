@@ -338,7 +338,7 @@ class SimulationBuilder(object):
             except ValueError as e:  # The variable is defined for another entity
                 raise SituationParsingError(path_in_json, e.args[0])
             except VariableNotFound as e:  # The variable doesn't exist
-                raise SituationParsingError(path_in_json, e.message, code = 404)
+                raise SituationParsingError(path_in_json, str(e), code = 404)
 
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
