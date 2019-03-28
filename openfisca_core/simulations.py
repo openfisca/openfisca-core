@@ -156,10 +156,12 @@ class Simulation(object):
         return array
 
     def purge_cache_of_invalid_values(self):
-        if len(self.computation_stack) == 0:
-            for (_name, _period) in self.invalidated_caches:
-                holder = self.get_holder(_name)
-                holder.delete_arrays(_period)
+        # We wait for the end of calculate(), signalled by an empty stack, before purging the cache
+        if self.computation_stack:
+            return
+        for (_name, _period) in self.invalidated_caches:
+            holder = self.get_holder(_name)
+            holder.delete_arrays(_period)
 
     def calculate_add(self, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name)
