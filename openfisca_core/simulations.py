@@ -151,11 +151,11 @@ class Simulation(object):
                 self.tracer.record_calculation_end(variable.name, period, array, **parameters)
             self._clean_cycle_detection_data(variable.name)
 
-        self._check_end_of_calculate()
+        self.purge_cache_of_invalid_values()
 
         return array
 
-    def _check_end_of_calculate(self):
+    def purge_cache_of_invalid_values(self):
         if len(self.computation_stack) == 0:
             for (_name, _period) in self.invalidated_caches:
                 holder = self.get_holder(_name)
