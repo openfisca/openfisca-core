@@ -113,7 +113,7 @@ tax_benefit_system.add_variables(variable1, variable2, variable3, variable4,
 
 
 def test_pure_cycle(simulation, reference_period):
-    with raises(AssertionError):
+    with raises(CycleError):
         simulation.calculate('variable1', period = reference_period)
 
 
