@@ -64,6 +64,8 @@ class Simulation(object):
         self.trace = False
         self.opt_out_cache = False
 
+        # controls the spirals detection; check for performance impact if > 1
+        self.max_spiral_loops = 1
         self.memory_config = None
         self._data_storage_dir = None
 
