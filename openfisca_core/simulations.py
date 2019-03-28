@@ -139,7 +139,7 @@ class Simulation(object):
             if array is None and variable.base_function:
                 array = variable.base_function(holder, period)
 
-                # If no result, use the default value and cache it
+            # If no result, use the default value and cache it
             if array is None:
                 array = holder.default_array()
 
