@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from http.client import OK
-from nose.tools import assert_equal
 from openfisca_core.scripts import build_tax_benefit_system
 from openfisca_web_api.app import create_app
 
@@ -16,14 +15,14 @@ extended_subject = create_app(tax_benefit_system).test_client()
 
 def test_return_code():
     parameters_response = extended_subject.get('/parameters')
-    assert_equal(parameters_response.status_code, OK)
+    assert parameters_response.status_code == OK
 
 
 def test_return_code_existing_parameter():
     extension_parameter_response = extended_subject.get('/parameter/local_town.child_allowance.amount')
-    assert_equal(extension_parameter_response.status_code, OK)
+    assert extension_parameter_response.status_code == OK
 
 
 def test_return_code_existing_variable():
     extension_variable_response = extended_subject.get('/variable/local_town_child_allowance')
-    assert_equal(extension_variable_response.status_code, OK)
+    assert extension_variable_response.status_code == OK

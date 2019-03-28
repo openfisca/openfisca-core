@@ -12,7 +12,7 @@ entities_response = subject.get('/entities')
 
 
 def test_return_code():
-    assert_equal(entities_response.status_code, OK)
+    assert entities_response.status_code == OK
 
 
 def test_response_data():

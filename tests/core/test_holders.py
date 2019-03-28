@@ -3,8 +3,6 @@
 import numpy as np
 import pytest
 
-from nose.tools import assert_equal, assert_is_none
-
 import openfisca_country_template.situation_examples
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.periods import period as make_period, ETERNITY
@@ -36,7 +34,7 @@ def test_set_input_enum_string(couple):
     status_occupancy = np.asarray(['free_lodger'])
     simulation.household.get_holder('housing_occupancy_status').set_input(period, status_occupancy)
     result = simulation.calculate('housing_occupancy_status', period)
-    assert_equal(result, HousingOccupancyStatus.free_lodger)
+    assert result == HousingOccupancyStatus.free_lodger
 
 
 def test_set_input_enum_int(couple):
@@ -44,7 +42,7 @@ def test_set_input_enum_int(couple):
     status_occupancy = np.asarray([2], dtype = np.int16)
     simulation.household.get_holder('housing_occupancy_status').set_input(period, status_occupancy)
     result = simulation.calculate('housing_occupancy_status', period)
-    assert_equal(result, HousingOccupancyStatus.free_lodger)
+    assert result == HousingOccupancyStatus.free_lodger
 
 
 def test_set_input_enum_item(couple):
@@ -52,7 +50,7 @@ def test_set_input_enum_item(couple):
     status_occupancy = np.asarray([HousingOccupancyStatus.free_lodger])
     simulation.household.get_holder('housing_occupancy_status').set_input(period, status_occupancy)
     result = simulation.calculate('housing_occupancy_status', period)
-    assert_equal(result, HousingOccupancyStatus.free_lodger)
+    assert result == HousingOccupancyStatus.free_lodger
 
 
 def test_yearly_input_month_variable(couple):
@@ -84,7 +82,7 @@ def test_enum_dtype(couple):
 def test_permanent_variable_empty(single):
     simulation = single
     holder = simulation.person.get_holder('birth')
-    assert_is_none(holder.get_array(None))
+    assert holder.get_array(None) is None
 
 
 def test_permanent_variable_filled(single):
@@ -92,9 +90,9 @@ def test_permanent_variable_filled(single):
     holder = simulation.person.get_holder('birth')
     value = np.asarray(['1980-01-01'], dtype = holder.variable.dtype)
     holder.set_input(make_period(ETERNITY), value)
-    assert_equal(holder.get_array(None), value)
-    assert_equal(holder.get_array(ETERNITY), value)
-    assert_equal(holder.get_array('2016-01'), value)
+    assert holder.get_array(None) == value
+    assert holder.get_array(ETERNITY) == value
+    assert holder.get_array('2016-01') == value
 
 
 def test_delete_arrays(single):
@@ -102,26 +100,26 @@ def test_delete_arrays(single):
     salary_holder = simulation.person.get_holder('salary')
     salary_holder.set_input(make_period(2017), np.asarray([30000]))
     salary_holder.set_input(make_period(2018), np.asarray([60000]))
-    assert_equal(simulation.person('salary', '2017-01'), 2500)
-    assert_equal(simulation.person('salary', '2018-01'), 5000)
+    assert simulation.person('salary', '2017-01') == 2500
+    assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
     salary_holder.set_input(make_period(2018), np.asarray([15000]))
-    assert_equal(simulation.person('salary', '2017-01'), 2500)
-    assert_equal(simulation.person('salary', '2018-01'), 1250)
+    assert simulation.person('salary', '2017-01') == 2500
+    assert simulation.person('salary', '2018-01') == 1250
 
 
 def test_get_memory_usage(single):
     simulation = single
     salary_holder = simulation.person.get_holder('salary')
     memory_usage = salary_holder.get_memory_usage()
-    assert_equal(memory_usage['total_nb_bytes'], 0)
+    assert memory_usage['total_nb_bytes'] == 0
     salary_holder.set_input(make_period(2017), np.asarray([30000]))
     memory_usage = salary_holder.get_memory_usage()
-    assert_equal(memory_usage['nb_cells_by_array'], 1)
-    assert_equal(memory_usage['cell_size'], 4)  # float 32
-    assert_equal(memory_usage['nb_cells_by_array'], 1)  # one person
-    assert_equal(memory_usage['nb_arrays'], 12)  # 12 months
-    assert_equal(memory_usage['total_nb_bytes'], 4 * 12 * 1)
+    assert memory_usage['nb_cells_by_array'] == 1
+    assert memory_usage['cell_size'] == 4  # float 32
+    assert memory_usage['nb_cells_by_array'] == 1  # one person
+    assert memory_usage['nb_arrays'] == 12  # 12 months
+    assert memory_usage['total_nb_bytes'] == 4 * 12 * 1
 
 
 def test_get_memory_usage_with_trace(single):
@@ -134,8 +132,8 @@ def test_get_memory_usage_with_trace(single):
     simulation.calculate('salary', '2017-02')
     simulation.calculate_add('salary', '2017')  # 12 calculations
     memory_usage = salary_holder.get_memory_usage()
-    assert_equal(memory_usage['nb_requests'], 15)
-    assert_equal(memory_usage['nb_requests_by_array'], 1.25)  # 15 calculations / 12 arrays
+    assert memory_usage['nb_requests'] == 15
+    assert memory_usage['nb_requests_by_array'] == 1.25  # 15 calculations / 12 arrays
 
 
 def test_set_input_dispatch_by_period(single):
@@ -157,12 +155,12 @@ def test_delete_arrays_on_disk(single):
     salary_holder = simulation.person.get_holder('salary')
     salary_holder.set_input(make_period(2017), np.asarray([30000]))
     salary_holder.set_input(make_period(2018), np.asarray([60000]))
-    assert_equal(simulation.person('salary', '2017-01'), 2500)
-    assert_equal(simulation.person('salary', '2018-01'), 5000)
+    assert simulation.person('salary', '2017-01') == 2500
+    assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
     salary_holder.set_input(make_period(2018), np.asarray([15000]))
-    assert_equal(simulation.person('salary', '2017-01'), 2500)
-    assert_equal(simulation.person('salary', '2018-01'), 1250)
+    assert simulation.person('salary', '2017-01') == 2500
+    assert simulation.person('salary', '2018-01') == 1250
 
 
 def test_cache_disk(couple):
@@ -186,7 +184,7 @@ def test_known_periods(couple):
     holder.put_in_cache(data, month)
     holder._memory_storage.put(data, month_2)
 
-    assert_equal(sorted(holder.get_known_periods()), [month, month_2])
+    assert sorted(holder.get_known_periods()), [month == month_2]
 
 
 def test_cache_enum_on_disk(single):
@@ -195,7 +193,7 @@ def test_cache_enum_on_disk(single):
     month = make_period('2017-01')
     simulation.calculate('housing_occupancy_status', month)  # First calculation
     housing_occupancy_status = simulation.calculate('housing_occupancy_status', month)  # Read from cache
-    assert_equal(housing_occupancy_status, HousingOccupancyStatus.tenant)
+    assert housing_occupancy_status == HousingOccupancyStatus.tenant
 
 
 def test_set_not_cached_variable(single):
@@ -205,7 +203,7 @@ def test_set_not_cached_variable(single):
     holder = simulation.person.get_holder('salary')
     array = np.asarray([2000])
     holder.set_input('2015-01', array)
-    assert_equal(simulation.calculate('salary', '2015-01'), array)
+    assert simulation.calculate('salary', '2015-01') == array
 
 
 def test_set_input_float_to_int(single):
@@ -213,4 +211,4 @@ def test_set_input_float_to_int(single):
     age = np.asarray([50.6])
     simulation.person.get_holder('age').set_input(period, age)
     result = simulation.calculate('age', period)
-    assert_equal(result, np.asarray([50]))
+    assert result == np.asarray([50])
