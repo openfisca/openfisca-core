@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pytest
 
 from nose.tools import assert_equal, assert_is_none
 
@@ -10,6 +11,7 @@ from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.holders import Holder, set_input_dispatch_by_period
+from openfisca_core.errors import PeriodMismatchError
 from .test_countries import tax_benefit_system
 
 from pytest import fixture
@@ -51,6 +53,24 @@ def test_set_input_enum_item(couple):
     simulation.household.get_holder('housing_occupancy_status').set_input(period, status_occupancy)
     result = simulation.calculate('housing_occupancy_status', period)
     assert_equal(result, HousingOccupancyStatus.free_lodger)
+
+
+def test_yearly_input_month_variable(couple):
+    with pytest.raises(PeriodMismatchError) as error:
+        couple.set_input('rent', 2019, 3000)
+    assert 'Unable to set a value for variable "rent" for year-long period' in error.value.message
+
+
+def test_3_months_input_month_variable(couple):
+    with pytest.raises(PeriodMismatchError) as error:
+        couple.set_input('rent', 'month:2019-01:3', 3000)
+    assert 'Unable to set a value for variable "rent" for 3-months-long period' in error.value.message
+
+
+def test_month_input_year_variable(couple):
+    with pytest.raises(PeriodMismatchError) as error:
+        couple.set_input('housing_tax', '2019-01', 3000)
+    assert 'Unable to set a value for variable "housing_tax" for month-long period' in error.value.message
 
 
 def test_enum_dtype(couple):
@@ -178,7 +198,7 @@ def test_cache_enum_on_disk(single):
     assert_equal(housing_occupancy_status, HousingOccupancyStatus.tenant)
 
 
-def test_set_not_chaged_variable(single):
+def test_set_not_cached_variable(single):
     dont_cache_variable = MemoryConfig(max_memory_occupation = 1, variables_to_drop = ['salary'])
     simulation = single
     simulation.memory_config = dont_cache_variable
