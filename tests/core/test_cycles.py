@@ -42,7 +42,7 @@ class variable2(Variable):
         return person('variable1', period)
 
 
-# 3 <--> 4 with a period offset, but without explicit cycle allowed
+# 3 <--> 4 with a period offset
 class variable3(Variable):
     value_type = int
     entity = Person
@@ -61,7 +61,7 @@ class variable4(Variable):
         return person('variable3', period)
 
 
-# 5 -f-> 6 with a period offset, with cycle flagged but not allowed
+# 5 -f-> 6 with a period offset
 #   <---
 class variable5(Variable):
     value_type = int
