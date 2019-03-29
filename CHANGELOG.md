@@ -1,5 +1,18 @@
 # Changelog
 
+# 30.0.0 [#817](https://github.com/openfisca/openfisca-core/pull/817)
+
+#### Breaking changes
+
+- Improve cycle and spiral detection, giving consistent results more systematically
+
+#### Migration notes
+
+- Remove all optional parameters `max_nb_cycles`
+- Avoid relying on cached values of a computation
+
+For additional details, see the PR's [description](https://github.com/openfisca/openfisca-core/pull/817).
+
 ### 29.0.2 [#858](https://github.com/openfisca/openfisca-core/pull/858)
 
 #### Bug fix
