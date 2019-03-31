@@ -5,8 +5,6 @@ import os
 
 import dpath
 
-from openfisca_core.commons import to_unicode
-
 
 class VariableNotFound(Exception):
     """
@@ -45,8 +43,7 @@ class SituationParsingError(Exception):
     def __init__(self, path, message, code = None):
         self.error = {}
         dpath_path = '/'.join([str(item) for item in path])
-        message = to_unicode(message)
-        message = message.strip(os.linesep).replace(os.linesep, ' ')
+        message = str(message).strip(os.linesep).replace(os.linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
         Exception.__init__(self, str(self.error).encode('utf-8'))

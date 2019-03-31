@@ -8,7 +8,6 @@ from copy import deepcopy
 import pytest
 import dpath
 
-from openfisca_core.commons import to_unicode
 from openfisca_country_template.situation_examples import couple
 
 from . import subject
@@ -273,7 +272,7 @@ def test_encoding_period_id():
     response_json = json.loads(response.data.decode('utf-8'))
 
     # In Python 3, there is no encoding issue.
-    if "Expected a period" not in to_unicode(response.data):
+    if "Expected a period" not in str(response.data):
         message = "'à' is not a valid ASCII value."
         text = response_json['error']
         assert message in text

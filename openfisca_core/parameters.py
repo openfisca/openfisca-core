@@ -17,7 +17,7 @@ from openfisca_core import periods
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.periods import INSTANT_PATTERN
 from openfisca_core.tools import indent
-from openfisca_core.commons import basestring_type, empty_clone
+from openfisca_core.commons import empty_clone
 
 log = logging.getLogger(__name__)
 
@@ -200,7 +200,7 @@ class Parameter(object):
         if period is not None:
             if start is not None or stop is not None:
                 raise TypeError("Wrong input for 'update' method: use either 'update(period, value = value)' or 'update(start = start, stop = stop, value = value)'. You cannot both use 'period' and 'start' or 'stop'.")
-            if isinstance(period, basestring_type):
+            if isinstance(period, str):
                 period = periods.period(period)
             start = period.start
             stop = period.stop
@@ -306,11 +306,7 @@ class ParameterAtInstant(object):
         return (self.name == other.name) and (self.instant_str == other.instant_str) and (self.value == other.value)
 
     def __repr__(self):
-        result = "ParameterAtInstant({})".format({self.instant_str: self.value})
-        # repr output must be encoded in Python 2, but not in Python 3
-        if sys.version_info < (3, 0):
-            return result.encode('utf-8')
-        return result
+        return "ParameterAtInstant({})".format({self.instant_str: self.value})
 
 
 class ParameterNode(object):
@@ -442,9 +438,6 @@ class ParameterNode(object):
                 ["{}:", "{}"]).format(name, indent(repr(value)))
                 for name, value in sorted(self.children.items())]
             )
-        # repr output must be encoded in Python 2, but not in Python 3
-        if sys.version_info < (3, 0):
-            return result.encode('utf-8')
         return result
 
     def get_descendants(self):
@@ -453,8 +446,7 @@ class ParameterNode(object):
         """
         for child in self.children.values():
             yield child
-            for descendant in child.get_descendants():  # would be `yield from child.walk()` in Python 3.
-                yield descendant
+            yield from child.get_descendants()
 
     def clone(self):
         new = empty_clone(self)
@@ -653,7 +645,7 @@ class VectorialParameterNodeAtInstant(object):
 
     def __getitem__(self, key):
         # If the key is a string, just get the subnode
-        if isinstance(key, basestring_type):
+        if isinstance(key, str):
             return self.__getattr__(key)
         # If the key is a vector, e.g. ['zone_1', 'zone_2', 'zone_1']
         elif isinstance(key, np.ndarray):

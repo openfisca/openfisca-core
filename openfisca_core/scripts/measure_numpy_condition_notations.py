@@ -18,8 +18,6 @@ import time
 
 import numpy as np
 
-from openfisca_core.commons import to_unicode
-
 
 args = None
 
@@ -131,7 +129,7 @@ def main():
     global args
     args = parser.parse_args()
 
-    print(to_unicode(args).encode('utf-8'))
+    print(args)
     test_all_notations()
 
 

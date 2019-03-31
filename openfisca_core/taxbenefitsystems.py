@@ -17,7 +17,7 @@ from openfisca_core.entities import Entity
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
-from openfisca_core.commons import to_unicode, basestring_type, empty_clone
+from openfisca_core.commons import empty_clone
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tracers import Tracer
 
@@ -135,7 +135,7 @@ class TaxBenefitSystem(object):
         pass
 
     def load_variable(self, variable_class, update = False):
-        name = to_unicode(variable_class.__name__)
+        name = variable_class.__name__
 
         # Check if a Variable with the same name is already registered.
         baseline_variable = self.get_variable(name)
@@ -168,7 +168,7 @@ class TaxBenefitSystem(object):
 
         :param Variable variable: New variable to add. Must be a subclass of Variable.
         """
-        name = to_unicode(variable.__name__)
+        name = variable.__name__
         if self.variables.get(name) is not None:
             del self.variables[name]
         self.load_variable(variable, update = False)
@@ -349,7 +349,7 @@ class TaxBenefitSystem(object):
         """
         if isinstance(instant, periods.Period):
             instant = instant.start
-        elif isinstance(instant, (basestring_type, int)):
+        elif isinstance(instant, (str, int)):
             instant = periods.instant(instant)
         else:
             assert isinstance(instant, periods.Instant), "Expected an Instant (e.g. Instant((2017, 1, 1)) ). Got: {}.".format(instant)

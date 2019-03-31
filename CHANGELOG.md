@@ -1,5 +1,9 @@
 # Changelog
 
+### 30.0.1 [#855](https://github.com/openfisca/openfisca-core/pull/855)
+
+- Remove Python 2 compatibility code.
+
 # 30.0.0 [#817](https://github.com/openfisca/openfisca-core/pull/817)
 
 #### Breaking changes

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from openfisca_core.commons import to_unicode
-
 
 def build_entities(tax_benefit_system):
     entities = {
@@ -12,11 +10,11 @@ def build_entities(tax_benefit_system):
 
 
 def build_entity(entity):
-    formatted_doc = to_unicode(entity.doc.strip())
+    formatted_doc = entity.doc.strip()
 
     formatted_entity = {
         'plural': entity.plural,
-        'description': to_unicode(entity.label),
+        'description': entity.label,
         'documentation': formatted_doc
         }
     if not entity.is_person:
