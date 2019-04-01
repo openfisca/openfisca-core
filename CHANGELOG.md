@@ -1,5 +1,19 @@
 # Changelog
 
+# 31.0.0 [#813](https://github.com/openfisca/openfisca-core/pull/813)
+
+#### Breaking changes
+
+- Require clients to make explicit when input variables cover a range of dates, rather than allowing inputs to be derived from past or future values; also removes the `missing_value` base function
+
+#### Migration notes
+
+You might need to change your code if any of the following applies:
+- you are a model author, and there are variables in your model that use a `base_function` attribute
+- your model **or application** uses any non-numeric variables (boolean, date, string or Enum) used in, for which the period on which you define **inputs** does not match the period for which you are requesting **outputs**
+
+Detailed instructions are provided in the [PR description](https://github.com/openfisca/openfisca-core/pull/813).
+
 ### 30.0.3 [#859](https://github.com/openfisca/openfisca-core/pull/859)
 
 - Raise an error instead of silently ignoring the input when a user tries to set an input for a variable for several months (or several years), but the variable has no `set_input` declared.

@@ -38,7 +38,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '30.0.3',
+    version = '31.0.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
