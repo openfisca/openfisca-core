@@ -1,5 +1,9 @@
 # Changelog
 
+### 30.0.2 [#860](https://github.com/openfisca/openfisca-core/pull/860)
+
+- Apply `flake8-bugbear` recommendations and enforce same in continuous integration.
+
 ### 30.0.1 [#855](https://github.com/openfisca/openfisca-core/pull/855)
 
 - Remove Python 2 compatibility code.
