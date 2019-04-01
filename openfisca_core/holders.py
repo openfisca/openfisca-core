@@ -212,18 +212,14 @@ class Holder(object):
         if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with ETERNITY as as period_definition.')
-            if ((self.variable.definition_period == MONTH and period.unit != periods.MONTH) or
-               (self.variable.definition_period == YEAR and period.unit != periods.YEAR)):
+            if (self.variable.definition_period != period.unit or period.size > 1):
+                name = self.variable.name
+                period_size_adj = f'{period.unit}' if (period.size == 1) else f'{period.size}-{period.unit}s'
                 error_message = os.linesep.join([
-                    'Unable to set a value for variable {0} for {1}-long period {2}.',
-                    '{0} is only defined for {3}s. Please adapt your input.',
-                    'If you are the maintainer of {0}, you can consider adding it a set_input attribute to enable automatic period casting.'
-                    ]).format(
-                        self.variable.name,
-                        period.unit,
-                        period,
-                        self.variable.definition_period
-                    ).encode('utf-8')
+                    f'Unable to set a value for variable "{name}" for {period_size_adj}-long period "{period}".',
+                    f'"{name}" can only be set for one {self.variable.definition_period} at a time. Please adapt your input.',
+                    f'If you are the maintainer of "{name}", you can consider adding it a set_input attribute to enable automatic period casting.'
+                    ])
 
                 raise PeriodMismatchError(
                     self.variable.name,

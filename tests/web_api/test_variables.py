@@ -8,7 +8,7 @@ from . import subject
 
 
 def assert_items_equal(x, y):
-    assert_equal(set(x), set(y))
+    assert set(x) == set(y)
 
 
 # /variables
@@ -18,7 +18,7 @@ GITHUB_URL_REGEX = r'^https://github\.com/openfisca/country-template/blob/\d+\.\
 
 
 def test_return_code():
-    assert_equal(variables_response.status_code, OK)
+    assert variables_response.status_code == OK
 
 
 def test_response_data():
@@ -37,7 +37,7 @@ def test_response_data():
 
 def test_error_code_non_existing_variable():
     response = subject.get('/variable/non_existing_variable')
-    assert_equal(response.status_code, NOT_FOUND)
+    assert response.status_code == NOT_FOUND
 
 
 input_variable_response = subject.get('/variable/birth')
@@ -45,11 +45,11 @@ input_variable = json.loads(input_variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_input_variable():
-    assert_equal(input_variable_response.status_code, OK)
+    assert input_variable_response.status_code == OK
 
 
 def check_input_variable_value(key, expected_value):
-    assert_equal(input_variable[key], expected_value)
+    assert input_variable[key] == expected_value
 
 
 @pytest.mark.parametrize("expected_values", [
@@ -73,11 +73,11 @@ variable = json.loads(variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_variable():
-    assert_equal(variable_response.status_code, OK)
+    assert variable_response.status_code == OK
 
 
 def check_variable_value(key, expected_value):
-    assert_equal(variable[key], expected_value)
+    assert variable[key] == expected_value
 
 
 @pytest.mark.parametrize("expected_values", [
@@ -97,7 +97,7 @@ def test_variable_formula_github_link():
 
 def test_variable_formula_content():
     formula_code = "def formula(person, period, parameters):\n    return person('salary', period) * parameters(period).taxes.income_tax_rate\n"
-    assert_equal(variable['formulas']['0001-01-01']['content'], formula_code)
+    assert variable['formulas']['0001-01-01']['content'] == formula_code
 
 
 def test_null_values_are_dropped():
@@ -117,8 +117,8 @@ def test_variable_with_start_and_stop_date():
 def test_variable_with_enum():
     response = subject.get('/variable/housing_occupancy_status')
     variable = json.loads(response.data.decode('utf-8'))
-    assert_equal(variable['valueType'], 'String')
-    assert_equal(variable['defaultValue'], 'tenant')
+    assert variable['valueType'] == 'String'
+    assert variable['defaultValue'] == 'tenant'
     assert_in('possibleValues', variable.keys())
     assert_equal(variable['possibleValues'], {
         'free_lodger': 'Free lodger',
@@ -132,7 +132,7 @@ dated_variable = json.loads(dated_variable_response.data.decode('utf-8'))
 
 
 def test_return_code_existing_dated_variable():
-    assert_equal(dated_variable_response.status_code, OK)
+    assert dated_variable_response.status_code == OK
 
 
 def test_dated_variable_formulas_dates():
@@ -151,7 +151,7 @@ def test_dated_variable_formulas_content():
 
 def test_variable_encoding():
     variable_response = subject.get('/variable/pension')
-    assert_equal(variable_response.status_code, OK)
+    assert variable_response.status_code == OK
 
 
 def test_variable_documentation():

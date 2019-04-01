@@ -1,5 +1,9 @@
 # Changelog
 
+### 30.0.3 [#859](https://github.com/openfisca/openfisca-core/pull/859)
+
+- Raise an error instead of silently ignoring the input when a user tries to set an input for a variable for several months (or several years), but the variable has no `set_input` declared.
+
 ### 30.0.2 [#860](https://github.com/openfisca/openfisca-core/pull/860)
 
 - Apply `flake8-bugbear` recommendations and enforce same in continuous integration.
