@@ -21,12 +21,6 @@ from openfisca_core.simulations import (  # noqa analysis:ignore
     calculate_output_add,
     calculate_output_divide,
     )
-from openfisca_core.base_functions import (   # noqa analysis:ignore
-    missing_value,
-    requested_period_default_value,
-    requested_period_last_or_next_value,
-    requested_period_last_value,
-    )
 from openfisca_core.variables import Variable  # noqa analysis:ignore
 from openfisca_core.formula_helpers import apply_thresholds, concat, switch  # noqa analysis:ignore
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY, period  # noqa analysis:ignore
