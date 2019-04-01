@@ -50,7 +50,7 @@ def trace(tax_benefit_system, input_data):
         simulation.calculate(variable_name, period)
 
     trace = deepcopy(simulation.tracer.trace)
-    for vector_key, vector_trace in trace.items():
+    for _vector_key, vector_trace in trace.items():
         value = vector_trace['value'].tolist()
         if isinstance(value[0], Enum):
             value = [item.name for item in value]

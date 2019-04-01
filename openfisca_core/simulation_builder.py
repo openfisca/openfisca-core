@@ -71,7 +71,7 @@ class SimulationBuilder(object):
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
         # Register variables so get_variable_entity can find them
-        for (variable_name, variable) in tax_benefit_system.variables.items():
+        for (variable_name, _variable) in tax_benefit_system.variables.items():
             self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
 
         check_type(input_dict, dict, ['error'])
@@ -338,7 +338,7 @@ class SimulationBuilder(object):
             except ValueError as e:  # The variable is defined for another entity
                 raise SituationParsingError(path_in_json, e.args[0])
             except VariableNotFound as e:  # The variable doesn't exist
-                raise SituationParsingError(path_in_json, e.message, code = 404)
+                raise SituationParsingError(path_in_json, str(e), code = 404)
 
             instance_index = self.get_ids(entity.plural).index(instance_id)
 
@@ -532,12 +532,16 @@ class SimulationBuilder(object):
         self.variable_entities[variable_name] = entity
 
 
-def check_type(input, input_type, path = []):
+def check_type(input, input_type, path = None):
     json_type_map = {
         dict: "Object",
         list: "Array",
         str: "String",
         }
+
+    if path is None:
+        path = []
+
     if not isinstance(input, input_type):
         raise SituationParsingError(path,
             "Invalid type: must be of type '{}'.".format(json_type_map[input_type]))

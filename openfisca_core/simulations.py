@@ -82,11 +82,11 @@ class Simulation(object):
             self.tracer = None
 
     def link_to_entities_instances(self):
-        for key, entity_instance in self.entities.items():
+        for _key, entity_instance in self.entities.items():
             entity_instance.simulation = self
 
     def create_shortcuts(self):
-        for key, entity_instance in self.entities.items():
+        for _key, entity_instance in self.entities.items():
             # create shortcut simulation.person and simulation.household (for instance)
             setattr(self, entity_instance.key, entity_instance)
 
