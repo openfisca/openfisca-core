@@ -1,5 +1,12 @@
 # Changelog
 
+# 31.0.1 [#840](https://github.com/openfisca/openfisca-core/pull/840)
+
+- Improve usability of Enum values:
+- Details:
+  - Allow the use of Enum values in comparisons: instead of using `<Enum class>.possible_values` you can simply `import` the Enum class
+  - Accept Enum values via set_input (same result as the previous point)
+
 # 31.0.0 [#813](https://github.com/openfisca/openfisca-core/pull/813)
 
 #### Breaking changes
