@@ -5,6 +5,7 @@ import pytest
 
 import openfisca_country_template.situation_examples
 from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
@@ -26,7 +27,6 @@ def couple():
 
 
 period = make_period('2017-12')
-HousingOccupancyStatus = tax_benefit_system.get_variable('housing_occupancy_status').possible_values
 
 
 def test_set_input_enum_string(couple):
