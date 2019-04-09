@@ -5,7 +5,8 @@ import dpath
 import numpy as np
 from copy import deepcopy
 
-from openfisca_core.entities import Entity, Population
+from openfisca_core.entities import Entity
+from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError

@@ -14,7 +14,8 @@ import traceback
 import copy
 
 from openfisca_core import periods
-from openfisca_core.entities import Entity, Population, GroupPopulation
+from openfisca_core.entities import Entity
+from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
