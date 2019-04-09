@@ -49,8 +49,8 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        self.entities = populations
-        self.persons = self.entities[tax_benefit_system.person_entity.key]
+        self.populations = populations
+        self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
@@ -82,11 +82,11 @@ class Simulation(object):
             self.tracer = None
 
     def link_to_entities_instances(self):
-        for _key, entity_instance in self.entities.items():
+        for _key, entity_instance in self.populations.items():
             entity_instance.simulation = self
 
     def create_shortcuts(self):
-        for _key, population in self.entities.items():
+        for _key, population in self.populations.items():
             # create shortcut simulation.person and simulation.household (for instance)
             setattr(self, population.entity.key, population)
 
@@ -378,7 +378,7 @@ class Simulation(object):
             total_nb_bytes = 0,
             by_variable = {}
             )
-        for entity in self.entities.values():
+        for entity in self.populations.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
             result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
             result['by_variable'].update(entity_memory_usage['by_variable'])
@@ -458,10 +458,10 @@ class Simulation(object):
 
     def get_variable_population(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        return self.entities[variable.entity.key]
+        return self.populations[variable.entity.key]
 
     def get_population(self, plural = None):
-        return next((population for population in self.entities.values() if population.entity.plural == plural), None)
+        return next((population for population in self.populations.values() if population.entity.plural == plural), None)
 
     def get_entity(self, plural = None):
         population = self.get_population(plural)
@@ -472,7 +472,7 @@ class Simulation(object):
         return population.ids.index(id)
 
     def describe_entities(self):
-        return {population.entity.plural: population.ids for population in self.entities.values()}
+        return {population.entity.plural: population.ids for population in self.populations.values()}
 
     def clone(self, debug = False, trace = False):
         """
@@ -487,11 +487,11 @@ class Simulation(object):
 
         new.persons = self.persons.clone(new)
         setattr(new, new.persons.entity.key, new.persons)
-        new.entities = {new.persons.entity.key: new.persons}
+        new.populations = {new.persons.entity.key: new.persons}
 
         for entity in self.tax_benefit_system.group_entities:
-            population = self.entities[entity.key].clone(new)
-            new.entities[entity.key] = population
+            population = self.populations[entity.key].clone(new)
+            new.populations[entity.key] = population
             setattr(new, entity.key, population)  # create shortcut simulation.household (for instance)
 
         new.debug = debug

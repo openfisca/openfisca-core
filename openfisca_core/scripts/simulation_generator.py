@@ -36,7 +36,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
         members_legacy_role[id_person] = legacy_role
         members_entity_id[id_person] = id_group
 
-    for entity in simulation.entities.values():
+    for entity in simulation.populations.values():
         if not entity.is_person:
             entity.members_entity_id = members_entity_id
             entity.count = nb_groups

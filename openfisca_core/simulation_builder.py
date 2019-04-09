@@ -117,7 +117,7 @@ class SimulationBuilder(object):
 
         for entity_class in tax_benefit_system.group_entities:
             try:
-                population = simulation.entities[entity_class.key]
+                population = simulation.populations[entity_class.key]
                 self.finalize_variables_init(population)
             except PeriodMismatchError as e:
                 self.raise_period_mismatch(population.entity, instances_json, e)
@@ -158,7 +158,7 @@ class SimulationBuilder(object):
         """
 
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
-        for population in simulation.entities.values():
+        for population in simulation.populations.values():
             population.count = count
             population.ids = np.array(range(count))
             if not population.entity.is_person:

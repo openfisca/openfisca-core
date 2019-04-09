@@ -254,7 +254,7 @@ def _run_test(simulation, test):
     for key, expected_value in output.items():
         if tax_benefit_system.variables.get(key):  # If key is a variable
             _check_variable(simulation, key, expected_value, test.get('period'), test)
-        elif simulation.entities.get(key):  # If key is an entity singular
+        elif simulation.populations.get(key):  # If key is an entity singular
             for variable_name, value in expected_value.items():
                 _check_variable(simulation, variable_name, value, test.get('period'), test)
         else:

@@ -609,8 +609,8 @@ class UniqueRoleToEntityProjector(Projector):
 
 def get_projector_from_shortcut(population, shortcut, parent = None):
     if population.entity.is_person:
-        if shortcut in population.simulation.entities:
-            entity_2 = population.simulation.entities[shortcut]
+        if shortcut in population.simulation.populations:
+            entity_2 = population.simulation.populations[shortcut]
             return EntityToPersonProjector(entity_2, parent)
     else:
         if shortcut == 'first_person':

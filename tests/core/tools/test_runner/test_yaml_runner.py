@@ -30,7 +30,7 @@ class Reform(TaxBenefitSystem):
 class Simulation:
     def __init__(self):
         self.tax_benefit_system = TaxBenefitSystem()
-        self.entities = {}
+        self.populations = {}
 
     def get_population(self, plural = None):
         return None

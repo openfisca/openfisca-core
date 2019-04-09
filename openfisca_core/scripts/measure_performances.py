@@ -187,11 +187,11 @@ tax_benefit_system.add_variables(age_en_mois, birth, city_code, salaire_brut, ag
 @timeit
 def check_revenu_disponible(year, city_code, expected_revenu_disponible):
     simulation = simulations.Simulation(period = periods.period(year), tax_benefit_system = tax_benefit_system)
-    famille = simulation.entities["famille"]
+    famille = simulation.populations["famille"]
     famille.count = 3
     famille.roles_count = 2
     famille.step_size = 1
-    individu = simulation.entities["individu"]
+    individu = simulation.populations["individu"]
     individu.count = 6
     individu.step_size = 2
     simulation.get_or_new_holder("city_code").array = np.array([city_code, city_code, city_code])

@@ -26,7 +26,7 @@ def dump_simulation(simulation, directory):
     entities_dump_dir = os.path.join(directory, "__entities__")
     os.mkdir(entities_dump_dir)
 
-    for entity in simulation.entities.values():
+    for entity in simulation.populations.values():
         # Dump entity structure
         _dump_entity(entity, entities_dump_dir)
 
@@ -42,12 +42,12 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
     simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
     entities_dump_dir = os.path.join(directory, "__entities__")
-    for population in simulation.entities.values():
+    for population in simulation.populations.values():
         if population.entity.is_person:
             continue
         person_count = _restore_entity(population, entities_dump_dir)
 
-    for population in simulation.entities.values():
+    for population in simulation.populations.values():
         if not population.entity.is_person:
             continue
         _restore_entity(population, entities_dump_dir)
