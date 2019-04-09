@@ -217,16 +217,6 @@ class Entity(object):
     def set_tax_benefit_system(self, tax_benefit_system):
         self.tax_benefit_system = tax_benefit_system
 
-    def to_json(self):
-        return {
-            'isPersonsEntity': self.is_person,
-            'key': self.key,
-            'label': self.label,
-            'plural': self.plural,
-            'doc': self.doc,
-            'roles': self.roles_description,
-            }
-
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
