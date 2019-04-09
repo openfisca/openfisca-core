@@ -210,7 +210,7 @@ class Variable(object):
         return value
 
     def set_entity(self, entity):
-        # TODO - isinstance() won't work due to (ab)use of load_module to load tax_benefit_system
+        # TODO - isinstance() won't work due to use of load_module to load tax_benefit_system
         # Just trust the input in the meantime
         # if not isinstance(entity, entities.Entity):
         #     raise ValueError("Invalid value '{}' for attribute 'entity' in variable '{}'. Must be an instance of Entity."
