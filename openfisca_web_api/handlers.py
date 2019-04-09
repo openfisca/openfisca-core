@@ -20,7 +20,8 @@ def calculate(tax_benefit_system, input_data):
         entity_plural, entity_id, variable_name, period = path.split('/')
         variable = tax_benefit_system.get_variable(variable_name)
         result = simulation.calculate(variable_name, period)
-        entity_index = simulation.get_index(entity_plural, entity_id)
+        population = simulation.get_population(entity_plural)
+        entity_index = population.get_index(entity_id)
 
         if variable.value_type == Enum:
             entity_result = result.decode()[entity_index].name

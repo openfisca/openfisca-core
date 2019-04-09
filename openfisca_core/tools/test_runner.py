@@ -262,7 +262,7 @@ def _run_test(simulation, test):
             if population is not None:  # If key is an entity plural
                 for instance_id, instance_values in expected_value.items():
                     for variable_name, value in instance_values.items():
-                        entity_index = simulation.get_index(key, instance_id)
+                        entity_index = population.get_index(instance_id)
                         _check_variable(simulation, variable_name, value, test.get('period'), test, entity_index)
             else:
                 raise VariableNotFound(key, tax_benefit_system)

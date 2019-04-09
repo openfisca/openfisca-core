@@ -65,6 +65,9 @@ class Population(object):
             raise AttributeError("Entity {} has no attribute {}".format(self.entity.key, attribute))
         return projector
 
+    def get_index(self, id):
+        return self.ids.index(id)
+
     # Calculations
 
     def check_array_compatible_with_entity(self, array):

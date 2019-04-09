@@ -467,10 +467,6 @@ class Simulation(object):
         population = self.get_population(plural)
         return population and population.entity
 
-    def get_index(self, plural, id):
-        population = self.get_population(plural)
-        return population.ids.index(id)
-
     def describe_entities(self):
         return {population.entity.plural: population.ids for population in self.populations.values()}
 
