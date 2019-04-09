@@ -62,7 +62,7 @@ class Population(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise AttributeError("Entity {} has no attribute {}".format(self.entity.key, attribute))
+            raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
         return projector
 
     def get_index(self, id):
