@@ -212,17 +212,17 @@ class Entity(object):
         self.plural = plural
         self.doc = textwrap.dedent(doc)
         self.is_person = True
-        self.tax_benefit_system = None
+        self._tax_benefit_system = None
 
     def set_tax_benefit_system(self, tax_benefit_system):
-        self.tax_benefit_system = tax_benefit_system
+        self._tax_benefit_system = tax_benefit_system
 
     def check_role_validity(self, role):
         if role is not None and not type(role) == Role:
             raise ValueError("{} is not a valid role".format(role))
 
     def get_variable(self, variable_name, check_existence = False):
-        return self.tax_benefit_system.get_variable(variable_name, check_existence)
+        return self._tax_benefit_system.get_variable(variable_name, check_existence)
 
     def check_variable_defined_for_entity(self, variable_name):
         variable_entity = self.get_variable(variable_name, check_existence = True).entity
