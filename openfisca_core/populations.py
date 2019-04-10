@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import traceback
+
 from typing import Iterable
 
 import numpy as np
@@ -60,7 +62,19 @@ class Population(object):
             raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
                 array, self.key, array.size, self.count))
 
-    def __call__(self, variable_name, period, options = None, **parameters):
+    def check_period_validity(self, variable_name, period):
+        if period is None:
+            stack = traceback.extract_stack()
+            filename, line_number, function_name, line_of_code = stack[-3]
+            raise ValueError('''
+You requested computation of variable "{}", but you did not specify on which period in "{}:{}":
+    {}
+When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:
+    computed_salary = person('salary', period).
+See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
+'''.format(variable_name, filename, line_number, line_of_code).encode('utf-8'))
+
+    def __call__(self, variable_name, period = None, options = None, **parameters):
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -72,6 +86,7 @@ class Population(object):
             :returns: A numpy array containing the result of the calculation
         """
         self.entity.check_variable_defined_for_entity(variable_name)
+        self.check_period_validity(variable_name, period)
 
         if options is None:
             options = []
