@@ -129,3 +129,6 @@ class EnumArray(np.ndarray):
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, str(self.decode()))
+
+    def __str__(self):
+        return str(self.decode_to_str())
