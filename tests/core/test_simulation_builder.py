@@ -43,7 +43,7 @@ def int_variable(persons):
     class intvar(Variable):
         definition_period = ETERNITY
         value_type = int
-        entity = persons.__class__
+        entity = persons
 
         def __init__(self):
             super().__init__()
@@ -57,7 +57,7 @@ def date_variable(persons):
     class datevar(Variable):
         definition_period = ETERNITY
         value_type = date
-        entity = persons.__class__
+        entity = persons
 
         def __init__(self):
             super().__init__()

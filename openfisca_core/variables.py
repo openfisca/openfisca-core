@@ -10,6 +10,7 @@ from sortedcontainers.sorteddict import SortedDict
 from datetime import date
 
 from openfisca_core import periods
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
@@ -210,11 +211,8 @@ class Variable(object):
         return value
 
     def set_entity(self, entity):
-        # TODO - isinstance() won't work due to use of load_module to load tax_benefit_system
-        # Just trust the input in the meantime
-        # if not isinstance(entity, entities.Entity):
-        #     raise ValueError("Invalid value '{}' for attribute 'entity' in variable '{}'. Must be an instance of Entity."
-        #     .format(entity, self.name).encode('utf-8'))
+        if not isinstance(entity, Entity):
+            raise ValueError(f"Invalid value '{entity}' for attribute 'entity' in variable '{self.name}'. Must be an instance of Entity.")
         return entity
 
     def set_possible_values(self, possible_values):
