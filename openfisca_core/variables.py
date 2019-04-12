@@ -9,8 +9,8 @@ import numpy as np
 from sortedcontainers.sorteddict import SortedDict
 from datetime import date
 
-from openfisca_core import entities
 from openfisca_core import periods
+from openfisca_core.entities import Entity
 from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
 from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
 from openfisca_core.tools import eval_expression
@@ -211,9 +211,8 @@ class Variable(object):
         return value
 
     def set_entity(self, entity):
-        if not isinstance(entity, type) or not issubclass(entity, entities.Entity):
-            raise ValueError("Invalid value '{}' for attribute 'entity' in variable '{}'. Must be a subclass of Entity."
-            .format(entity, self.name).encode('utf-8'))
+        if not isinstance(entity, Entity):
+            raise ValueError(f"Invalid value '{entity}' for attribute 'entity' in variable '{self.name}'. Must be an instance of Entity.")
         return entity
 
     def set_possible_values(self, possible_values):

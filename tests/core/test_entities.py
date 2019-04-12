@@ -221,35 +221,6 @@ def test_implicit_projection():
     assert_near(housing_tax, [20000, 20000, 20000, 20000, 0, 0])
 
 
-def test_project_on_first_person():
-    test_case = deepcopy(TEST_CASE)
-    test_case['households']['h1']['housing_tax'] = 20000
-    test_case['households']['h2']['housing_tax'] = 5000
-
-    simulation = new_simulation(test_case, YEAR)
-    household = simulation.household
-
-    housing_tax = household('housing_tax', YEAR)
-    projected_housing_tax = household.project_on_first_person(housing_tax)
-
-    assert_near(projected_housing_tax, [20000, 0, 0, 0, 5000, 0])
-
-
-def test_share_between_members():
-    test_case = deepcopy(TEST_CASE)
-    test_case['households']['h1']['housing_tax'] = 20000
-    test_case['households']['h2']['housing_tax'] = 5000
-
-    simulation = new_simulation(test_case, YEAR)
-    household = simulation.household
-
-    housing_tax = household('housing_tax', YEAR)
-
-    housing_tax_shared = household.share_between_members(housing_tax, role = PARENT)
-
-    assert_near(housing_tax_shared, [10000, 10000, 0, 0, 5000, 0])
-
-
 def test_sum():
     test_case = deepcopy(TEST_CASE)
     test_case['persons']['ind0']['salary'] = 1000
@@ -502,7 +473,7 @@ def test_unordered_persons():
     assert_near(household.first_person('salary', "2016-01"), [0, 3000])
     assert_near(household.first_parent('salary', "2016-01"), [1000, 3000])
     assert_near(household.second_parent('salary', "2016-01"), [1500, 0])
-    assert_near(person.value_from_partner(salary, person.household, household.PARENT), [0, 0, 1000, 0, 0, 1500])
+    assert_near(person.value_from_partner(salary, person.household, PARENT), [0, 0, 1000, 0, 0, 1500])
 
     assert_near(household.sum(salary, role = PARENT), [2500, 3000])
     assert_near(household.sum(salary, role = CHILD), [20, 500])
@@ -526,6 +497,3 @@ def test_unordered_persons():
     assert_near(household.project(accommodation_size), [60, 160, 160, 160, 60, 160])
     assert_near(household.project(accommodation_size, role = PARENT), [60, 0, 160, 0, 0, 160])
     assert_near(household.project(accommodation_size, role = CHILD), [0, 160, 0, 160, 60, 0])
-    assert_near(household.project_on_first_person(accommodation_size), [60, 160, 0, 0, 0, 0])
-    assert_near(household.share_between_members(accommodation_size), [30, 40, 40, 40, 30, 40])
-    assert_near(household.share_between_members(accommodation_size, role = PARENT), [60, 0, 80, 0, 0, 80])

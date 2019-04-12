@@ -48,8 +48,8 @@ def test_clone():
     simulation_clone = simulation.clone()
     assert simulation != simulation_clone
 
-    for entity_id, entity in simulation.entities.items():
-        assert entity != simulation_clone.entities[entity_id]
+    for entity_id, entity in simulation.populations.items():
+        assert entity != simulation_clone.populations[entity_id]
 
     assert simulation.persons != simulation_clone.persons
 
@@ -58,7 +58,7 @@ def test_clone():
 
     assert salary_holder != salary_holder_clone
     assert salary_holder_clone.simulation == simulation_clone
-    assert salary_holder_clone.entity == simulation_clone.person
+    assert salary_holder_clone.population == simulation_clone.persons
 
 
 def test_get_memory_usage():

@@ -6,6 +6,7 @@ import numpy as np
 from copy import deepcopy
 
 from openfisca_core.entities import Entity
+from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 
 from openfisca_core.errors import VariableNotFound, SituationParsingError, PeriodMismatchError
@@ -21,7 +22,7 @@ class SimulationBuilder(object):
 
         # JSON input - Memory of known input values. Indexed by variable or axis name.
         self.input_buffer: Dict[Variable.name, Dict[str(period), np.array]] = {}
-        self.entities_instances: Dict[Entity.key, Entity] = {}
+        self.populations: Dict[Entity.key, Population] = {}
         # JSON input - Number of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_ids``, including axes.
         self.entity_counts: Dict[Entity.plural, int] = {}
         # JSON input - List of items of each entity type. Indexed by entities plural names. Should be consistent with ``entity_counts``.
@@ -72,7 +73,7 @@ class SimulationBuilder(object):
 
         # Register variables so get_variable_entity can find them
         for (variable_name, _variable) in tax_benefit_system.variables.items():
-            self.register_variable(variable_name, simulation.get_variable_entity(variable_name))
+            self.register_variable(variable_name, simulation.get_variable_population(variable_name).entity)
 
         check_type(input_dict, dict, ['error'])
         axes = input_dict.pop('axes', None)
@@ -97,15 +98,14 @@ class SimulationBuilder(object):
             raise SituationParsingError([tax_benefit_system.person_entity.plural],
                 'No {0} found. At least one {0} must be defined to run a simulation.'.format(tax_benefit_system.person_entity.key))
 
-        persons_ids = self.add_person_entity(simulation.persons, persons_json)
+        persons_ids = self.add_person_entity(simulation.persons.entity, persons_json)
 
         for entity_class in tax_benefit_system.group_entities:
-            entity = simulation.entities[entity_class.key]
             instances_json = input_dict.get(entity_class.plural)
             if instances_json is not None:
-                self.add_group_entity(simulation.persons.plural, persons_ids, entity, instances_json)
+                self.add_group_entity(self.persons_plural, persons_ids, entity_class, instances_json)
             else:
-                self.add_default_group_entity(persons_ids, entity)
+                self.add_default_group_entity(persons_ids, entity_class)
 
         if axes:
             self.axes = axes
@@ -114,14 +114,14 @@ class SimulationBuilder(object):
         try:
             self.finalize_variables_init(simulation.persons)
         except PeriodMismatchError as e:
-            self.raise_period_mismatch(simulation.persons, persons_json, e)
+            self.raise_period_mismatch(simulation.persons.entity, persons_json, e)
 
         for entity_class in tax_benefit_system.group_entities:
             try:
-                entity = simulation.entities[entity_class.key]
-                self.finalize_variables_init(entity)
+                population = simulation.populations[entity_class.key]
+                self.finalize_variables_init(population)
             except PeriodMismatchError as e:
-                self.raise_period_mismatch(entity, instances_json, e)
+                self.raise_period_mismatch(population.entity, instances_json, e)
 
         return simulation
 
@@ -159,40 +159,41 @@ class SimulationBuilder(object):
         """
 
         simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
-        for entity in simulation.entities.values():
-            entity.count = count
-            entity.ids = np.array(range(count))
-            if not entity.is_person:
-                entity.members_entity_id = entity.ids  # Each person is its own group entity
+        for population in simulation.populations.values():
+            population.count = count
+            population.ids = np.array(range(count))
+            if not population.entity.is_person:
+                population.members_entity_id = population.ids  # Each person is its own group entity
         return simulation
 
     def create_entities(self, tax_benefit_system):
-        self.entities_instances = tax_benefit_system.instantiate_entities()
+        self.populations = tax_benefit_system.instantiate_entities()
 
     def declare_person_entity(self, person_singular, persons_ids: Iterable):
-        person_instance = self.entities_instances[person_singular]
+        person_instance = self.populations[person_singular]
         person_instance.ids = np.array(list(persons_ids))
         person_instance.count = len(person_instance.ids)
 
-        self.persons_plural = person_instance.plural
+        self.persons_plural = person_instance.entity.plural
 
     def declare_entity(self, entity_singular, entity_ids: Iterable):
-        entity_instance = self.entities_instances[entity_singular]
+        entity_instance = self.populations[entity_singular]
         entity_instance.ids = np.array(list(entity_ids))
         entity_instance.count = len(entity_instance.ids)
         return entity_instance
 
     def nb_persons(self, entity_singular, role = None):
-        return self.entities_instances[entity_singular].nb_persons(role = role)
+        return self.populations[entity_singular].nb_persons(role = role)
 
-    def join_with_persons(self, group_instance, persons_group_assignment, roles: Iterable[str]):
+    def join_with_persons(self, group_population, persons_group_assignment, roles: Iterable[str]):
         group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
-        group_instance.members_entity_id = np.argsort(group_instance.ids)[group_sorted_indices]
+        group_population.members_entity_id = np.argsort(group_population.ids)[group_sorted_indices]
+        flattened_roles = group_population.entity.flattened_roles
         role_names_array = np.array(roles)
-        group_instance.members_role = np.select([role_names_array == role.key for role in group_instance.flattened_roles], group_instance.flattened_roles)
+        group_population.members_role = np.select([role_names_array == role.key for role in flattened_roles], flattened_roles)
 
     def build(self, tax_benefit_system):
-        return Simulation(tax_benefit_system, entities_instances = self.entities_instances)
+        return Simulation(tax_benefit_system, self.populations)
 
     def explicit_singular_entities(self, tax_benefit_system, input_dict):
         """
@@ -377,18 +378,19 @@ class SimulationBuilder(object):
 
         self.input_buffer[variable.name][str(period(period_str))] = array
 
-    def finalize_variables_init(self, entity):
+    def finalize_variables_init(self, population):
         # Due to set_input mechanism, we must bufferize all inputs, then actually set them,
         # so that the months are set first and the years last.
-        if entity.plural in self.entity_counts:
-            entity.count = self.get_count(entity.plural)
-            entity.ids = self.get_ids(entity.plural)
-        if entity.plural in self.memberships:
-            entity.members_entity_id = np.array(self.get_memberships(entity.plural))
-            entity.members_role = np.array(self.get_roles(entity.plural))
+        plural_key = population.entity.plural
+        if plural_key in self.entity_counts:
+            population.count = self.get_count(plural_key)
+            population.ids = self.get_ids(plural_key)
+        if plural_key in self.memberships:
+            population.members_entity_id = np.array(self.get_memberships(plural_key))
+            population.members_role = np.array(self.get_roles(plural_key))
         for variable_name in self.input_buffer.keys():
             try:
-                holder = entity.get_holder(variable_name)
+                holder = population.get_holder(variable_name)
             except ValueError:  # Wrong entity, we can just ignore that
                 continue
             buffer = self.input_buffer[variable_name]
@@ -399,7 +401,7 @@ class SimulationBuilder(object):
                 values = buffer[str(period_value)]
                 # Hack to replicate the values in the persons entity
                 # when we have an axis along a group entity but not persons
-                array = np.tile(values, entity.count // len(values))
+                array = np.tile(values, population.count // len(values))
                 variable = holder.variable
                 # TODO - this duplicates the check in Simulation.set_input, but
                 # fixing that requires improving Simulation's handling of entities

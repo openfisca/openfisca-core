@@ -36,7 +36,7 @@ def make_simulation(tax_benefit_system, nb_persons, nb_groups, **kwargs):
         members_legacy_role[id_person] = legacy_role
         members_entity_id[id_person] = id_group
 
-    for entity in simulation.entities.values():
+    for entity in simulation.populations.values():
         if not entity.is_person:
             entity.members_entity_id = members_entity_id
             entity.count = nb_groups
@@ -61,6 +61,6 @@ def randomly_init_variable(simulation, variable_name, period, max_value, conditi
     if condition is None:
         condition = True
     variable = simulation.tax_benefit_system.get_variable(variable_name)
-    entity = simulation.get_variable_entity(variable_name)
-    value = (np.random.rand(entity.count) * max_value * condition).astype(variable.dtype)
+    population = simulation.get_variable_population(variable_name)
+    value = (np.random.rand(population.count) * max_value * condition).astype(variable.dtype)
     simulation.set_input(variable_name, period, value)

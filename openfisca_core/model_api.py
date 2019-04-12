@@ -16,7 +16,7 @@ from openfisca_core.holders import (  # noqa analysis:ignore
     set_input_divide_by_period,
     )
 from openfisca_core.indexed_enums import Enum  # noqa analysis:ignore
-from openfisca_core.entities import (ADD, DIVIDE)  # noqa analysis:ignore
+from openfisca_core.populations import (ADD, DIVIDE)  # noqa analysis:ignore
 from openfisca_core.simulations import (  # noqa analysis:ignore
     calculate_output_add,
     calculate_output_divide,

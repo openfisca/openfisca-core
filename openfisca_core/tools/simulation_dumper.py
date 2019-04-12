@@ -26,7 +26,7 @@ def dump_simulation(simulation, directory):
     entities_dump_dir = os.path.join(directory, "__entities__")
     os.mkdir(entities_dump_dir)
 
-    for entity in simulation.entities.values():
+    for entity in simulation.populations.values():
         # Dump entity structure
         _dump_entity(entity, entities_dump_dir)
 
@@ -42,16 +42,16 @@ def restore_simulation(directory, tax_benefit_system, **kwargs):
     simulation = Simulation(tax_benefit_system, tax_benefit_system.instantiate_entities())
 
     entities_dump_dir = os.path.join(directory, "__entities__")
-    for entity in simulation.entities.values():
-        if entity.is_person:
+    for population in simulation.populations.values():
+        if population.entity.is_person:
             continue
-        person_count = _restore_entity(entity, entities_dump_dir)
+        person_count = _restore_entity(population, entities_dump_dir)
 
-    for entity in simulation.entities.values():
-        if not entity.is_person:
+    for population in simulation.populations.values():
+        if not population.entity.is_person:
             continue
-        _restore_entity(entity, entities_dump_dir)
-        entity.count = person_count
+        _restore_entity(population, entities_dump_dir)
+        population.count = person_count
 
     variables_to_restore = (variable for variable in os.listdir(directory) if variable != "__entities__")
     for variable in variables_to_restore:
@@ -67,40 +67,40 @@ def _dump_holder(holder, directory):
         disk_storage.put(value, period)
 
 
-def _dump_entity(entity, directory):
-    path = os.path.join(directory, entity.key)
+def _dump_entity(population, directory):
+    path = os.path.join(directory, population.entity.key)
     os.mkdir(path)
-    np.save(os.path.join(path, "id.npy"), entity.ids)
+    np.save(os.path.join(path, "id.npy"), population.ids)
 
-    if entity.is_person:
+    if population.entity.is_person:
         return
 
-    np.save(os.path.join(path, "members_position.npy"), entity.members_position)
-    np.save(os.path.join(path, "members_entity_id.npy"), entity.members_entity_id)
+    np.save(os.path.join(path, "members_position.npy"), population.members_position)
+    np.save(os.path.join(path, "members_entity_id.npy"), population.members_entity_id)
     encoded_roles = np.select(
-        [entity.members_role == role for role in entity.flattened_roles],
-        [role.key for role in entity.flattened_roles],
+        [population.members_role == role for role in population.entity.flattened_roles],
+        [role.key for role in population.entity.flattened_roles],
         )
     np.save(os.path.join(path, "members_role.npy"), encoded_roles)
 
 
-def _restore_entity(entity, directory):
-    path = os.path.join(directory, entity.key)
+def _restore_entity(population, directory):
+    path = os.path.join(directory, population.entity.key)
 
-    entity.ids = np.load(os.path.join(path, "id.npy"))
+    population.ids = np.load(os.path.join(path, "id.npy"))
 
-    if entity.is_person:
+    if population.entity.is_person:
         return
 
-    entity.members_position = np.load(os.path.join(path, "members_position.npy"))
-    entity.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
+    population.members_position = np.load(os.path.join(path, "members_position.npy"))
+    population.members_entity_id = np.load(os.path.join(path, "members_entity_id.npy"))
     encoded_roles = np.load(os.path.join(path, "members_role.npy"))
-    entity.members_role = np.select(
-        [encoded_roles == role.key for role in entity.flattened_roles],
-        [role for role in entity.flattened_roles],
+    population.members_role = np.select(
+        [encoded_roles == role.key for role in population.entity.flattened_roles],
+        [role for role in population.entity.flattened_roles],
         )
-    person_count = len(entity.members_entity_id)
-    entity.count = max(entity.members_entity_id) + 1
+    person_count = len(population.members_entity_id)
+    population.count = max(population.members_entity_id) + 1
     return person_count
 
 

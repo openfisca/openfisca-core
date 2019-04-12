@@ -11,9 +11,11 @@ import logging
 import inspect
 import pkg_resources
 import traceback
+import copy
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
+from openfisca_core.populations import Population, GroupPopulation
 from openfisca_core.parameters import ParameterNode
 from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
@@ -60,11 +62,14 @@ class TaxBenefitSystem(object):
         self._parameters_at_instant_cache = {}  # weakref.WeakValueDictionary()
         self.variables = {}
         self.open_api_config = {}
-        self.entities = entities
+        # Tax benefit systems are mutable, so entities (which need to know about our variables) can't be shared among them
         if entities is None or len(entities) == 0:
             raise Exception("A tax and benefit sytem must have at least an entity.")
-        self.person_entity = [entity for entity in entities if entity.is_person][0]
-        self.group_entities = [entity for entity in entities if not entity.is_person]
+        self.entities = [copy.copy(entity) for entity in entities]
+        self.person_entity = [entity for entity in self.entities if entity.is_person][0]
+        self.group_entities = [entity for entity in self.entities if not entity.is_person]
+        for entity in self.entities:
+            entity.set_tax_benefit_system(self)
 
     @property
     def base_tax_benefit_system(self):
@@ -77,13 +82,14 @@ class TaxBenefitSystem(object):
         return base_tax_benefit_system
 
     def instantiate_entities(self):
-        person_instance = self.person_entity(None)
-        entities_instances: Dict[Entity.key, Entity] = {person_instance.key: person_instance}
+        person = self.person_entity
+        members = Population(person)
+        entities: Dict[Entity.key, Entity] = {person.key: members}
 
-        for entity_class in self.group_entities:
-            entities_instances[entity_class.key] = entity_class(None, person_instance)
+        for entity in self.group_entities:
+            entities[entity.key] = GroupPopulation(entity, members)
 
-        return entities_instances
+        return entities
 
     # Deprecated method of constructing simulations, to be phased out in favor of SimulationBuilder
     def new_scenario(self):
@@ -300,10 +306,11 @@ class TaxBenefitSystem(object):
         :param variable_name: Name of the requested variable.
         :param check_existence: If True, raise an error if the requested variable does not exist.
         """
-        variables = self.variables.get(variable_name)
-        if not variables and check_existence:
+        variables = self.variables
+        found = variables.get(variable_name)
+        if not found and check_existence:
             raise VariableNotFound(variable_name, self)
-        return variables
+        return found
 
     def neutralize_variable(self, variable_name):
         """
@@ -427,7 +434,8 @@ class TaxBenefitSystem(object):
             return {
                 variable_name: variable
                 for variable_name, variable in self.variables.items()
-                if variable.entity == entity
+                # TODO - because entities are copied (see constructor) they can't be compared
+                if variable.entity.key == entity.key
                 }
 
     def clone(self):
@@ -437,6 +445,8 @@ class TaxBenefitSystem(object):
         for key, value in self.__dict__.items():
             if key not in ('parameters', '_parameters_at_instant_cache', 'variables', 'open_api_config'):
                 new_dict[key] = value
+        for entity in new_dict['entities']:
+            entity.set_tax_benefit_system(new)
 
         new_dict['parameters'] = self.parameters.clone()
         new_dict['_parameters_at_instant_cache'] = {}

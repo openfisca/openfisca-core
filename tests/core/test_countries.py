@@ -7,9 +7,8 @@ from openfisca_core.periods import MONTH
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.taxbenefitsystems import VariableNameConflict, VariableNotFound
 from openfisca_core import periods
-from openfisca_core.entities import DIVIDE
+from openfisca_core.populations import DIVIDE
 from openfisca_country_template import CountryTaxBenefitSystem
-from openfisca_country_template.entities import Person
 from openfisca_core.tools import assert_near
 
 
@@ -136,25 +135,3 @@ def test_variable_name_conflict():
             return household.empty_array()
     with raises(VariableNameConflict):
         tax_benefit_system.add_variable(disposable_income)
-
-
-class income_tax_no_period(Variable):
-    value_type = float
-    entity = Person
-    label = "Salaire net (buggy)"
-    definition_period = MONTH
-
-    def formula(individu, period):
-        # salary = individu('salary', period)  # correct
-        salary = individu('salary')            # buggy
-
-        return salary * 0.15
-
-
-def test_no_period(make_isolated_simulation, period):
-    buggy_tbf = CountryTaxBenefitSystem()
-    buggy_tbf.add_variable(income_tax_no_period)
-
-    simulation = make_isolated_simulation(buggy_tbf, {'salary': 2000})
-    with raises(ValueError):
-        simulation.calculate('income_tax_no_period', period)

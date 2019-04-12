@@ -39,7 +39,7 @@ class Simulation(object):
     def __init__(
             self,
             tax_benefit_system,
-            entities_instances = None
+            populations
             ):
         """
             This constructor is reserved for internal use; see :any:`SimulationBuilder`,
@@ -49,8 +49,8 @@ class Simulation(object):
         self.tax_benefit_system = tax_benefit_system
         assert tax_benefit_system is not None
 
-        self.entities = entities_instances
-        self.persons = self.entities[tax_benefit_system.person_entity.key]
+        self.populations = populations
+        self.persons = self.populations[tax_benefit_system.person_entity.key]
         self.link_to_entities_instances()
         self.create_shortcuts()
 
@@ -82,13 +82,13 @@ class Simulation(object):
             self.tracer = None
 
     def link_to_entities_instances(self):
-        for _key, entity_instance in self.entities.items():
+        for _key, entity_instance in self.populations.items():
             entity_instance.simulation = self
 
     def create_shortcuts(self):
-        for _key, entity_instance in self.entities.items():
+        for _key, population in self.populations.items():
             # create shortcut simulation.person and simulation.household (for instance)
-            setattr(self, entity_instance.key, entity_instance)
+            setattr(self, population.entity.key, population)
 
     @property
     def data_storage_dir(self):
@@ -111,8 +111,8 @@ class Simulation(object):
 
             :returns: A numpy array containing the result of the calculation
         """
-        entity = self.get_variable_entity(variable_name)
-        holder = entity.get_holder(variable_name)
+        population = self.get_variable_population(variable_name)
+        holder = population.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -135,7 +135,7 @@ class Simulation(object):
         # First, try to run a formula
         try:
             self._check_for_cycle(variable, period)
-            array = self._run_formula(variable, entity, period)
+            array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
             if array is None:
@@ -230,9 +230,9 @@ class Simulation(object):
             self.tracer
             )
 
-    def _run_formula(self, variable, entity, period):
+    def _run_formula(self, variable, population, period):
         """
-            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``entity``.
+            Find the ``variable`` formula for the given ``period`` if it exists, and apply it to ``population``.
         """
 
         formula = variable.get_formula(period)
@@ -245,11 +245,11 @@ class Simulation(object):
             parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
         if formula.__code__.co_argcount == 2:
-            array = formula(entity, period)
+            array = formula(population, period)
         else:
-            array = formula(entity, period, parameters_at)
+            array = formula(population, period, parameters_at)
 
-        self._check_formula_result(array, variable, entity, period)
+        self._check_formula_result(array, variable, population, period)
         return array
 
     def _check_period_consistency(self, period, variable):
@@ -368,7 +368,7 @@ class Simulation(object):
         """
             Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
-        return self.get_variable_entity(variable_name).get_holder(variable_name)
+        return self.get_variable_population(variable_name).get_holder(variable_name)
 
     def get_memory_usage(self, variables = None):
         """
@@ -378,7 +378,7 @@ class Simulation(object):
             total_nb_bytes = 0,
             by_variable = {}
             )
-        for entity in self.entities.values():
+        for entity in self.populations.values():
             entity_memory_usage = entity.get_memory_usage(variables = variables)
             result['total_nb_bytes'] += entity_memory_usage['total_nb_bytes']
             result['by_variable'].update(entity_memory_usage['by_variable'])
@@ -456,15 +456,19 @@ class Simulation(object):
             return
         self.get_holder(variable_name).set_input(period, value)
 
-    def get_variable_entity(self, variable_name):
+    def get_variable_population(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        return self.get_entity(variable.entity)
+        return self.populations[variable.entity.key]
 
-    def get_entity(self, entity_type = None, plural = None):
-        if entity_type:
-            return self.entities[entity_type.key]
-        if plural:
-            return next((entity for entity in self.entities.values() if entity.plural == plural), None)
+    def get_population(self, plural = None):
+        return next((population for population in self.populations.values() if population.entity.plural == plural), None)
+
+    def get_entity(self, plural = None):
+        population = self.get_population(plural)
+        return population and population.entity
+
+    def describe_entities(self):
+        return {population.entity.plural: population.ids for population in self.populations.values()}
 
     def clone(self, debug = False, trace = False):
         """
@@ -478,13 +482,13 @@ class Simulation(object):
                 new_dict[key] = value
 
         new.persons = self.persons.clone(new)
-        setattr(new, new.persons.key, new.persons)
-        new.entities = {new.persons.key: new.persons}
+        setattr(new, new.persons.entity.key, new.persons)
+        new.populations = {new.persons.entity.key: new.persons}
 
-        for entity_class in self.tax_benefit_system.group_entities:
-            entity = self.entities[entity_class.key].clone(new)
-            new.entities[entity.key] = entity
-            setattr(new, entity_class.key, entity)  # create shortcut simulation.household (for instance)
+        for entity in self.tax_benefit_system.group_entities:
+            population = self.populations[entity.key].clone(new)
+            new.populations[entity.key] = population
+            setattr(new, entity.key, population)  # create shortcut simulation.household (for instance)
 
         new.debug = debug
         new.trace = trace
