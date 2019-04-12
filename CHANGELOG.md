@@ -1,5 +1,19 @@
 # Changelog
 
+# 32.0.0 [#857](https://github.com/openfisca/openfisca-core/pull/857)
+
+### Breaking changes
+
+- Split the "Entity" class hierarchy (Entity, PersonEntity, GroupEntity) into two parallel hierarchies, representing respectively the abstract, model-level information (classes named Entity etc.) and the population-level information (classes named Population and GroupPopulation)
+  - As a result, the first parameter passed to a formula is now a Population instance
+  - Much more detail (and class diagrams) in the PR description
+- Remove support from the syntax `some_entity.SOME_ROLE` to access roles (where `some_entity` is the entity passed to a formula).
+
+### Migration details
+
+- Use the standard SomeEntity.SOME_ROLE instead. (Where SomeEntity is the capitalized entity or instance, Household.PARENT.)
+- Code that relied excessively on internal implementation details of Entity may break, and should be updated to access methods of Entity/Population instead.
+
 # 31.0.1 [#840](https://github.com/openfisca/openfisca-core/pull/840)
 
 - Improve usability of Enum values:
