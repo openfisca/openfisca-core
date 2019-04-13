@@ -47,7 +47,7 @@ def test_trace_enums():
     tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.array(['tenant'])))
 
     lines = tracer.computation_log()
-    assert lines[0] == '  A<2017> >> [\'tenant\']'
+    assert lines[0] == "  A<2017> >> ['tenant']"
 
 
 #  Tests on tracing with fancy indexing
