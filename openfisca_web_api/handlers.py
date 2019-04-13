@@ -6,7 +6,7 @@ from copy import deepcopy
 import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.indexed_enums import Enum
+from openfisca_core.indexed_enums import Enum, EnumArray
 
 
 def calculate(tax_benefit_system, input_data):
@@ -52,8 +52,8 @@ def trace(tax_benefit_system, input_data):
     trace = deepcopy(simulation.tracer.trace)
     for _vector_key, vector_trace in trace.items():
         value = vector_trace['value'].tolist()
-        if isinstance(value[0], Enum):
-            value = [item.name for item in value]
+        if isinstance(vector_trace['value'], EnumArray):
+            value = [item.name for item in vector_trace['value'].decode()]
         if isinstance(value[0], bytes):
             value = [str(item) for item in value]
         vector_trace['value'] = value

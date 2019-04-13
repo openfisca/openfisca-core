@@ -32,6 +32,16 @@ def test_trace_basic():
     assert_items_equal(basic_income_dep, ['age<2017-01>'])
 
 
+def test_trace_enums():
+    new_single = deepcopy(single)
+    new_single['households']['_']['housing_occupancy_status'] = {"2017-01": None}
+    simulation_json = json.dumps(new_single)
+    response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
+    response_json = json.loads(response.data)
+    housing_status = dpath.util.get(response_json, 'trace/housing_occupancy_status<2017-01>/value')
+    assert housing_status[0] == 'tenant'  # The default value
+
+
 def test_entities_description():
     simulation_json = json.dumps(couple)
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')

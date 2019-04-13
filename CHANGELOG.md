@@ -1,5 +1,9 @@
 # Changelog
 
+## 32.1.0 [#863](https://github.com/openfisca/openfisca-core/pull/863)
+
+- Display symbolic values of Enums in /trace and print_computation_log
+
 # 32.0.0 [#857](https://github.com/openfisca/openfisca-core/pull/857)
 
 ### Breaking changes

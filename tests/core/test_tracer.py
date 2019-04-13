@@ -6,6 +6,7 @@ import pytest
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.tools import assert_near
 
+from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
 
@@ -38,6 +39,15 @@ def test_log_format():
     lines = tracer.computation_log()
     assert lines[0] == '  A<2017> >> 2'
     assert lines[1] == '    B<2017> >> 1'
+
+
+def test_trace_enums():
+    tracer = Tracer()
+    tracer.record_calculation_start("A", 2017)
+    tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.array(['tenant'])))
+
+    lines = tracer.computation_log()
+    assert lines[0] == "  A<2017> >> ['tenant']"
 
 
 #  Tests on tracing with fancy indexing
