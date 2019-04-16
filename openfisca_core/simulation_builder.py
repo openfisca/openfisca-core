@@ -557,25 +557,22 @@ def transform_to_strict_syntax(data):
     return data
 
 
-def iter_over_entity_members(entity_description, scenario_entity):
-    # One by one, yield individu_role, individy_legacy_role, individu_id
-    legacy_role_i = 0
-    for role in entity_description.roles:
+def iter_over_entity_members(entity, roles_json):
+    # One by one, yield individu_role, individu_id
+    for role in entity.roles:
         role_name = role.plural or role.key
-        individus = scenario_entity.get(role_name)
+        persons_with_role = roles_json.get(role_name)
 
-        if individus:
-            if not type(individus) == list:
-                individus = [individus]
+        if not persons_with_role:
+            continue
+        if not type(persons_with_role) == list:
+            persons_with_role = [persons_with_role]
 
-            legacy_role_j = 0
-            for individu in individus:
-                if role.subroles:
-                    yield role.subroles[legacy_role_j], individu
-                else:
-                    yield role, individu
-                legacy_role_j += 1
-        legacy_role_i += (role.max or 1)
+        for index, individu in enumerate(persons_with_role):
+            if role.subroles:
+                yield role.subroles[index], individu
+            else:
+                yield role, individu
 
 
 def _get_person_count(input_dict):
