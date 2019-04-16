@@ -285,7 +285,7 @@ class SimulationBuilder(object):
                     persons_to_allocate.discard(person_id)
 
             entity_index = entity_ids.index(instance_id)
-            for person_role, person_id in iter_over_entity_members(entity, roles_json):
+            for person_role, person_id in iter_over_entity_members(entity, roles_json, instance_id):
                 person_index = persons_ids.index(person_id)
                 self.memberships[entity.plural][person_index] = entity_index
                 self.roles[entity.plural][person_index] = person_role
@@ -557,7 +557,7 @@ def transform_to_strict_syntax(data):
     return data
 
 
-def iter_over_entity_members(entity, roles_json):
+def iter_over_entity_members(entity, roles_json, instance_id):
     # One by one, yield individu_role, individu_id
     for role in entity.roles:
         role_name = role.plural or role.key
@@ -567,6 +567,9 @@ def iter_over_entity_members(entity, roles_json):
             continue
         if not type(persons_with_role) == list:
             persons_with_role = [persons_with_role]
+
+        if role.max is not None and len(persons_with_role) > role.max:
+            raise SituationParsingError([entity.plural, instance_id, role_name], f"There can be at most {role.max} {role_name} in a {entity.key}. {len(persons_with_role)} were declared in '{instance_id}'.")
 
         for index, individu in enumerate(persons_with_role):
             if role.subroles:
