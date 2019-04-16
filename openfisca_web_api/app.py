@@ -117,7 +117,7 @@ def create_app(tax_benefit_system,
     def get_spec():
         return jsonify({
             **data['openAPI_spec'],
-            **{'host': request.host_url},
+            **{'host': request.host},
             **{'schemes': [request.environ['wsgi.url_scheme']]}
             })
 

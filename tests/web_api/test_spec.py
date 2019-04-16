@@ -53,3 +53,7 @@ def test_situation_definition():
         assert_in('persons', dpath.get(situation, '/properties'))
         assert "#/definitions/Household" == dpath.get(situation, '/properties/households/additionalProperties/$ref')
         assert "#/definitions/Person" == dpath.get(situation, '/properties/persons/additionalProperties/$ref')
+
+
+def test_host():
+    assert 'http' not in body['host']

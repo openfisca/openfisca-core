@@ -1,5 +1,10 @@
 # Changelog
 
+### 32.1.1 [#864](https://github.com/openfisca/openfisca-core/pull/864)
+
+- Fix host in the `/spec` route of the Web API
+  - The host should not include the HTTP scheme (http or https)
+
 ## 32.1.0 [#863](https://github.com/openfisca/openfisca-core/pull/863)
 
 - Display symbolic values of Enums in /trace and print_computation_log
@@ -69,7 +74,7 @@ For additional details, see the PR's [description](https://github.com/openfisca/
 #### Bug fix
 
 - Fix error on simulation debug attribute at simulation clone
-- Details:   
+- Details:
   - Fixes `AttributeError: 'Simulation' object has no attribute 'debug'` introduced by Core v.`29.0.0`.
 
 ### 29.0.1 [#851](https://github.com/openfisca/openfisca-core/pull/851)
@@ -111,7 +116,7 @@ simulation.trace = True
 
 #### Breaking changes
 
-Remove extra_params altogether from Core. This puts all formulas on an equal footing and simplifies 
+Remove extra_params altogether from Core. This puts all formulas on an equal footing and simplifies
 simulation and data storage code.
 
 #### Migration notes
@@ -153,7 +158,7 @@ This change is not expected to actually break much reusing code (if any), as it 
 
 - Allow to create a simulation step by step:
   1. Create entities with `SimulationBuilder.create_entities(...)`
-  2. Declare your population 
+  2. Declare your population
       with `SimulationBuilder.declare_person_entity(...)` and `SimulationBuilder.declare_entity(...)`
   3. Link between persons in population definition with `SimulationBuilder.join_with_persons(...)`
   4. Build a simulation with `SimulationBuilder.build(...)`
