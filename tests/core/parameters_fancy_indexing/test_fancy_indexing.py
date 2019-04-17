@@ -17,7 +17,7 @@ P = parameters.rate('2015-01-01')
 
 
 def get_message(error):
-    return error.args[0].decode()
+    return error.args[0]
 
 
 def test_on_leaf():

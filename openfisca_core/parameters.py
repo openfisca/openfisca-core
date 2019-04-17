@@ -75,7 +75,7 @@ class ParameterNotFound(AttributeError):
         message += (
             " was not found in the {} tax and benefit system."
             ).format(instant_str)
-        super(ParameterNotFound, self).__init__(message.encode('utf-8'))
+        super(ParameterNotFound, self).__init__(message)
 
 
 class ParameterParsingError(Exception):
@@ -95,7 +95,7 @@ class ParameterParsingError(Exception):
                 message
                 ])
         if traceback is not None:
-            message = os.linesep.join([traceback, message]).encode('utf-8')
+            message = os.linesep.join([traceback, message])
         super(ParameterParsingError, self).__init__(message)
 
 
@@ -437,9 +437,9 @@ class ParameterNode(object):
         :param child: The new child, an instance of :any:`Scale` or :any:`Parameter` or :any:`ParameterNode`.
         """
         if name in self.children:
-            raise ValueError("{} has already a child named {}".format(self.name, name).encode('utf-8'))
+            raise ValueError("{} has already a child named {}".format(self.name, name))
         if not (isinstance(child, ParameterNode) or isinstance(child, Parameter) or isinstance(child, Scale)):
-            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)).encode('utf-8'))
+            raise TypeError("child must be of type ParameterNode, Parameter, or Scale. Instead got {}".format(type(child)))
         self.children[name] = child
         setattr(self, name, child)
 
@@ -518,7 +518,7 @@ class ParameterNodeAtInstant(object):
                 for name, value in self._children.items()]
             )
         if sys.version_info < (3, 0):
-            return result.encode('utf-8')
+            return result
         return result
 
 
@@ -568,7 +568,7 @@ class VectorialParameterNodeAtInstant(object):
                 node._name,
                 '.'.join([node_with_key, missing_key]),
                 '.'.join([node_without_key, missing_key]),
-                ).encode('utf-8')
+                )
 
             raise ValueError(message)
 
@@ -582,7 +582,7 @@ class VectorialParameterNodeAtInstant(object):
                 node._name,
                 node_name,
                 non_node_name,
-                ).encode('utf-8')
+                )
 
             raise ValueError(message)
 
@@ -595,7 +595,7 @@ class VectorialParameterNodeAtInstant(object):
                 node._name,
                 node_name,
                 node_type,
-                ).encode('utf-8')
+                )
             raise NotImplementedError(message)
 
         def extract_named_children(node):
@@ -817,7 +817,7 @@ def load_parameter_file(file_path, name = ''):
     :returns: An instance of :any:`ParameterNode` or :any:`Scale` or :any:`Parameter`.
     """
     if not os.path.exists(file_path):
-        raise ValueError("{} doest not exist".format(file_path).encode('utf-8'))
+        raise ValueError("{} doest not exist".format(file_path))
     if os.path.isdir(file_path):
         return ParameterNode(name, directory_path = file_path)
     data = _load_yaml_file(file_path)
