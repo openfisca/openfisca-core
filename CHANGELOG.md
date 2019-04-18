@@ -1,5 +1,12 @@
 # Changelog
 
+# 33.0.0
+
+### Breaking changes
+
+- Duplicate keys in YAML parameter files now raise an error
+    - Before, only one of the two values declared was taking into account, while the other was silently ignored
+
 ### 32.1.1 [#864](https://github.com/openfisca/openfisca-core/pull/864)
 
 - Fix host in the `/spec` route of the Web API
