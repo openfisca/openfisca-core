@@ -33,6 +33,7 @@ def check(file_name, keywords):
     ('wrong_type_in_brackets', {'must be of type array'}),
     ('wrong_type_in_bracket', {'must be of type object'}),
     ('missing_value', {'missing', 'value'}),
+    ('duplicate_key', {'duplicate'}),
     ])
 def test_parsing_errors(test):
     with pytest.raises(ParameterParsingError):
