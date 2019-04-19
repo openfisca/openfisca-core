@@ -14,7 +14,7 @@ general_requirements = [
     'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
-    'sortedcontainers == 1.5.9',
+    'sortedcontainers == 2.1.0',
     'numexpr == 2.6.8',
     ]
 
