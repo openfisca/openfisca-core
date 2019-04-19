@@ -4,6 +4,7 @@ import logging
 import sys
 import os
 import traceback
+import textwrap
 
 import pytest
 
@@ -86,7 +87,7 @@ class YamlFile(pytest.File):
     def collect(self):
         try:
             tests = yaml.load(self.fspath.open(), Loader = Loader)
-        except (yaml.scanner.ScannerError, TypeError):
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError, TypeError):
             message = os.linesep.join([
                 traceback.format_exc(),
                 f"'{self.fspath}' is not a valid YAML file. Check the stack trace above for more details.",
@@ -97,7 +98,7 @@ class YamlFile(pytest.File):
             tests = [tests]
         for test in tests:
             if not self.should_ignore(test):
-                yield YamlItem(self.fspath.basename, self, self.tax_benefit_system, test, self.options)
+                yield YamlItem('', self, self.tax_benefit_system, test, self.options)
 
     def should_ignore(self, test):
         name_filter = self.options.get('name_filter')
@@ -119,13 +120,13 @@ class YamlItem(pytest.Item):
         self.tax_benefit_system = None
 
     def parse_test(self):
-        name = self.test.get('name', '')
+        self.name = self.test.get('name', '')
         if not self.test.get('output'):
-            raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(name, self.fspath))
+            raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(self.name, self.fspath))
 
         if not TEST_KEYWORDS.issuperset(self.test.keys()):
             unexpected_keys = set(self.test.keys()).difference(TEST_KEYWORDS)
-            raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, name, self.fspath))
+            raise ValueError("Unexpected keys {} in test '{}' in file '{}'".format(unexpected_keys, self.name, self.fspath))
 
         self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
 
@@ -137,14 +138,8 @@ class YamlItem(pytest.Item):
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
             self.simulation.trace = verbose
-        except SituationParsingError as error:
-            message = os.linesep.join([
-                traceback.format_exc(),
-                str(error.error),
-                os.linesep,
-                "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(name, self.fspath),
-                ])
-            raise ValueError(message)
+        except (VariableNotFound, SituationParsingError):
+            raise
         except Exception as e:
             error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
             raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
@@ -195,7 +190,7 @@ class YamlItem(pytest.Item):
             actual_value,
             expected_value,
             absolute_error_margin = self.test.get('absolute_error_margin'),
-            message = f"In test '{self.test.get('name')}', in file '{self.fspath}', {variable_name}@{period}: ",
+            message = f"{variable_name}@{period}: ",
             relative_error_margin = self.test.get('relative_error_margin'),
             )
 
@@ -206,6 +201,20 @@ class YamlItem(pytest.Item):
         variable_not_tested = only_variables is not None and variable_name not in only_variables
 
         return variable_ignored or variable_not_tested
+
+    def repr_failure(self, excinfo):
+        if not isinstance(excinfo.value, (AssertionError, VariableNotFound, SituationParsingError)):
+            return super(YamlItem, self).repr_failure(excinfo)
+
+        message = excinfo.value.args[0]
+        if isinstance(excinfo.value, SituationParsingError):
+            message = f"Could not parse situation described: {message}"
+
+        return os.linesep.join([
+            f"{str(self.fspath)}:",
+            f"  Test '{str(self.name)}':",
+            textwrap.indent(message, '    ')
+            ])
 
 
 class OpenFiscaPlugin(object):

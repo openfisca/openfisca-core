@@ -113,7 +113,7 @@ class Simulation(object):
         """
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -164,7 +164,7 @@ class Simulation(object):
             holder.delete_arrays(_period)
 
     def calculate_add(self, variable_name, period, **parameters):
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -188,7 +188,7 @@ class Simulation(object):
             )
 
     def calculate_divide(self, variable_name, period, **parameters):
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -450,7 +450,7 @@ class Simulation(object):
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         period = periods.period(period)
         if ((variable.end is not None) and (period.start.date > variable.end)):
             return
