@@ -1,5 +1,16 @@
 # Changelog
 
+# 34.0.0
+
+#### Technical changes
+
+- Use pytest instead of nose in `openfica test`
+
+### Breaking changes
+
+- Remove `generate_tests` function from `openfisca_core.tools.test_runner`:
+  - While this function was public and documented, its purpose was primarily internal and is unlikely to have been directly used by users.
+
 ### 33.0.1
 
 - Improve error message when too many persons are given a role with a `max` attribute
