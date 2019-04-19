@@ -1,4 +1,4 @@
-- name: "Test that sould be run because the magic word `success is in its title"
+- name: "Test that sould be run because the magic word success is in its title"
   period: 2015-01
   input:
     salary: 2000

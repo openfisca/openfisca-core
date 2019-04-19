@@ -32,7 +32,7 @@ class VariableNotFound(Exception):
             ])
         self.message = message
         self.variable_name = variable_name
-        Exception.__init__(self, self.message.encode('utf-8'))
+        Exception.__init__(self, self.message)
 
 
 class SituationParsingError(Exception):

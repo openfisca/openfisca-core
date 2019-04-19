@@ -1,4 +1,4 @@
-from openfisca_core.tools.test_runner import _run_test, _get_tax_benefit_system
+from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem
 from openfisca_core.errors import VariableNotFound
 
 
@@ -29,17 +29,24 @@ class Reform(TaxBenefitSystem):
 
 class Simulation:
     def __init__(self):
-        self.tax_benefit_system = TaxBenefitSystem()
         self.populations = {}
 
     def get_population(self, plural = None):
         return None
 
 
+class TestItem(YamlItem):
+    def __init__(self, test):
+        self.test = test
+        self.simulation = Simulation()
+        self.tax_benefit_system = TaxBenefitSystem()
+
+
 def test_variable_not_found():
     test = {"output": {"unknown_variable": 0}}
     with pytest.raises(VariableNotFound) as excinfo:
-        _run_test(Simulation(), test)
+        test_item = TestItem(test)
+        test_item.check_output()
     assert excinfo.value.variable_name == "unknown_variable"
 
 
