@@ -751,7 +751,7 @@ def instant(instant):
         return instant
     if isinstance(instant, str):
         if not INSTANT_PATTERN.match(instant):
-            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant).encode('utf-8'))
+            raise ValueError("'{}' is not a valid instant. Instants are described using the 'YYYY-MM-DD' format, for instance '2015-06-15'.".format(instant))
         instant = Instant(
             int(fragment)
             for fragment in instant.split('-', 2)[:3]
@@ -834,7 +834,7 @@ def period(value):
             "Expected a period (eg. '2017', '2017-01', '2017-01-01', ...); got: '{}'.".format(value),
             "Learn more about legal period formats in OpenFisca:",
             "<https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-simulations>."
-            ]).encode('utf-8')
+            ])
         raise ValueError(message)
 
     if value == 'ETERNITY' or value == ETERNITY:

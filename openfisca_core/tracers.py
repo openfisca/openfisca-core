@@ -143,7 +143,7 @@ class Tracer(object):
         if not key == expected_key:
             raise ValueError(
                 "Something went wrong with the simulation tracer: result of '{0}' was expected, got results for '{1}' instead. This does not make sense as the last variable we started computing was '{0}'."
-                .format(expected_key, key).encode('utf-8')
+                .format(expected_key, key)
                 )
         self.trace[key]['value'] = result
 

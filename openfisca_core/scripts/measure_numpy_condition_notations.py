@@ -27,7 +27,7 @@ def measure_time(title):
     t1 = time.time()
     yield
     t2 = time.time()
-    print('{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1).encode('utf-8'))
+    print('{}\t: {:.8f} seconds elapsed'.format(title, t2 - t1))
 
 
 def switch_fromiter(conditions, function_by_condition, dtype):
