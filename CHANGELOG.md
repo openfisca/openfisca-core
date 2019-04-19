@@ -1,5 +1,10 @@
 # Changelog
 
+### 33.0.1
+
+- Improve error message when too many persons are given a role with a `max` attribute
+    - This error typically happens when 3 parents are declared in a family, while the entity declaration specifies there can be at most 2.
+
 # 33.0.0
 
 ### Breaking changes

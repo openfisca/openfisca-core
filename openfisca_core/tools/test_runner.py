@@ -232,8 +232,6 @@ def _parse_test(tax_benefit_system, test, options, yaml_path):
         builder.set_default_period(period)
         simulation = builder.build_from_dict(current_tax_benefit_system, input)
         simulation.trace = verbose
-    except Exception:
-        raise ValueError("Unexpected error while parsing {}".format(test['file_path']))
     except SituationParsingError as error:
         message = os.linesep.join([
             traceback.format_exc(),
@@ -242,6 +240,9 @@ def _parse_test(tax_benefit_system, test, options, yaml_path):
             "Could not parse situation described in test '{}' in YAML file '{}'. Check the stack trace above for more details.".format(name, yaml_path),
             ])
         raise ValueError(message)
+    except Exception as e:
+        error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{test['file_path']}'"])
+        raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
     return simulation, test
 
 
