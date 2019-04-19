@@ -2,8 +2,9 @@
 
 from http.client import OK, NOT_FOUND
 import json
+import re
+
 import pytest
-from nose.tools import assert_equal, assert_regexp_matches, assert_in, assert_is_none, assert_not_in
 from . import subject
 
 
@@ -23,13 +24,10 @@ def test_return_code():
 
 def test_response_data():
     variables = json.loads(variables_response.data.decode('utf-8'))
-    assert_equal(
-        variables['birth'],
-        {
-            'description': 'Birth date',
-            'href': 'http://localhost/variable/birth'
-            }
-        )
+    assert variables['birth'] == {
+        'description': 'Birth date',
+        'href': 'http://localhost/variable/birth'
+        }
 
 
 # /variable/<id>
@@ -65,7 +63,7 @@ def test_input_variable_value(expected_values):
 
 
 def test_input_variable_github_url():
-    assert_regexp_matches(input_variable['source'], GITHUB_URL_REGEX)
+    assert re.match(GITHUB_URL_REGEX, input_variable['source'])
 
 
 variable_response = subject.get('/variable/income_tax')
@@ -92,7 +90,7 @@ def test_variable_value(expected_values):
 
 
 def test_variable_formula_github_link():
-    assert_regexp_matches(variable['formulas']['0001-01-01']['source'], GITHUB_URL_REGEX)
+    assert re.match(GITHUB_URL_REGEX, variable['formulas']['0001-01-01']['source'])
 
 
 def test_variable_formula_content():
@@ -103,15 +101,15 @@ def test_variable_formula_content():
 def test_null_values_are_dropped():
     variable_response = subject.get('/variable/age')
     variable = json.loads(variable_response.data.decode('utf-8'))
-    assert_not_in('references', variable.keys())
+    assert 'references' not in variable.keys()
 
 
 def test_variable_with_start_and_stop_date():
     response = subject.get('/variable/housing_allowance')
     variable = json.loads(response.data.decode('utf-8'))
     assert_items_equal(variable['formulas'], ['1980-01-01', '2016-12-01'])
-    assert_is_none(variable['formulas']['2016-12-01'])
-    assert_in('formula', variable['formulas']['1980-01-01']['content'])
+    assert variable['formulas']['2016-12-01'] is None
+    assert 'formula' in variable['formulas']['1980-01-01']['content']
 
 
 def test_variable_with_enum():
@@ -119,12 +117,12 @@ def test_variable_with_enum():
     variable = json.loads(response.data.decode('utf-8'))
     assert variable['valueType'] == 'String'
     assert variable['defaultValue'] == 'tenant'
-    assert_in('possibleValues', variable.keys())
-    assert_equal(variable['possibleValues'], {
+    assert 'possibleValues' in variable.keys()
+    assert variable['possibleValues'] == {
         'free_lodger': 'Free lodger',
         'homeless': 'Homeless',
         'owner': 'Owner',
-        'tenant': 'Tenant'})
+        'tenant': 'Tenant'}
 
 
 dated_variable_response = subject.get('/variable/basic_income')
@@ -157,8 +155,6 @@ def test_variable_encoding():
 def test_variable_documentation():
     response = subject.get('/variable/housing_allowance')
     variable = json.loads(response.data.decode('utf-8'))
-    assert_equal(variable['documentation'],
-        "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016.")
+    assert variable['documentation'] == "This allowance was introduced on the 1st of Jan 1980.\nIt disappeared in Dec 2016."
 
-    assert_equal(variable['formulas']['1980-01-01']['documentation'],
-        "\nTo compute this allowance, the 'rent' value must be provided for the same month, but 'housing_occupancy_status' is not necessary.\n")
+    assert variable['formulas']['1980-01-01']['documentation'] == "\nTo compute this allowance, the 'rent' value must be provided for the same month, but 'housing_occupancy_status' is not necessary.\n"

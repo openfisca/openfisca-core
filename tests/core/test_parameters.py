@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from nose.tools import assert_equal, raises
 import tempfile
+
+import pytest
 
 from openfisca_core.parameters import ParameterNotFound, ParameterNode, ParameterNodeAtInstant, load_parameter_file
 from .test_countries import tax_benefit_system
@@ -25,35 +26,26 @@ def test_param_values():
         }
 
     for date, value in dated_values.items():
-        assert_equal(
-            tax_benefit_system.get_parameters_at_instant(date).taxes.income_tax_rate,
-            value
-            )
+        assert tax_benefit_system.get_parameters_at_instant(date).taxes.income_tax_rate == value
 
 
-@raises(ParameterNotFound)
 def test_param_before_it_is_defined():
-    tax_benefit_system.get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
+    with pytest.raises(ParameterNotFound):
+        tax_benefit_system.get_parameters_at_instant('1997-12-31').taxes.income_tax_rate
 
 
 # The placeholder should have no effect on the parameter computation
 def test_param_with_placeholder():
-    assert_equal(
-        tax_benefit_system.get_parameters_at_instant('2018-01-01').taxes.income_tax_rate,
-        0.15
-        )
+    assert tax_benefit_system.get_parameters_at_instant('2018-01-01').taxes.income_tax_rate == 0.15
 
 
 def test_stopped_parameter_before_end_value():
-    assert_equal(
-        tax_benefit_system.get_parameters_at_instant('2011-12-31').benefits.housing_allowance,
-        0.25
-        )
+    assert tax_benefit_system.get_parameters_at_instant('2011-12-31').benefits.housing_allowance == 0.25
 
 
-@raises(ParameterNotFound)
 def test_stopped_parameter_after_end_value():
-    tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
+    with pytest.raises(ParameterNotFound):
+        tax_benefit_system.get_parameters_at_instant('2016-12-01').benefits.housing_allowance
 
 
 def test_parameter_for_period():
@@ -61,10 +53,10 @@ def test_parameter_for_period():
     assert income_tax_rate("2015") == income_tax_rate("2015-01-01")
 
 
-@raises(ValueError)
 def test_wrong_value():
     income_tax_rate = tax_benefit_system.parameters.taxes.income_tax_rate
-    income_tax_rate("test")
+    with pytest.raises(ValueError):
+        income_tax_rate("test")
 
 
 def test_parameter_repr():
@@ -97,8 +89,7 @@ def test_parameter_node_metadata():
 
 def test_parameter_documentation():
     parameter = tax_benefit_system.parameters.benefits.housing_allowance
-    assert_equal(parameter.documentation,
-        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n')
+    assert parameter.documentation == 'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.\n'
 
 
 def test_get_descendants():

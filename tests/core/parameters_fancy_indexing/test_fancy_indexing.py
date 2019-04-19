@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 
 import numpy as np
-from nose.tools import raises, assert_in, assert_regexp_matches
+import pytest
+
 
 from openfisca_core.tools import assert_near
 from openfisca_core.parameters import ParameterNode, Parameter, ParameterNotFound
@@ -55,17 +57,13 @@ def test_triple_fancy_indexing():
     assert_near(P[family_status][housing_occupancy_status][zone], [100, 200, 300, 400, 500, 600, 700, 800])
 
 
-@raises(ParameterNotFound)
 def test_wrong_key():
     zone = np.asarray(['z1', 'z2', 'z2', 'toto'])
-    try:
+    with pytest.raises(ParameterNotFound) as e:
         P.single.owner[zone]
-    except ParameterNotFound as e:
-        assert_in("'rate.single.owner.toto' was not found", get_message(e))
-        raise
+    assert "'rate.single.owner.toto' was not found" in get_message(e.value)
 
 
-@raises(ValueError)
 def test_inhomogenous():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.owner.add_child('toto', Parameter('toto', {
@@ -78,15 +76,12 @@ def test_inhomogenous():
 
     P = parameters.rate('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
-    try:
+    with pytest.raises(ValueError) as error:
         P.couple[housing_occupancy_status]
-    except ValueError as e:
-        assert_in("'rate.couple.owner.toto' exists", get_message(e))
-        assert_in("'rate.couple.tenant.toto' doesn't", get_message(e))
-        raise
+    assert "'rate.couple.owner.toto' exists" in get_message(error.value)
+    assert "'rate.couple.tenant.toto' doesn't" in get_message(error.value)
 
 
-@raises(ValueError)
 def test_inhomogenous_2():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.tenant.add_child('toto', Parameter('toto', {
@@ -99,15 +94,12 @@ def test_inhomogenous_2():
 
     P = parameters.rate('2015-01-01')
     housing_occupancy_status = np.asarray(['owner', 'owner', 'tenant', 'tenant'])
-    try:
+    with pytest.raises(ValueError) as e:
         P.couple[housing_occupancy_status]
-    except ValueError as e:
-        assert_in("'rate.couple.tenant.toto' exists", get_message(e))
-        assert_in("'rate.couple.owner.toto' doesn't", get_message(e))
-        raise
+    assert "'rate.couple.tenant.toto' exists" in get_message(e.value)
+    assert "'rate.couple.owner.toto' doesn't" in get_message(e.value)
 
 
-@raises(ValueError)
 def test_inhomogenous_3():
     parameters = ParameterNode(directory_path = LOCAL_DIR)
     parameters.rate.couple.tenant.add_child('z4', ParameterNode('toto', data = {
@@ -121,12 +113,10 @@ def test_inhomogenous_3():
 
     P = parameters.rate('2015-01-01')
     zone = np.asarray(['z1', 'z2', 'z2', 'z1'])
-    try:
+    with pytest.raises(ValueError) as e:
         P.couple.tenant[zone]
-    except ValueError as e:
-        assert_in("'rate.couple.tenant.z4' is a node", get_message(e))
-        assert_regexp_matches(get_message(e), r"'rate.couple.tenant.z(1|2|3)' is not")
-        raise
+    assert "'rate.couple.tenant.z4' is a node" in get_message(e.value)
+    assert re.findall(r"'rate.couple.tenant.z(1|2|3)' is not", get_message(e.value))
 
 
 P_2 = parameters.local_tax('2015-01-01')
@@ -140,15 +130,12 @@ def test_with_properties_starting_by_number():
 P_3 = parameters.bareme('2015-01-01')
 
 
-@raises(NotImplementedError)
 def test_with_bareme():
     city_code = np.asarray(['75012', '75007', '75015'])
-    try:
-        P_3[city_code], [100, 300, 200]
-    except NotImplementedError as e:
-        assert_regexp_matches(get_message(e), r"'bareme.7501\d' is a 'MarginalRateTaxScale'")
-        assert_in("has not been implemented", get_message(e))
-        raise
+    with pytest.raises(NotImplementedError) as e:
+        P_3[city_code]
+    assert re.findall(r"'bareme.7501\d' is a 'MarginalRateTaxScale'", get_message(e.value))
+    assert "has not been implemented" in get_message(e.value)
 
 
 def test_with_enum():

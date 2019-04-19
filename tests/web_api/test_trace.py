@@ -3,7 +3,6 @@
 import json
 from copy import deepcopy
 
-from nose.tools import assert_is_instance
 from http.client import OK
 import dpath
 from openfisca_country_template.situation_examples import single, couple
@@ -21,8 +20,8 @@ def test_trace_basic():
     assert response.status_code == OK
     response_json = json.loads(response.data.decode('utf-8'))
     disposable_income_value = dpath.util.get(response_json, 'trace/disposable_income<2017-01>/value')
-    assert_is_instance(disposable_income_value, list)
-    assert_is_instance(disposable_income_value[0], float)
+    assert isinstance(disposable_income_value, list)
+    assert isinstance(disposable_income_value[0], float)
     disposable_income_dep = dpath.util.get(response_json, 'trace/disposable_income<2017-01>/dependencies')
     assert_items_equal(
         disposable_income_dep,

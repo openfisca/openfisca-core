@@ -1,4 +1,4 @@
-from nose.tools import raises
+import pytest
 
 from openfisca_country_template import CountryTaxBenefitSystem
 
@@ -24,6 +24,6 @@ def test_access_to_parameters():
     assert tbs.parameters.local_town.child_allowance.amount('2016-01') == 100.0
 
 
-@raises(ValueError)
 def test_failure_to_load_extension_when_directory_doesnt_exist():
-    original_tbs.load_extension('/this/is/not/a/real/path')
+    with pytest.raises(ValueError):
+        original_tbs.load_extension('/this/is/not/a/real/path')

@@ -4,7 +4,7 @@ import pkg_resources
 import os
 import subprocess
 
-from nose.tools import nottest, raises
+import pytest
 import openfisca_extension_template
 
 from openfisca_core.tools.test_runner import run_tests
@@ -18,11 +18,6 @@ EXIT_OK = 0
 EXIT_TESTSFAILED = 1
 
 
-# Declare that these two functions are not tests to run with nose
-nottest(run_tests)
-
-
-@nottest
 def run_yaml_test(path, options = None):
     yaml_path = os.path.join(yaml_tests_dir, path)
 
@@ -92,12 +87,12 @@ def test_shell_script():
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
-@raises(subprocess.CalledProcessError)
 def test_failing_shell_script():
     yaml_path = os.path.join(yaml_tests_dir, 'test_failure.yaml')
     command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_dummy_country']
     with open(os.devnull, 'wb') as devnull:
-        subprocess.check_call(command, stdout = devnull, stderr = devnull)
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_call(command, stdout = devnull, stderr = devnull)
 
 
 def test_shell_script_with_reform():

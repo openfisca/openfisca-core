@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-from nose.tools import raises
+import pytest
 
 from openfisca_core.formula_helpers import apply_thresholds as apply_thresholds
 from openfisca_core.tools import assert_near
 
 
-@raises(AssertionError)
 def test_apply_thresholds_with_too_many_thresholds():
     input = numpy.array([10])
     thresholds = [5, 4]
     choice_list = [10]
-    return apply_thresholds(input, thresholds, choice_list)
+    with pytest.raises(AssertionError):
+        return apply_thresholds(input, thresholds, choice_list)
 
 
-@raises(AssertionError)
 def test_apply_thresholds_with_too_few_thresholds():
     input = numpy.array([10])
     thresholds = [5]
     choice_list = [10, 15, 20]
-    return apply_thresholds(input, thresholds, choice_list)
+    with pytest.raises(AssertionError):
+        return apply_thresholds(input, thresholds, choice_list)
 
 
 def test_apply_thresholds():

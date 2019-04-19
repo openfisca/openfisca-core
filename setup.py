@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 general_requirements = [
     'dpath == 1.4.0',
     'enum34 >= 1.1.6',
-    'nose < 2.0.0',  # For openfisca test
+    'pytest >= 4.0.0, < 5.0.0',  # For openfisca test
     'numpy >= 1.11, < 1.16',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
@@ -29,7 +29,6 @@ dev_requirements = [
     'flake8 >= 3.7.0, < 3.8.0',
     'flake8-bugbear >= 19.3.0, < 20.0.0',
     'flake8-print >= 3.1.0, < 4.0.0',
-    'pytest >= 4.0.0, < 5.0.0',
     'pytest-cov >= 2.0.0, < 3.0.0',
     'openfisca-country-template >= 3.6.0rc0, < 4.0.0',
     'openfisca-extension-template >= 1.2.0rc0, < 2.0.0'
@@ -75,5 +74,4 @@ setup(
             ],
         },
     packages = find_packages(exclude=['tests*']),
-    test_suite = 'nose.collector',
     )
