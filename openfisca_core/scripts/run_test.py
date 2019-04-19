@@ -23,7 +23,4 @@ def main(parser):
         }
 
     paths = [os.path.abspath(path) for path in args.path]
-    tests_ok = run_tests(tax_benefit_system, paths, options)
-
-    if not tests_ok:
-        sys.exit(1)
+    sys.exit(run_tests(tax_benefit_system, paths, options))

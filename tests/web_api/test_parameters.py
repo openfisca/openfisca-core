@@ -2,8 +2,9 @@
 
 from http.client import OK, NOT_FOUND
 import json
+import re
+
 import pytest
-from nose.tools import assert_equal, assert_regexp_matches, assert_in
 from . import subject
 
 # /parameters
@@ -19,17 +20,11 @@ def test_return_code():
 def test_response_data():
     parameters = json.loads(parameters_response.data.decode('utf-8'))
 
-    assert_equal(
-        parameters['taxes.income_tax_rate'],
-        {
-            'description': 'Income tax rate',
-            'href': 'http://localhost/parameter/taxes/income_tax_rate'
-            }
-        )
-    assert_equal(
-        parameters.get('taxes'),
-        None
-        )
+    assert parameters['taxes.income_tax_rate'] == {
+        'description': 'Income tax rate',
+        'href': 'http://localhost/parameter/taxes/income_tax_rate'
+        }
+    assert parameters.get('taxes') is None
 
 
 # /parameter/<id>
@@ -57,15 +52,17 @@ def test_parameter_values():
     assert parameter['description'] == 'Income tax rate'
     assert parameter['values'] == {'2015-01-01': 0.15, '2014-01-01': 0.14, '2013-01-01': 0.13, '2012-01-01': 0.16}
     assert parameter['metadata'] == {'unit': '/1'}
-    assert_regexp_matches(parameter['source'], GITHUB_URL_REGEX)
-    assert_in('taxes/income_tax_rate.yaml', parameter['source'])
+    assert re.match(GITHUB_URL_REGEX, parameter['source'])
+    assert 'taxes/income_tax_rate.yaml' in parameter['source']
 
     # 'documentation' attribute exists only when a value is defined
     response = subject.get('/parameter/benefits/housing_allowance')
     parameter = json.loads(response.data)
     assert sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source' == 'values']
-    assert_equal(parameter['documentation'],
-        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.')
+    assert (
+        parameter['documentation'] ==
+        'A fraction of the rent.\nFrom the 1st of Dec 2016, the housing allowance no longer exists.'
+        )
 
 
 def test_parameter_node():
@@ -73,15 +70,16 @@ def test_parameter_node():
     assert response.status_code == OK
     parameter = json.loads(response.data)
     assert sorted(list(parameter.keys())), ['description', 'documentation', 'id', 'metadata', 'source' == 'subparams']
-    assert_equal(parameter['documentation'],
-                "Government support for the citizens and residents of society. "
-                "\nThey may be provided to people of any income level, as with social security, "
-                "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
-                "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)")
-    assert_equal(parameter['subparams'], {
+    assert parameter['documentation'] == (
+        "Government support for the citizens and residents of society. "
+        "\nThey may be provided to people of any income level, as with social security, "
+        "\nbut usually it is intended to ensure that everyone can meet their basic human needs "
+        "\nsuch as food and shelter.\n(See https://en.wikipedia.org/wiki/Welfare)"
+        )
+    assert parameter['subparams'] == {
         'housing_allowance': {'description': 'Housing allowance amount (as a fraction of the rent)'},
         'basic_income': {'description': 'Amount of the basic income'}
-        }, parameter['subparams'])
+        }, parameter['subparams']
 
 
 def test_stopped_parameter_values():
@@ -94,13 +92,13 @@ def test_scale():
     response = subject.get('/parameter/taxes/social_security_contribution')
     parameter = json.loads(response.data)
     assert sorted(list(parameter.keys())), ['brackets', 'description', 'id', 'metadata' == 'source']
-    assert_equal(parameter['brackets'], {
+    assert parameter['brackets'] == {
         '2013-01-01': {"0.0": 0.03, "12000.0": 0.10},
         '2014-01-01': {"0.0": 0.03, "12100.0": 0.10},
         '2015-01-01': {"0.0": 0.04, "12200.0": 0.12},
         '2016-01-01': {"0.0": 0.04, "12300.0": 0.12},
         '2017-01-01': {"0.0": 0.02, "6000.0": 0.06, "12400.0": 0.12},
-        })
+        }
 
 
 def check_code(route, code):

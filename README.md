@@ -42,13 +42,13 @@ make test
 To run all the tests defined on a test file:
 
 ```sh
-nosetests core/test_parameters.py
+pytest tests/core/test_parameters.py
 ```
 
 To run a single test:
 
 ```sh
-nosetests core/test_parameters.py:test_parameter_for_period
+pytest tests/core/test_parameters.py -k test_parameter_for_period
 ```
 
 ## Style

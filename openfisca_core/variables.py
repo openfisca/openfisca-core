@@ -194,16 +194,16 @@ class Variable(object):
         if value is None and self.baseline_variable:
             return getattr(self.baseline_variable, attribute_name)
         if required and value is None:
-            raise ValueError("Missing attribute '{}' in definition of variable '{}'.".format(attribute_name, self.name).encode('utf-8'))
+            raise ValueError("Missing attribute '{}' in definition of variable '{}'.".format(attribute_name, self.name))
         if allowed_values is not None and value not in allowed_values:
             raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Allowed values are '{}'."
-                .format(value, attribute_name, self.name, allowed_values).encode('utf-8'))
+                .format(value, attribute_name, self.name, allowed_values))
         if allowed_type is not None and value is not None and not isinstance(value, allowed_type):
             if allowed_type == float and isinstance(value, int):
                 value = float(value)
             else:
                 raise ValueError("Invalid value '{}' for attribute '{}' in variable '{}'. Must be of type '{}'."
-                    .format(value, attribute_name, self.name, allowed_type).encode('utf-8'))
+                    .format(value, attribute_name, self.name, allowed_type))
         if setter is not None:
             value = setter(value)
         if value is None and default is not None:
@@ -218,7 +218,7 @@ class Variable(object):
     def set_possible_values(self, possible_values):
         if not issubclass(possible_values, Enum):
             raise ValueError("Invalid value '{}' for attribute 'possible_values' in variable '{}'. Must be a subclass of {}."
-            .format(possible_values, self.name, Enum).encode('utf-8'))
+            .format(possible_values, self.name, Enum))
         return possible_values
 
     def set_label(self, label):
@@ -230,7 +230,7 @@ class Variable(object):
             try:
                 return datetime.datetime.strptime(end, '%Y-%m-%d').date()
             except ValueError:
-                raise ValueError("Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end).encode('utf-8'))
+                raise ValueError("Incorrect 'end' attribute format in '{}'. 'YYYY-MM-DD' expected where YYYY, MM and DD are year, month and day. Found: {}".format(self.name, end))
 
     def set_reference(self, reference):
         if reference:
@@ -272,7 +272,7 @@ class Variable(object):
 
             if self.end is not None and starting_date > self.end:
                 raise ValueError('You declared that "{}" ends on "{}", but you wrote a formula to calculate it from "{}" ({}). The "end" attribute of a variable must be posterior to the start dates of all its formulas.'
-                    .format(self.name, self.end, starting_date, formula_name).encode('utf-8'))
+                    .format(self.name, self.end, starting_date, formula_name))
 
             formulas[str(starting_date)] = formula
 
@@ -302,7 +302,7 @@ class Variable(object):
         def raise_error():
             raise ValueError(
                 'Unrecognized formula name in variable "{}". Expecting "formula_YYYY" or "formula_YYYY_MM" or "formula_YYYY_MM_DD where YYYY, MM and DD are year, month and day. Found: "{}".'
-                .format(self.name, attribute_name).encode('utf-8'))
+                .format(self.name, attribute_name))
 
         if attribute_name == FORMULA_NAME_PREFIX:
             return date.min

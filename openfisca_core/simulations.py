@@ -100,7 +100,7 @@ class Simulation(object):
             log.warn((
                 "Intermediate results will be stored on disk in {} in case of memory overflow. "
                 "You should remove this directory once you're done with your simulation."
-                ).format(self._data_storage_dir).encode('utf-8'))
+                ).format(self._data_storage_dir))
         return self._data_storage_dir
 
     # ----- Calculation methods ----- #
@@ -113,7 +113,7 @@ class Simulation(object):
         """
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -164,7 +164,7 @@ class Simulation(object):
             holder.delete_arrays(_period)
 
     def calculate_add(self, variable_name, period, **parameters):
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -175,12 +175,12 @@ class Simulation(object):
                 variable.name,
                 period,
                 variable.definition_period
-                ).encode('utf-8'))
+                ))
 
         if variable.definition_period not in [periods.DAY, periods.MONTH, periods.YEAR]:
             raise ValueError("Unable to sum constant variable '{}' over period {}: only variables defined daily, monthly, or yearly can be summed over time.".format(
                 variable.name,
-                period).encode('utf-8'))
+                period))
 
         return sum(
             self.calculate(variable_name, sub_period, **parameters)
@@ -188,7 +188,7 @@ class Simulation(object):
             )
 
     def calculate_divide(self, variable_name, period, **parameters):
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -197,7 +197,7 @@ class Simulation(object):
         if variable.definition_period != periods.YEAR:
             raise ValueError("Unable to divide the value of '{}' over time on period {}: only variables defined yearly can be divided over time.".format(
                 variable_name,
-                period).encode('utf-8'))
+                period))
 
         if period.size != 1:
             raise ValueError("DIVIDE option can only be used for a one-year or a one-month requested period")
@@ -210,7 +210,7 @@ class Simulation(object):
 
         raise ValueError("Unable to divide the value of '{}' to match period {}.".format(
             variable_name,
-            period).encode('utf-8'))
+            period))
 
     def calculate_output(self, variable_name, period):
         """
@@ -263,20 +263,20 @@ class Simulation(object):
             raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole month. You can use the ADD option to sum '{0}' over the requested period, or change the requested period to 'period.first_month'.".format(
                 variable.name,
                 period
-                ).encode('utf-8'))
+                ))
 
         if variable.definition_period == periods.YEAR and period.unit != periods.YEAR:
             raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole year. You can use the DIVIDE option to get an estimate of {0} by dividing the yearly value by 12, or change the requested period to 'period.this_year'.".format(
                 variable.name,
                 period
-                ).encode('utf-8'))
+                ))
 
         if period.size != 1:
             raise ValueError("Unable to compute variable '{0}' for period {1}: '{0}' must be computed for a whole {2}. You can use the ADD option to sum '{0}' over the requested period.".format(
                 variable.name,
                 period,
                 'month' if variable.definition_period == periods.MONTH else 'year'
-                ).encode('utf-8'))
+                ))
 
     def _check_formula_result(self, value, variable, entity, period):
 
@@ -291,7 +291,7 @@ class Simulation(object):
         assert value.size == entity.count, \
             "Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
                 variable.name, entity.key, str(period), str(period), stringify_array(value),
-                value.size, entity.count, entity.key).encode('utf-8')
+                value.size, entity.count, entity.key)
 
         if self.debug:
             try:
@@ -300,7 +300,7 @@ class Simulation(object):
                     nan_count = np.count_nonzero(np.isnan(value))
                     raise NaNCreationError("Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
                         variable.name, entity.key, str(period), str(period), stringify_array(value),
-                        nan_count).encode('utf-8'))
+                        nan_count))
             except TypeError:
                 pass
 
@@ -450,7 +450,7 @@ class Simulation(object):
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
-        variable = self.tax_benefit_system.get_variable(variable_name)
+        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
         period = periods.period(period)
         if ((variable.end is not None) and (period.start.date > variable.end)):
             return

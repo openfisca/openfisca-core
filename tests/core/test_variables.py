@@ -42,11 +42,11 @@ def check_error_at_add_variable(tax_benefit_system, variable, error_message_pref
     except ValueError as e:
         message = get_message(e)
         if not message or not message.startswith(error_message_prefix):
-            raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, message).encode('utf-8'))
+            raise AssertionError('Incorrect error message. Was expecting something starting by "{}". Got: "{}"'.format(error_message_prefix, message))
 
 
 def get_message(error):
-    return error.args[0].decode()
+    return error.args[0]
 
 
 # TESTS

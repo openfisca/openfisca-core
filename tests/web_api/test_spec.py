@@ -4,8 +4,6 @@ import json
 from http.client import OK
 
 import dpath
-from nose.tools import assert_in
-
 from . import subject
 
 
@@ -38,10 +36,10 @@ def test_paths():
 
 
 def test_entity_definition():
-    assert_in('parents', dpath.get(body, 'definitions/Household/properties'))
-    assert_in('children', dpath.get(body, 'definitions/Household/properties'))
-    assert_in('salary', dpath.get(body, 'definitions/Person/properties'))
-    assert_in('rent', dpath.get(body, 'definitions/Household/properties'))
+    assert 'parents' in dpath.get(body, 'definitions/Household/properties')
+    assert 'children' in dpath.get(body, 'definitions/Household/properties')
+    assert 'salary' in dpath.get(body, 'definitions/Person/properties')
+    assert 'rent' in dpath.get(body, 'definitions/Household/properties')
     assert 'number' == dpath.get(body, 'definitions/Person/properties/salary/additionalProperties/type')
 
 
@@ -49,8 +47,8 @@ def test_situation_definition():
     situation_input = body['definitions']['SituationInput']
     situation_output = body['definitions']['SituationOutput']
     for situation in situation_input, situation_output:
-        assert_in('households', dpath.get(situation, '/properties'))
-        assert_in('persons', dpath.get(situation, '/properties'))
+        assert 'households' in dpath.get(situation, '/properties')
+        assert 'persons' in dpath.get(situation, '/properties')
         assert "#/definitions/Household" == dpath.get(situation, '/properties/households/additionalProperties/$ref')
         assert "#/definitions/Person" == dpath.get(situation, '/properties/persons/additionalProperties/$ref')
 

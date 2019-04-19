@@ -32,7 +32,7 @@ class VariableNotFound(Exception):
             ])
         self.message = message
         self.variable_name = variable_name
-        Exception.__init__(self, self.message.encode('utf-8'))
+        Exception.__init__(self, self.message)
 
 
 class SituationParsingError(Exception):
@@ -46,7 +46,7 @@ class SituationParsingError(Exception):
         message = str(message).strip(os.linesep).replace(os.linesep, ' ')
         dpath.util.new(self.error, dpath_path, message)
         self.code = code
-        Exception.__init__(self, str(self.error).encode('utf-8'))
+        Exception.__init__(self, str(self.error))
 
     def __str__(self):
         return str(self.error)
