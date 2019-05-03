@@ -2,8 +2,8 @@
 
 import traceback
 import os
-
 from typing import Iterable, Callable
+from functools import lru_cache
 
 import numpy as np
 
@@ -14,6 +14,8 @@ from openfisca_core.holders import Holder
 
 ADD = 'add'
 DIVIDE = 'divide'
+
+cached_property = lambda f: property(lru_cache()(f))
 
 
 def projectable(function):
@@ -574,7 +576,7 @@ def get_projector_from_shortcut(population, shortcut, parent = None):
             return UniqueRoleToEntityProjector(population, role, parent)
 
 
-class SubPopulation(object):
+class SubPopulation(Population):
 
     def __init__(self, population: Population, condition: np.ndarray):
         self.population = population
@@ -586,21 +588,28 @@ class SubPopulation(object):
     def __call__(self, variable_name, period = None, options = None, **parameters):
         return self.population.__call__(variable_name, period, options, mask = self.condition, **parameters)
 
-    def has_role(self, role):
+    def has_role(self, role): # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
 
-    @property
+class GroupSubPopulation(GroupPopulation, SubPopulation):
+
+    def __init__(self, population: Population, condition: np.ndarray):
+        SubPopulation.__init__(self, population, condition)
+
+        self._ordered_members_map = None
+
+    @cached_property
     def members(self):
         return SubPopulation(self.population.members, self.population.project(self.condition))
 
-    def sum(self, array, role = None):
-        self.entity.check_role_validity(role)
-        self.members.check_array_compatible_with_entity(array)
-        if role is not None:
-            role_filter = self.members.has_role(role)
-            return np.bincount(
-                self.members_entity_id[role_filter],
-                weights = array[role_filter],
-                minlength = self.count)
-        else:
-            return np.bincount(self.members_entity_id, weights = array)
+    @cached_property
+    def members_entity_id(self):
+        return self.population.members_entity_id[self.members.condition]
+
+    @cached_property
+    def members_role(self):
+        return self.population.members_role[self.members.condition]
+
+    @cached_property
+    def members_position(self):
+        return self.population.members_position[self.members.condition]

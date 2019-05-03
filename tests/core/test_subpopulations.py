@@ -1,6 +1,6 @@
 import numpy as np
 
-from openfisca_core.populations import SubPopulation
+from openfisca_core.populations import SubPopulation, GroupSubPopulation
 
 from .test_entities import TEST_CASE, new_simulation
 
@@ -29,10 +29,15 @@ def test_household_sub_pop():
     simulation.set_input('age', period, np.asarray([40, 37, 7, 19, 54, 16, 30]))
 
     condition = simulation.household.nb_persons() > 1
-    households = SubPopulation(simulation.household, condition)
+    households = GroupSubPopulation(simulation.household, condition)
 
     age = households.members('age', period)
-    assert (age == np.asarray([40, 37, 7, 19, 54, 16])).all()
+    assert (age == [40, 37, 7, 19, 54, 16]).all()
 
-    households.sum(age)
+    assert (households.members_entity_id == simulation.household.members_entity_id[:-1]).all()
+    assert (households.members_role == simulation.household.members_role[:-1]).all()
+    assert (households.members_position == simulation.household.members_position[:-1]).all()
+
+    assert (households.sum(age) == [40 + 37 + 19 + 7, 54 + 16]).all()
+    assert (households.any(age > 50) == [False, True]).all()
 
