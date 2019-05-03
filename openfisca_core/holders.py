@@ -247,12 +247,12 @@ class Holder(object):
 
         self._set(period, value)
 
-    def default_array(self):
+    def default_array(self, mask = None):
         """
         Return a new array of the appropriate length for the entity, filled with the variable default values.
         """
-
-        return self.variable.default_array(self.population.count)
+        if mask:
+            return self.variable.default_array(self.population.count)
 
 
 def set_input_dispatch_by_period(holder, period, array):

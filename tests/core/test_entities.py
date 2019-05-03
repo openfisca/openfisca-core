@@ -2,6 +2,8 @@
 
 from copy import deepcopy
 
+import numpy as np
+
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
@@ -497,3 +499,28 @@ def test_unordered_persons():
     assert_near(household.project(accommodation_size), [60, 160, 160, 160, 60, 160])
     assert_near(household.project(accommodation_size, role = PARENT), [60, 0, 160, 0, 0, 160])
     assert_near(household.project(accommodation_size, role = CHILD), [0, 160, 0, 160, 60, 0])
+
+
+    assert_near
+
+def test_if():
+    simulation = new_simulation(TEST_CASE)
+    persons = simulation.persons
+    simulation.set_input('salary', MONTH, [1200, 1400, 0, 0, 2000, 800])
+
+    age = np.asarray([40, 37, 7, 9, 54, 16])
+
+    salary_adults = persons.if_(age > 18, lambda persons: persons('salary', MONTH))
+
+    assert_near(salary_adults , [1200, 1400, 0, 0, 2000, 0])
+
+def test_if_2():
+    simulation = new_simulation(TEST_CASE)
+    persons = simulation.persons
+    simulation.set_input('salary', MONTH, [1200, 1400, 0, 0, 2000, 800])
+
+    age = np.asarray([40, 37, 7, 9, 54, 16])
+
+    income_tax_adults = persons.if_(age > 18, lambda persons: persons('income_tax', MONTH))
+
+    assert_near(income_tax_adults , [180, 210, 0, 0, 300, 0], absolute_error_margin = 1e-4)

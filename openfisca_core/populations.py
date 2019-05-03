@@ -3,7 +3,7 @@
 import traceback
 import os
 
-from typing import Iterable
+from typing import Iterable, Callable
 
 import numpy as np
 
@@ -73,7 +73,7 @@ class Population(object):
                 f'When you request the computation of a variable within a formula, you must always specify the period as the second parameter. The convention is to call this parameter "period". For example:',
                 f'    computed_salary = person(\'salary\', period).',
                 f'See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.',
-            ]))
+                ]))
 
     def __call__(self, variable_name, period = None, options = None, **parameters):
         """
@@ -204,6 +204,14 @@ class Population(object):
 
         # Return -1 for the persons who don't respect the condition
         return np.where(condition, result, -1)
+
+    def if_(self, condition: np.ndarray, formula_if_true: Callable):
+        sub_population = SubPopulation(self, condition)
+        sub_result = formula_if_true(sub_population)
+        result = np.zeros(condition.size, dtype = sub_result.dtype)
+        result[condition] = sub_result
+        return result
+
 
 
 class GroupPopulation(Population):
@@ -564,3 +572,35 @@ def get_projector_from_shortcut(population, shortcut, parent = None):
         role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return UniqueRoleToEntityProjector(population, role, parent)
+
+
+class SubPopulation(object):
+
+    def __init__(self, population: Population, condition: np.ndarray):
+        self.population = population
+        self.condition = condition
+        self.count = np.sum(condition)
+        self.ids = np.asarray(population.ids)[self.condition]
+        self.entity = self.population.entity
+
+    def __call__(self, variable_name, period = None, options = None, **parameters):
+        return self.population.__call__(variable_name, period, options, mask = self.condition, **parameters)
+
+    def has_role(self, role):
+        return self.population.has_role(role)[self.condition]
+
+    @property
+    def members(self):
+        return SubPopulation(self.population.members, self.population.project(self.condition))
+
+    def sum(self, array, role = None):
+        self.entity.check_role_validity(role)
+        self.members.check_array_compatible_with_entity(array)
+        if role is not None:
+            role_filter = self.members.has_role(role)
+            return np.bincount(
+                self.members_entity_id[role_filter],
+                weights = array[role_filter],
+                minlength = self.count)
+        else:
+            return np.bincount(self.members_entity_id, weights = array)

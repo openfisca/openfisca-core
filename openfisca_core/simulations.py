@@ -11,6 +11,7 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.populations import SubPopulation
 
 
 log = logging.getLogger(__name__)
@@ -114,6 +115,7 @@ class Simulation(object):
         population = self.get_variable_population(variable_name)
         holder = population.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
+        mask = parameters.get('mask', None)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -128,24 +130,27 @@ class Simulation(object):
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
+            if mask is not None:
+                return cached_array[mask]
             return cached_array
+
 
         array = None
 
         # First, try to run a formula
         try:
             self._check_for_cycle(variable, period)
-            array = self._run_formula(variable, population, period)
+            array = self._run_formula(variable, population if mask is None else SubPopulation(population, mask), period)
 
             # If no result, use the default value and cache it
             if array is None:
-                array = holder.default_array()
+                array = holder.default_array(mask = mask)
 
             array = self._cast_formula_result(array, variable)
-
-            holder.put_in_cache(array, period)
+            if mask is None:
+                holder.put_in_cache(array, period)
         except SpiralError:
-            array = holder.default_array()
+            array = holder.default_array(mask = mask)
         finally:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, array, **parameters)
