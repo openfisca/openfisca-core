@@ -140,7 +140,7 @@ class Simulation(object):
         # First, try to run a formula
         try:
             self._check_for_cycle(variable, period)
-            array = self._run_formula(variable, population if mask is None else SubPopulation(population, mask), period)
+            array = self._run_formula(variable, population if mask is None else population.get_subpopulation(mask), period)
 
             # If no result, use the default value and cache it
             if array is None:

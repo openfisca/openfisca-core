@@ -214,6 +214,8 @@ class Population(object):
         result[condition] = sub_result
         return result
 
+    def get_subpopulation(self, condition):
+        return SubPopulation(self, condition)
 
 
 class GroupPopulation(Population):
@@ -288,6 +290,9 @@ class GroupPopulation(Population):
     @members_position.setter
     def members_position(self, members_position):
         self._members_position = members_position
+
+    def get_subpopulation(self, condition):
+        return GroupSubPopulation(self, condition)
 
     #  Aggregation persons -> entity
 

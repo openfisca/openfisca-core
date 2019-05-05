@@ -1,14 +1,12 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from openfisca_core.populations import SubPopulation, GroupSubPopulation
-
 from .test_entities import TEST_CASE, new_simulation
 
 def test_ind_sub_pop():
     simulation = new_simulation(TEST_CASE)
     age = np.asarray([40, 37, 7, 19, 54, 16])
-    subpop = SubPopulation(simulation.persons, age >= 18)
+    subpop = simulation.persons.get_subpopulation(age >= 18)
 
 
     assert_array_equal(subpop.ids, ['ind0', 'ind1', 'ind3', 'ind4'])
@@ -30,7 +28,7 @@ def test_household_sub_pop():
     simulation.set_input('age', period, np.asarray([40, 37, 7, 19, 54, 16, 30]))
 
     condition = simulation.household.nb_persons() > 1
-    households = GroupSubPopulation(simulation.household, condition)
+    households = simulation.household.get_subpopulation(condition)
 
     age = households.members('age', period)
     assert_array_equal(age, [40, 37, 7, 19, 54, 16])
