@@ -101,9 +101,18 @@ class Population(object):
         elif DIVIDE in options:
             return self.simulation.calculate_divide(variable_name, period, **parameters)
         else:
-            return self.simulation.calculate(variable_name, period, **parameters)
+            return self.simulation.calculate_(self, variable_name, period, **parameters)
 
     # Helpers
+
+    def get_cached_array(self, variable_name, period):
+        return self.get_holder(variable_name).get_array(period)
+
+    def default_array(self, variable_name):
+        return self.get_holder(variable_name).default_array()
+
+    def put_in_cache(self, variable_name, period, array):
+        self.get_holder(variable_name).put_in_cache(array, period)
 
     def get_holder(self, variable_name):
         self.entity.check_variable_defined_for_entity(variable_name)
@@ -589,12 +598,16 @@ class SubPopulation(Population):
         self.condition = condition
         self.count = np.sum(condition)
         self.ids = np.asarray(population.ids)[self.condition]
-
-    def __call__(self, variable_name, period = None, options = None, **parameters):
-        return self.population.__call__(variable_name, period, options, mask = self.condition, **parameters)
+        self.simulation = population.simulation
 
     def has_role(self, role): # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
+
+    def get_cached_array(self, variable_name, period):
+        population_cached_array = self.population.get_cached_array(variable_name, period)
+        if population_cached_array is not None:
+            return population_cached_array[self.condition]
+
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):
 

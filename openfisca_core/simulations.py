@@ -112,10 +112,12 @@ class Simulation(object):
 
             :returns: A numpy array containing the result of the calculation
         """
+
         population = self.get_variable_population(variable_name)
-        holder = population.get_holder(variable_name)
+        return self._calculate(population, variable_name, period, **parameters)
+
+    def calculate_(self, population, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        mask = parameters.get('mask', None)
 
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
@@ -126,12 +128,10 @@ class Simulation(object):
         self._check_period_consistency(period, variable)
 
         # First look for a value already cached
-        cached_array = holder.get_array(period)
+        cached_array = population.get_cached_array(variable_name, period)
         if cached_array is not None:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
-            if mask is not None:
-                return cached_array[mask]
             return cached_array
 
 
@@ -140,17 +140,16 @@ class Simulation(object):
         # First, try to run a formula
         try:
             self._check_for_cycle(variable, period)
-            array = self._run_formula(variable, population if mask is None else population.get_subpopulation(mask), period)
+            array = self._run_formula(variable, population, period)
 
             # If no result, use the default value and cache it
             if array is None:
-                array = holder.default_array(mask = mask)
+                array = population.default_array(variable_name)
 
             array = self._cast_formula_result(array, variable)
-            if mask is None:
-                holder.put_in_cache(array, period)
+            population.put_in_cache(variable_name, period, array)
         except SpiralError:
-            array = holder.default_array(mask = mask)
+            array = population.default_array(variable_name)
         finally:
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, array, **parameters)

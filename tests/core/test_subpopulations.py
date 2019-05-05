@@ -39,4 +39,3 @@ def test_household_sub_pop():
 
     assert_array_equal(households.sum(age), [40 + 37 + 19 + 7, 54 + 16])
     assert_array_equal(households.any(age > 50), [False, True])
-
