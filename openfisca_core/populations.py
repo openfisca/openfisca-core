@@ -217,8 +217,8 @@ class Population(object):
 
 
 class GroupPopulation(Population):
-    def __init__(self, entity, members):
-        super().__init__(entity)
+    def __init__(self, entity, members, **kw):
+        super().__init__(entity, **kw)
         self.members = members
         self._members_entity_id = None
         self._members_role = None
@@ -578,12 +578,12 @@ def get_projector_from_shortcut(population, shortcut, parent = None):
 
 class SubPopulation(Population):
 
-    def __init__(self, population: Population, condition: np.ndarray):
+    def __init__(self, population: Population, condition: np.ndarray, **kw):
+        super().__init__(population.entity, **kw)
         self.population = population
         self.condition = condition
         self.count = np.sum(condition)
         self.ids = np.asarray(population.ids)[self.condition]
-        self.entity = self.population.entity
 
     def __call__(self, variable_name, period = None, options = None, **parameters):
         return self.population.__call__(variable_name, period, options, mask = self.condition, **parameters)
@@ -591,25 +591,19 @@ class SubPopulation(Population):
     def has_role(self, role): # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
 
-class GroupSubPopulation(GroupPopulation, SubPopulation):
+class GroupSubPopulation(SubPopulation, GroupPopulation):
 
     def __init__(self, population: Population, condition: np.ndarray):
-        SubPopulation.__init__(self, population, condition)
-
-        self._ordered_members_map = None
-
-    @cached_property
-    def members(self):
-        return SubPopulation(self.population.members, self.population.project(self.condition))
+        members = SubPopulation(population.members, population.project(condition))
+        super().__init__(population = population, condition = condition, members = members)
 
     @cached_property
     def members_entity_id(self):
         members_entity_id_in_population = self.population.members_entity_id[self.members.condition]
 
         # This step is necessary to preserve the invariant that entity indices are consecutive.
-        # Will for instance change [0,0,2,5] to [0,0,1,2]
+        # Will for instance change [0, 0, 2, 5] to [0, 0, 1, 2]
         _, result = np.unique(members_entity_id_in_population, return_inverse = True)
-
         return result
 
     @cached_property
