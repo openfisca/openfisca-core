@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from openfisca_core.populations import SubPopulation, GroupSubPopulation
 
@@ -10,8 +11,8 @@ def test_ind_sub_pop():
     subpop = SubPopulation(simulation.persons, age >= 18)
 
 
-    assert (subpop.ids == ['ind0', 'ind1', 'ind3', 'ind4']).all()
-    assert (subpop.has_role(simulation.household.entity.PARENT) == [True, True, False, True]).all()
+    assert_array_equal(subpop.ids, ['ind0', 'ind1', 'ind3', 'ind4'])
+    assert_array_equal(subpop.has_role(simulation.household.entity.PARENT), [True, True, False, True])
 
 
 def test_household_sub_pop():
@@ -19,8 +20,8 @@ def test_household_sub_pop():
         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}, 'ind6': {}},
         'households': {
             'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
+            'h3': {'parents': ['ind6']},
             'h2': {'children': ['ind5'], 'parents': ['ind4']},
-            'h3': {'parents': ['ind6']}
             },
         }
 
@@ -32,12 +33,12 @@ def test_household_sub_pop():
     households = GroupSubPopulation(simulation.household, condition)
 
     age = households.members('age', period)
-    assert (age == [40, 37, 7, 19, 54, 16]).all()
+    assert_array_equal(age, [40, 37, 7, 19, 54, 16])
 
-    assert (households.members_entity_id == simulation.household.members_entity_id[:-1]).all()
-    assert (households.members_role == simulation.household.members_role[:-1]).all()
-    assert (households.members_position == simulation.household.members_position[:-1]).all()
+    assert_array_equal(households.members_entity_id, [0, 0, 0, 0, 1, 1])
+    assert_array_equal(households.members_role, simulation.household.members_role[:-1])
+    assert_array_equal(households.members_position, simulation.household.members_position[:-1])
 
-    assert (households.sum(age) == [40 + 37 + 19 + 7, 54 + 16]).all()
-    assert (households.any(age > 50) == [False, True]).all()
+    assert_array_equal(households.sum(age), [40 + 37 + 19 + 7, 54 + 16])
+    assert_array_equal(households.any(age > 50), [False, True])
 

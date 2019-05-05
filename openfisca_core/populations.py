@@ -604,7 +604,13 @@ class GroupSubPopulation(GroupPopulation, SubPopulation):
 
     @cached_property
     def members_entity_id(self):
-        return self.population.members_entity_id[self.members.condition]
+        members_entity_id_in_population = self.population.members_entity_id[self.members.condition]
+
+        # This step is necessary to preserve the invariant that entity indices are consecutive.
+        # Will for instance change [0,0,2,5] to [0,0,1,2]
+        _, result = np.unique(members_entity_id_in_population, return_inverse = True)
+
+        return result
 
     @cached_property
     def members_role(self):
