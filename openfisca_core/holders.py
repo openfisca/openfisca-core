@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 import logging
 import os
 import warnings
@@ -8,6 +10,7 @@ import numpy as np
 import psutil
 
 from openfisca_core import periods
+from openfisca_core.periods import Period
 from openfisca_core.commons import empty_clone
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
@@ -80,14 +83,14 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period):
+    def get_array(self, period) -> Optional[PartialArray]:
         """
             Get the value of the variable for the given period.
 
             If the value is not known, return ``None``.
         """
         if self.variable.is_neutralized:
-            return self.default_array()
+            return PartialArray(self.default_array())
         value = self._memory_storage.get(period)
         if value is not None:
             return value
@@ -189,10 +192,6 @@ class Holder(object):
         if value.ndim == 0:
             # 0-dim arrays are casted to scalar when they interact with float. We don't want that.
             value = value.reshape(1)
-        if len(value) != self.population.count:
-            raise ValueError(
-                'Unable to set value "{}" for variable "{}", as its length is {} while there are {} {} in the simulation.'
-                .format(value, self.variable.name, len(value), self.population.count, self.population.entity.plural))
         if self.variable.value_type == Enum:
             value = self.variable.possible_values.encode(value)
         if value.dtype != self.variable.dtype:
@@ -204,8 +203,16 @@ class Holder(object):
                     .format(value, self.variable.name, self.variable.dtype, value.dtype))
         return value
 
-    def _set(self, period, value):
+    def _check_value_size(self, value: np.ndarray, mask: np.ndarray[Bool] = None):
+        count = self.population.count if mask is None else np.sum(mask)
+        if len(value) != count:
+            raise ValueError(
+                f'Unable to set value "{value}" for variable "{self.variable.name}", as its length is {len(value)} while there are {self.population.count} {self.population.entity.plural} in the simulation.'
+                )
+
+    def _set(self, period: Period, value: np.ndarray, mask: np.ndarray[Bool] = None):
         value = self._to_array(value)
+        self._check_value_size(value, mask)
         if self.variable.definition_period != ETERNITY:
             if period is None:
                 raise ValueError('A period must be specified to set values, except for variables with ETERNITY as as period_definition.')
@@ -231,12 +238,14 @@ class Holder(object):
             psutil.virtual_memory().percent >= self.simulation.memory_config.max_memory_occupation_pc
             )
 
-        if should_store_on_disk:
-            self._disk_storage.put(value, period)
-        else:
-            self._memory_storage.put(value, period)
+        partial_array = PartialArray(value, mask)
 
-    def put_in_cache(self, value, period):
+        if should_store_on_disk:
+            self._disk_storage.put(partial_array, period)
+        else:
+            self._memory_storage.put(partial_array, period)
+
+    def put_in_cache(self, value: np.ndarray, period: Period, mask: np.ndarray[Bool] = None):
         if self._do_not_store:
             return
 
@@ -245,7 +254,7 @@ class Holder(object):
                 self.variable.name in self.simulation.tax_benefit_system.cache_blacklist):
             return
 
-        self._set(period, value)
+        self._set(period, value, mask)
 
     def default_array(self):
         """
@@ -333,3 +342,10 @@ def set_input_divide_by_period(holder, period, array):
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
         raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
+
+from dataclasses import dataclass
+
+@dataclass(frozen = True)
+class PartialArray:
+    value: np.ndarray
+    mask: np.ndarray[Bool] = None

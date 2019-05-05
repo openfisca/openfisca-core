@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 import traceback
 import os
 from typing import Iterable, Callable
@@ -9,7 +11,8 @@ import numpy as np
 
 from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
-from openfisca_core.holders import Holder
+from openfisca_core.holders import Holder, PartialArray
+from openfisca_core.periods import Period
 
 
 ADD = 'add'
@@ -105,16 +108,16 @@ class Population(object):
 
     # Helpers
 
-    def get_cached_array(self, variable_name, period):
+    def get_cached_array(self, variable_name: str, period: Period) -> Optional[PartialArray]:
         return self.get_holder(variable_name).get_array(period)
 
-    def default_array(self, variable_name):
+    def default_array(self, variable_name: str) -> np.ndarray:
         return self.get_holder(variable_name).default_array()
 
-    def put_in_cache(self, variable_name, period, array):
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray) -> None:
         self.get_holder(variable_name).put_in_cache(array, period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
         holder = self._holders.get(variable_name)
         if holder:
@@ -603,11 +606,16 @@ class SubPopulation(Population):
     def has_role(self, role): # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
 
-    def get_cached_array(self, variable_name, period):
+    def get_cached_array(self, variable_name, period) -> Optional[PartialArray]:
         population_cached_array = self.population.get_cached_array(variable_name, period)
-        if population_cached_array is not None:
-            return population_cached_array[self.condition]
 
+        if population_cached_array is None:
+            return
+        if population_cached_array.mask is None:
+            return PartialArray(population_cached_array.value[self.condition], None)
+
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray):
+        self.population.get_holder(variable_name).put_in_cache(array, period, mask = self.condition)
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):
 
