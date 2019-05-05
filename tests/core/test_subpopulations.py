@@ -12,8 +12,8 @@ period = make_period('2019-01')
 @fixture
 def p_subpop():
     simulation = new_simulation(TEST_CASE)
-    age = np.asarray([40, 37, 7, 19, 54, 16])
-    return simulation.persons.get_subpopulation(age >= 18)
+    condition = np.asarray([True, True, False, True, True, False])
+    return simulation.persons.get_subpopulation(condition)
 
 
 def test_ids(p_subpop):
@@ -28,31 +28,33 @@ def test_default_array(p_subpop):
     assert_array_equal(p_subpop.default_array('salary'), [0, 0, 0, 0])
 
 
-def test_cache_pop_to_subpop(p_subpop):
+def test_cache_global_write_subpop_read(p_subpop):
     simulation = p_subpop.simulation
     simulation.set_input('salary', period, [1000, 2000, 0, 1200, 2400, 800])
-    cached_array_subpop = p_subpop.get_cached_array('salary', period).value
-    assert_array_equal(cached_array_subpop, [1000, 2000, 1200, 2400])
+
+    cached_array_subpop = p_subpop.get_cached_array('salary', period)
+    assert_array_equal(cached_array_subpop.value, [1000, 2000, 1200, 2400])
+    assert cached_array_subpop.mask is None
 
 
-def test_cache_subpop_to_pop(p_subpop):
+def test_cache_subpop_write_global_read(p_subpop):
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
-    assert_array_equal(
-        p_subpop.population('salary', period),
-        [1000, 2000, 0, 1200, 2400, 0]
-        )
+    cached_array = p_subpop.simulation.persons.get_cached_array('salary', period)
+
+    assert_array_equal(cached_array.value, [1000, 2000, 1200, 2400])
+    assert_array_equal(cached_array.mask, p_subpop.condition)
 
 
-def test_cache_subpop_to_subpop(p_subpop):
+def test_cache_subpop_write_subpop_read(p_subpop):
     simulation = p_subpop.simulation
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
     condition_2 = np.asarray([True, True, True, False, False, False])
     p_subpop_2 = simulation.persons.get_subpopulation(condition_2)
 
-    assert_array_equal(
-        p_subpop_2.get_cached_array('salary', period).value,
-        [1000, 2000]
-        )
+    cached_array = p_subpop_2.get_cached_array('salary', period)
+    assert_array_equal(cached_array.value,[1000, 2000])
+    assert_array_equal(cached_array.mask, [True, True, False])
+
 
 # def test_household_sub_pop():
 #     test_case = {

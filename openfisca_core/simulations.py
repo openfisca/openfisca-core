@@ -115,7 +115,7 @@ class Simulation(object):
         """
 
         population = self.get_variable_population(variable_name)
-        return self._calculate(population, variable_name, period, **parameters)
+        return self.calculate_(population, variable_name, period, **parameters)
 
     def calculate_(self, population, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
