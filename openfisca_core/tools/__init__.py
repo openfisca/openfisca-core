@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 
 import os
 
 import numexpr
+import numpy as np
 
 from openfisca_core.indexed_enums import EnumArray
 
@@ -76,3 +79,10 @@ def eval_expression(expression):
         return numexpr.evaluate(expression)
     except (KeyError, TypeError):
         return expression
+
+
+def combine(condition: np.ndarray[Bool], value_for_trues: np.ndarray, values_for_falses: np.ndarray) -> np.ndarray:
+    result = np.zeros(condition.size, dtype = value_for_trues.dtype)
+    result[condition] = value_for_trues
+    result[np.logical_not(condition)] = values_for_falses
+    return result
