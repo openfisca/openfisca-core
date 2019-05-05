@@ -278,7 +278,7 @@ class Simulation(object):
                 'month' if variable.definition_period == periods.MONTH else 'year'
                 ))
 
-    def _check_formula_result(self, value, variable, entity, period):
+    def _check_formula_result(self, value, variable, population, period):
 
         assert isinstance(value, np.ndarray), (linesep.join([
             "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)),
@@ -287,11 +287,10 @@ class Simulation(object):
             "Learn more about Numpy arrays and vectorial computing:",
             "<https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
             ]))
-
-        assert value.size == entity.count, \
+        assert value.size == population.count, \
             "Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                variable.name, entity.key, str(period), str(period), stringify_array(value),
-                value.size, entity.count, entity.key)
+                variable.name, population.entity.key, str(period), str(period), stringify_array(value),
+                value.size, population.count, population.entity.key)
 
         if self.debug:
             try:
@@ -299,7 +298,7 @@ class Simulation(object):
                 if np.isnan(np.min(value)):
                     nan_count = np.count_nonzero(np.isnan(value))
                     raise NaNCreationError("Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        variable.name, entity.key, str(period), str(period), stringify_array(value),
+                        variable.name, population.entity.key, str(period), str(period), stringify_array(value),
                         nan_count))
             except TypeError:
                 pass
