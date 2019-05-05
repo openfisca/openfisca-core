@@ -13,6 +13,7 @@ from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder, PartialArray
 from openfisca_core.periods import Period
+from openfisca_core.tools import combine
 
 
 ADD = 'add'
@@ -613,6 +614,11 @@ class SubPopulation(Population):
             return
         if population_cached_array.mask is None:
             return PartialArray(population_cached_array.value[self.condition], None)
+
+        mask = population_cached_array.mask[self.condition]
+        cached_array = population_cached_array.value[self.condition[population_cached_array.mask]]
+
+        return PartialArray(cached_array, mask)
 
     def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray):
         self.population.get_holder(variable_name).put_in_cache(array, period, mask = self.condition)

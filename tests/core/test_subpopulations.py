@@ -37,8 +37,22 @@ def test_cache_pop_to_subpop(p_subpop):
 
 def test_cache_subpop_to_pop(p_subpop):
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
-    assert_array_equal(p_subpop.population('salary', period), [1000, 2000, 0, 1200, 2400, 0])
+    assert_array_equal(
+        p_subpop.population('salary', period),
+        [1000, 2000, 0, 1200, 2400, 0]
+        )
 
+
+def test_cache_subpop_to_subpop(p_subpop):
+    simulation = p_subpop.simulation
+    p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
+    condition_2 = np.asarray([True, True, True, False, False, False])
+    p_subpop_2 = simulation.persons.get_subpopulation(condition_2)
+
+    assert_array_equal(
+        p_subpop_2.get_cached_array('salary', period).value,
+        [1000, 2000]
+        )
 
 # def test_household_sub_pop():
 #     test_case = {
