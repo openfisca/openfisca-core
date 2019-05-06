@@ -219,5 +219,4 @@ def test_get_array_sub_pop(couple):
     sub_pop = couple.persons.get_subpopulation(np.asarray([False, True]))
     sub_pop.put_in_cache('salary', period, np.asarray([2000]))
     array = couple.get_array('salary', period)
-    import ipdb; ipdb.set_trace()
 

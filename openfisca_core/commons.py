@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
+import numpy as np
+from dataclasses import dataclass
+
 
 class Dummy(object):
     """A class that does nothing
@@ -24,3 +29,9 @@ def stringify_array(array):
         str(cell)
         for cell in array
         )) if array is not None else 'None'
+
+
+@dataclass(frozen = True)
+class PartialArray:
+    value: np.ndarray
+    mask: np.ndarray[bool] = None

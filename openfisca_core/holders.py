@@ -11,8 +11,8 @@ import numpy as np
 import psutil
 
 from openfisca_core import periods
-from openfisca_core.periods import Period
-from openfisca_core.commons import empty_clone
+from openfisca_core.periods import Period, CastableToPeriod, period as make_period
+from openfisca_core.commons import empty_clone, PartialArray
 from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
@@ -64,15 +64,13 @@ class Holder(object):
         if directory is None:
             directory = self.simulation.data_storage_dir
         storage_dir = os.path.join(directory, self.variable.name)
-        if not os.path.isdir(storage_dir):
-            os.mkdir(storage_dir)
         return OnDiskStorage(
             storage_dir,
             is_eternal = (self.variable.definition_period == ETERNITY),
             preserve_storage_dir = preserve
             )
 
-    def delete_arrays(self, period = None):
+    def delete_arrays(self, period: Optional[CastableToPeriod] = None):
         """
             If ``period`` is ``None``, remove all known values of the variable.
 
@@ -80,17 +78,22 @@ class Holder(object):
 
         """
 
+        if period is not None:
+            period = make_period(period)
+
         self._memory_storage.delete(period)
         if self._disk_storage:
             self._disk_storage.delete(period)
 
 
-    def get_array(self, period) -> Optional[np.ndarray]:
+    def get_array(self, period: Optional[CastableToPeriod]) -> Optional[np.ndarray]:
         """
             Get the value of the variable for the given period.
 
             If the value is not known, return ``None``.
         """
+        if period is not None:
+            period = make_period(period)
         cached_array = self.get_cached_array(period)
         if cached_array is None:
             return None
@@ -102,12 +105,7 @@ class Holder(object):
             np.logical_not(cached_array.mask)
         )
 
-    def get_cached_array(self, period) -> Optional[PartialArray]:
-        """
-            Get the value of the variable for the given period.
-
-            If the value is not known, return ``None``.
-        """
+    def get_cached_array(self, period: Optional[Period]) -> Optional[PartialArray]:
         if self.variable.is_neutralized:
             return PartialArray(self.default_array())
         value = self._memory_storage.get(period)
@@ -362,10 +360,3 @@ def set_input_divide_by_period(holder, period, array):
             sub_period = sub_period.offset(1)
     elif not (remaining_array == 0).all():
         raise ValueError("Inconsistent input: variable {0} has already been set for all months contained in period {1}, and value {2} provided for {1} doesn't match the total ({3}). This error may also be thrown if you try to call set_input twice for the same variable and period.".format(holder.variable.name, period, array, array - remaining_array))
-
-from dataclasses import dataclass
-
-@dataclass(frozen = True)
-class PartialArray:
-    value: np.ndarray
-    mask: np.ndarray[bool] = None

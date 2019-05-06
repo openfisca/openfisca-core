@@ -5,6 +5,7 @@ import shutil
 import tempfile
 
 from numpy.testing import assert_array_equal
+import numpy as np
 
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_country_template.situation_examples import couple
@@ -37,5 +38,25 @@ def test_dump():
     cached_value = disposable_income_holder.get_array('2018-01')
     assert cached_value is not None
     assert_array_equal(cached_value, calculated_value)
+
+    shutil.rmtree(directory)
+
+
+def test_dump_sub_pop():
+    directory = tempfile.mkdtemp(prefix = "openfisca_")
+    simulation = SimulationBuilder().build_from_entities(tax_benefit_system, couple)
+
+    sub_pop = simulation.persons.get_subpopulation(np.asarray([False, True]))
+    calculated_value = sub_pop('disposable_income', '2018-01')
+    dump_simulation(simulation, directory)
+
+    simulation_2 = restore_simulation(directory, tax_benefit_system)
+
+    # Check calculated values are in cache
+
+    disposable_income_holder = simulation_2.person.get_holder('disposable_income')
+    cached_value = disposable_income_holder.get_array('2018-01')
+    assert cached_value is not None
+    assert cached_value[1] == calculated_value
 
     shutil.rmtree(directory)

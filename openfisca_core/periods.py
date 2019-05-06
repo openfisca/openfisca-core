@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 
 """Toolbox to handle date intervals
 
@@ -12,7 +14,7 @@ import calendar
 import datetime
 import re
 from os import linesep
-from typing import Dict
+from typing import Dict, Union
 
 
 DAY = 'day'
@@ -785,7 +787,13 @@ def instant_date(instant):
     return instant_date
 
 
-def period(value):
+CastableToPeriod = Union[str, int, Instant, Period]
+
+
+ETERNITY_PERIOD = Period(('eternity', instant(datetime.date.min), float("inf")))
+
+
+def period(value: CastableToPeriod) -> Period:
     """Return a new period, aka a triple (unit, start_instant, size).
 
     >>> period('2014')
@@ -839,7 +847,7 @@ def period(value):
         raise ValueError(message)
 
     if value == 'ETERNITY' or value == ETERNITY:
-        return Period(('eternity', instant(datetime.date.min), float("inf")))
+        return ETERNITY_PERIOD
 
     # check the type
     if isinstance(value, int):

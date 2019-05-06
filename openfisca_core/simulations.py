@@ -13,7 +13,8 @@ from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.populations import SubPopulation
 from openfisca_core.tools import ternary_combine
-from openfisca_core.holders import PartialArray
+from openfisca_core.commons import PartialArray
+from openfisca_core.holders import Holder
 
 log = logging.getLogger(__name__)
 
@@ -383,7 +384,7 @@ class Simulation(object):
             period = periods.period(period)
         return self.get_holder(variable_name).get_array(period)
 
-    def get_holder(self, variable_name):
+    def get_holder(self, variable_name: str) -> Holder:
         """
             Get the :any:`Holder` associated with the variable ``variable_name`` for the simulation
         """
