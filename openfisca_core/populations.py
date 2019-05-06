@@ -115,8 +115,8 @@ class Population(object):
     def default_array(self, variable_name: str) -> np.ndarray:
         return self.get_holder(variable_name).default_array()
 
-    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray) -> None:
-        self.get_holder(variable_name).put_in_cache(array, period)
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[Bool] = None) -> None:
+        self.get_holder(variable_name).put_in_cache(array, period, mask)
 
     def get_holder(self, variable_name: str) -> Holder:
         self.entity.check_variable_defined_for_entity(variable_name)
@@ -607,7 +607,7 @@ class SubPopulation(Population):
     def has_role(self, role): # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
 
-    def get_cached_array(self, variable_name, period) -> Optional[PartialArray]:
+    def get_cached_array(self, variable_name: str, period: Period) -> Optional[PartialArray]:
         population_cached_array = self.population.get_cached_array(variable_name, period)
 
         if population_cached_array is None:
@@ -620,8 +620,17 @@ class SubPopulation(Population):
 
         return PartialArray(cached_array, mask)
 
-    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray):
-        self.population.get_holder(variable_name).put_in_cache(array, period, mask = self.condition)
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray) -> None:
+        cache_content = self.population.get_cached_array(variable_name, period)
+        if cache_content is None:
+            return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
+
+        new_mask = cache_content.mask + self.condition  # all indials for whom the value is known
+        new_array = combine([
+            (self.condition[new_mask], array),
+            (cache_content.mask[new_mask], cache_content.value)
+        ])
+        return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):
 
