@@ -86,6 +86,13 @@ def test_global_calculation(simulation, p_subpop):
         [1000, 2000, 0, 1200, 2400, 0]
         )
 
+def test_subpop_calculation(simulation, p_subpop):
+    simulation.set_input('salary', period, [1000, 2000, 500, 1200, 2400, 800])
+    assert_array_equal(
+        p_subpop('salary', period),
+        [1000, 2000, 1200, 2400]
+    )
+
 
 
 # def test_household_sub_pop():

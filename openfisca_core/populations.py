@@ -627,7 +627,7 @@ class SubPopulation(Population):
         if cache_content is None:
             return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
 
-        new_mask = cache_content.mask + self.condition  # all indials for whom the value is known
+        new_mask = cache_content.mask + self.condition
         new_array = combine([
             (self.condition[new_mask], array),
             (cache_content.mask[new_mask], cache_content.value)

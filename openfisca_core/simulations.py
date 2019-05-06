@@ -134,7 +134,7 @@ class Simulation(object):
         if cached_array is not None and cached_array.mask is None:  # The value is known for the whole population
             if self.trace:
                 self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
-            return cached_array
+            return cached_array.value
 
         if cached_array is not None:  # The value is known for only a subpopulation
             complem_population = population.get_subpopulation(np.logical_not(cached_array.mask))
