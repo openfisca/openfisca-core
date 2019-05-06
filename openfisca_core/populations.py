@@ -70,7 +70,7 @@ class Population(object):
         return projector
 
     def get_index(self, id):
-        return self.ids.index(id)
+        return np.where(self.ids == id)[0][0]
 
     # Calculations
 
@@ -119,7 +119,7 @@ class Population(object):
     # Helpers
 
     def get_cached_array(self, variable_name: str, period: Period) -> Optional[PartialArray]:
-        return self.get_holder(variable_name).get_array(period)
+        return self.get_holder(variable_name).get_cached_array(period)
 
     def default_array(self, variable_name: str) -> np.ndarray:
         return self.get_holder(variable_name).default_array()

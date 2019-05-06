@@ -6,6 +6,7 @@ from enum import Enum
 from datetime import date
 
 from pytest import raises, fixture, approx
+from numpy.testing import assert_array_equal
 
 from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
@@ -264,7 +265,7 @@ def test_finalize_person_entity(simulation_builder, persons):
     simulation_builder.finalize_variables_init(population)
     assert_near(population.get_holder('salary').get_array('2018-11'), [3000, 0])
     assert population.count == 2
-    assert population.ids == ['Alicia', 'Javier']
+    assert_array_equal(population.ids ,['Alicia', 'Javier'])
 
 
 def test_canonicalize_period_keys(simulation_builder, persons):
@@ -493,7 +494,7 @@ def test_order_preserved(simulation_builder):
     data = yaml.safe_load(input_yaml)
     simulation = simulation_builder.build_from_dict(tax_benefit_system, data)
 
-    assert simulation.persons.ids == ['Javier', 'Alicia', 'Sarah', 'Tom']
+    assert_array_equal(simulation.persons.ids, ['Javier', 'Alicia', 'Sarah', 'Tom'])
 
 
 def test_inconsistent_input(simulation_builder):

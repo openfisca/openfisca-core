@@ -212,3 +212,12 @@ def test_set_input_float_to_int(single):
     simulation.person.get_holder('age').set_input(period, age)
     result = simulation.calculate('age', period)
     assert result == np.asarray([50])
+
+
+def test_get_array_sub_pop(couple):
+    period = make_period('2015-01')
+    sub_pop = couple.persons.get_subpopulation(np.asarray([False, True]))
+    sub_pop.put_in_cache('salary', period, np.asarray([2000]))
+    array = couple.get_array('salary', period)
+    import ipdb; ipdb.set_trace()
+

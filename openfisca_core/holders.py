@@ -16,7 +16,7 @@ from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
-from openfisca_core.tools import eval_expression
+from openfisca_core.tools import eval_expression, ternary_combine
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +83,25 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-    def get_array(self, period) -> Optional[PartialArray]:
+
+    def get_array(self, period) -> Optional[np.ndarray]:
+        """
+            Get the value of the variable for the given period.
+
+            If the value is not known, return ``None``.
+        """
+        cached_array = self.get_cached_array(period)
+        if cached_array is None:
+            return None
+        if cached_array.mask is None:
+            return cached_array.value
+
+        return np.ma.masked_array(
+            ternary_combine(cached_array.mask, cached_array.value, np.nan),
+            np.logical_not(cached_array.mask)
+        )
+
+    def get_cached_array(self, period) -> Optional[PartialArray]:
         """
             Get the value of the variable for the given period.
 
