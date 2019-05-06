@@ -12,7 +12,7 @@ from openfisca_core.commons import empty_clone, stringify_array
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 from openfisca_core.populations import SubPopulation
-from openfisca_core.tools import combine
+from openfisca_core.tools import ternary_combine
 from openfisca_core.holders import PartialArray
 
 log = logging.getLogger(__name__)
@@ -139,7 +139,7 @@ class Simulation(object):
         if cached_array is not None:  # The value is known for only a subpopulation
             complem_population = population.get_subpopulation(np.logical_not(cached_array.mask))
             result_comp_pop = self.calculate_(complem_population, variable_name, period, **parameters)
-            result = combine(cached_array.mask, cached_array.value, result_comp_pop)
+            result = ternary_combine(cached_array.mask, cached_array.value, result_comp_pop)
             population.put_in_cache(variable_name, period, result)
             return result
 

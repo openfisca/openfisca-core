@@ -81,8 +81,17 @@ def eval_expression(expression):
         return expression
 
 
-def combine(condition: np.ndarray[Bool], value_for_trues: np.ndarray, values_for_falses: np.ndarray) -> np.ndarray:
-    result = np.zeros(condition.size, dtype = value_for_trues.dtype)
-    result[condition] = value_for_trues
-    result[np.logical_not(condition)] = values_for_falses
+def ternary_combine(condition: Array[Bool], value_for_trues: Array, values_for_falses: Array) -> Array:
+    return combine([
+        (condition, value_for_trues),
+        (np.logical_not(condition), values_for_falses)
+        ])
+
+
+def combine(cond_values_pairs: Iterable[Array[Bool], Array]) -> Array:
+    cond_1, value_1 = cond_values_pairs[0]
+    result = np.empty(cond_1.size, dtype = value_1.dtype)
+
+    for (condition, values) in reversed(cond_values_pairs):  # start with the last value to give priority to the first one
+        result[condition] = values
     return result
