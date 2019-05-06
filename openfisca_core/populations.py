@@ -572,6 +572,9 @@ class Projector(object):
         projector.parent = self
         return projector
 
+    @property
+    def ids(self):
+        return self.transform_and_bubble_up(self.reference_entity.ids)
 
 # For instance person.family
 class EntityToPersonProjector(Projector):
