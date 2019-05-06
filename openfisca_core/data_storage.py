@@ -64,18 +64,11 @@ class InMemoryStorage(object):
                 cell_size = np.nan,
                 )
 
-        nb_arrays = sum([
-            len(array_or_dict) if isinstance(array_or_dict, dict) else 1
-            for array_or_dict in self._arrays.values()
-            ])
-
-        array = next(iter(self._arrays.values()))
-        if isinstance(array, dict):
-            array = array.values()[0]
+        values = [partial_array.value for partial_array in self._arrays.values()]
         return dict(
-            nb_arrays = nb_arrays,
-            total_nb_bytes = array.nbytes * nb_arrays,
-            cell_size = array.itemsize,
+            nb_arrays = len(self._arrays),
+            total_nb_bytes = sum(value.nbytes for value in values),
+            cell_size = values[0].itemsize,
             )
 
 
