@@ -54,7 +54,7 @@ class Population(object):
         return np.full(self.count, value, dtype)
 
     def __getattr__(self, attribute):
-        projector = get_projector_from_shortcut(self, attribute)
+        projector = self.get_projector(attribute)
         if not projector:
             raise AttributeError(f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute.")
         return projector
@@ -125,6 +125,11 @@ class Population(object):
         variable = self.entity.get_variable(variable_name)
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
+
+    def get_projector(self, shortcut: str):
+        if shortcut in self.simulation.populations:
+            entity_2 = self.simulation.populations[shortcut]
+            return EntityToPersonProjector(entity_2)
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
@@ -305,6 +310,13 @@ class GroupPopulation(Population):
 
     def get_subpopulation(self, condition):
         return GroupSubPopulation(self, condition)
+
+    def get_projector(self, shortcut: str) -> Projector:
+        if shortcut == 'first_person':
+            return FirstPersonToEntityProjector(self)
+        role = next((role for role in self.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
+        if role:
+            return UniqueRoleToEntityProjector(self, role)
 
     #  Aggregation persons -> entity
 
@@ -515,7 +527,7 @@ class Projector(object):
     parent = None
 
     def __getattr__(self, attribute):
-        projector = get_projector_from_shortcut(self.reference_entity, attribute, parent = self)
+        projector = self.get_projector(attribute)
         if projector:
             return projector
 
@@ -542,6 +554,13 @@ class Projector(object):
 
     def transform(self, result):
         return NotImplementedError()
+
+    def get_projector(self, attribute: str):
+        projector = self.reference_entity.get_projector(attribute)
+        if not projector:
+            return
+        projector.parent = self
+        return projector
 
 
 # For instance person.family
@@ -578,19 +597,6 @@ class UniqueRoleToEntityProjector(Projector):
 
     def transform(self, result):
         return self.target_entity.value_from_person(result, self.role)
-
-
-def get_projector_from_shortcut(population, shortcut, parent = None):
-    if population.entity.is_person:
-        if shortcut in population.simulation.populations:
-            entity_2 = population.simulation.populations[shortcut]
-            return EntityToPersonProjector(entity_2, parent)
-    else:
-        if shortcut == 'first_person':
-            return FirstPersonToEntityProjector(population, parent)
-        role = next((role for role in population.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
-        if role:
-            return UniqueRoleToEntityProjector(population, role, parent)
 
 
 class SubPopulation(Population):
