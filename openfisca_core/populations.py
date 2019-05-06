@@ -37,7 +37,17 @@ class Population(object):
         self.entity = entity
         self._holders = {}
         self.count = 0
-        self.ids = []
+        self._ids = np.asarray([])
+
+    @property
+    def ids(self):
+        return self._ids
+
+    @ids.setter
+    def ids(self, ids: Iterable[str]):
+        if isinstance(ids, np.ndarray):
+            self._ids = ids
+        self._ids = np.asarray(ids)
 
     def clone(self, simulation):
         result = Population(self.entity)
