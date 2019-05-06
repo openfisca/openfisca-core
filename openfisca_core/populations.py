@@ -56,7 +56,7 @@ class Population(object):
     def __getattr__(self, attribute):
         projector = get_projector_from_shortcut(self, attribute)
         if not projector:
-            raise AttributeError("You tried to use the '{}' of '{}' but that is not a known attribute.".format(attribute, self.entity.key))
+            raise AttributeError(f"You tried to use the '{attribute}' of '{self.entity.key}' but that is not a known attribute.")
         return projector
 
     def get_index(self, id):
@@ -66,8 +66,7 @@ class Population(object):
 
     def check_array_compatible_with_entity(self, array):
         if not self.count == array.size:
-            raise ValueError("Input {} is not a valid value for the entity {} (size = {} != {} = count)".format(
-                array, self.key, array.size, self.count))
+            raise ValueError(f"Input {array} is not a valid value for the entity {self.entity.key} (size = {array.size} != {self.count} = count)")
 
     def check_period_validity(self, variable_name, period):
         if period is None:
@@ -622,7 +621,7 @@ class SubPopulation(Population):
 
         return PartialArray(cached_array, mask)
 
-    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray) -> None:
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[Bool] = None) -> None:
         cache_content = self.population.get_cached_array(variable_name, period)
         if cache_content is None:
             return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
@@ -633,6 +632,19 @@ class SubPopulation(Population):
             (cache_content.mask[new_mask], cache_content.value)
         ])
         return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
+
+    def get_subpopulation(self, condition: np.ndarray[Bool]) -> SubPopulation:
+        subpopulation_condition = self.condition.copy()
+        subpopulation_condition[subpopulation_condition] = condition
+
+        return SubPopulation(self.population, subpopulation_condition)
+
+    def get_holder(self, variable_name: str) -> Holder:
+        return self.population.get_holder(variable_name)
+
+    def default_array(self, variable_name: str) -> np.ndarray:
+        return self.population.default_array(variable_name)[self.condition]
+
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):
 

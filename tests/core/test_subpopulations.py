@@ -4,14 +4,20 @@ from pytest import fixture, approx
 
 from openfisca_core.periods import period as make_period
 
-from .test_entities import TEST_CASE, new_simulation, FIRST_PARENT, SECOND_PARENT, PARENT, CHILD
+from .test_entities import new_simulation, FIRST_PARENT, SECOND_PARENT, PARENT, CHILD
 
 period = make_period('2019-01')
 
 
 @fixture
 def simulation():
-    return new_simulation(TEST_CASE)
+    return new_simulation({
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}},
+        'households': {
+            'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
+            'h2': {'children': ['ind5'], 'parents': ['ind4']},
+            },
+        })
 
 
 @fixture
@@ -63,11 +69,11 @@ def test_cache_subpop_write_subpop_read(p_subpop, p_subpop_2):
 
 def test_cache_2_subpop_write_global_read(simulation, p_subpop, p_subpop_2):
     p_subpop.put_in_cache('salary', period, np.asarray([1000, 2000, 1200, 2400]))
-    p_subpop_2.put_in_cache('salary', period, np.asarray([1000, 2000, 500]))
+    p_subpop_2.put_in_cache('salary', period, np.asarray([1000, 2000, 0]))
 
     cached_array = simulation.persons.get_cached_array('salary', period)
 
-    assert_array_equal(cached_array.value, [1000, 2000, 500, 1200, 2400])
+    assert_array_equal(cached_array.value, [1000, 2000, 0, 1200, 2400])
     assert_array_equal(cached_array.mask, [True, True, True, True, True, False])
 
 
@@ -78,6 +84,13 @@ def test_cache_disjunct_pop(simulation, p_subpop):
     assert p_subpop_2.get_cached_array('salary', period) is None
 
 
+def test_sub_subpopulation(p_subpop):
+    p_subpop_3 =  p_subpop.get_subpopulation([True, False, True, False])
+    assert_array_equal(
+        p_subpop_3.condition,
+        [True, False, False, True, False, False]
+    )
+
 def test_global_calculation(simulation, p_subpop):
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
 
@@ -87,36 +100,78 @@ def test_global_calculation(simulation, p_subpop):
         )
 
 def test_subpop_calculation(simulation, p_subpop):
-    simulation.set_input('salary', period, [1000, 2000, 500, 1200, 2400, 800])
+    simulation.set_input('salary', period, [1000, 2000, 0, 1200, 2400, 800])
     assert_array_equal(
         p_subpop('salary', period),
         [1000, 2000, 1200, 2400]
     )
 
 
+def test_subpop_calculation_subpop_init(p_subpop, p_subpop_2):
+    p_subpop.put_in_cache('salary', period, np.asarray([1000, 2000, 1200, 2400]))
+    assert_array_equal(
+        p_subpop_2('salary', period),
+        [1000, 2000, 0]
+    )
 
-# def test_household_sub_pop():
-#     test_case = {
-#         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}, 'ind6': {}},
-#         'households': {
-#             'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
-#             'h3': {'parents': ['ind4']},
-#             'h2': {'children': ['ind6'], 'parents': ['ind5']},
-#             },
-#         }
 
-#     simulation = new_simulation(test_case)
-#     simulation.set_input('age', period, [40, 37, 7, 19, 30, 54, 16])
+@fixture
+def simulation_h():
+    test_case = {
+        'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}, 'ind6': {}},
+        'households': {
+            'h1': {'children': ['ind2', 'ind3'], 'parents': ['ind0', 'ind1']},
+            'h3': {'parents': ['ind4']},
+            'h2': {'children': ['ind6'], 'parents': ['ind5']},
+            },
+        }
+    return new_simulation(test_case)
 
-#     condition = simulation.household.nb_persons() > 1
-#     households = simulation.household.get_subpopulation(condition)
 
-#     age = households.members('age', period)
-#     assert_array_equal(age, [40, 37, 7, 19, 54, 16])
+@fixture
+def h_subpop(simulation_h):
+    return simulation_h.household.get_subpopulation(np.asarray([True, False, True]))
 
-#     assert_array_equal(households.members_entity_id, [0, 0, 0, 0, 1, 1])
-#     assert_array_equal(households.members_role, [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD])
-#     assert_array_equal(households.members_position, [0, 1, 2, 3, 0, 1])
 
-#     assert_array_equal(households.sum(age), [40 + 37 + 19 + 7, 54 + 16])
-#     assert_array_equal(households.any(age > 50), [False, True])
+def test_household_sub_pop(h_subpop):
+    assert_array_equal(h_subpop.members_entity_id, [0, 0, 0, 0, 1, 1])
+    assert_array_equal(h_subpop.members_role, [FIRST_PARENT, SECOND_PARENT, CHILD, CHILD, FIRST_PARENT, CHILD])
+    assert_array_equal(h_subpop.members_position, [0, 1, 2, 3, 0, 1])
+
+
+def test_household_sub_pop_members(h_subpop):
+    assert_array_equal(
+        h_subpop.members.condition,
+        [True, True, True, True, False, True, True]
+    )
+
+
+def test_aggregation(simulation_h, h_subpop):
+    simulation_h.set_input('age', period, np.asarray([40, 37, 7, 19, 30, 54, 16]))
+    age = h_subpop.members('age', period)
+
+    assert_array_equal(h_subpop.sum(age), [40 + 37 + 19 + 7, 54 + 16])
+    assert_array_equal(h_subpop.any(age > 50), [False, True])
+    assert_array_equal(h_subpop.max(age), [40, 54])
+
+
+def test_projection_p_to_h(simulation_h, h_subpop):
+    simulation_h.set_input('age', period, np.asarray([40, 37, 7, 19, 30, 54, 16]))
+    age = h_subpop.members('age', period)
+
+    assert_array_equal(
+        h_subpop.first_parent('age', period),
+        [40, 54]
+    )
+
+
+# def test_projection_h_to_p(simulation_h, h_subpop):
+#     simulation_h.set_input('housing_tax', 2019, np.asarray([500, 400, 600]))
+#     p_subpop = simulation_h.persons.get_subpopulation([True, True, True, False, True, True, True])
+
+#     # import ipdb; ipdb.set_trace()
+#     p_subpop.household
+#     assert_array_equal(
+#         p_subpop.household('housing_tax', 2019),
+#         [500, 600]
+#     )
