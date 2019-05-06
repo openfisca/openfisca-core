@@ -71,6 +71,23 @@ def test_cache_2_subpop_write_global_read(simulation, p_subpop, p_subpop_2):
     assert_array_equal(cached_array.mask, [True, True, True, True, True, False])
 
 
+def test_cache_disjunct_pop(simulation, p_subpop):
+    p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
+    p_subpop_2 = simulation.persons.get_subpopulation(np.asarray([False, False, True, False, False, False]))
+
+    assert p_subpop_2.get_cached_array('salary', period) is None
+
+
+def test_global_calculation(simulation, p_subpop):
+    p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
+
+    assert_array_equal(
+        simulation.calculate('salary', period),
+        [1000, 2000, 0, 1200, 2400, 0]
+        )
+
+
+
 # def test_household_sub_pop():
 #     test_case = {
 #         'persons': {'ind0': {}, 'ind1': {}, 'ind2': {}, 'ind3': {}, 'ind4': {}, 'ind5': {}, 'ind6': {}},
@@ -82,7 +99,7 @@ def test_cache_2_subpop_write_global_read(simulation, p_subpop, p_subpop_2):
 #         }
 
 #     simulation = new_simulation(test_case)
-#     simulation.set_input('age', period, np.asarray([40, 37, 7, 19, 30, 54, 16]))
+#     simulation.set_input('age', period, [40, 37, 7, 19, 30, 54, 16])
 
 #     condition = simulation.household.nb_persons() > 1
 #     households = simulation.household.get_subpopulation(condition)

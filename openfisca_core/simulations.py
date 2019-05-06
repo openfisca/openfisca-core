@@ -140,7 +140,6 @@ class Simulation(object):
             complem_population = population.get_subpopulation(np.logical_not(cached_array.mask))
             result_comp_pop = self.calculate_(complem_population, variable_name, period, **parameters)
             result = ternary_combine(cached_array.mask, cached_array.value, result_comp_pop)
-            population.put_in_cache(variable_name, period, result)
             return result
 
 

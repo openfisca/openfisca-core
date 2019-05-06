@@ -614,6 +614,8 @@ class SubPopulation(Population):
             return
         if population_cached_array.mask is None:
             return PartialArray(population_cached_array.value[self.condition], None)
+        if not np.any(population_cached_array.mask * self.condition):
+            return
 
         mask = population_cached_array.mask[self.condition]
         cached_array = population_cached_array.value[self.condition[population_cached_array.mask]]
