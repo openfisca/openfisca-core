@@ -16,4 +16,4 @@ dist/
 .tags*
 .noseids
 .pytest_cache
-
+.mypy_cache

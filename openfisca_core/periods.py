@@ -12,6 +12,7 @@ import calendar
 import datetime
 import re
 from os import linesep
+from typing import Dict
 
 
 DAY = 'day'
@@ -26,8 +27,8 @@ def N_(message):
     return message
 
 
-date_by_instant_cache = {}
-str_by_instant_cache = {}
+date_by_instant_cache: Dict = {}
+str_by_instant_cache: Dict = {}
 year_or_month_or_day_re = re.compile(r'(18|19|20)\d{2}(-(0?[1-9]|1[0-2])(-([0-2]?\d|3[0-1]))?)?$')
 
 

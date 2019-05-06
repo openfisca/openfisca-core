@@ -4,6 +4,7 @@ from __future__ import annotations
 
 
 import os
+from typing import Sequence, Tuple
 
 import numexpr
 import numpy as np
@@ -81,14 +82,14 @@ def eval_expression(expression):
         return expression
 
 
-def ternary_combine(condition: Array[Bool], value_for_trues: Array, values_for_falses: Array) -> Array:
+def ternary_combine(condition: np.ndarray[bool], value_for_trues: np.ndarray, values_for_falses: np.ndarray) -> np.ndarray:
     return combine([
         (condition, value_for_trues),
         (np.logical_not(condition), values_for_falses)
         ])
 
 
-def combine(cond_values_pairs: Iterable[Array[Bool], Array]) -> Array:
+def combine(cond_values_pairs: Sequence[Tuple[np.ndarray[bool], np.ndarray]]) -> np.ndarray:
     cond_1, value_1 = cond_values_pairs[0]
     result = np.empty(cond_1.size, dtype = value_1.dtype)
 

@@ -14,6 +14,9 @@ clean:
 check-syntax-errors:
 	python -m compileall -q .
 
+check-types:
+	mypy openfisca_core && mypy openfisca_web_api
+
 check-style:
 	@# Do not analyse .gitignored files.
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
@@ -24,7 +27,7 @@ format-style:
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
 	autopep8 `git ls-files | grep "\.py$$"`
 
-test: clean check-syntax-errors check-style
+test: clean check-syntax-errors check-style check-types
 	env PYTEST_ADDOPTS="$$PYTEST_ADDOPTS --cov=openfisca_core" pytest
 
 api:

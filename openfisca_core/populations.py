@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import traceback
 import os
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Optional
 from functools import lru_cache
+import abc
 
 import numpy as np
 
@@ -124,7 +125,7 @@ class Population(object):
     def default_array(self, variable_name: str) -> np.ndarray:
         return self.get_holder(variable_name).default_array()
 
-    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[Bool] = None) -> None:
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[bool] = None) -> None:
         self.get_holder(variable_name).put_in_cache(array, period, mask)
 
     def get_holder(self, variable_name: str) -> Holder:
@@ -136,10 +137,12 @@ class Population(object):
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def get_projector(self, shortcut: str) -> Projector:
-        if shortcut in self.simulation.populations:
-            entity_2 = self.simulation.populations[shortcut]
-            return EntityToPersonProjector(entity_2)
+    def get_projector(self, shortcut: str) -> Optional[Projector]:
+        if shortcut not in self.simulation.populations:
+            return None
+        entity_2 = self.simulation.populations[shortcut]
+        return EntityToPersonProjector(entity_2)
+
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
@@ -241,7 +244,7 @@ class Population(object):
         result[condition] = sub_result
         return result
 
-    def get_subpopulation(self, condition):
+    def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
         return SubPopulation(self, condition)
 
 
@@ -281,6 +284,10 @@ class GroupPopulation(Population):
 
         return self._members_position
 
+    @members_position.setter
+    def members_position(self, members_position):
+        self._members_position = members_position
+
     @property
     def members_entity_id(self):
         return self._members_entity_id
@@ -314,19 +321,16 @@ class GroupPopulation(Population):
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
 
-    @members_position.setter
-    def members_position(self, members_position):
-        self._members_position = members_position
-
-    def get_subpopulation(self, condition: np.ndarray[Bool], members: SubPopulation = None) -> GroupSubPopulation:
+    def get_subpopulation(self, condition: np.ndarray[bool], members: Optional[SubPopulation] = None) -> GroupSubPopulation:
         return GroupSubPopulation(self, condition, members)
 
-    def get_projector(self, shortcut: str) -> Projector:
+    def get_projector(self, shortcut: str) -> Optional[Projector]:
         if shortcut == 'first_person':
             return FirstPersonToEntityProjector(self)
         role = next((role for role in self.entity.flattened_roles if (role.max == 1) and (role.key == shortcut)), None)
         if role:
             return UniqueRoleToEntityProjector(self, role)
+        return None
 
     #  Aggregation persons -> entity
 
@@ -532,9 +536,9 @@ class GroupPopulation(Population):
             return np.where(role_condition, array[self.members_entity_id], 0)
 
 
-class Projector(object):
-    reference_entity = None
-    parent = None
+class Projector(abc.ABC):
+    reference_entity: Population
+    parent: Optional[Projector]
 
     def __getattr__(self, attribute):
         projector = self.get_projector(attribute)
@@ -562,8 +566,9 @@ class Projector(object):
         else:
             return self.parent.transform_and_bubble_up(transformed_result)
 
+    @abc.abstractmethod
     def transform(self, result):
-        return NotImplementedError()
+        pass
 
     def get_projector(self, attribute: str):
         projector = self.reference_entity.get_projector(attribute)
@@ -615,7 +620,7 @@ class UniqueRoleToEntityProjector(Projector):
 class SubPopulation(Population):
 
     def __init__(self, population: Population, condition: np.ndarray, **kw):
-        super().__init__(population.entity, **kw)
+        super().__init__(population.entity, **kw)  # type: ignore # (see https://github.com/python/mypy/issues/5887)
         self.population = population
         self.condition = condition
         self.count = np.sum(condition)
@@ -629,18 +634,18 @@ class SubPopulation(Population):
         population_cached_array = self.population.get_cached_array(variable_name, period)
 
         if population_cached_array is None:
-            return
+            return None
         if population_cached_array.mask is None:
             return PartialArray(population_cached_array.value[self.condition], None)
         if not np.any(population_cached_array.mask * self.condition):
-            return
+            return None
 
         mask = population_cached_array.mask[self.condition]
         cached_array = population_cached_array.value[self.condition[population_cached_array.mask]]
 
         return PartialArray(cached_array, mask)
 
-    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[Bool] = None) -> None:
+    def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[bool] = None) -> None:
         cache_content = self.population.get_cached_array(variable_name, period)
         if cache_content is None:
             return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
@@ -652,7 +657,7 @@ class SubPopulation(Population):
         ])
         return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
 
-    def get_subpopulation(self, condition: np.ndarray[Bool]) -> SubPopulation:
+    def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
         subpopulation_condition = self.condition.copy()
         subpopulation_condition[subpopulation_condition] = condition
 
@@ -664,9 +669,9 @@ class SubPopulation(Population):
     def default_array(self, variable_name: str) -> np.ndarray:
         return self.population.default_array(variable_name)[self.condition]
 
-    def get_projector(self, shortcut: str) -> Projector:
+    def get_projector(self, shortcut: str) -> Optional[Projector]:
         if not shortcut in self.simulation.populations:
-            return
+            return None
         group_population = self.simulation.populations[shortcut]
         group_sub_population = group_population.get_subpopulation(
             group_population.any(self.condition),
@@ -675,7 +680,7 @@ class SubPopulation(Population):
         return EntityToPersonProjector(group_sub_population)
 
 
-class GroupSubPopulation(SubPopulation, GroupPopulation):
+class GroupSubPopulation(SubPopulation, GroupPopulation):  # type: ignore # False positive, will be fixed in mypy >= 0.710, not released yet
 
     def __init__(self, population: Population, condition: np.ndarray, members: Population = None):
         if members is None:
@@ -699,7 +704,7 @@ class GroupSubPopulation(SubPopulation, GroupPopulation):
     def members_position(self):
         return self.population.members_position[self.members.condition]
 
-    def get_subpopulation(self, condition: np.ndarray[Bool], members: SubPopulation = None) -> SubPopulation:
+    def get_subpopulation(self, condition: np.ndarray[bool], members: Optional[SubPopulation] = None) -> GroupSubPopulation:
         subpopulation_condition = self.condition.copy()
         subpopulation_condition[subpopulation_condition] = condition
 

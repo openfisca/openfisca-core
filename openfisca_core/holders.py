@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import warnings
+from typing import Optional
 
 import numpy as np
 import psutil
@@ -114,6 +115,7 @@ class Holder(object):
             return value
         if self._disk_storage:
             return self._disk_storage.get(period)
+        return None
 
     def get_memory_usage(self):
         """
@@ -221,14 +223,14 @@ class Holder(object):
                     .format(value, self.variable.name, self.variable.dtype, value.dtype))
         return value
 
-    def _check_value_size(self, value: np.ndarray, mask: np.ndarray[Bool] = None):
+    def _check_value_size(self, value: np.ndarray, mask: np.ndarray[bool] = None):
         count = self.population.count if mask is None else np.sum(mask)
         if len(value) != count:
             raise ValueError(
                 f'Unable to set value "{value}" for variable "{self.variable.name}", as its length is {len(value)} while there are {self.population.count} {self.population.entity.plural} in the simulation.'
                 )
 
-    def _set(self, period: Period, value: np.ndarray, mask: np.ndarray[Bool] = None):
+    def _set(self, period: Period, value: np.ndarray, mask: np.ndarray[bool] = None):
         value = self._to_array(value)
         self._check_value_size(value, mask)
         if self.variable.definition_period != ETERNITY:
@@ -263,7 +265,7 @@ class Holder(object):
         else:
             self._memory_storage.put(partial_array, period)
 
-    def put_in_cache(self, value: np.ndarray, period: Period, mask: np.ndarray[Bool] = None):
+    def put_in_cache(self, value: np.ndarray, period: Period, mask: np.ndarray[bool] = None):
         if self._do_not_store:
             return
 
@@ -366,4 +368,4 @@ from dataclasses import dataclass
 @dataclass(frozen = True)
 class PartialArray:
     value: np.ndarray
-    mask: np.ndarray[Bool] = None
+    mask: np.ndarray[bool] = None
