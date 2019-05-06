@@ -136,7 +136,7 @@ class Population(object):
         self._holders[variable_name] = holder = Holder(variable, self)
         return holder
 
-    def get_projector(self, shortcut: str):
+    def get_projector(self, shortcut: str) -> Projector:
         if shortcut in self.simulation.populations:
             entity_2 = self.simulation.populations[shortcut]
             return EntityToPersonProjector(entity_2)
@@ -318,8 +318,8 @@ class GroupPopulation(Population):
     def members_position(self, members_position):
         self._members_position = members_position
 
-    def get_subpopulation(self, condition):
-        return GroupSubPopulation(self, condition)
+    def get_subpopulation(self, condition: np.ndarray[Bool], members: SubPopulation = None) -> GroupSubPopulation:
+        return GroupSubPopulation(self, condition, members)
 
     def get_projector(self, shortcut: str) -> Projector:
         if shortcut == 'first_person':
@@ -664,11 +664,22 @@ class SubPopulation(Population):
     def default_array(self, variable_name: str) -> np.ndarray:
         return self.population.default_array(variable_name)[self.condition]
 
+    def get_projector(self, shortcut: str) -> Projector:
+        if not shortcut in self.simulation.populations:
+            return
+        group_population = self.simulation.populations[shortcut]
+        group_sub_population = group_population.get_subpopulation(
+            group_population.any(self.condition),
+            self
+        )
+        return EntityToPersonProjector(group_sub_population)
+
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):
 
-    def __init__(self, population: Population, condition: np.ndarray):
-        members = SubPopulation(population.members, population.project(condition))
+    def __init__(self, population: Population, condition: np.ndarray, members: Population = None):
+        if members is None:
+            members = SubPopulation(population.members, population.project(condition))
         super().__init__(population = population, condition = condition, members = members)
 
     @cached_property
@@ -687,3 +698,11 @@ class GroupSubPopulation(SubPopulation, GroupPopulation):
     @cached_property
     def members_position(self):
         return self.population.members_position[self.members.condition]
+
+    def get_subpopulation(self, condition: np.ndarray[Bool], members: SubPopulation = None) -> SubPopulation:
+        subpopulation_condition = self.condition.copy()
+        subpopulation_condition[subpopulation_condition] = condition
+
+        return GroupSubPopulation(self.population, subpopulation_condition, members)
+
+    get_projector = GroupPopulation.get_projector
