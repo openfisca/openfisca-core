@@ -169,7 +169,6 @@ def test_projection_h_to_p(simulation_h, h_subpop):
     simulation_h.set_input('housing_tax', 2019, np.asarray([500, 400, 600]))
     p_subpop = simulation_h.persons.get_subpopulation(np.asarray([True, True, True, False, True, True, True]))
 
-    # import ipdb; ipdb.set_trace()
     assert_array_equal(
         p_subpop.household.ids,
         ['h1', 'h1', 'h1', 'h3', 'h2', 'h2']
@@ -183,7 +182,6 @@ def test_projection_h_to_p_2(simulation_h, h_subpop):
     simulation_h.set_input('housing_tax', 2019, np.asarray([500, 400, 600]))
     p_subpop = simulation_h.persons.get_subpopulation(np.asarray([True, True, True, True, False, True, True]))
 
-    # import ipdb; ipdb.set_trace()
     assert_array_equal(
         p_subpop.household.ids,
         ['h1', 'h1', 'h1', 'h1', 'h2', 'h2']

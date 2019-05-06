@@ -176,6 +176,10 @@ class Simulation(object):
             holder.delete_arrays(_period)
 
     def calculate_add(self, variable_name, period, **parameters):
+        population = self.get_variable_population(variable_name)
+        return self.calculate_add_(population, variable_name, period, **parameters)
+
+    def calculate_add_(self, population, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -195,11 +199,15 @@ class Simulation(object):
                 period))
 
         return sum(
-            self.calculate(variable_name, sub_period, **parameters)
+            self.calculate_(population, variable_name, sub_period, **parameters)
             for sub_period in period.get_subperiods(variable.definition_period)
             )
 
     def calculate_divide(self, variable_name, period, **parameters):
+        population = self.get_variable_population(variable_name)
+        return self.calculate_divide_(population, variable_name, period, **parameters)
+
+    def calculate_divide_(self, population, variable_name, period, **parameters):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -216,9 +224,9 @@ class Simulation(object):
 
         if period.unit == periods.MONTH:
             computation_period = period.this_year
-            return self.calculate(variable_name, period = computation_period, **parameters) / 12.
+            return self.calculate_(population, variable_name, period = computation_period, **parameters) / 12.
         elif period.unit == periods.YEAR:
-            return self.calculate(variable_name, period, **parameters)
+            return self.calculate_(population, variable_name, period, **parameters)
 
         raise ValueError("Unable to divide the value of '{}' to match period {}.".format(
             variable_name,

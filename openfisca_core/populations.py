@@ -110,9 +110,9 @@ class Population(object):
         if ADD in options and DIVIDE in options:
             raise ValueError('Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
         elif ADD in options:
-            return self.simulation.calculate_add(variable_name, period, **parameters)
+            return self.simulation.calculate_add(_self, variable_name, period, **parameters)
         elif DIVIDE in options:
-            return self.simulation.calculate_divide(variable_name, period, **parameters)
+            return self.simulation.calculate_divide_(self, variable_name, period, **parameters)
         else:
             return self.simulation.calculate_(self, variable_name, period, **parameters)
 
