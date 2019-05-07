@@ -6,7 +6,6 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import single, couple
@@ -502,7 +501,6 @@ def test_unordered_persons():
     assert_array_equal(household.project(accommodation_size, role = CHILD), [0, 160, 0, 160, 60, 0])
 
 
-
 def test_if():
     simulation = new_simulation(TEST_CASE)
     persons = simulation.persons
@@ -512,7 +510,8 @@ def test_if():
 
     salary_adults = persons.if_(age > 18, lambda persons: persons('salary', MONTH))
 
-    assert_array_equal(salary_adults , [1200, 1400, 0, 0, 2000, 0])
+    assert_array_equal(salary_adults, [1200, 1400, 0, 0, 2000, 0])
+
 
 def test_if_2():
     simulation = new_simulation(TEST_CASE)
@@ -523,4 +522,4 @@ def test_if_2():
 
     income_tax_adults = persons.if_(age > 18, lambda persons: persons('income_tax', MONTH))
 
-    assert_allclose(income_tax_adults , [180, 210, 0, 0, 300, 0])
+    assert_allclose(income_tax_adults, [180, 210, 0, 0, 300, 0])

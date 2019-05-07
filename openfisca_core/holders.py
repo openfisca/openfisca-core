@@ -85,7 +85,6 @@ class Holder(object):
         if self._disk_storage:
             self._disk_storage.delete(period)
 
-
     def get_array(self, period: Optional[CastableToPeriod]) -> Optional[np.ndarray]:
         """
             Get the value of the variable for the given period.
@@ -103,7 +102,7 @@ class Holder(object):
         return np.ma.masked_array(
             combine([(cached_array.mask, cached_array.value)]),
             np.logical_not(cached_array.mask)
-        )
+            )
 
     def get_cached_array(self, period: Optional[Period]) -> Optional[PartialArray]:
         if self.variable.is_neutralized:

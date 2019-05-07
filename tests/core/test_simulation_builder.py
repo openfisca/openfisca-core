@@ -265,7 +265,7 @@ def test_finalize_person_entity(simulation_builder, persons):
     simulation_builder.finalize_variables_init(population)
     assert_near(population.get_holder('salary').get_array('2018-11'), [3000, 0])
     assert population.count == 2
-    assert_array_equal(population.ids ,['Alicia', 'Javier'])
+    assert_array_equal(population.ids, ['Alicia', 'Javier'])
 
 
 def test_canonicalize_period_keys(simulation_builder, persons):

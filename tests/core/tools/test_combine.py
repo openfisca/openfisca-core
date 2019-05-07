@@ -13,15 +13,16 @@ def test_ternary_combine():
     assert_array_equal(
         ternary_combine(condition, value_for_true, value_for_false),
         [1, 10, 2, 3, 20]
-    )
+        )
+
 
 def test_combine():
     condition_1 = np.asarray([True, False, True, True, False])
     condition_2 = np.asarray([True, True, True, False, True])
-    value_1 =  np.asarray([1, 3, 4])
-    value_2 =  np.asarray([10, 20, 30, 50])
+    value_1 = np.asarray([1, 3, 4])
+    value_2 = np.asarray([10, 20, 30, 50])
 
     assert_array_equal(
-        combine([(condition_1, value_1), ( condition_2, value_2)]),
+        combine([(condition_1, value_1), (condition_2, value_2)]),
         [1, 20, 3, 4, 50]
-    )
+        )

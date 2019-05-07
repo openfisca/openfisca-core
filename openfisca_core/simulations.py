@@ -11,9 +11,7 @@ from openfisca_core import periods
 from openfisca_core.commons import empty_clone, stringify_array
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
-from openfisca_core.populations import SubPopulation
 from openfisca_core.tools import ternary_combine
-from openfisca_core.commons import PartialArray
 from openfisca_core.holders import Holder
 
 log = logging.getLogger(__name__)
@@ -144,7 +142,6 @@ class Simulation(object):
             if self.trace:
                 self._record_calculation_end(variable_name, period)
             return result
-
 
         array = None
 

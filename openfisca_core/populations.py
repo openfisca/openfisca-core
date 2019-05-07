@@ -14,13 +14,15 @@ from openfisca_core.entities import Role
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder, PartialArray
 from openfisca_core.periods import Period
-from openfisca_core.tools import combine
+from openfisca_core.tools import combine, ternary_combine
 
 
 ADD = 'add'
 DIVIDE = 'divide'
 
-cached_property = lambda f: property(lru_cache()(f))
+
+def cached_property(f):
+    return property(lru_cache()(f))
 
 
 def projectable(function):
@@ -111,7 +113,7 @@ class Population(object):
         if ADD in options and DIVIDE in options:
             raise ValueError('Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
         elif ADD in options:
-            return self.simulation.calculate_add(_self, variable_name, period, **parameters)
+            return self.simulation.calculate_add_(self, variable_name, period, **parameters)
         elif DIVIDE in options:
             return self.simulation.calculate_divide_(self, variable_name, period, **parameters)
         else:
@@ -142,7 +144,6 @@ class Population(object):
             return None
         entity_2 = self.simulation.populations[shortcut]
         return EntityToPersonProjector(entity_2)
-
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
@@ -240,9 +241,7 @@ class Population(object):
     def if_(self, condition: np.ndarray, formula_if_true: Callable):
         sub_population = SubPopulation(self, condition)
         sub_result = formula_if_true(sub_population)
-        result = np.zeros(condition.size, dtype = sub_result.dtype)
-        result[condition] = sub_result
-        return result
+        return ternary_combine(condition, sub_result, 0)
 
     def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
         return SubPopulation(self, condition)
@@ -582,6 +581,8 @@ class Projector(abc.ABC):
         return self.transform_and_bubble_up(self.reference_entity.ids)
 
 # For instance person.family
+
+
 class EntityToPersonProjector(Projector):
 
     def __init__(self, entity, parent = None):
@@ -627,7 +628,7 @@ class SubPopulation(Population):
         self.ids = np.asarray(population.ids)[self.condition]
         self.simulation = population.simulation
 
-    def has_role(self, role): # Does this make sense for group population??
+    def has_role(self, role):  # Does this make sense for group population??
         return self.population.has_role(role)[self.condition]
 
     def get_cached_array(self, variable_name: str, period: Period) -> Optional[PartialArray]:
@@ -655,13 +656,13 @@ class SubPopulation(Population):
             new_array = combine([
                 (self.condition, array),
                 (True, cache_content.value)
-            ])
+                ])
         else:
             new_mask = cache_content.mask + self.condition
             new_array = combine([
                 (self.condition[new_mask], array),
                 (cache_content.mask[new_mask], cache_content.value)
-            ])
+                ])
         return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
 
     def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
@@ -677,13 +678,13 @@ class SubPopulation(Population):
         return self.population.default_array(variable_name)[self.condition]
 
     def get_projector(self, shortcut: str) -> Optional[Projector]:
-        if not shortcut in self.simulation.populations:
+        if shortcut not in self.simulation.populations:
             return None
         group_population = self.simulation.populations[shortcut]
         group_sub_population = group_population.get_subpopulation(
             group_population.any(self.condition),
             self
-        )
+            )
         return EntityToPersonProjector(group_sub_population)
 
 

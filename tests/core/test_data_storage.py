@@ -21,7 +21,7 @@ def disk_storage():
 
 
 def test_put_get(disk_storage):
-    array = PartialArray(np.asarray([1,2,3]), np.asarray([True, True, False, True, False]))
+    array = PartialArray(np.asarray([1, 2, 3]), np.asarray([True, True, False, True, False]))
     disk_storage.put(array, period)
     cached_array = disk_storage.get(period)
     assert_array_equal(array.value, cached_array.value)
@@ -29,7 +29,7 @@ def test_put_get(disk_storage):
 
 
 def test_put_get_2(disk_storage):
-    array = PartialArray(np.asarray([1,2,3]), None)
+    array = PartialArray(np.asarray([1, 2, 3]), None)
     disk_storage.put(array, period)
     cached_array = disk_storage.get(period)
     assert_array_equal(array.value, cached_array.value)

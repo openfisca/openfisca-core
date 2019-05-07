@@ -11,12 +11,13 @@ from openfisca_core.periods import Period, ETERNITY_PERIOD
 from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.commons import PartialArray
 
+
 class InMemoryStorage(object):
     """
     Low-level class responsible for storing and retrieving calculated vectors in memory
     """
 
-    def __init__(self, is_eternal:bool = False):
+    def __init__(self, is_eternal: bool = False):
         self._arrays: Dict = {}
         self.is_eternal = is_eternal
 
@@ -114,7 +115,7 @@ class OnDiskStorage(object):
 
         filename = str(period)
         value_file = os.path.join(self.values_dir, filename) + '.npy'
-        mask_file =  os.path.join(self.masks_dir, filename) + '.npy'
+        mask_file = os.path.join(self.masks_dir, filename) + '.npy'
 
         if isinstance(value, EnumArray):
             self._enums[value_file] = value.possible_values

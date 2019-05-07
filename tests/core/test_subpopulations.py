@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from pytest import fixture, approx
+from pytest import fixture
 
 from openfisca_core.periods import period as make_period
 
@@ -30,6 +30,7 @@ def p_subpop(simulation):
 def p_subpop_2(simulation):
     condition_2 = np.asarray([True, True, True, False, False, False])
     return simulation.persons.get_subpopulation(condition_2)
+
 
 def test_ids(p_subpop):
     assert_array_equal(p_subpop.ids, ['ind0', 'ind1', 'ind3', 'ind4'])
@@ -63,7 +64,7 @@ def test_cache_subpop_write_subpop_read(p_subpop, p_subpop_2):
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
 
     cached_array = p_subpop_2.get_cached_array('salary', period)
-    assert_array_equal(cached_array.value,[1000, 2000])
+    assert_array_equal(cached_array.value, [1000, 2000])
     assert_array_equal(cached_array.mask, [True, True, False])
 
 
@@ -85,11 +86,12 @@ def test_cache_disjunct_pop(simulation, p_subpop):
 
 
 def test_sub_subpopulation(p_subpop):
-    p_subpop_3 =  p_subpop.get_subpopulation([True, False, True, False])
+    p_subpop_3 = p_subpop.get_subpopulation([True, False, True, False])
     assert_array_equal(
         p_subpop_3.condition,
         [True, False, False, True, False, False]
-    )
+        )
+
 
 def test_global_calculation(simulation, p_subpop):
     p_subpop.put_in_cache('salary', period, [1000, 2000, 1200, 2400])
@@ -99,12 +101,13 @@ def test_global_calculation(simulation, p_subpop):
         [1000, 2000, 0, 1200, 2400, 0]
         )
 
+
 def test_subpop_calculation(simulation, p_subpop):
     simulation.set_input('salary', period, [1000, 2000, 0, 1200, 2400, 800])
     assert_array_equal(
         p_subpop('salary', period),
         [1000, 2000, 1200, 2400]
-    )
+        )
 
 
 def test_subpop_calculation_subpop_init(p_subpop, p_subpop_2):
@@ -112,7 +115,7 @@ def test_subpop_calculation_subpop_init(p_subpop, p_subpop_2):
     assert_array_equal(
         p_subpop_2('salary', period),
         [1000, 2000, 0]
-    )
+        )
 
 
 @fixture
@@ -143,7 +146,7 @@ def test_household_sub_pop_members(h_subpop):
     assert_array_equal(
         h_subpop.members.condition,
         [True, True, True, True, False, True, True]
-    )
+        )
 
 
 def test_aggregation(simulation_h, h_subpop):
@@ -157,12 +160,11 @@ def test_aggregation(simulation_h, h_subpop):
 
 def test_projection_p_to_h(simulation_h, h_subpop):
     simulation_h.set_input('age', period, np.asarray([40, 37, 7, 19, 30, 54, 16]))
-    age = h_subpop.members('age', period)
 
     assert_array_equal(
         h_subpop.first_parent('age', period),
         [40, 54]
-    )
+        )
 
 
 def test_projection_h_to_p(simulation_h, h_subpop):
@@ -172,11 +174,12 @@ def test_projection_h_to_p(simulation_h, h_subpop):
     assert_array_equal(
         p_subpop.household.ids,
         ['h1', 'h1', 'h1', 'h3', 'h2', 'h2']
-    )
+        )
     assert_array_equal(
         p_subpop.household('housing_tax', 2019),
         [500, 500, 500, 400, 600, 600]
-    )
+        )
+
 
 def test_projection_h_to_p_2(simulation_h, h_subpop):
     simulation_h.set_input('housing_tax', 2019, np.asarray([500, 400, 600]))
@@ -185,11 +188,11 @@ def test_projection_h_to_p_2(simulation_h, h_subpop):
     assert_array_equal(
         p_subpop.household.ids,
         ['h1', 'h1', 'h1', 'h1', 'h2', 'h2']
-    )
+        )
     assert_array_equal(
         p_subpop.household('housing_tax', 2019),
         [500, 500, 500, 500, 600, 600]
-    )
+        )
 
 
 def test_trace(simulation, p_subpop):

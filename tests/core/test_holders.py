@@ -3,7 +3,6 @@
 import datetime
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
 from pytest import fixture
 
@@ -16,7 +15,6 @@ from openfisca_core.memory_config import MemoryConfig
 from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
 from .test_countries import tax_benefit_system
-
 
 
 @fixture
