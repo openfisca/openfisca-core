@@ -5,7 +5,6 @@ from __future__ import annotations
 import traceback
 import os
 from typing import Iterable, Callable, Optional
-from functools import lru_cache
 import abc
 
 import numpy as np
@@ -19,10 +18,6 @@ from openfisca_core.tools import combine, ternary_combine
 
 ADD = 'add'
 DIVIDE = 'divide'
-
-
-def cached_property(f):
-    return property(lru_cache()(f))
 
 
 def projectable(function):
@@ -162,7 +157,7 @@ class Population(object):
             )
 
     @projectable
-    def has_role(self, role):
+    def has_role(self, role: Role) -> np.ndarray[bool]:
         """
             Check if a person has a given role within its :any:`GroupEntity`
 
@@ -340,6 +335,9 @@ class GroupPopulation(Population):
         if role:
             return UniqueRoleToEntityProjector(self, role)
         return None
+
+    def has_role(self, role: Role) -> np.ndarray[bool]:
+        return self.filled_array(False)
 
     #  Aggregation persons -> entity
 
@@ -590,9 +588,8 @@ class Projector(abc.ABC):
     def ids(self):
         return self.transform_and_bubble_up(self.reference_entity.ids)
 
+
 # For instance person.family
-
-
 class EntityToPersonProjector(Projector):
 
     def __init__(self, entity, parent = None):
@@ -630,19 +627,19 @@ class UniqueRoleToEntityProjector(Projector):
 
 class SubPopulation(Population):
 
-    def __init__(self, population: Population, condition: np.ndarray, **kw):
-        super().__init__(population.entity, **kw)  # type: ignore # (see https://github.com/python/mypy/issues/5887)
-        self.population = population
+    def __init__(self, super_population: Population, condition: np.ndarray, **kw):
+        super().__init__(super_population.entity, **kw)  # type: ignore # (see https://github.com/python/mypy/issues/5887)
+        self.super_population = super_population
         self.condition = condition
         self.count = np.sum(condition)
-        self.ids = np.asarray(population.ids)[self.condition]
-        self.simulation = population.simulation
+        self.ids = np.asarray(super_population.ids)[self.condition]
+        self.simulation = super_population.simulation
 
-    def has_role(self, role):  # Does this make sense for group population??
-        return self.population.has_role(role)[self.condition]
+    def has_role(self, role):
+        return self.super_population.has_role(role)[self.condition]
 
     def get_cached_array(self, variable_name: str, period: Period) -> Optional[PartialArray]:
-        population_cached_array = self.population.get_cached_array(variable_name, period)
+        population_cached_array = self.super_population.get_cached_array(variable_name, period)
 
         if population_cached_array is None:
             return None
@@ -657,9 +654,9 @@ class SubPopulation(Population):
         return PartialArray(cached_array, mask)
 
     def put_in_cache(self, variable_name: str, period: Period, array: np.ndarray, mask: np.ndarray[bool] = None) -> None:
-        cache_content = self.population.get_cached_array(variable_name, period)
+        cache_content = self.super_population.get_cached_array(variable_name, period)
         if cache_content is None:
-            return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
+            return self.super_population.put_in_cache(variable_name, period, array, mask = self.condition)
 
         if cache_content.mask is None:  # All valus are alredy in cache
             new_mask = None
@@ -673,19 +670,19 @@ class SubPopulation(Population):
                 (self.condition[new_mask], array),
                 (cache_content.mask[new_mask], cache_content.value)
                 ])
-        return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
+        return self.super_population.put_in_cache(variable_name, period, new_array, mask = new_mask)
 
     def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
         subpopulation_condition = self.condition.copy()
         subpopulation_condition[subpopulation_condition] = condition
 
-        return SubPopulation(self.population, subpopulation_condition)
+        return SubPopulation(self.super_population, subpopulation_condition)
 
     def get_holder(self, variable_name: str) -> Holder:
-        return self.population.get_holder(variable_name)
+        return self.super_population.get_holder(variable_name)
 
     def default_array(self, variable_name: str) -> np.ndarray:
-        return self.population.default_array(variable_name)[self.condition]
+        return self.super_population.default_array(variable_name)[self.condition]
 
     def get_projector(self, shortcut: str) -> Optional[Projector]:
         if shortcut not in self.simulation.populations:
@@ -700,32 +697,53 @@ class SubPopulation(Population):
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):  # type: ignore # False positive, will be fixed in mypy >= 0.710, not released yet
 
-    def __init__(self, population: Population, condition: np.ndarray, members: Population = None):
+    def __init__(self, super_population: Population, condition: np.ndarray, members: Population = None):
         if members is None:
-            members = SubPopulation(population.members, population.project(condition))
-        super().__init__(population = population, condition = condition, members = members)
+            members = SubPopulation(super_population.members, super_population.project(condition))
+        super().__init__(super_population = super_population, condition = condition, members = members)
+        self._members_entity_id = None
+        self._members_role = None
+        self._members_position = None
 
-    @cached_property
-    def members_entity_id(self):
-        members_entity_id_in_population = self.population.members_entity_id[self.members.condition]
+    @property
+    def members_entity_id(self) -> np.ndarray[int]:
+        if self._members_entity_id is None:
+            members_entity_id_in_population = self.super_population.members_entity_id[self.members.condition]
 
-        # This step is necessary to preserve the invariant that entity indices are consecutive.
-        # Will for instance change [0, 0, 2, 5] to [0, 0, 1, 2]
-        _, result = np.unique(members_entity_id_in_population, return_inverse = True)
-        return result
+            # This step is necessary to preserve the invariant that entity indices are consecutive.
+            # Will for instance change [0, 0, 2, 5] to [0, 0, 1, 2]
+            _, self._members_entity_id = np.unique(members_entity_id_in_population, return_inverse = True)
+        return self._members_entity_id
 
-    @cached_property
-    def members_role(self):
-        return self.population.members_role[self.members.condition]
+    @members_entity_id.setter
+    def members_entity_id(self, members_entity_id):
+        self._members_entity_id = members_entity_id
 
-    @cached_property
-    def members_position(self):
-        return self.population.members_position[self.members.condition]
+    @property
+    def members_role(self) -> np.ndarray[Role]:
+        if self._members_role is None:
+            self._members_role = self.super_population.members_role[self.members.condition]
+        return self._members_role
+
+    @members_role.setter
+    def members_role(self, _members_role):
+        self.__members_role = _members_role
+
+    @property
+    def members_position(self) -> np.ndarray[int]:
+        if self._members_position is None:
+            self._members_position = self.super_population.members_position[self.members.condition]
+        return self._members_position
+
+    @members_position.setter
+    def members_position(self, members_position):
+        self._members_position = members_position
 
     def get_subpopulation(self, condition: np.ndarray[bool], members: Optional[SubPopulation] = None) -> GroupSubPopulation:
         subpopulation_condition = self.condition.copy()
         subpopulation_condition[subpopulation_condition] = condition
 
-        return GroupSubPopulation(self.population, subpopulation_condition, members)
+        return GroupSubPopulation(self.super_population, subpopulation_condition, members)
 
     get_projector = GroupPopulation.get_projector
+    has_role = GroupPopulation.has_role

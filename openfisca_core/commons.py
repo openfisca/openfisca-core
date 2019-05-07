@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import numpy as np
 from dataclasses import dataclass
+from typing import Optional
+
+import numpy as np
 
 
 class Dummy(object):
@@ -33,5 +35,11 @@ def stringify_array(array):
 
 @dataclass(frozen = True)
 class PartialArray:
+    """
+        Represents a value known for only a subset of a population.
+        ``mask`` has the size of the super-population, and is ``True`` for the K individuals the value is known for.
+        If ``mask`` is ``None``, the value is known for all individuals.
+        ``value`` contains the K known values.
+    """
     value: np.ndarray
-    mask: np.ndarray[bool] = None
+    mask: Optional[np.ndarray[bool]] = None

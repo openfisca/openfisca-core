@@ -99,7 +99,7 @@ class Holder(object):
         if cached_array.mask is None:
             return cached_array.value
 
-        return np.ma.masked_array(
+        return np.ma.masked_array(  # Masked arrays are a subclass of NumPy arrays that have missing values.
             combine([(cached_array.mask, cached_array.value)]),
             np.logical_not(cached_array.mask)
             )
