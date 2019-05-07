@@ -1,5 +1,25 @@
 # Changelog
 
+## 35.0.0
+
+#### Breaking changes
+
+- `population.ids` is now a NumPy array, and not a regular Python list.
+
+#### New features
+
+- Introduce `population.get_subpopbulation(condition)`
+  - This allow to extract a supopulation based on a condition
+  - Subpopulations can be used the same way than regular populations
+
+#### Technical notes
+
+- Subpopulations don't handle their own cache: they write and read in their super_population cache
+
+#### Minor changes
+
+- Add type-checking to the build
+
 ### 34.0.1
 
 #### Bug fix
