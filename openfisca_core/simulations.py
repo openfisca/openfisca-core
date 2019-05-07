@@ -125,7 +125,7 @@ class Simulation(object):
             period = periods.period(period)
 
         if self.trace:
-            self.tracer.record_calculation_start(variable.name, period, **parameters)
+            self.tracer.record_calculation_start(variable.name, period)
 
         self._check_period_consistency(period, variable)
 
@@ -134,13 +134,15 @@ class Simulation(object):
 
         if cached_array is not None and cached_array.mask is None:  # The value is known for the whole population
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
+                self._record_calculation_end(variable_name, period)
             return cached_array.value
 
         if cached_array is not None:  # The value is known for only a subpopulation
             complem_population = population.get_subpopulation(np.logical_not(cached_array.mask))
             result_comp_pop = self.calculate_(complem_population, variable_name, period, **parameters)
             result = ternary_combine(cached_array.mask, cached_array.value, result_comp_pop)
+            if self.trace:
+                self._record_calculation_end(variable_name, period)
             return result
 
 
@@ -159,14 +161,17 @@ class Simulation(object):
             population.put_in_cache(variable_name, period, array)
         except SpiralError:
             array = population.default_array(variable_name)
-        finally:
-            if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
-            self._clean_cycle_detection_data(variable.name)
+
+        if self.trace:
+            self._record_calculation_end(variable_name, period)
+        self._clean_cycle_detection_data(variable.name)
 
         self.purge_cache_of_invalid_values()
-
         return array
+
+    def _record_calculation_end(self, variable_name, period):
+        array = self.get_array(variable_name, period)
+        self.tracer.record_calculation_end(variable_name, period, array)
 
     def purge_cache_of_invalid_values(self):
         # We wait for the end of calculate(), signalled by an empty stack, before purging the cache
@@ -488,7 +493,7 @@ class Simulation(object):
         return population and population.entity
 
     def describe_entities(self):
-        return {population.entity.plural: population.ids for population in self.populations.values()}
+        return {population.entity.plural: population.ids.tolist() for population in self.populations.values()}
 
     def clone(self, debug = False, trace = False):
         """

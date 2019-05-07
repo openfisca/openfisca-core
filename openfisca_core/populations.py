@@ -650,11 +650,18 @@ class SubPopulation(Population):
         if cache_content is None:
             return self.population.put_in_cache(variable_name, period, array, mask = self.condition)
 
-        new_mask = cache_content.mask + self.condition
-        new_array = combine([
-            (self.condition[new_mask], array),
-            (cache_content.mask[new_mask], cache_content.value)
-        ])
+        if cache_content.mask is None:  # All valus are alredy in cache
+            new_mask = None
+            new_array = combine([
+                (self.condition, array),
+                (True, cache_content.value)
+            ])
+        else:
+            new_mask = cache_content.mask + self.condition
+            new_array = combine([
+                (self.condition[new_mask], array),
+                (cache_content.mask[new_mask], cache_content.value)
+            ])
         return self.population.put_in_cache(variable_name, period, new_array, mask = new_mask)
 
     def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:

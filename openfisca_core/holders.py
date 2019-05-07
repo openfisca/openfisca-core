@@ -17,7 +17,7 @@ from openfisca_core.data_storage import InMemoryStorage, OnDiskStorage
 from openfisca_core.errors import PeriodMismatchError
 from openfisca_core.indexed_enums import Enum
 from openfisca_core.periods import MONTH, YEAR, ETERNITY
-from openfisca_core.tools import eval_expression, ternary_combine
+from openfisca_core.tools import eval_expression, combine
 
 log = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class Holder(object):
             return cached_array.value
 
         return np.ma.masked_array(
-            ternary_combine(cached_array.mask, cached_array.value, np.nan),
+            combine([(cached_array.mask, cached_array.value)]),
             np.logical_not(cached_array.mask)
         )
 

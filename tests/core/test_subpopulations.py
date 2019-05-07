@@ -190,3 +190,18 @@ def test_projection_h_to_p_2(simulation_h, h_subpop):
         p_subpop.household('housing_tax', 2019),
         [500, 500, 500, 500, 600, 600]
     )
+
+
+def test_trace(simulation, p_subpop):
+    simulation.trace = True
+    simulation.set_input('salary', period, [1000, 2000, 0, 1200, 2400, 800])
+    p_subpop('income_tax', period)
+    traced_value = list(simulation.tracer.trace.values())[0]['value']
+    assert traced_value.size == simulation.persons.count
+
+
+def test_trace_2(simulation, p_subpop):
+    simulation.trace = True
+    p_subpop('disposable_income', period)
+    traced_value = list(simulation.tracer.trace.values())[0]['value']
+    assert traced_value.size == simulation.persons.count

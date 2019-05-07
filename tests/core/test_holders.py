@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
+from pytest import fixture
 
 import openfisca_country_template.situation_examples
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -13,7 +17,6 @@ from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
 from .test_countries import tax_benefit_system
 
-from pytest import fixture
 
 
 @fixture
@@ -220,3 +223,16 @@ def test_get_array_sub_pop(couple):
     sub_pop.put_in_cache('salary', period, np.asarray([2000]))
     array = couple.get_array('salary', period)
 
+    assert array.size == 2
+    assert array[1] == 2000
+
+
+def test_get_array_sub_pop_date(couple):
+    period = make_period('2015-01')
+    couple.delete_arrays('birth')
+    sub_pop = couple.persons.get_subpopulation(np.asarray([False, True]))
+    sub_pop.put_in_cache('birth', period, np.asarray([datetime.date(1990, 1, 1)]))
+    array = couple.get_array('birth', period)
+
+    assert array.size == 2
+    assert array.data[1] == datetime.date(1990, 1, 1)

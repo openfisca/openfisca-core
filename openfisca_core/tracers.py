@@ -89,18 +89,17 @@ class Tracer(object):
         return new
 
     @staticmethod
-    def _get_key(variable_name, period, **parameters):
+    def _get_key(variable_name, period):
         return "{}<{}>".format(variable_name, period)
 
-    def record_calculation_start(self, variable_name, period, **parameters):
+    def record_calculation_start(self, variable_name, period):
         """
             Record that OpenFisca started computing a variable.
 
             :param str variable_name: Name of the variable starting to be computed
             :param Period period: Period for which the variable is being computed
-            :param list parameters: Parameter with which the variable is being computed
         """
-        key = self._get_key(variable_name, period, **parameters)
+        key = self._get_key(variable_name, period)
 
         if self.stack:  # The variable is a dependency of another variable
             parent = self.stack[-1]
@@ -128,16 +127,15 @@ class Tracer(object):
             )
         self.trace[parent]['parameters'][parameter_key] = value
 
-    def record_calculation_end(self, variable_name, period, result, **parameters):
+    def record_calculation_end(self, variable_name, period, result):
         """
             Record that OpenFisca finished computing a variable.
 
             :param str variable_name: Name of the variable starting to be computed
             :param Period period: Period for which the variable is being computed
             :param numpy.ndarray result: Result of the computation
-            :param list parameters: Parameter with which the variable is being computed
         """
-        key = self._get_key(variable_name, period, **parameters)
+        key = self._get_key(variable_name, period)
         expected_key = self.stack.pop()
 
         if not key == expected_key:
@@ -185,7 +183,7 @@ class Tracer(object):
 
     def print_trace(self, variable_name, period, max_depth = 1, aggregate = False, ignore_zero = False):
         """
-            Print value, the dependencies, and the dependencies values of the variable for the given period (and possibly the given set of extra parameters).
+            Print value, the dependencies, and the dependencies values of the variable for the given period.
 
             :param str variable_name: Name of the variable to investigate
             :param Period period: Period to investigate
