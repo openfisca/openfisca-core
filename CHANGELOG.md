@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.0.1
+
+#### Bug fix
+
+- Allow both `*.yaml` and `*.yml` extensions for YAML tests
+
 # 34.0.0
 
 #### Technical changes

@@ -224,7 +224,7 @@ class OpenFiscaPlugin(object):
         self.options = options
 
     def pytest_collect_file(self, parent, path):
-        if path.ext == ".yaml":
+        if path.ext in [".yaml", ".yml"]:
             return YamlFile(path, parent, self.tax_benefit_system, self.options)
 
 
