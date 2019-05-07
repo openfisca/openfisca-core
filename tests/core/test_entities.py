@@ -505,7 +505,6 @@ def test_if():
     simulation = new_simulation(TEST_CASE)
     persons = simulation.persons
     simulation.set_input('salary', MONTH, [1200, 1400, 0, 0, 2000, 800])
-
     age = np.asarray([40, 37, 7, 9, 54, 16])
 
     salary_adults = persons.if_(age > 18, lambda persons: persons('salary', MONTH))
@@ -517,9 +516,26 @@ def test_if_2():
     simulation = new_simulation(TEST_CASE)
     persons = simulation.persons
     simulation.set_input('salary', MONTH, [1200, 1400, 0, 0, 2000, 800])
-
     age = np.asarray([40, 37, 7, 9, 54, 16])
 
     income_tax_adults = persons.if_(age > 18, lambda persons: persons('income_tax', MONTH))
 
     assert_allclose(income_tax_adults, [180, 210, 0, 0, 300, 0])
+
+
+def test_if_with_false():
+    simulation = new_simulation(TEST_CASE)
+    persons = simulation.persons
+    simulation.set_input('salary', MONTH, [1200, 1400, 500, 600, 2000, 800])
+    age = np.asarray([40, 37, 7, 9, 54, 16])
+
+    result = persons.if_(
+        age > 18,
+        lambda persons: persons('salary', MONTH),
+        lambda persons: persons('salary', MONTH) / 2
+        )
+
+    assert_allclose(
+        result,
+        np.asarray([1200, 1400, 250, 300, 2000, 400])
+        )

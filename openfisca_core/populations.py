@@ -238,10 +238,20 @@ class Population(object):
         # Return -1 for the persons who don't respect the condition
         return np.where(condition, result, -1)
 
-    def if_(self, condition: np.ndarray, formula_if_true: Callable):
-        sub_population = SubPopulation(self, condition)
-        sub_result = formula_if_true(sub_population)
-        return ternary_combine(condition, sub_result, 0)
+    def if_(self, condition: np.ndarray[bool], formula_if_true: Callable, formula_if_false: Optional[Callable] = None) -> np.ndarray:
+        if not np.any(condition):
+            return formula_if_false(self) if formula_if_false is not None else self.filled_array(0)
+        if np.all(condition):
+            return formula_if_true(self)
+        true_population = SubPopulation(self, condition)
+        true_population_result = formula_if_true(true_population)
+
+        if formula_if_false is None:
+            return ternary_combine(condition, true_population_result, 0)
+
+        false_population = SubPopulation(self, np.logical_not(condition))
+        false_population_result = formula_if_false(false_population)
+        return ternary_combine(condition, true_population_result, false_population_result)
 
     def get_subpopulation(self, condition: np.ndarray[bool]) -> SubPopulation:
         return SubPopulation(self, condition)
