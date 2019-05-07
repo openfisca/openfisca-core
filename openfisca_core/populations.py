@@ -5,7 +5,6 @@ from __future__ import annotations
 import traceback
 import os
 from typing import Iterable, Callable, Optional
-import abc
 
 import numpy as np
 
@@ -14,7 +13,7 @@ from openfisca_core.indexed_enums import EnumArray
 from openfisca_core.holders import Holder, PartialArray
 from openfisca_core.periods import Period
 from openfisca_core.tools import combine, ternary_combine
-
+from openfisca_core.projectors import Projector, EntityToPersonProjector, FirstPersonToEntityProjector, UniqueRoleToEntityProjector, EntityToSubPopulationProjector
 
 ADD = 'add'
 DIVIDE = 'divide'
@@ -137,8 +136,8 @@ class Population(object):
     def get_projector(self, shortcut: str) -> Optional[Projector]:
         if shortcut not in self.simulation.populations:
             return None
-        entity_2 = self.simulation.populations[shortcut]
-        return EntityToPersonProjector(entity_2)
+        group_entity = self.simulation.populations[shortcut]
+        return EntityToPersonProjector(group_entity)
 
     def get_memory_usage(self, variables = None):
         holders_memory_usage = {
@@ -209,7 +208,7 @@ class Population(object):
         """
 
         # If entity is for instance 'person.household', we get the reference entity 'household' behind the projector
-        entity = entity if not isinstance(entity, Projector) else entity.reference_entity
+        entity = entity if not isinstance(entity, Projector) else entity.reference_population
 
         positions = entity.members_position
         biggest_entity_size = np.max(positions) + 1
@@ -325,8 +324,8 @@ class GroupPopulation(Population):
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
 
-    def get_subpopulation(self, condition: np.ndarray[bool], members: Optional[SubPopulation] = None) -> GroupSubPopulation:
-        return GroupSubPopulation(self, condition, members)
+    def get_subpopulation(self, condition: np.ndarray[bool]) -> GroupSubPopulation:
+        return GroupSubPopulation(self, condition)
 
     def get_projector(self, shortcut: str) -> Optional[Projector]:
         if shortcut == 'first_person':
@@ -336,6 +335,7 @@ class GroupPopulation(Population):
             return UniqueRoleToEntityProjector(self, role)
         return None
 
+    @projectable
     def has_role(self, role: Role) -> np.ndarray[bool]:
         return self.filled_array(False)
 
@@ -543,88 +543,6 @@ class GroupPopulation(Population):
             return np.where(role_condition, array[self.members_entity_id], 0)
 
 
-class Projector(abc.ABC):
-    reference_entity: Population
-    parent: Optional[Projector]
-
-    def __getattr__(self, attribute):
-        projector = self.get_projector(attribute)
-        if projector:
-            return projector
-
-        reference_attr = getattr(self.reference_entity, attribute)
-        if not hasattr(reference_attr, 'projectable'):
-            return reference_attr
-
-        def projector_function(*args, **kwargs):
-            result = reference_attr(*args, **kwargs)
-            return self.transform_and_bubble_up(result)
-
-        return projector_function
-
-    def __call__(self, *args, **kwargs):
-        result = self.reference_entity(*args, **kwargs)
-        return self.transform_and_bubble_up(result)
-
-    def transform_and_bubble_up(self, result):
-        transformed_result = self.transform(result)
-        if self.parent is None:
-            return transformed_result
-        else:
-            return self.parent.transform_and_bubble_up(transformed_result)
-
-    @abc.abstractmethod
-    def transform(self, result):
-        pass
-
-    def get_projector(self, attribute: str):
-        projector = self.reference_entity.get_projector(attribute)
-        if not projector:
-            return
-        projector.parent = self
-        return projector
-
-    @property
-    def ids(self):
-        return self.transform_and_bubble_up(self.reference_entity.ids)
-
-
-# For instance person.family
-class EntityToPersonProjector(Projector):
-
-    def __init__(self, entity, parent = None):
-        self.reference_entity = entity
-        self.parent = parent
-
-    def transform(self, result):
-        return self.reference_entity.project(result)
-
-
-# For instance famille.first_person
-class FirstPersonToEntityProjector(Projector):
-
-    def __init__(self, entity, parent = None):
-        self.target_entity = entity
-        self.reference_entity = entity.members
-        self.parent = parent
-
-    def transform(self, result):
-        return self.target_entity.value_from_first_person(result)
-
-
-# For instance famille.declarant_principal
-class UniqueRoleToEntityProjector(Projector):
-
-    def __init__(self, entity, role, parent = None):
-        self.target_entity = entity
-        self.reference_entity = entity.members
-        self.parent = parent
-        self.role = role
-
-    def transform(self, result):
-        return self.target_entity.value_from_person(result, self.role)
-
-
 class SubPopulation(Population):
 
     def __init__(self, super_population: Population, condition: np.ndarray, **kw):
@@ -635,6 +553,7 @@ class SubPopulation(Population):
         self.ids = np.asarray(super_population.ids)[self.condition]
         self.simulation = super_population.simulation
 
+    @projectable
     def has_role(self, role):
         return self.super_population.has_role(role)[self.condition]
 
@@ -658,7 +577,7 @@ class SubPopulation(Population):
         if cache_content is None:
             return self.super_population.put_in_cache(variable_name, period, array, mask = self.condition)
 
-        if cache_content.mask is None:  # All valus are alredy in cache
+        if cache_content.mask is None:  # All values are alredy in cache
             new_mask = None
             new_array = combine([
                 (self.condition, array),
@@ -688,22 +607,19 @@ class SubPopulation(Population):
         if shortcut not in self.simulation.populations:
             return None
         group_population = self.simulation.populations[shortcut]
-        group_sub_population = group_population.get_subpopulation(
-            group_population.any(self.condition),
-            self
-            )
-        return EntityToPersonProjector(group_sub_population)
+        return EntityToSubPopulationProjector(group_population, self.condition)
 
 
 class GroupSubPopulation(SubPopulation, GroupPopulation):  # type: ignore # False positive, will be fixed in mypy >= 0.710, not released yet
 
-    def __init__(self, super_population: Population, condition: np.ndarray, members: Population = None):
-        if members is None:
-            members = SubPopulation(super_population.members, super_population.project(condition))
+    def __init__(self, super_population: Population, condition: np.ndarray):
+        members_condition = super_population.project(condition)
+        members = SubPopulation(super_population.members, members_condition)
         super().__init__(super_population = super_population, condition = condition, members = members)
         self._members_entity_id = None
         self._members_role = None
         self._members_position = None
+        self.members_condition = members_condition
 
     @property
     def members_entity_id(self) -> np.ndarray[int]:
@@ -739,11 +655,11 @@ class GroupSubPopulation(SubPopulation, GroupPopulation):  # type: ignore # Fals
     def members_position(self, members_position):
         self._members_position = members_position
 
-    def get_subpopulation(self, condition: np.ndarray[bool], members: Optional[SubPopulation] = None) -> GroupSubPopulation:
+    def get_subpopulation(self, condition: np.ndarray[bool]) -> GroupSubPopulation:
         subpopulation_condition = self.condition.copy()
         subpopulation_condition[subpopulation_condition] = condition
 
-        return GroupSubPopulation(self.super_population, subpopulation_condition, members)
+        return GroupSubPopulation(self.super_population, subpopulation_condition)
 
     get_projector = GroupPopulation.get_projector
     has_role = GroupPopulation.has_role

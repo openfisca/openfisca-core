@@ -208,3 +208,12 @@ def test_trace_2(simulation, p_subpop):
     p_subpop('disposable_income', period)
     traced_value = list(simulation.tracer.trace.values())[0]['value']
     assert traced_value.size == simulation.persons.count
+
+
+def test_complex_projection(simulation):
+    simulation.set_input('age', period, np.asarray([40, 37, 7, 19, 54, 16]))
+    p_subpop = simulation.persons.get_subpopulation(simulation.persons.has_role(SECOND_PARENT))
+    assert_array_equal(
+        p_subpop.household.first_parent('age', period),
+        [40]
+        )
