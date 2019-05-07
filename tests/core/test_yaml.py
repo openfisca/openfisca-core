@@ -29,7 +29,7 @@ def run_yaml_test(path, options = None):
 
 
 def test_success():
-    assert run_yaml_test('test_success.yaml') == EXIT_OK
+    assert run_yaml_test('test_success.yml') == EXIT_OK
 
 
 def test_fail():
@@ -81,7 +81,7 @@ def test_name_filter():
 
 
 def test_shell_script():
-    yaml_path = os.path.join(yaml_tests_dir, 'test_success.yaml')
+    yaml_path = os.path.join(yaml_tests_dir, 'test_success.yml')
     command = ['openfisca', 'test', yaml_path, '-c', 'openfisca_country_template']
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(command, stdout = devnull, stderr = devnull)
