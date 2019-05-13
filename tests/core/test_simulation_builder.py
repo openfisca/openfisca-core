@@ -11,12 +11,13 @@ from openfisca_core.simulation_builder import SimulationBuilder, Simulation
 from openfisca_core.tools import assert_near
 from openfisca_core.tools.test_runner import yaml
 from openfisca_core.entities import Entity, GroupEntity
+from openfisca_core.holders import set_input_divide_by_period
 from openfisca_core.populations import Population
 from openfisca_core.variables import Variable
 from openfisca_country_template.entities import Household
 from openfisca_country_template.situation_examples import couple
 from openfisca_core.errors import SituationParsingError
-from openfisca_core.periods import ETERNITY
+from openfisca_core.periods import ETERNITY, MONTH
 from openfisca_core.indexed_enums import Enum as OFEnum
 
 
@@ -87,9 +88,16 @@ def enum_variable():
 @fixture
 def persons():
     class TestPersonEntity(Entity):
+        def __init__(self, key, plural, label, doc):
+            super().__init__(key, plural, label, doc)
+            self.variables = {}
+
         def get_variable(self, variable_name):
-            result = TestVariable(self)
-            result.name = variable_name
+            result = self.variables.get(variable_name)
+            if result is None:
+                result = TestVariable(self)
+                result.name = variable_name
+                self.variables[variable_name] = result
             return result
 
         def check_variable_defined_for_entity(self, variable_name):
@@ -263,6 +271,23 @@ def test_finalize_person_entity(simulation_builder, persons):
     population = Population(persons)
     simulation_builder.finalize_variables_init(population)
     assert_near(population.get_holder('salary').get_array('2018-11'), [3000, 0])
+    assert population.count == 2
+    assert population.ids == ['Alicia', 'Javier']
+
+
+def test_heterogenous_periods(simulation_builder, persons):
+    months = {month: 500 for month in ["2018-{:02d}".format(x) for x in range(1, 13)]}
+    year = {'2018': 6000}
+    persons_json = {'Alicia': {'salary': year}, 'Javier': {'salary': months}}
+    simulation_builder.add_person_entity(persons, persons_json)
+    population = Population(persons)
+
+    salary = population.entity.get_variable('salary')
+    salary.definition_period = MONTH
+    salary.set_input = set_input_divide_by_period
+
+    simulation_builder.finalize_variables_init(population)
+    assert_near(population.get_holder('salary').get_array('2018-01'), [1000, 500])
     assert population.count == 2
     assert population.ids == ['Alicia', 'Javier']
 
