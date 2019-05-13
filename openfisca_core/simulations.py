@@ -249,7 +249,6 @@ class Simulation(object):
         else:
             array = formula(population, period, parameters_at)
 
-        self._check_formula_result(array, variable, population, period)
         return array
 
     def _check_period_consistency(self, period, variable):
@@ -307,6 +306,10 @@ class Simulation(object):
     def _cast_formula_result(self, value, variable):
         if variable.value_type == Enum and not isinstance(value, EnumArray):
             return variable.possible_values.encode(value)
+
+        if not isinstance(value, np.ndarray):
+            population = self.get_variable_population(variable.name)
+            value = population.filled_array(value)
 
         if value.dtype != variable.dtype:
             return value.astype(variable.dtype)
