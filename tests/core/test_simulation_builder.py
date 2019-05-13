@@ -341,6 +341,8 @@ def test_one_person_without_household(simulation_builder):
     simulation_dict = {'persons': {'Alicia': {}}}
     simulation = simulation_builder.build_from_dict(tax_benefit_system, simulation_dict)
     assert simulation.household.count == 1
+    parents_in_households = simulation.household.nb_persons(role = Household.PARENT)
+    assert parents_in_households.tolist() == [1]  # household member default role is first_parent
 
 
 def test_some_person_without_household(simulation_builder):
