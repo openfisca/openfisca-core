@@ -1,5 +1,12 @@
 # Changelog
 
+## 34.1.0
+
+#### New features
+
+- Support role indices in SimulationBuilder.join_with_persons
+  - This broadens the range of input data we can handle, at some risk of misattributing roles
+
 ### 34.0.1
 
 #### Bug fix
