@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-from os import linesep
 import tempfile
 import logging
 
 import numpy as np
 
 from openfisca_core import periods
-from openfisca_core.commons import empty_clone, stringify_array
+from openfisca_core.commons import empty_clone
 from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
 from openfisca_core.indexed_enums import Enum, EnumArray
 
@@ -249,7 +248,6 @@ class Simulation(object):
         else:
             array = formula(population, period, parameters_at)
 
-        self._check_formula_result(array, variable, population, period)
         return array
 
     def _check_period_consistency(self, period, variable):
@@ -278,35 +276,13 @@ class Simulation(object):
                 'month' if variable.definition_period == periods.MONTH else 'year'
                 ))
 
-    def _check_formula_result(self, value, variable, entity, period):
-
-        assert isinstance(value, np.ndarray), (linesep.join([
-            "You tried to compute the formula '{0}' for the period '{1}'.".format(variable.name, str(period)),
-            "The formula '{0}@{1}' should return a Numpy array;".format(variable.name, str(period)),
-            "instead it returned '{0}' of {1}.".format(value, type(value)),
-            "Learn more about Numpy arrays and vectorial computing:",
-            "<https://openfisca.org/doc/coding-the-legislation/25_vectorial_computing.html.>"
-            ]))
-
-        assert value.size == entity.count, \
-            "Function {}@{}<{}>() --> <{}>{} returns an array of size {}, but size {} is expected for {}".format(
-                variable.name, entity.key, str(period), str(period), stringify_array(value),
-                value.size, entity.count, entity.key)
-
-        if self.debug:
-            try:
-                # cf https://stackoverflow.com/questions/6736590/fast-check-for-nan-in-numpy
-                if np.isnan(np.min(value)):
-                    nan_count = np.count_nonzero(np.isnan(value))
-                    raise NaNCreationError("Function {}@{}<{}>() --> <{}>{} returns {} NaN value(s)".format(
-                        variable.name, entity.key, str(period), str(period), stringify_array(value),
-                        nan_count))
-            except TypeError:
-                pass
-
     def _cast_formula_result(self, value, variable):
         if variable.value_type == Enum and not isinstance(value, EnumArray):
             return variable.possible_values.encode(value)
+
+        if not isinstance(value, np.ndarray):
+            population = self.get_variable_population(variable.name)
+            value = population.filled_array(value)
 
         if value.dtype != variable.dtype:
             return value.astype(variable.dtype)

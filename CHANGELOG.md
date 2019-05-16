@@ -1,5 +1,11 @@
 # Changelog
 
+## 34.2.0
+
+#### New features
+
+- Allow formulas to return scalar values; broadcast these values to population-sized arrays
+
 ## 34.1.0
 
 #### New features
