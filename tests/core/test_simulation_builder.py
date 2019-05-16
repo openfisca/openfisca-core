@@ -404,6 +404,27 @@ def test_nb_persons_by_role(simulation_builder):
     assert parents_in_households.tolist() == [0, 1, 1]
 
 
+def test_integral_roles(simulation_builder):
+    persons_ids: Iterable = [2, 0, 1, 4, 3]
+    households_ids: Iterable = ['c', 'a', 'b']
+    persons_households: Iterable = ['c', 'a', 'a', 'b', 'a']
+    # Same roles as test_nb_persons_by_role
+    persons_households_roles: Iterable = [2, 0, 1, 0, 2]
+
+    simulation_builder.create_entities(tax_benefit_system)
+    simulation_builder.declare_person_entity('person', persons_ids)
+    household_instance = simulation_builder.declare_entity('household', households_ids)
+
+    simulation_builder.join_with_persons(
+        household_instance,
+        persons_households,
+        persons_households_roles
+        )
+    parents_in_households = household_instance.nb_persons(role = Household.FIRST_PARENT)
+
+    assert parents_in_households.tolist() == [0, 1, 1]
+
+
 # Test Intégration
 
 
