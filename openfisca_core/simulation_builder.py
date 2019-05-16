@@ -186,8 +186,10 @@ class SimulationBuilder(object):
         return self.populations[entity_singular].nb_persons(role = role)
 
     def join_with_persons(self, group_population, persons_group_assignment, roles: Iterable[str]):
+        # Maps group's identifiers to a 0-based integer range, for indexing into members_roles (see PR#876)
         group_sorted_indices = np.unique(persons_group_assignment, return_inverse = True)[1]
         group_population.members_entity_id = np.argsort(group_population.ids)[group_sorted_indices]
+
         flattened_roles = group_population.entity.flattened_roles
         roles_array = np.array(roles)
         if np.issubdtype(roles_array.dtype, np.integer):
