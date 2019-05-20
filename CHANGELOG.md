@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.1
+
+#### Technical changes
+
+- Update dependencies: Numpy, Flask, dpath, numexpr
+
 ## 34.2.0
 
 #### New features
