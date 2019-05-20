@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.2
+
+#### Bug fixes
+
+- Fix incomplete initialization of group entities provided by default when not supplied in YAML tests
+
 ### 34.2.1
 
 #### Technical changes
