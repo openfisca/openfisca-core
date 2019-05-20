@@ -15,7 +15,7 @@ general_requirements = [
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
     'sortedcontainers == 2.1.0',
-    'numexpr == 2.6.8',
+    'numexpr ==2.6.9',
     ]
 
 api_requirements = [
