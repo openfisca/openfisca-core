@@ -8,19 +8,19 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'dpath == 1.4.0',
+    'dpath ==1.4.2',
     'enum34 >= 1.1.6',
     'pytest >= 4.4.1, < 5.0.0',  # For openfisca test
-    'numpy >= 1.11, < 1.16',
+    'numpy >=1.11,<1.17',
     'psutil == 5.4.6',
     'PyYAML >= 3.10',
     'sortedcontainers == 2.1.0',
-    'numexpr == 2.6.8',
+    'numexpr ==2.6.9',
     ]
 
 api_requirements = [
-    'flask == 1.0.2',
-    'flask-cors == 3.0.2',
+    'flask ==1.0.3',
+    'flask-cors ==3.0.7',
     'gunicorn >= 19.7.1',
     ]
 
@@ -36,7 +36,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.2.0',
+    version = '34.2.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
