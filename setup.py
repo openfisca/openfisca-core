@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 # functional and integration breaks caused by external code updates.
 
 general_requirements = [
-    'dpath == 1.4.0',
+    'dpath ==1.4.2',
     'enum34 >= 1.1.6',
     'pytest >= 4.4.1, < 5.0.0',  # For openfisca test
     'numpy >=1.11,<1.17',
