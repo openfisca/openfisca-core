@@ -11,25 +11,27 @@ class DummySimulation:
 
     def calculate(self, variable, period, **parameters):
         self.tracer.record(variable.__class__.__name__, period)
-        variable.formula(period)
+        variable.formula(self, period)
 
 class v0:
 
     def __init__(self, simulation):
         self.simulation = DummySimulation()
 
-    def formula(self, period):
-        self.simulation.calculate(v1(), period)
-        self.simulation.calculate(v2(), period)
+    def formula(self, simulation, period):
+        simulation.calculate(v1(), period)
+        simulation.calculate(v2(), period)
+
 
 class v1:
 
-    def formula(self, period):
+    def formula(self, simulation, period):
         pass
+
 
 class v2:
 
-    def formula(self, period):
+    def formula(self, simulation, period):
         pass
 
 
@@ -43,6 +45,19 @@ def test_record(simulation):
     period = '2019-01'
 
     simulation.calculate(variable, period)
-    stack = variable.simulation.tracer.stack
-    print(stack)
-    assert stack == {'name': 'v0'}
+
+    stack = simulation.tracer.stack
+    assert stack == {
+        'name': 'v0',
+        'period': '2019-01',  
+        'children': [
+            {
+                'name': 'v1',
+                'period': '2019-01'
+            },
+            {
+                'name': 'v2',
+                'period': '2019-01'
+            }
+        ]
+    }, stack

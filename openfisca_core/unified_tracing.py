@@ -3,30 +3,37 @@
 class Frame:
 
     def __init__(self, name, period):
-        print("new frame " + name)
-        self.tracing_stack = {}
         self.name = name
         self.period = period
+        self.stack = {}
 
     def __enter__(self):
-        print("enter")
-        self.tracing_stack['name'] = self.name
-        self.tracing_stack['period'] = self.period  
+        self.stack['name'] = self.name
+        self.stack['period'] = self.period  
 
     def __exit__(self, type, value, traceback):
-        print("exit")  
+        pass
 
 
 class SimpleTracer:
 
     def __init__(self):
-        self.stack = {}
+        self._stack = {}
+
+    @property
+    def stack(self):
+        return self._stack
+
+    @stack.setter
+    def stack(self, stack):
+        self._stack = stack
 
     def record(self, frame_name, period):
         frame = Frame(frame_name, period)
         with frame:
             if self.stack == {}:
-                self.stack = frame.tracing_stack
+                self.stack = frame.stack
             else:
-                self.stack['children'] = frame.tracing_stack
-
+                if 'children' not in self.stack:
+                    self.stack['children'] = []
+                self.stack['children'].append(frame.stack)
