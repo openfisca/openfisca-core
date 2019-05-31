@@ -8,11 +8,15 @@ class Frame:
         self.stack = {}
 
     def __enter__(self):
+        # to json
         self.stack['name'] = self.name
         self.stack['period'] = self.period  
 
     def __exit__(self, type, value, traceback):
-        pass
+        print(self.stack)
+        self.stack = {}
+
+
 
 
 class SimpleTracer:
@@ -28,12 +32,20 @@ class SimpleTracer:
     def stack(self, stack):
         self._stack = stack
 
-    def record(self, frame_name, period):
-        frame = Frame(frame_name, period)
-        with frame:
-            if self.stack == {}:
-                self.stack = frame.stack
-            else:
-                if 'children' not in self.stack:
-                    self.stack['children'] = []
-                self.stack['children'].append(frame.stack)
+
+    def new_frame(self, variable, period):
+        return Frame(variable, period)
+
+
+    def record(self, variable, period):
+        frame = self.new_frame(variable, period)
+        # with frame:
+        if self.stack == {}:
+            print("nouvelle stack")
+            self.stack = frame.stack
+        else:
+            print("ajout à stack existante")
+            if 'children' not in self.stack:
+                self.stack['children'] = []
+            self.stack['children'].append(frame.stack)
+        return frame
