@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.3 [#883](https://github.com/openfisca/openfisca-core/pull/883)
+
+#### Technical changes
+
+- Update dependencies: psutil
+
 ### 34.2.2 [#873](https://github.com/openfisca/openfisca-core/pull/873)
 
 #### Bug fixes
