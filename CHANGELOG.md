@@ -1,37 +1,43 @@
 # Changelog
 
-### 34.2.2
+### 34.2.3 [#883](https://github.com/openfisca/openfisca-core/pull/883)
+
+#### Technical changes
+
+- Update dependencies: psutil
+
+### 34.2.2 [#873](https://github.com/openfisca/openfisca-core/pull/873)
 
 #### Bug fixes
 
 - Fix incomplete initialization of group entities provided by default when not supplied in YAML tests
 
-### 34.2.1
+### 34.2.1 [#882](https://github.com/openfisca/openfisca-core/pull/882)
 
 #### Technical changes
 
 - Update dependencies: Numpy, Flask, dpath, numexpr
 
-## 34.2.0
+## 34.2.0 [#872](https://github.com/openfisca/openfisca-core/pull/872)
 
 #### New features
 
 - Allow formulas to return scalar values; broadcast these values to population-sized arrays
 
-## 34.1.0
+## 34.1.0 [#876](https://github.com/openfisca/openfisca-core/pull/876)
 
 #### New features
 
 - Support role indices in SimulationBuilder.join_with_persons
   - This broadens the range of input data we can handle, at some risk of misattributing roles
 
-### 34.0.1
+### 34.0.1 [#868](https://github.com/openfisca/openfisca-core/pull/868)
 
 #### Bug fix
 
 - Allow both `*.yaml` and `*.yml` extensions for YAML tests
 
-# 34.0.0
+# 34.0.0 [#867](https://github.com/openfisca/openfisca-core/pull/867)
 
 #### Technical changes
 
@@ -42,12 +48,12 @@
 - Remove `generate_tests` function from `openfisca_core.tools.test_runner`:
   - While this function was public and documented, its purpose was primarily internal and is unlikely to have been directly used by users.
 
-### 33.0.1
+### 33.0.1 [#865](https://github.com/openfisca/openfisca-core/pull/865)
 
 - Improve error message when too many persons are given a role with a `max` attribute
     - This error typically happens when 3 parents are declared in a family, while the entity declaration specifies there can be at most 2.
 
-# 33.0.0
+# 33.0.0 [#866](https://github.com/openfisca/openfisca-core/pull/866)
 
 ### Breaking changes
 
