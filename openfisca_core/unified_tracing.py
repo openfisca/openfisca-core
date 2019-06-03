@@ -39,13 +39,13 @@ class SimpleTracer:
 
     def record(self, variable, period):
         frame = self.new_frame(variable, period)
-        # with frame:
-        if self.stack == {}:
-            print("nouvelle stack")
-            self.stack = frame.stack
-        else:
-            print("ajout à stack existante")
-            if 'children' not in self.stack:
-                self.stack['children'] = []
-            self.stack['children'].append(frame.stack)
-        return frame
+        with frame:
+            if self.stack == {}:
+                print("nouvelle stack")
+                self.stack.update(frame.stack)
+                print(frame.stack)
+            else:
+                print("ajout à stack existante")
+                if 'children' not in self.stack:
+                    self.stack['children'] = []
+                self.stack['children'].append(frame.stack)
