@@ -276,15 +276,15 @@ def test_finalize_person_entity(simulation_builder, persons):
 
 
 def test_heterogenous_periods(simulation_builder, persons):
+    salary = persons.get_variable('salary')
+    salary.definition_period = MONTH
+    salary.set_input = set_input_divide_by_period
+
     months = {month: 500 for month in ["2018-{:02d}".format(x) for x in range(1, 13)]}
-    year = {'2018': 6000}
+    year = {'2018': 12000}
     persons_json = {'Alicia': {'salary': year}, 'Javier': {'salary': months}}
     simulation_builder.add_person_entity(persons, persons_json)
     population = Population(persons)
-
-    salary = population.entity.get_variable('salary')
-    salary.definition_period = MONTH
-    salary.set_input = set_input_divide_by_period
 
     simulation_builder.finalize_variables_init(population)
     assert_near(population.get_holder('salary').get_array('2018-01'), [1000, 500])

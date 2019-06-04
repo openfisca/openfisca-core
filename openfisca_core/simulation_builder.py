@@ -13,6 +13,8 @@ from openfisca_core.errors import VariableNotFound, SituationParsingError, Perio
 from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
 
+from openfisca_core.holders import set_input_divide_by_period, set_input_divide_by_period
+
 
 class SimulationBuilder(object):
 
@@ -358,13 +360,29 @@ class SimulationBuilder(object):
                         "Can't deal with type: expected object. Input variables should be set for specific periods. For instance: {'salary': {'2017-01': 2000, '2017-02': 2500}}, or {'birth_date': {'ETERNITY': '1980-01-01'}}.")
                 variable_values = {self.default_period: variable_values}
 
-            for period_str, value in variable_values.items():
-                try:
-                    period(period_str)
-                except ValueError as e:
-                    raise SituationParsingError(path_in_json, e.args[0])
-                variable = entity.get_variable(variable_name)
-                self.add_variable_value(entity, variable, instance_index, instance_id, period_str, value)
+            variable = entity.get_variable(variable_name)
+
+            try:
+                sorted_periods = sorted(variable_values.keys(), key=lambda period_str: key_period_size(period(period_str)))
+
+                for one_period_str in sorted_periods:
+                    value = variable_values.get(one_period_str)
+                    one_period = period(one_period_str)
+                    try:
+                        subperiods = one_period.get_subperiods(variable.definition_period)
+                    except:  # noqa F821
+                        subperiods = None
+                    if subperiods and len(subperiods) > 1:
+                        unallocated = [subperiod for subperiod in subperiods if str(subperiod) not in sorted_periods]
+                        if variable.set_input == set_input_divide_by_period:
+                            value = value / len(unallocated)
+                        for unallocated_period in unallocated:
+                            self.add_variable_value(entity, variable, instance_index, instance_id, str(unallocated_period), value)
+                    else:
+                        self.add_variable_value(entity, variable, instance_index, instance_id, one_period_str, value)
+
+            except ValueError as e:
+                raise SituationParsingError(path_in_json, e.args[0])
 
     def add_variable_value(self, entity, variable, instance_index, instance_id, period_str, value):
         path_in_json = [entity.plural, instance_id, variable.name, period_str]
