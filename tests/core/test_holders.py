@@ -9,7 +9,6 @@ from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from openfisca_core.periods import period as make_period, ETERNITY
 from openfisca_core.tools import assert_near
 from openfisca_core.memory_config import MemoryConfig
-from openfisca_core.holders import Holder, set_input_dispatch_by_period
 from openfisca_core.errors import PeriodMismatchError
 from .test_countries import tax_benefit_system
 
@@ -98,12 +97,12 @@ def test_permanent_variable_filled(single):
 def test_delete_arrays(single):
     simulation = single
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(make_period(2017), np.asarray([30000]))
-    salary_holder.set_input(make_period(2018), np.asarray([60000]))
+    salary_holder.set_input(make_period('2017-01'), np.asarray([2500]))
+    salary_holder.set_input(make_period('2018-01'), np.asarray([5000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
-    salary_holder.set_input(make_period(2018), np.asarray([15000]))
+    salary_holder.set_input(make_period('2018-01'), np.asarray([1250]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 1250
 
@@ -113,20 +112,24 @@ def test_get_memory_usage(single):
     salary_holder = simulation.person.get_holder('salary')
     memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['total_nb_bytes'] == 0
-    salary_holder.set_input(make_period(2017), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-01'), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-02'), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-03'), np.asarray([30000]))
     memory_usage = salary_holder.get_memory_usage()
     assert memory_usage['nb_cells_by_array'] == 1
     assert memory_usage['cell_size'] == 4  # float 32
     assert memory_usage['nb_cells_by_array'] == 1  # one person
-    assert memory_usage['nb_arrays'] == 12  # 12 months
-    assert memory_usage['total_nb_bytes'] == 4 * 12 * 1
+    assert memory_usage['nb_arrays'] == 3  # 3 months
+    assert memory_usage['total_nb_bytes'] == 4 * 3 * 1
 
 
 def test_get_memory_usage_with_trace(single):
     simulation = single
     simulation.trace = True
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(make_period(2017), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-01'), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-02'), np.asarray([30000]))
+    salary_holder.set_input(make_period('2017-03'), np.asarray([30000]))
     simulation.calculate('salary', '2017-01')
     simulation.calculate('salary', '2017-01')
     simulation.calculate('salary', '2017-02')
@@ -136,16 +139,6 @@ def test_get_memory_usage_with_trace(single):
     assert memory_usage['nb_requests_by_array'] == 1.25  # 15 calculations / 12 arrays
 
 
-def test_set_input_dispatch_by_period(single):
-    simulation = single
-    variable = simulation.tax_benefit_system.get_variable('housing_occupancy_status')
-    entity = simulation.household
-    holder = Holder(variable, entity)
-    set_input_dispatch_by_period(holder, make_period(2019), 'owner')
-    assert holder.get_array('2019-01') == holder.get_array('2019-12')  # Check the feature
-    assert holder.get_array('2019-01') is holder.get_array('2019-12')  # Check that the vectors are the same in memory, to avoid duplication
-
-
 force_storage_on_disk = MemoryConfig(max_memory_occupation = 0)
 
 
@@ -153,12 +146,12 @@ def test_delete_arrays_on_disk(single):
     simulation = single
     simulation.memory_config = force_storage_on_disk
     salary_holder = simulation.person.get_holder('salary')
-    salary_holder.set_input(make_period(2017), np.asarray([30000]))
-    salary_holder.set_input(make_period(2018), np.asarray([60000]))
+    salary_holder.set_input(make_period('2017-01'), np.asarray([2500]))
+    salary_holder.set_input(make_period('2018-01'), np.asarray([5000]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 5000
     salary_holder.delete_arrays(period = 2018)
-    salary_holder.set_input(make_period(2018), np.asarray([15000]))
+    salary_holder.set_input(make_period('2018-01'), np.asarray([1250]))
     assert simulation.person('salary', '2017-01') == 2500
     assert simulation.person('salary', '2018-01') == 1250
 

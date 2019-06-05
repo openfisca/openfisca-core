@@ -20,6 +20,7 @@ from openfisca_core.errors import SituationParsingError
 from openfisca_core.periods import ETERNITY, MONTH
 from openfisca_core.indexed_enums import Enum as OFEnum
 
+from openfisca_core.holders import set_input_dispatch_by_period
 
 from .test_countries import tax_benefit_system
 
@@ -273,6 +274,19 @@ def test_finalize_person_entity(simulation_builder, persons):
     assert_near(population.get_holder('salary').get_array('2018-11'), [3000, 0])
     assert population.count == 2
     assert population.ids == ['Alicia', 'Javier']
+
+
+def test_dispatch_optimization(simulation_builder, persons):
+    salary = persons.get_variable('salary')
+    salary.definition_period = MONTH
+    salary.set_input = set_input_dispatch_by_period
+
+    couple["persons"]["Alicia"]["salary"]["2019"] = 1000
+    simulation = simulation_builder.build_from_dict(tax_benefit_system, couple)
+
+    holder = simulation.persons.get_holder('salary')
+    assert holder.get_array('2019-01') == approx(holder.get_array('2019-12'))  # Check the feature
+    # assert holder.get_array('2019-01') is holder.get_array('2019-12')  # Check that the vectors are the same in memory, to avoid duplication
 
 
 def test_heterogenous_periods(simulation_builder, persons):
