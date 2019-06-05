@@ -141,45 +141,6 @@ def test_person_variable_with_constructor():
     assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
 
 
-def test_set_input_with_constructor():
-    simulation_yaml = """
-        persons:
-          bill:
-            salary:
-              '2017': 24000
-              2017-11: 2000
-              2017-12: 2000
-          bob:
-            salary:
-              '2017': 30000
-              2017-11: 0
-              2017-12: 0
-          claudia:
-            salary:
-              '2017': 24000
-              2017-11: 4000
-              2017-12: 4000
-          janet: {}
-          tom: {}
-        households:
-          first_household:
-            parents:
-            - bill
-            - bob
-            children:
-            - janet
-            - tom
-          second_household:
-            parents:
-            - claudia
-    """
-
-    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
-    person = simulation.person
-    assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
-    assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
-
-
 def test_has_role():
     simulation = new_simulation(TEST_CASE)
     individu = simulation.persons

@@ -292,6 +292,45 @@ def test_heterogenous_periods(simulation_builder, persons):
     assert population.ids == ['Alicia', 'Javier']
 
 
+def test_partial_allocation_with_heterogenous_periods():
+    simulation_yaml = """
+        persons:
+          bill:
+            salary:
+              '2017': 24000
+              2017-11: 2000
+              2017-12: 2000
+          bob:
+            salary:
+              '2017': 30000
+              2017-11: 0
+              2017-12: 0
+          claudia:
+            salary:
+              '2017': 24000
+              2017-11: 4000
+              2017-12: 4000
+          janet: {}
+          tom: {}
+        households:
+          first_household:
+            parents:
+            - bill
+            - bob
+            children:
+            - janet
+            - tom
+          second_household:
+            parents:
+            - claudia
+    """
+
+    simulation = SimulationBuilder().build_from_dict(tax_benefit_system, yaml.safe_load(simulation_yaml))
+    person = simulation.person
+    assert_near(person('salary', "2017-12"), [2000, 0, 4000, 0, 0])
+    assert_near(person('salary', "2017-10"), [2000, 3000, 1600, 0, 0])
+
+
 def test_canonicalize_period_keys(simulation_builder, persons):
     persons_json = {'Alicia': {'salary': {'year:2018-01': 100}}}
     simulation_builder.add_person_entity(persons, persons_json)

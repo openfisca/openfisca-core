@@ -13,7 +13,7 @@ from openfisca_core.errors import VariableNotFound, SituationParsingError, Perio
 from openfisca_core.periods import period, key_period_size
 from openfisca_core.simulations import Simulation
 
-from openfisca_core.holders import set_input_divide_by_period, set_input_divide_by_period
+from openfisca_core.holders import set_input_divide_by_period, set_input_dispatch_by_period
 
 
 class SimulationBuilder(object):
@@ -362,6 +362,8 @@ class SimulationBuilder(object):
 
             variable = entity.get_variable(variable_name)
 
+            dispatch = (variable.set_input == set_input_divide_by_period) or (variable.set_input == set_input_dispatch_by_period)
+
             try:
                 sorted_periods = sorted(variable_values.keys(), key=lambda period_str: key_period_size(period(period_str)))
 
@@ -372,9 +374,13 @@ class SimulationBuilder(object):
                         subperiods = one_period.get_subperiods(variable.definition_period)
                     except:  # noqa F821
                         subperiods = None
-                    if subperiods and len(subperiods) > 1:
+                    if dispatch and (subperiods and len(subperiods) > 1):
                         unallocated = [subperiod for subperiod in subperiods if str(subperiod) not in sorted_periods]
+                        allocated = [subperiod for subperiod in subperiods if str(subperiod) in sorted_periods]
                         if variable.set_input == set_input_divide_by_period:
+                            for allocated_period in allocated:
+                                allocated_value = self.get_input(variable.name, str(allocated_period))[instance_index]
+                                value = value - allocated_value
                             value = value / len(unallocated)
                         for unallocated_period in unallocated:
                             self.add_variable_value(entity, variable, instance_index, instance_id, str(unallocated_period), value)
