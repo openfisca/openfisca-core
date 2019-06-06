@@ -241,6 +241,10 @@ class GroupPopulation(Population):
 
         return self._members_position
 
+    @members_position.setter
+    def members_position(self, members_position):
+        self._members_position = members_position
+
     @property
     def members_entity_id(self):
         return self._members_entity_id
@@ -273,10 +277,6 @@ class GroupPopulation(Population):
 
     def get_role(self, role_name):
         return next((role for role in self.entity.flattened_roles if role.key == role_name), None)
-
-    @members_position.setter
-    def members_position(self, members_position):
-        self._members_position = members_position
 
     #  Aggregation persons -> entity
 

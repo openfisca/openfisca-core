@@ -27,7 +27,7 @@ try:
 except ImportError:
     log.warning(
         "libyaml is not installed in your environment. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir' so that it is used in your Python environment." + os.linesep)
-    from yaml import Loader
+    from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
 
 
 FILE_EXTENSIONS = {'.yaml', '.yml'}
