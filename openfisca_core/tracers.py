@@ -9,6 +9,7 @@ from collections import defaultdict
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.taxscales import AbstractTaxScale
+from openfisca_core.indexed_enums import EnumArray
 
 log = logging.getLogger(__name__)
 
@@ -173,7 +174,10 @@ class Tracer(object):
     def _print_node(self, key, depth, aggregate):
 
         def print_line(depth, node, value):
-            return "{}{} >> {}".format('  ' * depth, node, value)
+            if isinstance(value, EnumArray):
+                value = value.decode_to_str()
+            formatted = np.array2string(value, max_line_width=float("inf"))
+            return "{}{} >> {}".format('  ' * depth, node, formatted)
 
         if not self.trace.get(key):
             return print_line(depth, key, "Calculation aborted due to a circular dependency")

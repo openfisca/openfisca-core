@@ -33,12 +33,22 @@ def test_log_format():
     tracer = Tracer()
     tracer.record_calculation_start("A", 2017)
     tracer.record_calculation_start("B", 2017)
-    tracer.record_calculation_end("B", 2017, 1)
-    tracer.record_calculation_end("A", 2017, 2)
+    tracer.record_calculation_end("B", 2017, np.array([1]))
+    tracer.record_calculation_end("A", 2017, np.array([2]))
 
     lines = tracer.computation_log()
-    assert lines[0] == '  A<2017> >> 2'
-    assert lines[1] == '    B<2017> >> 1'
+    assert lines[0] == '  A<2017> >> [2]'
+    assert lines[1] == '    B<2017> >> [1]'
+
+
+def test_no_wrapping():
+    tracer = Tracer()
+    tracer.record_calculation_start("A", 2017)
+    tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+
+    lines = tracer.computation_log()
+    assert "'tenant'" in lines[0]
+    assert "\n" not in lines[0]
 
 
 def test_trace_enums():
