@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.4 [#870](https://github.com/openfisca/openfisca-core/pull/870)
+
+#### Bug fix
+
+- Avoid column-wrapping array values in debug strings
+
 ### 34.2.3 [#883](https://github.com/openfisca/openfisca-core/pull/883)
 
 #### Technical changes
