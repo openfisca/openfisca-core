@@ -74,7 +74,7 @@ When you request the computation of a variable within a formula, you must always
 See more information at <https://openfisca.org/doc/coding-the-legislation/35_periods.html#periods-in-variable-definition>.
 '''.format(variable_name, filename, line_number, line_of_code))
 
-    def __call__(self, variable_name, period = None, options = None, **parameters):
+    def __call__(self, variable_name, period = None, options = None):
         """
             Calculate the variable ``variable_name`` for the entity and the period ``period``, using the variable formula if it exists.
 
@@ -94,11 +94,11 @@ See more information at <https://openfisca.org/doc/coding-the-legislation/35_per
         if ADD in options and DIVIDE in options:
             raise ValueError('Options ADD and DIVIDE are incompatible (trying to compute variable {})'.format(variable_name).encode('utf-8'))
         elif ADD in options:
-            return self.simulation.calculate_add(variable_name, period, **parameters)
+            return self.simulation.calculate_add(variable_name, period)
         elif DIVIDE in options:
-            return self.simulation.calculate_divide(variable_name, period, **parameters)
+            return self.simulation.calculate_divide(variable_name, period)
         else:
-            return self.simulation.calculate(variable_name, period, **parameters)
+            return self.simulation.calculate(variable_name, period)
 
     # Helpers
 

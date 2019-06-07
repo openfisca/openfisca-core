@@ -104,7 +104,7 @@ class Simulation(object):
 
     # ----- Calculation methods ----- #
 
-    def calculate(self, variable_name, period, **parameters):
+    def calculate(self, variable_name, period):
         """
             Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -118,7 +118,7 @@ class Simulation(object):
             period = periods.period(period)
 
         if self.trace:
-            self.tracer.record_calculation_start(variable.name, period, **parameters)
+            self.tracer.record_calculation_start(variable.name, period)
 
         self._check_period_consistency(period, variable)
 
@@ -126,7 +126,7 @@ class Simulation(object):
         cached_array = holder.get_array(period)
         if cached_array is not None:
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, cached_array, **parameters)
+                self.tracer.record_calculation_end(variable.name, period, cached_array)
             return cached_array
 
         array = None
@@ -147,7 +147,7 @@ class Simulation(object):
             array = holder.default_array()
         finally:
             if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
+                self.tracer.record_calculation_end(variable.name, period, array)
             self._clean_cycle_detection_data(variable.name)
 
         self.purge_cache_of_invalid_values()
@@ -162,7 +162,7 @@ class Simulation(object):
             holder = self.get_holder(_name)
             holder.delete_arrays(_period)
 
-    def calculate_add(self, variable_name, period, **parameters):
+    def calculate_add(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -182,11 +182,11 @@ class Simulation(object):
                 period))
 
         return sum(
-            self.calculate(variable_name, sub_period, **parameters)
+            self.calculate(variable_name, sub_period)
             for sub_period in period.get_subperiods(variable.definition_period)
             )
 
-    def calculate_divide(self, variable_name, period, **parameters):
+    def calculate_divide(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
         if period is not None and not isinstance(period, periods.Period):
@@ -203,9 +203,9 @@ class Simulation(object):
 
         if period.unit == periods.MONTH:
             computation_period = period.this_year
-            return self.calculate(variable_name, period = computation_period, **parameters) / 12.
+            return self.calculate(variable_name, period = computation_period) / 12.
         elif period.unit == periods.YEAR:
-            return self.calculate(variable_name, period, **parameters)
+            return self.calculate(variable_name, period)
 
         raise ValueError("Unable to divide the value of '{}' to match period {}.".format(
             variable_name,
