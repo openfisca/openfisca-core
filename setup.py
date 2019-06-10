@@ -12,7 +12,7 @@ general_requirements = [
     'enum34 >= 1.1.6',
     'pytest >= 4.4.1, < 5.0.0',  # For openfisca test
     'numpy >=1.11,<1.17',
-    'psutil >=5.4.7,>6.0.0',
+    'psutil >=5.4.7,<6.0.0',
     'PyYAML >= 3.10',
     'sortedcontainers == 2.1.0',
     'numexpr ==2.6.9',
