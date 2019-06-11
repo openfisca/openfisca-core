@@ -3,7 +3,7 @@
 from pytest import raises
 
 from openfisca_core.simulations import Simulation
-from openfisca_core.tracers import SimpleTracer
+from openfisca_core.tracers import SimpleTracer, FullTracer
 from openfisca_core.simulations import CycleError, SpiralError
 
 
@@ -99,3 +99,24 @@ def test_spiral_error():
 
     with raises(SpiralError):
         simulation._check_for_cycle('toto', 2015)
+
+def test_full_tracer_one_calculation():
+    tracer = FullTracer()
+    tracer.enter_calculation('toto', 2017)
+    tracer.exit_calculation()
+    assert tracer.stack == []
+    assert len(tracer.trees) == 1
+    assert tracer.trees[0]['node']['name'] == 'toto'
+    assert tracer.trees[0]['node']['period'] == 2017
+    assert tracer.trees[0]['children'] == []
+
+
+def test_full_tracer_2_branches():
+    tracer = FullTracer()
+    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('tata', 2017)
+    tracer.exit_calculation()
+    tracer.enter_calculation('titi', 2017)
+    tracer.exit_calculation()
+    tracer.exit_calculation()
+    assert len(tracer.trees[0]['children']) == 1
