@@ -1,5 +1,13 @@
 # Changelog
 
+### 34.2.5 [#888](https://github.com/openfisca/openfisca-core/pull/888)
+
+#### Technical changes
+
+- Define a trim option for average rate function.
+- Convert a dict_values to a list (left-over by the python 3 migration)
+- Use a less stric version dependency for psutils. Problem arising with psutils are mainly due to freeze at install. Use `pip` option `--no-cache-dir` if you face troubles at install.
+
 ### 34.2.4 [#870](https://github.com/openfisca/openfisca-core/pull/870)
 
 #### Bug fix

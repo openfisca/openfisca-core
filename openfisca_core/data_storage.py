@@ -71,7 +71,7 @@ class InMemoryStorage(object):
 
         array = next(iter(self._arrays.values()))
         if isinstance(array, dict):
-            array = array.values()[0]
+            array = list(array.values())[0]
         return dict(
             nb_arrays = nb_arrays,
             total_nb_bytes = array.nbytes * nb_arrays,
