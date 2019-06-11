@@ -20,7 +20,7 @@ general_requirements = [
 
 api_requirements = [
     'flask ==1.0.3',
-    'flask-cors ==3.0.7',
+    'flask-cors ==3.0.8',
     'gunicorn >= 19.7.1',
     ]
 
