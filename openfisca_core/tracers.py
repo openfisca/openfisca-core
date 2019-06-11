@@ -266,7 +266,7 @@ class SimpleTracer:
         self._stack = stack
 
 
-    def enter_calculation(self, variable, period):
+    def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
 
