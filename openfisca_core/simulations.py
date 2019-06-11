@@ -108,10 +108,11 @@ class Simulation(object):
         if isinstance(self.tracer, SimpleTracer):
             self.tracer.enter_calculation(variable_name, period)
 
-        self._calculate(variable_name, period, **parameters)
-
-        if isinstance(self.tracer, SimpleTracer):
-            self.tracer.exit_calculation()
+        try:
+            self._calculate(variable_name, period)
+        finally:
+            if isinstance(self.tracer, SimpleTracer):
+                self.tracer.exit_calculation()
 
 
     def _calculate(self, variable_name, period):

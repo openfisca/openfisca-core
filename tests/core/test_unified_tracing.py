@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from pytest import raises
+
 from openfisca_core.simulations import Simulation
 from openfisca_core.tracers import SimpleTracer
 
@@ -7,10 +9,11 @@ from openfisca_core.tracers import SimpleTracer
 class StubSimulation(Simulation):
     
     def __init__(self):
-        pass
+        self.exception = None
     
     def _calculate(self, variable, period):
-        pass
+        if self.exception:
+            raise self.exception
 
 
 class MockTracer(SimpleTracer):
@@ -48,6 +51,19 @@ def test_stack_two_levels():
 def test_tracer_contract():
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
+
     simulation.calculate('toto', 2017)
+
+    assert simulation.tracer.entered
+    assert simulation.tracer.exited
+
+def test_exception_robustness():
+    simulation = StubSimulation()
+    simulation.tracer = MockTracer()
+    simulation.exception = Exception(":-o")
+
+    with raises(Exception):
+        simulation.calculate('toto', 2017)
+
     assert simulation.tracer.entered
     assert simulation.tracer.exited
