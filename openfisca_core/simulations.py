@@ -8,7 +8,7 @@ import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
+from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant, SimpleTracer
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -105,6 +105,16 @@ class Simulation(object):
     # ----- Calculation methods ----- #
 
     def calculate(self, variable_name, period):
+        if isinstance(self.tracer, SimpleTracer):
+            self.tracer.enter_calculation(variable_name, period)
+
+        self._calculate(variable_name, period, **parameters)
+
+        if isinstance(self.tracer, SimpleTracer):
+            self.tracer.exit_calculation()
+
+
+    def _calculate(self, variable_name, period):
         """
             Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 

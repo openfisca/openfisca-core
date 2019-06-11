@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 
 from openfisca_core.simulations import Simulation
-from openfisca_core.unified_tracing import SimpleTracer
+from openfisca_core.tracers import SimpleTracer
 
 
-class StubSimulation:
+class StubSimulation(Simulation):
     
-    def calculate(self, variable, period):
-        self.tracer.enter_calculation(variable, period)
-        self.tracer.exit_calculation()
+    def __init__(self):
+        pass
+    
+    def _calculate(self, variable, period):
+        pass
 
 
-class MockTracer:
+class MockTracer(SimpleTracer):
 
     def enter_calculation(self, variable, period):
         self.entered = True
 
     def exit_calculation(self):
         self.exited = True
-
 
 
 def test_stack_one_level():
