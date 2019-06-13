@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.6 [#886](https://github.com/openfisca/openfisca-core/pull/886)
+
+#### Minor change
+
+- Remove remaining of extra-parameters handling, since that feature was removed in 28.0
+
 ### 34.2.5 [#888](https://github.com/openfisca/openfisca-core/pull/888)
 
 #### Technical changes

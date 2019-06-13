@@ -27,8 +27,6 @@ class InMemoryStorage(object):
         values = self._arrays.get(period)
         if values is None:
             return None
-        if isinstance(values, dict):
-            return next(iter(values.values()))
         return values
 
     def put(self, value, period):
@@ -64,14 +62,8 @@ class InMemoryStorage(object):
                 cell_size = np.nan,
                 )
 
-        nb_arrays = sum([
-            len(array_or_dict) if isinstance(array_or_dict, dict) else 1
-            for array_or_dict in self._arrays.values()
-            ])
-
+        nb_arrays = len(self._arrays)
         array = next(iter(self._arrays.values()))
-        if isinstance(array, dict):
-            array = list(array.values())[0]
         return dict(
             nb_arrays = nb_arrays,
             total_nb_bytes = array.nbytes * nb_arrays,
@@ -106,8 +98,6 @@ class OnDiskStorage(object):
         values = self._files.get(period)
         if values is None:
             return None
-        if isinstance(values, dict):
-            return self._decode_file(next(iter(values.values())))
         return self._decode_file(values)
 
     def put(self, value, period):
