@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pytest import raises
+from pytest import raises, mark
 
 from openfisca_core.simulations import Simulation
 from openfisca_core.tracers import SimpleTracer, FullTracer
@@ -33,9 +33,8 @@ class MockTracer(SimpleTracer):
         self.exited = True
 
 
-def test_stack_one_level():
-    tracer = SimpleTracer()
-
+@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
+def test_stack_one_level(tracer):
     tracer.enter_calculation('toto', 2017)
     assert len(tracer.stack) == 1
     assert tracer.stack == [{'name': 'toto', 'period': 2017}]
