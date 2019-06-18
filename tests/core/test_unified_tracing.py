@@ -37,7 +37,8 @@ class MockTracer(SimpleTracer):
 def test_stack_one_level(tracer):
     tracer.enter_calculation('toto', 2017)
     assert len(tracer.stack) == 1
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}]
+    assert tracer.stack[0]['name'] == 'toto'
+    assert tracer.stack[0]['period'] == 2017
 
     tracer.exit_calculation()
     assert tracer.stack == []
@@ -47,10 +48,15 @@ def test_stack_two_levels(tracer):
     tracer.enter_calculation('toto', 2017)
     tracer.enter_calculation('tata', 2017)
     assert len(tracer.stack) == 2
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}, {'name': 'tata', 'period': 2017}]
+    assert tracer.stack[0]['name'] == 'toto'
+    assert tracer.stack[0]['period'] == 2017
+    assert tracer.stack[1]['name'] == 'tata'
+    assert tracer.stack[1]['period'] == 2017
 
     tracer.exit_calculation()
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}]
+    assert len(tracer.stack) == 1
+    assert tracer.stack[0]['name'] == 'toto'
+    assert tracer.stack[0]['period'] == 2017
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
