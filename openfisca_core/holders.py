@@ -123,10 +123,10 @@ class Holder(object):
         usage.update(self._memory_storage.get_memory_usage())
 
         if self.simulation.trace:
-            usage_stats = self.simulation.tracer.usage_stats[self.variable.name]
+            nb_requests = self.simulation.tracer.get_nb_requests(self.variable.name)
             usage.update(dict(
-                nb_requests = usage_stats['nb_requests'],
-                nb_requests_by_array = usage_stats['nb_requests'] / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else np.nan
+                nb_requests = nb_requests,
+                nb_requests_by_array = nb_requests / float(usage['nb_arrays']) if usage['nb_arrays'] > 0 else np.nan
                 ))
 
         return usage

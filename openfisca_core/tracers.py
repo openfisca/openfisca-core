@@ -292,8 +292,8 @@ class FullTracer(SimpleTracer):
         self._current_node = new_node
 
 
-    def record_parameter_access(self, parameter_name, period, value):
-        self._current_node['parameters'].append({'name': parameter_name, 'period': period, 'value': value})
+    def record_parameter_access(self, parameter: str, period, value):
+        self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
 
     def exit_calculation(self):
@@ -302,3 +302,12 @@ class FullTracer(SimpleTracer):
             self._current_node = None
         else:
             self._current_node = self.stack[-1]
+
+    def _get_nb_requests(self, tree, variable: str):
+        tree_call = tree['name'] == variable
+        children_calls = sum(self._get_nb_requests(child, variable) for child in tree['children'])
+
+        return tree_call + children_calls
+
+    def get_nb_requests(self, variable: str):
+        return sum(self._get_nb_requests(tree, variable) for tree in self.trees)

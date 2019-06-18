@@ -156,3 +156,11 @@ def test_full_tracer_3_generations():
     assert len(tracer.trees) == 1
     assert len(tracer.trees[0]['children']) == 1
     assert len(tracer.trees[0]['children'][0]['children']) == 1
+
+
+def test_full_tracer_variable_nb_requests():
+    tracer = FullTracer()
+    tracer.enter_calculation('toto', '2017-01')
+    tracer.enter_calculation('toto', '2017-02')
+
+    assert tracer.get_nb_requests('toto') == 2
