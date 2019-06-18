@@ -8,7 +8,7 @@ import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant, SimpleTracer
+from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant, SimpleTracer, FullTracer
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -73,7 +73,7 @@ class Simulation(object):
     def trace(self, trace):
         self._trace = trace
         if trace:
-            self.tracer = Tracer()
+            self.tracer = FullTracer()
         else:
             self.tracer = SimpleTracer()
 
@@ -102,17 +102,18 @@ class Simulation(object):
     # ----- Calculation methods ----- #
 
     def calculate(self, variable_name, period):
-        if isinstance(self.tracer, SimpleTracer):
-            self.tracer.enter_calculation(variable_name, period)
+        if period is not None and not isinstance(period, periods.Period):
+            period = periods.period(period)
+
+        self.tracer.enter_calculation(variable_name, period)
 
         try:
             return self._calculate(variable_name, period)
         finally:
-            if isinstance(self.tracer, SimpleTracer):
-                self.tracer.exit_calculation()
+            self.tracer.exit_calculation()
             self.purge_cache_of_invalid_values()
 
-    def _calculate(self, variable_name, period):
+    def _calculate(self, variable_name, period: periods.Period):
         """
             Calculate the variable ``variable_name`` for the period ``period``, using the variable formula if it exists.
 
@@ -122,19 +123,11 @@ class Simulation(object):
         holder = population.get_holder(variable_name)
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
 
-        if period is not None and not isinstance(period, periods.Period):
-            period = periods.period(period)
-
-        if self.trace:
-            self.tracer.record_calculation_start(variable.name, period)
-
         self._check_period_consistency(period, variable)
 
         # First look for a value already cached
         cached_array = holder.get_array(period)
         if cached_array is not None:
-            if self.trace:
-                self.tracer.record_calculation_end(variable.name, period, cached_array)
             return cached_array
 
         array = None
@@ -153,16 +146,7 @@ class Simulation(object):
             holder.put_in_cache(array, period)
         except SpiralError:
             array = holder.default_array()
-        finally:
-            if self.trace:
-<<<<<<< HEAD
-                self.tracer.record_calculation_end(variable.name, period, array)
-            self._clean_cycle_detection_data(variable.name)
 
-        self.purge_cache_of_invalid_values()
-=======
-                self.tracer.record_calculation_end(variable.name, period, array, **parameters)
->>>>>>> Use new tracer to handle cycles and spirals
 
         return array
 

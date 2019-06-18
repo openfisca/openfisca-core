@@ -247,7 +247,7 @@ class TracingParameterNodeAtInstant(object):
         else:
             name = '.'.join([self.parameter_node_at_instant._name, key])
         if isinstance(child, (np.ndarray,) + ALLOWED_PARAM_TYPES):
-            self.tracer.record_calculation_parameter_access(name, period, child)
+            self.tracer.record_parameter_access(name, period, child)
         return child
 
 
@@ -290,7 +290,11 @@ class FullTracer(SimpleTracer):
             self._current_node['children'].append(new_node)
         self.stack.append(new_node)
         self._current_node = new_node
-        
+
+
+    def record_parameter_access(self, parameter_name, period, value):
+        pass
+
 
     def exit_calculation(self):
         SimpleTracer.exit_calculation(self)
