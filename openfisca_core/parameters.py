@@ -8,6 +8,7 @@ import os
 import sys
 import logging
 import traceback
+from typing import Iterable, Optional
 
 import yaml
 import numpy as np
@@ -26,7 +27,7 @@ try:
 except ImportError:
     log.warning(
         "libyaml is not installed in your environment. This can make OpenFisca slower to start. Once you have installed libyaml, run 'pip uninstall pyyaml && pip install pyyaml --no-cache-dir' so that it is used in your Python environment." + os.linesep)
-    from yaml import Loader
+    from yaml import Loader  # type: ignore # (see https://github.com/python/mypy/issues/1153#issuecomment-455802270)
 
 
 FILE_EXTENSIONS = {'.yaml', '.yml'}
@@ -325,7 +326,7 @@ class ParameterNode(object):
         A node in the legislation `parameter tree <https://openfisca.org/doc/coding-the-legislation/legislation_parameters.html>`_.
     """
 
-    _allowed_keys = None  # By default, no restriction on the keys
+    _allowed_keys: Optional[Iterable[str]] = None  # By default, no restriction on the keys
 
     def __init__(self, name = "", directory_path = None, data = None, file_path = None):
         """

@@ -5,6 +5,7 @@ import sys
 import os
 import traceback
 import textwrap
+from typing import Dict
 
 import pytest
 
@@ -34,7 +35,7 @@ TEST_KEYWORDS = {'absolute_error_margin', 'description', 'extensions', 'ignore_v
 
 yaml, Loader = import_yaml()
 
-_tax_benefit_system_cache = {}
+_tax_benefit_system_cache: Dict = {}
 
 
 def run_tests(tax_benefit_system, paths, options = None):
