@@ -283,7 +283,7 @@ class FullTracer(SimpleTracer):
         return self._trees
 
     def enter_calculation(self, variable: str, period):
-        new_node = {'name': variable, 'period': period, 'children': []}
+        new_node = {'name': variable, 'period': period, 'children': [], 'parameters': []}
         if self._current_node is None:
             self._trees.append(new_node)
         else:
@@ -293,7 +293,7 @@ class FullTracer(SimpleTracer):
 
 
     def record_parameter_access(self, parameter_name, period, value):
-        pass
+        self._current_node['parameters'].append({'name': parameter_name, 'period': period, 'value': value})
 
 
     def exit_calculation(self):
