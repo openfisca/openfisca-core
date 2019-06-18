@@ -3,38 +3,35 @@
 import numpy as np
 import pytest
 
-from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant
+from openfisca_core.tracers import FullTracer, TracingParameterNodeAtInstant
 from openfisca_core.tools import assert_near
 
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
-
-def test_consistency():
-    with pytest.raises(ValueError):
-        tracer = Tracer()
-        tracer.record_calculation_start("rsa", 2017)
-        tracer.record_calculation_end("unkwonn", 2017, 100)
+@pytest.fixture
+def tracer():
+    return FullTracer()
 
 
-def test_variable_stats():
-    tracer = Tracer()
-    tracer.record_calculation_start("A", 2017)
-    tracer.record_calculation_start("B", 2017)
-    tracer.record_calculation_start("B", 2017)
-    tracer.record_calculation_start("B", 2016)
+def test_variable_stats(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.enter_calculation("B", 2017)
+    tracer.enter_calculation("B", 2017)
+    tracer.enter_calculation("B", 2016)
 
-    assert tracer.usage_stats['B']['nb_requests'] == 3
-    assert tracer.usage_stats['A']['nb_requests'] == 1
-    assert tracer.usage_stats['C']['nb_requests'] == 0
+    assert tracer.get_nb_requests('B') == 3
+    assert tracer.get_nb_requests('A') == 1
+    assert tracer.get_nb_requests('C') == 0
 
 
-def test_log_format():
-    tracer = Tracer()
-    tracer.record_calculation_start("A", 2017)
-    tracer.record_calculation_start("B", 2017)
-    tracer.record_calculation_end("B", 2017, np.array([1]))
-    tracer.record_calculation_end("A", 2017, np.array([2]))
+def test_log_format(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.enter_calculation("B", 2017)
+    tracer.exit_calculation()
+    tracer.exit_calculation()
+    # tracer.record_calculation_end("B", 2017, 1)
+    # tracer.record_calculation_end("A", 2017, 2)
 
     lines = tracer.computation_log()
     assert lines[0] == '  A<2017> >> [2]'
@@ -51,10 +48,10 @@ def test_no_wrapping():
     assert "\n" not in lines[0]
 
 
-def test_trace_enums():
-    tracer = Tracer()
-    tracer.record_calculation_start("A", 2017)
-    tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.array(['tenant'])))
+def test_trace_enums(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.exit_calculation()
+    # tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.array(['tenant'])))
 
     lines = tracer.computation_log()
     assert lines[0] == "  A<2017> >> ['tenant']"
@@ -67,20 +64,20 @@ family_status = np.asarray(['single', 'couple', 'single', 'couple'])
 
 
 def check_tracing_params(accessor, param_key):
-    tracer = Tracer()
-    tracer.record_calculation_start('A', '2015-01')
+    tracer = FullTracer()
+    tracer.enter_calculation('A', '2015-01')
     tracingParams = TracingParameterNodeAtInstant(parameters('2015-01-01'), tracer)
     param = accessor(tracingParams)
-    assert_near(tracer.trace['A<2015-01>']['parameters'][param_key], param)
+    assert tracer.trees[0]['parameters'][0]['name'] == param_key
 
 
 @pytest.mark.parametrize("test", [
-    (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1<2015-01-01>'),  # basic case
-    (lambda P: P.rate.single.owner[zone], 'rate.single.owner<2015-01-01>'),  # fancy indexing on leaf
-    (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single<2015-01-01>'),  # on a node
-    (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single<2015-01-01>'),  # double fancy indexing
-    (lambda P: P.rate[family_status][housing_occupancy_status].z2, 'rate<2015-01-01>'),  # double + node
-    (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate<2015-01-01>'),  # triple
+    (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1'),  # basic case
+    (lambda P: P.rate.single.owner[zone], 'rate.single.owner'),  # fancy indexing on leaf
+    (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single'),  # on a node
+    (lambda P: P.rate.single[housing_occupancy_status][zone], 'rate.single'),  # double fancy indexing
+    (lambda P: P.rate[family_status][housing_occupancy_status].z2, 'rate'),  # double + node
+    (lambda P: P.rate[family_status][housing_occupancy_status][zone], 'rate'),  # triple
     ])
 def test_parameters(test):
     check_tracing_params(*test)
