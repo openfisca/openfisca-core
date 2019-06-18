@@ -276,7 +276,7 @@ class FullTracer(SimpleTracer):
     def __init__(self):
         SimpleTracer.__init__(self)
         self._trees = []
-        self._next = None
+        self._current_node = None
 
     @property
     def trees(self):
@@ -284,13 +284,13 @@ class FullTracer(SimpleTracer):
 
     def enter_calculation(self, variable: str, period):
         SimpleTracer.enter_calculation(self, variable, period)
-        node = {'name': variable, 'period': period, 'children': [], 'parent': self._next}
-        if self._next is None:
+        node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node}
+        if self._current_node is None:
             self._trees.append(node)
         else:
-            self._next['children'].append(node)
-        self._next = node
+            self._current_node['children'].append(node)
+        self._current_node = node
 
     def exit_calculation(self):
-        self._next = self._next['parent']
+        self._current_node = self._current_node['parent']
         SimpleTracer.exit_calculation(self)
