@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.7 [#886](https://github.com/openfisca/openfisca-core/pull/885)
+
+#### Minor change
+
+- Enforce type checking in tests and Continuous Integration
+
 ### 34.2.6 [#886](https://github.com/openfisca/openfisca-core/pull/886)
 
 #### Minor change
