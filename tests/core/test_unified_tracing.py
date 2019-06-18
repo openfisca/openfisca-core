@@ -42,10 +42,8 @@ def test_stack_one_level(tracer):
     tracer.exit_calculation()
     assert tracer.stack == []
 
-
-def test_stack_two_levels():
-    tracer = SimpleTracer()
-
+@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
+def test_stack_two_levels(tracer):
     tracer.enter_calculation('toto', 2017)
     tracer.enter_calculation('tata', 2017)
     assert len(tracer.stack) == 2
@@ -55,7 +53,8 @@ def test_stack_two_levels():
     assert tracer.stack == [{'name': 'toto', 'period': 2017}]
 
 
-def test_tracer_contract():
+@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
+def test_tracer_contract(tracer):
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
 
@@ -77,9 +76,9 @@ def test_exception_robustness():
     assert simulation.tracer.exited
 
 
-def test_cycle_error():
+@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
+def test_cycle_error(tracer):
     simulation = StubSimulation()
-    tracer = SimpleTracer()
     simulation.tracer = tracer
     tracer.enter_calculation('toto', 2017)
     simulation._check_for_cycle('toto', 2017)
@@ -89,9 +88,9 @@ def test_cycle_error():
         simulation._check_for_cycle('toto', 2017)
 
 
-def test_spiral_error():
+@mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
+def test_spiral_error(tracer):
     simulation = StubSimulation()
-    tracer = SimpleTracer()
     simulation.tracer = tracer
     tracer.enter_calculation('toto', 2017)
     tracer.enter_calculation('toto', 2016)

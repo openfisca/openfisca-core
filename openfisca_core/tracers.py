@@ -271,21 +271,19 @@ class SimpleTracer:
         self.stack.pop()
 
 
-class FullTracer:
+class FullTracer(SimpleTracer):
 
     def __init__(self):
+        SimpleTracer.__init__(self)
         self._trees = []
         self._next = None
-
-    @property
-    def stack(self):
-        return []
 
     @property
     def trees(self):
         return self._trees
 
     def enter_calculation(self, variable: str, period):
+        SimpleTracer.enter_calculation(self, variable, period)
         node = {'name': variable, 'period': period, 'children': [], 'parent': self._next}
         if self._next is None:
             self._trees.append(node)
@@ -295,3 +293,4 @@ class FullTracer:
 
     def exit_calculation(self):
         self._next = self._next['parent']
+        SimpleTracer.exit_calculation(self)
