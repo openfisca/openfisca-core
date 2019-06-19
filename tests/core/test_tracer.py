@@ -28,10 +28,10 @@ def test_variable_stats(tracer):
 def test_log_format(tracer):
     tracer.enter_calculation("A", 2017)
     tracer.enter_calculation("B", 2017)
+    tracer.record_calculation_result(1)
     tracer.exit_calculation()
+    tracer.record_calculation_result(2)
     tracer.exit_calculation()
-    # tracer.record_calculation_end("B", 2017, 1)
-    # tracer.record_calculation_end("A", 2017, 2)
 
     lines = tracer.computation_log()
     assert lines[0] == '  A<2017> >> [2]'
@@ -50,8 +50,8 @@ def test_no_wrapping():
 
 def test_trace_enums(tracer):
     tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.array(['tenant'])))
     tracer.exit_calculation()
-    # tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.array(['tenant'])))
 
     lines = tracer.computation_log()
     assert lines[0] == "  A<2017> >> ['tenant']"

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pytest import raises, mark
+import numpy as np
 
 from openfisca_core.simulations import Simulation
 from openfisca_core.tracers import SimpleTracer, FullTracer
@@ -24,10 +25,13 @@ class StubSimulation(Simulation):
         pass
 
 
-class MockTracer(SimpleTracer):
+class MockTracer:
 
     def enter_calculation(self, variable, period):
         self.entered = True
+
+    def record_calculation_result(self, value):
+        self.recorded_result = True
 
     def exit_calculation(self):
         self.exited = True
@@ -164,3 +168,21 @@ def test_full_tracer_variable_nb_requests():
     tracer.enter_calculation('toto', '2017-02')
 
     assert tracer.get_nb_requests('toto') == 2
+
+
+def test_simulation_calls_record_calculation_result():
+    simulation = StubSimulation()
+    simulation.tracer = MockTracer()
+
+    simulation.calculate('toto', 2017)
+
+    assert simulation.tracer.recorded_result
+
+
+def test_record_calculation_result():
+    tracer = FullTracer()
+    tracer.enter_calculation('toto', 2017)
+    tracer.record_calculation_result(np.asarray(100))
+    tracer.exit_calculation()
+
+    assert tracer.trees[0]['value'] == 100

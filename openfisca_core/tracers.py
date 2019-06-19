@@ -6,6 +6,7 @@ import numpy as np
 import logging
 import copy
 from collections import defaultdict
+from typing import List
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.taxscales import AbstractTaxScale
@@ -286,7 +287,7 @@ class FullTracer(SimpleTracer):
         return self._trees
 
     def enter_calculation(self, variable: str, period):
-        new_node = {'name': variable, 'period': period, 'children': [], 'parameters': []}
+        new_node = {'name': variable, 'period': period, 'children': [], 'parameters': [], 'value': None}
         if self._current_node is None:
             self._trees.append(new_node)
         else:
@@ -320,23 +321,30 @@ class FullTracer(SimpleTracer):
     def _get_aggregate(self, node):
         pass
 
-    def _print_node(self, node, depth, aggregate):
+    def _get_node_log(self, node, depth, aggregate) -> List[str]:
 
-        def print_line(depth, node):
+        def print_line(depth, node) -> str:
             return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], node['value'])
 
         # if not self.trace.get(node):
         #     return print_line(depth, node, "Calculation aborted due to a circular dependency")
 
-        if not aggregate:
-            return print_line(depth, node)
+        node_log = [print_line(depth, node)]
+        children_logs = _flatten(
+            self._get_node_log(child, depth + 1, aggregate)
+            for child in node['children']
+            )
 
-        return print_line(depth, node, self._get_aggregate(node))
+
+        return node_log + children_logs
+
+        # return [print_line(depth, node, self._get_aggregate(node))]
 
 
-    def computation_log(self, aggregate = False):
+    def computation_log(self, aggregate = False) -> List[str]:
         depth = 1
-        return [self._print_node(node, depth, aggregate) for node in self._trees]
+        lines_by_tree =  [self._get_node_log(node, depth, aggregate) for node in self._trees]
+        return _flatten(lines_by_tree)
 
     def print_computation_log(self, aggregate = False):
         """
@@ -349,3 +357,7 @@ class FullTracer(SimpleTracer):
         """
         for line in self.computation_log(aggregate):
             print(line)  # noqa T001
+
+
+def _flatten(list_of_lists):
+    return [item for _list in list_of_lists for item in _list]
