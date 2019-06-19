@@ -108,7 +108,10 @@ class Simulation(object):
         self.tracer.enter_calculation(variable_name, period)
 
         try:
-            return self._calculate(variable_name, period)
+            result = self._calculate(variable_name, period)
+            self.tracer.record_calculation_result(result)
+            return result
+
         finally:
             self.tracer.exit_calculation()
             self.purge_cache_of_invalid_values()

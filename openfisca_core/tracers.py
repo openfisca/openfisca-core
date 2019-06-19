@@ -267,6 +267,9 @@ class SimpleTracer:
     def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
+    def record_calculation_result(self, value: np.ndarray):
+        pass  # ignore calculation result
+
     def exit_calculation(self):
         self.stack.pop()
 
@@ -295,6 +298,8 @@ class FullTracer(SimpleTracer):
     def record_parameter_access(self, parameter: str, period, value):
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
+    def record_calculation_result(self, value: np.ndarray):
+        self._current_node['value'] = value
 
     def exit_calculation(self):
         SimpleTracer.exit_calculation(self)
@@ -311,3 +316,36 @@ class FullTracer(SimpleTracer):
 
     def get_nb_requests(self, variable: str):
         return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
+
+    def _get_aggregate(self, node):
+        pass
+
+    def _print_node(self, node, depth, aggregate):
+
+        def print_line(depth, node):
+            return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], node['value'])
+
+        # if not self.trace.get(node):
+        #     return print_line(depth, node, "Calculation aborted due to a circular dependency")
+
+        if not aggregate:
+            return print_line(depth, node)
+
+        return print_line(depth, node, self._get_aggregate(node))
+
+
+    def computation_log(self, aggregate = False):
+        depth = 1
+        return [self._print_node(node, depth, aggregate) for node in self._trees]
+
+    def print_computation_log(self, aggregate = False):
+        """
+            Print the computation log of a simulation.
+
+            If ``aggregate`` is ``False`` (default), print the value of each computed vector.
+
+            If ``aggregate`` is ``True``, only print the minimum, maximum, and average value of each computed vector.
+            This mode is more suited for simulations on a large population.
+        """
+        for line in self.computation_log(aggregate):
+            print(line)  # noqa T001

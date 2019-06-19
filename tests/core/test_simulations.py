@@ -16,6 +16,7 @@ def test_calculate_full_tracer():
     income_tax_node = simulation.tracer.trees[0]
     assert income_tax_node['name'] == 'income_tax'
     assert str(income_tax_node['period']) == '2017-01'
+    assert income_tax_node['value'] == 0
 
     salary_node = income_tax_node['children'][0]
     assert salary_node['name'] == 'salary'
