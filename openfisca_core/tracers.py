@@ -323,7 +323,13 @@ class FullTracer(SimpleTracer):
     def _get_node_log(self, node, depth, aggregate) -> List[str]:
 
         def print_line(depth, node) -> str:
-            return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], node['value'])
+            value = node['value']
+            if isinstance(value, EnumArray):
+                value = value.decode_to_str()
+
+            formatted_value = np.array2string(value, max_line_width = float("inf"))
+
+            return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], formatted_value)
 
         # if not self.trace.get(node):
         #     return print_line(depth, node, "Calculation aborted due to a circular dependency")

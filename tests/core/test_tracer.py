@@ -28,9 +28,9 @@ def test_variable_stats(tracer):
 def test_log_format(tracer):
     tracer.enter_calculation("A", 2017)
     tracer.enter_calculation("B", 2017)
-    tracer.record_calculation_result(1)
+    tracer.record_calculation_result(np.asarray([1]))
     tracer.exit_calculation()
-    tracer.record_calculation_result(2)
+    tracer.record_calculation_result(np.asarray([2]))
     tracer.exit_calculation()
 
     lines = tracer.computation_log()
@@ -38,10 +38,10 @@ def test_log_format(tracer):
     assert lines[1] == '    B<2017> >> [1]'
 
 
-def test_no_wrapping():
-    tracer = Tracer()
-    tracer.record_calculation_start("A", 2017)
-    tracer.record_calculation_end("A", 2017, HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+def test_no_wrapping(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+    tracer.exit_calculation()
 
     lines = tracer.computation_log()
     assert "'tenant'" in lines[0]
