@@ -43,7 +43,7 @@ def calculate(tax_benefit_system, input_data):
     return input_data
 
 
-def get_flat_trace(node) -> Dict[str, Dict]:
+def get_flat_trace(node: Dict) -> Dict[str, Dict]:
     key = f"{node['name']}<{node['period']}>"
     node_trace = {
         key: {
