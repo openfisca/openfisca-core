@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import pytest
+from pytest import fixture, mark, approx
 
 from openfisca_core.tracers import FullTracer, TracingParameterNodeAtInstant
-from openfisca_core.tools import assert_near
-
 from openfisca_country_template.variables.housing import HousingOccupancyStatus
 from .parameters_fancy_indexing.test_fancy_indexing import parameters
 
-@pytest.fixture
+
+@fixture
 def tracer():
     return FullTracer()
 
@@ -69,9 +68,10 @@ def check_tracing_params(accessor, param_key):
     tracingParams = TracingParameterNodeAtInstant(parameters('2015-01-01'), tracer)
     param = accessor(tracingParams)
     assert tracer.trees[0]['parameters'][0]['name'] == param_key
+    assert tracer.trees[0]['parameters'][0]['value'] == approx(param)
 
 
-@pytest.mark.parametrize("test", [
+@mark.parametrize("test", [
     (lambda P: P.rate.single.owner.z1, 'rate.single.owner.z1'),  # basic case
     (lambda P: P.rate.single.owner[zone], 'rate.single.owner'),  # fancy indexing on leaf
     (lambda P: P.rate.single[housing_occupancy_status].z1, 'rate.single'),  # on a node

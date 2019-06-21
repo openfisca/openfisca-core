@@ -8,7 +8,7 @@ import numpy as np
 
 from openfisca_core import periods
 from openfisca_core.commons import empty_clone
-from openfisca_core.tracers import Tracer, TracingParameterNodeAtInstant, SimpleTracer, FullTracer
+from openfisca_core.tracers import TracingParameterNodeAtInstant, SimpleTracer, FullTracer
 from openfisca_core.indexed_enums import Enum, EnumArray
 
 
@@ -145,11 +145,10 @@ class Simulation(object):
                 array = holder.default_array()
 
             array = self._cast_formula_result(array, variable)
-
             holder.put_in_cache(array, period)
+
         except SpiralError:
             array = holder.default_array()
-
 
         return array
 

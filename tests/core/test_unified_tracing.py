@@ -47,6 +47,7 @@ def test_stack_one_level(tracer):
     tracer.exit_calculation()
     assert tracer.stack == []
 
+
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_two_levels(tracer):
     tracer.enter_calculation('toto', 2017)
