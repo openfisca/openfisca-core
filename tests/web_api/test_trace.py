@@ -69,3 +69,7 @@ def test_str_variable():
     response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
 
     assert response.status_code == OK
+
+
+def test_trace_parameters():
+    assert False
