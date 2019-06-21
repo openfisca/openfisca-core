@@ -5,7 +5,8 @@ import numpy as np
 import logging
 import copy
 from collections import defaultdict
-from typing import List
+from typing import List, Dict
+from collections import ChainMap
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.taxscales import AbstractTaxScale
@@ -294,7 +295,6 @@ class FullTracer(SimpleTracer):
         self.stack.append(new_node)
         self._current_node = new_node
 
-
     def record_parameter_access(self, parameter: str, period, value):
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
@@ -320,14 +320,51 @@ class FullTracer(SimpleTracer):
     def _get_aggregate(self, node):
         pass
 
+    def key(self, node):
+        name = node['name']
+        period = node['period']
+        return f"{name}<{period}>"
+
+    def get_flat_trace(self):
+        trace = {}
+        for tree in self._trees:
+            trace = {**trace, **self._get_flat_trace(tree)}
+        return trace
+
+    def _get_flat_trace(self, node: Dict) -> Dict[str, Dict]:
+        key = self.key(node)
+        node_trace = {
+            key: {
+                'dependencies': [
+                    self.key(child)
+                    for child in node['children']],
+                'value': self.serialize(node['value'])}}
+        child_traces = [
+            self._get_flat_trace(child)
+            for child in node['children']]
+
+        return dict(ChainMap(node_trace, *child_traces))
+
+    def display(self, value):
+        if isinstance(value, EnumArray):
+            value = value.decode_to_str()
+
+        return np.array2string(value, max_line_width = float("inf"))
+
+    def serialize(self, value):
+        if isinstance(value, EnumArray):
+            value = [item.name for item in value.decode()]
+        elif isinstance(value, np.ndarray):
+            value = value.tolist()
+            if len(value) > 0 and isinstance(value[0], bytes):
+                value = [str(item) for item in value]
+        return value
+
     def _get_node_log(self, node, depth, aggregate) -> List[str]:
 
         def print_line(depth, node) -> str:
             value = node['value']
-            if isinstance(value, EnumArray):
-                value = value.decode_to_str()
-
-            formatted_value = np.array2string(value, max_line_width = float("inf"))
+            formatted_value = self.display(value)
 
             return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], formatted_value)
 
@@ -340,15 +377,13 @@ class FullTracer(SimpleTracer):
             for child in node['children']
             )
 
-
         return node_log + children_logs
 
         # return [print_line(depth, node, self._get_aggregate(node))]
 
-
     def computation_log(self, aggregate = False) -> List[str]:
         depth = 1
-        lines_by_tree =  [self._get_node_log(node, depth, aggregate) for node in self._trees]
+        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self._trees]
         return _flatten(lines_by_tree)
 
     def print_computation_log(self, aggregate = False):

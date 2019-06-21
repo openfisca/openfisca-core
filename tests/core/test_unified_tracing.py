@@ -186,3 +186,33 @@ def test_record_calculation_result():
     tracer.exit_calculation()
 
     assert tracer.trees[0]['value'] == 100
+
+
+def test_flat_trace():
+    tracer = FullTracer()
+    tracer.enter_calculation('a', 2019)
+    tracer.enter_calculation('b', 2019)
+    tracer.exit_calculation()
+    tracer.exit_calculation()
+
+    trace = tracer.get_flat_trace()
+
+    assert len(trace) == 2
+    assert trace['a<2019>']['dependencies'] == ['b<2019>']
+    assert trace['b<2019>']['dependencies'] == []
+
+
+def test_flat_trace_with_cache():
+    tracer = FullTracer()
+    tracer.enter_calculation('a', 2019)
+    tracer.enter_calculation('b', 2019)
+    tracer.enter_calculation('c', 2019)
+    tracer.exit_calculation()
+    tracer.exit_calculation()
+    tracer.enter_calculation('b', 2019)
+    tracer.exit_calculation()
+    tracer.exit_calculation()
+
+    trace = tracer.get_flat_trace()
+
+    assert trace['b<2019>']['dependencies'] == ['c<2019>']

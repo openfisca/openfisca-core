@@ -1,16 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
-from copy import deepcopy
-from collections import ChainMap
-from typing import Dict
-
-
 import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.indexed_enums import Enum, EnumArray
-
+from openfisca_core.indexed_enums import Enum
 
 
 def calculate(tax_benefit_system, input_data):
@@ -43,48 +36,23 @@ def calculate(tax_benefit_system, input_data):
     return input_data
 
 
-def get_flat_trace(node: Dict) -> Dict[str, Dict]:
-    key = f"{node['name']}<{node['period']}>"
-    node_trace = {
-        key: {
-        'dependencies': [
-            f"{child['name']}<{child['period']}>"
-            for child in node['children']
-        ],
-        'value': node['value']
-        }}
-    child_traces = [
-        get_flat_trace(child)
-        for child in node['children']
-    ]
-
-    return dict(ChainMap(node_trace, *child_traces))
-
-
-
 def trace(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     simulation.trace = True
+
+    requested_nameperiods = []
 
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
+        requested_nameperiods.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
 
-    trace = get_flat_trace(simulation.tracer.trees)
-    requested_calculations = {}
-
-    # for _vector_key, vector_trace in trace.items():
-    #     value = vector_trace['value'].tolist()
-    #     if isinstance(vector_trace['value'], EnumArray):
-    #         value = [item.name for item in vector_trace['value'].decode()]
-    #     if isinstance(value[0], bytes):
-    #         value = [str(item) for item in value]
-    #     vector_trace['value'] = value
+    trace = simulation.tracer.get_flat_trace()
 
     return {
         "trace": trace,
         "entitiesDescription": simulation.describe_entities(),
-        "requestedCalculations": requested_calculations
+        "requestedCalculations": requested_nameperiods
         }
