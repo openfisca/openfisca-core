@@ -56,6 +56,9 @@ class SimpleTracer:
     def record_calculation_result(self, value: np.ndarray):
         pass  # ignore calculation result
 
+    def record_parameter_access(self, parameter: str, period, value):
+        pass
+
     def exit_calculation(self):
         self.stack.pop()
 
@@ -123,6 +126,10 @@ class FullTracer(SimpleTracer):
                 'dependencies': [
                     self.key(child)
                     for child in node['children']],
+                'parameters': {
+                    self.key(parameter): parameter['value']
+                    for parameter in node['parameters']
+                },
                 'value': self.serialize(node['value'])}}
         child_traces = [
             self._get_flat_trace(child)

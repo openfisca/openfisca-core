@@ -41,7 +41,6 @@ def trace(tax_benefit_system, input_data):
     simulation.trace = True
 
     requested_nameperiods = []
-
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:
         path = computation[0]

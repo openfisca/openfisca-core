@@ -217,3 +217,15 @@ def test_flat_trace_with_cache():
     trace = tracer.get_flat_trace()
 
     assert trace['b<2019>']['dependencies'] == ['c<2019>']
+
+
+def test_flat_trace_with_parameter():
+    tracer = FullTracer()
+    tracer.enter_calculation('a', 2019)
+    tracer.record_parameter_access('p', '2019-01-01', 100)
+    tracer.exit_calculation()
+
+    trace = tracer.get_flat_trace()
+
+    assert len(trace) == 1
+    assert trace['a<2019>']['parameters'] == {'p<2019-01-01>': 100}

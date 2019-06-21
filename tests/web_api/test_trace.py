@@ -72,4 +72,14 @@ def test_str_variable():
 
 
 def test_trace_parameters():
-    assert False
+    new_couple = deepcopy(couple)
+    new_couple['households']['_']['housing_tax'] = {'2017': None}
+    simulation_json = json.dumps(new_couple)
+
+    response = subject.post('/trace', data = simulation_json, content_type = 'application/json')
+    response_json = json.loads(response.data.decode('utf-8'))
+
+    assert_items_equal(
+        dpath.util.get(response_json, 'trace/housing_tax<2017>/parameters/taxes.housing_tax.minimal_amount<2017-01-01>'),
+        200
+        )
