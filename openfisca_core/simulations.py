@@ -426,11 +426,29 @@ class Simulation(object):
 
             If a ``set_input`` property has been set for the variable, this method may accept inputs for periods not matching the ``definition_period`` of the variable. To read more about this, check the `documentation <https://openfisca.org/doc/coding-the-legislation/35_periods.html#automatically-process-variable-inputs-defined-for-periods-not-matching-the-definitionperiod>`_.
         """
-        variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
-        period = periods.period(period)
-        if ((variable.end is not None) and (period.start.date > variable.end)):
+        variable = self.get_variable(variable_name)
+        population = self.get_variable_population(variable_name)
+
+        # If the variable is constant over time, we ignore the period parameter and set it for ETERNITY
+        if variable.definition_period == periods.ETERNITY:
+            period = periods.ETERNITY_PERIOD
+        if period is not None:
+            period = periods.period(period)
+
+        if variable.is_inactive(period):
             return
-        self.get_holder(variable_name).set_input(period, value)
+        array = variable.cast_to_array(value)
+
+        if len(array) != population.count:
+            raise ValueError(
+                f'Unable to set value "{value}" for variable "{variable.name}", as its length is {len(array)} while there are {population.count} {population.entity.plural} in the simulation.'
+                )
+
+        if variable.set_input:
+            return variable.set_input(self, variable, period, array)
+
+        variable.check_input_period(period)
+        self.cache.put_in_cache(variable.name, period, array)
 
     def get_variable_population(self, variable_name):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
