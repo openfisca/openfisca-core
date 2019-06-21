@@ -327,6 +327,25 @@ class Variable(object):
         """
         return len(self.formulas) == 0
 
+    def is_inactive(self, period: Period) -> bool:
+        """
+            Return ``False`` is ``period`` is outside of the definition timeframe of the variable
+        """
+        pass
+
+    def check_input_period(self, period: Period) -> None:
+        """
+            Check that an input can be set for the variable at period ``period``.
+            Raise a ``PeriodMismatchError`` in case of period mismatch
+        """
+        pass
+
+    def cast_to_array(self, value) -> Array:
+        """
+            Try to convert ``value`` into a Numpy Array of the appropriate type for the variable
+        """
+        pass
+
     @classmethod
     def get_introspection_data(cls, tax_benefit_system):
         """
