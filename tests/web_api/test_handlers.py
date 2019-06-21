@@ -28,31 +28,35 @@ def test_flat_trace():
 
 
 def test_flat_trace_with_cache():
-    tree = [{
-    'children': [{
-        'children': [{
-        'children': [],
-        'name': 'c',
-        'parameters': [],
-        'period': 2019,
-        'value': None
-        }],
-        'name': 'b',
-        'parameters': [],
-        'period': 2019,
-        'value': None
-    }, {
-        'children': [],
-        'name': 'b',
-        'parameters': [],
-        'period': 2019,
-        'value': None
-    }],
+    tree = {
+    'children': [
+        {
+            'children': [{
+                'children': [],
+                'name': 'c',
+                'parameters': [],
+                'period': 2019,
+                'value': None
+                }
+            ],
+            'name': 'b',
+            'parameters': [],
+            'period': 2019,
+            'value': None
+        },
+        {
+            'children': [],
+            'name': 'b',
+            'parameters': [],
+            'period': 2019,
+            'value': None
+        }
+    ],
     'name': 'a',
     'parameters': [],
     'period': 2019,
     'value': None
-    }]
+    }
 
     trace = get_flat_trace(tree)
 
