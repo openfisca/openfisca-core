@@ -23,6 +23,7 @@ class Entity(object):
     """
         Represents an entity (e.g. a person, a household, etc.) on which calculations can be run.
     """
+
     def __init__(self, key, plural, label, doc):
         self.key = key
         self.label = label
@@ -58,6 +59,7 @@ class GroupEntity(Entity):
     """
         Represents an entity composed of several persons with different roles, on which calculations are run.
     """
+
     def __init__(self, key, plural, label, doc, roles):
         super().__init__(key, plural, label, doc)
         self.roles_description = roles
