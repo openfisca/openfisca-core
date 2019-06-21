@@ -39,6 +39,6 @@ class Cache:
 
     def get_memory_usage(self) -> Dict[str, Dict]:
         """
-            Get data about the virtual memory usage of the holder.
+            Get data about the virtual memory usage of the cache.
         """
         pass
