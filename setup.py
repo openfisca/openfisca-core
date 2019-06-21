@@ -37,7 +37,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.2.7',
+    version = '34.2.8',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [
@@ -58,7 +58,10 @@ setup(
         ('share/openfisca/openfisca-core', ['CHANGELOG.md', 'LICENSE', 'README.md']),
         ],
     entry_points = {
-        'console_scripts': ['openfisca=openfisca_core.scripts.openfisca_command:main', 'openfisca-run-test=openfisca_core.scripts.openfisca_command:main'],
+        'console_scripts': [
+            'openfisca=openfisca_core.scripts.openfisca_command:main',
+            'openfisca-run-test=openfisca_core.scripts.openfisca_command:main',
+            ],
         },
     extras_require = {
         'web-api': api_requirements,

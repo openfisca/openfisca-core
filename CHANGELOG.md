@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.8 [#892](https://github.com/openfisca/openfisca-core/pull/892)
+
+#### Documentation
+
+- Update links to the doc in the API
+
 ### 34.2.7 [#886](https://github.com/openfisca/openfisca-core/pull/885)
 
 #### Minor change
