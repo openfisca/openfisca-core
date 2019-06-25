@@ -116,7 +116,7 @@ class FullTracer(SimpleTracer):
     def get_flat_trace(self):
         trace = {}
         for tree in self._trees:
-            trace = {**trace, **self._get_flat_trace(tree)}
+            trace = {**self._get_flat_trace(tree), **trace}
         return trace
 
     def _get_flat_trace(self, node: Dict) -> Dict[str, Dict]:
@@ -124,17 +124,15 @@ class FullTracer(SimpleTracer):
         node_trace = {
             key: {
                 'dependencies': [
-                    self.key(child)
-                    for child in node['children']],
-                'parameters': {
-                    self.key(parameter): parameter['value']
-                    for parameter in node['parameters']
+                    self.key(child) for child in node['children']
+                ],
+                'parameters': { 
+                    self.key(parameter): parameter['value'] for parameter in node['parameters']
                 },
-                'value': self.serialize(node['value'])}}
-        child_traces = [
-            self._get_flat_trace(child)
-            for child in node['children']]
-
+                'value': self.serialize(node['value'])
+            }
+        }
+        child_traces = [ self._get_flat_trace(child) for child in node['children'] ]
         return dict(ChainMap(node_trace, *child_traces))
 
     def display(self, value):
