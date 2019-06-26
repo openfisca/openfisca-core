@@ -105,9 +105,6 @@ class FullTracer(SimpleTracer):
     def get_nb_requests(self, variable: str):
         return sum(self._get_nb_requests(tree, variable) for tree in self.trees)
 
-    def _get_aggregate(self, node):
-        pass
-
     def key(self, node):
         name = node['name']
         period = node['period']
@@ -174,8 +171,6 @@ class FullTracer(SimpleTracer):
             )
 
         return node_log + children_logs
-
-        # return [print_line(depth, node, self._get_aggregate(node))]
 
     def computation_log(self, aggregate = False) -> List[str]:
         depth = 1
