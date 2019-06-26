@@ -125,14 +125,14 @@ class FullTracer(SimpleTracer):
             key: {
                 'dependencies': [
                     self.key(child) for child in node['children']
-                ],
-                'parameters': { 
+                    ],
+                'parameters': {
                     self.key(parameter): parameter['value'] for parameter in node['parameters']
-                },
+                    },
                 'value': self.serialize(node['value'])
+                }
             }
-        }
-        child_traces = [ self._get_flat_trace(child) for child in node['children'] ]
+        child_traces = [self._get_flat_trace(child) for child in node['children']]
         return dict(ChainMap(node_trace, *child_traces))
 
     def display(self, value):

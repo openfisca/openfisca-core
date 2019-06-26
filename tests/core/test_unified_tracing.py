@@ -229,6 +229,3 @@ def test_flat_trace_with_cache():
     trace = tracer.get_flat_trace()
 
     assert trace['b<2019>']['dependencies'] == ['c<2019>']
-
-
-
