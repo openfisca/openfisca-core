@@ -155,7 +155,10 @@ class FullTracer(SimpleTracer):
         def print_line(depth, node) -> str:
             value = node['value']
             if aggregate:
-                formatted_value = str({'avg': np.mean(value), 'max': np.max(value), 'min': np.min(value)})
+                try:
+                    formatted_value = str({'avg': np.mean(value), 'max': np.max(value), 'min': np.min(value)})
+                except TypeError:
+                    formatted_value = "{'avg': '?', 'max': '?', 'min': '?'}"
             else:
                 formatted_value = self.display(value)
 

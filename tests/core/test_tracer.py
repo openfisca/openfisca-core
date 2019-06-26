@@ -46,6 +46,24 @@ def test_log_aggregate(tracer):
     assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
 
 
+def test_log_aggregate_with_enum(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
+    tracer.exit_calculation()
+
+    lines = tracer.computation_log(aggregate = True)
+    assert lines[0] == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
+
+
+def test_log_aggregate_with_strings(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(np.repeat('foo', 100))
+    tracer.exit_calculation()
+
+    lines = tracer.computation_log(aggregate = True)
+    assert lines[0] == "  A<2017> >> {'avg': '?', 'max': '?', 'min': '?'}"
+
+
 def test_no_wrapping(tracer):
     tracer.enter_calculation("A", 2017)
     tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
