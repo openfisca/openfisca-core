@@ -32,7 +32,7 @@ def test_log_format(tracer):
     tracer.record_calculation_result(np.asarray([2]))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log()
+    lines = tracer.computation_log.lines()
     assert lines[0] == '  A<2017> >> [2]'
     assert lines[1] == '    B<2017> >> [1]'
 
@@ -42,7 +42,7 @@ def test_log_aggregate(tracer):
     tracer.record_calculation_result(np.asarray([1]))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log(aggregate = True)
+    lines = tracer.computation_log.lines(aggregate = True)
     assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
 
 
@@ -51,7 +51,7 @@ def test_log_aggregate_with_enum(tracer):
     tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log(aggregate = True)
+    lines = tracer.computation_log.lines(aggregate = True)
     assert lines[0] == "  A<2017> >> {'avg': EnumArray(HousingOccupancyStatus.tenant), 'max': EnumArray(HousingOccupancyStatus.tenant), 'min': EnumArray(HousingOccupancyStatus.tenant)}"
 
 
@@ -60,7 +60,7 @@ def test_log_aggregate_with_strings(tracer):
     tracer.record_calculation_result(np.repeat('foo', 100))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log(aggregate = True)
+    lines = tracer.computation_log.lines(aggregate = True)
     assert lines[0] == "  A<2017> >> {'avg': '?', 'max': '?', 'min': '?'}"
 
 
@@ -69,7 +69,7 @@ def test_no_wrapping(tracer):
     tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log()
+    lines = tracer.computation_log.lines()
     assert "'tenant'" in lines[0]
     assert "\n" not in lines[0]
 
@@ -79,7 +79,7 @@ def test_trace_enums(tracer):
     tracer.record_calculation_result(HousingOccupancyStatus.encode(np.array(['tenant'])))
     tracer.exit_calculation()
 
-    lines = tracer.computation_log()
+    lines = tracer.computation_log.lines()
     assert lines[0] == "  A<2017> >> ['tenant']"
 
 

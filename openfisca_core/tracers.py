@@ -42,14 +42,6 @@ class SimpleTracer:
     def __init__(self):
         self._stack = []
 
-    @property
-    def stack(self):
-        return self._stack
-
-    @stack.setter
-    def stack(self, stack):
-        self._stack = stack
-
     def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
@@ -62,6 +54,14 @@ class SimpleTracer:
     def exit_calculation(self):
         self.stack.pop()
 
+    @property
+    def stack(self):
+        return self._stack
+
+    @stack.setter
+    def stack(self, stack):
+        self._stack = stack
+
 
 class FullTracer(SimpleTracer):
 
@@ -69,10 +69,6 @@ class FullTracer(SimpleTracer):
         SimpleTracer.__init__(self)
         self._trees = []
         self._current_node = None
-
-    @property
-    def trees(self):
-        return self._trees
 
     def enter_calculation(self, variable: str, period):
         new_node = {'name': variable, 'period': period, 'children': [], 'parameters': [], 'value': None}
@@ -96,6 +92,17 @@ class FullTracer(SimpleTracer):
         else:
             self._current_node = self.stack[-1]
 
+    @property
+    def trees(self):
+        return self._trees
+
+    @property
+    def computation_log(self):
+        return ComputationLog(self)
+
+    def print_computation_log(self, aggregate = False):
+        self.computation_log.print_log(aggregate)
+
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree['name'] == variable
         children_calls = sum(self._get_nb_requests(child, variable) for child in tree['children'])
@@ -116,6 +123,15 @@ class FullTracer(SimpleTracer):
             trace = {**self._get_flat_trace(tree), **trace}
         return trace
 
+    def serialize(self, value):
+        if isinstance(value, EnumArray):
+            value = [item.name for item in value.decode()]
+        elif isinstance(value, np.ndarray):
+            value = value.tolist()
+            if len(value) > 0 and isinstance(value[0], bytes):
+                value = [str(item) for item in value]
+        return value
+
     def _get_flat_trace(self, node: Dict) -> Dict[str, Dict]:
         key = self.key(node)
         node_trace = {
@@ -132,20 +148,17 @@ class FullTracer(SimpleTracer):
         child_traces = [self._get_flat_trace(child) for child in node['children']]
         return dict(ChainMap(node_trace, *child_traces))
 
+
+class ComputationLog:
+
+    def __init__(self, full_tracer):
+        self.full_tracer = full_tracer
+
     def display(self, value):
         if isinstance(value, EnumArray):
             value = value.decode_to_str()
 
         return np.array2string(value, max_line_width = float("inf"))
-
-    def serialize(self, value):
-        if isinstance(value, EnumArray):
-            value = [item.name for item in value.decode()]
-        elif isinstance(value, np.ndarray):
-            value = value.tolist()
-            if len(value) > 0 and isinstance(value[0], bytes):
-                value = [str(item) for item in value]
-        return value
 
     def _get_node_log(self, node, depth, aggregate) -> List[str]:
 
@@ -165,19 +178,22 @@ class FullTracer(SimpleTracer):
         #     return print_line(depth, node, "Calculation aborted due to a circular dependency")
 
         node_log = [print_line(depth, node)]
-        children_logs = _flatten(
+        children_logs = self._flatten(
             self._get_node_log(child, depth + 1, aggregate)
             for child in node['children']
             )
 
         return node_log + children_logs
 
-    def computation_log(self, aggregate = False) -> List[str]:
-        depth = 1
-        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self._trees]
-        return _flatten(lines_by_tree)
+    def _flatten(self, list_of_lists):
+        return [item for _list in list_of_lists for item in _list]
 
-    def print_computation_log(self, aggregate = False):
+    def lines(self, aggregate = False) -> List[str]:
+        depth = 1
+        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self.full_tracer.trees]
+        return self._flatten(lines_by_tree)
+
+    def print_log(self, aggregate = False):
         """
             Print the computation log of a simulation.
 
@@ -186,9 +202,5 @@ class FullTracer(SimpleTracer):
             If ``aggregate`` is ``True``, only print the minimum, maximum, and average value of each computed vector.
             This mode is more suited for simulations on a large population.
         """
-        for line in self.computation_log(aggregate):
+        for line in self.lines(aggregate):
             print(line)  # noqa T001
-
-
-def _flatten(list_of_lists):
-    return [item for _list in list_of_lists for item in _list]
