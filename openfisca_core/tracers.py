@@ -154,7 +154,10 @@ class FullTracer(SimpleTracer):
 
         def print_line(depth, node) -> str:
             value = node['value']
-            formatted_value = self.display(value)
+            if aggregate:
+                formatted_value = str({'avg': np.mean(value), 'max': np.max(value), 'min': np.min(value)})
+            else:
+                formatted_value = self.display(value)
 
             return "{}{}<{}> >> {}".format('  ' * depth, node['name'], node['period'], formatted_value)
 

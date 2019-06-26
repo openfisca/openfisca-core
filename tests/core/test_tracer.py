@@ -37,6 +37,15 @@ def test_log_format(tracer):
     assert lines[1] == '    B<2017> >> [1]'
 
 
+def test_log_aggregate(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(np.asarray([1]))
+    tracer.exit_calculation()
+
+    lines = tracer.computation_log(aggregate = True)
+    assert lines[0] == "  A<2017> >> {'avg': 1.0, 'max': 1, 'min': 1}"
+
+
 def test_no_wrapping(tracer):
     tracer.enter_calculation("A", 2017)
     tracer.record_calculation_result(HousingOccupancyStatus.encode(np.repeat('tenant', 100)))
