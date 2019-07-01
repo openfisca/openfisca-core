@@ -236,4 +236,5 @@ class PerformanceLog:
 
     def json_tree(self, tree):
         calculation_total_time = tree['end'] - tree['start']
-        return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time}
+        children = [self.json_tree(child) for child in tree['children']]
+        return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time, 'children': children}
