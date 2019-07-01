@@ -45,10 +45,16 @@ class SimpleTracer:
     def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
+    def record_start(self, timestamp):
+        pass
+
     def record_calculation_result(self, value: np.ndarray):
         pass  # ignore calculation result
 
     def record_parameter_access(self, parameter: str, period, value):
+        pass
+
+    def record_end(self, timestamp):
         pass
 
     def exit_calculation(self):
@@ -79,9 +85,15 @@ class FullTracer:
         self._simple_tracer.record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
+    def record_start(self, timestamp):
+        self._current_node['start'] = timestamp
+
     def record_calculation_result(self, value: np.ndarray):
         self._simple_tracer.record_calculation_result(value)
         self._current_node['value'] = value
+
+    def record_end(self, timestamp):
+        self._current_node['end'] = timestamp
 
     def exit_calculation(self):
         self._simple_tracer.exit_calculation()
@@ -98,6 +110,10 @@ class FullTracer:
     @property
     def computation_log(self):
         return ComputationLog(self)
+
+    @property
+    def performance_log(self):
+        return PerformanceLog(self)
 
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)
@@ -151,7 +167,7 @@ class FullTracer:
 class ComputationLog:
 
     def __init__(self, full_tracer):
-        self.full_tracer = full_tracer
+        self._full_tracer = full_tracer
 
     def display(self, value):
         if isinstance(value, EnumArray):
@@ -189,7 +205,7 @@ class ComputationLog:
 
     def lines(self, aggregate = False) -> List[str]:
         depth = 1
-        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self.full_tracer.trees]
+        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self._full_tracer.trees]
         return self._flatten(lines_by_tree)
 
     def print_log(self, aggregate = False):
@@ -203,3 +219,21 @@ class ComputationLog:
         """
         for line in self.lines(aggregate):
             print(line)  # noqa T001
+
+
+class PerformanceLog:
+
+    def __init__(self, full_tracer):
+        self._full_tracer = full_tracer
+
+    def json(self):
+        first_tree = self._full_tracer.trees[0]
+        last_tree = self._full_tracer.trees[-1]
+        simulation_total_time = last_tree['end'] - first_tree['start']
+
+        children = [self.json_tree(tree) for tree in self._full_tracer.trees]
+        return {'name': 'simulation', 'value': simulation_total_time, 'children': children}
+
+    def json_tree(self, tree):
+        calculation_total_time = tree['end'] - tree['start']
+        return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time}

@@ -32,8 +32,14 @@ class MockTracer:
     def enter_calculation(self, variable, period):
         self.entered = True
 
+    def record_start(self, timestamp):
+        self.timer_started = True
+
     def record_calculation_result(self, value):
         self.recorded_result = True
+
+    def record_end(self, timestamp):
+        self.timer_ended = True
 
     def exit_calculation(self):
         self.exited = True
@@ -74,6 +80,8 @@ def test_tracer_contract(tracer):
     simulation.calculate('a', 2017)
 
     assert simulation.tracer.entered
+    assert simulation.tracer.timer_started
+    assert simulation.tracer.timer_ended
     assert simulation.tracer.exited
 
 
@@ -234,6 +242,23 @@ def test_flat_trace_with_cache(tracer):
     trace = tracer.get_flat_trace()
 
     assert trace['b<2019>']['dependencies'] == ['c<2019>']
+
+
+def test_calculation_time():
+    tracer = FullTracer()
+
+    tracer.enter_calculation('a', 2019)
+    tracer.record_start(1500)
+    tracer.record_end(2500)
+    tracer.exit_calculation()
+
+    performance_json = tracer.performance_log.json()
+    assert performance_json['name'] == 'simulation'
+    assert performance_json['value'] == 1000
+
+    simulation_children = performance_json['children']
+    assert simulation_children[0]['name'] == 'a<2019>'
+    assert simulation_children[0]['value'] == 1000
 
 
 def test_variable_stats(tracer):
