@@ -58,39 +58,34 @@ class SimpleTracer:
     def stack(self):
         return self._stack
 
-    @stack.setter
-    def stack(self, stack):
-        self._stack = stack
-
 
 class FullTracer(SimpleTracer):
 
     def __init__(self):
-        SimpleTracer.__init__(self)
+        super().__init__()
         self._trees = []
         self._current_node = None
 
     def enter_calculation(self, variable: str, period):
-        new_node = {'name': variable, 'period': period, 'children': [], 'parameters': [], 'value': None}
+        super().enter_calculation(variable, period)
+        new_node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node, 'parameters': [], 'value': None}
         if self._current_node is None:
             self._trees.append(new_node)
         else:
             self._current_node['children'].append(new_node)
-        self.stack.append(new_node)
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
+        super().record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
     def record_calculation_result(self, value: np.ndarray):
+        super().record_calculation_result(value)
         self._current_node['value'] = value
 
     def exit_calculation(self):
-        SimpleTracer.exit_calculation(self)
-        if self.stack == []:
-            self._current_node = None
-        else:
-            self._current_node = self.stack[-1]
+        super().exit_calculation()
+        self._current_node = self._current_node['parent']
 
     @property
     def trees(self):
