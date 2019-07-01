@@ -112,6 +112,7 @@ class YamlFile(pytest.File):
 
 
 class YamlItem(pytest.Item):
+
     def __init__(self, name, parent, baseline_tax_benefit_system, test, options):
         super(YamlItem, self).__init__(name, parent)
         self.baseline_tax_benefit_system = baseline_tax_benefit_system
@@ -120,7 +121,7 @@ class YamlItem(pytest.Item):
         self.simulation = None
         self.tax_benefit_system = None
 
-    def parse_test(self):
+    def runtest(self):
         self.name = self.test.get('name', '')
         if not self.test.get('output'):
             raise ValueError("Missing key 'output' in test '{}' in file '{}'".format(self.name, self.fspath))
@@ -131,24 +132,22 @@ class YamlItem(pytest.Item):
 
         self.tax_benefit_system = _get_tax_benefit_system(self.baseline_tax_benefit_system, self.test.get('reforms', []), self.test.get('extensions', []))
 
+        builder = SimulationBuilder()
+        input = self.test.get('input', {})
+        period = self.test.get('period')
+        verbose = self.options.get('verbose')
+
         try:
-            builder = SimulationBuilder()
-            input = self.test.get('input', {})
-            period = self.test.get('period')
-            verbose = self.options.get('verbose')
             builder.set_default_period(period)
             self.simulation = builder.build_from_dict(self.tax_benefit_system, input)
-            self.simulation.trace = verbose
         except (VariableNotFound, SituationParsingError):
             raise
         except Exception as e:
             error_message = os.linesep.join([str(e), '', f"Unexpected error raised while parsing '{self.fspath}'"])
             raise ValueError(error_message).with_traceback(sys.exc_info()[2]) from e  # Keep the stack trace from the root error
 
-    def runtest(self):
-        self.parse_test()
-        verbose = self.options.get('verbose')
         try:
+            self.simulation.trace = verbose
             self.check_output()
         finally:
             if verbose:
