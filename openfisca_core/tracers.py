@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import json
 
 from typing import List, Dict
 from collections import ChainMap
@@ -117,6 +118,9 @@ class FullTracer:
 
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)
+
+    def print_performance_log(self):
+        print(json.dumps(self.performance_log.json()))  # noqa T001
 
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree['name'] == variable
@@ -238,3 +242,6 @@ class PerformanceLog:
         calculation_total_time = tree['end'] - tree['start']
         children = [self.json_tree(child) for child in tree['children']]
         return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time, 'children': children}
+
+    def print_performance_log(self):
+        print(json.dumps(self.json()))  # noqa T001
