@@ -150,6 +150,7 @@ def test_performance_option_output():
     test_item.runtest()
 
     assert test_item.simulation.trace
+    assert os.path.isfile("./index.html")
     assert os.path.isfile(performance_path)
     f = open(performance_path, "r")
     assert json.loads(f.read()).get('name')
