@@ -1,16 +1,19 @@
+import pytest
+import numpy as np
+
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
 from openfisca_core.errors import VariableNotFound
-from openfisca_core.entities import Entity
+from openfisca_core.variables import Variable
 from openfisca_core.populations import Population
-
-
-import pytest
+from openfisca_core.entities import Entity
+from openfisca_core.periods import ETERNITY
 
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {}
+        self.variables = {'salary': TestVariable()}
         self.person_entity = Entity('person', 'persons', None, "")
+        self.person_entity.set_tax_benefit_system(self)
 
     def get_package_metadata(self):
         return {"name": "Test", "version": "Test"}
@@ -23,9 +26,15 @@ class TaxBenefitSystem:
 
     def entities_by_singular(self):
         return {}
+  
+    def entities_plural(self):
+        return {}
 
     def instantiate_entities(self):
         return {'person': Population(self.person_entity)}
+
+    def get_variable(self, variable_name, check_existence = True):
+        return self.variables.get(variable_name)
 
     def clone(self):
         return TaxBenefitSystem()
@@ -54,10 +63,22 @@ class TestFile(YamlFile):
 
 class TestItem(YamlItem):
     def __init__(self, test):
-        super().__init__('', TestFile(), TaxBenefitSystem(), test, [])
+        super().__init__('', TestFile(), TaxBenefitSystem(), test, {})
 
         self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
+
+
+class TestVariable(Variable):
+    definition_period = ETERNITY
+    value_type = float
+
+    def __init__(self):
+        self.end = None
+        self.entity = Entity('person', 'persons', None, "")
+        self.is_neutralized = False
+        self.set_input = None
+        self.dtype = np.float32
 
 
 def test_variable_not_found():
@@ -117,7 +138,7 @@ def test_extensions_order():
 
 
 def test_performance():
-    test = {'output':{'salary': 2000}}
+    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
     test_item = TestItem(test)
     test_item.options = {'performance': True}
 

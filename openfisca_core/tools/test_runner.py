@@ -155,13 +155,12 @@ class YamlItem(pytest.Item):
                 self.simulation.tracer.print_computation_log()
 
     def check_output(self):
-        tax_benefit_system = self.tax_benefit_system
         output = self.test.get('output')
 
         if output is None:
             return
         for key, expected_value in output.items():
-            if tax_benefit_system.variables.get(key):  # If key is a variable
+            if self.tax_benefit_system.get_variable(key):  # If key is a variable
                 self.check_variable(key, expected_value, self.test.get('period'))
             elif self.simulation.populations.get(key):  # If key is an entity singular
                 for variable_name, value in expected_value.items():
@@ -174,7 +173,7 @@ class YamlItem(pytest.Item):
                             entity_index = population.get_index(instance_id)
                             self.check_variable(variable_name, value, self.test.get('period'), entity_index)
                 else:
-                    raise VariableNotFound(key, tax_benefit_system)
+                    raise VariableNotFound(key, self.tax_benefit_system)
 
     def check_variable(self, variable_name, expected_value, period, entity_index = None):
         if self.should_ignore_variable(variable_name):
@@ -183,7 +182,9 @@ class YamlItem(pytest.Item):
             for requested_period, expected_value_at_period in expected_value.items():
                 self.check_variable(variable_name, expected_value_at_period, requested_period, entity_index)
             return
+
         actual_value = self.simulation.calculate(variable_name, period)
+
         if entity_index is not None:
             actual_value = actual_value[entity_index]
         return assert_near(
