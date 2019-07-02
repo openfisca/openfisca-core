@@ -10,6 +10,8 @@ from typing import Dict
 import pytest
 import json
 
+import importlib.resources as pkg_resources
+
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
 from openfisca_core.errors import SituationParsingError, VariableNotFound
@@ -165,6 +167,10 @@ class YamlItem(pytest.Item):
     def create_performance_log(self, tracer):
         f = open("performance.json", "w")
         f.write(json.dumps(tracer.performance_log.json()))
+        f.close()
+        #
+        f = open("index.html", "w")
+        f.write(pkg_resources.read_text('openfisca_core.scripts.tools', 'index.html'))
         f.close()
 
     def check_output(self):

@@ -144,9 +144,11 @@ def test_performance_option_output():
     test_item = TestItem(test)
     test_item.options = {'performance': True}
     performance_path = "./performance.json"
-    
+
     if os.path.isfile(performance_path):
         os.remove(performance_path)
+    if os.path.isfile("./index.html"):
+        os.remove("./index.html")
     test_item.runtest()
 
     assert test_item.simulation.trace
