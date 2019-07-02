@@ -1,5 +1,7 @@
+import os
 import pytest
 import numpy as np
+import json
 
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
 from openfisca_core.errors import VariableNotFound
@@ -137,32 +139,17 @@ def test_extensions_order():
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
 
 
-class PerfTestItem(TestItem):
-    def print_performance_log(self, tracer):
-        self.print_performance_log_called = True
-
-
-def test_performance():
+def test_performance_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
-    test_item = PerfTestItem(test)
+    test_item = TestItem(test)
     test_item.options = {'performance': True}
-
+    performance_path = "./performance.json"
+    
+    if os.path.isfile(performance_path):
+        os.remove(performance_path)
     test_item.runtest()
 
     assert test_item.simulation.trace
-    assert test_item.print_performance_log_called
-
-
-class FullTracer:
-    def print_performance_log(self):
-        self.print_performance_log_called = True
-
-
-def test_print_performance_log():
-    test_item = TestItem({})
-    test_item.options = {'performance': True}
-    tracer = FullTracer()
-
-    test_item.print_performance_log(tracer)
-
-    assert tracer.print_performance_log_called
+    assert os.path.isfile(performance_path)
+    f = open(performance_path, "r")
+    assert json.loads(f.read()).get('name')
