@@ -236,7 +236,10 @@ class Simulation(object):
         if formula is None:
             return None
 
-        parameters_at = self.trace_parameters_at_instant
+        if self.trace:
+            parameters_at = self.trace_parameters_at_instant
+        else:
+            parameters_at = self.tax_benefit_system.get_parameters_at_instant
 
         if formula.__code__.co_argcount == 2:
             array = formula(population, period)
