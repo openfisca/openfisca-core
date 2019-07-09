@@ -45,9 +45,9 @@ def tracer():
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_one_level(tracer):
-    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('a', 2017)
     assert len(tracer.stack) == 1
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}]
+    assert tracer.stack == [{'name': 'a', 'period': 2017}]
 
     tracer.exit_calculation()
     assert tracer.stack == []
@@ -55,14 +55,14 @@ def test_stack_one_level(tracer):
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_two_levels(tracer):
-    tracer.enter_calculation('toto', 2017)
-    tracer.enter_calculation('tata', 2017)
+    tracer.enter_calculation('a', 2017)
+    tracer.enter_calculation('b', 2017)
     assert len(tracer.stack) == 2
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}, {'name': 'tata', 'period': 2017}]
+    assert tracer.stack == [{'name': 'a', 'period': 2017}, {'name': 'b', 'period': 2017}]
 
     tracer.exit_calculation()
     assert len(tracer.stack) == 1
-    assert tracer.stack == [{'name': 'toto', 'period': 2017}]
+    assert tracer.stack == [{'name': 'a', 'period': 2017}]
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
@@ -70,7 +70,7 @@ def test_tracer_contract(tracer):
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
 
-    simulation.calculate('toto', 2017)
+    simulation.calculate('a', 2017)
 
     assert simulation.tracer.entered
     assert simulation.tracer.exited
@@ -82,7 +82,7 @@ def test_exception_robustness():
     simulation.exception = Exception(":-o")
 
     with raises(Exception):
-        simulation.calculate('toto', 2017)
+        simulation.calculate('a', 2017)
 
     assert simulation.tracer.entered
     assert simulation.tracer.exited
@@ -92,43 +92,43 @@ def test_exception_robustness():
 def test_cycle_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.enter_calculation('toto', 2017)
-    simulation._check_for_cycle('toto', 2017)
+    tracer.enter_calculation('a', 2017)
+    simulation._check_for_cycle('a', 2017)
 
-    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('a', 2017)
     with raises(CycleError):
-        simulation._check_for_cycle('toto', 2017)
+        simulation._check_for_cycle('a', 2017)
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_spiral_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.enter_calculation('toto', 2017)
-    tracer.enter_calculation('toto', 2016)
-    tracer.enter_calculation('toto', 2015)
+    tracer.enter_calculation('a', 2017)
+    tracer.enter_calculation('a', 2016)
+    tracer.enter_calculation('a', 2015)
 
     with raises(SpiralError):
-        simulation._check_for_cycle('toto', 2015)
+        simulation._check_for_cycle('a', 2015)
 
 
 def test_full_tracer_one_calculation(tracer):
-    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('a', 2017)
     tracer.exit_calculation()
     assert tracer.stack == []
     assert len(tracer.trees) == 1
-    assert tracer.trees[0]['name'] == 'toto'
+    assert tracer.trees[0]['name'] == 'a'
     assert tracer.trees[0]['period'] == 2017
     assert tracer.trees[0]['children'] == []
 
 
 def test_full_tracer_2_branches(tracer):
-    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('a', 2017)
 
-    tracer.enter_calculation('tata', 2017)
+    tracer.enter_calculation('b', 2017)
     tracer.exit_calculation()
 
-    tracer.enter_calculation('titi', 2017)
+    tracer.enter_calculation('c', 2017)
     tracer.exit_calculation()
 
     tracer.exit_calculation()
@@ -138,19 +138,19 @@ def test_full_tracer_2_branches(tracer):
 
 
 def test_full_tracer_2_trees(tracer):
-    tracer.enter_calculation('tata', 2017)
+    tracer.enter_calculation('b', 2017)
     tracer.exit_calculation()
 
-    tracer.enter_calculation('titi', 2017)
+    tracer.enter_calculation('c', 2017)
     tracer.exit_calculation()
 
     assert len(tracer.trees) == 2
 
 
 def test_full_tracer_3_generations(tracer):
-    tracer.enter_calculation('toto', 2017)
-    tracer.enter_calculation('tata', 2017)
-    tracer.enter_calculation('titi', 2017)
+    tracer.enter_calculation('a', 2017)
+    tracer.enter_calculation('b', 2017)
+    tracer.enter_calculation('c', 2017)
     tracer.exit_calculation()
     tracer.exit_calculation()
     tracer.exit_calculation()
@@ -161,23 +161,23 @@ def test_full_tracer_3_generations(tracer):
 
 
 def test_full_tracer_variable_nb_requests(tracer):
-    tracer.enter_calculation('toto', '2017-01')
-    tracer.enter_calculation('toto', '2017-02')
+    tracer.enter_calculation('a', '2017-01')
+    tracer.enter_calculation('a', '2017-02')
 
-    assert tracer.get_nb_requests('toto') == 2
+    assert tracer.get_nb_requests('a') == 2
 
 
 def test_simulation_calls_record_calculation_result():
     simulation = StubSimulation()
     simulation.tracer = MockTracer()
 
-    simulation.calculate('toto', 2017)
+    simulation.calculate('a', 2017)
 
     assert simulation.tracer.recorded_result
 
 
 def test_record_calculation_result(tracer):
-    tracer.enter_calculation('toto', 2017)
+    tracer.enter_calculation('a', 2017)
     tracer.record_calculation_result(np.asarray(100))
     tracer.exit_calculation()
 
