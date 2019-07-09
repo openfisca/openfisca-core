@@ -40,12 +40,12 @@ def trace(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     simulation.trace = True
 
-    requested_nameperiods = []
+    requested_calculations = []
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
-        requested_nameperiods.append(f"{variable_name}<{str(period)}>")
+        requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
 
     trace = simulation.tracer.get_flat_trace()
@@ -53,5 +53,5 @@ def trace(tax_benefit_system, input_data):
     return {
         "trace": trace,
         "entitiesDescription": simulation.describe_entities(),
-        "requestedCalculations": requested_nameperiods
+        "requestedCalculations": requested_calculations
         }

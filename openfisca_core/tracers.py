@@ -9,7 +9,7 @@ from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameter
 from openfisca_core.indexed_enums import EnumArray
 
 
-class TracingParameterNodeAtInstant(object):
+class TracingParameterNodeAtInstant:
 
     def __init__(self, parameter_node_at_instant, tracer):
         self.parameter_node_at_instant = parameter_node_at_instant
@@ -62,12 +62,12 @@ class SimpleTracer:
 class FullTracer:
 
     def __init__(self):
-        self._stacker = SimpleTracer()
+        self._simple_tracer = SimpleTracer()
         self._trees = []
         self._current_node = None
 
     def enter_calculation(self, variable: str, period):
-        self._stacker.enter_calculation(variable, period)
+        self._simple_tracer.enter_calculation(variable, period)
         new_node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node, 'parameters': [], 'value': None}
         if self._current_node is None:
             self._trees.append(new_node)
@@ -76,20 +76,20 @@ class FullTracer:
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
-        self._stacker.record_parameter_access(parameter, period, value)
+        self._simple_tracer.record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
     def record_calculation_result(self, value: np.ndarray):
-        self._stacker.record_calculation_result(value)
+        self._simple_tracer.record_calculation_result(value)
         self._current_node['value'] = value
 
     def exit_calculation(self):
-        self._stacker.exit_calculation()
+        self._simple_tracer.exit_calculation()
         self._current_node = self._current_node['parent']
 
     @property
     def stack(self):
-        return self._stacker.stack
+        return self._simple_tracer.stack
 
     @property
     def trees(self):
