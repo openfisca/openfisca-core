@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.2.9 [#884](https://github.com/openfisca/openfisca-core/pull/884)
+
+- Refactor simulation tracer implementation
+  - These changes should be transparent for users
+  - They should enable more precise performance measures, to come in a later version.
+
 ### 34.2.8 [#892](https://github.com/openfisca/openfisca-core/pull/892)
 
 #### Documentation

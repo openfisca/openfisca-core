@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
-from copy import deepcopy
-
 import dpath
 
 from openfisca_core.simulation_builder import SimulationBuilder
-from openfisca_core.indexed_enums import Enum, EnumArray
+from openfisca_core.indexed_enums import Enum
 
 
 def calculate(tax_benefit_system, input_data):
@@ -43,23 +40,18 @@ def trace(tax_benefit_system, input_data):
     simulation = SimulationBuilder().build_from_entities(tax_benefit_system, input_data)
     simulation.trace = True
 
+    requested_calculations = []
     requested_computations = dpath.util.search(input_data, '*/*/*/*', afilter = lambda t: t is None, yielded = True)
     for computation in requested_computations:
         path = computation[0]
         entity_plural, entity_id, variable_name, period = path.split('/')
+        requested_calculations.append(f"{variable_name}<{str(period)}>")
         simulation.calculate(variable_name, period)
 
-    trace = deepcopy(simulation.tracer.trace)
-    for _vector_key, vector_trace in trace.items():
-        value = vector_trace['value'].tolist()
-        if isinstance(vector_trace['value'], EnumArray):
-            value = [item.name for item in vector_trace['value'].decode()]
-        if isinstance(value[0], bytes):
-            value = [str(item) for item in value]
-        vector_trace['value'] = value
+    trace = simulation.tracer.get_flat_trace()
 
     return {
         "trace": trace,
         "entitiesDescription": simulation.describe_entities(),
-        "requestedCalculations": list(simulation.tracer.requested_calculations)
+        "requestedCalculations": requested_calculations
         }
