@@ -1,5 +1,9 @@
 # Changelog
 
+### 34.3.0 [#894](https://github.com/openfisca/openfisca-core/pull/894)
+
+- Update pytest version's upper bound to 6.0.0
+
 ### 34.2.9 [#884](https://github.com/openfisca/openfisca-core/pull/884)
 
 - Refactor simulation tracer implementation
