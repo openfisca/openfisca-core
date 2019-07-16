@@ -1,6 +1,70 @@
 # Changelog
 
-### 34.3.0 [#894](https://github.com/openfisca/openfisca-core/pull/894)
+### 34.3.1 [#898](https://github.com/openfisca/openfisca-core/pull/898)
+
+#### Bug fix
+
+> Note: Versions `3.2.9` and `3.3.0` have been unpublished as the
+former accidentally introduced a bug affecting the Web API. Please use
+version `3.3.1` or more recent.
+
+- Revert version 3.2.9 as it introduced a bug that rendered the Web
+API unusable
+  - In this version, the tracer outputs `numpy.ndarray` as a valid
+value for `parameters`
+  - Since `numpy.ndarray` is not JSON serializable, the Web API crashes
+when trying to serialize a trace
+
+##### How to reprode the error
+
+You can use the following snippet:
+
+```python
+from flask import Flask, jsonify
+from openfisca_core.scripts import build_tax_benefit_system
+from openfisca_web_api.loader import build_data
+
+def trace():
+    tax_benefit_system = build_tax_benefit_system("openfisca_france", None, None)
+    data = build_data(tax_benefit_system)
+    return data["openAPI_spec"]["definitions"]["Trace"]["example"]["trace"]
+
+def acc(data, key):
+    params = data[key]["parameters"]
+    return [(key, param, params[param], type(params[param])) for param in params.keys()]
+
+def serializable(value):
+    try:
+        jsonify({**value})
+        return True
+    except TypeError:
+        return False
+
+with Flask(__name__).app_context():
+    data = trace()
+    result = [acc(data, key) for key, _ in data.items() if not serializable(data[key])]
+```
+
+##### Expected
+
+```python
+result
+>>> []
+```
+
+##### Actual
+
+```python
+result[0][0]
+(
+  'aide_logement_loyer_plafond<2017-12>',
+  'prestations.aides_logement.loyers_plafond.par_zone<2017-12-01>',
+  array([51.54]),
+  numpy.ndarray),
+  )
+```
+
+## 34.3.0 [#894](https://github.com/openfisca/openfisca-core/pull/894)
 
 - Update pytest version's upper bound to 6.0.0
 
