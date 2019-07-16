@@ -21,6 +21,7 @@ from openfisca_core.variables import Variable, get_neutralized_variable
 from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import empty_clone
 from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_core.tracers import Tracer
 
 
 log = logging.getLogger(__name__)
@@ -126,9 +127,11 @@ class TaxBenefitSystem(object):
                     builder.set_default_period(self.period)
                     simulation = builder.build_from_entities(tax_benefit_system, self.dict)
 
-                simulation.trace = trace
                 simulation.debug = debug
                 simulation.opt_out_cache = opt_out_cache
+                if trace:
+                    simulation.trace = trace
+                    simulation.tracer = Tracer()
 
                 return simulation
 
