@@ -139,7 +139,7 @@ class FullTracer:
                     self.key(child) for child in node['children']
                     ],
                 'parameters': {
-                    self.key(parameter): parameter['value'] for parameter in node['parameters']
+                    self.key(parameter): self.serialize(parameter['value']) for parameter in node['parameters']
                     },
                 'value': self.serialize(node['value'])
                 }

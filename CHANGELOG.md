@@ -1,10 +1,22 @@
 # Changelog
 
+### 34.3.1 [#900](https://github.com/openfisca/openfisca-core/pull/900)
+
+#### Bug fix
+
+- Fix serialisation error introduced in [34.2.9](https://github.com/openfisca/openfisca-core/tree/34.2.9) in route `/trace` (Web API)
+  - This was causing an Internal Server Error
+  - Notably, `numpy` arrays were not being parsed correctly as not JSON serialisable
+
 ### 34.3.0 [#894](https://github.com/openfisca/openfisca-core/pull/894)
+
+_Note: this version has been unpublished due to an issue introduced by 34.2.9 in the Web API. Please use 34.3.1 or a more recent version._
 
 - Update pytest version's upper bound to 6.0.0
 
 ### 34.2.9 [#884](https://github.com/openfisca/openfisca-core/pull/884)
+
+_Note: this version has been unpublished due to an issue introduced by 34.2.9 in the Web API. Please use 34.3.1 or a more recent version._
 
 - Refactor simulation tracer implementation
   - These changes should be transparent for users

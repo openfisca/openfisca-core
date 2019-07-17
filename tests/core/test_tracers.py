@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import numpy as np
 from pytest import fixture, mark, raises, approx
 
@@ -195,6 +196,18 @@ def test_flat_trace(tracer):
     assert len(trace) == 2
     assert trace['a<2019>']['dependencies'] == ['b<2019>']
     assert trace['b<2019>']['dependencies'] == []
+
+
+def test_flat_trace_serialize_vectorial_values(tracer):
+    tracer.enter_calculation('a', 2019)
+    tracer.record_parameter_access('x.y.z', 2019, np.asarray([100, 200, 300]))
+    tracer.record_calculation_result(np.asarray([10, 20, 30]))
+    tracer.exit_calculation()
+
+    trace = tracer.get_flat_trace()
+
+    assert json.dumps(trace['a<2019>']['value'])
+    assert json.dumps(trace['a<2019>']['parameters']['x.y.z<2019>'])
 
 
 def test_flat_trace_with_parameter(tracer):
