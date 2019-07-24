@@ -260,6 +260,20 @@ def test_log_format(tracer):
     assert lines[1] == '    B<2017> >> [1]'
 
 
+def test_log_format_forest(tracer):
+    tracer.enter_calculation("A", 2017)
+    tracer.record_calculation_result(np.asarray([1]))
+    tracer.exit_calculation()
+
+    tracer.enter_calculation("B", 2017)
+    tracer.record_calculation_result(np.asarray([2]))
+    tracer.exit_calculation()
+
+    lines = tracer.computation_log.lines()
+    assert lines[0] == '  A<2017> >> [1]'
+    assert lines[1] == '  B<2017> >> [2]'
+
+
 def test_log_aggregate(tracer):
     tracer.enter_calculation("A", 2017)
     tracer.record_calculation_result(np.asarray([1]))
