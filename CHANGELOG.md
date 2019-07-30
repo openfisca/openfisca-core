@@ -1,5 +1,11 @@
 # Changelog
 
+### 34.3.2 [#901](https://github.com/openfisca/openfisca-core/pull/901)
+
+#### Technical change
+
+- Update dependencie: numpy
+
 ### 34.3.1 [#900](https://github.com/openfisca/openfisca-core/pull/900)
 
 #### Bug fix
