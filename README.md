@@ -90,7 +90,7 @@ To run it with the mock country package `openfisca_country_template` and another
 openfisca serve --country-package openfisca_country_template --port 2000
 ```
 
-To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html).
+To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.org/doc/openfisca-python-api/openfisca_serve.html).
 
 By default, the Web API uses 3 workers to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process. You can change the number of workers by specifying a `--workers k` option.
 
