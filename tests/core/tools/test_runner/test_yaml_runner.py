@@ -143,16 +143,20 @@ def test_performance_option_output():
     test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
     test_item = TestItem(test)
     test_item.options = {'performance': True}
-    performance_path = "./performance.json"
 
-    if os.path.isfile(performance_path):
-        os.remove(performance_path)
-    if os.path.isfile("./index.html"):
-        os.remove("./index.html")
+    clean_performance_files()
     test_item.runtest()
 
     assert test_item.simulation.trace
     assert os.path.isfile("./index.html")
-    assert os.path.isfile(performance_path)
-    f = open(performance_path, "r")
+    assert os.path.isfile("./performance.json")
+    f = open("./performance.json", "r")
     assert json.loads(f.read()).get('name')
+    clean_performance_files()
+
+
+def clean_performance_files():
+    if os.path.isfile("./performance.json"):
+        os.remove("./performance.json")
+    if os.path.isfile("./index.html"):
+        os.remove("./index.html")

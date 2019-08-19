@@ -168,7 +168,7 @@ class YamlItem(pytest.Item):
         f = open("performance.json", "w")
         f.write(json.dumps(tracer.performance_log.json()))
         f.close()
-        #
+
         f = open("index.html", "w")
         f.write(pkg_resources.read_text('openfisca_core.scripts.tools', 'index.html'))
         f.close()
