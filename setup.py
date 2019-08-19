@@ -15,7 +15,7 @@ general_requirements = [
     'psutil >= 5.4.7, < 6.0.0',
     'PyYAML >= 3.10',
     'sortedcontainers == 2.1.0',
-    'numexpr == 2.6.9',
+    'numexpr == 2.7.0',
     ]
 
 api_requirements = [
@@ -37,7 +37,7 @@ dev_requirements = [
 
 setup(
     name = 'OpenFisca-Core',
-    version = '34.3.2',
+    version = '34.3.3',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.org',
     classifiers = [

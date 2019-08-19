@@ -1,10 +1,16 @@
 # Changelog
 
+### 34.3.3 [#902](https://github.com/openfisca/openfisca-core/pull/902)
+
+#### Technical change
+
+- Update dependency: numexpr
+
 ### 34.3.2 [#901](https://github.com/openfisca/openfisca-core/pull/901)
 
 #### Technical change
 
-- Update dependencie: numpy
+- Update dependency: numpy
 
 ### 34.3.1 [#900](https://github.com/openfisca/openfisca-core/pull/900)
 
@@ -64,7 +70,7 @@ _Note: this version has been unpublished due to an issue introduced by 34.2.9 in
 
 #### Technical changes
 
-- Update dependencies: psutil
+- Update dependency: psutil
 
 ### 34.2.2 [#873](https://github.com/openfisca/openfisca-core/pull/873)
 
