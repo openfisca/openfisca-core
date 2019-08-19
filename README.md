@@ -17,13 +17,12 @@ This package contains the core features of OpenFisca, which are meant to be used
 
 OpenFisca runs on Python 3.7. More recent versions should work, but are not tested.
 
-Backward compatibility with Python 2.7 is maintained for now, but will be dropped from January 1st, 2019.
 
 ## Installation
 
 If you're developping your own country package, you don't need to explicitly install OpenFisca-Core. It just needs to appear [in your package dependencies](https://github.com/openfisca/openfisca-france/blob/18.2.1/setup.py#L53).
 
-If you want to contribute to OpenFisca-Core itself, welcome! To install it locally in development mode:
+If you want to contribute to OpenFisca-Core itself, welcome! To install it locally in development mode run the following commands:
 
 ```bash
 git clone https://github.com/openfisca/openfisca-core.git
@@ -91,7 +90,7 @@ To run it with the mock country package `openfisca_country_template` and another
 openfisca serve --country-package openfisca_country_template --port 2000
 ```
 
-To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.readthedocs.io/en/latest/openfisca_serve.html).
+To read more about the `openfisca serve` command, check out its [documentation](https://openfisca.org/doc/openfisca-python-api/openfisca_serve.html).
 
 By default, the Web API uses 3 workers to avoid [this issue](http://stackoverflow.com/questions/11150343/slow-requests-on-local-flask-server). Without it, AJAX requests from Chrome sometimes take more than 20s to process. You can change the number of workers by specifying a `--workers k` option.
 
