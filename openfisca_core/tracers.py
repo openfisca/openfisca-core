@@ -237,7 +237,7 @@ class PerformanceLog:
         f.close()
 
         f = open(os.path.join(dir_path, 'index.html'), 'w')
-        f.write(pkg_resources.read_text('openfisca_core.scripts.tools', 'index.html'))
+        f.write(pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html'))
         f.close()
 
     def _json(self):
