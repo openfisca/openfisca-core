@@ -5,6 +5,7 @@ import inspect
 import re
 import textwrap
 
+import numexpr as ne
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
 from datetime import date
@@ -177,8 +178,17 @@ class Variable(object):
         self.calculate_output = self.set_calculate_output(attr.pop('calculate_output', None))
         self.is_period_size_independent = self.set(attr, 'is_period_size_independent', allowed_type = bool, default = VALUE_TYPES[self.value_type]['is_period_size_independent'])
 
+        self.expression = self.set(attr, 'expression', allowed_type = str)
+        self.expression_options = self.set(attr, 'expression_options', allowed_type = dict)
         formulas_attr, unexpected_attrs = _partition(attr, lambda name, value: name.startswith(FORMULA_NAME_PREFIX))
-        self.formulas = self.set_formulas(formulas_attr)
+        if self.expression and formulas_attr:
+            raise ValueError('Can\'t define both formula and expression in variable "{}"'.format(self.name))
+
+        if self.expression:
+            formula = self.generate_formula_from_expression(self.expression, options = self.expression_options)
+            self.formulas = SortedDict({str(date.min): formula})
+        else:
+            self.formulas = self.set_formulas(formulas_attr)
 
         if unexpected_attrs:
             raise ValueError(
@@ -431,6 +441,40 @@ class Variable(object):
             return EnumArray(array, self.possible_values)
         array.fill(self.default_value)
         return array
+
+    def generate_formula_from_expression(self, expression, options = {}):
+        ex = ne.NumExpr(expression)
+
+        def formula(entity_instance, period, parameters):
+            tax_benefit_system = entity_instance.simulation.tax_benefit_system
+            local_dict = {}
+            for input_name in ex.input_names:
+                child_variable = tax_benefit_system.get_variable(input_name, check_existence = True)
+
+                if entity_instance.entity.is_person:
+                    raise NotImplementedError((self, self.name, entity_instance, entity_instance.entity))
+
+                if child_variable.entity.key == entity_instance.entity.key:
+                    # Child variable entity is the same as target variable entity, so no need to project.
+                    result = entity_instance(input_name, period = period)
+                elif child_variable.entity.is_person:
+                    # Child variable entity is a person entity, so applying sum to the members of the target variable entity.
+                    result_person = entity_instance.members(input_name, period = period)
+                    result = entity_instance.sum(result_person)
+                else:
+                    # Child variable entity is a group entity, so filtering child variable entity with a role,
+                    # then applying sum to the members of the target variable entity.
+                    projector = getattr(entity_instance.members, child_variable.entity.key)
+                    result_person = projector(input_name, period = period)
+                    default_role = child_variable.entity.roles[0]
+                    role = options.get(input_name, {}).get("filter", default_role)
+                    result = entity_instance.sum(result_person, role = role)
+
+                local_dict[input_name] = result
+
+            return ne.evaluate(expression, local_dict=local_dict)
+
+        return formula
 
 
 def _partition(dict, predicate):
