@@ -252,7 +252,7 @@ def test_calculation_time():
     tracer.record_end(2500)
     tracer.exit_calculation()
 
-    performance_json = tracer.performance_log.json()
+    performance_json = tracer.performance_log._json()
     assert performance_json['name'] == 'simulation'
     assert performance_json['value'] == 1000
 
@@ -275,7 +275,7 @@ def test_calculation_time_with_depth():
     tracer.record_end(2500)
     tracer.exit_calculation()
 
-    performance_json = tracer.performance_log.json()
+    performance_json = tracer.performance_log._json()
     simulation_grand_children = performance_json['children'][0]['children']
 
     assert simulation_grand_children[0]['name'] == 'b<2019>'

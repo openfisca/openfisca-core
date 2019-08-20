@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import os
+import json
 import numpy as np
 from typing import List, Dict
 from collections import ChainMap
+import importlib.resources as pkg_resources
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.indexed_enums import EnumArray
@@ -117,6 +120,9 @@ class FullTracer:
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)
 
+    def generate_performance_graph(self, dir_path):
+        self.performance_log.generate_graph(dir_path)
+
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree['name'] == variable
         children_calls = sum(self._get_nb_requests(child, variable) for child in tree['children'])
@@ -225,7 +231,16 @@ class PerformanceLog:
     def __init__(self, full_tracer):
         self._full_tracer = full_tracer
 
-    def json(self):
+    def generate_graph(self, dir_path):
+        f = open(os.path.join(dir_path, 'performance.json'), 'w')
+        f.write(json.dumps(self._json()))
+        f.close()
+
+        f = open(os.path.join(dir_path, 'index.html'), 'w')
+        f.write(pkg_resources.read_text('openfisca_core.scripts.tools', 'index.html'))
+        f.close()
+
+    def _json(self):
         first_tree = self._full_tracer.trees[0]
         last_tree = self._full_tracer.trees[-1]
         simulation_total_time = last_tree['end'] - first_tree['start']

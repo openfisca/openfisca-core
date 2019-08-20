@@ -8,9 +8,6 @@ import textwrap
 from typing import Dict
 
 import pytest
-import json
-
-import importlib.resources as pkg_resources
 
 from openfisca_core.tools import assert_near
 from openfisca_core.simulation_builder import SimulationBuilder
@@ -158,20 +155,14 @@ class YamlItem(pytest.Item):
             if verbose:
                 self.print_computation_log(tracer)
             if performance:
-                self.create_performance_log(tracer)
+                self.generate_performance_graph(tracer)
 
     def print_computation_log(self, tracer):
         print("Computation log:")  # noqa T001
         tracer.print_computation_log()
 
-    def create_performance_log(self, tracer):
-        f = open("performance.json", "w")
-        f.write(json.dumps(tracer.performance_log.json()))
-        f.close()
-
-        f = open("index.html", "w")
-        f.write(pkg_resources.read_text('openfisca_core.scripts.tools', 'index.html'))
-        f.close()
+    def generate_performance_graph(self, tracer):
+        tracer.generate_performance_graph('.')
 
     def check_output(self):
         output = self.test.get('output')
