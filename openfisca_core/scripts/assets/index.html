@@ -39,7 +39,7 @@
     }
     </style>
 
-    <title>d3-flame-graph</title>
+    <title>Performance log</title>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -62,7 +62,7 @@
             </form>
           </div>
         </nav>
-        <h3 class="text-muted">d3-flame-graph</h3>
+        <h3 class="text-muted">Performance log</h3>
       </div>
       <div id="chart">
       </div>
@@ -73,7 +73,7 @@
 
     <!-- D3.js -->
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-    
+
     <!-- d3-tip -->
     <script type="text/javascript" src=https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js></script>
 
@@ -95,6 +95,16 @@
 
     var details = document.getElementById("details");
     flameGraph.setDetailsElement(details);
+
+    flameGraph.label(function(d) {
+      var timeInSec = d.data.value.toPrecision(3) + "s"
+      var label = d.data.name + ": " + timeInSec
+      if (d.parent) {
+        var percentageOfParent = (d.data.value / d.parent.value) * 100
+        label += " (" + percentageOfParent.toPrecision(3) +  "%)"
+      }
+      return label
+    });
 
     d3.json("performance.json", function(error, data) {
       if (error) return console.warn(error);
