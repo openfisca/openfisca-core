@@ -4,18 +4,18 @@ import datetime
 import inspect
 import re
 import textwrap
+from datetime import date
 
 import numexpr as ne
 import numpy as np
 from sortedcontainers.sorteddict import SortedDict
-from datetime import date
 
 from openfisca_core import periods
 from openfisca_core.entities import Entity
-from openfisca_core.indexed_enums import Enum, EnumArray, ENUM_ARRAY_DTYPE
-from openfisca_core.periods import DAY, MONTH, YEAR, ETERNITY
+from openfisca_core.indexed_enums import ENUM_ARRAY_DTYPE, Enum, EnumArray
+from openfisca_core.periods import DAY, ETERNITY, MONTH, YEAR
+from openfisca_core.populations import ADD
 from openfisca_core.tools import eval_expression
-
 
 VALUE_TYPES = {
     bool: {
@@ -442,7 +442,12 @@ class Variable(object):
         array.fill(self.default_value)
         return array
 
-    def generate_formula_from_expression(self, expression, options = {}):
+    def generate_formula_from_expression(self, expression, options = None):
+        if options is None:
+            options = {}
+
+        default_calculate_options = [ADD]
+
         ex = ne.NumExpr(expression)
 
         def formula(entity_instance, period, parameters):
@@ -450,22 +455,25 @@ class Variable(object):
             local_dict = {}
             for input_name in ex.input_names:
                 child_variable = tax_benefit_system.get_variable(input_name, check_existence = True)
-
-                if entity_instance.entity.is_person:
-                    raise NotImplementedError((self, self.name, entity_instance, entity_instance.entity))
+                calculate_options = options.get(input_name, {}).get("calculate", default_calculate_options)
 
                 if child_variable.entity.key == entity_instance.entity.key:
                     # Child variable entity is the same as target variable entity, so no need to project.
-                    result = entity_instance(input_name, period = period)
+                    result = entity_instance(input_name, period = period, options = calculate_options)
+
+                elif entity_instance.entity.is_person:
+                    raise NotImplementedError((self, self.name, entity_instance, entity_instance.entity))
+
                 elif child_variable.entity.is_person:
                     # Child variable entity is a person entity, so applying sum to the members of the target variable entity.
-                    result_person = entity_instance.members(input_name, period = period)
+                    result_person = entity_instance.members(input_name, period = period, options = calculate_options)
                     result = entity_instance.sum(result_person)
+
                 else:
                     # Child variable entity is a group entity, so filtering child variable entity with a role,
                     # then applying sum to the members of the target variable entity.
                     projector = getattr(entity_instance.members, child_variable.entity.key)
-                    result_person = projector(input_name, period = period)
+                    result_person = projector(input_name, period = period, options = calculate_options)
                     default_role = child_variable.entity.roles[0]
                     role = options.get(input_name, {}).get("filter", default_role)
                     result = entity_instance.sum(result_person, role = role)
