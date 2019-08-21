@@ -47,7 +47,7 @@ class SimpleTracer:
     def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
-    def record_start(self, timestamp):
+    def record_start_time(self, timestamp):
         pass
 
     def record_calculation_result(self, value: np.ndarray):
@@ -56,7 +56,7 @@ class SimpleTracer:
     def record_parameter_access(self, parameter: str, period, value):
         pass
 
-    def record_end(self, timestamp):
+    def record_end_time(self, timestamp):
         pass
 
     def exit_calculation(self):
@@ -87,14 +87,14 @@ class FullTracer:
         self._simple_tracer.record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
-    def record_start(self, timestamp):
+    def record_start_time(self, timestamp):
         self._current_node['start'] = timestamp
 
     def record_calculation_result(self, value: np.ndarray):
         self._simple_tracer.record_calculation_result(value)
         self._current_node['value'] = value
 
-    def record_end(self, timestamp):
+    def record_end_time(self, timestamp):
         self._current_node['end'] = timestamp
 
     def exit_calculation(self):

@@ -32,13 +32,13 @@ class MockTracer:
     def enter_calculation(self, variable, period):
         self.entered = True
 
-    def record_start(self, timestamp):
+    def record_start_time(self, timestamp):
         self.timer_started = True
 
     def record_calculation_result(self, value):
         self.recorded_result = True
 
-    def record_end(self, timestamp):
+    def record_end_time(self, timestamp):
         self.timer_ended = True
 
     def exit_calculation(self):
@@ -248,8 +248,8 @@ def test_calculation_time():
     tracer = FullTracer()
 
     tracer.enter_calculation('a', 2019)
-    tracer.record_start(1500)
-    tracer.record_end(2500)
+    tracer.record_start_time(1500)
+    tracer.record_end_time(2500)
     tracer.exit_calculation()
 
     performance_json = tracer.performance_log._json()
@@ -265,14 +265,14 @@ def test_calculation_time_with_depth():
     tracer = FullTracer()
 
     tracer.enter_calculation('a', 2019)
-    tracer.record_start(1500)
+    tracer.record_start_time(1500)
 
     tracer.enter_calculation('b', 2019)
-    tracer.record_start(1600)
-    tracer.record_end(2300)
+    tracer.record_start_time(1600)
+    tracer.record_end_time(2300)
     tracer.exit_calculation()
 
-    tracer.record_end(2500)
+    tracer.record_end_time(2500)
     tracer.exit_calculation()
 
     performance_json = tracer.performance_log._json()
