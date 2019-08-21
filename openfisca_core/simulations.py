@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import time
 import tempfile
 import logging
 
@@ -106,7 +105,7 @@ class Simulation(object):
             period = periods.period(period)
 
         self.tracer.enter_calculation(variable_name, period)
-        self.tracer.record_start_time(time.time_ns() / (10**9))
+        self.tracer.record_start_time()
 
         try:
             result = self._calculate(variable_name, period)
@@ -114,7 +113,7 @@ class Simulation(object):
             return result
 
         finally:
-            self.tracer.record_end_time(time.time_ns() / (10**9))
+            self.tracer.record_end_time()
             self.tracer.exit_calculation()
             self.purge_cache_of_invalid_values()
 

@@ -2,8 +2,9 @@
 
 import os
 import json
+import time
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Optional
 from collections import ChainMap
 import importlib.resources as pkg_resources
 
@@ -47,7 +48,7 @@ class SimpleTracer:
     def enter_calculation(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
-    def record_start_time(self, timestamp):
+    def record_start_time(self, time_in_s = None):
         pass
 
     def record_calculation_result(self, value: np.ndarray):
@@ -56,7 +57,7 @@ class SimpleTracer:
     def record_parameter_access(self, parameter: str, period, value):
         pass
 
-    def record_end_time(self, timestamp):
+    def record_end_time(self, time_in_s = None):
         pass
 
     def exit_calculation(self):
@@ -87,15 +88,21 @@ class FullTracer:
         self._simple_tracer.record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
-    def record_start_time(self, timestamp):
-        self._current_node['start'] = timestamp
+    def record_start_time(self, time_in_s: Optional[float] = None):
+        if time_in_s is None:
+            time_in_s = self._get_time_in_sec()
+
+        self._current_node['start'] = time_in_s
 
     def record_calculation_result(self, value: np.ndarray):
         self._simple_tracer.record_calculation_result(value)
         self._current_node['value'] = value
 
-    def record_end_time(self, timestamp):
-        self._current_node['end'] = timestamp
+    def record_end_time(self, time_in_s: Optional[float] = None):
+        if time_in_s is None:
+            time_in_s = self._get_time_in_sec()
+
+        self._current_node['end'] = time_in_s
 
     def exit_calculation(self):
         self._simple_tracer.exit_calculation()
@@ -116,6 +123,9 @@ class FullTracer:
     @property
     def performance_log(self):
         return PerformanceLog(self)
+
+    def _get_time_in_sec(self) -> float:
+        return time.time_ns() / (10**9)
 
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)

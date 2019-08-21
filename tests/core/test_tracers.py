@@ -32,13 +32,13 @@ class MockTracer:
     def enter_calculation(self, variable, period):
         self.entered = True
 
-    def record_start_time(self, timestamp):
+    def record_start_time(self, time_in_s = None):
         self.timer_started = True
 
     def record_calculation_result(self, value):
         self.recorded_result = True
 
-    def record_end_time(self, timestamp):
+    def record_end_time(self, time_in_s = None):
         self.timer_ended = True
 
     def exit_calculation(self):
