@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 
 
-import glob
-from typing import Dict
-from inspect import isclass
-from os import path, linesep
-from imp import find_module, load_module
-import importlib
-import logging
-import inspect
-import pkg_resources
-import traceback
 import copy
+import glob
+import importlib
+import inspect
+import logging
+import traceback
+from imp import find_module, load_module
+from inspect import isclass
+from os import linesep, path
+from typing import Dict
+
+import pkg_resources
 
 from openfisca_core import periods
-from openfisca_core.entities import Entity
-from openfisca_core.populations import Population, GroupPopulation
-from openfisca_core.parameters import ParameterNode
-from openfisca_core.variables import Variable, get_neutralized_variable
-from openfisca_core.errors import VariableNotFound
 from openfisca_core.commons import empty_clone
+from openfisca_core.entities import Entity
+from openfisca_core.errors import VariableNotFound
+from openfisca_core.parameters import ParameterNode
+from openfisca_core.populations import GroupPopulation, Population
 from openfisca_core.simulation_builder import SimulationBuilder
-
+from openfisca_core.variables import Variable, get_neutralized_variable
 
 log = logging.getLogger(__name__)
 
@@ -227,6 +227,45 @@ class TaxBenefitSystem(object):
         subdirectories = glob.glob(path.join(directory, "*/"))
         for subdirectory in subdirectories:
             self.add_variables_from_directory(subdirectory)
+
+    def add_variables_from_decomposition_tree(self, tree):
+        """
+        Adds variables defined in a tree where:
+        - each leaf corresponds to an existing variable
+        - each node sums its children
+        """
+        def visit(node, parent_node = None):
+            variable_name = node["variable_name"]
+            children = node.get("children")
+            if children:
+                # It is a node
+                for child_node in children:
+                    visit(child_node, parent_node = node)
+
+                entity_key = node.get("entity") or parent_node.get("entity")
+                if parent_node is None and not entity_key:
+                    raise ValueError("Decomposition tree: variable '{}' has no entity defined nor its parents".format(variable_name))
+                entity_class = self.entities_by_singular().get(entity_key)
+                if not entity_class:
+                    raise ValueError("Decomposition tree: variable '{}': could not find entity class from entity key '{}'".format(variable_name, entity_key))
+
+                expression = " + ".join(child["variable_name"] for child in children)
+
+                self.add_variable(type(variable_name, (Variable,), dict(
+                    value_type = float,
+                    entity = entity_class,
+                    label = node.get("label") or variable_name,
+                    expression = expression,
+                    expression_options = node.get("expression_options"),
+                    definition_period = node.get("definition_period"),
+                    reference = node.get("reference"),
+                )))
+            else:
+                # It is a leaf
+                if variable_name not in self.variables:
+                    raise VariableNotFound(variable_name, self)
+
+        return visit(tree)
 
     def add_variables(self, *variables):
         """
