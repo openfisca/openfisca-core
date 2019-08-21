@@ -29,20 +29,14 @@ class StubSimulation(Simulation):
 
 class MockTracer:
 
-    def enter_calculation(self, variable, period):
-        self.entered = True
-
-    def record_start_time(self, time_in_s = None):
-        self.timer_started = True
+    def record_calculation_start(self, variable, period):
+        self.calculation_start_recorded = True
 
     def record_calculation_result(self, value):
         self.recorded_result = True
 
-    def record_end_time(self, time_in_s = None):
-        self.timer_ended = True
-
-    def exit_calculation(self):
-        self.exited = True
+    def record_calculation_end(self):
+        self.calculation_end_recorded = True
 
 
 @fixture
@@ -52,22 +46,22 @@ def tracer():
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_one_level(tracer):
-    tracer.enter_calculation('a', 2017)
+    tracer.record_calculation_start('a', 2017)
     assert len(tracer.stack) == 1
     assert tracer.stack == [{'name': 'a', 'period': 2017}]
 
-    tracer.exit_calculation()
+    tracer.record_calculation_end()
     assert tracer.stack == []
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_stack_two_levels(tracer):
-    tracer.enter_calculation('a', 2017)
-    tracer.enter_calculation('b', 2017)
+    tracer.record_calculation_start('a', 2017)
+    tracer.record_calculation_start('b', 2017)
     assert len(tracer.stack) == 2
     assert tracer.stack == [{'name': 'a', 'period': 2017}, {'name': 'b', 'period': 2017}]
 
-    tracer.exit_calculation()
+    tracer.record_calculation_end()
     assert len(tracer.stack) == 1
     assert tracer.stack == [{'name': 'a', 'period': 2017}]
 
@@ -79,10 +73,8 @@ def test_tracer_contract(tracer):
 
     simulation.calculate('a', 2017)
 
-    assert simulation.tracer.entered
-    assert simulation.tracer.timer_started
-    assert simulation.tracer.timer_ended
-    assert simulation.tracer.exited
+    assert simulation.tracer.calculation_start_recorded
+    assert simulation.tracer.calculation_end_recorded
 
 
 def test_exception_robustness():
@@ -93,18 +85,18 @@ def test_exception_robustness():
     with raises(Exception):
         simulation.calculate('a', 2017)
 
-    assert simulation.tracer.entered
-    assert simulation.tracer.exited
+    assert simulation.tracer.calculation_start_recorded
+    assert simulation.tracer.calculation_end_recorded
 
 
 @mark.parametrize("tracer", [SimpleTracer(), FullTracer()])
 def test_cycle_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.enter_calculation('a', 2017)
+    tracer.record_calculation_start('a', 2017)
     simulation._check_for_cycle('a', 2017)
 
-    tracer.enter_calculation('a', 2017)
+    tracer.record_calculation_start('a', 2017)
     with raises(CycleError):
         simulation._check_for_cycle('a', 2017)
 
@@ -113,9 +105,9 @@ def test_cycle_error(tracer):
 def test_spiral_error(tracer):
     simulation = StubSimulation()
     simulation.tracer = tracer
-    tracer.enter_calculation('a', 2017)
-    tracer.enter_calculation('a', 2016)
-    tracer.enter_calculation('a', 2015)
+    tracer.record_calculation_start('a', 2017)
+    tracer.record_calculation_start('a', 2016)
+    tracer.record_calculation_start('a', 2015)
 
     with raises(SpiralError):
         simulation._check_for_cycle('a', 2015)
