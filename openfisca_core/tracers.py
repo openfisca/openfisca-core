@@ -71,10 +71,10 @@ class FullTracer:
 
     def record_calculation_start(self, variable: str, period):
         self._simple_tracer.record_calculation_start(variable, period)
-        self.enter_calculation(variable, period)
-        self.record_start_time()
+        self._enter_calculation(variable, period)
+        self._record_start_time()
 
-    def enter_calculation(self, variable: str, period):
+    def _enter_calculation(self, variable: str, period):
         new_node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node, 'parameters': [], 'value': None}
         if self._current_node is None:
             self._trees.append(new_node)
@@ -85,7 +85,7 @@ class FullTracer:
     def record_parameter_access(self, parameter: str, period, value):
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
-    def record_start_time(self, time_in_s: Optional[float] = None):
+    def _record_start_time(self, time_in_s: Optional[float] = None):
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
@@ -96,16 +96,16 @@ class FullTracer:
 
     def record_calculation_end(self):
         self._simple_tracer.record_calculation_end()
-        self.record_end_time()
-        self.exit_calculation()
+        self._record_end_time()
+        self._exit_calculation()
 
-    def record_end_time(self, time_in_s: Optional[float] = None):
+    def _record_end_time(self, time_in_s: Optional[float] = None):
         if time_in_s is None:
             time_in_s = self._get_time_in_sec()
 
         self._current_node['end'] = time_in_s
 
-    def exit_calculation(self):
+    def _exit_calculation(self):
         self._current_node = self._current_node['parent']
 
     @property
