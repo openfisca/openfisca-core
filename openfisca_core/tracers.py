@@ -249,11 +249,8 @@ class PerformanceLog:
             f.write(pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html'))
 
     def _json(self):
-        first_tree = self._full_tracer.trees[0]
-        last_tree = self._full_tracer.trees[-1]
-        simulation_total_time = last_tree['end'] - first_tree['start']
-
         children = [self._json_tree(tree) for tree in self._full_tracer.trees]
+        simulation_total_time = sum(child['value'] for child in children)
         return {'name': 'simulation', 'value': simulation_total_time, 'children': children}
 
     def _json_tree(self, tree):
