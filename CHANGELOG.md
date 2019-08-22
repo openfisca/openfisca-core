@@ -1,5 +1,46 @@
 # Changelog
 
+## 34.4.0 [#895](https://github.com/openfisca/openfisca-core/pull/895)
+
+#### New features
+
+- Introduce the time performance flame graph
+  - Generates a flame graph in a web page to view the time taken by every calculation in a simulation
+  - Introduces `--performance` option to `openfisca test` command to generate a YAML test graph
+
+#### Usage notes
+
+1. To generate the flame graph:
+  * For a Python simulation:
+
+    ```py
+    tax_benefit_system = CountryTaxBenefitSystem()
+    simulation = SimulationBuilder().build_default_simulation(tax_benefit_system)
+    
+    simulation.trace = True  # set the full tracer
+    [... simulation.calculate(...) ...]
+    simulation.tracer.performance_log.generate_graph(".")  # generate graph in chosen directory
+    ```
+   
+  * For a YAML test, execute the test with the `--performance` option. 
+   
+      For example, to run the `irpp.yaml` test in `openfisca-france/` run:
+      ```sh
+      openfisca test tests/formulas/irpp.yaml --performance -c openfisca_france
+      ```
+      This generates an `index.html` file in the current directory.    
+
+2. From the current directory, run a Python web server (here on port `5000`):
+
+    `python -m http.server 5000`
+
+
+3. See the flame graph result in your browser at `http://localhost:5000`.  
+  This interprets the generated `index.html`.
+
+When your yaml file contains multiple tests, only the last one is displayed in the flame chart.
+You can use [openfisca test --name_filter option](https://openfisca.org/doc/openfisca-python-api/openfisca-run-test.html) to choose a specific test case.
+
 ### 34.3.3 [#902](https://github.com/openfisca/openfisca-core/pull/902)
 
 #### Technical change

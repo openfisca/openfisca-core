@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import os
+import json
+import time
 import numpy as np
-
-from typing import List, Dict
+from typing import List, Dict, Optional
 from collections import ChainMap
+import importlib.resources as pkg_resources
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
 from openfisca_core.indexed_enums import EnumArray
@@ -42,7 +45,7 @@ class SimpleTracer:
     def __init__(self):
         self._stack = []
 
-    def enter_calculation(self, variable: str, period):
+    def record_calculation_start(self, variable: str, period):
         self.stack.append({'name': variable, 'period': period})
 
     def record_calculation_result(self, value: np.ndarray):
@@ -51,7 +54,7 @@ class SimpleTracer:
     def record_parameter_access(self, parameter: str, period, value):
         pass
 
-    def exit_calculation(self):
+    def record_calculation_end(self):
         self.stack.pop()
 
     @property
@@ -66,8 +69,12 @@ class FullTracer:
         self._trees = []
         self._current_node = None
 
-    def enter_calculation(self, variable: str, period):
-        self._simple_tracer.enter_calculation(variable, period)
+    def record_calculation_start(self, variable: str, period):
+        self._simple_tracer.record_calculation_start(variable, period)
+        self._enter_calculation(variable, period)
+        self._record_start_time()
+
+    def _enter_calculation(self, variable: str, period):
         new_node = {'name': variable, 'period': period, 'children': [], 'parent': self._current_node, 'parameters': [], 'value': None}
         if self._current_node is None:
             self._trees.append(new_node)
@@ -76,15 +83,29 @@ class FullTracer:
         self._current_node = new_node
 
     def record_parameter_access(self, parameter: str, period, value):
-        self._simple_tracer.record_parameter_access(parameter, period, value)
         self._current_node['parameters'].append({'name': parameter, 'period': period, 'value': value})
 
+    def _record_start_time(self, time_in_s: Optional[float] = None):
+        if time_in_s is None:
+            time_in_s = self._get_time_in_sec()
+
+        self._current_node['start'] = time_in_s
+
     def record_calculation_result(self, value: np.ndarray):
-        self._simple_tracer.record_calculation_result(value)
         self._current_node['value'] = value
 
-    def exit_calculation(self):
-        self._simple_tracer.exit_calculation()
+    def record_calculation_end(self):
+        self._simple_tracer.record_calculation_end()
+        self._record_end_time()
+        self._exit_calculation()
+
+    def _record_end_time(self, time_in_s: Optional[float] = None):
+        if time_in_s is None:
+            time_in_s = self._get_time_in_sec()
+
+        self._current_node['end'] = time_in_s
+
+    def _exit_calculation(self):
         self._current_node = self._current_node['parent']
 
     @property
@@ -99,8 +120,18 @@ class FullTracer:
     def computation_log(self):
         return ComputationLog(self)
 
+    @property
+    def performance_log(self):
+        return PerformanceLog(self)
+
+    def _get_time_in_sec(self) -> float:
+        return time.time_ns() / (10**9)
+
     def print_computation_log(self, aggregate = False):
         self.computation_log.print_log(aggregate)
+
+    def generate_performance_graph(self, dir_path):
+        self.performance_log.generate_graph(dir_path)
 
     def _get_nb_requests(self, tree, variable: str):
         tree_call = tree['name'] == variable
@@ -151,7 +182,7 @@ class FullTracer:
 class ComputationLog:
 
     def __init__(self, full_tracer):
-        self.full_tracer = full_tracer
+        self._full_tracer = full_tracer
 
     def display(self, value):
         if isinstance(value, EnumArray):
@@ -189,7 +220,7 @@ class ComputationLog:
 
     def lines(self, aggregate = False) -> List[str]:
         depth = 1
-        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self.full_tracer.trees]
+        lines_by_tree = [self._get_node_log(node, depth, aggregate) for node in self._full_tracer.trees]
         return self._flatten(lines_by_tree)
 
     def print_log(self, aggregate = False):
@@ -203,3 +234,29 @@ class ComputationLog:
         """
         for line in self.lines(aggregate):
             print(line)  # noqa T001
+
+
+class PerformanceLog:
+
+    def __init__(self, full_tracer):
+        self._full_tracer = full_tracer
+
+    def generate_graph(self, dir_path):
+        with open(os.path.join(dir_path, 'performance.json'), 'w') as f:
+            f.write(json.dumps(self._json()))
+
+        with open(os.path.join(dir_path, 'index.html'), 'w') as f:
+            f.write(pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html'))
+
+    def _json(self):
+        first_tree = self._full_tracer.trees[0]
+        last_tree = self._full_tracer.trees[-1]
+        simulation_total_time = last_tree['end'] - first_tree['start']
+
+        children = [self._json_tree(tree) for tree in self._full_tracer.trees]
+        return {'name': 'simulation', 'value': simulation_total_time, 'children': children}
+
+    def _json_tree(self, tree):
+        calculation_total_time = tree['end'] - tree['start']
+        children = [self._json_tree(child) for child in tree['children']]
+        return {'name': f"{tree['name']}<{tree['period']}>", 'value': calculation_total_time, 'children': children}

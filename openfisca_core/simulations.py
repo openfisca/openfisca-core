@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import tempfile
 import logging
 
@@ -105,7 +104,7 @@ class Simulation(object):
         if period is not None and not isinstance(period, periods.Period):
             period = periods.period(period)
 
-        self.tracer.enter_calculation(variable_name, period)
+        self.tracer.record_calculation_start(variable_name, period)
 
         try:
             result = self._calculate(variable_name, period)
@@ -113,7 +112,7 @@ class Simulation(object):
             return result
 
         finally:
-            self.tracer.exit_calculation()
+            self.tracer.record_calculation_end()
             self.purge_cache_of_invalid_values()
 
     def _calculate(self, variable_name, period: periods.Period):

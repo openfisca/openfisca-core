@@ -17,3 +17,4 @@ dist/
 .noseids
 .pytest_cache
 .mypy_cache
+performance.json

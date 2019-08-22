@@ -1,13 +1,21 @@
-from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem
-from openfisca_core.errors import VariableNotFound
-
-
+import os
 import pytest
+import numpy as np
+import json
+
+from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
+from openfisca_core.errors import VariableNotFound
+from openfisca_core.variables import Variable
+from openfisca_core.populations import Population
+from openfisca_core.entities import Entity
+from openfisca_core.periods import ETERNITY
 
 
 class TaxBenefitSystem:
     def __init__(self):
-        self.variables = {}
+        self.variables = {'salary': TestVariable()}
+        self.person_entity = Entity('person', 'persons', None, "")
+        self.person_entity.set_tax_benefit_system(self)
 
     def get_package_metadata(self):
         return {"name": "Test", "version": "Test"}
@@ -17,6 +25,18 @@ class TaxBenefitSystem:
 
     def load_extension(self, extension):
         pass
+
+    def entities_by_singular(self):
+        return {}
+
+    def entities_plural(self):
+        return {}
+
+    def instantiate_entities(self):
+        return {'person': Population(self.person_entity)}
+
+    def get_variable(self, variable_name, check_existence = True):
+        return self.variables.get(variable_name)
 
     def clone(self):
         return TaxBenefitSystem()
@@ -29,17 +49,38 @@ class Reform(TaxBenefitSystem):
 
 class Simulation:
     def __init__(self):
-        self.populations = {}
+        self.populations = {"person": None}
 
     def get_population(self, plural = None):
         return None
 
 
+class TestFile(YamlFile):
+
+    def __init__(self):
+        self.config = None
+        self.session = None
+        self._nodeid = 'testname'
+
+
 class TestItem(YamlItem):
     def __init__(self, test):
-        self.test = test
+        super().__init__('', TestFile(), TaxBenefitSystem(), test, {})
+
+        self.tax_benefit_system = self.baseline_tax_benefit_system
         self.simulation = Simulation()
-        self.tax_benefit_system = TaxBenefitSystem()
+
+
+class TestVariable(Variable):
+    definition_period = ETERNITY
+    value_type = float
+
+    def __init__(self):
+        self.end = None
+        self.entity = Entity('person', 'persons', None, "")
+        self.is_neutralized = False
+        self.set_input = None
+        self.dtype = np.float32
 
 
 def test_variable_not_found():
@@ -96,3 +137,30 @@ def test_extensions_order():
     xy_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['x', 'y'])
     yx_tax_benefit_system = _get_tax_benefit_system(baseline, [], ['y', 'x'])
     assert xy_tax_benefit_system == yx_tax_benefit_system  # extensions order is ignored in cache
+
+
+def test_performance_option_output():
+    test = {'input': {'salary': {'2017-01': 2000}}, 'output': {'salary': {'2017-01': 2000}}}
+    test_item = TestItem(test)
+    test_item.options = {'performance': True}
+
+    performance_path = "./performance.json"
+    graph_path = "./index.html"
+    clean_performance_files(performance_path, graph_path)
+
+    test_item.runtest()
+
+    assert test_item.simulation.trace
+    assert os.path.isfile(graph_path)
+
+    assert os.path.isfile(performance_path)
+    with open(performance_path, "r") as f:
+        assert json.loads(f.read()).get('name')
+    clean_performance_files(performance_path, graph_path)
+
+
+def clean_performance_files(performance_path, graph_path):
+    if os.path.isfile(performance_path):
+        os.remove(performance_path)
+    if os.path.isfile(graph_path):
+        os.remove(graph_path)

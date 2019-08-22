@@ -16,6 +16,7 @@ def main(parser):
 
     options = {
         'pdb': args.pdb,
+        'performance': args.performance,
         'verbose': args.verbose,
         'name_filter': args.name_filter,
         'only_variables': args.only_variables,
