@@ -154,8 +154,8 @@ def test_performance_option_output():
     assert os.path.isfile(graph_path)
 
     assert os.path.isfile(performance_path)
-    f = open(performance_path, "r")
-    assert json.loads(f.read()).get('name')
+    with open(performance_path, "r") as f:
+        assert json.loads(f.read()).get('name')
     clean_performance_files(performance_path, graph_path)
 
 
