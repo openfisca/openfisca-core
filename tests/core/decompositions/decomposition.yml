@@ -1,0 +1,10 @@
+variable_name: disposable_income
+entity: person
+definition_period: month
+children:
+  - variable_name: salary
+  - variable_name: basic_income
+  - variable_name: income_tax
+    negate: true
+  - variable_name: social_security_contribution
+    negate: true

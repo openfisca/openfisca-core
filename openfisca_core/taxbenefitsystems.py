@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+import collections
 import copy
 import glob
 import importlib
@@ -228,12 +229,35 @@ class TaxBenefitSystem(object):
         for subdirectory in subdirectories:
             self.add_variables_from_directory(subdirectory)
 
-    def add_variables_from_decomposition_tree(self, tree):
+    def add_variables_from_decomposition_tree(self, tree, update = False):
         """
         Adds variables defined in a tree where:
         - each leaf corresponds to an existing variable
         - each node sums its children
+
+        :param update: if False, will raise a `VariableNameConflict` exception if the variable already exists; if True, will replace any existing variable; if list of str, will replace only the listed variables.
         """
+        for variable_class in self._iter_variables_from_decomposition_tree(tree):
+            variable_name = variable_class.__name__
+            if update is True or isinstance(update, collections.abc.Container) and variable_name in update:
+                self.load_variable(variable_class, update = True)
+            else:
+                self.add_variable(variable_class)
+
+    def _iter_variables_from_decomposition_tree(self, tree):
+        def iter_expression_terms(children):
+            if not children:
+                return
+
+            children = iter(children)
+
+            first_child = next(children)
+            yield first_child["variable_name"]
+
+            for child in children:
+                sign = "-" if child.get("negate") else "+"
+                yield " {} {}".format(sign, child["variable_name"])
+
         def visit(node, parent_node = None):
             variable_name = node["variable_name"]
             children = node.get("children")
@@ -249,9 +273,10 @@ class TaxBenefitSystem(object):
                 if not entity_class:
                     raise ValueError("Decomposition tree: variable '{}': could not find entity class from entity key '{}'".format(variable_name, entity_key))
 
-                expression = " + ".join(child["variable_name"] for child in children)
+                expression = "".join(iter_expression_terms(children))
 
-                self.add_variable(type(variable_name, (Variable,), dict(
+                log.debug("Generating variable '{}' with expression '{}'".format(variable_name, expression))
+                variable_class = type(variable_name, (Variable,), dict(
                     value_type = float,
                     entity = entity_class,
                     label = node.get("label") or variable_name,
@@ -259,13 +284,14 @@ class TaxBenefitSystem(object):
                     expression_options = node.get("expression_options"),
                     definition_period = node.get("definition_period"),
                     reference = node.get("reference"),
-                )))
+                    ))
+                yield variable_class
             else:
                 # It is a leaf
                 if variable_name not in self.variables:
                     raise VariableNotFound(variable_name, self)
 
-        return visit(tree)
+        yield from visit(tree)
 
     def add_variables(self, *variables):
         """
