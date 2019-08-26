@@ -1,7 +1,6 @@
 import os
 import pytest
 import numpy as np
-import json
 
 from openfisca_core.tools.test_runner import _get_tax_benefit_system, YamlItem, YamlFile
 from openfisca_core.errors import VariableNotFound
@@ -144,23 +143,17 @@ def test_performance_option_output():
     test_item = TestItem(test)
     test_item.options = {'performance': True}
 
-    performance_path = "./performance.json"
     graph_path = "./index.html"
-    clean_performance_files(performance_path, graph_path)
+    clean_performance_files(graph_path)
 
     test_item.runtest()
 
     assert test_item.simulation.trace
     assert os.path.isfile(graph_path)
 
-    assert os.path.isfile(performance_path)
-    with open(performance_path, "r") as f:
-        assert json.loads(f.read()).get('name')
-    clean_performance_files(performance_path, graph_path)
+    clean_performance_files(graph_path)
 
 
-def clean_performance_files(performance_path, graph_path):
-    if os.path.isfile(performance_path):
-        os.remove(performance_path)
+def clean_performance_files(graph_path):
     if os.path.isfile(graph_path):
         os.remove(graph_path)

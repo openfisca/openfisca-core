@@ -242,11 +242,10 @@ class PerformanceLog:
         self._full_tracer = full_tracer
 
     def generate_graph(self, dir_path):
-        with open(os.path.join(dir_path, 'performance.json'), 'w') as f:
-            f.write(json.dumps(self._json()))
-
         with open(os.path.join(dir_path, 'index.html'), 'w') as f:
-            f.write(pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html'))
+            template = pkg_resources.read_text('openfisca_core.scripts.assets', 'index.html')
+            perf_graph_html = template.replace('{{data}}', json.dumps(self._json()))
+            f.write(perf_graph_html)
 
     def _json(self):
         children = [self._json_tree(tree) for tree in self._full_tracer.trees]
