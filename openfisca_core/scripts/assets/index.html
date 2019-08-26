@@ -87,7 +87,9 @@
       .transitionDuration(750)
       .minFrameSize(2)
       .transitionEase(d3.easeCubic)
-      .sort(false)
+      .sort(function(a, b) {
+        return (a.data.value < b.data.value) ? 1 : -1;
+      })
       .title("")
       .onClick(onClick)
       .differential(false)
