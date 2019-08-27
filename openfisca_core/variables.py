@@ -450,33 +450,37 @@ class Variable(object):
 
         ex = ne.NumExpr(expression)
 
-        def formula(entity_instance, period, parameters):
-            tax_benefit_system = entity_instance.simulation.tax_benefit_system
+        def formula(target_population, period, parameters):
+            tax_benefit_system = target_population.simulation.tax_benefit_system
             local_dict = {}
             for input_name in ex.input_names:
                 child_variable = tax_benefit_system.get_variable(input_name, check_existence = True)
                 calculate_options = options.get(input_name, {}).get("calculate", default_calculate_options)
 
-                if child_variable.entity.key == entity_instance.entity.key:
+                if child_variable.entity.key == target_population.entity.key:
                     # Child variable entity is the same as target variable entity, so no need to project.
-                    result = entity_instance(input_name, period = period, options = calculate_options)
+                    result = target_population(input_name, period = period, options = calculate_options)
 
-                elif entity_instance.entity.is_person:
-                    raise NotImplementedError((self, self.name, entity_instance, entity_instance.entity))
+                elif target_population.entity.is_person:
+                    # Child variable entity is a group entity.
+                    assert not child_variable.entity.is_person, child_variable.entity  # cf "if" above
+                    # TODO
+                    # breakpoint()
+                    # projector = getattr(target_population.members, child_variable.entity.key)
 
                 elif child_variable.entity.is_person:
                     # Child variable entity is a person entity, so applying sum to the members of the target variable entity.
-                    result_person = entity_instance.members(input_name, period = period, options = calculate_options)
-                    result = entity_instance.sum(result_person)
+                    result_person = target_population.members(input_name, period = period, options = calculate_options)
+                    result = target_population.sum(result_person)
 
                 else:
                     # Child variable entity is a group entity, so filtering child variable entity with a role,
                     # then applying sum to the members of the target variable entity.
-                    projector = getattr(entity_instance.members, child_variable.entity.key)
+                    projector = getattr(target_population.members, child_variable.entity.key)
                     result_person = projector(input_name, period = period, options = calculate_options)
                     default_role = child_variable.entity.roles[0]
                     role = options.get(input_name, {}).get("filter", default_role)
-                    result = entity_instance.sum(result_person, role = role)
+                    result = target_population.sum(result_person, role = role)
 
                 local_dict[input_name] = result
 
