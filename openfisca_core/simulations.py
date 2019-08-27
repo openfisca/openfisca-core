@@ -158,6 +158,7 @@ class Simulation(object):
         for (_name, _period) in self.invalidated_caches:
             holder = self.get_holder(_name)
             holder.delete_arrays(_period)
+        self.invalidated_caches = set()
 
     def calculate_add(self, variable_name, period):
         variable = self.tax_benefit_system.get_variable(variable_name, check_existence = True)
