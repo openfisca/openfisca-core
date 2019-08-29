@@ -464,9 +464,14 @@ class Variable(object):
                 elif target_population.entity.is_person:
                     # Child variable entity is a group entity.
                     assert not child_variable.entity.is_person, child_variable.entity  # cf "if" above
-                    # TODO
-                    # breakpoint()
-                    # projector = getattr(target_population.members, child_variable.entity.key)
+                    child_popuplation = getattr(target_population.simulation, child_variable.entity.key)
+                    projector = getattr(child_popuplation.members, child_variable.entity.key)
+                    default_role = child_variable.entity.roles[0]
+                    role = options.get(input_name, {}).get("filter", default_role)
+                    result = (
+                        projector(input_name, period = period, options = calculate_options)
+                        * target_population.has_role(role)
+                        )
 
                 elif child_variable.entity.is_person:
                     # Child variable entity is a person entity, so applying sum to the members of the target variable entity.

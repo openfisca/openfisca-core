@@ -261,14 +261,22 @@ class TaxBenefitSystem(object):
         def visit(node, parent_node = None):
             variable_name = node["variable_name"]
             children = node.get("children")
+
+            definition_period = node.get("definition_period") or parent_node.get("definition_period")
+            node["definition_period"] = definition_period
+            if not definition_period:
+                raise ValueError("Decomposition tree: variable '{}' has no definition_period defined nor its parents".format(variable_name))
+
+            entity_key = node.get("entity") or parent_node.get("entity")
+            node["entity"] = entity_key
+            if parent_node is None and not entity_key:
+                raise ValueError("Decomposition tree: variable '{}' has no entity defined nor its parents".format(variable_name))
+
             if children:
                 # It is a node
                 for child_node in children:
-                    visit(child_node, parent_node = node)
+                    yield from visit(child_node, parent_node = node)
 
-                entity_key = node.get("entity") or parent_node.get("entity")
-                if parent_node is None and not entity_key:
-                    raise ValueError("Decomposition tree: variable '{}' has no entity defined nor its parents".format(variable_name))
                 entity_class = self.entities_by_singular().get(entity_key)
                 if not entity_class:
                     raise ValueError("Decomposition tree: variable '{}': could not find entity class from entity key '{}'".format(variable_name, entity_key))
@@ -282,7 +290,7 @@ class TaxBenefitSystem(object):
                     label = node.get("label") or variable_name,
                     expression = expression,
                     expression_options = node.get("expression_options"),
-                    definition_period = node.get("definition_period"),
+                    definition_period = definition_period,
                     reference = node.get("reference"),
                     ))
                 yield variable_class
