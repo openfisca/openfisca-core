@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from typing import List, Dict, Optional, Iterator
-from collections import ChainMap
 import importlib.resources as pkg_resources
 
 from openfisca_core.parameters import ParameterNodeAtInstant, VectorialParameterNodeAtInstant, ALLOWED_PARAM_TYPES
@@ -77,6 +76,12 @@ class TraceNode:
     value: np.ndarray = None
     start: float = 0
     end: float = 0
+
+    def calculation_time(self):
+        return self.end - self.start
+
+    def formula_time(self):
+        return self.calculation_time() - sum(child.calculation_time() for child in self.children)
 
 
 class FullTracer:
@@ -181,6 +186,7 @@ class FullTracer:
 
     def _get_flat_trace(self, node: TraceNode) -> Dict[str, Dict]:
         key = self.key(node)
+
         node_trace = {
             key: {
                 'dependencies': [
@@ -189,8 +195,10 @@ class FullTracer:
                 'parameters': {
                     self.key(parameter): self.serialize(parameter.value) for parameter in node.parameters
                     },
-                'value': self.serialize(node.value)
-                }
+                'value': self.serialize(node.value),
+                'calculation_time': node.calculation_time(),
+                'formula_time': node.formula_time(),
+                },
             }
         return node_trace
 
@@ -202,7 +210,6 @@ class FullTracer:
 
         for node in self._trees:
             yield from _browse_node(node)
-
 
 
 class ComputationLog:
@@ -278,7 +285,7 @@ class PerformanceLog:
         calculations_total_time = sum(child['value'] for child in children)
         return {'name': 'All calculations', 'value': calculations_total_time, 'children': children}
 
-    def _json_tree(self, tree):
-        calculation_total_time = tree.end - tree.start
+    def _json_tree(self, tree: TraceNode):
+        calculation_total_time = tree.calculation_time()
         children = [self._json_tree(child) for child in tree.children]
         return {'name': f"{tree.name}<{tree.period}>", 'value': calculation_total_time, 'children': children}

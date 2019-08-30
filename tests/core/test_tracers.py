@@ -253,7 +253,8 @@ def test_calculation_time():
     assert simulation_children[0]['value'] == 1000
 
 
-def test_calculation_time_with_depth():
+@fixture
+def tracer_calc_time():
     tracer = FullTracer()
 
     tracer._enter_calculation('a', 2019)
@@ -264,14 +265,42 @@ def test_calculation_time_with_depth():
     tracer._record_end_time(2300)
     tracer._exit_calculation()
 
+    tracer._enter_calculation('c', 2019)
+    tracer._record_start_time(2300)
+    tracer._record_end_time(2400)
+    tracer._exit_calculation()
+
+    # Cache call
+    tracer._enter_calculation('c', 2019)
+    tracer._record_start_time(2400)
+    tracer._record_end_time(2410)
+    tracer._exit_calculation()
+
     tracer._record_end_time(2500)
     tracer._exit_calculation()
 
+    return tracer
+
+
+def test_calculation_time_with_depth(tracer_calc_time):
+    tracer = tracer_calc_time
     performance_json = tracer.performance_log._json()
     simulation_grand_children = performance_json['children'][0]['children']
 
     assert simulation_grand_children[0]['name'] == 'b<2019>'
     assert simulation_grand_children[0]['value'] == 700
+
+
+def test_flat_trace_calc_time(tracer_calc_time):
+    tracer = tracer_calc_time
+    flat_trace = tracer.get_flat_trace()
+
+    assert flat_trace['a<2019>']['calculation_time'] == 1000
+    assert flat_trace['b<2019>']['calculation_time'] == 700
+    assert flat_trace['c<2019>']['calculation_time'] == 100
+    assert flat_trace['a<2019>']['formula_time'] == 1000 - 700 - 100 - 10
+    assert flat_trace['b<2019>']['formula_time'] == 700
+    assert flat_trace['c<2019>']['formula_time'] == 100
 
 
 def test_variable_stats(tracer):
